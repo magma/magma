@@ -48,8 +48,14 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#ifdef __cplusplus
+}
+#endif
 #if MME_BENCHMARK
 #include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
 #endif

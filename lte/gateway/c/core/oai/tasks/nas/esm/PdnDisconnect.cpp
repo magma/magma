@@ -32,7 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"

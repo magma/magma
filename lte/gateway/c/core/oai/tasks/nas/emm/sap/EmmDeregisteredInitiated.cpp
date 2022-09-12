@@ -26,9 +26,10 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -57,7 +58,7 @@ extern "C" {
  **      Others:    emm_fsm_status                             **
  **                                                                        **
  ***************************************************************************/
-status_code_e EmmDeregisteredInitiated(const emm_reg_t* evt) {
+status_code_e EmmDeregisteredInitiated(emm_reg_t* const evt) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_context_t* emm_ctx = evt->ctx;

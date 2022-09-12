@@ -51,13 +51,14 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #ifdef __cplusplus
 }
 #endif
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

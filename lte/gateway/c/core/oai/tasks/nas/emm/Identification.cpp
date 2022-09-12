@@ -40,6 +40,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -48,7 +49,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 

@@ -43,9 +43,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -56,14 +57,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

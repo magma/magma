@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      nas_network.h
+Source      nas_network.hpp
 
 Version     0.1
 
@@ -52,9 +52,15 @@ Description NAS procedure functions triggered by the network
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void nas_network_initialize(const mme_config_t* mme_config_p);
 
 void nas_network_cleanup(void);
+#ifdef __cplusplus
+}
+#endif
 
 int nas_network_process_data(int command_id, const void* data);
 

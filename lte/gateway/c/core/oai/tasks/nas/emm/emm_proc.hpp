@@ -42,7 +42,7 @@ Description Defines the EPS Mobility Management procedures executed at
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
-#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"  //nas_message_decode_status_t
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"  //nas_message_decode_status_t
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 /****************************************************************************/
@@ -172,9 +172,14 @@ typedef struct emm_tau_request_ies_s {
  *              EMM status procedure
  *---------------------------------------------------------------------------
  */
-status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
+/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+
+/*status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
                                   emm_cause_t emm_cause);
-status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
+status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);*/
 
 /*
  *---------------------------------------------------------------------------
@@ -194,7 +199,20 @@ status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
  * --------------------------------------------------------------------------
  */
 
-void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
+/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+
+/*void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
+void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc);
+void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
+void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
+void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies);
+status_code_e emm_proc_emm_information(ue_mm_context_t* emm_ctx);
+void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
+void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
+void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);*/
 
 status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool ctx_is_new,
@@ -210,9 +228,6 @@ status_code_e emm_proc_attach_complete(
     mme_ue_s1ap_id_t ue_id, const_bstring esm_msg_pP, int emm_cause,
     const nas_message_decode_status_t status);
 
-void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc);
-
-void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
 
 status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
@@ -237,7 +252,6 @@ status_code_e emm_proc_sgs_detach_request(mme_ue_s1ap_id_t ue_id,
                                           emm_proc_sgs_detach_type_t type);
 status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                    uint8_t detach_type);
-void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies);
 status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
                                       emm_detach_request_ies_t* params);
 status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id);
@@ -285,9 +299,14 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
                                                int emm_cause,
                                                const_bstring const res);
 
-void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
-void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
-void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
+/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+
+/*void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
+void clear_emm_ctxt(emm_context_t* emm_ctx);*/
+
 /*
  * --------------------------------------------------------------------------
  *          Security mode control procedure
@@ -301,11 +320,9 @@ status_code_e emm_proc_security_mode_control(
 status_code_e emm_proc_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t* const imeisv);
 status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id);
-status_code_e emm_proc_emm_information(ue_mm_context_t* emm_ctx);
 
 status_code_e release_esm_pdn_context(emm_context_t* emm_ctx,
                                       mme_ue_s1ap_id_t ue_id);
-void clear_emm_ctxt(emm_context_t* emm_ctx);
 
 status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id);
 status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
@@ -313,8 +330,6 @@ status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
 status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
                                             bstring nas_msg);
 
-void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
-void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 /*
  *---------------------------------------------------------------------------
  *             Network indication handlers

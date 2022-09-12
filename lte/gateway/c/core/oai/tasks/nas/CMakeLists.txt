@@ -13,11 +13,11 @@ message("Proto_srcs are ${PROTO_SRCS}")
 include_directories("${S1AP_C_DIR}")
 include_directories(${CMAKE_SOURCE_DIR})
 set(libnas_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.cpp
     )
 
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 set(libnas_emm_msg_OBJS
@@ -135,7 +135,7 @@ set(libnas_utils_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/api/mme)
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm)
@@ -197,9 +197,9 @@ set(libnas_mme_esm_sap_OBJS
     )
 
 add_library(TASK_NAS
-    nas_network.c
-    nas_proc.c
-    nas_procedures.c
+    nas_network.cpp
+    nas_proc.cpp
+    nas_procedures.cpp
     nas_state_converter.cpp
     ${libnas_api_OBJS}
     ${libnas_mme_api_OBJS}

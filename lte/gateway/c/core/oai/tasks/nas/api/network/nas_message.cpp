@@ -21,13 +21,19 @@
 #include <stdbool.h>
 #include <netinet/in.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/ServiceRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
@@ -348,7 +354,7 @@ int nas_message_decode(const unsigned char* const buffer, nas_message_t* msg,
    * Decode the header
    */
   OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS,
-                    "Incoming NAS message: ", buffer, length);
+                    "Incoming NAS message: ", (const char*)buffer, length);
   if (emm_security_context) {
     status->security_context_available = 1;
   }

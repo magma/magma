@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  Source      nas_proc.c
+  Source      nas_proc.cpp
 
   Version     0.1
 
@@ -35,10 +35,16 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
@@ -46,15 +52,10 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_main.hpp"
-#ifdef __cplusplus
-}
-#endif
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -62,7 +63,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
@@ -167,7 +168,7 @@ status_code_e nas_proc_establish_ind(
   status_code_e rc = RETURNerror;
 
   if (msg) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
 
     /*
      * Notify the EMM procedure call manager that NAS signalling
@@ -213,7 +214,7 @@ status_code_e nas_proc_dl_transfer_cnf(const uint32_t ue_id,
                                        const nas_error_code_t status,
                                        bstring* STOLEN_REF nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   /*
@@ -257,7 +258,7 @@ status_code_e nas_proc_dl_transfer_rej(const uint32_t ue_id,
                                        const nas_error_code_t status,
                                        bstring* STOLEN_REF nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   /*
@@ -316,7 +317,7 @@ status_code_e nas_proc_ul_transfer_ind(const mme_ue_s1ap_id_t ue_id,
       "\n",
       ue_id);
   if (msg) {
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
 
     /*
      * Notify the EMM procedure call manager that data transfer
@@ -425,8 +426,8 @@ status_code_e nas_proc_auth_param_res(mme_ue_s1ap_id_t ue_id,
                                       eutran_vector_t* vectors) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-  emm_cn_auth_res_t emm_cn_auth_res = {0};
+  emm_sap_t emm_sap = {};
+  emm_cn_auth_res_t emm_cn_auth_res = {};
 
   emm_cn_auth_res.ue_id = ue_id;
   emm_cn_auth_res.nb_vectors = nb_vectors;
@@ -445,7 +446,7 @@ status_code_e nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id,
                                        nas_cause_t cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_cn_auth_fail_t emm_cn_auth_fail = {0};
 
   emm_cn_auth_fail.cause = cause;
@@ -461,7 +462,7 @@ status_code_e nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id,
 status_code_e nas_proc_ula_success(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_cn_ula_success_t emm_cn_ula_success = {0};
   emm_cn_ula_success.ue_id = ue_id;
   emm_sap.primitive = EMMCN_ULA_SUCCESS;
@@ -479,7 +480,7 @@ status_code_e nas_proc_cs_respose_success(
     emm_cn_cs_response_success_t* cs_response_success) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   emm_sap.primitive = EMMCN_CS_RESPONSE_SUCCESS;
   emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
@@ -496,7 +497,7 @@ status_code_e nas_proc_ula_or_csrsp_fail(
     emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   emm_sap.primitive = EMMCN_ULA_OR_CSRSP_FAIL;
   emm_sap.u.emm_cn.u.emm_cn_ula_or_csrsp_fail = ula_or_csrsp_fail;
@@ -509,8 +510,8 @@ status_code_e nas_proc_create_dedicated_bearer(
     emm_cn_activate_dedicated_bearer_req_t* emm_cn_activate) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-  emm_sap.primitive = _EMMCN_ACTIVATE_DEDICATED_BEARER_REQ;
+  emm_sap_t emm_sap = {};
+  emm_sap.primitive = (emm_primitive_t)_EMMCN_ACTIVATE_DEDICATED_BEARER_REQ;
   emm_sap.u.emm_cn.u.activate_dedicated_bearer_req = emm_cn_activate;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -521,8 +522,8 @@ status_code_e nas_proc_delete_dedicated_bearer(
     emm_cn_deactivate_dedicated_bearer_req_t* emm_cn_deactivate) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-  emm_sap.primitive = _EMMCN_DEACTIVATE_BEARER_REQ;
+  emm_sap_t emm_sap = {};
+  emm_sap.primitive = (emm_primitive_t)_EMMCN_DEACTIVATE_BEARER_REQ;
   emm_sap.u.emm_cn.u.deactivate_dedicated_bearer_req = emm_cn_deactivate;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -531,7 +532,7 @@ status_code_e nas_proc_delete_dedicated_bearer(
 //------------------------------------------------------------------------------
 status_code_e nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id) {
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
@@ -544,7 +545,7 @@ status_code_e nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id) {
 status_code_e nas_proc_nw_initiated_detach_ue_request(
     emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p) {
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
@@ -569,7 +570,7 @@ status_code_e nas_proc_downlink_unitdata(
   imsi64_t imsi64 = INVALID_IMSI64;
   status_code_e rc = RETURNerror;
   emm_context_t* ctxt = NULL;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -656,8 +657,8 @@ status_code_e encode_mobileid_imsi_tmsi(MobileIdentity* out, MobileIdentity in,
 status_code_e nas_proc_cs_domain_location_updt_fail(
     SgsRejectCause_t cause, lai_t* lai, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-  emm_cn_cs_domain_location_updt_fail_t cs_location_updt_fail = {0};
+  emm_sap_t emm_sap = {};
+  emm_cn_cs_domain_location_updt_fail_t cs_location_updt_fail = {};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL;
@@ -715,7 +716,7 @@ status_code_e nas_proc_sgs_release_req(
             ->mme_ue_s1ap_id;
     // update the ue context vlr_reliable flag to false
     mme_ue_context_update_ue_sgs_vlr_reliable(ue_id, false);
-    emm_sap_t emm_sap = {0};
+    emm_sap_t emm_sap = {};
     emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
@@ -744,7 +745,7 @@ status_code_e nas_proc_sgs_release_req(
 status_code_e nas_proc_cs_service_notification(mme_ue_s1ap_id_t ue_id,
                                                uint8_t paging_id, bstring cli) {
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMAS_DATA_REQ;
@@ -862,7 +863,7 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental) {
 status_code_e nas_proc_cs_domain_mm_information_request(
     itti_sgsap_mm_information_req_t* const mm_information_req_pP) {
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_CS_DOMAIN_MM_INFORMATION_REQ;
   emm_sap.u.emm_cn.u.emm_cn_cs_domain_mm_information_req =
@@ -888,7 +889,7 @@ status_code_e nas_proc_pdn_disconnect_rsp(
     emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
+  emm_sap_t emm_sap = {};
 
   OAILOG_DEBUG(LOG_NAS_EMM, "Received pdn_disconnect_rsp for ue id %u\n",
                emm_cn_pdn_disconnect_rsp->ue_id);

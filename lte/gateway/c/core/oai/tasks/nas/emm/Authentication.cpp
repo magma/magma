@@ -31,7 +31,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
 #ifdef __cplusplus
 }
 #endif
@@ -50,6 +49,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationResponse.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
@@ -58,6 +58,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
@@ -68,7 +69,6 @@ extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
 extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
-
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

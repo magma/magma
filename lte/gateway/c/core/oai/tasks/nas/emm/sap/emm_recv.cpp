@@ -29,7 +29,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #ifdef __cplusplus
 }
 #endif
@@ -37,7 +36,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeCommand.hpp"
@@ -56,7 +57,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/
@@ -66,7 +67,6 @@ extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
 extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
-
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

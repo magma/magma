@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  Source      mme_api.c
+  Source      mme_api.cpp
 
   Version     0.1
 
@@ -32,23 +32,30 @@
         to interact with a Mobility Management Entity
 
 *****************************************************************************/
+
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
@@ -137,7 +144,7 @@ status_code_e mme_api_get_emm_config(mme_api_emm_config_t* config,
   }
 
   if (mme_config_p->unauthenticated_imsi_supported != 0) {
-    config->features |= MME_API_UNAUTHENTICATED_IMSI;
+    config->features = (mme_api_feature_t)(config->features | MME_API_UNAUTHENTICATED_IMSI);
   }
 
   for (int i = 0; i < 8; i++) {
@@ -171,19 +178,19 @@ status_code_e mme_api_get_emm_config(mme_api_emm_config_t* config,
 status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config) {
   OAILOG_FUNC_IN(LOG_NAS);
   if (mme_config.non_eps_service_control == NULL) {
-    config->features = 0;
+    config->features = MME_API_NO_FEATURE_SUPPORTED;
     OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
   }
 
   if (strcmp((const char*)mme_config.non_eps_service_control->data, "SMS") ==
       0) {
-    config->features = config->features | MME_API_SMS_SUPPORTED;
+    config->features = (mme_api_feature_t)(config->features | MME_API_SMS_SUPPORTED);
   } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
                     "CSFB_SMS") == 0) {
-    config->features = config->features | MME_API_CSFB_SMS_SUPPORTED;
+    config->features = (mme_api_feature_t)(config->features | MME_API_CSFB_SMS_SUPPORTED);
   } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
                     "SMS_ORC8R") == 0) {
-    config->features = config->features | MME_API_SMS_ORC8R_SUPPORTED;
+    config->features = (mme_api_feature_t)(config->features | MME_API_SMS_ORC8R_SUPPORTED);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);

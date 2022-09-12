@@ -51,7 +51,7 @@ Description Defines internal private data handled by EPS Mobility
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 
 /****************************************************************************/
@@ -419,79 +419,42 @@ void emm_ctx_unmark_common_procedure_running(emm_context_t* const ctxt,
                                              const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
-                                   const int attribute_bit_pos)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_attribute_present(emm_context_t* const ctxt,
                                      const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
-                                 const int attribute_bit_pos)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_attribute_valid(emm_context_t* const ctxt,
                                    const int attribute_bit_pos)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
-__attribute__((flatten));
-void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_guti(emm_context_t* const ctxt, guti_t* guti)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_clear_old_guti(emm_context_t* const ctxt) __attribute__((nonnull))
-__attribute__((flatten));
 void emm_ctx_set_old_guti(emm_context_t* const ctxt, guti_t* guti)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt, guti_t* guti)
     __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
-__attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi, imsi64_t imsi64)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
-                            imsi64_t imsi64) __attribute__((nonnull))
-__attribute__((flatten));
 
-void emm_ctx_clear_imei(emm_context_t* const ctxt) __attribute__((nonnull))
-__attribute__((flatten));
 void emm_ctx_set_imei(emm_context_t* const ctxt, imei_t* imei)
-    __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei)
     __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_imeisv(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
 void emm_ctx_set_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv)
-    __attribute__((nonnull)) __attribute__((flatten));
 
 void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
-void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai)
-    __attribute__((nonnull)) __attribute__((flatten));
-
-void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_auth_vector(emm_context_t* const ctxt, ksi_t eksi)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_clear_security(emm_context_t* const ctxt) __attribute__((nonnull))
-__attribute__((flatten));
 void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
-    __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
-                                       int vector_index)
-    __attribute__((nonnull)) __attribute__((flatten));
 
-void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_non_current_security_vector_index(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_non_current_security_vector_index(emm_context_t* const ctxt,
@@ -503,44 +466,81 @@ void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
 void emm_ctx_set_ue_nw_cap(emm_context_t* const ctxt,
                            const ue_network_capability_t* const ue_nw_cap_ie)
     __attribute__((nonnull));
+
+/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+
+/*#ifdef __cplusplus
+extern "C" {
+#endif
+void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_clear_imei(emm_context_t* const ctxt) __attribute__((nonnull))
+__attribute__((flatten));
+void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_clear_security(emm_context_t* const ctxt) __attribute__((nonnull))
+__attribute__((flatten));
+void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
+                                       int vector_index)
+    __attribute__((nonnull)) __attribute__((flatten));*/
+
+/*void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
+__attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
+                                   const int attribute_bit_pos)
+    __attribute__((nonnull));
 void emm_ctx_set_valid_ue_nw_cap(
     emm_context_t* const ctxt,
     const ue_network_capability_t* const ue_nw_cap_ie) __attribute__((nonnull));
-
+#ifdef __cplusplus
+}
+void emm_ctx_set_valid_ms_nw_cap(
+    emm_context_t* const ctxt,
+    const ms_network_capability_t* const ms_nw_cap_ie);
+void emm_ctx_set_mobile_station_clsMark2(
+    emm_context_t* const ctxt, MobileStationClassmark2* mob_st_clsMark2)
+    __attribute__((nonnull));
+#endif
 void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
                            const ms_network_capability_t* const ms_nw_cap_ie);
-void emm_ctx_set_valid_ms_nw_cap(
-    emm_context_t* const ctxt,
-    const ms_network_capability_t* const ms_nw_cap_ie);
 void emm_ctx_clear_mobile_station_clsMark2(emm_context_t* const ctxt)
-    __attribute__((nonnull));
-void emm_ctx_set_mobile_station_clsMark2(
-    emm_context_t* const ctxt, MobileStationClassmark2* mob_st_clsMark2)
     __attribute__((nonnull));
 
 void emm_ctx_clear_drx_parameter(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_drx_parameter(emm_context_t* const ctxt, drx_parameter_t* drx)
     __attribute__((nonnull));
-void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
-                                     drx_parameter_t* drx)
-    __attribute__((nonnull));
 
 void emm_ctx_clear_ue_additional_security_capability(emm_context_t* const ctxt)
-    __attribute__((nonnull));
-void emm_ctx_set_ue_additional_security_capability(
-    emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
     __attribute__((nonnull));
 
 void free_emm_ctx_memory(emm_context_t* const ctxt,
                          const mme_ue_s1ap_id_t ue_id);
 
-struct emm_context_s* emm_context_get(emm_data_t* emm_data,
-                                      const mme_ue_s1ap_id_t ue_id);
 struct emm_context_s* emm_context_get_by_imsi(emm_data_t* emm_data,
                                               imsi64_t imsi64);
+
+void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
+                                     drx_parameter_t* drx)
+    __attribute__((nonnull));
+void emm_ctx_set_ue_additional_security_capability(
+    emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
+    __attribute__((nonnull));
+struct emm_context_s* emm_context_get(emm_data_t* emm_data,
+                                      const mme_ue_s1ap_id_t ue_id);
 
 status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
                                       struct emm_context_s* elm)
@@ -561,11 +561,23 @@ void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
 void nas_stop_T3470(const mme_ue_s1ap_id_t ue_id,
                     struct nas_timer_s* const T3470);
 void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422);
+void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
+                            imsi64_t imsi64) __attribute__((nonnull))
+__attribute__((flatten));
+void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
+                                 const int attribute_bit_pos)
+    __attribute__((nonnull)) __attribute__((flatten));
+void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti)
+    __attribute__((nonnull)) __attribute__((flatten));
 void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
                               struct nas_timer_s* const Ts6a_auth_info,
                               time_out_t time_out_cb);
+void emm_ctx_clear_old_guti(emm_context_t* const ctxt) __attribute__((nonnull))
+__attribute__((flatten));
+void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
+__attribute__((flatten));
 void emm_init_context(struct emm_context_s* const emm_ctx,
-                      const bool init_esm_ctxt) __attribute__((nonnull));
+                      const bool init_esm_ctxt) __attribute__((nonnull));*/
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)

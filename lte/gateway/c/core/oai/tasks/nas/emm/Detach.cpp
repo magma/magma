@@ -20,10 +20,10 @@
 #include <stdlib.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -37,8 +37,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -47,7 +48,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
@@ -186,6 +187,9 @@ status_code_e release_esm_pdn_context(emm_context_t* emm_context,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void clear_emm_ctxt(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!emm_context) {
@@ -213,6 +217,9 @@ void clear_emm_ctxt(emm_context_t* emm_context) {
   emm_ctx_clear_non_current_security(emm_context);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
+#ifdef __cplusplus
+}
+#endif
 
 /*
    --------------------------------------------------------------------------

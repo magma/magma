@@ -43,7 +43,7 @@ Description Defines functions executed at the EMMAS Service Access
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationFailure.hpp"

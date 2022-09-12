@@ -40,7 +40,7 @@ Description Defines internal private data handled by EPS Session
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 
 /****************************************************************************/

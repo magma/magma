@@ -14,13 +14,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
+
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 }
-
-#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
 namespace magma {
 namespace lte {

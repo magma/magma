@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      mme_api.h
+Source      mme_api.hpp
 
 Version     0.1
 
@@ -156,16 +156,20 @@ status_code_e mme_api_unsubscribe(bstring apn);
 }
 #endif
 
-status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
-                                  const imsi64_t imsi64);
 
 status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
                                       guti_t* const guti);
 
+/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+/*status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
+                                  const imsi64_t imsi64);
 status_code_e mme_api_new_guti(const imsi_t* const imsi,
                                const guti_t* const old_guti, guti_t* const guti,
                                const tai_t* const originating_tai,
-                               tai_list_t* const tai_list);
+                               tai_list_t* const tai_list);*/
 
 status_code_e mme_api_subscribe(bstring* apn,
                                 mme_api_ip_version_t mme_pdn_index,

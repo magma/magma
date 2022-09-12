@@ -38,7 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 

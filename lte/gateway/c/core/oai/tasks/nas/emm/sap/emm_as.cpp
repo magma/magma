@@ -44,10 +44,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
@@ -58,7 +59,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/

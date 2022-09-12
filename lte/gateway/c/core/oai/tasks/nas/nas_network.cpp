@@ -15,10 +15,16 @@
  *      contact@openairinterface.org
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 
 /****************************************************************************/

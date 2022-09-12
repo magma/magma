@@ -68,6 +68,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
@@ -83,7 +84,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern status_code_e emm_proc_tracking_area_update_accept(

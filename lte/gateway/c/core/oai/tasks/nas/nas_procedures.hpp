@@ -394,30 +394,50 @@ typedef struct emm_procedures_s {
 
 bool is_nas_common_procedure_guti_realloc_running(
     const struct emm_context_s* const ctxt);
-bool is_nas_common_procedure_authentication_running(
-    const struct emm_context_s* const ctxt);
 bool is_nas_common_procedure_smc_running(
+    const struct emm_context_s* const ctxt);
+
+/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
+
+/*bool is_nas_common_procedure_authentication_running(
     const struct emm_context_s* const ctxt);
 bool is_nas_common_procedure_identification_running(
     const struct emm_context_s* const ctxt);
+nas_emm_ident_proc_t* get_nas_common_procedure_identification(
+    const struct emm_context_s* const ctxt);
+bool is_nas_attach_accept_sent(const nas_emm_attach_proc_t* const attach_proc);
+bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
+bool is_nas_specific_procedure_attach_running(
+    const struct emm_context_s* const ctxt);
+nas_emm_attach_proc_t* nas_new_attach_procedure(
+    struct emm_context_s* const emm_context);
+nas_emm_ident_proc_t* nas_new_identification_procedure(
+    struct emm_context_s* const emm_context);
+nas_emm_smc_proc_t* get_nas_common_procedure_smc(
+    const struct emm_context_s* const ctxt);
+nas_emm_smc_proc_t* nas_new_smc_procedure(
+    struct emm_context_s* const emm_context);
+nas_emm_tau_proc_t* get_nas_specific_procedure_tau(
+    const struct emm_context_s* const ctxt);
+nas_emm_tau_proc_t* nas_new_tau_procedure(
+    struct emm_context_s* const emm_context);
+nas_auth_info_proc_t* get_nas_cn_procedure_auth_info(
+    const struct emm_context_s* const ctxt);
+void nas_emm_procedure_register_emm_message(mme_ue_s1ap_id_t ue_id,
+                                            const uint64_t puid,
+                                            bstring nas_msg);*/
 
 nas_emm_guti_proc_t* get_nas_common_procedure_guti_realloc(
     const struct emm_context_s* const ctxt);
-nas_emm_ident_proc_t* get_nas_common_procedure_identification(
-    const struct emm_context_s* const ctxt);
-nas_emm_smc_proc_t* get_nas_common_procedure_smc(
-    const struct emm_context_s* const ctxt);
 nas_emm_auth_proc_t* get_nas_common_procedure_authentication(
-    const struct emm_context_s* const ctxt);
-
-nas_auth_info_proc_t* get_nas_cn_procedure_auth_info(
     const struct emm_context_s* const ctxt);
 
 nas_sr_proc_t* get_nas_con_mngt_procedure_service_request(
     const struct emm_context_s* const ctxt);
 
-bool is_nas_specific_procedure_attach_running(
-    const struct emm_context_s* const ctxt);
 bool is_nas_specific_procedure_detach_running(
     const struct emm_context_s* const ctxt);
 bool is_nas_specific_procedure_tau_running(
@@ -441,36 +461,22 @@ void nas_delete_common_procedure(struct emm_context_s* const emm_context,
 void nas_delete_attach_procedure(struct emm_context_s* const emm_context);
 void nas_delete_tau_procedure(struct emm_context_s* emm_context);
 void nas_delete_detach_procedure(struct emm_context_s* emm_context);
-
-
 #ifdef __cplusplus
 }
 #endif
 
 nas_emm_detach_proc_t* get_nas_specific_procedure_detach(
     const struct emm_context_s* const ctxt);
-nas_emm_tau_proc_t* get_nas_specific_procedure_tau(
-    const struct emm_context_s* const ctxt);
 
-bool is_nas_attach_accept_sent(const nas_emm_attach_proc_t* const attach_proc);
-bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_complete_received(
     const nas_emm_attach_proc_t* const attach_proc);
 
 void nas_delete_cn_procedure(struct emm_context_s* emm_context,
                              nas_cn_proc_t* cn_proc);
 
-nas_emm_attach_proc_t* nas_new_attach_procedure(
-    struct emm_context_s* const emm_context);
-nas_emm_tau_proc_t* nas_new_tau_procedure(
-    struct emm_context_s* const emm_context);
 nas_sr_proc_t* nas_new_service_request_procedure(
     struct emm_context_s* const emm_context);
-nas_emm_ident_proc_t* nas_new_identification_procedure(
-    struct emm_context_s* const emm_context);
 nas_emm_auth_proc_t* nas_new_authentication_procedure(
-    struct emm_context_s* const emm_context);
-nas_emm_smc_proc_t* nas_new_smc_procedure(
     struct emm_context_s* const emm_context);
 nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
     struct emm_context_s* const emm_context);
@@ -478,8 +484,5 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
 void nas_digest_msg(const unsigned char* const msg, const size_t msg_len,
                     char* const digest,
                     /*INOUT*/ size_t* const digest_length);
-void nas_emm_procedure_register_emm_message(mme_ue_s1ap_id_t ue_id,
-                                            const uint64_t puid,
-                                            bstring nas_msg);
 
 #endif

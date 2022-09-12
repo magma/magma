@@ -98,6 +98,8 @@ void mme_app_handle_create_dedicated_bearer_rej(ue_mm_context_t* ue_context_p,
 
 status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id, void* args);
 
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+                                   emm_proc_sgs_detach_type_t detach_type);
 #ifdef __cplusplus
 }
 #endif
@@ -111,9 +113,6 @@ int mme_app_handle_s6a_cancel_location_req(
 int mme_app_handle_nas_extended_service_req(mme_ue_s1ap_id_t ue_id,
                                             uint8_t servicetype,
                                             uint8_t csfb_response);
-
-void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
-                                   emm_proc_sgs_detach_type_t detach_type);
 
 int mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
@@ -376,13 +375,14 @@ void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
                                       gtpv2c_cause_value_t cause,
                                       bool route_s11_messages_to_s8_task,
                                       bool mme_initiated_local_deact);
+
+int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 #ifdef __cplusplus
 }
 #endif
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 
-int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,
