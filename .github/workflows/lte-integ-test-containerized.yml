@@ -59,7 +59,7 @@ jobs:
 
       - name: Run the integration test
         env:
-          DOCKER_REGISTRY: https://artifactory.magmacore.org:443/artifactory/docker/
+          DOCKER_REGISTRY: artifactory.magmacore.org:443/artifactory/docker/
         run: |
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
