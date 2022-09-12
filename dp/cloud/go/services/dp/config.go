@@ -32,5 +32,5 @@ type AmcConfig struct {
 	PollingIntervalSec           int    `yaml:"polling_interval"` // TODO add sec to deployment scripts
 	GrpcService                  string `yaml:"grpc_service"`
 	GrpcPort                     int    `yaml:"grpc_port"`
-	CbsdInactivityTimeoutSec     int    `yaml:"cbsd_inactivity_timeout_sec"`
+	CbsdInactivityTimeoutSec     int    `yaml:"cbsd_inactivity_interval_sec"` // TODO temporary fix to make integration tests pass
 }
