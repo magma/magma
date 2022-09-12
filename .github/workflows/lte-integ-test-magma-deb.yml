@@ -9,55 +9,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test magma-deb
+name: test
 
 on:
   workflow_dispatch: null
   workflow_run:
-    workflows:
+    workflows: 
       - build-all
-    branches:
-      - master
-    types:
+    types: 
       - completed
 
 jobs:
-  lte-integ-test-magma-deb:
-    if: ${{ (github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch') }}
-    runs-on: macos-12
+  on-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - name: Cache magma-deb-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_deb
-          key: vagrant-box-magma-deb-focal64-20220804.0.0
-      - name: Cache magma-test-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
-          key: vagrant-box-magma-test
-      - name: Cache magma-trfserver-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver-v20220722
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
-        with:
-          python-version: '3.8.10'
-      - name: Install pre requisites
-        run: |
-          pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
-      - name: Open up network interfaces for VM
-        run: |
-          sudo mkdir -p /etc/vbox/
-          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
-          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
-      - name: Run the integ test
-        run: |
-          cd lte/gateway
-          export MAGMA_DEV_CPUS=3
-          export MAGMA_DEV_MEMORY_MB=9216
-          fab integ_test_deb_installation
+      - run: echo 'The triggering workflow passed'
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'The triggering workflow failed'
