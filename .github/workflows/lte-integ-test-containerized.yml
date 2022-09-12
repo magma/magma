@@ -14,7 +14,6 @@ name: LTE integ test containerized agw
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
-  workflow_dispatch: null
 
 jobs:
   lte-integ-test-containerized:
