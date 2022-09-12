@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test dockerized agw
+name: LTE integ test containerized agw
 
 on:
   pull_request:
@@ -54,8 +54,8 @@ jobs:
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
-          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
-          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+          echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
+          echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
 
       - name: Run the integration test
         run: |
