@@ -14,7 +14,6 @@ name: LTE integ test containerized agw
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
-  push: null
 
 jobs:
   lte-integ-test-magma-deb:
