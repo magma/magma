@@ -20,8 +20,8 @@ type Config struct {
 }
 
 type BackendConfig struct {
-	CbsdInactivityIntervalSec int    `yaml:"cbsd_inactivity_interval_sec"`
-	LogConsumerUrl            string `yaml:"log_consumer_url"`
+	CbsdInactivityTimeoutSec int    `yaml:"cbsd_inactivity_timeout_sec"`
+	LogConsumerUrl           string `yaml:"log_consumer_url"`
 }
 
 type AmcConfig struct {
@@ -29,8 +29,8 @@ type AmcConfig struct {
 	HeartbeatSendTimeoutSec      int    `yaml:"heartbeat_send_timeout_sec"`
 	RequestTimeoutSec            int    `yaml:"request_timeout_sec"`
 	RequestProcessingIntervalSec int    `yaml:"request_processing_interval_sec"`
-	PollingIntervalSec           int    `yaml:"polling_interval"` // TODO add sec to deployment scripts
+	PollingIntervalSec           int    `yaml:"polling_interval_sec"`
 	GrpcService                  string `yaml:"grpc_service"`
 	GrpcPort                     int    `yaml:"grpc_port"`
-	CbsdInactivityTimeoutSec     int    `yaml:"cbsd_inactivity_interval_sec"` // TODO temporary fix to make integration tests pass
+	CbsdInactivityTimeoutSec     int    `yaml:"cbsd_inactivity_timeout_sec"`
 }

@@ -57,10 +57,10 @@ func main() {
 	cbsdStore := dp_storage.NewCbsdManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker(), sqorc.GetSqlLocker())
 
 	dpCfg := serviceConfig.DpBackend
-	interval := time.Second * time.Duration(dpCfg.CbsdInactivityIntervalSec)
+	timeout := time.Second * time.Duration(dpCfg.CbsdInactivityTimeoutSec)
 	logConsumerUrl := dpCfg.LogConsumerUrl
 
-	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
+	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, timeout, logConsumerUrl, logs_pusher.PushDPLog))
 
 	cancel, errs := startAmc(serviceConfig.ActiveModeController)
 
