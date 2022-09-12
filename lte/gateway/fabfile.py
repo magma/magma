@@ -552,7 +552,7 @@ def integ_test_containerized(
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
-    #execute(_run_integ_tests, gateway_ip, 's1aptests/test_attach_detach.py')
+    execute(_run_integ_tests, gateway_ip, 's1aptests/test_attach_detach.py')
 
     #if not gateway_host:
     #    setup_env_vagrant()
