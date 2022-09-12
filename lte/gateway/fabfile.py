@@ -460,7 +460,13 @@ def integ_test(
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(trf_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    print("+++++++++++++++++++++++")
+    print("make integ tests")
+    print("+++++++++++++++++++++++")
     execute(_make_integ_tests)
+    print("+++++++++++++++++++++++")
+    print("run integ tests")
+    print("+++++++++++++++++++++++")
     execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
 
     if not gateway_host:
