@@ -540,6 +540,7 @@ def integ_test_containerized(
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    print("#####", gateway_host, gateway_ip)
     #execute(_dist_upgrade)
     #execute(_build_magma)
     #execute(_run_sudo_python_unit_tests)
