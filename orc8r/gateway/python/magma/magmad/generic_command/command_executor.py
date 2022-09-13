@@ -19,6 +19,10 @@ ParamValueT = Union[str, int, float, bool, List[Union[str, int, float, bool]]]
 ExecutorFuncT = Callable[[Dict[str, ParamValueT]], Awaitable[Dict[str, Any]]]
 
 
+class CommandExecutionException(Exception):
+    pass
+
+
 class CommandExecutor(ABC):
     """
     Abstract class for command executors
@@ -40,7 +44,10 @@ class CommandExecutor(ABC):
         """
         Run the command from the dispatch table with params
         """
-        result = await self.get_command_dispatch()[command](params)
+        cmd = self.get_command_dispatch().get(command)
+        if not cmd:
+            raise CommandExecutionException(f"no config for {command}")
+        result = await cmd(params)
         return result
 
     @abstractmethod
