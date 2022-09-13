@@ -17,6 +17,5 @@ metadata:
   name: orc8r-domain-proxy
 data:
   dp.yml: |
-    cbsd_inactivity_interval_sec: {{ .Values.dp.cbsd_inactivity_interval_sec }}
-    log_consumer_url: {{ .Values.dp.log_consumer_url }}
+{{ .Values.dp.config | toYaml | indent 4 }}
 {{- end -}}

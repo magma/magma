@@ -456,11 +456,6 @@ def integ_test(
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
-    # Run suite of integ tests that are required to be run on the access gateway
-    # instead of the test VM
-    # TODO: fix the integration test T38069907
-    # execute(_run_local_integ_tests)
-
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     if not trf_host:
