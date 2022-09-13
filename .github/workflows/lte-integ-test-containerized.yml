@@ -60,9 +60,9 @@ jobs:
       - name: Run the integration test
         env:
           DOCKER_REGISTRY: docker.artifactory.magmacore.org/
+          MAGMA_DEV_CPUS: 3
+          MAGMA_DEV_MEMORY_MB: 9216
         run: |
           cd lte/gateway
-          export MAGMA_DEV_CPUS=3
-          export MAGMA_DEV_MEMORY_MB=9216
           fab --version
           fab --show=debug integ_test_containerized
