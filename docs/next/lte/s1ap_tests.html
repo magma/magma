@@ -163,7 +163,7 @@ sctpd.service</li>
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
 the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
-<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
+<li><p><code>magma-restart</code></p></li>
 </ol>
 <p>On test VM:</p>
 <ol>
@@ -188,7 +188,7 @@ service file <code>/etc/systemd/system/magma@mme.service</code> (you will need s
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
 the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
-<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
+<li><p><code>magma-restart</code></p></li>
 </ol>
 <p>On test VM:</p>
 <ol>
@@ -213,7 +213,7 @@ service file <code>/etc/systemd/system/magma@mme.service</code> (you will need s
 <li><p>Clean up all the state in redis: <code>redis-cli -p 6380 FLUSHALL</code>. This might
 throw a &quot;Could not connect&quot; error if magma@redis service is not running. Start
 the redis service with <code>sudo service magma@redis start</code> and then try again.</p></li>
-<li><p><code>cd $MAGMA_ROOT/lte/gateway; make restart</code></p></li>
+<li><p><code>magma-restart</code></p></li>
 </ol>
 <p>On test VM:</p>
 <ol>
