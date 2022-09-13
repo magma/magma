@@ -51,7 +51,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /*extern void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
                     struct nas_timer_s* const T3460);

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  Source    parser.c
+  Source    parser.cpp
 
   Version   0.1
 
@@ -32,7 +32,7 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/tasks/nas/util/parser.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/parser.hpp"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdio.h>   // fprintf

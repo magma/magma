@@ -77,7 +77,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"

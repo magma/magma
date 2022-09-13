@@ -42,7 +42,7 @@ Description Defines functions used to handle state of EPS bearer contexts
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

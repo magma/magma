@@ -48,7 +48,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 typedef enum {
   ECM_IDLE = 0,

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  Source      nas_timer.c
+  Source      nas_timer.cpp
 
   Version     0.1
 
@@ -37,11 +37,17 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 //------------------------------------------------------------------------------
 status_code_e nas_timer_init(void) { return (RETURNok); }

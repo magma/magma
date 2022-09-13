@@ -130,7 +130,7 @@ set(libnas_ies_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)
 set(libnas_utils_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/api/mme)

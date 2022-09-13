@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      nas_timer.h
+Source      nas_timer.hpp
 
 Version     0.1
 
@@ -82,8 +82,10 @@ typedef struct nas_itti_timer_arg_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-status_code_e nas_timer_init(void);
-void nas_timer_cleanup(void);
+//TODO: Pruthvi
+/*status_code_e nas_timer_init(void);
+void nas_timer_cleanup(void);*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif

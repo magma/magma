@@ -36,7 +36,7 @@ Description Defines internal private data handled by EPS Session
 #ifndef __ESMDATA_H__
 #define __ESMDATA_H__
 
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"

@@ -49,7 +49,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/

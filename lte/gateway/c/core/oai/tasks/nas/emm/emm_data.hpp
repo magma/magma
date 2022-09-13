@@ -52,7 +52,7 @@ Description Defines internal private data handled by EPS Mobility
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

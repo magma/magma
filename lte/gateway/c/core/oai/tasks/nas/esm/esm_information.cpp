@@ -44,7 +44,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

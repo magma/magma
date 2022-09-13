@@ -19,13 +19,14 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
 #ifdef __cplusplus
 }
 #endif
 #include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-  Source   socket.c
+  Source   socket.cpp
 
   Version    0.1
 
@@ -32,7 +32,7 @@
 
  *****************************************************************************/
 
-#include "lte/gateway/c/core/oai/tasks/nas/util/socket.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/socket.hpp"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdlib.h>  // malloc, free, atoi

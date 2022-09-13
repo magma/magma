@@ -58,7 +58,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {

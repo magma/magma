@@ -72,7 +72,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
