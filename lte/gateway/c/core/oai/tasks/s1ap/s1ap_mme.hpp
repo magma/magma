@@ -61,14 +61,13 @@ enb_description_t* s1ap_new_enb(void);
  * @returns Reference to the new UE element in list
  **/
 oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
-                                            sctp_assoc_id_t sctp_assoc_id,
-                                            enb_ue_s1ap_id_t enb_ue_s1ap_id);
+                                sctp_assoc_id_t sctp_assoc_id,
+                                enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void s1ap_remove_ue(s1ap_state_t* state,
-                    oai::UeDescription* ue_ref);
+void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
