@@ -79,7 +79,8 @@ EOF
   fi
 
   alias python=python3
-  pip3 install ansible
+  # TODO GH13915 pinned for now because of breaking change in ansible-core 2.13.4
+  pip3 install ansible==5.0.1
 
   rm -rf /opt/magma/
   git clone "${GIT_URL}" /opt/magma
