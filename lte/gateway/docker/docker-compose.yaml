@@ -42,12 +42,6 @@ x-agw-go-service: &goservice
   image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 services:
-  gateway_c:
-    <<: *ltecservice
-
-  gateway_python:
-    <<: *pyservice
-
   magmad:
     <<: *pyservice
     container_name: magmad
