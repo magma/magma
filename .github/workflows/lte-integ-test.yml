@@ -63,7 +63,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/

@@ -28,11 +28,10 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
@@ -40,14 +39,17 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
@@ -240,7 +242,8 @@ static void* spgw_app_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
+extern "C" status_code_e spgw_app_init(spgw_config_t* spgw_config_pP,
+                                       bool persist_state) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP  task interface\n");
 
   if (spgw_state_init(persist_state, spgw_config_pP) < 0) {
@@ -254,7 +257,8 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
   read_spgw_ue_state_db();
 
 #if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
-  if (gtpv1u_init(spgw_state_p, spgw_config_pP, persist_state) < 0) {
+  if (gtpv1u_init(&spgw_state_p->gtpv1u_data, spgw_config_pP, persist_state) <
+      0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }

@@ -67,6 +67,7 @@ RUN apt-get -y update && apt-get -y install \
     pkg-config \
     python-cffi \
     python3-pip \
+    python3-ryu \
     python3.8 \
     python3.8-dev \
     redis-server \
@@ -86,7 +87,6 @@ RUN python3.8 -m pip install --no-cache-dir \
     fire \
     envoy \
     glob2 \
-    ryu \
     flask \
     aiodns \
     pymemoize \
@@ -113,8 +113,6 @@ RUN python3.8 -m pip install --no-cache-dir \
     python-dateutil \
     aioeventlet@git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619 \
     jsonpickle
-
-COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.8/dist-packages/ryu/ofproto/
 
 # Temporary workaround to restore uplink bridge flows
 RUN mkdir -p /var/opt/magma/scripts

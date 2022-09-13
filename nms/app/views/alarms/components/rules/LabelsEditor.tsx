@@ -21,9 +21,9 @@ import CardHeader from '@mui/material/CardHeader';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
-import InputLabel from '@mui/material/InputLabel';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import {AltFormField} from '../../../../components/FormField';
+import {OutlinedInput} from '@mui/material';
 import type {Labels} from '../AlarmAPIType';
 
 const filteredLabels = new Set(['networkID', 'severity']);
@@ -117,30 +117,28 @@ export default function LabelsEditor({labels, onChange}: Props) {
             labelsState.map(([key, value], index) => (
               <Grid container key={index} item spacing={1}>
                 <Grid item xs={6}>
-                  <InputLabel htmlFor="label-name-input" variant="standard">
-                    Label Name
-                  </InputLabel>
-                  <TextField
-                    variant="standard"
-                    id="label-name-input"
-                    placeholder="Name"
-                    value={key}
-                    fullWidth
-                    onChange={e => handleKeyChange(index, e.target.value)}
-                  />
+                  <AltFormField disableGutters label="Label Name">
+                    <OutlinedInput
+                      fullWidth={true}
+                      name="description"
+                      value={key}
+                      id="label-name-input"
+                      placeholder="Name"
+                      onChange={e => handleKeyChange(index, e.target.value)}
+                    />
+                  </AltFormField>
                 </Grid>
                 <Grid item xs={5}>
-                  <InputLabel htmlFor="label-value-input" variant="standard">
-                    Value
-                  </InputLabel>
-                  <TextField
-                    variant="standard"
-                    id="label-value-input"
-                    placeholder="Value"
-                    value={value}
-                    fullWidth
-                    onChange={e => handleValueChange(index, e.target.value)}
-                  />
+                  <AltFormField disableGutters label="Value">
+                    <OutlinedInput
+                      fullWidth={true}
+                      name="description"
+                      value={value}
+                      id="label-value-input"
+                      placeholder="Value"
+                      onChange={e => handleValueChange(index, e.target.value)}
+                    />
+                  </AltFormField>
                 </Grid>
                 <Grid item xs={1}>
                   <IconButton
@@ -155,6 +153,7 @@ export default function LabelsEditor({labels, onChange}: Props) {
             ))}
           <Grid item>
             <Button
+              variant="outlined"
               color="primary"
               size="small"
               onClick={addNewLabel}

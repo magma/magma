@@ -17,7 +17,6 @@ import ManifestPlugin from 'webpack-manifest-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 import paths from './paths';
 import postcssFlexbugFixes from 'postcss-flexbugs-fixes';
-import webpack from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 
 module.exports = {
@@ -140,8 +139,6 @@ module.exports = {
       analyzerMode: 'static',
       reportFilename: 'report.html',
     }),
-    // remove excess locales in moment bloating the bundle
-    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
   ],
   optimization: {
     minimizer: [

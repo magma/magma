@@ -894,13 +894,13 @@ class MagmadUtil(object):
             logging.info("systemd is not installed")
 
         if docker_running and systemd_running:
-            raise RuntimeError("Magmad is running with both Docker and systemd")
+            return InitMode.SYSTEMD  # default to systemd if both are running - needed by feg integ tests
         elif docker_running:
             return InitMode.DOCKER
         elif systemd_running:
             return InitMode.SYSTEMD
         else:
-            raise RuntimeError("Magmad is not running with either Docker or systemd")
+            raise RuntimeError("Magmad is not running, you have to start magmad either in Docker or systemd")
 
     def exec_command_output(self, command):
         """Run a command remotely on magma_dev VM.

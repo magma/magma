@@ -17,17 +17,19 @@
 
 #pragma once
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <pthread.h>
-
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
 #include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.
 int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
@@ -92,6 +94,3 @@ void pgw_free_pcc_rule(void** rule);
  * @param spgw_ue_context_t
  */
 void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
-#ifdef __cplusplus
-}
-#endif

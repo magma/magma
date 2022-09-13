@@ -82,6 +82,7 @@ MME_SRCS = [
     "oai/lib/sms_orc8r_client/SMSOrc8rClient.cpp",
     "oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.cpp",
     "oai/lib/sms_orc8r_client/sms_orc8r_client_api.cpp",
+    "oai/lib/store/sqlite.cpp",
     "oai/oai_mme/oai_mme_log.c",
     "oai/tasks/amf/Registration.cpp",
     "oai/tasks/amf/amf_Security_Mode.cpp",
@@ -635,6 +636,7 @@ MME_HDRS = [
     "oai/lib/sms_orc8r_client/SMSOrc8rClient.hpp",
     "oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp",
     "oai/lib/sms_orc8r_client/sms_orc8r_client_api.hpp",
+    "oai/lib/store/sqlite.hpp",
     "oai/oai_mme/oai_mme.h",
     "oai/tasks/amf/amf_app_defs.hpp",
     "oai/tasks/amf/amf_app_state_converter.hpp",
@@ -1070,6 +1072,7 @@ MME_DEPS = [
     "@system_libraries//:libfd",
     "@system_libraries//:libgnutls",
     "@system_libraries//:libnettle",
+    "@system_libraries//:libsqlite3-dev",
 ]
 
 # EMBEDDED_SGW 1
