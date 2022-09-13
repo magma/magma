@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test bazel
+name: Sudo python tests
 
 on:
   workflow_dispatch: null
@@ -26,7 +26,7 @@ env:
   REMOTE_DOWNLOAD_OPTIMIZATION: false
 
 jobs:
-  lte-integ-test-bazel:
+  sudo-python-tests:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     steps:
@@ -36,16 +36,6 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
           key: vagrant-box-magma-dev-v1.2.20220801
-      - name: Cache magma-test-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
-          key: vagrant-box-magma-test
-      - name: Cache magma-trfserver-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver-v20220722
       - name: Log in to vagrant cloud
         run: |
           if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
@@ -74,35 +64,17 @@ jobs:
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab provision_magma_dev_vm
-      - name: Build all services and scripts with bazel
+      - name: Run the sudo python tests
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
-          vagrant ssh -c 'sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
-          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
-          vagrant ssh -c 'sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;' magma
-      - name: Linking bazel-built script executables to '/usr/local/bin/'
-        run: |
-          cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel/scripts/link_scripts_for_bazel_integ_tests.sh;' magma
-      - name: Run the integ test
-        run: |
-          cd lte/gateway
-          export MAGMA_DEV_CPUS=3
-          export MAGMA_DEV_MEMORY_MB=9216
-          fab bazel_integ_test_post_build
-      - name: Publish bazel profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
-        with:
-          name: Bazel profile lte integ tests
-          path: bazel_profile_lte_integ_tests
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Notify failure to slack
         if: failure() && github.repository_owner == 'magma'
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
-          SLACK_USERNAME: "LTE integ tests bazel"
+          SLACK_USERNAME: "Sudo python tests"
           SLACK_AVATAR: ":boom:"
         with:
-          args: "Bazel LTE integration test failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
+          args: "Sudo python tests failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
