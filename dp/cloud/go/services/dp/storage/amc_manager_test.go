@@ -119,116 +119,115 @@ func (s *AmcManagerTestSuite) getNameIdMapping(model db.Model) map[string]int64 
 }
 
 func TestWithinTx(t *testing.T) {
-	type testCase struct {
+	testData := []struct {
+		name            string
 		prepareMockFunc func(sqlmock.Sqlmock)
 		wrappedFunc     func(*sql.Tx) (any, error)
 		resultCheckFunc func(any, error)
-	}
-	testCases := []testCase{
-		{ // test working insert
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin()
-				mock.ExpectExec("INSERT INTO table").WillReturnResult(sqlmock.NewResult(1, 1))
-				mock.ExpectCommit()
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				res, _ := tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
-				lastId, err := res.LastInsertId()
-				return lastId, err
-			},
-			resultCheckFunc: func(res any, err error) {
-				assert.Equal(t, int64(1), res)
-				assert.NoError(t, err)
-			},
+	}{{
+		name: "test working insert",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin()
+			mock.ExpectExec("INSERT INTO table").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectCommit()
+			mock.ExpectClose()
 		},
-
-		{ // test wrapped func error
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin()
-				mock.ExpectExec("INSERT INTO table").WillReturnError(errors.New("exec error"))
-				mock.ExpectRollback()
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				res, err := tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
-				return res, err
-			},
-			resultCheckFunc: func(res any, err error) {
-				assert.Equal(t, nil, res)
-				assert.Errorf(t, err, "exec error")
-			},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			res, _ := tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
+			lastId, err := res.LastInsertId()
+			return lastId, err
 		},
-
-		{ // test commit error
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin()
-				mock.ExpectExec("INSERT INTO table").WillReturnResult(sqlmock.NewResult(1, 1))
-				mock.ExpectCommit().WillReturnError(errors.New("commit error"))
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				return tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
-			},
-			resultCheckFunc: func(res any, err error) {
-				assert.Equal(t, nil, res)
-				assert.Errorf(t, err, "commit error")
-			},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, int64(1), res)
+			assert.NoError(t, err)
 		},
-
-		{ // test begin transaction error
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin().WillReturnError(errors.New("begin error"))
-				mock.ExpectRollback()
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				return nil, nil
-			},
-			resultCheckFunc: func(res any, err error) {
-				assert.Equal(t, nil, res)
-				assert.Errorf(t, err, "begin error")
-			},
+	}, {
+		name: "test wrapped func error",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin()
+			mock.ExpectExec("INSERT INTO table").WillReturnError(errors.New("exec error"))
+			mock.ExpectRollback()
+			mock.ExpectClose()
 		},
-
-		{ // test transaction rollback error
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin().WillReturnError(errors.New("begin error"))
-				mock.ExpectRollback().WillReturnError(errors.New("rollback error"))
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				return nil, nil
-			},
-			resultCheckFunc: func(res any, err error) {
-				assert.Equal(t, nil, res)
-				assert.Errorf(t, err, "rollback error")
-			},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			res, err := tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
+			return res, err
 		},
-
-		{ // test wrapped func panic
-			prepareMockFunc: func(mock sqlmock.Sqlmock) {
-				mock.ExpectBegin()
-				mock.ExpectRollback()
-				mock.ExpectClose()
-			},
-			wrappedFunc: func(tx *sql.Tx) (any, error) {
-				panic("I am panicking")
-			},
-			resultCheckFunc: func(res any, err error) {},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, nil, res)
+			assert.Errorf(t, err, "exec error")
 		},
-	}
+	}, {
+		name: "test commit error",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin()
+			mock.ExpectExec("INSERT INTO table").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectCommit().WillReturnError(errors.New("commit error"))
+			mock.ExpectClose()
+		},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			res, _ := tx.Exec("INSERT INTO table (\"field\") VALUES (1);")
+			lastId, err := res.LastInsertId()
+			return lastId, err
+		},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, int64(1), res)
+			assert.Errorf(t, err, "commit error")
+		},
+	}, {
+		name: "test begin transaction error",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin().WillReturnError(errors.New("begin error"))
+			mock.ExpectClose()
+		},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			return nil, nil
+		},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, nil, res)
+			assert.Errorf(t, err, "begin error")
+		},
+	}, {
+		name: "test transaction rollback error",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin()
+			mock.ExpectRollback().WillReturnError(errors.New("rollback error"))
+			mock.ExpectClose()
+		},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			return nil, errors.New("an error")
+		},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, nil, res)
+			assert.Errorf(t, err, "rollback error")
+		},
+	}, {
+		name: "test wrapped func panic",
+		prepareMockFunc: func(mock sqlmock.Sqlmock) {
+			mock.ExpectBegin()
+			mock.ExpectRollback()
+			mock.ExpectClose()
+		},
+		wrappedFunc: func(tx *sql.Tx) (any, error) {
+			panic("I am panicking")
+		},
+		resultCheckFunc: func(res any, err error) {
+			assert.Equal(t, nil, res)
+			assert.Errorf(t, err, "recovered from panic: I am panicking")
+		},
+	}}
 
-	database, mock, err := sqlmock.New()
-	assert.NoError(t, err)
-	defer func() {
+	for _, tc := range testData {
+		database, mock, err := sqlmock.New()
+		assert.NoError(t, err)
+
+		t.Run(tc.name, func(t *testing.T) {
+			tc.prepareMockFunc(mock)
+			res, err := WithinTx(database, tc.wrappedFunc)
+			tc.resultCheckFunc(res, err)
+		})
+
 		err = database.Close()
 		assert.NoError(t, err)
-	}()
-
-	for _, tc := range testCases {
-		tc.prepareMockFunc(mock)
-		res, err := WithinTx(database, tc.wrappedFunc)
-		tc.resultCheckFunc(res, err)
 	}
 }

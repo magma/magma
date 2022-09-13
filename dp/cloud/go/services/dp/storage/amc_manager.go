@@ -16,6 +16,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -51,13 +52,17 @@ type MutableRequest struct {
 }
 
 // WithinTx is used to call AmcManager function inside single transaction.
-func WithinTx[T any](db *sql.DB, f func(tx *sql.Tx) (T, error)) (T, error) {
+func WithinTx[T any](db *sql.DB, f func(tx *sql.Tx) (T, error)) (res T, err error) {
 	tx, err := db.BeginTx(context.Background(), nil)
 	if err != nil {
-		return *new(T), err
+		return res, err
 	}
 
 	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recovered from panic: %v", r)
+		}
+
 		switch err {
 		case nil:
 			err = tx.Commit()
@@ -69,7 +74,8 @@ func WithinTx[T any](db *sql.DB, f func(tx *sql.Tx) (T, error)) (T, error) {
 		}
 	}()
 
-	return f(tx)
+	res, err = f(tx)
+	return res, err
 }
 
 func NewAmcManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker, locker sqorc.Locker) *amcManager {
