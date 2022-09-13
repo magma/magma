@@ -35,6 +35,7 @@ require (
 	golang.org/x/exp v0.0.0-20220907003533-145caa8ea1d0
 	google.golang.org/grpc v1.48.0
 	google.golang.org/protobuf v1.28.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/orc8r/cloud/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0
