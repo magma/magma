@@ -156,13 +156,12 @@ status_code_e mme_api_unsubscribe(bstring apn);
 }
 #endif
 
-
 status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
                                       guti_t* const guti);
 
 /*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 /*status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
                                   const imsi64_t imsi64);

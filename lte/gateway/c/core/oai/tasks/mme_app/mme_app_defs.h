@@ -96,7 +96,8 @@ void mme_app_handle_create_dedicated_bearer_rsp(ue_mm_context_t* ue_context_p,
 void mme_app_handle_create_dedicated_bearer_rej(ue_mm_context_t* ue_context_p,
                                                 ebi_t ebi);
 
-status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id, void* args);
+status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
+                                                 void* args);
 
 void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
                                    emm_proc_sgs_detach_type_t detach_type);
@@ -164,7 +165,6 @@ void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p);
 
-
 void mme_app_handle_e_rab_setup_rsp(
     itti_s1ap_e_rab_setup_rsp_t* e_rab_setup_rsp);
 
@@ -194,16 +194,20 @@ imsi64_t mme_app_handle_initial_paging_request(
     const itti_s11_paging_request_t* paging_req);
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
-status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id, void* args);
+status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
+                                              void* args);
 int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
-status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id, void* args);
-status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
-                                         void* args);
-status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop, int timer_id,
+status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
                                                void* args);
-status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id, void* args);
-status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop, int timer_id,
-                                           void* args);
+status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
+                                                   void* args);
+status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
+                                                         int timer_id,
+                                                         void* args);
+status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
+                                              void* args);
+status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop,
+                                                     int timer_id, void* args);
 status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
                                                           int timer_id,
                                                           void* args);
@@ -356,8 +360,6 @@ void mme_app_handle_path_switch_req_failure(
 void mme_app_send_itti_sgsap_ue_activity_ind(const char* imsi,
                                              unsigned int imsi_len);
 
-
-
 void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
                                     partial_tai_list_t* tai_list,
                                     uint8_t num_of_tac);
@@ -382,7 +384,6 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 #endif
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
-
 
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,

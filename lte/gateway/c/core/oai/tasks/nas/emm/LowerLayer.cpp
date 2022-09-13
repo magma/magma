@@ -442,9 +442,11 @@ void emm_as_set_security_data(emm_as_security_data_t* data, const void* args,
         is_new, context->eksi, context->ul_count.seq_num,
         *(uint32_t*)(&context->ul_count));
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_int:", (const char*)context->knas_int, AUTH_KNAS_INT_SIZE);
+                      "knas_int:", (const char*)context->knas_int,
+                      AUTH_KNAS_INT_SIZE);
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_enc:", (const char*)context->knas_enc, AUTH_KNAS_ENC_SIZE);
+                      "knas_enc:", (const char*)context->knas_enc,
+                      AUTH_KNAS_ENC_SIZE);
     data->is_new = is_new;
     data->ksi = context->eksi;
     data->sqn = context->dl_count

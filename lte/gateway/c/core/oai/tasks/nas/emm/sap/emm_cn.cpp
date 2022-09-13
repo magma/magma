@@ -113,7 +113,8 @@ extern status_code_e emm_cn_wrapper_attach_accept(emm_context_t* emm_context);
 static status_code_e emm_cn_authentication_res(emm_cn_auth_res_t* const msg);
 static status_code_e emm_cn_authentication_fail(const emm_cn_auth_fail_t* msg);
 static status_code_e emm_cn_ula_success(emm_cn_ula_success_t* msg_pP);
-static status_code_e emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP);
+static status_code_e emm_cn_cs_response_success(
+    emm_cn_cs_response_success_t* msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -345,7 +346,7 @@ static status_code_e emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
     rc = esm_proc_pdn_connectivity_request(
         emm_ctx, emm_ctx->esm_ctx.esm_proc_data->pti,
         emm_ctx->esm_ctx.esm_proc_data->pdn_cid, apn_config->context_identifier,
-        (esm_proc_pdn_request_t) emm_ctx->esm_ctx.esm_proc_data->request_type,
+        (esm_proc_pdn_request_t)emm_ctx->esm_ctx.esm_proc_data->request_type,
         emm_ctx->esm_ctx.esm_proc_data->apn, apn_config->pdn_type,
         emm_ctx->esm_ctx.esm_proc_data->pdn_addr,
         &emm_ctx->esm_ctx.esm_proc_data->bearer_qos,
@@ -434,7 +435,7 @@ static status_code_e emm_cn_implicit_detach_ue(const uint32_t ue_id) {
 
 //------------------------------------------------------------------------------
 static status_code_e emm_cn_nw_initiated_detach_ue(const uint32_t ue_id,
-                                         uint8_t detach_type) {
+                                                   uint8_t detach_type) {
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -495,7 +496,8 @@ static int emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static status_code_e emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
+static status_code_e emm_cn_cs_response_success(
+    emm_cn_cs_response_success_t* msg_pP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   struct emm_context_s* emm_ctx = NULL;
@@ -675,7 +677,8 @@ static status_code_e emm_cn_cs_response_success(emm_cn_cs_response_success_t* ms
 }
 
 //------------------------------------------------------------------------------
-static status_code_e emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg) {
+static status_code_e emm_cn_ula_or_csrsp_fail(
+    const emm_cn_ula_or_csrsp_fail_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   struct emm_context_s* emm_ctx_p = NULL;
@@ -1054,7 +1057,8 @@ static status_code_e emm_cn_cs_domain_mm_information_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static status_code_e emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
+static status_code_e emm_cn_pdn_disconnect_rsp(
+    emm_cn_pdn_disconnect_rsp_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   proc_tid_t pti;

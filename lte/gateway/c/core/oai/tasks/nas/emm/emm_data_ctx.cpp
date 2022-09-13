@@ -184,7 +184,7 @@ inline void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi,
 
 /* Set IMSI, mark it as valid */
 void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
-                                   imsi64_t imsi64) {
+                            imsi64_t imsi64) {
   ctxt->_imsi = *imsi;
   ctxt->_imsi64 = imsi64;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -257,8 +257,7 @@ inline void emm_ctx_set_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
 }
 
 /* Set IMEI_SV, mark it as valid */
-void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt,
-                                     imeisv_t* imeisv) {
+void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
   ctxt->_imeisv = *imeisv;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMEI_SV);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -280,8 +279,7 @@ inline void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) {
 }
 
 /* Set last_visited_registered_tai, mark it as valid */
-void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt,
-                                      tai_t* lvr_tai) {
+void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai) {
   ctxt->_lvr_tai = *lvr_tai;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_LVR_TAI);
   // OAILOG_DEBUG (LOG_NAS_EMM, "ue_id="MME_UE_S1AP_ID_FMT" set last visited
@@ -381,7 +379,7 @@ inline void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt) {
 }
 //------------------------------------------------------------------------------
 void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
-                                              int vector_index) {
+                                       int vector_index) {
   ctxt->_security.vector_index = vector_index;
   OAILOG_TRACE(LOG_NAS_EMM,
                "ue_id=" MME_UE_S1AP_ID_FMT
@@ -472,9 +470,8 @@ void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt) {
 }
 
 /* Set UE network capability IE */
-void emm_ctx_set_ms_nw_cap(
-    emm_context_t* const ctxt,
-    const ms_network_capability_t* const ms_nw_cap_ie) {
+void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
+                           const ms_network_capability_t* const ms_nw_cap_ie) {
   ctxt->_ms_network_capability = *ms_nw_cap_ie;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -510,7 +507,7 @@ void emm_ctx_clear_drx_parameter(emm_context_t* const ctxt) {
 
 /* Set current DRX parameter */
 void emm_ctx_set_drx_parameter(emm_context_t* const ctxt,
-                                      drx_parameter_t* drx) {
+                               drx_parameter_t* drx) {
   memcpy(&ctxt->_drx_parameter, drx, sizeof(drx_parameter_t));
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -522,7 +519,7 @@ void emm_ctx_set_drx_parameter(emm_context_t* const ctxt,
 
 /* Set current DRX parameter, mark it as valid */
 void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
-                                            drx_parameter_t* drx) {
+                                     drx_parameter_t* drx) {
   emm_ctx_set_drx_parameter(ctxt, drx);
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER);
   OAILOG_DEBUG(LOG_NAS_EMM,

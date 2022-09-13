@@ -86,15 +86,17 @@ static const char* emm_as_primitive_str[] = {
    Functions executed to process EMM procedures upon receiving
    data from the network
 */
-static status_code_e emm_as_recv(mme_ue_s1ap_id_t ue_id, tai_t const* originating_tai,
-                       ecgi_t const* originating_ecgi, bstring msg, size_t len,
-                       int* emm_cause,
-                       nas_message_decode_status_t* decode_status);
+static status_code_e emm_as_recv(mme_ue_s1ap_id_t ue_id,
+                                 tai_t const* originating_tai,
+                                 ecgi_t const* originating_ecgi, bstring msg,
+                                 size_t len, int* emm_cause,
+                                 nas_message_decode_status_t* decode_status);
 
-static status_code_e emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause);
+static status_code_e emm_as_establish_req(emm_as_establish_t* msg,
+                                          int* emm_cause);
 static status_code_e emm_as_data_ind(emm_as_data_t* msg, int* emm_cause);
 static status_code_e emm_as_release_ind(const emm_as_release_t* const release,
-                              int* emm_cause);
+                                        int* emm_cause);
 
 /*
    Functions executed to send data to the network when requested
@@ -289,10 +291,11 @@ status_code_e emm_as_send(emm_as_t* msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static status_code_e emm_as_recv(mme_ue_s1ap_id_t ue_id, tai_t const* originating_tai,
-                       ecgi_t const* originating_ecgi, bstring msg, size_t len,
-                       int* emm_cause,
-                       nas_message_decode_status_t* decode_status) {
+static status_code_e emm_as_recv(mme_ue_s1ap_id_t ue_id,
+                                 tai_t const* originating_tai,
+                                 ecgi_t const* originating_ecgi, bstring msg,
+                                 size_t len, int* emm_cause,
+                                 nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   nas_message_decode_status_t local_decode_status = {0};
   int decoder_rc = RETURNok;
@@ -742,7 +745,8 @@ static status_code_e emm_as_data_ind(emm_as_data_t* msg, int* emm_cause) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static status_code_e emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
+static status_code_e emm_as_establish_req(emm_as_establish_t* msg,
+                                          int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   struct emm_context_s* emm_ctx = NULL;
   emm_security_context_t* emm_security_context = NULL;
@@ -952,7 +956,7 @@ static status_code_e emm_as_establish_req(emm_as_establish_t* msg, int* emm_caus
 
 //------------------------------------------------------------------------------
 static status_code_e emm_as_release_ind(const emm_as_release_t* const release,
-                              int* emm_cause) {
+                                        int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = lowerlayer_release(release->ue_id, release->cause);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

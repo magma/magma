@@ -158,16 +158,17 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
       ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
           emm_fsm_get_state(emm_context);
       ident_proc->emm_com_proc.emm_proc.not_delivered =
-          (sdu_out_not_delivered_t) identification_ll_failure;
+          (sdu_out_not_delivered_t)identification_ll_failure;
       ident_proc->emm_com_proc.emm_proc.not_delivered_ho =
-          (sdu_out_not_delivered_ho_t) identification_non_delivered_ho;
+          (sdu_out_not_delivered_ho_t)identification_non_delivered_ho;
       ident_proc->emm_com_proc.emm_proc.base_proc.success_notif = success;
       ident_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
-      ident_proc->emm_com_proc.emm_proc.base_proc.abort = (proc_abort_t) identification_abort;
+      ident_proc->emm_com_proc.emm_proc.base_proc.abort =
+          (proc_abort_t)identification_abort;
       ident_proc->emm_com_proc.emm_proc.base_proc.fail_in =
           NULL;  // only response
       ident_proc->emm_com_proc.emm_proc.base_proc.time_out =
-          (time_out_t) mme_app_handle_identification_t3470_expiry;
+          (time_out_t)mme_app_handle_identification_t3470_expiry;
     }
 
     rc = identification_request(ident_proc);
@@ -410,7 +411,7 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*> ("Identification T3470 Timer"));
+      mme_ue_s1ap_id, const_cast<char*>("Identification T3470 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

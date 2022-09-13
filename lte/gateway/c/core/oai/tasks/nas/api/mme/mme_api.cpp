@@ -144,7 +144,8 @@ status_code_e mme_api_get_emm_config(mme_api_emm_config_t* config,
   }
 
   if (mme_config_p->unauthenticated_imsi_supported != 0) {
-    config->features = (mme_api_feature_t)(config->features | MME_API_UNAUTHENTICATED_IMSI);
+    config->features =
+        (mme_api_feature_t)(config->features | MME_API_UNAUTHENTICATED_IMSI);
   }
 
   for (int i = 0; i < 8; i++) {
@@ -184,13 +185,16 @@ status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config) {
 
   if (strcmp((const char*)mme_config.non_eps_service_control->data, "SMS") ==
       0) {
-    config->features = (mme_api_feature_t)(config->features | MME_API_SMS_SUPPORTED);
+    config->features =
+        (mme_api_feature_t)(config->features | MME_API_SMS_SUPPORTED);
   } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
                     "CSFB_SMS") == 0) {
-    config->features = (mme_api_feature_t)(config->features | MME_API_CSFB_SMS_SUPPORTED);
+    config->features =
+        (mme_api_feature_t)(config->features | MME_API_CSFB_SMS_SUPPORTED);
   } else if (strcmp((const char*)mme_config.non_eps_service_control->data,
                     "SMS_ORC8R") == 0) {
-    config->features = (mme_api_feature_t)(config->features | MME_API_SMS_ORC8R_SUPPORTED);
+    config->features =
+        (mme_api_feature_t)(config->features | MME_API_SMS_ORC8R_SUPPORTED);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);

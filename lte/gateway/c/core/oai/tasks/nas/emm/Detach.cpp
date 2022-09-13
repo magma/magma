@@ -122,7 +122,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
     }
 
     struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-        mme_ue_s1ap_id, const_cast<char*> ("Detach Procedure T3422 Timer"));
+        mme_ue_s1ap_id, const_cast<char*>("Detach Procedure T3422 Timer"));
     if (ue_context_p == NULL) {
       OAILOG_ERROR(
           LOG_MME_APP,
@@ -162,7 +162,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
        * switched-off to avoid sending of detach accept message
        */
       emm_detach_request_params.switch_off = 1;
-      emm_detach_request_params.type =  EMM_DETACH_TYPE_EPS; //0
+      emm_detach_request_params.type = EMM_DETACH_TYPE_EPS;  // 0
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
     if (data) {
@@ -546,14 +546,14 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
        */
       nas_stop_T3422(emm_ctx->_imsi64, &(emm_ctx->T3422));
       nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                      (time_out_t) mme_app_handle_detach_t3422_expiry);
+                      (time_out_t)mme_app_handle_detach_t3422_expiry);
     } else {
       /*
        * Start T3422 timer
        */
       if (emm_ctx->t3422_arg) {
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                        (time_out_t) mme_app_handle_detach_t3422_expiry);
+                        (time_out_t)mme_app_handle_detach_t3422_expiry);
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*)calloc(1, sizeof(nw_detach_data_t));
@@ -570,7 +570,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         data->detach_type = detach_type;
         emm_ctx->t3422_arg = (void*)data;
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
-                        (time_out_t) mme_app_handle_detach_t3422_expiry);
+                        (time_out_t)mme_app_handle_detach_t3422_expiry);
       }
     }
   }

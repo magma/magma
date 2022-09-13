@@ -51,20 +51,22 @@ struct nas_emm_proc_s;
 
 typedef status_code_e (*success_cb_t)(struct emm_context_s*);
 typedef status_code_e (*failure_cb_t)(struct emm_context_s*);
-typedef status_code_e (*proc_abort_t)(struct emm_context_s*, struct nas_base_proc_s*);
+typedef status_code_e (*proc_abort_t)(struct emm_context_s*,
+                                      struct nas_base_proc_s*);
 
 typedef int (*pdu_in_resp_t)(struct emm_context_s*,
                              void* arg);  // can be RESPONSE, COMPLETE, ACCEPT
-typedef status_code_e (*pdu_in_rej_t)(struct emm_context_s*, void* arg);  // REJECT.
+typedef status_code_e (*pdu_in_rej_t)(struct emm_context_s*,
+                                      void* arg);  // REJECT.
 typedef status_code_e (*pdu_out_rej_t)(struct emm_context_s*,
-                             struct nas_base_proc_s*);  // REJECT.
+                                       struct nas_base_proc_s*);  // REJECT.
 
 typedef status_code_e (*sdu_out_delivered_t)(struct emm_context_s*,
-                                   struct nas_emm_proc_s*);
+                                             struct nas_emm_proc_s*);
 typedef status_code_e (*sdu_out_not_delivered_t)(struct emm_context_s*,
-                                       struct nas_emm_proc_s*);
+                                                 struct nas_emm_proc_s*);
 typedef status_code_e (*sdu_out_not_delivered_ho_t)(struct emm_context_s*,
-                                          struct nas_emm_proc_s*);
+                                                    struct nas_emm_proc_s*);
 
 typedef enum {
   NAS_PROC_TYPE_NONE = 0,
@@ -398,8 +400,8 @@ bool is_nas_common_procedure_smc_running(
     const struct emm_context_s* const ctxt);
 
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 
 /*bool is_nas_common_procedure_authentication_running(

@@ -109,7 +109,8 @@ struct emm_common_data_s* emm_common_data_context_get(
   reference.ue_id = _ueid;
   pthread_mutex_lock(&root->mutex);
   reference_p =
-      RB_FIND(emm_common_data_map, (emm_common_data_map*)&root->emm_common_data_root, &reference);
+      RB_FIND(emm_common_data_map,
+              (emm_common_data_map*)&root->emm_common_data_root, &reference);
   pthread_mutex_unlock(&root->mutex);
   return reference_p;
 }
@@ -161,7 +162,8 @@ status_code_e emm_proc_common_initialize(
         (emm_common_data_t*)calloc(1, sizeof(emm_common_data_t));
     emm_common_data_ctx->ue_id = ue_id;
     pthread_mutex_lock(&emm_common_data_head.mutex);
-    RB_INSERT(emm_common_data_map, (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+    RB_INSERT(emm_common_data_map,
+              (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
               emm_common_data_ctx);
     pthread_mutex_unlock(&emm_common_data_head.mutex);
 
@@ -454,8 +456,10 @@ void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
        * Release the callback functions
        */
       pthread_mutex_lock(&emm_common_data_head.mutex);
-      RB_REMOVE(emm_common_data_map, (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
-                emm_common_data_ctx);
+      RB_REMOVE(
+          emm_common_data_map,
+          (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+          emm_common_data_ctx);
       free_wrapper(&emm_common_data_ctx->args);
       free_wrapper((void**)&emm_common_data_ctx);
       pthread_mutex_unlock(&emm_common_data_head.mutex);
@@ -474,7 +478,8 @@ void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
     pthread_mutex_lock(&emm_common_data_head.mutex);
-    RB_REMOVE(emm_common_data_map, (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+    RB_REMOVE(emm_common_data_map,
+              (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
               emm_common_data_ctx);
     if (emm_common_data_ctx->args) {
       free_wrapper(&emm_common_data_ctx->args);
@@ -502,7 +507,8 @@ void create_new_attach_info(emm_context_t* emm_context_p,
                             STOLEN_REF struct emm_attach_request_ies_s* ies,
                             bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_p->new_attach_info = (new_attach_info_t*)calloc(1, sizeof(new_attach_info_t));
+  emm_context_p->new_attach_info =
+      (new_attach_info_t*)calloc(1, sizeof(new_attach_info_t));
   emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
   emm_context_p->new_attach_info->ies = ies;
   emm_context_p->new_attach_info->is_mm_ctx_new = is_mm_ctx_new;

@@ -80,7 +80,6 @@ typedef struct {
   uint32_t blength;
 } nas_stream_cipher_t;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

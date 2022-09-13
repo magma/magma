@@ -80,9 +80,10 @@ extern "C" {
  * Other aspects of TAU are TODOs for future.
  */
 
-static status_code_e emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
-                                           const int emm_cause);
-static status_code_e emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc);
+static status_code_e emm_tracking_area_update_reject(
+    const mme_ue_s1ap_id_t ue_id, const int emm_cause);
+static status_code_e emm_tracking_area_update_accept(
+    nas_emm_tau_proc_t* const tau_proc);
 static int emm_tracking_area_update_abort(struct emm_context_s* emm_context,
                                           struct nas_base_proc_s* base_proc);
 
@@ -603,7 +604,7 @@ status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
   }
 
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*> ("Authentication T3450 Timer"));
+      mme_ue_s1ap_id, const_cast<char*>("Authentication T3450 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -684,8 +685,8 @@ static int _emm_tracking_area_update_security (emm_context_t * emm_context)
      @returns RETURNok, RETURNerror
 */
 //------------------------------------------------------------------------------
-static status_code_e emm_tracking_area_update_reject(const mme_ue_s1ap_id_t ue_id,
-                                           const int emm_cause)
+static status_code_e emm_tracking_area_update_reject(
+    const mme_ue_s1ap_id_t ue_id, const int emm_cause)
 
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -775,7 +776,8 @@ static int build_csfb_parameters_combined_tau(emm_context_t* emm_ctx,
      @returns status of operation (RETURNok, RETURNerror)
 */
 //------------------------------------------------------------------------------
-static status_code_e emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
+static status_code_e emm_tracking_area_update_accept(
+    nas_emm_tau_proc_t* const tau_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -1164,12 +1166,12 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
   if ((tau_proc)) {
     tau_proc->ies = ies;
     tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
-    tau_proc->emm_spec_proc.emm_proc.base_proc.abort = (proc_abort_t)
-        emm_tracking_area_update_abort;
+    tau_proc->emm_spec_proc.emm_proc.base_proc.abort =
+        (proc_abort_t)emm_tracking_area_update_abort;
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_in =
         NULL;  // No parent procedure
-    tau_proc->emm_spec_proc.emm_proc.base_proc.time_out = (time_out_t)
-        mme_app_handle_tau_t3450_expiry;
+    tau_proc->emm_spec_proc.emm_proc.base_proc.time_out =
+        (time_out_t)mme_app_handle_tau_t3450_expiry;
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }

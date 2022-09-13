@@ -83,8 +83,8 @@ status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ueid,
                                 struct emm_context_s* const emm_context,
                                 const emm_fsm_state_t status);
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 
 /*emm_fsm_state_t emm_fsm_get_state(

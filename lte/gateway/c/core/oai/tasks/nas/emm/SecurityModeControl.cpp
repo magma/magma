@@ -121,8 +121,10 @@ static int security_non_delivered_ho(emm_context_t* emm_context,
 */
 static int security_abort(emm_context_t* emm_context,
                           struct nas_base_proc_s* base_proc);
-static status_code_e security_select_algorithms(const int ue_eiaP, const int ue_eeaP,
-                                      int* const mme_eiaP, int* const mme_eeaP);
+static status_code_e security_select_algorithms(const int ue_eiaP,
+                                                const int ue_eeaP,
+                                                int* const mme_eiaP,
+                                                int* const mme_eeaP);
 
 static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc);
 
@@ -284,16 +286,18 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->emm_com_proc.emm_proc.delivered = NULL;
     smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
         emm_fsm_get_state(emm_ctx);
-    smc_proc->emm_com_proc.emm_proc.not_delivered = (sdu_out_not_delivered_t) security_ll_failure;
+    smc_proc->emm_com_proc.emm_proc.not_delivered =
+        (sdu_out_not_delivered_t)security_ll_failure;
     smc_proc->emm_com_proc.emm_proc.not_delivered_ho =
-        (sdu_out_not_delivered_ho_t) security_non_delivered_ho;
+        (sdu_out_not_delivered_ho_t)security_non_delivered_ho;
     smc_proc->emm_com_proc.emm_proc.base_proc.success_notif = success;
     smc_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
-    smc_proc->emm_com_proc.emm_proc.base_proc.abort = (proc_abort_t) security_abort;
+    smc_proc->emm_com_proc.emm_proc.base_proc.abort =
+        (proc_abort_t)security_abort;
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;  // only response
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
     smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
-        (time_out_t) mme_app_handle_security_t3460_expiry;
+        (time_out_t)mme_app_handle_security_t3460_expiry;
 
     /*
      * Set the UE identifier
@@ -703,13 +707,16 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
  */
 
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
-  smc_proc->emm_com_proc.emm_proc.not_delivered = (sdu_out_not_delivered_t) security_ll_failure;
-  smc_proc->emm_com_proc.emm_proc.not_delivered_ho = (sdu_out_not_delivered_ho_t) security_non_delivered_ho;
-  smc_proc->emm_com_proc.emm_proc.base_proc.abort = (proc_abort_t) security_abort;
+  smc_proc->emm_com_proc.emm_proc.not_delivered =
+      (sdu_out_not_delivered_t)security_ll_failure;
+  smc_proc->emm_com_proc.emm_proc.not_delivered_ho =
+      (sdu_out_not_delivered_ho_t)security_non_delivered_ho;
+  smc_proc->emm_com_proc.emm_proc.base_proc.abort =
+      (proc_abort_t)security_abort;
   smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;
   smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
   smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
-      (time_out_t) mme_app_handle_security_t3460_expiry;
+      (time_out_t)mme_app_handle_security_t3460_expiry;
 }
 
 /****************************************************************************/
@@ -738,7 +745,7 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
  **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                                                   **
+ **      Return:    RETURNok, RETURNerror **
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
@@ -1028,9 +1035,10 @@ static int security_abort(emm_context_t* emm_ctx,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-static status_code_e security_select_algorithms(const int ue_eiaP, const int ue_eeaP,
-                                      int* const mme_eiaP,
-                                      int* const mme_eeaP) {
+static status_code_e security_select_algorithms(const int ue_eiaP,
+                                                const int ue_eeaP,
+                                                int* const mme_eiaP,
+                                                int* const mme_eeaP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int preference_index;
 

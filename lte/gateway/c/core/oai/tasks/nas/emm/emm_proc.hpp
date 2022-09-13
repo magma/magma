@@ -173,8 +173,8 @@ typedef struct emm_tau_request_ies_s {
  *---------------------------------------------------------------------------
  */
 /*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 
 /*status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
@@ -200,8 +200,8 @@ status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);*/
  */
 
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 
 /*void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
@@ -227,7 +227,6 @@ status_code_e emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id,
 status_code_e emm_proc_attach_complete(
     mme_ue_s1ap_id_t ue_id, const_bstring esm_msg_pP, int emm_cause,
     const nas_message_decode_status_t status);
-
 
 status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
@@ -300,8 +299,8 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
                                                const_bstring const res);
 
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
- * after moving all the files to c++
+ * resolve undefined references. Uncomment these functions and delete
+ * emm_headers.hpp after moving all the files to c++
  */
 
 /*void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);

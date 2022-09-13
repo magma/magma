@@ -57,7 +57,8 @@ extern "C" {
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
-static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause);
+static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id,
+                                        uint8_t emm_cause);
 
 static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /*
@@ -88,7 +89,8 @@ status_code_e emm_proc_service_reject(const mme_ue_s1ap_id_t ue_id,
      @param [in]args UE EMM context data
      @returns status of operation
 */
-static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
+static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id,
+                                        uint8_t emm_cause)
 
 {
   status_code_e rc = RETURNerror;
