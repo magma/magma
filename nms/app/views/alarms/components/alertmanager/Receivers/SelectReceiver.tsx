@@ -14,9 +14,10 @@
 import * as React from 'react';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
-import Input from '@mui/material/Input';
 import MenuItem from '@mui/material/MenuItem';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
+import {AltFormField} from '../../../../../components/FormField';
+import {FormControl, OutlinedInput} from '@mui/material';
 import {useAlarmContext} from '../../AlarmContext';
 import {useParams} from 'react-router-dom';
 
@@ -51,32 +52,40 @@ export default function SelectReceiver({
   }
 
   return (
-    <Select
-      {...fieldProps}
-      id="select-receiver"
-      data-testid="select-receiver"
-      onChange={handleChange}
-      defaultValue="Select Team"
-      input={<Input inputProps={{'data-testid': 'select-receiver-input'}} />}
-      renderValue={value => (
-        <Chip
-          key={value}
-          label={value}
-          variant="outlined"
-          color="primary"
-          size="small"
-        />
-      )}
-      value={receiver || ''}>
-      <MenuItem value="" key={''}>
-        None
-      </MenuItem>
-      {error && <MenuItem>Error: Could not load receivers</MenuItem>}
-      {(response || []).map(receiver => (
-        <MenuItem value={receiver.name} key={receiver.name}>
-          {receiver.name}
-        </MenuItem>
-      ))}
-    </Select>
+    <AltFormField disableGutters label="Audience">
+      <FormControl fullWidth>
+        <Select
+          {...fieldProps}
+          id="select-receiver"
+          data-testid="select-receiver"
+          onChange={handleChange}
+          defaultValue="Select Team"
+          input={
+            <OutlinedInput
+              inputProps={{'data-testid': 'select-receiver-input'}}
+            />
+          }
+          renderValue={value => (
+            <Chip
+              key={value}
+              label={value}
+              variant="outlined"
+              color="primary"
+              size="small"
+            />
+          )}
+          value={receiver || ''}>
+          <MenuItem value="" key={''}>
+            None
+          </MenuItem>
+          {error && <MenuItem>Error: Could not load receivers</MenuItem>}
+          {(response || []).map(receiver => (
+            <MenuItem value={receiver.name} key={receiver.name}>
+              {receiver.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </AltFormField>
   );
 }

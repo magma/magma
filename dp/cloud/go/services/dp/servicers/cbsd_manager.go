@@ -152,6 +152,7 @@ func (c *cbsdManager) RelinquishCbsd(_ context.Context, request *protos.Relinqui
 }
 
 func (c *cbsdManager) sendLog(ctx context.Context, source interface{}, name string, from string, to string, details *storage.DetailedCbsd) {
+	// TODO maybe we don't have to marshal msg
 	msg, _ := json.Marshal(source)
 	log := &logs_pusher.DPLog{
 		EventTimestamp:   clock.Now().UTC().Unix(),
@@ -211,7 +212,6 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 	capabilities := data.GetCapabilities()
 	preferences := data.GetPreferences()
 	installationParam := data.GetInstallationParam()
-	b, _ := json.Marshal(preferences.GetFrequenciesMhz())
 	cbsd := &storage.DBCbsd{
 		UserId:                    db.MakeString(data.GetUserId()),
 		FccId:                     db.MakeString(data.GetFccId()),
@@ -220,7 +220,7 @@ func buildCbsd(data *protos.CbsdData) *storage.DBCbsd {
 		MaxPower:                  db.MakeFloat(capabilities.GetMaxPower()),
 		NumberOfPorts:             db.MakeInt(capabilities.GetNumberOfAntennas()),
 		PreferredBandwidthMHz:     db.MakeInt(preferences.GetBandwidthMhz()),
-		PreferredFrequenciesMHz:   db.MakeString(string(b)),
+		PreferredFrequenciesMHz:   preferences.GetFrequenciesMhz(),
 		SingleStepEnabled:         db.MakeBool(data.GetSingleStepEnabled()),
 		CbsdCategory:              db.MakeString(data.GetCbsdCategory()),
 		CarrierAggregationEnabled: db.MakeBool(data.GetCarrierAggregationEnabled()),
@@ -244,8 +244,6 @@ func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam
 
 func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Duration) *protos.CbsdDetails {
 	isActive := clock.Since(data.Cbsd.LastSeen.Time) < inactivityInterval
-	var frequencies []int64
-	_ = json.Unmarshal([]byte(data.Cbsd.PreferredFrequenciesMHz.String), &frequencies)
 	return &protos.CbsdDetails{
 		Id: data.Cbsd.Id.Int64,
 		Data: &protos.CbsdData{
@@ -262,7 +260,7 @@ func cbsdFromDatabase(data *storage.DetailedCbsd, inactivityInterval time.Durati
 			},
 			Preferences: &protos.FrequencyPreferences{
 				BandwidthMhz:   data.Cbsd.PreferredBandwidthMHz.Int64,
-				FrequenciesMhz: frequencies,
+				FrequenciesMhz: data.Cbsd.PreferredFrequenciesMHz,
 			},
 			DesiredState:              data.DesiredState.Name.String,
 			InstallationParam:         getInstallationParam(data.Cbsd),

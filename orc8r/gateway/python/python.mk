@@ -58,8 +58,8 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
 
-	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch 2>/dev/null \
-	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch && echo "ryu was patched" ) \
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/app/ofctl/service.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/app/ofctl/service.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
 
 	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \

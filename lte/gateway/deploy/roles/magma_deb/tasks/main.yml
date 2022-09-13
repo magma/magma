@@ -152,7 +152,3 @@
     - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_sessiond.service', dest: 'magma@sessiond.service' }
     - { src: 'orc8r/tools/ansible/roles/fluent_bit/files/magma_td-agent-bit.service', dest: 'magma@td-agent-bit.service' }
     - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_dp_envoy.service', dest: 'magma_dp@envoy.service' }
-
-- name: Reboot the machine (Wait for 180s)
-  ansible.builtin.reboot:
-    reboot_timeout: 180

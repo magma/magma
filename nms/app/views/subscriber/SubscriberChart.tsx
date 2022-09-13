@@ -23,7 +23,6 @@ import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
-import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import {CustomLineChart, DatasetType} from '../../components/CustomMetrics';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
@@ -32,6 +31,7 @@ import {colors} from '../../theme/default';
 import {convertBitToMbit, getPromValue} from './SubscriberUtils';
 import {getStep, getStepString} from '../../components/CustomMetrics';
 import {makeStyles} from '@mui/styles';
+import {subHours} from 'date-fns';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -49,8 +49,8 @@ const useStyles = makeStyles({
 type DatasetFetchProps = {
   networkId: NetworkId;
   subscriberId: SubscriberId;
-  start: moment.Moment;
-  end: moment.Moment;
+  start: Date;
+  end: Date;
   enqueueSnackbar: (
     msg: string,
     cfg: OptionsObject,
@@ -96,7 +96,7 @@ async function getDatasets(props: DatasetFetchProps) {
       resp.data.result.forEach(it =>
         it['values']?.map(i => {
           selectedData.push({
-            t: parseInt(i[0]) * 1000,
+            x: parseInt(i[0]) * 1000,
             y: parseFloat(convertBitToMbit(parseFloat(i[1]))),
           });
         }),
@@ -220,8 +220,8 @@ export default function SubscriberChart() {
   const [datasets, setDatasets] = useState<Array<Dataset>>([]);
   const [toolTipHint, setToolTipHint] = useState('');
   const [unit, setUnit] = useState('' as TimeUnit);
-  const [start, setStart] = useState(moment().subtract(3, 'hours'));
-  const [end, setEnd] = useState(moment());
+  const [startDate, setStartDate] = useState(subHours(new Date(), 3));
+  const [endDate, setEndDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const yLabelUnit = 'MB/s';
 
@@ -236,10 +236,10 @@ export default function SubscriberChart() {
         <Grid item>
           <DateTimePicker
             renderInput={props => <TextField {...props} />}
-            maxDate={end}
+            maxDate={endDate}
             disableFuture
-            value={start}
-            onChange={date => setStart(date as moment.Moment)}
+            value={startDate}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -251,8 +251,8 @@ export default function SubscriberChart() {
           <DateTimePicker
             renderInput={props => <TextField {...props} />}
             disableFuture
-            value={end}
-            onChange={date => setEnd(date as moment.Moment)}
+            value={endDate}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>
@@ -263,8 +263,8 @@ export default function SubscriberChart() {
     // fetch queries
     const fetchAllData = async () => {
       const {allDatasets, unit, toolTipHint} = await getDatasets({
-        start,
-        end,
+        start: startDate,
+        end: endDate,
         networkId,
         subscriberId,
         enqueueSnackbar,
@@ -276,7 +276,7 @@ export default function SubscriberChart() {
     };
 
     void fetchAllData();
-  }, [start, end, enqueueSnackbar, networkId, subscriberId]);
+  }, [startDate, endDate, enqueueSnackbar, networkId, subscriberId]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -293,10 +293,10 @@ export default function SubscriberChart() {
               dataset={datasets}
               unit={unit}
               yLabel={yLabelUnit}
-              tooltipHandler={(tooltipItem, data) => {
-                const val = tooltipItem.yLabel;
-                return `${data.datasets![tooltipItem.datasetIndex!]
-                  .label!} ${val!} ${yLabelUnit} in last ${toolTipHint}s`;
+              tooltipHandler={tooltipItem => {
+                const val = tooltipItem.label;
+                return `${tooltipItem.dataset
+                  .label!} ${val} ${yLabelUnit} in last ${toolTipHint}s`;
               }}
             />
           }

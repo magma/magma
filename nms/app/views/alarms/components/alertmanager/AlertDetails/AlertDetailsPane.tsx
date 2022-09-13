@@ -30,9 +30,9 @@ import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import SeverityIndicator from '../../severity/SeverityIndicator';
 import Typography from '@mui/material/Typography';
-import moment from 'moment';
 import {PromFiringAlert} from '../../../../../../generated';
 import {Theme} from '@mui/material/styles';
+import {format, formatDistanceToNow, parseISO} from 'date-fns';
 import {getErrorMessage} from '../../../../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../../AlarmContext';
@@ -158,10 +158,19 @@ function MetricAlertViewer({alert}: AlertViewerProps) {
 
 function AlertDate({date}: {date: string}) {
   const classes = useStyles();
-  const fromNow = React.useMemo(() => moment(date).local().fromNow(), [date]);
+  const realDate = React.useMemo(() => {
+    if (date) {
+      return parseISO(date);
+    } else {
+      return new Date();
+    }
+  }, [date]);
+  const fromNow = React.useMemo(() => formatDistanceToNow(realDate), [
+    realDate,
+  ]);
   const startDate = React.useMemo(
-    () => moment(date).local().format('MMM Do YYYY, h:mm:ss a'),
-    [date],
+    () => format(realDate, 'MMM Do yyyy, h:mm:ss a'),
+    [realDate],
   );
   return (
     <Typography variant="body2" color="textSecondary">
