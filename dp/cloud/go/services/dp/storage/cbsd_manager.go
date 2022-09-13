@@ -63,20 +63,18 @@ type DetailedGrant struct {
 
 func NewCbsdManager(db *sql.DB, builder sqorc.StatementBuilder, errorChecker sqorc.ErrorChecker, locker sqorc.Locker) *cbsdManager {
 	return &cbsdManager{
-		db:           db,
-		builder:      builder,
-		cache:        &enumCache{cache: map[string]map[string]int64{}},
-		errorChecker: errorChecker,
-		locker:       locker,
+		&dpManager{
+			db:           db,
+			builder:      builder,
+			cache:        &enumCache{cache: map[string]map[string]int64{}},
+			errorChecker: errorChecker,
+			locker:       locker,
+		},
 	}
 }
 
 type cbsdManager struct {
-	db           *sql.DB
-	builder      sqorc.StatementBuilder
-	cache        *enumCache
-	errorChecker sqorc.ErrorChecker
-	locker       sqorc.Locker
+	*dpManager
 }
 
 type enumCache struct {
