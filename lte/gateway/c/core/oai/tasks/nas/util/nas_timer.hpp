@@ -82,7 +82,10 @@ typedef struct nas_itti_timer_arg_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-//TODO: Pruthvi
+/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
+ * resolve undefined references. Uncomment these functions and delete emm_headers.hpp
+ * after moving all the files to c++
+ */
 /*status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);*/
 

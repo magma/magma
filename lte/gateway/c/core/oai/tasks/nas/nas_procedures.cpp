@@ -30,7 +30,6 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,6 +42,7 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -53,23 +53,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
-/*extern void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3460);
-extern void nas_stop_T3470(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3470);
-extern void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3450);
-extern void nas_start_T3422(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3422, time_out_t time_out_cb);
-extern void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422);
-
-extern void free_emm_attach_request_ies(emm_attach_request_ies_t** const ies);
-
-extern void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
-
-extern void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies);
-extern struct emm_context_s* emm_context_get(emm_data_t* emm_data,
-                                      const mme_ue_s1ap_id_t ue_id);*/
 // TODO: Add unit tests for common procedure functions
 static nas_emm_common_proc_t* get_nas_common_procedure(
     const struct emm_context_s* const ctxt, emm_common_proc_type_t proc_type);
