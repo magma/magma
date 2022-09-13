@@ -121,7 +121,6 @@
   become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes
   vars:
     packages:
       - graphviz
