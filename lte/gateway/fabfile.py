@@ -564,7 +564,7 @@ def _start_gateway_containerized():
     """ Starts the gateway """
 
     with cd(AGW_ROOT + "/docker"):
-        run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d')
+        run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull')
 
 
 def run_integ_tests(tests=None, federated_mode=False):
