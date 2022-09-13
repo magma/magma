@@ -540,7 +540,6 @@ def integ_test_containerized(
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
-    print("#####", gateway_host, gateway_ip)
     execute(_start_gateway_containerized)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
