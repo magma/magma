@@ -916,6 +916,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
+    print("##### sleeping for 90 Seconds to wait for services to get healthy")
+    for i in range(90):
+        time.sleep(1)
+        print(f" {i+1} seconds")
     local(
         'ssh -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
