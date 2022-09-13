@@ -14,6 +14,7 @@ limitations under the License.
 import sys
 from distutils.util import strtobool
 from time import sleep
+from typing import List
 
 from fabric.api import cd, env, execute, local, run, settings, sudo
 from fabric.contrib.files import exists
@@ -917,10 +918,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
-    print("##### sleeping for 90 Seconds to wait for services to get healthy")
-    for i in range(90):
-        time.sleep(1)
-        print(f" {i+1} seconds")
+    healthy = _health()
+    if not healthy:
+        raise RuntimeError("Containerized AGW not healthy")
+
     local(
         'ssh -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
@@ -933,6 +934,21 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         ' make %s enable-flaky-retry=true %s\''
         % (key, host, port, gateway_ip, test_mode, tests),
     )
+
+
+def _health(wait: int = 30, services: List[str] = ("pipelined", "sessiond", "control_proxy")):
+    print(f"Waiting {wait} seconds to give agw time to start up")
+    for i in range(wait):
+        time.sleep(1)
+        print(".")
+    result = False
+    retry_limit, retry = 20, 0
+    while result is False and retry < retry_limit :
+        output = run(f"docker inspect --format='{{.State.Health.Status}}' {services[0]} {services[1]} {services[2]}")
+        result = all(line.strip() == "healthy" for line in output.split("\n"))
+        retry += 1
+        time.sleep(5)
+    return result
 
 
 def _run_load_tests(gateway_ip='192.168.60.142'):
