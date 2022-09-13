@@ -5,13 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	"magma/dp/cloud/go/services/dp/storage/db"
-	"magma/dp/cloud/go/services/dp/storage/dbtest"
-	"magma/orc8r/cloud/go/sqorc"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+
+	"magma/dp/cloud/go/services/dp/storage/db"
+	"magma/dp/cloud/go/services/dp/storage/dbtest"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func TestAmcManager(t *testing.T) {
