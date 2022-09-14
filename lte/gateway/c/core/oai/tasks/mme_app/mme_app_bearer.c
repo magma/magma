@@ -72,8 +72,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 

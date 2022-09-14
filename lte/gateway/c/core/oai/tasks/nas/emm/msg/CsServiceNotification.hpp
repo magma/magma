@@ -20,13 +20,13 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"

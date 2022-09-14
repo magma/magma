@@ -48,8 +48,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -29,7 +29,7 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
 
 int decode_tracking_area_update_request(
     tracking_area_update_request_msg* tracking_area_update_request,
