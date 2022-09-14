@@ -20,7 +20,13 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define LCS_CLIENT_IDENTITY_MINIMUM_LENGTH 3
 #define LCS_CLIENT_IDENTITY_MAXIMUM_LENGTH 257

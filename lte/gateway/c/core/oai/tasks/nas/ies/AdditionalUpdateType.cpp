@@ -17,8 +17,13 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
 #include <stdint.h>
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 int decode_additional_update_type(

@@ -19,7 +19,13 @@
 #define ESM_MESSAGE_CONTAINER_SEEN
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 struct scenario_s;
 struct scenario_player_msg_s;

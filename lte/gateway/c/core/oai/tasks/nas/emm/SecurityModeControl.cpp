@@ -761,7 +761,7 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
   }
 
   struct ue_mm_context_s* ue_context_p =
-      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Security T3460 Timer");
+      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, (char*)"Security T3460 Timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

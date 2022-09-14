@@ -20,7 +20,13 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define NAS_MESSAGE_CONTAINER_MINIMUM_LENGTH 3
 #define NAS_MESSAGE_CONTAINER_MAXIMUM_LENGTH 253
