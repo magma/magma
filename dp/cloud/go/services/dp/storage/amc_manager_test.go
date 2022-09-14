@@ -147,6 +147,44 @@ func (s *AmcManagerTestSuite) TestDeleteCbsd() {
 	s.Require().NoError(err)
 }
 
+func (s *AmcManagerTestSuite) TestUpdateCbsd() {
+	stateId := s.enumMaps[CbsdStateTable][unregistered]
+	cbsd := DBCbsd{
+		Id:                    db.MakeInt(1),
+		NetworkId:             db.MakeString(someNetwork),
+		StateId:               db.MakeInt(stateId),
+		DesiredStateId:        db.MakeInt(stateId),
+		PreferredBandwidthMHz: db.MakeInt(20),
+	}
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), &cbsd)
+	s.Require().NoError(err)
+
+	cbsdUpdate := DBCbsd{
+		Id:                    db.MakeInt(1),
+		PreferredBandwidthMHz: db.MakeInt(30),
+		MinPower:              db.MakeFloat(0),
+		MaxPower:              db.MakeFloat(20),
+	}
+	mask := db.NewIncludeMask("preferred_bandwidth_mhz", "min_power", "max_power")
+	_, err = WithinTx(s.database, func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.amcManager.UpdateCbsd(tx, &cbsdUpdate, mask)
+	})
+	s.Require().NoError(err)
+
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&DBCbsd{}).
+			Select(db.NewIncludeMask("id", "preferred_bandwidth_mhz", "min_power", "max_power")).
+			Fetch()
+		s.Require().NoError(err)
+
+		expected := []db.Model{&cbsdUpdate}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+}
+
 func (s *AmcManagerTestSuite) TearDownTest() {
 	err := s.resourceManager.DropResources(
 		&DBRequest{},
