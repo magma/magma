@@ -551,9 +551,9 @@ def integ_test_containerized(
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    #_setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
-    #execute(_make_integ_tests)
-    #execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
 
 
 def _start_gateway_containerized():
@@ -563,8 +563,6 @@ def _start_gateway_containerized():
 
     with cd(AGW_ROOT + "/docker"):
         run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull')
-        run('sleep 60; docker-compose ps')
-        run('sleep 60; docker-compose ps')
         run('sleep 60; docker-compose ps')
 
 
