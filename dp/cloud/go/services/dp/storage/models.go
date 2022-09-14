@@ -62,6 +62,14 @@ func (rt *DBRequestType) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (rt *DBRequestType) GetId() int64 {
+	return rt.Id.Int64
+}
+
+func (rt *DBRequestType) GetName() string {
+	return rt.Name.String
+}
+
 type DBRequest struct {
 	Id      sql.NullInt64
 	TypeId  sql.NullInt64
