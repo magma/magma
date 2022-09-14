@@ -942,18 +942,18 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
     )
 
 
-def _health(wait: int = 30, services: List[str] = ("pipelined", "sessiond", "control_proxy")):
-    print(f"Waiting {wait} seconds to give agw time to start up")
-    for i in range(wait):
+def _health(start_period: int = 30, interval: int = 5, retry_limit: int = 20, services: List[str] = ("pipelined", "sessiond", "control_proxy")):
+    print(f"Waiting {start_period} seconds to give agw time to start up")
+    for i in range(start_period):
         sleep(1)
         print(".")
     result = False
-    retry_limit, retry = 20, 0
+    retry_limit, retry = retry_limit, 0
     while result is False and retry < retry_limit :
         output = run("/usr/bin/docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
         result = all(line.strip() == "healthy" for line in output.split("\n"))
         retry += 1
-        sleep(5)
+        sleep(interval)
     return result
 
 
