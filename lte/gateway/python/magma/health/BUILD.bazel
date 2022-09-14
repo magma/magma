@@ -29,7 +29,7 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    visibility = ["//lte/gateway/python:__pkg__"],
     deps = [
         ":health_lib",
         "//orc8r/gateway/python/magma/common:sentry",
