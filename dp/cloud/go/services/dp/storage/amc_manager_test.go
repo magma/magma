@@ -14,6 +14,13 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 )
 
+const (
+	unregistered   = "unregistered"
+	someNetwork    = "some_network"
+	requestType    = "some_request_type"
+	requestPayload = "some payload"
+)
+
 func TestAmcManager(t *testing.T) {
 	suite.Run(t, &AmcManagerTestSuite{})
 }
@@ -38,6 +45,8 @@ func (s *AmcManagerTestSuite) SetupSuite() {
 
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
 	err = s.resourceManager.CreateTables(
+		&DBCbsd{},
+		&DBCbsdState{},
 		&DBRequest{},
 		&DBRequestType{},
 	)
@@ -45,11 +54,13 @@ func (s *AmcManagerTestSuite) SetupSuite() {
 
 	err = s.resourceManager.InsertResources(
 		db.NewExcludeMask("id"),
-		&DBRequestType{Name: db.MakeString("request type")},
+		&DBCbsdState{Name: db.MakeString(unregistered)},
+		&DBRequestType{Name: db.MakeString(requestType)},
 	)
 	s.Require().NoError(err)
 	s.enumMaps = map[string]map[string]int64{}
 	for _, model := range []db.Model{
+		&DBCbsdState{},
 		&DBRequestType{},
 	} {
 		table := model.GetMetadata().Table
@@ -61,10 +72,10 @@ func (s *AmcManagerTestSuite) TestCreateRequest() {
 	request := MutableRequest{
 		Request: &DBRequest{
 			CbsdId:  db.MakeInt(1),
-			Payload: "some payload",
+			Payload: requestPayload,
 		},
 		DesiredTypeId: &DBRequestType{
-			Name: db.MakeString("request type"),
+			Name: db.MakeString(requestType),
 		},
 	}
 
@@ -84,9 +95,54 @@ func (s *AmcManagerTestSuite) TestCreateRequest() {
 		expected := []db.Model{&DBRequest{
 			CbsdId:  db.MakeInt(1),
 			TypeId:  db.MakeInt(1),
-			Payload: "some payload",
+			Payload: requestPayload,
 		}}
 		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+}
+
+func (s *AmcManagerTestSuite) TestDeleteCbsd() {
+	stateId := s.enumMaps[CbsdStateTable][unregistered]
+	cbsd1 := DBCbsd{
+		Id:                    db.MakeInt(1),
+		NetworkId:             db.MakeString(someNetwork),
+		StateId:               db.MakeInt(stateId),
+		DesiredStateId:        db.MakeInt(stateId),
+		PreferredBandwidthMHz: db.MakeInt(20),
+	}
+	cbsd2 := DBCbsd{
+		Id:                    db.MakeInt(2),
+		NetworkId:             db.MakeString(someNetwork),
+		StateId:               db.MakeInt(stateId),
+		DesiredStateId:        db.MakeInt(stateId),
+		PreferredBandwidthMHz: db.MakeInt(20),
+	}
+	err := s.resourceManager.InsertResources(db.NewExcludeMask(), &cbsd1, &cbsd2)
+	s.Require().NoError(err)
+
+	_, err = WithinTx(s.database, func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.amcManager.DeleteCbsd(tx, &cbsd1)
+	})
+	s.Require().NoError(err)
+
+	// only cbsd2 should exist
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&DBCbsd{}).
+			Select(db.NewIncludeMask("id")).
+			Fetch()
+		s.Require().NoError(err)
+
+		expected := []db.Model{&DBCbsd{Id: db.MakeInt(2)}}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+
+	// delete on not existing cbsd should not return error
+	_, err = WithinTx(s.database, func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.amcManager.DeleteCbsd(tx, &cbsd1)
 	})
 	s.Require().NoError(err)
 }
