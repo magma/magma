@@ -38,7 +38,6 @@ type AmcManager interface {
 	//   - it has some pending db action (e.g. it needs to be deleted)
 	GetState(sq.BaseRunner) ([]*DetailedCbsd, error)
 	CreateRequest(sq.BaseRunner, *MutableRequest) error
-	// DeleteCbsd should just delete cbsd (no need to check if it exists)
 	DeleteCbsd(sq.BaseRunner, *DBCbsd) error
 	// UpdateCbsd should replace AcknowledgeCbsdUpdate, AcknowledgeCbsdRelinquish
 	// and StoreAvailableFrequencies
@@ -109,15 +108,16 @@ func (m *amcManager) CreateRequest(tx sq.BaseRunner, data *MutableRequest) error
 	}
 	data.Request.TypeId = db.MakeInt(desiredTypeId)
 
-	columns := []string{"type_id", "cbsd_id", "payload"}
-	mask := db.NewIncludeMask(columns...)
+	mask := db.NewIncludeMask("type_id", "cbsd_id", "payload")
 	_, err = db.NewQuery().WithBuilder(builder).From(data.Request).Insert(mask)
 	return err
 }
 
-// DeleteCbsd TODO
-func (m *amcManager) DeleteCbsd(sq.BaseRunner, *DBCbsd) error {
-	return nil
+// DeleteCbsd removes given CBSD from the DB.
+func (m *amcManager) DeleteCbsd(tx sq.BaseRunner, cbsd *DBCbsd) error {
+	builder := m.builder.RunWith(tx)
+	where := sq.Eq{"id": cbsd.Id}
+	return db.NewQuery().WithBuilder(builder).From(cbsd).Where(where).Delete()
 }
 
 // UpdateCbsd TODO
