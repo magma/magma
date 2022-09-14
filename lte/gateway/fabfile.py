@@ -558,6 +558,9 @@ def integ_test_containerized(
 
 def _start_gateway_containerized():
     """ Starts the gateway """
+    with cd(AGW_PYTHON_ROOT):
+        run('make buildenv')
+
     with cd(AGW_ROOT):
         run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
 
