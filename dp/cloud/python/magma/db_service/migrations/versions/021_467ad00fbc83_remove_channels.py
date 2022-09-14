@@ -24,6 +24,9 @@ def upgrade():
 
     # migrate existing channels
     conn = op.get_bind()
+    conn.execute(
+        "UPDATE channels SET max_eirp = %s WHERE max_eirp IS NULL", 37,
+    )
     for cbsd in conn.execute('SELECT cbsd_id FROM channels').fetchall():
         cbsd_id = cbsd[0]
         channels = conn.execute(
