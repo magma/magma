@@ -48,6 +48,7 @@ in `release/magma.lockfile`
     fab dev package upload_to_aws
 """
 
+GATEWAY_IP_ADDRESS = "192.168.60.142"
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 FEG_INTEG_TEST_ROOT = AGW_PYTHON_ROOT + "/integ_tests/federated_tests"
@@ -399,6 +400,25 @@ def bazel_integ_test_post_build(
         env.hosts = [gateway_host]
 
 
+def _setup_vm(host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
+    ip = None
+    if not host:
+        host = vagrant_setup(
+            name, destroy_vm, force_provision=provision_vm,
+        )
+    else:
+        ansible_setup(host, ansible_role, ansible_file)
+        ip = host.split('@')[1].split(':')[0]
+    return host, ip
+
+
+def _setup_gateway(gateway_host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
+    gateway_host, gateway_ip = _setup_vm(gateway_host, name, ansible_role, ansible_file, destroy_vm, provision_vm)
+    if gateway_ip == None:
+        gateway_ip = GATEWAY_IP_ADDRESS
+    return gateway_host, gateway_ip
+
+
 def integ_test(
     gateway_host=None, test_host=None, trf_host=None,
     destroy_vm='True', provision_vm='True',
@@ -426,16 +446,7 @@ def integ_test(
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
-    gateway_ip = '192.168.60.142'
-
-    if not gateway_host:
-        gateway_host = vagrant_setup(
-            'magma', destroy_vm, force_provision=provision_vm,
-        )
-    else:
-        ansible_setup(gateway_host, "dev", "magma_dev.yml")
-        gateway_ip = gateway_host.split('@')[1].split(':')[0]
-
+    gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_dist_upgrade)
     execute(_build_magma)
     execute(_run_sudo_python_unit_tests)
@@ -443,23 +454,12 @@ def integ_test(
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
-    if not trf_host:
-        trf_host = vagrant_setup(
-            'magma_trfserver', destroy_vm, force_provision=provision_vm,
-        )
-    else:
-        ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
+    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    if not test_host:
-        test_host = vagrant_setup(
-            'magma_test', destroy_vm, force_provision=provision_vm,
-        )
-    else:
-        ansible_setup(test_host, "test", "magma_test.yml")
-
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
 
@@ -467,6 +467,48 @@ def integ_test(
         setup_env_vagrant()
     else:
         env.hosts = [gateway_host]
+
+
+def integ_test_deb_installation(
+    gateway_host=None, test_host=None, trf_host=None,
+    destroy_vm='True', provision_vm='True',
+):
+    """
+    Run the integration tests. This defaults to running on local vagrant
+    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
+    passing "address:port" as arguments
+
+    gateway_host: The ssh address string of the machine to run the gateway
+        services on. Formatted as "host:port". If not specified, defaults to
+        the `magma_deb` vagrant box.
+
+    test_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the TrafficServer
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
+    """
+
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Set up the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    _, gateway_ip = _setup_gateway(gateway_host, "magma_deb", "deb", "magma_deb.yml", destroy_vm, provision_vm)
+    execute(_start_gateway)
+
+    # Set up the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip)
 
 
 def run_integ_tests(tests=None, federated_mode=False):
