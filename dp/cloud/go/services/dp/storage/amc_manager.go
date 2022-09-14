@@ -39,9 +39,6 @@ type AmcManager interface {
 	GetState(sq.BaseRunner) ([]*DetailedCbsd, error)
 	CreateRequest(sq.BaseRunner, *MutableRequest) error
 	DeleteCbsd(sq.BaseRunner, *DBCbsd) error
-	// UpdateCbsd should replace AcknowledgeCbsdUpdate, AcknowledgeCbsdRelinquish
-	// and StoreAvailableFrequencies
-	// it should just update cbsd (no need to lock)
 	UpdateCbsd(sq.BaseRunner, *DBCbsd, db.FieldMask) error
 }
 
@@ -108,8 +105,10 @@ func (m *amcManager) CreateRequest(tx sq.BaseRunner, data *MutableRequest) error
 	}
 	data.Request.TypeId = db.MakeInt(desiredTypeId)
 
-	mask := db.NewIncludeMask("type_id", "cbsd_id", "payload")
-	_, err = db.NewQuery().WithBuilder(builder).From(data.Request).Insert(mask)
+	_, err = db.NewQuery().
+		WithBuilder(builder).
+		From(data.Request).
+		Insert(db.NewIncludeMask("type_id", "cbsd_id", "payload"))
 	return err
 }
 
@@ -117,10 +116,21 @@ func (m *amcManager) CreateRequest(tx sq.BaseRunner, data *MutableRequest) error
 func (m *amcManager) DeleteCbsd(tx sq.BaseRunner, cbsd *DBCbsd) error {
 	builder := m.builder.RunWith(tx)
 	where := sq.Eq{"id": cbsd.Id}
-	return db.NewQuery().WithBuilder(builder).From(cbsd).Where(where).Delete()
+	return db.NewQuery().
+		WithBuilder(builder).
+		From(cbsd).
+		Where(where).
+		Delete()
 }
 
-// UpdateCbsd TODO
-func (m *amcManager) UpdateCbsd(sq.BaseRunner, *DBCbsd, db.FieldMask) error {
-	return nil
+// UpdateCbsd update CBSD in the DB with given mask.
+func (m *amcManager) UpdateCbsd(tx sq.BaseRunner, cbsd *DBCbsd, mask db.FieldMask) error {
+	builder := m.builder.RunWith(tx)
+	_, err := db.NewQuery().
+		WithBuilder(builder).
+		From(cbsd).
+		Select(db.NewIncludeMask()).
+		Where(sq.Eq{"id": cbsd.Id}).
+		Update(mask)
+	return err
 }
