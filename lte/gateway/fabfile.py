@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import sys
-import time
 from distutils.util import strtobool
 from time import sleep
 
@@ -309,9 +308,8 @@ def _modify_for_bazel_services():
     run("sudo systemctl daemon-reload")
 
 
-def bazel_integ_test_pre_build(
-    gateway_host=None, test_host=None, trf_host=None,
-    destroy_vm='True', provision_vm='True',
+def provision_magma_dev_vm(
+    gateway_host=None, destroy_vm='True', provision_vm='True',
 ):
     """
     Prepare to run the integration tests on the bazel build services.
@@ -322,21 +320,9 @@ def bazel_integ_test_pre_build(
     gateway_host: The ssh address string of the machine to run the gateway
         services on. Formatted as "host:port". If not specified, defaults to
         the `magma` vagrant box.
-
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_test` vagrant box.
-
-    trf_host: The ssh address string of the machine to run the TrafficServer
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box.
     """
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
-
-    # Setup the gateway: use the provided gateway if given, else default to the
-    # vagrant machine
-    gateway_ip = '192.168.60.142'
 
     if not gateway_host:
         gateway_host = vagrant_setup(
@@ -344,10 +330,8 @@ def bazel_integ_test_pre_build(
         )
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
-        gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
     execute(_dist_upgrade)
-    execute(_modify_for_bazel_services)
 
 
 def bazel_integ_test_post_build(
@@ -384,7 +368,8 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
-    execute(_restart_gateway)
+    execute(_modify_for_bazel_services)
+    execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
@@ -504,7 +489,7 @@ def run_integ_tests(tests=None, federated_mode=False):
     $ make integ_test TESTS=s1aptests/test_attach_detach.py
     $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
     """
-    test_host = vagrant_setup("magma_test", destroy_vm=False)
+    vagrant_setup("magma_test", destroy_vm=False)
     gateway_ip = '192.168.60.142'
     if tests:
         tests = "TESTS=" + tests
@@ -751,13 +736,6 @@ def _build_magma():
         run('make')
 
 
-def _oai_coverage():
-    """ Get the code coverage statistic for OAI """
-
-    with cd(AGW_ROOT):
-        run('make coverage_oai')
-
-
 def _run_sudo_python_unit_tests():
     """ Run the magma unit tests """
     with cd(AGW_ROOT):
@@ -767,16 +745,7 @@ def _run_sudo_python_unit_tests():
 
 def _start_gateway():
     """ Starts the gateway """
-
-    with cd(AGW_ROOT):
-        run('make run')
-
-
-def _restart_gateway():
-    """ Restart the gateway """
-
-    with cd(AGW_ROOT):
-        run('make restart')
+    run('sudo service magma@magmad start')
 
 
 def _set_service_config_var(service, var_name, value):
@@ -817,9 +786,6 @@ def _start_trfserver():
         'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
         % (key, host, port),
     )
-    # local(
-    #    'stty cbreak'
-    #    )
 
 
 def _make_integ_tests():

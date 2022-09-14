@@ -308,7 +308,15 @@ s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_detach_after_ue_context_release.py \
 s1aptests/test_attach_esm_information_wrong_apn.py \
 s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
-s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
+s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
+s1aptests/test_attach_service_without_mac.py \
+s1aptests/test_attach_mme_restart_detach_multi_ue.py \
+s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_detach_looped.py \
+s1aptests/test_attach_ipv4v6_pdn_type.py \
+s1aptests/test_standalone_pdn_conn_req.py \
+s1aptests/test_attach_detach_dedicated_multi_ue.py \
+s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py
 
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
