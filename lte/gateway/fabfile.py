@@ -558,9 +558,11 @@ def integ_test_containerized(
 
 def _start_gateway_containerized():
     """ Starts the gateway """
+    with cd(AGW_ROOT):
+        run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
 
     with cd(AGW_ROOT + "/docker"):
-        run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up --quiet-pull')
+        run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull')
         run('sleep 60; docker-compose ps')
 
 
