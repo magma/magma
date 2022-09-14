@@ -553,7 +553,7 @@ def integ_test_containerized(
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
-    execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
+    execute(_run_integ_tests, gateway_ip)
 
 
 def _start_gateway_containerized():
@@ -924,9 +924,9 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
-    healthy = _health()
-    if not healthy:
-       raise RuntimeError("Containerized AGW not healthy")
+    # healthy = _health()
+    # if not healthy:
+    #    raise RuntimeError("Containerized AGW not healthy")
 
     local(
         'ssh -i %s -o UserKnownHostsFile=/dev/null'
