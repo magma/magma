@@ -947,7 +947,7 @@ def _health(wait: int = 30, services: List[str] = ("pipelined", "sessiond", "con
     result = False
     retry_limit, retry = 20, 0
     while result is False and retry < retry_limit :
-        output = run("docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
+        output = run("/usr/bin/docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
         result = all(line.strip() == "healthy" for line in output.split("\n"))
         retry += 1
         sleep(5)
