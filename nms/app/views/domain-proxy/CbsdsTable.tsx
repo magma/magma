@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 import DeviceStatusCircle from '../../theme/design-system/DeviceStatusCircle';
-import LoadingFiller from '../../components/LoadingFiller';
 import RadioIcon from '@mui/icons-material/Radio';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import withAlert from '../../components/Alert/withAlert';
@@ -23,7 +22,7 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import CbsdContext from '../../context/CbsdContext';
 import {CbsdAddEditDialog} from './CbsdEdit';
 import {Query} from '@material-table/core';
-import type {Cbsd, Grant} from '../../../generated';
+import type {Cbsd, Grant, PaginatedCbsds} from '../../../generated';
 
 type CbsdRowType = {
   id: number;
@@ -79,9 +78,11 @@ function CbsdsTable(props: WithAlert) {
 
   const [currentRow, setCurrentRow] = useState<CbsdRowType>({} as CbsdRowType);
 
-  const data: Array<CbsdRowType> = useMemo(() => {
-    return ctx.state.cbsds
-      ? ctx.state.cbsds.map(
+  const mapCbsdsToTableData = useCallback((cbsds: Array<Cbsd>): Array<
+    CbsdRowType
+  > => {
+    return cbsds
+      ? cbsds.map(
           (item: Cbsd): CbsdRowType => {
             return {
               id: item.id,
@@ -125,7 +126,11 @@ function CbsdsTable(props: WithAlert) {
           },
         )
       : [];
-  }, [ctx.state.cbsds]);
+  }, []);
+
+  const data: Array<CbsdRowType> = useMemo(() => {
+    return mapCbsdsToTableData(ctx.state.cbsds);
+  }, [ctx.state.cbsds, mapCbsdsToTableData]);
 
   const getDataFn = useCallback(
     (query: Query<CbsdRowType>) => {
@@ -134,13 +139,22 @@ function CbsdsTable(props: WithAlert) {
         pageSize: query.pageSize,
       });
 
-      return Promise.resolve({
-        data,
-        page: ctx.state.page,
-        totalCount: ctx.state.totalCount,
-      });
+      return ctx
+        .refetch({
+          page: query.page,
+          pageSize: query.pageSize,
+        })
+        .then((data: PaginatedCbsds | undefined) => {
+          const result = {
+            data: mapCbsdsToTableData(data!.cbsds),
+            page: query?.page,
+            totalCount: data!.total_count,
+          };
+
+          return result;
+        });
     },
-    [ctx, data],
+    [ctx, mapCbsdsToTableData],
   );
 
   const currentCbsd = useMemo(() => {
@@ -148,8 +162,6 @@ function CbsdsTable(props: WithAlert) {
       ? ctx.state.cbsds.find(({id}) => id === currentRow.id)
       : undefined;
   }, [ctx.state.cbsds, currentRow]);
-
-  if (ctx.state.isLoading) return <LoadingFiller />;
 
   return (
     <>
