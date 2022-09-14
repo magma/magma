@@ -359,3 +359,53 @@ services:
       timeout: "4s"
       retries: 3
     command: /var/opt/magma/bin/envoy_controller
+
+  # for docker compose v1: https://github.com/docker/compose/issues/8351#issuecomment-1085811366
+  # also see https://docs.docker.com/compose/compose-file/#depends_on
+  waitForHealthyPods:
+    image: alpine:latest
+    depends_on:
+      magmad:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      directoryd:
+        condition: service_healthy
+      subscriberdb:
+        condition: service_healthy
+      enodebd:
+        condition: service_healthy
+      state:
+        condition: service_healthy
+      policydb:
+        condition: service_healthy
+      health:
+        condition: service_healthy
+      monitord:
+        condition: service_healthy
+      redirectd:
+        condition: service_healthy
+      smsd:
+        condition: service_healthy
+      control_proxy:
+        condition: service_healthy
+      ctraced:
+        condition: service_healthy
+      sctpd:
+        condition: service_healthy
+      oai_mme:
+        condition: service_healthy
+      pipelined:
+        condition: service_healthy
+      sessiond:
+        condition: service_healthy
+      mobilityd:
+        condition: service_healthy
+      td-agent-bit:
+        condition: service_healthy
+      eventd:
+        condition: service_healthy
+      connectiond:
+        condition: service_healthy
+      envoy_controller:
+        condition: service_healthy
