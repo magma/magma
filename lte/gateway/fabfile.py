@@ -561,6 +561,7 @@ def _start_gateway_containerized():
 
     with cd(AGW_ROOT + "/docker"):
         run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull')
+        run('sleep 60; docker-compose ps')
 
 
 def run_integ_tests(tests=None, federated_mode=False):
