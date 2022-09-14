@@ -99,7 +99,7 @@ func (b *DBCbsdBuilder) WithUserId(id string) *DBCbsdBuilder {
 }
 
 func (b *DBCbsdBuilder) WithAntennaGain(gain float64) *DBCbsdBuilder {
-	b.Cbsd.AntennaGain = db.MakeFloat(gain)
+	b.Cbsd.AntennaGainDbi = db.MakeFloat(gain)
 	return b
 }
 
@@ -108,23 +108,15 @@ func (b *DBCbsdBuilder) WithLatitude(lat float64) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithEirpCapabilities(minPower float64, maxPower float64, numberOfPorts int64) *DBCbsdBuilder {
+	b.Cbsd.MinPower = db.MakeFloat(minPower)
+	b.Cbsd.MaxPower = db.MakeFloat(maxPower)
+	b.Cbsd.NumberOfPorts = db.MakeInt(numberOfPorts)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithLongitude(lon float64) *DBCbsdBuilder {
 	b.Cbsd.LongitudeDeg = db.MakeFloat(lon)
-	return b
-}
-
-func (b *DBCbsdBuilder) WithNumberOfPorts(num int64) *DBCbsdBuilder {
-	b.Cbsd.NumberOfPorts = db.MakeInt(num)
-	return b
-}
-
-func (b *DBCbsdBuilder) WithMaxPower(pow float64) *DBCbsdBuilder {
-	b.Cbsd.MaxPower = db.MakeFloat(pow)
-	return b
-}
-
-func (b *DBCbsdBuilder) WithMinPower(pow float64) *DBCbsdBuilder {
-	b.Cbsd.MinPower = db.MakeFloat(pow)
 	return b
 }
 
@@ -170,7 +162,7 @@ func (b *DBCbsdBuilder) WithFullInstallationParam() *DBCbsdBuilder {
 	b.Cbsd.IndoorDeployment = db.MakeBool(true)
 	b.Cbsd.HeightM = db.MakeFloat(12.5)
 	b.Cbsd.HeightType = db.MakeString("agl")
-	b.Cbsd.AntennaGain = db.MakeFloat(4.5)
+	b.Cbsd.AntennaGainDbi = db.MakeFloat(4.5)
 	return b
 }
 
@@ -242,13 +234,13 @@ func NewDBGrantBuilder() *DBGrantBuilder {
 
 func (b *DBGrantBuilder) WithDefaultTestValues() *DBGrantBuilder {
 	b.Grant = &storage.DBGrant{
-		GrantExpireTime:    db.MakeTime(time.Unix(123, 0).UTC()),
-		TransmitExpireTime: db.MakeTime(time.Unix(456, 0).UTC()),
-		LowFrequency:       db.MakeInt(3590 * 1e6),
-		HighFrequency:      db.MakeInt(3610 * 1e6),
-		MaxEirp:            db.MakeFloat(35),
-		GrantId:            db.MakeString("some_grant_id"),
-		HeartbeatInterval:  db.MakeInt(1),
+		GrantExpireTime:      db.MakeTime(time.Unix(123, 0).UTC()),
+		TransmitExpireTime:   db.MakeTime(time.Unix(456, 0).UTC()),
+		LowFrequencyHz:       db.MakeInt(3590 * 1e6),
+		HighFrequencyHz:      db.MakeInt(3610 * 1e6),
+		MaxEirp:              db.MakeFloat(35),
+		GrantId:              db.MakeString("some_grant_id"),
+		HeartbeatIntervalSec: db.MakeInt(1),
 	}
 	return b
 }
@@ -279,8 +271,8 @@ func (b *DBGrantBuilder) WithGrantId(id string) *DBGrantBuilder {
 }
 
 func (b *DBGrantBuilder) WithFrequency(frequencyMHz int64) *DBGrantBuilder {
-	b.Grant.LowFrequency = db.MakeInt((frequencyMHz - 10) * 1e6)
-	b.Grant.HighFrequency = db.MakeInt((frequencyMHz + 10) * 1e6)
+	b.Grant.LowFrequencyHz = db.MakeInt((frequencyMHz - 10) * 1e6)
+	b.Grant.HighFrequencyHz = db.MakeInt((frequencyMHz + 10) * 1e6)
 	return b
 }
 
@@ -430,8 +422,8 @@ func (b *DetailedDBCbsdBuilder) WithGrant(state string, frequencyMHz int64, gran
 		Grant: &storage.DBGrant{
 			GrantExpireTime:    db.MakeTime(grantExpireTime),
 			TransmitExpireTime: db.MakeTime(transmitExpireTime),
-			LowFrequency:       db.MakeInt((frequencyMHz - 10) * 1e6),
-			HighFrequency:      db.MakeInt((frequencyMHz + 10) * 1e6),
+			LowFrequencyHz:     db.MakeInt((frequencyMHz - 10) * 1e6),
+			HighFrequencyHz:    db.MakeInt((frequencyMHz + 10) * 1e6),
 			MaxEirp:            db.MakeFloat(35),
 		},
 		GrantState: &storage.DBGrantState{
@@ -446,10 +438,10 @@ func (b *DetailedDBCbsdBuilder) WithAmcGrant(state string, frequencyMHz int64, l
 	grant := &storage.DetailedGrant{
 		Grant: &storage.DBGrant{
 			GrantId:                  db.MakeString(grantId),
-			LowFrequency:             db.MakeInt((frequencyMHz - 10) * 1e6),
-			HighFrequency:            db.MakeInt((frequencyMHz + 10) * 1e6),
+			LowFrequencyHz:           db.MakeInt((frequencyMHz - 10) * 1e6),
+			HighFrequencyHz:          db.MakeInt((frequencyMHz + 10) * 1e6),
 			LastHeartbeatRequestTime: db.MakeTime(lastHeartbeatTime),
-			HeartbeatInterval:        db.MakeInt(heartbeatInterval),
+			HeartbeatIntervalSec:     db.MakeInt(heartbeatInterval),
 		},
 		GrantState: &storage.DBGrantState{
 			Name: db.MakeString(state),

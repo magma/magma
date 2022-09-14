@@ -11,6 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package active_mode_controller_test
+package sas
 
-// TODO migrate AMC app tests
+import (
+	"magma/dp/cloud/go/services/dp/storage"
+)
+
+type DeregistrationRequestGenerator struct{}
+
+func (*DeregistrationRequestGenerator) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {
+	payload := &DeregistrationRequest{
+		CbsdId: cbsd.Cbsd.CbsdId.String,
+	}
+	req := makeRequest(Deregistration, payload)
+	return []*storage.MutableRequest{req}
+}
+
+type DeregistrationRequest struct {
+	CbsdId string `json:"cbsdId"`
+}

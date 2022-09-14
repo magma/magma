@@ -91,7 +91,7 @@ func (s *AmcManagerTestSuite) TestCreateRequest() {
 			CbsdId:  db.MakeInt(1),
 			Payload: requestPayload,
 		},
-		DesiredTypeId: &storage.DBRequestType{
+		RequestType: &storage.DBRequestType{
 			Name: db.MakeString(grant),
 		},
 	}
@@ -445,13 +445,13 @@ func (s *AmcManagerTestSuite) TestGetState() {
 				WithAvailableFrequencies(availableFreqs).
 				WithChannels([]storage.Channel{
 					{
-						LowFrequency:  3590,
-						HighFrequency: 3610,
-						MaxEirp:       15,
+						LowFrequencyHz:  3590,
+						HighFrequencyHz: 3610,
+						MaxEirp:         15,
 					},
 					{
-						LowFrequency:  3600,
-						HighFrequency: 3620,
+						LowFrequencyHz:  3600,
+						HighFrequencyHz: 3620,
 					},
 				}).
 				Cbsd,
@@ -473,13 +473,13 @@ func (s *AmcManagerTestSuite) TestGetState() {
 						WithIsDeleted(false).
 						WithChannels([]storage.Channel{
 							{
-								LowFrequency:  3590,
-								HighFrequency: 3610,
-								MaxEirp:       15,
+								LowFrequencyHz:  3590,
+								HighFrequencyHz: 3610,
+								MaxEirp:         15,
 							},
 							{
-								LowFrequency:  3600,
-								HighFrequency: 3620,
+								LowFrequencyHz:  3600,
+								HighFrequencyHz: 3620,
 							},
 						}).
 						Cbsd,
@@ -750,9 +750,7 @@ func (s *AmcManagerTestSuite) TestGetState() {
 				WithNetworkId(someNetwork).
 				WithPreferences(15, []int64{3600, 3580, 3620}).
 				WithStateId(registeredId).
-				WithMinPower(1).
-				WithMaxPower(2).
-				WithNumberOfPorts(2).
+				WithEirpCapabilities(1, 2, 2).
 				WithDesiredStateId(registeredId).
 				Cbsd,
 		},
@@ -766,9 +764,7 @@ func (s *AmcManagerTestSuite) TestGetState() {
 				WithUserId(someUserId).
 				WithNetworkId(someNetwork).
 				WithCbsdId(someCbsdIdStr).
-				WithMinPower(1).
-				WithMaxPower(2).
-				WithNumberOfPorts(2).
+				WithEirpCapabilities(1, 2, 2).
 				WithSerialNumber(someSerialNumber+"14").
 				WithPreferences(15, []int64{3600, 3580, 3620}).
 				WithStateId(registeredId).
@@ -781,15 +777,13 @@ func (s *AmcManagerTestSuite) TestGetState() {
 		input: []db.Model{
 			b.NewDBCbsdBuilder().
 				WithNetworkId(someNetwork).
-				WithSerialNumber(someSerialNumber + "14").
+				WithSerialNumber(someSerialNumber+"14").
 				WithFccId(someFccId).
 				WithUserId(someUserId).
 				WithNetworkId(someNetwork).
 				WithCbsdId(someCbsdIdStr).
 				WithStateId(registeredId).
-				WithMinPower(1).
-				WithMaxPower(2).
-				WithNumberOfPorts(2).
+				WithEirpCapabilities(1, 2, 2).
 				WithDesiredStateId(registeredId).
 				WithSingleStepEnabled(true).
 				WithCbsdCategory("a").
@@ -801,14 +795,12 @@ func (s *AmcManagerTestSuite) TestGetState() {
 		input: []db.Model{
 			b.NewDBCbsdBuilder().
 				WithNetworkId(someNetwork).
-				WithSerialNumber(someSerialNumber + "15").
+				WithSerialNumber(someSerialNumber+"15").
 				WithFccId(someFccId).
 				WithUserId(someUserId).
 				WithNetworkId(someNetwork).
 				WithCbsdId(someCbsdIdStr).
-				WithMinPower(1).
-				WithMaxPower(2).
-				WithNumberOfPorts(2).
+				WithEirpCapabilities(1, 2, 2).
 				WithStateId(registeredId).
 				WithDesiredStateId(registeredId).
 				WithSingleStepEnabled(true).

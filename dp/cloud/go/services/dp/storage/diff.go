@@ -18,7 +18,7 @@ func paramsChanges(prev *DBCbsd, next *DBCbsd) bool {
 	return prev.HeightM != next.HeightM ||
 		prev.HeightType != next.HeightType ||
 		prev.IndoorDeployment != next.IndoorDeployment ||
-		prev.AntennaGain != next.AntennaGain
+		prev.AntennaGainDbi != next.AntennaGainDbi
 }
 
 func coordinatesChanged(prev *DBCbsd, next *DBCbsd) bool {
