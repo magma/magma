@@ -924,9 +924,9 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
-    #healthy = _health()
-    #if not healthy:
-    #    raise RuntimeError("Containerized AGW not healthy")
+    healthy = _health()
+    if not healthy:
+       raise RuntimeError("Containerized AGW not healthy")
 
     local(
         'ssh -i %s -o UserKnownHostsFile=/dev/null'
@@ -950,7 +950,7 @@ def _health(start_period: int = 30, interval: int = 5, retry_limit: int = 20, se
     result = False
     retry_limit, retry = retry_limit, 0
     while result is False and retry < retry_limit :
-        output = run("/usr/bin/docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
+        output = run("docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
         result = all(line.strip() == "healthy" for line in output.split("\n"))
         retry += 1
         sleep(interval)
