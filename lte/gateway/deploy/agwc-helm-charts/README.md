@@ -1,4 +1,8 @@
-# AGW Helm Deployment
+# AGW Helm Deployment - Experimental
+
+This folder contains a Helm Chart for the containerized AGW.
+
+This is currently not in a working state.
 
 ## Configuration
 
