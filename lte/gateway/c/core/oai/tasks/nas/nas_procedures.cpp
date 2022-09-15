@@ -592,8 +592,8 @@ void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context) {
 //-----------------------------------------------------------------------------
 static emm_procedures_t* nas_new_emm_procedures(
     struct emm_context_s* const emm_context) {
-  emm_procedures_t* emm_procedures =
-      (emm_procedures_t*)calloc(1, sizeof(*emm_context->emm_procedures));
+  emm_procedures_t* emm_procedures = reinterpret_cast<emm_procedures_t*>(
+      calloc(1, sizeof(*emm_context->emm_procedures)));
   LIST_INIT(&emm_procedures->emm_common_procs);
   return emm_procedures;
 }
@@ -614,10 +614,10 @@ nas_emm_attach_proc_t* nas_new_attach_procedure(
     return NULL;
   }
   emm_context->emm_procedures
-      ->emm_specific_proc = (nas_emm_specific_proc_t*)calloc(
+      ->emm_specific_proc = reinterpret_cast<nas_emm_specific_proc_t*>(calloc(
       1,
       sizeof(
-          nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
+          nas_emm_attach_proc_t)));  // NOLINT(clang-analyzer-unix.MallocSizeof)
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   emm_context->emm_procedures->emm_specific_proc->emm_proc.base_proc.type =
@@ -761,7 +761,8 @@ nas_emm_auth_proc_t* nas_new_authentication_procedure(
   auth_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
 
   nas_emm_common_procedure_t* wrapper =
-      (nas_emm_common_procedure_t*)calloc(1, sizeof(*wrapper));
+      reinterpret_cast<nas_emm_common_procedure_t*>(
+          calloc(1, sizeof(*wrapper)));
   if (wrapper) {
     wrapper->proc = &auth_proc->emm_com_proc;
     LIST_INSERT_HEAD(&emm_context->emm_procedures->emm_common_procs, wrapper,
@@ -781,8 +782,8 @@ nas_emm_smc_proc_t* nas_new_smc_procedure(
     emm_context->emm_procedures = nas_new_emm_procedures(emm_context);
   }
 
-  nas_emm_smc_proc_t* smc_proc =
-      (nas_emm_smc_proc_t*)calloc(1, sizeof(nas_emm_smc_proc_t));
+  nas_emm_smc_proc_t* smc_proc = reinterpret_cast<nas_emm_smc_proc_t*>(
+      calloc(1, sizeof(nas_emm_smc_proc_t)));
 
   smc_proc->emm_com_proc.emm_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
@@ -794,7 +795,8 @@ nas_emm_smc_proc_t* nas_new_smc_procedure(
   smc_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
 
   nas_emm_common_procedure_t* wrapper =
-      (nas_emm_common_procedure_t*)calloc(1, sizeof(*wrapper));
+      reinterpret_cast<nas_emm_common_procedure_t*>(
+          calloc(1, sizeof(*wrapper)));
   if (wrapper) {
     wrapper->proc = &smc_proc->emm_com_proc;
     LIST_INSERT_HEAD(&emm_context->emm_procedures->emm_common_procs, wrapper,
@@ -815,7 +817,8 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
   }
 
   nas_auth_info_proc_t* auth_info_proc =
-      (nas_auth_info_proc_t*)calloc(1, sizeof(nas_auth_info_proc_t));
+      reinterpret_cast<nas_auth_info_proc_t*>(
+          calloc(1, sizeof(nas_auth_info_proc_t)));
   auth_info_proc->cn_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   auth_info_proc->cn_proc.base_proc.type = NAS_PROC_TYPE_CN;
@@ -824,7 +827,7 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
   auth_info_proc->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
 
   nas_cn_procedure_t* wrapper =
-      (nas_cn_procedure_t*)calloc(1, sizeof(*wrapper));
+      reinterpret_cast<nas_cn_procedure_t*>(calloc(1, sizeof(*wrapper)));
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
     LIST_INSERT_HEAD(&emm_context->emm_procedures->cn_procs, wrapper, entries);
