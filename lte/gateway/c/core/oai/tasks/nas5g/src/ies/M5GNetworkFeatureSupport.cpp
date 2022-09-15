@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,8 +20,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNetworkFeatureSupport.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNetworkFeatureSupport.hpp"
 
 namespace magma5g {
 NetworkFeatureSupportMsg::NetworkFeatureSupportMsg() {}
@@ -59,9 +61,7 @@ int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(
     uint32_t len) {
   uint32_t encoded = 0;
 
-  /*
-   * Checking IEI and pointer
-   */
+  // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, NETWORK_FEATURE_MINIMUM_LENGTH,
                                        len);
 
