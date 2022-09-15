@@ -16,7 +16,7 @@
     state: present
     line: "{{ item }}"
   with_items:
-    - "alias magma-start='sudo service magma@magmad start'"
-    - "alias magma-stop='sudo service magma@* stop && sudo service sctpd stop && sudo service magma_dp@envoy stop'"
-    - "alias magma-restart='magma-stop && magma-start'"
-    - "alias magma-status='sudo service magma* status'"
+    - alias magma-start='sudo service magma@magmad start'
+    - alias magma-stop='sudo service "magma@*" stop && sudo service sctpd stop && sudo service magma_dp@envoy stop'
+    - alias magma-restart='magma-stop && magma-start'
+    - alias magma-status='sudo service "magma*" status'
