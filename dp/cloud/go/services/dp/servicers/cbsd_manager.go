@@ -84,8 +84,8 @@ func (c *cbsdManager) EnodebdUpdateCbsd(ctx context.Context, request *protos.Eno
 
 	for _, grant := range details.Grants {
 		channels = append(channels, &protos.LteChannel{
-			LowFrequencyHz:  grant.Grant.LowFrequency.Int64,
-			HighFrequencyHz: grant.Grant.HighFrequency.Int64,
+			LowFrequencyHz:  grant.Grant.LowFrequencyHz.Int64,
+			HighFrequencyHz: grant.Grant.HighFrequencyHz.Int64,
 			MaxEirpDbmMhz:   float32(grant.Grant.MaxEirp.Float64),
 		})
 	}
@@ -238,7 +238,7 @@ func setInstallationParam(cbsd *storage.DBCbsd, params *protos.InstallationParam
 		cbsd.HeightM = dbFloat64OrNil(params.HeightM)
 		cbsd.HeightType = dbStringOrNil(params.HeightType)
 		cbsd.IndoorDeployment = dbBoolOrNil(params.IndoorDeployment)
-		cbsd.AntennaGain = dbFloat64OrNil(params.AntennaGain)
+		cbsd.AntennaGainDbi = dbFloat64OrNil(params.AntennaGain)
 	}
 }
 
@@ -281,7 +281,7 @@ func getInstallationParam(c *storage.DBCbsd) *protos.InstallationParam {
 	p.IndoorDeployment = protoBoolOrNil(c.IndoorDeployment)
 	p.HeightM = protoDoubleOrNil(c.HeightM)
 	p.HeightType = protoStringOrNil(c.HeightType)
-	p.AntennaGain = protoDoubleOrNil(c.AntennaGain)
+	p.AntennaGain = protoDoubleOrNil(c.AntennaGainDbi)
 	return p
 }
 
@@ -289,8 +289,8 @@ func grantsFromDatabase(grants []*storage.DetailedGrant) []*protos.GrantDetails 
 	const mega int64 = 1e6
 	res := make([]*protos.GrantDetails, len(grants))
 	for i, g := range grants {
-		bw := (g.Grant.HighFrequency.Int64 - g.Grant.LowFrequency.Int64) / mega
-		freq := (g.Grant.HighFrequency.Int64 + g.Grant.LowFrequency.Int64) / (mega * 2)
+		bw := (g.Grant.HighFrequencyHz.Int64 - g.Grant.LowFrequencyHz.Int64) / mega
+		freq := (g.Grant.HighFrequencyHz.Int64 + g.Grant.LowFrequencyHz.Int64) / (mega * 2)
 		res[i] = &protos.GrantDetails{
 			BandwidthMhz:            bw,
 			FrequencyMhz:            freq,

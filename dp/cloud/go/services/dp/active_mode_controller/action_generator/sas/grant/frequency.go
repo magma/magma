@@ -11,6 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package active_mode_controller_test
+package grant
 
-// TODO migrate AMC app tests
+import (
+	"magma/dp/cloud/go/services/dp/storage"
+)
+
+func GetFrequencyGrantMapping(grants []*storage.DetailedGrant) map[int64]*storage.DetailedGrant {
+	m := make(map[int64]*storage.DetailedGrant, len(grants))
+	for _, g := range grants {
+		m[(g.Grant.HighFrequencyHz.Int64+g.Grant.LowFrequencyHz.Int64)/2] = g
+	}
+	return m
+}

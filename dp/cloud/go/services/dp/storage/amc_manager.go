@@ -42,8 +42,8 @@ type AmcManager interface {
 }
 
 type MutableRequest struct {
-	Request       *DBRequest
-	DesiredTypeId *DBRequestType
+	Request     *DBRequest
+	RequestType *DBRequestType
 }
 
 // WithinTx is used to call AmcManager function inside single transaction.
@@ -89,7 +89,7 @@ type amcManager struct {
 func (m *amcManager) CreateRequest(tx sq.BaseRunner, data *MutableRequest) error {
 	builder := m.builder.RunWith(tx)
 
-	desiredTypeId, err := m.cache.getValue(builder, &DBRequestType{}, data.DesiredTypeId.Name.String)
+	desiredTypeId, err := m.cache.getValue(builder, &DBRequestType{}, data.RequestType.Name.String)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func (r *queryRunner) getState() ([]*DetailedCbsd, error) {
 			cbsdIndex += 1
 		}
 		grant := res[i][3]
-		if grant.(*DBGrant).LowFrequency.Valid {
+		if grant.(*DBGrant).LowFrequencyHz.Valid {
 			grantState := res[i][4]
 			cbsds[cbsdIndex].Grants = append(cbsds[cbsdIndex].Grants, &DetailedGrant{
 				Grant:      grant.(*DBGrant),

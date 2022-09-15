@@ -185,9 +185,10 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		WithFccId(fmt.Sprintf("%snew2", cbsdBuilder.Cbsd.FccId.String)).
 		WithSerialNumber(fmt.Sprintf("%snew3", cbsdBuilder.Cbsd.CbsdSerialNumber.String)).
 		WithAntennaGain(1).
-		WithMaxPower(cbsdBuilder.Cbsd.MaxPower.Float64+2).
-		WithMinPower(cbsdBuilder.Cbsd.MinPower.Float64+3).
-		WithNumberOfPorts(cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
+		WithEirpCapabilities(
+			cbsdBuilder.Cbsd.MinPower.Float64+3,
+			cbsdBuilder.Cbsd.MaxPower.Float64+2,
+			cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
 		WithSingleStepEnabled(true).
 		WithIndoorDeployment(true).
 		WithCarrierAggregationEnabled(true).
