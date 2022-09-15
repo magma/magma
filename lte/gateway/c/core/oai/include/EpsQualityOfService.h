@@ -56,10 +56,11 @@ int eps_qos_bit_rate_ext2_value(uint8_t br);
 extern "C" {
 #endif
 status_code_e qos_params_to_eps_qos(const qci_t qci, const bitrate_t mbr_dl,
-                          const bitrate_t mbr_ul, const bitrate_t gbr_dl,
-                          const bitrate_t gbr_ul,
-                          EpsQualityOfService* const eps_qos,
-                          bool is_default_bearer);
+                                    const bitrate_t mbr_ul,
+                                    const bitrate_t gbr_dl,
+                                    const bitrate_t gbr_ul,
+                                    EpsQualityOfService* const eps_qos,
+                                    bool is_default_bearer);
 #ifdef __cplusplus
 }
 #endif

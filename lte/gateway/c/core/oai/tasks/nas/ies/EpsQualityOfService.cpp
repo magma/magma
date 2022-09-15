@@ -49,9 +49,8 @@ static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,
 }
 
 //------------------------------------------------------------------------------
-int decode_eps_quality_of_service(
-    EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int decode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -129,9 +128,8 @@ static int encode_eps_qos_bit_rates(const EpsQoSBitRates* epsqosbitrates,
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_quality_of_service(
-    EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int encode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
+                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 

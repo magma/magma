@@ -31,7 +31,7 @@ int decode_additional_update_type(
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  *additionalupdatetype = (additional_update_type_t) (*buffer & 0x1);
+  *additionalupdatetype = (additional_update_type_t)(*buffer & 0x1);
   decoded++;
   return decoded;
 }

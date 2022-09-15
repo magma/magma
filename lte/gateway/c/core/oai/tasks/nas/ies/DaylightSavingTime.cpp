@@ -24,7 +24,8 @@
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 
-int decode_daylight_saving_time(DaylightSavingTime* daylightsavingtime,
+    int
+    decode_daylight_saving_time(DaylightSavingTime* daylightsavingtime,
                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
