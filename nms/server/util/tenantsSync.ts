@@ -13,7 +13,10 @@
 
 import OrchestratorAPI from '../api/OrchestratorAPI';
 import axios from 'axios';
+import {Organization} from '../../shared/sequelize_models';
 import {OrganizationModel} from '../../shared/sequelize_models/models/organization';
+import {Tenant} from '../../generated';
+import {organizationsEqual} from '../grafana/handlers';
 
 export async function syncOrganizationWithOrc8rTenant(
   organization: OrganizationModel,
@@ -53,5 +56,30 @@ export async function syncOrganizationWithOrc8rTenant(
 export function rethrowUnlessNotFoundError(error: unknown) {
   if (!(axios.isAxiosError(error) && error?.response?.status === 404)) {
     throw error;
+  }
+}
+
+export async function syncTenants(): Promise<void> {
+  const tenantMap: Record<string, Tenant> = {};
+  const orc8rTenants = (await OrchestratorAPI.tenants.tenantsGet()).data;
+  orc8rTenants.forEach(tenant => {
+    tenantMap[tenant.id] = tenant;
+  });
+
+  const nmsOrganizations = await Organization.findAll();
+  for (const org of nmsOrganizations) {
+    const orc8rTenant = tenantMap[org.id];
+    // Update if tenant exists but is not equal to NMS Org
+    if (orc8rTenant && !organizationsEqual(org, orc8rTenant)) {
+      await OrchestratorAPI.tenants.tenantsTenantIdPut({
+        tenant: {id: org.id, name: org.name, networks: org.networkIDs},
+        tenantId: org.id,
+      });
+    } else if (!orc8rTenant) {
+      // Create new orc8r tenant if it didn't exist before
+      await OrchestratorAPI.tenants.tenantsPost({
+        tenant: {id: org.id, name: org.name, networks: org.networkIDs},
+      });
+    }
   }
 }

@@ -610,7 +610,7 @@ function makeAPIUrl(apiHost: string, nmsOrgID: number): string {
   return `https://${apiHost}/magma/v1/tenants/${nmsOrgID}/metrics`;
 }
 
-function organizationsEqual(
+export function organizationsEqual(
   nmsOrg: OrganizationModel,
   orc8rTenant: Tenant,
 ): boolean {
