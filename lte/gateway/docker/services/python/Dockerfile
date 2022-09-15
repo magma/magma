@@ -38,24 +38,25 @@ ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-  wget \
-  ruby \
-  sudo \
-  ruby-dev \
   docker.io \
-  python3-pip \
+  git \
+  lsb-release \
+  libsystemd-dev \
+  libprotobuf-dev \
+  pkg-config \
   python3-dev \
   python3-eventlet \
-  python3-pystemd \
+  python3-pip \
   python3-protobuf \
-  git \
-  virtualenv \
-  lsb-release \
-  openjdk-8-jre-headless \
+  python3-pystemd \
+  ruby \
+  ruby-dev \
+  sudo \
   openjdk-8-jdk \
-  pkg-config \
-  libsystemd-dev \
-  libprotobuf-dev
+  openjdk-8-jre-headless \
+  virtualenv \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN gem install fpm
 
@@ -88,24 +89,25 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
+  ethtool \
+  inetutils-ping \
+  iproute2 \
+  iptables \
+  isc-dhcp-client \
+  linux-headers-generic \
+  net-tools \
   netcat \
-  sudo \
+  nghttp2-proxy \
   python3-pip \
   python3-venv \
-  virtualenv \
   python3-eventlet \
   python3-pystemd \
   python3-jinja2 \
-  nghttp2-proxy \
-  net-tools \
-  inetutils-ping \
   redis-server \
+  sudo \
+  virtualenv \
   wget \
-  ethtool \
-  linux-headers-generic \
-  iptables \
-  iproute2 \
-  isc-dhcp-client
+  && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv $VIRTUAL_ENV
 
@@ -124,7 +126,8 @@ RUN apt-get update && apt-get install -y \
   openvswitch-common \
   openvswitch-switch \
   bcc-tools \
-  wireguard
+  wireguard \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build /build
 COPY --from=builder /magma /magma
