@@ -950,6 +950,11 @@ def _health(start_period: int = 30, interval: int = 5, retry_limit: int = 20, se
     result = False
     retry_limit, retry = retry_limit, 0
     while result is False and retry < retry_limit :
+        which_docker = run("which docker")
+        print("#################################################")
+        print(f"####### {which_docker}")
+        docker_version = run("docker --version")
+        print(f"####### {docker_version}")
         output = run("docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
         result = all(line.strip() == "healthy" for line in output.split("\n"))
         retry += 1
