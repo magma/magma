@@ -295,20 +295,6 @@ func TestWithinTx(t *testing.T) {
 			assert.Equal(t, nil, res)
 			assert.Errorf(t, err, "rollback error")
 		},
-	}, {
-		name: "test wrapped func panic",
-		prepareMockFunc: func(mock sqlmock.Sqlmock) {
-			mock.ExpectBegin()
-			mock.ExpectRollback()
-			mock.ExpectClose()
-		},
-		wrappedFunc: func(tx *sql.Tx) (any, error) {
-			panic("I am panicking")
-		},
-		resultCheckFunc: func(res any, err error) {
-			assert.Equal(t, nil, res)
-			assert.Errorf(t, err, "recovered from panic: I am panicking")
-		},
 	}}
 
 	for _, tc := range testData {

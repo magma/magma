@@ -16,7 +16,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -55,10 +54,6 @@ func WithinTx[T any](db *sql.DB, f func(tx *sql.Tx) (T, error)) (res T, err erro
 	}
 
 	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("recovered from panic: %v", r)
-		}
-
 		switch err {
 		case nil:
 			err = tx.Commit()
