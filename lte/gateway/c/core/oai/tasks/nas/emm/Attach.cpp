@@ -839,11 +839,13 @@ status_code_e emm_proc_attach_complete(
  */
 
 void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc) {
-  ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t)emm_attach_abort;
-  ((nas_base_proc_t*)attach_proc)->fail_in = NULL;
-  ((nas_base_proc_t*)attach_proc)->time_out =
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->abort =
+      (proc_abort_t)emm_attach_abort;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_in = NULL;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->time_out =
       (time_out_t)mme_app_handle_emm_attach_t3450_expiry;
-  ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_out =
+      _emm_attach_reject;
 }
 
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
