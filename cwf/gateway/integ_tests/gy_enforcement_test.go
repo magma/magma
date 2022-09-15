@@ -493,6 +493,10 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.Eventually(t,
 		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 0.25*MegaBytes), time.Minute, 2*time.Second)
 
+	// Check that no redirect rule is installed when quota grant is not exhausted
+	time.Sleep(15 * time.Second)
+	assert.False(t, tr.WaitForEnforcementStatsForRule(imsi, "redirect")())
+
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
 	terminateAnswer := fegprotos.NewGyCCAnswer(diam.Success)
