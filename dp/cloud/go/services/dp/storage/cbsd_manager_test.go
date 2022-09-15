@@ -33,8 +33,10 @@ import (
 const (
 	registered          = "registered"
 	unregistered        = "unregistered"
+	idle                = "idle"
 	someCbsdIdStr       = "some_cbsd_id"
 	authorized          = "authorized"
+	granted             = "granted"
 	someNetwork         = "some_network"
 	otherNetwork        = "other_network_id"
 	someCbsdId          = 123
@@ -44,6 +46,7 @@ const (
 	someSerialNumber    = "some_serial_number"
 	anotherSerialNumber = "another_serial_number"
 	nowTimestamp        = 12345678
+	grant               = "grant"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -1095,6 +1098,7 @@ func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.ShouldDeregister = db.MakeBool(false)
 		cbsd.ShouldRelinquish = db.MakeBool(false)
+		cbsd.Channels = []storage.Channel{}
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString(unregistered)},

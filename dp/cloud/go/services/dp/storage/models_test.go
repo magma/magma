@@ -72,6 +72,7 @@ func TestFields(t *testing.T) {
 			db.IntType{X: &dbGrant.LowFrequency},
 			db.IntType{X: &dbGrant.HighFrequency},
 			db.FloatType{X: &dbGrant.MaxEirp},
+			db.TimeType{X: &dbGrant.LastHeartbeatRequestTime},
 		},
 	}, {
 		name:  "check field names for DBCbsdState",
@@ -220,6 +221,10 @@ func TestGetMetadata(t *testing.T) {
 			}, {
 				Name:    "max_eirp",
 				SqlType: sqorc.ColumnTypeReal,
+			}, {
+				Name:     "last_heartbeat_request_time",
+				SqlType:  sqorc.ColumnTypeDatetime,
+				Nullable: true,
 			}},
 		},
 	}, {
@@ -363,9 +368,11 @@ func TestGetMetadata(t *testing.T) {
 				SqlType:  sqorc.ColumnTypeText,
 				Nullable: true,
 			}, {
-				Name:     "channels",
-				SqlType:  sqorc.ColumnTypeText,
-				Nullable: true,
+				Name:         "channels",
+				SqlType:      sqorc.ColumnTypeText,
+				Nullable:     false,
+				HasDefault:   true,
+				DefaultValue: "'[]'",
 			}},
 		},
 	}}

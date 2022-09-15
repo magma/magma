@@ -85,11 +85,6 @@ type amcManager struct {
 	*dpManager
 }
 
-// GetState TODO
-func (m *amcManager) GetState(sq.BaseRunner) ([]*DetailedCbsd, error) {
-	return []*DetailedCbsd{}, nil
-}
-
 // CreateRequest inserts given request into the DB.
 func (m *amcManager) CreateRequest(tx sq.BaseRunner, data *MutableRequest) error {
 	builder := m.builder.RunWith(tx)
@@ -128,4 +123,104 @@ func (m *amcManager) UpdateCbsd(tx sq.BaseRunner, cbsd *DBCbsd, mask db.FieldMas
 		Where(sq.Eq{"id": cbsd.Id}).
 		Update(mask)
 	return err
+}
+
+func (m *amcManager) GetState(tx sq.BaseRunner) ([]*DetailedCbsd, error) {
+	runner := m.getQueryRunner(tx)
+	return runner.getState()
+}
+
+func notNull(fields ...string) sq.Sqlizer {
+	filters := make(sq.And, len(fields))
+	for i, f := range fields {
+		filters[i] = sq.NotEq{f: nil}
+	}
+	return filters
+}
+
+func (r *queryRunner) getState() ([]*DetailedCbsd, error) {
+	multiStepFields := []string{"fcc_id", "user_id", "number_of_ports", "min_power", "max_power", "antenna_gain"}
+	singleStepFields := append(multiStepFields, "latitude_deg", "longitude_deg", "height_m", "height_type")
+	res, err := db.NewQuery().
+		WithBuilder(r.builder).
+		From(&DBCbsd{}).
+		Select(db.NewExcludeMask("network_id", "state_id", "desired_state_id")).
+		Join(db.NewQuery().
+			From(&DBCbsdState{}).
+			As("t1").
+			On(db.On(CbsdTable, "state_id", "t1", "id")).
+			Select(db.NewIncludeMask("name"))).
+		Join(db.NewQuery().
+			From(&DBCbsdState{}).
+			As("t2").
+			On(db.On(CbsdTable, "desired_state_id", "t2", "id")).
+			Select(db.NewIncludeMask("name"))).
+		Join(db.NewQuery().
+			From(&DBGrant{}).
+			On(db.On(CbsdTable, "id", GrantTable, "cbsd_id")).
+			Select(db.NewIncludeMask("grant_id", "heartbeat_interval", "last_heartbeat_request_time", "low_frequency", "high_frequency")).
+			Join(db.NewQuery().
+				From(&DBGrantState{}).
+				On(db.On(GrantTable, "state_id", GrantStateTable, "id")).
+				Select(db.NewIncludeMask("name"))).
+			Nullable()).
+		Nullable().
+		Join(db.NewQuery().
+			From(&DBRequest{}).
+			On(db.On(CbsdTable, "id", RequestTable, "cbsd_id")).
+			Select(db.NewIncludeMask()).
+			Join(db.NewQuery().
+				From(&DBRequestType{}).
+				On(db.On(RequestTable, "type_id", RequestTypeTable, "id")).
+				Select(db.NewIncludeMask())).
+			Nullable()).
+		Nullable().
+		Where(sq.And{
+			sq.Eq{RequestTable + ".id": nil},
+			sq.Or{
+				sq.Eq{CbsdTable + ".should_deregister": true},
+				sq.Eq{"should_relinquish": true},
+				sq.Eq{"is_deleted": true},
+				sq.And{
+					sq.Eq{"single_step_enabled": false},
+					notNull(multiStepFields...),
+				},
+				sq.And{
+					sq.Eq{"single_step_enabled": true},
+					sq.Eq{"cbsd_category": "a"},
+					sq.Eq{"indoor_deployment": true},
+					notNull(singleStepFields...),
+				},
+			},
+		}).
+		OrderBy(CbsdTable+".id", db.OrderAsc).
+		List()
+
+	if err != nil {
+		return nil, err
+	}
+
+	cbsds := make([]*DetailedCbsd, 0, len(res))
+
+	cbsdId := int64(-1)
+	cbsdIndex := -1
+
+	for i, models := range res {
+		cbsd := models[0].(*DBCbsd)
+		if cbsd.Id.Int64 != cbsdId {
+			cbsds = append(cbsds, convertCbsdToDetails(models))
+			cbsdIndex += 1
+		}
+		grant := res[i][3]
+		if grant.(*DBGrant).LowFrequency.Valid {
+			grantState := res[i][4]
+			cbsds[cbsdIndex].Grants = append(cbsds[cbsdIndex].Grants, &DetailedGrant{
+				Grant:      grant.(*DBGrant),
+				GrantState: grantState.(*DBGrantState),
+			})
+		}
+		cbsdId = cbsd.Id.Int64
+	}
+
+	return cbsds, nil
 }
