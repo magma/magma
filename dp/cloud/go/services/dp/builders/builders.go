@@ -36,7 +36,7 @@ const (
 	someFccId              = "some_fcc_id"
 	someUserId             = "some_user_id"
 	catB                   = "b"
-	someModel              = "some_model"
+	catA                   = "a"
 )
 
 type DBCbsdBuilder struct {
@@ -143,6 +143,22 @@ func (b *DBCbsdBuilder) WithDesiredStateId(t int64) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithChannels(channels []storage.Channel) *DBCbsdBuilder {
+	b.Cbsd.Channels = channels
+	return b
+}
+
+func (b *DBCbsdBuilder) WithPreferences(bandwidthMhz int64, frequenciesMhz []int64) *DBCbsdBuilder {
+	b.Cbsd.PreferredBandwidthMHz = db.MakeInt(bandwidthMhz)
+	b.Cbsd.PreferredFrequenciesMHz = frequenciesMhz
+	return b
+}
+
+func (b *DBCbsdBuilder) WithAvailableFrequencies(frequenciesMhz []uint32) *DBCbsdBuilder {
+	b.Cbsd.AvailableFrequencies = frequenciesMhz
+	return b
+}
+
 func (b *DBCbsdBuilder) WithSerialNumber(serial string) *DBCbsdBuilder {
 	b.Cbsd.CbsdSerialNumber = db.MakeString(serial)
 	return b
@@ -204,6 +220,11 @@ func (b *DBCbsdBuilder) WithShouldDeregister(should bool) *DBCbsdBuilder {
 	return b
 }
 
+func (b *DBCbsdBuilder) WithShouldRelinquish(should bool) *DBCbsdBuilder {
+	b.Cbsd.ShouldRelinquish = db.MakeBool(should)
+	return b
+}
+
 func (b *DBCbsdBuilder) WithCbsdCategory(cat string) *DBCbsdBuilder {
 	b.Cbsd.CbsdCategory = db.MakeString(cat)
 	return b
@@ -227,6 +248,7 @@ func (b *DBGrantBuilder) WithDefaultTestValues() *DBGrantBuilder {
 		HighFrequency:      db.MakeInt(3610 * 1e6),
 		MaxEirp:            db.MakeFloat(35),
 		GrantId:            db.MakeString("some_grant_id"),
+		HeartbeatInterval:  db.MakeInt(1),
 	}
 	return b
 }
@@ -269,6 +291,11 @@ func (b *DBGrantBuilder) WithGrantExpireTime(t time.Time) *DBGrantBuilder {
 
 func (b *DBGrantBuilder) WithTransmitExpireTime(t time.Time) *DBGrantBuilder {
 	b.Grant.TransmitExpireTime = db.MakeTime(t)
+	return b
+}
+
+func (b *DBGrantBuilder) WithLastHeartbeatTime(t time.Time) *DBGrantBuilder {
+	b.Grant.LastHeartbeatRequestTime = db.MakeTime(t)
 	return b
 }
 
@@ -406,6 +433,23 @@ func (b *DetailedDBCbsdBuilder) WithGrant(state string, frequencyMHz int64, gran
 			LowFrequency:       db.MakeInt((frequencyMHz - 10) * 1e6),
 			HighFrequency:      db.MakeInt((frequencyMHz + 10) * 1e6),
 			MaxEirp:            db.MakeFloat(35),
+		},
+		GrantState: &storage.DBGrantState{
+			Name: db.MakeString(state),
+		},
+	}
+	b.Details.Grants = append(b.Details.Grants, grant)
+	return b
+}
+
+func (b *DetailedDBCbsdBuilder) WithAmcGrant(state string, frequencyMHz int64, lastHeartbeatTime time.Time, grantId string, heartbeatInterval int64) *DetailedDBCbsdBuilder {
+	grant := &storage.DetailedGrant{
+		Grant: &storage.DBGrant{
+			GrantId:                  db.MakeString(grantId),
+			LowFrequency:             db.MakeInt((frequencyMHz - 10) * 1e6),
+			HighFrequency:            db.MakeInt((frequencyMHz + 10) * 1e6),
+			LastHeartbeatRequestTime: db.MakeTime(lastHeartbeatTime),
+			HeartbeatInterval:        db.MakeInt(heartbeatInterval),
 		},
 		GrantState: &storage.DBGrantState{
 			Name: db.MakeString(state),
@@ -694,4 +738,19 @@ func NewDPLogBuilder(from string, to string, name string) *DPLogBuilder {
 func (b *DPLogBuilder) WithLogMessage(m string) *DPLogBuilder {
 	b.Log.LogMessage = m
 	return b
+}
+
+func NewRequestBuilder(id int64, cbsdId int64, typeId int64, payload string) *RequestBuilder {
+	return &RequestBuilder{
+		Request: &storage.DBRequest{
+			Id:      db.MakeInt(id),
+			TypeId:  db.MakeInt(typeId),
+			CbsdId:  db.MakeInt(cbsdId),
+			Payload: db.MakeString(payload),
+		},
+	}
+}
+
+type RequestBuilder struct {
+	Request *storage.DBRequest
 }

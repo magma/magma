@@ -147,17 +147,18 @@ func (gs *DBGrantState) GetName() string {
 }
 
 type DBGrant struct {
-	Id                 sql.NullInt64
-	StateId            sql.NullInt64
-	CbsdId             sql.NullInt64
-	GrantId            sql.NullString
-	GrantExpireTime    sql.NullTime
-	TransmitExpireTime sql.NullTime
-	HeartbeatInterval  sql.NullInt64
-	ChannelType        sql.NullString
-	LowFrequency       sql.NullInt64
-	HighFrequency      sql.NullInt64
-	MaxEirp            sql.NullFloat64
+	Id                       sql.NullInt64
+	StateId                  sql.NullInt64
+	CbsdId                   sql.NullInt64
+	GrantId                  sql.NullString
+	GrantExpireTime          sql.NullTime
+	TransmitExpireTime       sql.NullTime
+	HeartbeatInterval        sql.NullInt64
+	ChannelType              sql.NullString
+	LowFrequency             sql.NullInt64
+	HighFrequency            sql.NullInt64
+	MaxEirp                  sql.NullFloat64
+	LastHeartbeatRequestTime sql.NullTime
 }
 
 func (g *DBGrant) Fields() []db.BaseType {
@@ -173,6 +174,7 @@ func (g *DBGrant) Fields() []db.BaseType {
 		db.IntType{X: &g.LowFrequency},
 		db.IntType{X: &g.HighFrequency},
 		db.FloatType{X: &g.MaxEirp},
+		db.TimeType{X: &g.LastHeartbeatRequestTime},
 	}
 }
 
@@ -219,6 +221,10 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 		}, {
 			Name:    "max_eirp",
 			SqlType: sqorc.ColumnTypeReal,
+		}, {
+			Name:     "last_heartbeat_request_time",
+			SqlType:  sqorc.ColumnTypeDatetime,
+			Nullable: true,
 		}},
 		CreateObject: func() db.Model {
 			return &DBGrant{}
@@ -297,15 +303,9 @@ type DBCbsd struct {
 
 type Channel struct {
 	// TODO some of the fields may not be required
-	FrequencyRange FrequencyRange `json:"frequencyRange"`
-	ChannelType    string         `json:"channelType"`
-	RuleApplied    string         `json:"ruleApplied"`
-	MaxEirp        float64        `json:"maxEirp"`
-}
-
-type FrequencyRange struct {
-	LowFrequency  int64 `json:"lowFrequency"`
-	HighFrequency int64 `json:"highFrequency"`
+	LowFrequency  int64   `json:"low_frequency"`
+	HighFrequency int64   `json:"high_frequency"`
+	MaxEirp       float64 `json:"max_eirp"`
 }
 
 func (c *DBCbsd) Fields() []db.BaseType {
@@ -469,9 +469,11 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		}, {
-			Name:     "channels",
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
+			Name:         "channels",
+			SqlType:      sqorc.ColumnTypeText,
+			Nullable:     false,
+			HasDefault:   true,
+			DefaultValue: "'[]'",
 		}},
 		CreateObject: func() db.Model {
 			return &DBCbsd{}
