@@ -53,28 +53,26 @@ namespace lte {
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
-magma::lte::oai::EnbDescription* s1ap_new_enb(void);
+void s1ap_new_enb(oai::EnbDescription*);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-oai::UeDescription* s1ap_new_ue(S1apState* state,
-                                            sctp_assoc_id_t sctp_assoc_id,
-                                            enb_ue_s1ap_id_t enb_ue_s1ap_id);
+oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
+                                sctp_assoc_id_t sctp_assoc_id,
+                                enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void s1ap_remove_ue(S1apState* state,
-                    oai::UeDescription* ue_ref);
+void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
  **/
-void s1ap_remove_enb(S1apState* state,
-                     oai::EnbDescription* enb_ref);
+void s1ap_remove_enb(oai::S1apState* state, oai::EnbDescription* enb_ref);
 
 void free_enb_description(void** ptr);
 

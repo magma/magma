@@ -42,22 +42,30 @@ int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
   return RETURNok;
 }
 
-S1apState* get_s1ap_state(bool read_from_db) {
+oai::S1apState* get_s1ap_state(bool read_from_db) {
   return S1apStateManager::getInstance().get_state(read_from_db);
 }
 
 void s1ap_state_exit() { S1apStateManager::getInstance().free_state(); }
 
-void put_s1ap_state() { S1apStateManager::getInstance().write_state_to_db(); }
+void put_s1ap_state() {
+  S1apStateManager::getInstance().write_s1ap_state_to_db();
+}
 
-oai::EnbDescription* s1ap_state_get_enb(S1apState* state,
-                                        sctp_assoc_id_t assoc_id) {
-  oai::EnbDescription* enb = nullptr;
-  map_uint32_enb_description_t enb_map;
-  enb_map = state->mutable_enbs();
-  enb_map.get(assoc_id, &enb);
+proto_map_rc_t s1ap_state_get_enb(oai::S1apState* state,
+                                  sctp_assoc_id_t assoc_id,
+                                  oai::EnbDescription* enb) {
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
+  return enb_map.get(assoc_id, enb);
+}
 
-  return enb;
+proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState* state,
+                                         sctp_assoc_id_t assoc_id,
+                                         oai::EnbDescription* enb) {
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
+  return enb_map.update_val(assoc_id, enb);
 }
 
 oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
@@ -167,7 +175,7 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
 }
 
 void remove_ues_without_imsi_from_ue_id_coll() {
-  S1apState* s1ap_state_p = get_s1ap_state(false);
+  oai::S1apState* s1ap_state_p = get_s1ap_state(false);
   if (!s1ap_state_p) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_state");
     return;
@@ -178,9 +186,9 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return;
   }
-  map_uint32_enb_description_t enb_map.map = s1ap_state_p->mutable_enbs();
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s1ap_state_p->mutable_enbs();
   if ((enb_map.isEmpty())) {
-    OAILOG_ERROR(LOG_S1AP, "There are no enb contexts found in s1ap_state");
     return;
   }
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
@@ -189,13 +197,13 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
   // get each eNB in s1ap_state
   for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
-    struct oai::EnbDescription* enb_association_p = itr->second;
-    if (!enb_association_p) {
+    struct oai::EnbDescription enb_association_p = itr->second;
+    if (!enb_association_p.sctp_assoc_id()) {
       continue;
     }
 
     magma::proto_map_uint32_uint64_t ue_id_coll;
-    ue_id_coll.map = enb_association_p->mutable_ue_id_map();
+    ue_id_coll.map = enb_association_p.mutable_ue_id_map();
     if (ue_id_coll.isEmpty()) {
       continue;
     }
@@ -220,13 +228,15 @@ void remove_ues_without_imsi_from_ue_id_coll() {
       ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
       s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_id_no_imsi_list[i]);
-      enb_association_p->set_nb_ue_associated(
-          (enb_association_p->nb_ue_associated() - 1));
+      enb_association_p.set_nb_ue_associated(
+          (enb_association_p.nb_ue_associated() - 1));
 
       OAILOG_DEBUG(LOG_S1AP,
                    "Num UEs associated %u num elements in ue_id_coll %zu",
-                   enb_association_p->nb_ue_associated(), ue_id_coll.size());
+                   enb_association_p.nb_ue_associated(), ue_id_coll.size());
     }
+    s1ap_state_update_enb_map(s1ap_state_p, enb_association_p.sctp_assoc_id(),
+                              &enb_association_p);
   }
 }
 

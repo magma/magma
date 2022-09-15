@@ -35,7 +35,7 @@ using oai::S1apUeState;
 using oai::UeDescription;
 task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
-status_code_e setup_new_association(S1apState* state,
+status_code_e setup_new_association(oai::S1apState* state,
                                     sctp_assoc_id_t assoc_id) {
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -74,7 +74,8 @@ status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1) {
   return pdu_rc;
 }
 
-void handle_mme_ue_id_notification(S1apState* s, sctp_assoc_id_t assoc_id) {
+void handle_mme_ue_id_notification(oai::S1apState* s,
+                                   sctp_assoc_id_t assoc_id) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
   itti_mme_app_s1ap_mme_ue_id_notification_t* notification_p =
@@ -87,7 +88,8 @@ void handle_mme_ue_id_notification(S1apState* s, sctp_assoc_id_t assoc_id) {
   free(message_p);
 }
 
-status_code_e send_s1ap_erab_rel_cmd(S1apState* state, mme_ue_s1ap_id_t ue_id,
+status_code_e send_s1ap_erab_rel_cmd(oai::S1apState* state,
+                                     mme_ue_s1ap_id_t ue_id,
                                      enb_ue_s1ap_id_t enb_ue_id) {
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_REL_CMD);
@@ -149,7 +151,8 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
   return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
 }
 
-status_code_e send_s1ap_erab_setup_req(S1apState* state, mme_ue_s1ap_id_t ue_id,
+status_code_e send_s1ap_erab_setup_req(oai::S1apState* state,
+                                       mme_ue_s1ap_id_t ue_id,
                                        enb_ue_s1ap_id_t enb_ue_id, ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_SETUP_REQ);
@@ -407,20 +410,21 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
   return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
 }
 
-bool is_enb_state_valid(S1apState* state, sctp_assoc_id_t assoc_id,
+bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
                         magma::lte::oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues) {
-  EnbDescription* enb_associated = nullptr;
-  map_uint32_enb_description_t enb_map.map = state->mutable_enbs();
+  EnbDescription enb_associated;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
   enb_map.get(assoc_id, &enb_associated);
-  if (enb_associated->nb_ue_associated() == expected_num_ues &&
-      enb_associated->s1_enb_state() == expected_state) {
+  if (enb_associated.nb_ue_associated() == expected_num_ues &&
+      enb_associated.s1_enb_state() == expected_state) {
     return true;
   }
   return false;
 }
 
-bool is_num_enbs_valid(S1apState* state, uint32_t expected_num_enbs) {
+bool is_num_enbs_valid(oai::S1apState* state, uint32_t expected_num_enbs) {
   hash_size_t num_enb_elements = state->enbs_size();
   if ((num_enb_elements == expected_num_enbs) &&
       (state->num_enbs() == expected_num_enbs)) {
@@ -447,7 +451,7 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
 }
 
 status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
-                                      S1apState* state,
+                                      oai::S1apState* state,
                                       sctp_assoc_id_t assoc_id,
                                       sctp_stream_id_t stream_id) {
   status_code_e rc = RETURNok;

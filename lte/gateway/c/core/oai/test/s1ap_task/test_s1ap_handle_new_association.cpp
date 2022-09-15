@@ -27,7 +27,7 @@ namespace lte {
 
 using oai::EnbDescription;
 TEST(test_s1ap_handle_new_association, empty_initial_state) {
-  S1apState* s = create_s1ap_state();
+  oai::S1apState* s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -40,18 +40,19 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
 
   EXPECT_EQ(s->enbs_size(), 1);
 
-  EnbDescription* enbd = nullptr;
-  map_uint32_enb_description_t enb_map.map = s->mutable_enbs();
+  EnbDescription enbd;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s->mutable_enbs();
   EXPECT_EQ(enb_map.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  EXPECT_EQ(enbd->sctp_assoc_id(), 3);
-  EXPECT_EQ(enbd->instreams(), 1);
-  EXPECT_EQ(enbd->outstreams(), 2);
-  EXPECT_EQ(enbd->enb_id(), 0xFFFFFFFF);
-  EXPECT_EQ(enbd->s1_enb_state(), magma::lte::oai::S1AP_INIT);
-  EXPECT_EQ(enbd->next_sctp_stream(), 1);
-  EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(),
+  EXPECT_EQ(enbd.sctp_assoc_id(), 3);
+  EXPECT_EQ(enbd.instreams(), 1);
+  EXPECT_EQ(enbd.outstreams(), 2);
+  EXPECT_EQ(enbd.enb_id(), 0xFFFFFFFF);
+  EXPECT_EQ(enbd.s1_enb_state(), magma::lte::oai::S1AP_INIT);
+  EXPECT_EQ(enbd.next_sctp_stream(), 1);
+  EXPECT_STREQ(enbd.ran_cp_ipaddr().c_str(),
                "\300\250<\215\0\0\0\0\0\0\0\0\0\0\0\0");
-  EXPECT_EQ(enbd->ran_cp_ipaddr_sz(), 4);
+  EXPECT_EQ(enbd.ran_cp_ipaddr_sz(), 4);
 
   // association is created, but S1Setup has not yet occurred
   EXPECT_EQ(s->num_enbs(), 0);
@@ -61,15 +62,17 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
 }
 
 TEST(test_s1ap_handle_new_association, shutdown) {
-  S1apState* s = create_s1ap_state();
+  oai::S1apState* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // set enb to shutdown state
-  EnbDescription* enbd = nullptr;
-  map_uint32_enb_description_t enb_map.map = s->mutable_enbs();
+  EnbDescription enbd;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s->mutable_enbs();
   EXPECT_EQ(enb_map.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_SHUTDOWN);
+  enbd.set_s1_enb_state(magma::lte::oai::S1AP_SHUTDOWN);
+  s1ap_state_update_enb_map(s, p.assoc_id, &enbd);
 
   // expect error
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNerror);
@@ -78,15 +81,17 @@ TEST(test_s1ap_handle_new_association, shutdown) {
 }
 
 TEST(test_s1ap_handle_new_association, resetting) {
-  S1apState* s = create_s1ap_state();
+  oai::S1apState* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // set enb to shutdown state
-  EnbDescription* enbd = nullptr;
-  map_uint32_enb_description_t enb_map.map = s->mutable_enbs();
+  EnbDescription enbd;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s->mutable_enbs();
   EXPECT_EQ(enb_map.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  enbd.set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  s1ap_state_update_enb_map(s, p.assoc_id, &enbd);
 
   // expect error
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNerror);
@@ -95,21 +100,23 @@ TEST(test_s1ap_handle_new_association, resetting) {
 }
 
 TEST(test_s1ap_handle_new_association, reassociate) {
-  S1apState* s = create_s1ap_state();
+  oai::S1apState* s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
   // make sure first association worked
-  EnbDescription* enbd = nullptr;
-  map_uint32_enb_description_t enb_map.map = s->mutable_enbs();
+  EnbDescription enbd;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s->mutable_enbs();
   EXPECT_EQ(enb_map.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  EXPECT_EQ(enbd->sctp_assoc_id(), 1);
-  EXPECT_EQ(enbd->instreams(), 0);
-  EXPECT_EQ(enbd->outstreams(), 0);
-  EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(), "");
-  EXPECT_EQ(enbd->ran_cp_ipaddr_sz(), 0);
+  EXPECT_EQ(enbd.sctp_assoc_id(), 1);
+  EXPECT_EQ(enbd.instreams(), 0);
+  EXPECT_EQ(enbd.outstreams(), 0);
+  EXPECT_STREQ(enbd.ran_cp_ipaddr().c_str(), "");
+  EXPECT_EQ(enbd.ran_cp_ipaddr_sz(), 0);
   // should be OK if enb status is READY
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+  enbd.set_s1_enb_state(magma::lte::oai::S1AP_READY);
+  s1ap_state_update_enb_map(s, p.assoc_id, &enbd);
 
   // new assoc with same id should overwrite
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
@@ -120,20 +127,21 @@ TEST(test_s1ap_handle_new_association, reassociate) {
       .ran_cp_ipaddr = ran_cp_ipaddr,
   };
   EXPECT_EQ(s1ap_handle_new_association(s, &p2), RETURNok);
+  EXPECT_EQ(enb_map.get(p2.assoc_id, &enbd), magma::PROTO_MAP_OK);
 
-  EXPECT_EQ(enbd->sctp_assoc_id(), 1);
-  EXPECT_EQ(enbd->instreams(), 10);
-  EXPECT_EQ(enbd->outstreams(), 20);
-  EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(), "\300\250<\215");
-  EXPECT_EQ(enbd->ran_cp_ipaddr_sz(), 4);
-  EXPECT_EQ(enbd->s1_enb_state(), magma::lte::oai::S1AP_INIT);
+  EXPECT_EQ(enbd.sctp_assoc_id(), 1);
+  EXPECT_EQ(enbd.instreams(), 10);
+  EXPECT_EQ(enbd.outstreams(), 20);
+  EXPECT_STREQ(enbd.ran_cp_ipaddr().c_str(), "\300\250<\215");
+  EXPECT_EQ(enbd.ran_cp_ipaddr_sz(), 4);
+  EXPECT_EQ(enbd.s1_enb_state(), magma::lte::oai::S1AP_INIT);
 
   bdestroy(ran_cp_ipaddr);
   free_s1ap_state(s);
 }
 
 TEST(test_s1ap_handle_new_association, clean_stale_association) {
-  S1apState* s = create_s1ap_state();
+  oai::S1apState* s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -148,11 +156,12 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
 
   EnbDescription* enb_ref = new EnbDescription();
 
-  EnbDescription* enb_associated = NULL;
-  map_uint32_enb_description_t enb_map.map = s->mutable_enbs();
+  EnbDescription enb_associated;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = s->mutable_enbs();
   enb_map.get(p.assoc_id, &enb_associated);
 
-  enb_ref->set_enb_id(enb_associated->enb_id());
+  enb_ref->set_enb_id(enb_associated.enb_id());
   clean_stale_enb_state(s, enb_ref);
   EXPECT_EQ(s->enbs_size(), 0);
 

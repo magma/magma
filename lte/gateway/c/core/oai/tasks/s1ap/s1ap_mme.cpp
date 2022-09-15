@@ -107,7 +107,7 @@ static int s1ap_send_init_sctp(void) {
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  S1apState* state = get_s1ap_state(false);
+  oai::S1apState* state = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   bool is_task_state_same = false;
@@ -376,37 +376,27 @@ static void s1ap_mme_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-oai::EnbDescription* s1ap_new_enb(void) {
-  oai::EnbDescription* enb_ref = NULL;
+void s1ap_new_enb(oai::EnbDescription* enb_ref) {
   magma::proto_map_uint32_uint64_t ue_id_coll;
 
-  enb_ref = new oai::EnbDescription();
-  /*
-   * Something bad happened during new
-   * * * * May be we are running out of memory.
-   * * * * TODO: Notify eNB with a cause like Hardware Failure.
-   */
-  if (enb_ref == NULL) {
-    OAILOG_CRITICAL(
+  if (enb_ref == nullptr) {
+    OAILOG_ERROR(
         LOG_S1AP,
-        "Failed to allocate memory for structure, oai::EnbDescription \n");
-    return enb_ref;
+        "Received invalid pointer for structure, oai::EnbDescription ");
+    return;
   }
   ue_id_coll.map = enb_ref->mutable_ue_id_map();
   ue_id_coll.set_name("s1ap_ue_coll");
   enb_ref->set_nb_ue_associated(0);
-  return enb_ref;
+  return;
 }
 
 //------------------------------------------------------------------------------
-oai::UeDescription* s1ap_new_ue(S1apState* state,
+oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
                                 const sctp_assoc_id_t sctp_assoc_id,
                                 enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  oai::EnbDescription* enb_ref = NULL;
   oai::UeDescription* ue_ref = nullptr;
 
-  enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
-  DevAssert(enb_ref != NULL);
   ue_ref = new oai::UeDescription();
   /*
    * Something bad happened during memory allocation...
@@ -445,23 +435,28 @@ oai::UeDescription* s1ap_new_ue(S1apState* state,
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_ue(S1apState* state, oai::UeDescription* ue_ref) {
-  oai::EnbDescription* enb_ref = NULL;
+void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
+  oai::EnbDescription enb_ref;
 
   // NULL reference...
   if (ue_ref == nullptr) return;
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id();
-  enb_ref = s1ap_state_get_enb(state, ue_ref->sctp_assoc_id());
-  DevAssert(enb_ref->nb_ue_associated() > 0);
+  if ((s1ap_state_get_enb(state, ue_ref->sctp_assoc_id(), &enb_ref)) !=
+      PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get enb association for assoc_id: %u",
+                 ue_ref->sctp_assoc_id());
+    return;
+  }
+  DevAssert(enb_ref.nb_ue_associated() > 0);
   // Updating number of UE
-  enb_ref->set_nb_ue_associated((enb_ref->nb_ue_associated() - 1));
+  enb_ref.set_nb_ue_associated((enb_ref.nb_ue_associated() - 1));
 
   OAILOG_TRACE(LOG_S1AP,
                "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
                " mme_ue_s1ap_id:" MME_UE_S1AP_ID_FMT " in eNB id : %d\n",
                ue_ref->enb_ue_s1ap_id(), ue_ref->mme_ue_s1ap_id(),
-               enb_ref->enb_id);
+               enb_ref.enb_id);
 
   ue_ref->set_s1ap_ue_state(oai::S1AP_UE_INVALID_STATE);
   if (ue_ref->s1ap_ue_context_rel_timer().id() != S1AP_TIMER_INACTIVE_ID) {
@@ -475,12 +470,12 @@ void s1ap_remove_ue(S1apState* state, oai::UeDescription* ue_ref) {
     return;
   }
   s1ap_ue_state->remove(ue_ref->comp_s1ap_id());
-  proto_map_uint32_uint32_t mmeid2associd_map.map =
-      state->mutable_mmeid2associd();
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
   mmeid2associd_map.remove(mme_ue_s1ap_id);
 
   magma::proto_map_uint32_uint64_t ue_id_coll;
-  ue_id_coll.map = enb_ref->mutable_ue_id_map();
+  ue_id_coll.map = enb_ref.mutable_ue_id_map();
   ue_id_coll.remove(mme_ue_s1ap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -490,28 +485,29 @@ void s1ap_remove_ue(S1apState* state, oai::UeDescription* ue_ref) {
   s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_s1ap_id);
 
   OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %lu",
-               enb_ref->nb_ue_associated(), ue_id_coll.size());
-  if (!enb_ref->nb_ue_associated()) {
-    if (enb_ref->s1_enb_state() == magma::lte::oai::S1AP_RESETING) {
+               enb_ref.nb_ue_associated(), ue_id_coll.size());
+  if (!enb_ref.nb_ue_associated()) {
+    if (enb_ref.s1_enb_state() == magma::lte::oai::S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
-      enb_ref->set_s1_state(magma::lte::oai::S1AP_INIT);
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name());
+      enb_ref.set_s1_state(magma::lte::oai::S1AP_INIT);
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
       state->set_num_enbs(state->num_enbs() - 1);
-    } else if (enb_ref->s1_enb_state() == magma::lte::oai::S1AP_SHUTDOWN) {
+    } else if (enb_ref.s1_enb_state() == magma::lte::oai::S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name());
-      s1ap_remove_enb(state, enb_ref);
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
+      s1ap_remove_enb(state, &enb_ref);
     }
   }
+  s1ap_state_update_enb_map(state, enb_ref.sctp_assoc_id(), &enb_ref);
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_enb(S1apState* state, oai::EnbDescription* enb_ref) {
+void s1ap_remove_enb(oai::S1apState* state, oai::EnbDescription* enb_ref) {
   if (enb_ref == NULL) {
     return;
   }
   magma::proto_map_uint32_uint64_t ue_id_coll;
-  map_uint32_enb_description_t enb_map;
+  proto_map_uint32_enb_description_t enb_map;
   enb_ref->set_s1_state(magma::lte::oai::S1AP_INIT);
 
   ue_id_coll.map = enb_ref->mutable_ue_id_map();
@@ -524,7 +520,7 @@ void s1ap_remove_enb(S1apState* state, oai::EnbDescription* enb_ref) {
 }
 
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
-  S1apState* s1ap_state_p = get_s1ap_state(false);
+  oai::S1apState* s1ap_state_p = get_s1ap_state(false);
   application_s1ap_stats_msg_t stats_msg;
   stats_msg.nb_enb_connected = s1ap_state_p->num_enbs();
   stats_msg.nb_s1ap_last_msg_latency = s1ap_last_msg_latency;

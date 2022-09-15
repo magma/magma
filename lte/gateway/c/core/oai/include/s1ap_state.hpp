@@ -38,14 +38,14 @@ oai::S1apState* get_s1ap_state(bool read_from_db);
 
 void put_s1ap_state(void);
 
-magma::lte::oai::EnbDescription* s1ap_state_get_enb(oai::S1apState* state,
-                                                    sctp_assoc_id_t assoc_id);
+proto_map_rc_t s1ap_state_get_enb(oai::S1apState* state,
+                                  sctp_assoc_id_t assoc_id,
+                                  oai::EnbDescription* enb);
 
-oai::UeDescription* s1ap_state_get_ue_enbid(
-    sctp_assoc_id_t sctp_assoc_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
+oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
+                                            enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
-oai::UeDescription* s1ap_state_get_ue_mmeid(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id);
+oai::UeDescription* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64);
 
@@ -83,13 +83,17 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
                                      void* parameterP, void** resultP);
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                             oai::UeDescription* elementP,
-                             void* parameterP, void** resultP);
+                             oai::UeDescription* elementP, void* parameterP,
+                             void** resultP);
 
 void remove_ues_without_imsi_from_ue_id_coll(void);
 
-void clean_stale_enb_state(
-    oai::S1apState* state, oai::EnbDescription* new_enb_association);
+void clean_stale_enb_state(oai::S1apState* state,
+                           oai::EnbDescription* new_enb_association);
+
+proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState* state,
+                                         sctp_assoc_id_t assoc_id,
+                                         oai::EnbDescription* enb);
 
 }  // namespace lte
 }  // namespace magma

@@ -104,7 +104,7 @@ class S1apMmeHandlersTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  S1apState* state;
+  oai::S1apState* state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
 };
@@ -134,10 +134,12 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
 TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
-  EnbDescription* enb_associated = NULL;
-  map_uint32_enb_description_t enb_map.map = state->mutable_enbs();
+  oai::EnbDescription enb_associated;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
   enb_map.get(assoc_id, &enb_associated);
-  enb_associated->set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  enb_associated.set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  s1ap_state_update_enb_map(state, assoc_id, &enb_associated);
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -841,7 +843,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_ERAB_RESET_REQ mimicing MME_APP
   ASSERT_EQ(send_s1ap_erab_reset_req(assoc_id, stream_id, 1, 7), RETURNok);
@@ -1992,7 +1994,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_PAGING_REQUEST mimicing MME_APP
   ASSERT_EQ(send_s1ap_paging_request(assoc_id), RETURNok);
@@ -2043,7 +2045,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_E_RAB_MODIFICATION_CNF mimicing MME_APP
   ASSERT_EQ(send_s1ap_erab_mod_confirm(1, 7), RETURNok);
@@ -2310,7 +2312,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
   ASSERT_TRUE(
       is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);

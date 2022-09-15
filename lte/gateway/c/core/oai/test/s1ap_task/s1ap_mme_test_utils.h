@@ -26,16 +26,19 @@ namespace lte {
 
 using oai::S1apEnbState;
 using oai::S1apUeState;
-status_code_e setup_new_association(S1apState* state, sctp_assoc_id_t assoc_id);
+status_code_e setup_new_association(oai::S1apState* state,
+                                    sctp_assoc_id_t assoc_id);
 
 status_code_e send_s1ap_close_sctp_association(sctp_assoc_id_t assoc_id);
 
 status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1);
 
-status_code_e send_s1ap_erab_rel_cmd(S1apState* state, mme_ue_s1ap_id_t ue_id,
+status_code_e send_s1ap_erab_rel_cmd(oai::S1apState* state,
+                                     mme_ue_s1ap_id_t ue_id,
                                      enb_ue_s1ap_id_t enb_ue_id);
 
-status_code_e send_s1ap_erab_setup_req(S1apState* state, mme_ue_s1ap_id_t ue_id,
+status_code_e send_s1ap_erab_setup_req(oai::S1apState* state,
+                                       mme_ue_s1ap_id_t ue_id,
                                        enb_ue_s1ap_id_t enb_ue_id, ebi_t ebi);
 
 // TODO: Migrate pending ITTI sending functions to call handlers directly
@@ -77,21 +80,21 @@ status_code_e send_s1ap_mme_handover_command(sctp_assoc_id_t assoc_id,
 status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
                                          mme_ue_s1ap_id_t ue_id);
 
-bool is_enb_state_valid(S1apState* state, sctp_assoc_id_t assoc_id,
+bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
                         enum S1apEnbState expected_state,
                         uint32_t expected_num_ues);
 
-bool is_num_enbs_valid(S1apState* state, uint32_t expected_num_enbs);
+bool is_num_enbs_valid(oai::S1apState* state, uint32_t expected_num_enbs);
 
 bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
                        enum S1apUeState expected_ue_state);
 
 status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
-                                      S1apState* state,
+                                      oai::S1apState* state,
                                       sctp_assoc_id_t assoc_id,
                                       sctp_stream_id_t stream_id);
 
-void handle_mme_ue_id_notification(S1apState* s, sctp_assoc_id_t assoc_id);
+void handle_mme_ue_id_notification(oai::S1apState* s, sctp_assoc_id_t assoc_id);
 
 }  // namespace lte
 }  // namespace magma

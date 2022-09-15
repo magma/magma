@@ -45,19 +45,18 @@ namespace lte {
  * create_s1ap_state allocates a new S1apState struct and initializes
  * its properties.
  */
-S1apState* create_s1ap_state(void);
+oai::S1apState* create_s1ap_state(void);
 /**
  * free_s1ap_state deallocates a S1apState struct and its properties.
  */
-void free_s1ap_state(S1apState* state_cache_p);
+void free_s1ap_state(oai::S1apState* state_cache_p);
 
 /**
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager
-    : public StateManager<S1apState, oai::UeDescription,
-                          oai::S1apState,
+    : public StateManager<oai::S1apState, oai::UeDescription, oai::S1apState,
                           oai::UeDescription, S1apStateConverter> {
  public:
   /**
@@ -100,7 +99,8 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
-  S1apState* get_state(bool read_from_db) override;
+  oai::S1apState* get_state(bool read_from_db) override;
+  void write_s1ap_state_to_db();
 
  private:
   S1apStateManager();

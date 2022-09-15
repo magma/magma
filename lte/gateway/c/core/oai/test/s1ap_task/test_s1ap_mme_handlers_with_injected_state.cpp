@@ -114,7 +114,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  S1apState* state;
+  oai::S1apState* state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
   std::vector<std::string> name_of_ue_samples;
