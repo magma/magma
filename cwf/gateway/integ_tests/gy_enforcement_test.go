@@ -409,7 +409,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
-			TotalOctets: 4 * MegaBytes,
+			TotalOctets: 1 * MegaBytes,
 		},
 		IsFinalCredit: true,
 		FinalUnitIndication: &fegprotos.FinalUnitIndication{
@@ -447,19 +447,17 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// we need to generate over 100% of the quota to trigger a session redirection
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "10M"},
-		//Bitrate: &wrappers.StringValue{Value: "100M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "2M"},
 		Timeout: 60,
 	}
 
-	//time.Sleep(500 * time.Microsecond)
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Check that enforcement stats flow was not removed and data was passed
 	assert.Eventually(t,
-		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 3*MegaBytes), time.Minute, 2*time.Second)
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 1*MegaBytes), time.Minute, 2*time.Second)
 	// Wait for service deactivation
 	assert.Eventually(t,
 		tr.WaitForEnforcementStatsForRule(imsi, "redirect"), time.Minute, 2*time.Second)
@@ -481,7 +479,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	// we need to generate more traffic
 	req = &cwfprotos.GenTrafficRequest{
 		Imsi:    imsi,
-		Volume:  &wrappers.StringValue{Value: "2M"},
+		Volume:  &wrappers.StringValue{Value: "0.5M"},
 		Bitrate: &wrappers.StringValue{Value: "30M"},
 		Timeout: 60,
 	}
@@ -491,7 +489,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// Check that enforcement stats flow was not removed and data was passed
 	assert.Eventually(t,
-		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 1*MegaBytes), time.Minute, 2*time.Second)
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 0.25*MegaBytes), time.Minute, 2*time.Second)
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := fegprotos.NewGyCCRequest(imsi, fegprotos.CCRequestType_TERMINATION)
@@ -587,7 +585,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 
 	err = setNewOCSConfig(
 		&fegprotos.OCSConfig{
-			MaxUsageOctets: &fegprotos.Octets{TotalOctets: 8 * MegaBytes}, //we generate more then 5Mbyte traffic, if this is set below 7MB this session will terminate before the ASR goes through
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: 8 * MegaBytes}, // we generate more then 5Mbyte traffic, if this is set below 7MB this session will terminate before the ASR goes through
 			MaxUsageTime:   ReAuthMaxUsageTimeSec,
 			ValidityTime:   ReAuthValidityTime,
 		},
