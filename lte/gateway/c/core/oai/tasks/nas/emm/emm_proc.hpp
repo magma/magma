@@ -42,7 +42,7 @@ Description Defines the EPS Mobility Management procedures executed at
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
-#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"  //nas_message_decode_status_t
+#include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"  // nas_message_decode_status_t
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
 /****************************************************************************/

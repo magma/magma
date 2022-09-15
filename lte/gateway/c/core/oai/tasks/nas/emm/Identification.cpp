@@ -347,7 +347,8 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
       // Helper ident proc ptr to avoid double free from unknown GUTI attach
       // processing.
       nas_emm_ident_proc_t* ident_proc_p =
-          (nas_emm_ident_proc_t*)calloc(1, sizeof(nas_emm_ident_proc_t));
+          reinterpret_cast<nas_emm_ident_proc_t*>(
+              calloc(1, sizeof(nas_emm_ident_proc_t)));
       memcpy(ident_proc_p, ident_proc, sizeof(nas_emm_ident_proc_t));
 
       /*

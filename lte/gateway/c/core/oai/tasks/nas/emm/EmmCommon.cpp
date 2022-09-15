@@ -158,8 +158,8 @@ status_code_e emm_proc_common_initialize(
       emm_common_data_context_get(&emm_common_data_head, ue_id);
 
   if (emm_common_data_ctx == NULL) {
-    emm_common_data_ctx =
-        (emm_common_data_t*)calloc(1, sizeof(emm_common_data_t));
+    emm_common_data_ctx = reinterpret_cast<emm_common_data_t*>(
+        calloc(1, sizeof(emm_common_data_t)));
     emm_common_data_ctx->ue_id = ue_id;
     pthread_mutex_lock(&emm_common_data_head.mutex);
     RB_INSERT(emm_common_data_map,
@@ -507,8 +507,8 @@ void create_new_attach_info(emm_context_t* emm_context_p,
                             STOLEN_REF struct emm_attach_request_ies_s* ies,
                             bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_p->new_attach_info =
-      (new_attach_info_t*)calloc(1, sizeof(new_attach_info_t));
+  emm_context_p->new_attach_info = reinterpret_cast<new_attach_info_t*>(
+      calloc(1, sizeof(new_attach_info_t)));
   emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
   emm_context_p->new_attach_info->ies = ies;
   emm_context_p->new_attach_info->is_mm_ctx_new = is_mm_ctx_new;

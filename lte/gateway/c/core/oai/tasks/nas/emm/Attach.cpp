@@ -873,11 +873,14 @@ static void emm_proc_create_procedure_attach_request(
   if ((attach_proc)) {
     attach_proc->ies = ies;
     attach_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
-    ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t)emm_attach_abort;
-    ((nas_base_proc_t*)attach_proc)->fail_in = NULL;  // No parent procedure
-    ((nas_base_proc_t*)attach_proc)->time_out =
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->abort =
+        (proc_abort_t)emm_attach_abort;
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_in =
+        NULL;  // No parent procedure
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->time_out =
         (time_out_t)mme_app_handle_emm_attach_t3450_expiry;
-    ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_out =
+        _emm_attach_reject;
   }
 }
 /*
@@ -1152,13 +1155,15 @@ static status_code_e emm_attach_run_procedure(emm_context_t* emm_context) {
       } else {
         // force identification, even if not necessary
         rc = emm_proc_identification(
-            emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMSI,
+            emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+            IDENTITY_TYPE_2_IMSI,
             (success_cb_t)emm_attach_success_identification_cb,
             (failure_cb_t)emm_attach_failure_identification_cb);
       }
     } else if (attach_proc->ies->guti) {
       rc = emm_proc_identification(
-          emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMSI,
+          emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+          IDENTITY_TYPE_2_IMSI,
           (success_cb_t)emm_attach_success_identification_cb,
           (failure_cb_t)emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
@@ -1359,7 +1364,8 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
     OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_context->_imsi64,
                     "Trigger identity procedure\n");
     rc = emm_proc_identification(
-        emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMEISV,
+        emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+        IDENTITY_TYPE_2_IMEISV,
         (success_cb_t)emm_attach_identification_after_smc_success_cb,
         (failure_cb_t)emm_attach_failure_identification_cb);
 
