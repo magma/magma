@@ -31,7 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
-      am: ${{ steps.filter.outputs.am }}
       rc: ${{ steps.filter.outputs.rc }}
       db: ${{ steps.filter.outputs.db }}
       helm: ${{ steps.filter.outputs.helm }}
@@ -49,14 +48,6 @@ jobs:
               - 'dp/cloud/docker/python/configuration_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
               - 'dp/cloud/python/magma/fluentd_client/**'
-              - 'dp/protos/**'
-              - 'dp/cloud/go/protos/**'
-              - 'dp/cloud/go/active_mode_controller/protos'
-            am:
-              - '.github/workflows/dp-workflow.yml'
-              - 'dp/cloud/go/active_mode_controller/**'
-              - 'dp/cloud/docker/go/active_mode_controller/**'
-              - 'dp/cloud/python/magma/db_service/**'
               - 'dp/protos/**'
               - 'dp/cloud/go/protos/**'
               - 'dp/cloud/go/active_mode_controller/protos'
@@ -139,45 +130,6 @@ jobs:
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
-          verbose: true
-
-  active_mode_controller_unit_tests:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.am == 'true' }}
-    name: "Active mode controller unit tests"
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: dp/cloud/go/active_mode_controller
-    env:
-      GO_VERSION: 1.18.3
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Run Go linter
-        uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # pin@v2
-        with:
-          version: v1.46.2
-          working-directory: dp/cloud/go/active_mode_controller
-          skip-go-installation: true
-
-      - name: Run Go tests
-        run: |
-          go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
-        with:
-          flags: unittests,active-mode-controller
-          name: codecov-active-mode-controller
           verbose: true
 
   radio_controller_unit_tests:
