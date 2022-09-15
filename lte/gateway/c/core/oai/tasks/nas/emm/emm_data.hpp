@@ -461,8 +461,6 @@ void emm_ctx_set_non_current_security_vector_index(emm_context_t* const ctxt,
                                                    int vector_index)
     __attribute__((nonnull));
 
-void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
-    __attribute__((nonnull));
 void emm_ctx_set_ue_nw_cap(emm_context_t* const ctxt,
                            const ue_network_capability_t* const ue_nw_cap_ie)
     __attribute__((nonnull));
@@ -577,7 +575,10 @@ __attribute__((flatten));
 void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
 void emm_init_context(struct emm_context_s* const emm_ctx,
-                      const bool init_esm_ctxt) __attribute__((nonnull));*/
+                      const bool init_esm_ctxt) __attribute__((nonnull));
+void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
+    __attribute__((nonnull));*/
+
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)

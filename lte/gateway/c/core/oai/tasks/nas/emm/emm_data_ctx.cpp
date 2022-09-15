@@ -67,8 +67,8 @@ mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {
 }
 
 //------------------------------------------------------------------------------
-inline void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
-                                          const int attribute_bit_pos) {
+void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
+                                   const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
 }
 
@@ -78,8 +78,8 @@ inline void emm_ctx_clear_attribute_present(emm_context_t* const ctxt,
   ctxt->member_valid_mask &= ~attribute_bit_pos;
 }
 
-inline void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
-                                        const int attribute_bit_pos) {
+void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
+                                 const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
   ctxt->member_valid_mask |= attribute_bit_pos;
 }
@@ -91,7 +91,7 @@ inline void emm_ctx_clear_attribute_valid(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear GUTI  */
-inline void emm_ctx_clear_guti(emm_context_t* const ctxt) {
+void emm_ctx_clear_guti(emm_context_t* const ctxt) {
   clear_guti(&ctxt->_guti);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " GUTI cleared\n",
@@ -123,7 +123,7 @@ inline void emm_ctx_set_valid_guti(emm_context_t* const ctxt, guti_t* guti) {
 
 //------------------------------------------------------------------------------
 /* Clear old GUTI  */
-inline void emm_ctx_clear_old_guti(emm_context_t* const ctxt) {
+void emm_ctx_clear_old_guti(emm_context_t* const ctxt) {
   clear_guti(&ctxt->_old_guti);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_OLD_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " old GUTI cleared\n",
@@ -158,7 +158,7 @@ inline void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear IMSI */
-inline void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
+void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
   clear_imsi(&ctxt->_imsi);
   ctxt->_imsi64 = INVALID_IMSI64;
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -202,7 +202,7 @@ void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
 
 //------------------------------------------------------------------------------
 /* Clear IMEI */
-inline void emm_ctx_clear_imei(emm_context_t* const ctxt) {
+void emm_ctx_clear_imei(emm_context_t* const ctxt) {
   clear_imei(&ctxt->_imei);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " IMEI cleared\n",
@@ -289,7 +289,7 @@ void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai) {
 
 //------------------------------------------------------------------------------
 /* Clear AUTH vectors  */
-inline void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt) {
+void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt) {
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_AUTH_VECTORS);
   for (int i = 0; i < MAX_EPS_AUTH_VECTORS; i++) {
     memset((void*)&ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
@@ -331,7 +331,7 @@ inline void emm_ctx_clear_auth_vector(emm_context_t* const ctxt, ksi_t eksi) {
 }
 //------------------------------------------------------------------------------
 /* Clear security  */
-inline void emm_ctx_clear_security(emm_context_t* const ctxt) {
+void emm_ctx_clear_security(emm_context_t* const ctxt) {
   memset(&ctxt->_security, 0, sizeof(ctxt->_security));
   emm_ctx_set_security_type(ctxt, SECURITY_CTX_TYPE_NOT_AVAILABLE);
   emm_ctx_set_security_eksi(ctxt, KSI_NO_KEY_AVAILABLE);
@@ -347,8 +347,8 @@ inline void emm_ctx_clear_security(emm_context_t* const ctxt) {
 }
 
 //------------------------------------------------------------------------------
-inline void emm_ctx_set_security_type(emm_context_t* const ctxt,
-                                      emm_sc_type_t sc_type) {
+void emm_ctx_set_security_type(emm_context_t* const ctxt,
+                               emm_sc_type_t sc_type) {
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(LOG_NAS_EMM,
                "ue_id=" MME_UE_S1AP_ID_FMT
@@ -359,7 +359,7 @@ inline void emm_ctx_set_security_type(emm_context_t* const ctxt,
 }
 
 //------------------------------------------------------------------------------
-inline void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi) {
+void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi) {
   ctxt->_security.eksi = eksi;
   OAILOG_TRACE(LOG_NAS_EMM,
                "ue_id=" MME_UE_S1AP_ID_FMT " set security context eksi %d\n",
@@ -391,7 +391,7 @@ void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear non current security  */
-inline void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
+void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
   memset(&ctxt->_non_current_security, 0, sizeof(ctxt->_non_current_security));
   ctxt->_non_current_security.sc_type = SECURITY_CTX_TYPE_NOT_AVAILABLE;
   ctxt->_non_current_security.eksi = KSI_NO_KEY_AVAILABLE;
@@ -411,7 +411,11 @@ inline void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
 
 //------------------------------------------------------------------------------
 /* Clear UE network capability IE   */
-inline void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
   memset(&ctxt->_ue_network_capability, 0,
          sizeof(ctxt->_ue_network_capability));
   emm_ctx_clear_attribute_present(ctxt,
@@ -422,6 +426,9 @@ inline void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
                (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
                    ->mme_ue_s1ap_id);
 }
+#ifdef __cplusplus
+}
+#endif
 
 /* Set UE network capability IE */
 inline void emm_ctx_set_ue_nw_cap(

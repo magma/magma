@@ -230,6 +230,9 @@ void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
                     struct nas_timer_s* const T3450);
 void emm_init_context(struct emm_context_s* const emm_ctx,
                       const bool init_esm_ctxt) __attribute__((nonnull));
+
+void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
+    __attribute__((nonnull));
 #ifdef __cplusplus
 }
 #endif
