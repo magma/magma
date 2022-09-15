@@ -104,7 +104,8 @@ RUN apt-get update && apt-get install -y \
   ethtool \
   linux-headers-generic \
   iptables \
-  iproute2
+  iproute2 \
+  isc-dhcp-client
 
 RUN python3 -m venv $VIRTUAL_ENV
 

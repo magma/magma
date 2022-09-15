@@ -11,3 +11,8 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/services/python/Dockerfile
+
+  gateway_go:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile
