@@ -10,8 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import ctypes
+import os
 import time
 import unittest
 
@@ -25,8 +25,10 @@ class TestStandalonePdnConnReqWithApnCorrection(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
+        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             apn_correction=MagmadUtil.apn_correction_cmds.ENABLE,
+            mock_pcrf=self.mock_pcrf,
         )
 
     def tearDown(self):

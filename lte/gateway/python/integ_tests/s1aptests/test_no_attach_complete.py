@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import os
 import unittest
 
 import s1ap_types
@@ -74,7 +74,8 @@ class TestNoAttachComplete(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
         self.gateway_services = self._s1ap_wrapper.get_gateway_services_util()
 
     def tearDown(self):

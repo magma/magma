@@ -19,9 +19,9 @@ import time
 from typing import List
 
 import s1ap_types
+from integ_tests.common.gx_gy_client import PCRFGrpc
 from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
-from integ_tests.common.policy_db_client import PCRFGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
     HSSGrpc,
@@ -236,7 +236,7 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues, req_data=None, static_ips=None, mock_pcrf=False):
+    def configUEDevice(self, num_ues, req_data=None, static_ips=None):
         """ Configure the device on the UE side """
         if req_data is None:
             req_data = []
@@ -250,7 +250,7 @@ class TestWrapper(object):
             )
 
             imsi = "IMSI" + "".join([str(j) for j in reqs[i].imsi])
-            if mock_pcrf:
+            if self.mock_pcrf:
                 self.subscriber_client_pcrf.add_subscriber(imsi)
 
             if req_data and bool(req_data[i]):
@@ -352,6 +352,11 @@ class TestWrapper(object):
                 "************************* UE device config for ue_id ",
                 reqs[i].ue_id,
             )
+
+            imsi = "IMSI" + "".join([str(j) for j in reqs[i].imsi])
+            if self.mock_pcrf:
+                self.subscriber_client_pcrf.add_subscriber(imsi)
+
             assert (
                 self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
                 == 0
@@ -364,7 +369,7 @@ class TestWrapper(object):
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
-                "IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                imsi,
                 None,
             )
             self._configuredUes.append(reqs[i])
