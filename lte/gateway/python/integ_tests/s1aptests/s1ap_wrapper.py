@@ -541,6 +541,11 @@ class TestWrapper(object):
         elif TestWrapper.TEST_CASE_EXECUTION_COUNT > 1:
             self.generate_flaky_summary()
 
+        if not self.magmad_util.is_redis_empty():
+            print("************************* Redis not empty, initiating cleanup")
+            self.magmad_util.restart_sctpd()
+            self.magmad_util.print_redis_state()
+
     def multiEnbConfig(self, num_of_enbs, enb_list=None):
         """Configure multiple eNB in S1APTester"""
         if enb_list is None:
