@@ -295,8 +295,8 @@ profiles:
   - name: remote-push
     patches:
       - op: remove
-        path: /build/artifacts/4  # remove fake sas image
+        path: /build/artifacts/3  # remove fake sas image
       - op: remove
-        path: /build/artifacts/4  # remove fluentd-forward image
+        path: /build/artifacts/3  # remove fluentd-forward image
       - op: remove
-        path: /build/artifacts/4  # remove postgresql image
+        path: /build/artifacts/3  # remove postgresql image
