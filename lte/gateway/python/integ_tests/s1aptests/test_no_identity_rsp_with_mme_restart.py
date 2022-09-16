@@ -107,11 +107,11 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         # identity request message
         response = self._s1ap_wrapper.s1_util.get_response()
         while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
-            response = self._s1ap_wrapper.s1_util.get_response()
             print(
                 "******************** Ignoring re-transmitted "
                 "Identity request indication",
             )
+            response = self._s1ap_wrapper.s1_util.get_response()
 
         # Context release
         assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value

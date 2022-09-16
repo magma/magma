@@ -82,6 +82,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         # wait for UE to be idle
         time.sleep(0.1)
         print("*************************  Offloading UE at state ECM-IDLE")
+
         # Send offloading request
         assert self._ha_util.offload_agw(
             "".join(["IMSI"] + [str(i) for i in req.imsi]),
