@@ -18,10 +18,12 @@ import (
 	"database/sql"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator"
 	"magma/dp/cloud/go/services/dp/storage"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 type App struct {
@@ -95,7 +97,9 @@ func (a *App) Run(ctx context.Context) error {
 
 // TODO add context
 func (a *App) getStateAndProcessData(tx *sql.Tx) (any, error) {
-	state, err := a.amcManager.GetState(tx)
+	sc := sq.NewStmtCache(tx) // TODO maybe move this to function in storage or add to within
+	defer sqorc.ClearStatementCacheLogOnError(sc, "getStateAndProcessData")
+	state, err := a.amcManager.GetState(sc)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +111,7 @@ func (a *App) getStateAndProcessData(tx *sql.Tx) (any, error) {
 	now := a.clock.Now()
 	actions := generator.GenerateActions(state, now)
 	for _, act := range actions {
-		if err := act.Do(tx, a.amcManager); err != nil {
+		if err := act.Do(sc, a.amcManager); err != nil {
 			return nil, err
 		}
 	}
