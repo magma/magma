@@ -51,33 +51,47 @@
           Environment: CI
       register: ec2
 
+    - name: Printing useful debug infos
+      ansible.builtin.debug:
+        msg: "{{ ec2 }}"
+
     - name: Sleep for 10 seconds if AWS didn't return the public ip
       ansible.builtin.wait_for:
         timeout: 10
       delegate_to: localhost
       when: ec2.instances[0].public_ip_address is undefined
 
-    - name: Fetch the public ip address
-      amazon.aws.ec2_instance:
-        name: "arm-build-{{ magma_branch }}-{{ magma_tag }}"
+    # - name: Fetch the public ip address
+    #   amazon.aws.ec2_instance:
+    #     name: "arm-build-{{ magma_branch }}-{{ magma_tag }}"
+    #     aws_access_key: "{{ aws_access_key }}"
+    #     aws_secret_key: "{{ aws_secret_key }}"
+    #     key_name: "{{ keypair }}"
+    #     security_group: "{{ arm_security_group }}"
+    #     instance_type: "{{ arm_instance_type }}"
+    #     image_id: "{{ arm_ami_instance }}"
+    #     wait: true
+    #     region: "{{ arm_region }}"
+    #     vpc_subnet_id: "{{ arm_vpc }}"
+    #     volumes:
+    #       - device_name: /dev/sda1
+    #         ebs:
+    #           volume_size: 50
+    #           delete_on_termination: true
+    #     network:
+    #       assign_public_ip: yes
+    #     tags:
+    #       Environment: CI
+    #   register: ec2
+    #   when: ec2.instances[0].public_ip_address is undefined
+
+    - name: Fetch the public ip address if it didn't come up right away
+      ec2_instance_info:
+        region: "{{ arm_region }}"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        key_name: "{{ keypair }}"
-        security_group: "{{ arm_security_group }}"
-        instance_type: "{{ arm_instance_type }}"
-        image_id: "{{ arm_ami_instance }}"
-        wait: true
-        region: "{{ arm_region }}"
-        vpc_subnet_id: "{{ arm_vpc }}"
-        volumes:
-          - device_name: /dev/sda1
-            ebs:
-              volume_size: 50
-              delete_on_termination: true
-        network:
-          assign_public_ip: yes
-        tags:
-          Environment: CI
+        instance_ids:
+          - "{{ ec2.instances[0].instance_id }}"
       register: ec2
       when: ec2.instances[0].public_ip_address is undefined
 
@@ -119,7 +133,6 @@
         pkg:
           - docker.io
           - git
-          - docker-compose
           - apt-transport-https
           - curl
           - gnupg
@@ -165,7 +178,7 @@
       ansible.builtin.shell: |
         cd "{{ magma_dir }}"/lte/gateway/docker
         docker login -u {{ magma_registry_username }} -p {{ magma_registry_password }} {{ magma_registry_url }}
-        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 
+        docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64
         docker tag agw-gateway_python:latest "{{ magma_registry_url }}"/agw_gateway_python_arm:"{{ magma_tag }}"
         docker tag agw-gateway_c:latest "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"
         docker push "{{ magma_registry_url }}"/agw_gateway_c_arm:"{{ magma_tag }}"

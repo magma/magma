@@ -910,7 +910,7 @@ jobs:
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
-      - name: Setup SSH Keys and known_hosts
+      - name: Setup SSH Keys known_hosts and sssh_config
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
@@ -920,6 +920,10 @@ jobs:
           touch ~/.ssh/gha_keypair.pem
           echo "${{ secrets.LF_AWS_KEYPAIR }}" > ~/.ssh/gha_keypair.pem
           sudo chmod 400 ~/.ssh/gha_keypair.pem
+          touch ~/.ssh/config
+          chmod 600  ~/.ssh/config
+          echo "Host *" >> ~/.ssh/config
+          echo "    ServerAliveInterval 240" >> ~/.ssh/config
       - name: Install Dependencies
         run: |
           pip install ansible awscli boto3
@@ -931,21 +935,21 @@ jobs:
           if [ "$GITHUB_REF" = "refs/heads/master" ]; then
             echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           fi
-      - name: Ansible config setup
-        run: |
-          echo "[defaults]" >> ~/.ansible.cfg
-          echo "host_key_checking = False" >> ~/.ansible.cfg
-          echo "ssh_args = -o ServerAliveInterval=60" >> ~/.ansible.cfg
-          mkdir -p ~/.ssh
-          touch ~/.ssh/config
-          chmod 600  ~/.ssh/config
-          echo "Host *" >> ~/.ssh/config
-          echo "    ServerAliveInterval 240" >> ~/.ssh/config
-          cat  ~/.ssh/config
+      # - name: Ansible config setup
+      #   run: |
+      #     echo "[defaults]" >> ~/.ansible.cfg
+      #     echo "host_key_checking = False" >> ~/.ansible.cfg
+      #     echo "ssh_args = -o ServerAliveInterval=60" >> ~/.ansible.cfg
       - name: Run the ansible script to build on graviton
         run: |
           cd "${{ env.MAGMA_ROOT }}"/lte/gateway/deploy
-          ansible-playbook --extra-vars "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} magma_registry_username=${{ secrets.JFROG_USERNAME }} magma_registry_password=${{ secrets.JFROG_PASSWORD }} magma_tag=${TAG} magma_branch=${GITHUB_REF##*/}" arm_build.yml
+          ansible-playbook --extra-vars \
+            "aws_secret_key=${{ secrets.AWS_LF_SECRET_KEY }} \
+            aws_access_key=${{ secrets.AWS_LF_ACCESS_KEY }} \
+            magma_registry_username=${{ secrets.JFROG_USERNAME }} \
+            magma_registry_password=${{ secrets.JFROG_PASSWORD }} \
+            magma_tag=${TAG} magma_branch=${GITHUB_REF##*/}" \
+            arm_build.yml
       - name: get the right metadata for firebase
         id: publish_artifacts
         run: |
@@ -958,6 +962,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action arm build failed"
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_USERNAME: "Build workflow"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_ICON_EMOJI: ":boom:"
