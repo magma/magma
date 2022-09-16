@@ -21,6 +21,7 @@ The following table list the configurable parameters of the agw chart and their 
 * A Kubernetes cluster with the following components deployed:
   - MetalLB
   - OpenEBS
+* `rootCA.pem` certificate file.
 
 ## Installation
 
