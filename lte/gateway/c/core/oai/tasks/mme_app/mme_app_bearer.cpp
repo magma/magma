@@ -646,10 +646,8 @@ imsi64_t mme_app_handle_initial_ue_message(
         "INITIAL UE Message: Valid mme_code %u and S-TMSI %u received from "
         "eNB.\n",
         initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
-    guti_t guti = {.gummei.plmn = {0},
-                   .gummei.mme_gid = 0,
-                   .gummei.mme_code = 0,
-                   .m_tmsi = INVALID_M_TMSI};
+    guti_t guti = {};
+    guti.m_tmsi = INVALID_M_TMSI};
     plmn_t plmn;
     COPY_PLMN(plmn, (initial_pP->tai.plmn));
     is_guti_valid =
@@ -1290,10 +1288,10 @@ status_code_e mme_app_handle_create_sess_resp(
           create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
               .bearer_level_qos->pl;
       current_bearer_p->preemption_vulnerability =
-          create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
+          (pre_emption_vulnerability_t)create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
               .bearer_level_qos->pvi;
       current_bearer_p->preemption_capability =
-          create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
+          (pre_emption_capability_t)create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
               .bearer_level_qos->pci;
 
       // TODO should be set in NAS_PDN_CONNECTIVITY_RSP message
@@ -1865,8 +1863,8 @@ void mme_app_handle_s11_create_bearer_req(
 
     dedicated_bc->qci = msg_bc->bearer_level_qos.qci;
     dedicated_bc->priority_level = msg_bc->bearer_level_qos.pl;
-    dedicated_bc->preemption_vulnerability = msg_bc->bearer_level_qos.pvi;
-    dedicated_bc->preemption_capability = msg_bc->bearer_level_qos.pci;
+    dedicated_bc->preemption_vulnerability = (pre_emption_vulnerability_t) msg_bc->bearer_level_qos.pvi;
+    dedicated_bc->preemption_capability = (pre_emption_capability_t) msg_bc->bearer_level_qos.pci;
 
     // forward request to NAS
     activate_ded_bearer_req.ue_id = ue_context_p->mme_ue_s1ap_id;
@@ -1876,12 +1874,12 @@ void mme_app_handle_s11_create_bearer_req(
         ue_context_p->pdn_contexts[cid]->default_ebi;
     activate_ded_bearer_req.bearer_qos = msg_bc->bearer_level_qos;
     if (msg_bc->tft.numberofpacketfilters) {
-      activate_ded_bearer_req.tft = calloc(1, sizeof(traffic_flow_template_t));
+      activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
       copy_traffic_flow_template(activate_ded_bearer_req.tft, &msg_bc->tft);
     }
     if (msg_bc->pco.num_protocol_or_container_id) {
       activate_ded_bearer_req.pco =
-          calloc(1, sizeof(protocol_configuration_options_t));
+          reinterpret_cast<protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
       copy_protocol_configuration_options(activate_ded_bearer_req.pco,
                                           &msg_bc->pco);
     }
@@ -1927,7 +1925,7 @@ void mme_app_handle_e_rab_setup_rsp(
     // Do not process transport_layer_address now
     // bstring
     // e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address;
-    ip_address_t enb_ip_address = {0};
+    ip_address_t enb_ip_address = {};
     bstring_to_ip_address(
         e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address,
         &enb_ip_address);
@@ -2754,7 +2752,7 @@ status_code_e mme_app_handle_nas_extended_service_req(
               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER);
           if (rc != RETURNok) {
             OAILOG_WARNING_UE(
-                ue_context_p->emm_context._imsi64, LOG_MME_APP,
+                LOG_MME_APP, ue_context_p->emm_context._imsi64,
                 "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
                 "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER\n");
           }
@@ -3186,13 +3184,13 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
          &nw_init_bearer_actv_req_p->s1_u_sgw_fteid, sizeof(fteid_t));
 
   if (nw_init_bearer_actv_req_p->tft.numberofpacketfilters) {
-    activate_ded_bearer_req.tft = calloc(1, sizeof(traffic_flow_template_t));
+    activate_ded_bearer_req.tft = <traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
     copy_traffic_flow_template(activate_ded_bearer_req.tft,
                                &nw_init_bearer_actv_req_p->tft);
   }
   if (nw_init_bearer_actv_req_p->pco.num_protocol_or_container_id) {
     activate_ded_bearer_req.pco =
-        calloc(1, sizeof(protocol_configuration_options_t));
+        <protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
     copy_protocol_configuration_options(activate_ded_bearer_req.pco,
                                         &nw_init_bearer_actv_req_p->pco);
   }
@@ -3205,7 +3203,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (!(ue_context_p->pending_ded_ber_req[idx])) {
         ue_context_p->pending_ded_ber_req[idx] =
-            calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t));
+            <emm_cn_activate_dedicated_bearer_req_t*>(calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t)));
         memcpy(ue_context_p->pending_ded_ber_req[idx], &activate_ded_bearer_req,
                sizeof(emm_cn_activate_dedicated_bearer_req_t));
         is_msg_saved = true;
@@ -4506,7 +4504,7 @@ void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
     s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.item[i]
         .cause.present = S1ap_Cause_PR_misc;
     s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.item[i]
-        .cause.present = S1ap_CauseMisc_unspecified;
+        .cause.present = (S1ap_Cause_PR)S1ap_CauseMisc_unspecified;
   }
   s1ap_e_rab_modification_cnf_p->e_rab_failed_to_modify_list.no_of_items =
       s11_mbr->bearer_contexts_marked_for_removal.num_bearer_context;
@@ -4727,14 +4725,14 @@ void mme_app_handle_mme_init_local_deactivation(
           ->pdn_cx_id;
   if (pid >= MAX_APN_PER_UE) {
     OAILOG_ERROR_UE(
-        ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+        LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
         "No PDN connection found for pid=%d, EBI=%d while processing \n", pid,
         bearer_deactv_req_p->ebi[0]);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
   if (!pdn_context) {
-    OAILOG_ERROR_UE(ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+    OAILOG_ERROR_UE(LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
                     "PDN context is NULL for pid=%d for UE: " MME_UE_S1AP_ID_FMT
                     "\n",
                     pid, ue_context_p->mme_ue_s1ap_id);
@@ -4776,7 +4774,7 @@ void mme_app_handle_mme_init_local_deactivation(
                       ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    OAILOG_INFO_UE(ue_context_p->emm_context._imsi64, LOG_NAS_ESM,
+    OAILOG_INFO_UE(LOG_NAS_ESM, ue_context_p->emm_context._imsi64,
                    "Sending TAU accept with eps_bearer_ctx_status for "
                    "UE: " MME_UE_S1AP_ID_FMT "\n",
                    ue_context_p->mme_ue_s1ap_id);

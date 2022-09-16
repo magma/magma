@@ -436,7 +436,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_DOWNLINK_DATA_REJ: {
       nas_proc_dl_transfer_rej(
           MME_APP_DL_DATA_REJ(received_message_p).ue_id,
-          MME_APP_DL_DATA_REJ(received_message_p).err_code,
+          (nas_error_code_t)MME_APP_DL_DATA_REJ(received_message_p).err_code,
           &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
       is_task_state_same = true;
     } break;

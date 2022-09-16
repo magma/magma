@@ -65,7 +65,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   status_code_e rc = RETURNok;
 
   OAILOG_INFO(
-      TASK_MME_APP,
+      LOG_MME_APP,
       "Sending S6A UPDATE LOCATION REQ to S6A, ue_id =" MME_UE_S1AP_ID_FMT
       " \n",
       ue_context_p->mme_ue_s1ap_id);
@@ -84,7 +84,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   COPY_PLMN(visited_plmn, ue_context_p->emm_context.originating_tai.plmn);
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
-  OAILOG_DEBUG(TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
+  OAILOG_DEBUG(LOG_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
                s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
 
   // Set regional_subscription flag
@@ -97,14 +97,14 @@ status_code_e mme_app_send_s6a_update_location_req(
   if (ue_context_p->location_info_confirmed_in_hss == true) {
     s6a_ulr_p->skip_subscriber_data = 1;
     OAILOG_DEBUG(
-        TASK_MME_APP,
+        LOG_MME_APP,
         "S6A Location information confirmed in HSS (%d) for (ue_id = %u)\n",
         ue_context_p->location_info_confirmed_in_hss,
         ue_context_p->mme_ue_s1ap_id);
   } else {
     s6a_ulr_p->skip_subscriber_data = 0;
     OAILOG_DEBUG(
-        TASK_MME_APP,
+        LOG_MME_APP,
         "S6A Location information not confirmed in HSS (%d) for (ue_id = %u)\n",
         ue_context_p->location_info_confirmed_in_hss,
         ue_context_p->mme_ue_s1ap_id);
@@ -122,7 +122,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   } else {
     s6a_ulr_p->dual_regis_5g_ind = 0;
     OAILOG_DEBUG(
-        TASK_MME_APP,
+        LOG_MME_APP,
         "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
         "(ue_id = %u)\n",
         ue_context_p->mme_ue_s1ap_id);

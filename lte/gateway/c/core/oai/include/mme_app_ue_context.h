@@ -624,7 +624,7 @@ void mme_app_send_delete_session_request(
     struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
     const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel);
 
-int mme_app_send_s6a_update_location_req(
+status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 #ifdef __cplusplus
 }

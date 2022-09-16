@@ -30,11 +30,8 @@
 #ifndef FILE_MME_APP_DEFS_SEEN
 #define FILE_MME_APP_DEFS_SEEN
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include <czmq.h>
 
-#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,7 +39,11 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <czmq.h>
+
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 
 #define INVALID_BEARER_INDEX (-1)
 #define IPV6_ADDRESS_SIZE 16
@@ -66,7 +67,7 @@ typedef struct mme_congestion_params_s {
   long mme_app_zmq_smc_th;
 } mme_congestion_params_t;
 
-int mme_app_handle_s1ap_ue_capabilities_ind(
+status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
     const itti_s1ap_ue_cap_ind_t* s1ap_ue_cap_ind_pP);
 
 void mme_app_handle_s1ap_ue_context_release_complete(
@@ -77,7 +78,7 @@ void mme_app_handle_s1ap_ue_context_release_complete(
 #ifdef __cplusplus
 extern "C" {
 #endif
-int mme_app_send_s6a_update_location_req(
+status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
@@ -105,13 +106,13 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
 }
 #endif
 
-int mme_app_handle_s6a_update_location_ans(
+status_code_e mme_app_handle_s6a_update_location_ans(
     mme_app_desc_t* mme_app_desc_p, const s6a_update_location_ans_t* ula_pP);
 
-int mme_app_handle_s6a_cancel_location_req(
+status_code_e mme_app_handle_s6a_cancel_location_req(
     mme_app_desc_t* mme_app_desc_p, const s6a_cancel_location_req_t* clr_pP);
 
-int mme_app_handle_nas_extended_service_req(mme_ue_s1ap_id_t ue_id,
+status_code_e mme_app_handle_nas_extended_service_req(mme_ue_s1ap_id_t ue_id,
                                             uint8_t servicetype,
                                             uint8_t csfb_response);
 
@@ -127,7 +128,7 @@ imsi64_t mme_app_handle_initial_ue_message(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_initial_ue_message_t* conn_est_ind_pP);
 
-int mme_app_handle_create_sess_resp(
+status_code_e mme_app_handle_create_sess_resp(
     mme_app_desc_t* mme_app_desc_p,
     itti_s11_create_session_response_t*
         create_sess_resp_pP);  // not const because we need to free internal
@@ -172,17 +173,17 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* mme_ue_context_p, struct ue_mm_context_s* ue_context_p,
     ecm_state_t new_ecm_state);
 
-int mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop, int timer_id,
+status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop, int timer_id,
                                                     void* args);
 
-int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop, int timer_id,
+status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop, int timer_id,
                                                 void* args);
 
-int mme_app_handle_initial_context_setup_rsp_timer_expiry(zloop_t* loop,
+status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(zloop_t* loop,
                                                           int timer_id,
                                                           void* args);
 
-int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
+status_code_e mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
                                                         int timer_id,
                                                         void* args);
 
@@ -193,10 +194,10 @@ imsi64_t mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_paging_request_t* paging_req);
 
-int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
 status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
                                               void* args);
-int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
+status_code_e mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
                                                void* args);
 status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
@@ -223,7 +224,7 @@ int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
                                                         int timer_id,
                                                         void* args);
 
-int mme_app_send_s6a_cancel_location_ans(int cla_result, const char* imsi,
+status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result, const char* imsi,
                                          uint8_t imsi_length, void* msg_cla_p);
 
 int mme_app_send_s6a_purge_ue_req(mme_app_desc_t* mme_app_desc_p,
@@ -235,7 +236,7 @@ void mme_app_handle_suspend_acknowledge(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_suspend_acknowledge_t* suspend_acknowledge);
 
-int mme_app_send_s11_suspend_notification(struct ue_mm_context_s* ue_context_pP,
+status_code_e mme_app_send_s11_suspend_notification(struct ue_mm_context_s* ue_context_pP,
                                           pdn_cid_t cid);
 
 int mme_app_handle_s6a_reset_req(const s6a_reset_req_t* rsr_pP);
@@ -282,7 +283,7 @@ int mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_alert_request_t* sgsap_alert_req_pP);
 
-int mme_app_paging_request_helper(ue_mm_context_t* ue_context_p, bool set_timer,
+status_code_e mme_app_paging_request_helper(ue_mm_context_t* ue_context_p, bool set_timer,
                                   uint8_t paging_id_imsi,
                                   s1ap_cn_domain_t domain_indicator);
 
@@ -298,7 +299,7 @@ void mme_app_notify_service_reject_to_nas(mme_ue_s1ap_id_t ue_id,
                                           uint8_t emm_cause,
                                           uint8_t failed_procedure);
 
-int handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
+status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
                                        char* failed_statement,
                                        uint8_t failed_procedure);
 
