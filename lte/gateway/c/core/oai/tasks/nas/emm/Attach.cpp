@@ -54,9 +54,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,6 +68,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -78,6 +78,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -1663,6 +1664,7 @@ static status_code_e emm_send_attach_accept(emm_context_t* emm_context) {
         guti_t old_guti = emm_context->_old_guti;
         guti_t guti = {};
         clear_guti(&guti);
+        guti.m_tmsi = INVALID_M_TMSI;
 
         rc = mme_api_new_guti(&emm_context->_imsi, &old_guti, &guti,
                               &emm_context->originating_tai,

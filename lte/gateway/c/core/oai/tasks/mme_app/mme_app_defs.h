@@ -30,11 +30,13 @@
 #ifndef FILE_MME_APP_DEFS_SEEN
 #define FILE_MME_APP_DEFS_SEEN
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include <czmq.h>
 
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,7 +44,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <czmq.h>
 
 #define INVALID_BEARER_INDEX (-1)
 #define IPV6_ADDRESS_SIZE 16
