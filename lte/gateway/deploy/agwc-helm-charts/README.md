@@ -18,10 +18,10 @@ The following table list the configurable parameters of the agw chart and their 
 | `persistant.name` | Secret name containing agwc certs. | `agwc-claim` |
 
 ## Pre-requisites
-* A Kubernetes cluster with the following components deployed:
-  - MetalLB
-  - OpenEBS
-* `rootCA.pem` certificate file.
+- A Kubernetes cluster with the following components deployed:
+    - MetalLB
+    - OpenEBS
+- `rootCA.pem` certificate file.
 
 ## Installation
 
