@@ -211,3 +211,35 @@ container_pull(
     registry = "index.docker.io",
     repository = "library/ubuntu",
 )
+
+# ubi is 209 MB (compared to 78MB for ubuntu)
+# there is also ubi-minimal (124 MB) and ubi-micro (24 MB), but those don't
+# seem to have dnf or yum, so are probably useless for us
+container_pull(
+    name = "rhel9_ubi",
+    architecture = "amd64",
+    digest = "sha256:d4533ff8a6938fe8eb13c798188850013f02c3778fbea9a80d13acc49e97c99c",  # 9.0.0-1604 from 2022_08_09
+    registry = "registry.access.redhat.com",
+    repository = "ubi9/ubi"
+)
+
+container_pull(
+    name = "rhel9_ubi_minimal",
+    architecture = "amd64",
+    #digest = "sha256:aee6d39282dabc3374a01d4a81f97c6827cbcdcf155cadb5a42966134205b05d",
+    #digest = "",
+    digest = "sha256:63b2fc4d99e02d96bfc9b9254edfa98c72f2aaece9fe4d59efbf504393e88b72",
+    registry = "registry.access.redhat.com",
+    repository = "ubi9/ubi-minimal"
+)
+
+
+# RHEL9 UBI doesn't work with the version of docker installed in the VM, so use RHEL8. For a nice summary read
+# https://openforums.blog/2021/12/15/tracing-curl-error-6-getaddrinfo-thread-failed-to-start-error-with-systemd-seccomp-filters/
+container_pull(
+    name = "rhel8_ubi",
+    architecture = "amd64",
+    digest = "sha256:7977a31c6829d4629698ae5f3dcd5691e90f83bed1b336bff16d2afafa12cba4",  # 8.6-943 from 2022_09_13
+    registry = "registry.access.redhat.com",
+    repository = "ubi8/ubi"
+)

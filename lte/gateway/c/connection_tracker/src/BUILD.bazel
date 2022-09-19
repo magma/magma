@@ -10,6 +10,11 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load(
+    "@io_bazel_rules_docker//docker/util:run.bzl",
+    "container_run_and_commit",
+)
+load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 
 cc_binary(
     name = "connectiond",
@@ -41,4 +46,20 @@ cc_library(
         "//orc8r/gateway/c/common/logging",
         "@libtins",
     ],
+)
+
+container_run_and_commit(
+    name = "connectiond_rhel_requisites",
+    commands = [
+        "yum install -y libpcap",
+        "ln -s libpcap.so.1 /lib64/libpcap.so.0.8",
+        "yum install -y libmnl",
+    ],
+    image = "@rhel8_ubi//image",
+)
+
+cc_image(
+    name = "connectiond_rhel_image",
+    base = ":connectiond_rhel_requisites",
+    binary = ":connectiond",
 )

@@ -15,6 +15,10 @@ load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load(
+    "@io_bazel_rules_docker//docker/util:run.bzl",
+    "container_run_and_commit",
+)
 
 
 MAGMA_ROOT = "../../../../../"
@@ -68,6 +72,35 @@ container_image(
 py3_image(
     name = "enodebd_image",
     base = ":enodebd_base_image",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":enodebd_lib",
+        "//lte/gateway/python/magma/enodebd/tr069:server",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+container_run_and_commit(
+    name = "enodebd_rhel_requisites",
+    commands = [
+        "yum install -y libxml2",
+    ],
+    image = "@rhel8_ubi//image",
+)
+
+py3_image(
+    name = "enodebd_rhel_image",
+    base = "//lte/gateway/python:rhel_python_image",
     srcs = ["main.py"],
     imports = [
         LTE_ROOT,

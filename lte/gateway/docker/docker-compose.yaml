@@ -182,6 +182,16 @@ services:
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
     command: /usr/local/bin/sctpd
+    healthcheck:
+      #test: ["CMD", "arg"]
+      test: "[ -S /tmp/sctpd_downstream.sock_doesntexist ]"
+      #interval: 1m30s
+      interval: 4s
+      #timeout: 30s
+      timeout: 1s
+      retries: 2
+      #start_period: 30s
+      start_period: 5s
 
   oai_mme:
     <<: *ltecservice

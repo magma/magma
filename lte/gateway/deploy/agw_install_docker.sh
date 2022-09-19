@@ -10,7 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODE=$1
+set -euo pipefail
+
+MODE=${1:-""}
 RERUN=0    # Set to 1 to skip network configuration and run ansible playbook only
 WHOAMI=$(whoami)
 MAGMA_USER="ubuntu"

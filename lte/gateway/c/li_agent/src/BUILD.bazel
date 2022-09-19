@@ -13,8 +13,11 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load(
+    "@io_bazel_rules_docker//docker/util:run.bzl",
+    "container_run_and_commit",
+)
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
-
 
 package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 
@@ -34,11 +37,11 @@ download_pkgs(
     name = "liagent_requisites",
     image_tar = "@ubuntu_focal//image",
     packages = [
-        "libpcap0.8",
         "libcurl4",
         "libgflags2.2",
+        "libpcap0.8",
         "libunwind8",
-        ],
+    ],
 )
 
 install_pkgs(
@@ -56,8 +59,23 @@ container_image(
 
 cc_image(
     name = "liagentd_image",
-    binary = ":liagentd",
     base = ":liagentd_base_image",
+    binary = ":liagentd",
+)
+
+container_run_and_commit(
+    name = "liagentd_rhel_requisites",
+    commands = [
+        "yum install -y libpcap",
+        "ln -s libpcap.so.1 /lib64/libpcap.so.0.8",
+    ],
+    image = "@rhel8_ubi//image",
+)
+
+cc_image(
+    name = "liagentd_rhel_image",
+    base = ":liagentd_rhel_requisites",
+    binary = ":liagentd",
 )
 
 cc_library(
