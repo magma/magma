@@ -91,6 +91,17 @@ jobs:
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab bazel_integ_test_post_build
+      - name: Get test logs
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
