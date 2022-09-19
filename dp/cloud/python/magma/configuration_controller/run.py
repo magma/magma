@@ -171,14 +171,14 @@ def process_requests(
         _log_requests_map(requests_map, fluentd_client)
         try:
             sas_response = router.post_to_sas(bulked_sas_requests)
-            logger.info(
+            logger.debug(
                 f"Sent {bulked_sas_requests} to SAS and got the following response: {sas_response.content}",
             )
         except RequestRouterError as e:
             logging.error(f"Error posting request to SAS: {e}")
             return None
 
-        logger.info(f"About to process responses {sas_response=}")
+        logger.debug(f"About to process responses {sas_response=}")
         processor.process_response(requests_list, sas_response, session)
 
         session.commit()
@@ -188,12 +188,13 @@ def process_requests(
 
 def _log_requests_map(requests_map: dict, fluentd_client: FluentdClient):
     requests_type = next(iter(requests_map))
+    log_list = []
     for request in requests_map[requests_type]:
-        try:
-            log = make_dp_log(request)
-            fluentd_client.send_dp_log(log)
-        except (FluentdClientException, TypeError) as err:
-            logging.error(f"Failed to log {requests_type} request. {err}")
+        log_list.append(make_dp_log(request))
+    try:
+        fluentd_client.send_dp_logs_batch(log_list)
+    except (FluentdClientException, TypeError) as err:
+        logging.error(f"Failed to log {requests_type} requests. {err}")
 
 
 if __name__ == '__main__':
