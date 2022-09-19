@@ -134,12 +134,10 @@ setup(
     ],
     extras_require={
         'dev': [
-            # Keep grpcio and grpcio-tools on same version for now
-            # If you update this version here, you probably also want to
-            # update it in lte/gateway/python/Makefile
-            'grpcio-tools>=1.16.1',
-            'coverage==6.4.1',
-            'iperf3',
+            # Should be kept in sync with the version in python.mk
+            'grpcio-tools>=1.46.3,<1.49.0',
+            'coverage==6.4.2',
+            'iperf3>=0.1.11',
             'parameterized==0.8.1',
             'pytest==7.1.2',
             'pytest-cov==3.0.0',

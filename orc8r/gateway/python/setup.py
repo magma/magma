@@ -68,8 +68,8 @@ setup(
         'redis==3.5.3',  # redis-py (Python bindings to redis)
         'redis-collections==0.9.1',
         'python-redis-lock>=3.7.0',
-        'aiohttp>=0.17.2',
-        'grpcio>=1.16.1',
+        'aiohttp>=3.8.1',
+        'grpcio>=1.46.3,<1.49.0',
         'protobuf==3.20.1',
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
