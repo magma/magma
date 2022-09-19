@@ -36,11 +36,6 @@ x-agw-c-service: &cservice
   <<: *service
   image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
-# Generic anchor for go services
-x-agw-go-service: &goservice
-  <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
-
 services:
   magmad:
     <<: *pyservice
@@ -309,7 +304,8 @@ services:
     restart: "no"
 
   envoy_controller:
-    <<: *goservice
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
     container_name: envoy_controller
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50081"]
