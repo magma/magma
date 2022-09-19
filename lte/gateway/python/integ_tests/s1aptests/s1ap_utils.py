@@ -60,7 +60,8 @@ from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DEFAULT_GRPC_TIMEOUT = 10
-
+MAGTIVATE_CMD = "source /home/vagrant/build/python/bin/activate"
+VENVSUDO_CMD = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
 
 class S1ApUtil(object):
     """
@@ -710,11 +711,17 @@ class S1ApUtil(object):
     def run_ipv6_data(self, ipv6_addr):
         """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
+        icmpv6_script = "/usr/local/bin/icmpv6.py"
         execute_icmpv6_cmd = (
-            "sudo /home/vagrant/build/python/bin/python3 "
-            + "/home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py "
+            MAGTIVATE_CMD
+            + " && "
+            + VENVSUDO_CMD
+            + " python3 "
+            + icmpv6_script
+            + " "
             + str(ipv6_addr)
         )
+
         print("Running data for ipv6 address", str(ipv6_addr))
         self.magma_utils.exec_command_output(execute_icmpv6_cmd)
 
@@ -935,14 +942,12 @@ class MagmadUtil(object):
               enable: Enable stateless mode, do nothing if already stateless
               disable: Disable stateless mode, do nothing if already stateful
         """
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
         config_stateless_script = "/usr/local/bin/config_stateless_agw.py"
 
         ret_code = self.exec_command(
-            magtivate_cmd
+            MAGTIVATE_CMD
             + " && "
-            + venvsudo_cmd
+            + VENVSUDO_CMD
             + " python3 "
             + config_stateless_script
             + " "
@@ -965,10 +970,9 @@ class MagmadUtil(object):
         Args:
             key: redis-db key name
         """
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
         state_corrupt_cmd = "state_cli.py corrupt %s" % key.lower()
 
-        self.exec_command(magtivate_cmd + " && " + state_corrupt_cmd)
+        self.exec_command(MAGTIVATE_CMD + " && " + state_corrupt_cmd)
         print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
@@ -1317,10 +1321,9 @@ class MagmadUtil(object):
         """
         Get the per-IMSI state in Redis data store on AGW
         """
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
         imsi_state_cmd = "state_cli.py keys IMSI*"
         redis_imsi_keys = self.exec_command_output(
-            magtivate_cmd + " && " + imsi_state_cmd,
+            MAGTIVATE_CMD + " && " + imsi_state_cmd,
         )
         keys_to_be_cleaned = []
         for key in redis_imsi_keys.split("\n"):
@@ -1331,7 +1334,7 @@ class MagmadUtil(object):
 
         mme_nas_state_cmd = "state_cli.py parse mme_nas_state"
         mme_nas_state = self.exec_command_output(
-            magtivate_cmd + " && " + mme_nas_state_cmd,
+            MAGTIVATE_CMD + " && " + mme_nas_state_cmd,
         )
         num_htbl_entries = 0
         for state in mme_nas_state.split("\n"):
@@ -1342,14 +1345,14 @@ class MagmadUtil(object):
 
         s1ap_imsi_map_cmd = "state_cli.py parse s1ap_imsi_map"
         s1ap_imsi_map_state = self.exec_command_output(
-            magtivate_cmd + " && " + s1ap_imsi_map_cmd,
+            MAGTIVATE_CMD + " && " + s1ap_imsi_map_cmd,
         )
         # Remove state version output to get only hashmap entries
         s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[:-4]) // 4
 
         mme_ueip_imsi_map_cmd = "state_cli.py parse mme_ueip_imsi_map"
         mme_ueip_imsi_map_state = self.exec_command_output(
-            magtivate_cmd + " && " + mme_ueip_imsi_map_cmd,
+            MAGTIVATE_CMD + " && " + mme_ueip_imsi_map_cmd,
         )
         mme_ueip_imsi_map_entries = 0
         for state in mme_ueip_imsi_map_state.split("\n"):
@@ -1438,14 +1441,12 @@ class MagmadUtil(object):
               enable: Enable eth3 as nat_iface, do nothing if already configured
               disable: Disable eth3 as nat_iface, do nothing if already configured
         """
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
         config_ipv6_iface_script = "/usr/local/bin/config_iface_for_ipv6.py"
 
         ret_code = self.exec_command(
-            magtivate_cmd
+            MAGTIVATE_CMD
             + " && "
-            + venvsudo_cmd
+            + VENVSUDO_CMD
             + " python3 "
             + config_ipv6_iface_script
             + " "
