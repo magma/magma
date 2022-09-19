@@ -1454,10 +1454,8 @@ class MagmadUtil(object):
 
         if ret_code == 0:
             print("Configuration successful")
-        elif ret_code == 1:
-            print("Configuration not changed")
         else:
-            print("Failed to configure")
+            raise Exception("Failed to configure the IPV6 interface!")
 
 
 class MobilityUtil(object):

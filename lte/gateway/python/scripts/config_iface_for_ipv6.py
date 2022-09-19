@@ -21,74 +21,34 @@ from enum import Enum
 
 from magma.configuration.service_configs import (
     load_override_config,
-    load_service_config,
     save_override_config,
 )
 
-return_codes = Enum(
-    "return_codes", "IPV4_ENABLED IPV6_ENABLED INVALID", start=0,
-)
+PIPELINED_SERVICE = "pipelined"
+
 IPV6_IFACE_CONFIGS = [
-    ("pipelined", "nat_iface"),
-    ("pipelined", "uplink_eth_port_name"),
+    "nat_iface",
+    "uplink_eth_port_name",
 ]
 
-
-def check_ipv6_iface_config(service, config_name, config_value):
-    """Check if eth3 interface is configured"""
-    service_config = load_service_config(service)
-    if service_config.get(config_name) == config_value:
-        print("IPV6_ENABLED\t%s -> %s" % (service, config_name))
-        return return_codes.IPV6_ENABLED
-    return return_codes.IPV4_ENABLED
-
-
-def check_ipv6_iface():
-    """Check the interface configured"""
-    ipv6_enabled = 0
-    for service, config in IPV6_IFACE_CONFIGS:
-        if (
-            check_ipv6_iface_config(service, config, "eth3")
-            == return_codes.IPV6_ENABLED
-        ):
-            ipv6_enabled += 1
-
-    if ipv6_enabled == 0:
-        res = return_codes.IPV4_ENABLED
-    elif ipv6_enabled == len(IPV6_IFACE_CONFIGS):
-        res = return_codes.IPV6_ENABLED
-    else:
-        res = return_codes.INVALID
-
-    print("Check returning", res)
-    return res
-
-
-def enable_eth3_iface():
+def _enable_eth3_iface():
     """Enable eth3 interface as nat_iface"""
-    if check_ipv6_iface() == return_codes.IPV6_ENABLED:
-        print("eth3 interface is already enabled")
-        sys.exit(return_codes.IPV6_ENABLED.value)
-    for service, config in IPV6_IFACE_CONFIGS:
-        cfg = load_override_config(service) or {}
-        cfg[config] = "eth3"
-        save_override_config(service, cfg)
+    _change_iface("eth3")
 
 
-def disable_eth3_iface():
+def _disable_eth3_iface():
     """Disable eth3 interface as nat_iface"""
-    if check_ipv6_iface() == return_codes.IPV4_ENABLED:
-        print("IPv4 is already enabled")
-        sys.exit(return_codes.IPV4_ENABLED.value)
-    for service, config in IPV6_IFACE_CONFIGS:
-        cfg = load_override_config(service) or {}
-        cfg[config] = "eth2"
-        save_override_config(service, cfg)
+    _change_iface("eth2")
 
+def _change_iface(iface):
+    for config in IPV6_IFACE_CONFIGS:
+        cfg = load_override_config(PIPELINED_SERVICE) or {}
+        cfg[config] = iface
+        save_override_config(PIPELINED_SERVICE, cfg)
 
 ETH3_IFACE_FUNC_DICT = {
-    "enable": enable_eth3_iface,
-    "disable": disable_eth3_iface,
+    "enable": _enable_eth3_iface,
+    "disable": _disable_eth3_iface,
 }
 
 
