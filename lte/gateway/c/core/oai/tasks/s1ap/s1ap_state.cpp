@@ -108,7 +108,7 @@ void put_s1ap_imsi_map() {
   S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
-s1ap_imsi_map_t* get_s1ap_imsi_map() {
+oai::S1apImsiMap* get_s1ap_imsi_map() {
   return S1apStateManager::getInstance().get_s1ap_imsi_map();
 }
 
@@ -134,8 +134,8 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
   ue_description_t* ue_ref = (ue_description_t*)elementP;
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id, &imsi64);
+  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  imsi_map->mme_ue_id_imsi_map().get(ue_ref->mme_ue_s1ap_id, &imsi64);
 
   if (*target_imsi64 != INVALID_IMSI64 && *target_imsi64 == imsi64) {
     *resultP = elementP;
@@ -176,7 +176,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   if (!s1ap_state_p || (s1ap_state_p->enbs.isEmpty())) {
     return;
   }
-  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+  oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
   ue_description_t* ue_ref_p = NULL;
 
   // get each eNB in s1ap_state
@@ -210,7 +210,8 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
       enb_association_p->ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
-      s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_id_no_imsi_list[i]);
+      s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map().remove(
+          mme_ue_id_no_imsi_list[i]);
       enb_association_p->nb_ue_associated--;
 
       OAILOG_DEBUG(LOG_S1AP,

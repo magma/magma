@@ -180,18 +180,6 @@ void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
       S1AP_GENERATE_COMP_S1AP_ID(ue->sctp_assoc_id, ue->enb_ue_s1ap_id);
 }
 
-void S1apStateConverter::s1ap_imsi_map_to_proto(
-    const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
-  *s1ap_imsi_proto->mutable_mme_ue_s1ap_id_imsi_map() =
-      *(s1ap_imsi_map->mme_ueid2imsi_map.map);
-}
-
-void S1apStateConverter::proto_to_s1ap_imsi_map(
-    const oai::S1apImsiMap& s1ap_imsi_proto, s1ap_imsi_map_t* s1ap_imsi_map) {
-  *(s1ap_imsi_map->mme_ueid2imsi_map.map) =
-      s1ap_imsi_proto.mme_ue_s1ap_id_imsi_map();
-}
-
 void S1apStateConverter::supported_ta_list_to_proto(
     const supported_ta_list_t* supported_ta_list,
     oai::SupportedTaList* supported_ta_list_proto) {
