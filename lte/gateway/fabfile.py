@@ -414,7 +414,7 @@ def _setup_vm(host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
 
 def _setup_gateway(gateway_host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
     gateway_host, gateway_ip = _setup_vm(gateway_host, name, ansible_role, ansible_file, destroy_vm, provision_vm)
-    if gateway_ip == None:
+    if gateway_ip is None:
         gateway_ip = GATEWAY_IP_ADDRESS
     return gateway_host, gateway_ip
 
