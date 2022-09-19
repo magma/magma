@@ -1,7 +1,7 @@
 # requirements.in
 setuptools==49.6.0
-grpcio-tools
-grpcio
+grpcio-tools<1.49.0
+grpcio<1.49.0
 redis>=3.5
 protobuf
 six
