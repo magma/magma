@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from typing import Optional
+from typing import List, Optional
 
 import requests
 from magma.fluentd_client.config import Config, get_config
@@ -57,6 +57,20 @@ class FluentdClient(object):
     def __init__(self, config: Optional[Config] = None):
         self.config = config or get_config()
 
+    def _send_to_fluentd(self, payload):
+        try:
+            resp = requests.post(
+                url=self.config.FLUENTD_URL,
+                json=payload,
+                verify=self.config.FLUENTD_TLS_ENABLED,
+                cert=(self.config.FLUENTD_CERT_PATH, self.config.FLUENTD_CERT_PATH),
+            )
+        except (requests.HTTPError, requests.RequestException) as err:
+            msg = f"Failed to send logs to fluentd. {err}"
+            logging.error(msg)
+            raise FluentdClientException(msg)
+        return resp
+
     def send_dp_log(self, log: DPLog):
         """
         Send DP log to Fluentd
@@ -68,15 +82,21 @@ class FluentdClient(object):
             FluentdClientException: Generic Fluentd Client Exception
         """
         logger.debug(f"Sending {log.log_name=} to Fluentd")
-        try:
-            resp = requests.post(
-                url=self.config.FLUENTD_URL,
-                json=asdict(log),
-                verify=self.config.FLUENTD_TLS_ENABLED,
-                cert=(self.config.FLUENTD_CERT_PATH, self.config.FLUENTD_CERT_PATH),
-            )
-        except (requests.HTTPError, requests.RequestException) as err:
-            msg = f"Failed to log {log.log_name} response. {err}"
-            logging.error(msg)
-            raise FluentdClientException(msg)
+        fluentd_payload = asdict(log)
+        resp = self._send_to_fluentd(payload=fluentd_payload)
         logger.debug(f"Sent {log.log_name=} to Fluentd. Response code = {resp.status_code}")
+
+    def send_dp_logs_batch(self, log_list: List[DPLog]):
+        """
+        Send DP logs to Fluentd in batch mode
+
+        Args:
+            log_list (list): array of DPLog
+
+        Raises:
+            FluentdClientException: Generic Fluentd Client Exception
+        """
+        logger.debug(f"Sending logs batch to Fluentd")
+        fluentd_payload = [asdict(log) for log in log_list]
+        resp = self._send_to_fluentd(payload=fluentd_payload)
+        logger.debug(f"Sent logs batch to Fluentd. Response code = {resp.status_code}")

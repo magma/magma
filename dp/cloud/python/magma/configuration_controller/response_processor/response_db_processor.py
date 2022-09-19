@@ -20,7 +20,11 @@ from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.metrics import SAS_RESPONSE_PROCESSING_TIME
 from magma.db_service.models import DBGrantState, DBRequest
 from magma.db_service.session_manager import Session
-from magma.fluentd_client.client import FluentdClient, FluentdClientException
+from magma.fluentd_client.client import (
+    DPLog,
+    FluentdClient,
+    FluentdClientException,
+)
 from magma.fluentd_client.dp_logs import make_dp_log
 
 logger = logging.getLogger(__name__)
@@ -92,6 +96,7 @@ class ResponseDBProcessor(object):
             logger.warning(
                 f"[{self.response_type}] Got {no_of_requests=} and {no_of_responses=}",
             )
+        log_list = []
         for response_json, db_request in zip(response_json_list, db_requests):
             response_type = next(iter(response_json))
             db_response = DBResponse(
@@ -102,19 +107,20 @@ class ResponseDBProcessor(object):
             logger.info(
                 f"[{self.response_type}] Adding Response: {db_response} for Request {db_request}",
             )
-            self._log_response(response_type, db_response)
+            log_list.append(make_dp_log(db_response))
             logger.debug(
                 f'[{self.response_type}] About to process Response: {db_response}',
             )
             self._process_response(db_response, session)
             self._process_request(session, db_request)
+        if log_list:
+            self._log_responses(log_list=log_list)
 
-    def _log_response(self, response_type: str, db_response: DBResponse):
+    def _log_responses(self, log_list: List[DPLog]):
         try:
-            log = make_dp_log(db_response)
-            self.fluentd_client.send_dp_log(log)
+            self.fluentd_client.send_dp_logs_batch(log_list)
         except (FluentdClientException, TypeError) as err:
-            logging.error(f"Failed to log {response_type} response. {err}")
+            logging.error(f"Failed to log responses. {err}")
 
     def _process_response(self, response: DBResponse, session: Session) -> None:
         self.process_responses_func(self, response, session)
