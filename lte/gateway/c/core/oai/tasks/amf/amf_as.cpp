@@ -513,7 +513,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .network_feature.IMS_VoPS_N3GPP = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
-      .network_feature.IMS_VoPS_3GPP = 1;
+      .network_feature.IMS_VoPS_3GPP = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .network_feature.MCSI = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -1298,6 +1298,8 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     }
   }
 
+  // UE Aggregate bit rate IE will be added only if PDU Session Resource setup
+  // transfer IE is added in initial context setup request message.
   if (req->PDU_Session_Resource_Setup_Transfer_List.no_of_items > 0) {
     // Get the ambr values
     amf_smf_context_ue_aggregate_max_bit_rate_get(
