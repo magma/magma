@@ -35,7 +35,7 @@ satisfies the following requirements:
 
 ### 1. Create boot USB stick and install Ubuntu on your AGW host
 
-- Download the Ubuntu Server 20.04 LTS `.iso` image from the Ubuntu website
+- Download the Ubuntu Server 20.04 LTS `.iso` image from the Ubuntu website. Verify its integrity by checking [the hash](https://releases.ubuntu.com/20.04/SHA256SUMS).
 - Create a bootable USB using this [Etcher tutorial](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
     - Press F11 to select boot sequence. WARNING: This might be different for your machine.
@@ -43,7 +43,7 @@ satisfies the following requirements:
 - Install and configure your Access Gateway according to your network defaults.
     - Make sure to enable ssh server and utilities (untick every other).
 - Connect your SGi interface to the internet and select this port during the
-installation process to get an IP using DHCP.
+installation process to get an IP using DHCP. (Consider enabling DHCP snooping to mitigate [Rogue DHCP](https://en.wikipedia.org/wiki/Rogue_DHCP))
 
 ### 2. Deploy magma on the AGW_HOST
 
@@ -92,7 +92,7 @@ journalctl -fu agw_installation
 When you see "AGW installation is done.", it means that your installation is complete. You can make sure magma is running by executing
 
 ```bash
-service magma@* status
+service 'magma@*' status
 ```
 
 #### Post-install check
