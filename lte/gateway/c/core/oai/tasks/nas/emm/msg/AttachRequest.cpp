@@ -338,6 +338,20 @@ int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
             ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT;
         break;
 
+      case ATTACH_REQUEST_EDRX_PARAMETER_IEI:
+        if ((decoded_result = decode_edrx_parameter_ie(
+                 &attach_request->edrxparameter, true, buffer + decoded,
+                 len - decoded)) <= 0) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        attach_request->presencemask |= ATTACH_REQUEST_EDRX_PARAMETER_PRESENT;
+        break;
+
       case ATTACH_REQUEST_DEVICE_PROPERTIES_IEI:
       case ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI:
         // Skip these IEs. We do not support congestion handling.
