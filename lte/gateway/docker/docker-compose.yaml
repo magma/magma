@@ -39,7 +39,7 @@ x-agw-c-service: &cservice
 # Generic anchor for go services
 x-agw-go-service: &goservice
   <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 services:
   magmad:
