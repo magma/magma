@@ -479,20 +479,19 @@ int encode_voice_domain_preference_and_ue_usage_setting(
 //------------------------------------------------------------------------------
 // 10.5.5.32 Extended DRX parameter
 //------------------------------------------------------------------------------
-int decode_edrx_parameter_ie(edrx_parameter_t *edrxparameter,
-                            const bool iei_present, uint8_t *buffer,
-                            const uint32_t len)
-{
+int decode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len) {
   int decoded = 0;
 
   if (iei_present) {
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, EDRX_PARAMETER_IE_MAX_LENGTH, len);
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EDRX_PARAMETER_IE_MAX_LENGTH,
+                                         len);
     CHECK_IEI_DECODER(GMM_EDRX_PARAMETER_IEI, *buffer);
     decoded++;
   } else {
     CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-      buffer, (EDRX_PARAMETER_IE_MAX_LENGTH - 1), len);
+        buffer, (EDRX_PARAMETER_IE_MAX_LENGTH - 1), len);
   }
 
   edrxparameter->length = *(buffer + decoded);
