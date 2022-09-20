@@ -17,9 +17,9 @@ The following table list the configurable parameters of the agw chart and their 
 | `config.domainName` | Orchestrator domain name. | `` |
 | `persistant.name` | Secret name containing agwc certs. | `agwc-claim` |
 
-## Pre-requisites
+## Prerequisites
 
-- A Kubernetes cluster with the following components deployed:
+- A Kubernetes cluster with the following components(For private cluster):
     - MetalLB
     - OpenEBS
 - `rootCA.pem` certificate file.
