@@ -90,6 +90,14 @@
     force: yes
 
 - name: Create test certificates directory
+  file: path='/home/vagrant/magma/.cache/test_certs' state=directory
+
+- name: Generate the cloud VM's certs if they are not already generated
+  command: '/home/vagrant/magma/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca /home/vagrant/magma/.cache/test_certs'
+  args:
+    creates: '/home/vagrant/magma/.cache/test_certs/rootCA.pem'
+
+- name: Create test certificates directory
   file:
     path: /var/opt/magma/certs/
     state: directory
@@ -103,7 +111,6 @@
   with_items:
     - .key
     - .pem
-    - .srl
 
 - name: Override pipelined and sessiond production configuration
   file:
@@ -124,9 +131,6 @@
   loop:
     - templates/mme.conf.template
     - gateway.mconfig
-
-- name: Clear existing service files
-  shell: rm -f /etc/systemd/system/magma*
 
 - name: Override production service configurations with test configurations
   copy:
