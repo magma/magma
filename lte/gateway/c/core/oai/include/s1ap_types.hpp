@@ -65,7 +65,8 @@ enum mme_s1_enb_state_s {
   S1AP_SHUTDOWN   /// The S1 state is being torn down due to sctp shutdown.
 };
 
-// Map- Key:uint64_t, Data: pointer to protobuf object, UeDescription
+// Map- Key:comp_s1ap_id of uint64_t, Data: pointer to protobuf object,
+// UeDescription
 typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
     map_uint64_ue_description_t;
 

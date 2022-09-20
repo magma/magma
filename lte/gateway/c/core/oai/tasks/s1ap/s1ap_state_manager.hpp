@@ -99,6 +99,8 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
+  void s1ap_write_ue_state_to_db(const oai::UeDescription* ue_context,
+                                 const std::string& imsi_str);
 
  private:
   S1apStateManager();
