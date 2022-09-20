@@ -13,7 +13,6 @@
 
 import Sequelize from 'sequelize';
 
-import axios from 'axios';
 import {Organization} from '../shared/sequelize_models';
 import {OrganizationModel} from '../shared/sequelize_models/models/organization';
 import {
@@ -104,15 +103,7 @@ function main() {
       process.exit();
     })
     .catch(err => {
-      if (axios.isAxiosError(err)) {
-        console.log(
-          `Error: Status: ${
-            err?.response?.status ?? 500
-          }: ${(err as Error).toString()}`,
-        );
-      } else {
-        console.log(err);
-      }
+      console.log(err);
       process.exit(1);
     });
 }

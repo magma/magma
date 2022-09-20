@@ -16,7 +16,7 @@ import axios from 'axios';
 import {Organization} from '../../shared/sequelize_models';
 import {OrganizationModel} from '../../shared/sequelize_models/models/organization';
 import {Tenant} from '../../generated';
-import {organizationsEqual} from '../grafana/handlers';
+import {isEqual, sortBy} from 'lodash';
 
 export async function syncOrganizationWithOrc8rTenant(
   organization: OrganizationModel,
@@ -57,6 +57,16 @@ export function rethrowUnlessNotFoundError(error: unknown) {
   if (!(axios.isAxiosError(error) && error?.response?.status === 404)) {
     throw error;
   }
+}
+
+export function organizationsEqual(
+  nmsOrg: OrganizationModel,
+  orc8rTenant: Tenant,
+): boolean {
+  return (
+    nmsOrg.name == orc8rTenant.name &&
+    isEqual(sortBy(nmsOrg.networkIDs), sortBy(orc8rTenant.networks))
+  );
 }
 
 export async function syncTenants(): Promise<void> {

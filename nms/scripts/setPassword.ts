@@ -12,7 +12,6 @@
  */
 
 import Sequelize from 'sequelize';
-import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import {AccessRoles} from '../shared/roles';
 import {Organization, User} from '../shared/sequelize_models';
@@ -113,15 +112,7 @@ function main() {
       process.exit();
     })
     .catch(err => {
-      if (axios.isAxiosError(err)) {
-        console.log(
-          `Error: Status: ${
-            err?.response?.status ?? 500
-          }: ${(err as Error).toString()}`,
-        );
-      } else {
-        console.log(err);
-      }
+      console.log(err);
       process.exit(1);
     });
 }
