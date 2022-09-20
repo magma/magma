@@ -13,13 +13,8 @@ name: LTE integ test magma-deb
 
 on:
   workflow_dispatch: null
-  workflow_run:
-    workflows:
-      - build-all
-    branches:
-      - master
-    types:
-      - completed
+  repository_dispatch:
+    types: [build-all-artifact]
 
 jobs:
   lte-integ-test-magma-deb:
@@ -59,6 +54,7 @@ jobs:
         env:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
+          MAGMA_PACKAGE: ${{ github.event.client_payload.magma_package }}
         run: |
           cd lte/gateway
           fab integ_test_deb_installation

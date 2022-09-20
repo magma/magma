@@ -61,7 +61,9 @@
     reboot_timeout: 180
 
 - name: Install magma
-  ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu_vm.sh
+  ansible.builtin.shell: |
+    export MAGMA_PACKAGE="{{ MAGMA_PACKAGE }}"
+    sudo -E bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu_vm.sh
 
 - name: Copy ssh configuration
   copy:
