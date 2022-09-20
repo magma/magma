@@ -14,14 +14,6 @@ if (EMBEDDED_SGW)
   set(S11_RELATED_SRCS mme_app_embedded_spgw.c)
 endif (EMBEDDED_SGW)
 
-list(APPEND MME_BENCHMARK_SRCS "")
-if (MME_BENCHMARK)
-  list(APPEND MME_BENCHMARK_SRCS
-        "experimental/mme_app_serialization.cpp"
-        "experimental/mme_app_serialization.hpp"
-      )
-endif (MME_BENCHMARK)
-
 add_library(TASK_MME_APP
     mme_app_capabilities.c
     mme_app_context.c
@@ -66,7 +58,6 @@ add_library(TASK_MME_APP
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}
-    ${MME_BENCHMARK_SRCS}
     )
 
 target_compile_definitions(TASK_MME_APP PRIVATE

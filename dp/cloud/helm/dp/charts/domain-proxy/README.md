@@ -118,34 +118,6 @@ The following table lists the configurable parameters of the Domain-proxy chart 
 | `radio_controller.nodeSelector` | Kubernetes node selection constraint. | `{}` |
 | `radio_controller.tolerations` | Allow the pods to schedule onto nodes with matching taints. | `[]` |
 | `radio_controller.affinity` | Constrain which nodes your pod is eligible to be scheduled on. | `{}` |
-| `active_mode_controller.nameOverride` | Replaces service part of the dp component deployment name. | `""` |
-| `active_mode_controller.fullnameOverride` | Completely replaces dp component deployment name. | `""` |
-| `active_mode_controller.enabled` | Enables deployment of the given dp component. | `true` |
-| `active_mode_controller.name` | Domain proxy component name. | `"active-mode-controller"` |
-| `active_mode_controller.image.repository` | Docker image repository. | `"active-mode-controller"` |
-| `active_mode_controller.image.tag` | Overrides the image tag whose default is the chart appVersion. | `""` |
-| `active_mode_controller.image.pullPolicy` | Default the pull policy of all containers in that pod. | `"IfNotPresent"` |
-| `active_mode_controller.replicaCount` | How many replicas of particular component should be created. | `1` |
-| `active_mode_controller.imagePullSecrets` | Name of the secret that contains container image registry keys. | `[]` |
-| `active_mode_controller.serviceAccount.create` | Specifies whether a service account should be created. | `false` |
-| `active_mode_controller.serviceAccount.annotations` | Annotations to add to the service account. | `{}` |
-| `active_mode_controller.serviceAccount.name` | The name of the service account to use,If not set and create is true, a name is generated using the fullname template. | `""` |
-| `active_mode_controller.podAnnotations` | Additional pod annotations. | `{}` |
-| `active_mode_controller.podSecurityContext` | Holds pod-level security attributes. | `{}` |
-| `active_mode_controller.securityContext` | Holds security configuration that will be applied to a container. | `{}` |
-| `active_mode_controller.resources` | Resource requests and limits of Pod. | `{}` |
-| `active_mode_controller.readinessProbe` | Readines probe definition. | `{}` |
-| `active_mode_controller.livenessProbe` | Livenes probe definition. | `{}` |
-| `active_mode_controller.autoscaling.enabled` | Enables horizontal pod autscaler kubernetes resource. | `false` |
-| `active_mode_controller.autoscaling.minReplicas` | Minimum number of dp component replicas. | `1` |
-| `active_mode_controller.autoscaling.maxReplicas` | Maximum number of dp component replicas. | `100` |
-| `active_mode_controller.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization threshold in perecents when new replica should be created | `80` |
-| `active_mode_controller.podDisruptionBudget.enabled` | Creates kubernetes podDisruptionBudget resource. | `false` |
-| `active_mode_controller.podDisruptionBudget.minAvailable` | Minimum available pods for dp component. | `1` |
-| `active_mode_controller.podDisruptionBudget.maxUnavailable` | Maximum unavailable pods for dp component. | `""` |
-| `active_mode_controller.nodeSelector` | Kubernetes node selection constraint. | `{}` |
-| `active_mode_controller.tolerations` | Allow the pods to schedule onto nodes with matching taints. | `[]` |
-| `active_mode_controller.affinity` | Constrain which nodes your pod is eligible to be scheduled on. | `{}` |
 | `db_service.database` |  | `{}` |
 | `db_service.enabled` | Enables deployment of the given service. | `true` |
 | `db_service.nameOverride` | Replaces service part of the dp component deployment name. | `""` |

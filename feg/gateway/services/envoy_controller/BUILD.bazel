@@ -29,5 +29,5 @@ go_library(
 go_binary(
     name = "envoy_controller",
     embed = [":envoy_controller_lib"],
-    visibility = ["//visibility:private"],
+    visibility = ["//lte/gateway/release:__pkg__"],
 )

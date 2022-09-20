@@ -5,11 +5,18 @@ startup --host_jvm_args="-Xmx8g"
 build --announce_rc
 build --color=yes
 
-build:production --config=lsan --strip=never --copt=-O3
+build:production --config=lsan --copt=-O3
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
-build --compilation_mode=dbg
+# Create debug information only for magma binaries (not for external dependencies).
+# --compilation_mode=dbg would also create debug information of external dependencies 
+# and increase the size of artifacts drastically.
+# Needs --strip=never so that debug information is not removed by the linker.
+# See https://bazel.build/docs/user-manual#compilation-mode and
+# https://bazel.build/docs/user-manual#strip
+build --strip=never
+build --per_file_copt=^lte/gateway/c/.*$@-g
 
 # DEFAULT TEST CONFIGURATION
 # Please read the GH issue #13073 before adding "test" options.

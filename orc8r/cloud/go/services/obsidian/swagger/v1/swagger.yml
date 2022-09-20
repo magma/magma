@@ -5830,7 +5830,8 @@ paths:
           description: Successfully created
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Create an tenant
+      summary: Create a tenant. This should not be called manually, tenants and organizations
+        are updated in NMS and synced to orc8r.
       tags:
       - Tenants
   /tenants/{tenant_id}:
@@ -5842,7 +5843,8 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Delete tenant
+      summary: Delete a tenant. This should not be called manually, tenants and organizations
+        are updated in NMS and synced to orc8r.
       tags:
       - Tenants
     get:
@@ -5872,7 +5874,8 @@ paths:
           description: Ok
         default:
           $ref: '#/responses/UnexpectedError'
-      summary: Set tenant info
+      summary: Set tenant info. This should not be called manually, tenants and organizations
+        are updated in NMS and synced to orc8r.
       tags:
       - Tenants
   /tenants/{tenant_id}/control_proxy:

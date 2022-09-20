@@ -54,8 +54,6 @@ TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 OAI_TESTS ?= ".*"
-OAI_BENCHMARK_FLAGS = -DMME_BENCHMARK=True
-OAI_NOBENCHMARK_FLAGS = -DMME_BENCHMARK=False
 
 all: build
 
@@ -98,11 +96,8 @@ build_python: ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-benchmark_pb: ## Benchmark ProtoBuf, same build_oai but with -DMME_BENCHMARK=True
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_BENCHMARK_FLAGS))
-
 build_oai: ## Build OAI
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
@@ -147,7 +142,7 @@ endif
 	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 
 test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
 test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
@@ -156,7 +151,7 @@ test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
 test_oai_runtime: ## Run all OAI-specific tests with report about the running time
 	mkdir -p ${UNITTEST_REPORT_FOLDER}
 	mkdir -p ${MERGED_REPORT_FOLDER}
-	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
+	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
 	rm ${UNITTEST_REPORT_FOLDER}/*.xml
 

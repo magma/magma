@@ -235,7 +235,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                     attach_steps[step](req.ue_id)
 
         # Restart mme
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         # Post restart, complete the attach procedures that were cut in between
         for i in range(num_ues_attaching):
