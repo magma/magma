@@ -573,7 +573,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  * \param ue_context_p The UE context to insert
  * @returns 0 in case of success, -1 otherwise
  **/
-int mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
+status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
                           const struct ue_mm_context_s* const ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.

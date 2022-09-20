@@ -1968,12 +1968,13 @@ void mme_app_handle_e_rab_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
+int mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
                                                               int timer_id,
                                                               void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
     // Expiry handler was called as part of timer recovery on service restart
@@ -1982,7 +1983,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
     if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
       OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                      timer_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     }
     ue_context_p = mme_app_get_ue_context_for_timer(
         mme_ue_s1ap_id, "Mobile reachability timer");
@@ -1992,7 +1993,7 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_mobile_reachability_timer_started = 0;
@@ -2029,14 +2030,15 @@ status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   put_mme_ue_state(mme_app_desc_p, ue_context_p->emm_context._imsi64, true);
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
+int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
                                                           int timer_id,
                                                           void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
     // Expiry handler was called as part of timer recovery on service restart
@@ -2045,7 +2047,7 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
     if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
       OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                      timer_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     }
     ue_context_p = mme_app_get_ue_context_for_timer(mme_ue_s1ap_id,
                                                     "Implicit detach timer");
@@ -2059,21 +2061,22 @@ status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
     sentry_error(
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT,
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
 
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_implicit_detach_timer_started = 0;
   // Initiate Implicit Detach for the UE
   nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
     // Expiry handler was called as part of timer recovery on service restart
@@ -2082,7 +2085,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
     if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
       OAILOG_NOTICE(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                     timer_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     }
     ue_context_p = mme_app_get_ue_context_for_timer(
         mme_ue_s1ap_id, "Initial context setup response timer");
@@ -2093,7 +2096,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     nas_emm_attach_proc_t* attach_proc =
@@ -2105,7 +2108,7 @@ status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(
   }
 
   handle_ics_failure(ue_context_p, "no_context_setup_rsp_from_enb");
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_initial_context_setup_failure(
@@ -2470,10 +2473,11 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
                                                  void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   if (timer_id == MME_APP_TIMER_INACTIVE_ID) {
     // Expiry handler was called as part of timer recovery on service restart
@@ -2482,7 +2486,7 @@ status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
     if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
       OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                      timer_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     }
     ue_context_p =
         mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
@@ -2492,7 +2496,7 @@ status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
 
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -2546,17 +2550,18 @@ status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
       nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
     }
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-status_code_e mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id,
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id,
                                               void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Update location timer");
@@ -2565,7 +2570,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id,
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
@@ -2583,7 +2588,7 @@ status_code_e mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id,
     }
   }
   nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 /**
@@ -2852,15 +2857,16 @@ status_code_e mme_app_handle_nas_extended_service_req(
 }
 
 //------------------------------------------------------------------------------
-status_code_e mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
+int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
                                                                   int timer_id,
                                                                   void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "UE context modification timer");
@@ -2869,7 +2875,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
@@ -2878,7 +2884,7 @@ status_code_e mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
         ue_context_p, "ue_context_modification_timer_expired",
         UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 /* Description: CSFB procedure to handle S1ap procedure failure,

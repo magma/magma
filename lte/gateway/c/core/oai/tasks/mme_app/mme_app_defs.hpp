@@ -176,14 +176,14 @@ void mme_ue_context_update_ue_sig_connection_state(
 status_code_e mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop, int timer_id,
                                                     void* args);
 
-status_code_e mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop, int timer_id,
+int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop, int timer_id,
                                                 void* args);
 
-status_code_e mme_app_handle_initial_context_setup_rsp_timer_expiry(zloop_t* loop,
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(zloop_t* loop,
                                                           int timer_id,
                                                           void* args);
 
-status_code_e mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
+int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
                                                         int timer_id,
                                                         void* args);
 
@@ -194,10 +194,10 @@ imsi64_t mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_paging_request_t* paging_req);
 
-status_code_e mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
 status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
                                               void* args);
-status_code_e mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
                                                void* args);
 status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
