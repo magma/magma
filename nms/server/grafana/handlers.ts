@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+import {isEqual, sortBy} from 'lodash';
+
 import OrchestratorAPI from '../api/OrchestratorAPI';
 import Sequelize from 'sequelize';
 import logging from '../../shared/logging';
@@ -33,13 +35,13 @@ import {
 import {Organization} from '../../shared/sequelize_models';
 import {Request} from 'express';
 import {apiCredentials} from '../../config/config';
-import {organizationsEqual} from '../util/tenantsSync';
 import type {
   CreateDashboardResponse,
   Datasource,
   PostDatasource,
 } from './GrafanaAPIType';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
+import type {OrganizationModel} from '../../shared/sequelize_models/models/organization';
 import type {Tenant} from '../../generated';
 import type {UserModel} from '../../shared/sequelize_models/models/user';
 
@@ -606,6 +608,16 @@ function makeDatasourceConfig(params: DatasourceParams): PostDatasource {
 
 function makeAPIUrl(apiHost: string, nmsOrgID: number): string {
   return `https://${apiHost}/magma/v1/tenants/${nmsOrgID}/metrics`;
+}
+
+function organizationsEqual(
+  nmsOrg: OrganizationModel,
+  orc8rTenant: Tenant,
+): boolean {
+  return (
+    nmsOrg.name == orc8rTenant.name &&
+    isEqual(sortBy(nmsOrg.networkIDs), sortBy(orc8rTenant.networks))
+  );
 }
 
 async function hasNetworkOfType(

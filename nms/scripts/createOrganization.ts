@@ -15,10 +15,7 @@ import Sequelize from 'sequelize';
 
 import {Organization} from '../shared/sequelize_models';
 import {OrganizationModel} from '../shared/sequelize_models/models/organization';
-import {
-  syncOrganizationWithOrc8rTenant,
-  syncTenants,
-} from '../server/util/tenantsSync';
+import {syncOrganizationWithOrc8rTenant} from '../server/util/tenantsSync';
 import {union} from 'lodash';
 
 type OrganizationObject = {
@@ -92,18 +89,13 @@ function main() {
     csvCharset: '',
   } as const;
 
-  // sync tenants once on start up
-  syncTenants()
-    .then(() => {
-      console.log('Successfully synced orc8r tenants');
-    })
-    .then(() => createOrUpdateOrganization(organizationObject))
+  createOrUpdateOrganization(organizationObject)
     .then(() => {
       console.log('Success');
       process.exit();
     })
     .catch(err => {
-      console.log(err);
+      console.error(err);
       process.exit(1);
     });
 }

@@ -112,7 +112,7 @@ function main() {
       process.exit();
     })
     .catch(err => {
-      console.log(err);
+      console.error(err);
       process.exit(1);
     });
 }
