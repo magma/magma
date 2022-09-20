@@ -42,6 +42,11 @@ cd $MAGMA_ROOT/lte/gateway && make run  # You can skip this if you have built th
 for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done
 sudo systemctl stop 'magma@*' 'sctpd' # We don't want the systemd-based AGW to run when we start the containerized AGW
 sudo systemctl start magma_dp@envoy
+
+# Optional: If you want to connect to an orc8r, copy the `rootCA.pem` from the orc8r
+# to `/var/opt/magma/certs/rootCA.pem`. For example in a typical magma-dev VM:
+cp ${MAGMA_ROOT}/.cache/test_certs/rootCA.pem /var/opt/magma/certs/
+
 cd $MAGMA_ROOT/lte/gateway/docker
 docker-compose build
 docker-compose up
