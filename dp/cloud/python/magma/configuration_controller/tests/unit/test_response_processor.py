@@ -49,6 +49,7 @@ from magma.fixtures.fake_requests.spectrum_inquiry_requests import (
 )
 from magma.fixtures.fake_responses.spectrum_inquiry_responses import (
     single_channel_for_one_cbsd,
+    single_channel_for_one_cbsd_with_no_max_eirp,
     two_channels_for_one_cbsd,
     zero_channels_for_one_cbsd,
 )
@@ -74,6 +75,7 @@ RELINQUISHMENT_REQ = RequestTypes.RELINQUISHMENT.value
 HEARTBEAT_REQ = RequestTypes.HEARTBEAT.value
 GRANT_REQ = RequestTypes.GRANT.value
 SPECTRUM_INQ_REQ = RequestTypes.SPECTRUM_INQUIRY.value
+DEFAULT_MAX_EIRP = 37
 
 _fake_requests_map = {
     REGISTRATION_REQ: registration_requests,
@@ -296,6 +298,19 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             DBCbsd.cbsd_id == "foo",
         ).first()
         self.assertEqual(expected_channels_count, len(cbsd.channels))
+
+    @responses.activate
+    def test_channel_created_with_default_max_eirp(self):
+        # Given
+        db_requests = self._create_db_requests(SPECTRUM_INQ_REQ, spectrum_inquiry_requests)
+        response = self._prepare_response_from_payload(single_channel_for_one_cbsd_with_no_max_eirp)
+
+        # When
+        self._process_response(request_type_name=SPECTRUM_INQ_REQ, response=response, db_requests=db_requests)
+
+        # Then
+        cbsd = self.session.query(DBCbsd).filter(DBCbsd.cbsd_id == "foo").first()
+        self.assertEqual(DEFAULT_MAX_EIRP, cbsd.channels[0]["max_eirp"])
 
     @responses.activate
     def test_old_channels_deleted_after_spectrum_inquiry_response(self):

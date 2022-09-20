@@ -14,6 +14,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"math/rand"
 	"time"
 
@@ -62,7 +63,7 @@ func main() {
 
 	protos.RegisterCbsdManagementServer(srv.GrpcServer, servicers.NewCbsdManager(cbsdStore, interval, logConsumerUrl, logs_pusher.PushDPLog))
 
-	cancel, errs := startAmc(serviceConfig.ActiveModeController)
+	cancel, errs := startAmc(db, serviceConfig.ActiveModeController)
 
 	err = srv.Run()
 	if err != nil {
@@ -72,19 +73,19 @@ func main() {
 	stopAmc(cancel, errs)
 }
 
-func startAmc(cfg *dp_service.AmcConfig) (context.CancelFunc, chan error) {
+func startAmc(db *sql.DB, cfg *dp_service.AmcConfig) (context.CancelFunc, chan error) {
 	clock := &amc_time.Clock{}
 	seed := rand.NewSource(clock.Now().Unix())
+	amcManager := dp_storage.NewAmcManager(db, sqorc.GetSqlBuilder(), sqorc.GetErrorChecker(), sqorc.GetSqlLocker())
 	app := active_mode_controller.NewApp(
+		active_mode_controller.WithDb(db),
+		active_mode_controller.WithAmcManager(amcManager),
 		active_mode_controller.WithClock(clock),
 		active_mode_controller.WithRNG(rand.New(seed)),
-		active_mode_controller.WithDialTimeout(secToDuration(cfg.DialTimeoutSec)),
 		active_mode_controller.WithHeartbeatSendTimeout(
 			secToDuration(cfg.HeartbeatSendTimeoutSec),
 			secToDuration(cfg.RequestProcessingIntervalSec)),
-		active_mode_controller.WithRequestTimeout(secToDuration(cfg.RequestTimeoutSec)),
 		active_mode_controller.WithPollingInterval(secToDuration(cfg.PollingIntervalSec)),
-		active_mode_controller.WithGrpcService(cfg.GrpcService, cfg.GrpcPort),
 		active_mode_controller.WithCbsdInactivityTimeout(secToDuration(cfg.CbsdInactivityTimeoutSec)),
 	)
 	errs := make(chan error, 1)

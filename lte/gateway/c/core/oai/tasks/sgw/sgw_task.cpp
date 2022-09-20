@@ -51,7 +51,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
@@ -263,11 +262,6 @@ extern "C" status_code_e spgw_app_init(spgw_config_t* spgw_config_pP,
     return RETURNerror;
   }
 #endif
-
-  if (RETURNerror ==
-      pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
-    return RETURNerror;
-  }
 
   if (itti_create_task(TASK_SPGW_APP, &spgw_app_thread, NULL) < 0) {
     perror("pthread_create");

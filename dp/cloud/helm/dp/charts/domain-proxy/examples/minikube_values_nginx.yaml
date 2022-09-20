@@ -134,49 +134,6 @@ dp:
 
     affinity: {}
 
-  active_mode_controller:
-
-    nameOverride: ""
-    fullnameOverride: ""
-    enabled: true
-    name: active-mode-controller
-
-    image:
-      repository: active-mode-controller
-      tag: ""
-      pullPolicy: IfNotPresent
-
-    replicaCount: 1
-
-    imagePullSecrets: []
-
-    serviceAccount:
-      create: false
-      annotations: {}
-      name: ""
-
-    podAnnotations: {}
-    podSecurityContext: {}
-    securityContext: {}
-    resources: {}
-    readinessProbe: {}
-    livenessProbe: {}
-
-    autoscaling:
-      enabled: false
-      minReplicas: 1
-      maxReplicas: 100
-      targetCPUUtilizationPercentage: 80
-
-    podDisruptionBudget:
-      enabled: false
-      minAvailable: 1
-      maxUnavailable: ""
-
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-
   db_service:
 
     enabled: true

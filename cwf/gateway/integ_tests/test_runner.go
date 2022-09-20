@@ -257,11 +257,11 @@ func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos
 // - If we spend more than wait for time, and we haven't reached totalVolume
 //
 // Arguments
-// - req: request to pas to UEsim
-// - ruleID: name of the rule to monitor
-// - totalVolume: total used by that rule. Note that if hte rule was used before, you have to add it's previous usage
-//	 So if the rule already used 1Mb and you want to send 1Mb more, you will have to use 2M as min
-// - waitFor time out the UE will be sending data
+//   - req: request to pas to UEsim
+//   - ruleID: name of the rule to monitor
+//   - totalVolume: total used by that rule. Note that if hte rule was used before, you have to add it's previous usage
+//     So if the rule already used 1Mb and you want to send 1Mb more, you will have to use 2M as min
+//   - waitFor time out the UE will be sending data
 func (tr *TestRunner) GenULTrafficBasedOnPolicyUsage(req *cwfprotos.GenTrafficRequest,
 	ruleID string, totalVolume uint64, waitFor time.Duration) (*cwfprotos.GenTrafficResponse, error) {
 	fmt.Printf("************* Checking rule %s exists before generating traffic for UE\n", ruleID)

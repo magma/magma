@@ -286,13 +286,10 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
             "************************* Restarting Sessiond, MME and",
             "Pipelined services on gateway",
         )
+        wait_for_restart = 30
         self._s1ap_wrapper.magmad_util.restart_services(
-            ["sessiond", "mme", "pipelined"],
+            ["sessiond", "mme", "pipelined"], wait_for_restart,
         )
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

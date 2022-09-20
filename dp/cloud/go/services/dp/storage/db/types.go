@@ -70,9 +70,12 @@ func (j jsonScanner) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
-	b, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("expected []byte, got %t", value)
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, j.x)
+	case string:
+		return json.Unmarshal([]byte(v), j.x)
+	default:
+		return fmt.Errorf("unexpected type: %t", v)
 	}
-	return json.Unmarshal(b, j.x)
 }

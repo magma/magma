@@ -85,11 +85,10 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
         )
 
         print("************************* Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         print(
             "************************* Sending Service request for UE id ",
