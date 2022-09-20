@@ -162,6 +162,7 @@ status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
 /*TODO: These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 /*status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
                                   const imsi64_t imsi64);

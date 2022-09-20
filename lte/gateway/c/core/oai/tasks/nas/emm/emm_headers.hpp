@@ -47,6 +47,7 @@ Description Defines callback functions executed within EMM common procedures
 /*TODO: This file has temporary function declarations to
  * resolve undefined references. Delete
  * this file after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 #include <sys/types.h>
 

@@ -180,6 +180,7 @@ typedef struct emm_tau_request_ies_s {
 /*TODO: These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 
 /*status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
@@ -207,6 +208,7 @@ status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);*/
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 
 /*void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
@@ -306,6 +308,7 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 
 /*void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);

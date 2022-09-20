@@ -468,6 +468,7 @@ void emm_ctx_set_ue_nw_cap(emm_context_t* const ctxt,
 /*TODO: These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 
 /*#ifdef __cplusplus
