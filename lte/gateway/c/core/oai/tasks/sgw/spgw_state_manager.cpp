@@ -75,10 +75,6 @@ void SpgwStateManager::create_state() {
          &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
          sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
 
-  // Creating PGW related state structs
-  state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
-      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
-
   state_cache_p->gtpv1u_teid = 0;
 
   bdestroy_wrapper(&b);
@@ -100,10 +96,6 @@ void SpgwStateManager::free_state() {
   }
 
   hashtable_ts_destroy(state_teid_ht_);
-
-  if (state_cache_p->deactivated_predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->deactivated_predefined_pcc_rules);
-  }
 
   free_wrapper((void**)&state_cache_p);
 }
