@@ -14,7 +14,6 @@
 import OrchestratorAPI from '../api/OrchestratorAPI';
 import Sequelize from 'sequelize';
 import asyncHandler from '../util/asyncHandler';
-import axios from 'axios';
 import crypto from 'crypto';
 import featureConfigs, {FeatureConfig} from '../features';
 import logging from '../../shared/logging';
@@ -24,11 +23,14 @@ import {
   sequelize,
 } from '../../shared/sequelize_models';
 import {FeatureFlagModel} from '../../shared/sequelize_models/models/featureflag';
-import {OrganizationModel} from '../../shared/sequelize_models/models/organization';
 import {Request, Router} from 'express';
 import {User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from '../auth/util';
+import {
+  rethrowUnlessNotFoundError,
+  syncOrganizationWithOrc8rTenant,
+} from '../util/tenantsSync';
 import type {FeatureID} from '../../shared/types/features';
 
 const logger = logging.getLogger(module);
@@ -292,41 +294,6 @@ router.delete(
   }),
 );
 
-async function syncOrganizationWithOrc8rTenant(
-  organization: OrganizationModel,
-): Promise<void> {
-  let orc8rTenant;
-  try {
-    orc8rTenant = (
-      await OrchestratorAPI.tenants.tenantsTenantIdGet({
-        tenantId: organization.id,
-      })
-    ).data;
-  } catch (error) {
-    // Ignore "not found" since there is no guarantee NMS and Orc8r are in sync
-    rethrowUnlessNotFoundError(error);
-  }
-
-  if (orc8rTenant) {
-    await OrchestratorAPI.tenants.tenantsTenantIdPut({
-      tenant: {
-        id: organization.id,
-        name: organization.name,
-        networks: organization.networkIDs,
-      },
-      tenantId: organization.id,
-    });
-  } else {
-    await OrchestratorAPI.tenants.tenantsPost({
-      tenant: {
-        id: organization.id,
-        name: organization.name,
-        networks: organization.networkIDs,
-      },
-    });
-  }
-}
-
 async function deleteOrc8rTenant(organizationId: number) {
   try {
     await OrchestratorAPI.tenants.tenantsTenantIdDelete({
@@ -335,12 +302,6 @@ async function deleteOrc8rTenant(organizationId: number) {
   } catch (error) {
     // Ignore "not found" since there is no guarantee NMS and Orc8r are in sync
     rethrowUnlessNotFoundError(error);
-  }
-}
-
-function rethrowUnlessNotFoundError(error: unknown) {
-  if (!(axios.isAxiosError(error) && error?.response?.status === 404)) {
-    throw error;
   }
 }
 
