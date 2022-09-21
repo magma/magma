@@ -32,7 +32,8 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
-using magma::lte::S1apStateManager;
+namespace magma {
+namespace lte {
 
 int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
   S1apStateManager::getInstance().init(max_ues, max_enbs, use_stateless);
@@ -58,9 +59,9 @@ enb_description_t* s1ap_state_get_enb(s1ap_state_t* state,
   return enb;
 }
 
-ue_description_t* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
-                                          enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  ue_description_t* ue = nullptr;
+oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
+                                            enb_ue_s1ap_id_t enb_ue_s1ap_id) {
+  oai::UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
@@ -74,8 +75,8 @@ ue_description_t* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
   return ue;
 }
 
-ue_description_t* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
-  ue_description_t* ue = nullptr;
+oai::UeDescription* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
+  oai::UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
@@ -89,8 +90,8 @@ ue_description_t* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   return ue;
 }
 
-ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
-  ue_description_t* ue = nullptr;
+oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
+  oai::UeDescription* ue = nullptr;
 
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
@@ -113,29 +114,29 @@ s1ap_imsi_map_t* get_s1ap_imsi_map() {
 }
 
 bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
-                                     struct ue_description_s* elementP,
+                                     oai::UeDescription* elementP,
                                      void* parameterP, void** resultP) {
   mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*)parameterP;
-  ue_description_t* ue_ref = (ue_description_t*)elementP;
-  if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id) {
+  oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
+  if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id()) {
     *resultP = elementP;
     OAILOG_TRACE(LOG_S1AP,
                  "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-                 ue_ref, ue_ref->mme_ue_s1ap_id);
+                 ue_ref, ue_ref->mme_ue_s1ap_id());
     return true;
   }
   return false;
 }
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                             struct ue_description_s* elementP,
-                             void* parameterP, void** resultP) {
+                             oai::UeDescription* elementP, void* parameterP,
+                             void** resultP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
-  ue_description_t* ue_ref = (ue_description_t*)elementP;
+  oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id, &imsi64);
+  imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
   if (*target_imsi64 != INVALID_IMSI64 && *target_imsi64 == imsi64) {
     *resultP = elementP;
@@ -151,10 +152,11 @@ map_uint64_ue_description_t* get_s1ap_ue_state(void) {
 
 void put_s1ap_ue_state(imsi64_t imsi64) {
   if (S1apStateManager::getInstance().is_persist_state_enabled()) {
-    ue_description_t* ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
+    oai::UeDescription* ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
     if (ue_ctxt) {
       auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
-      S1apStateManager::getInstance().write_ue_state_to_db(ue_ctxt, imsi_str);
+      S1apStateManager::getInstance().s1ap_write_ue_state_to_db(ue_ctxt,
+                                                                imsi_str);
     }
   }
 }
@@ -177,7 +179,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     return;
   }
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  ue_description_t* ue_ref_p = NULL;
+  oai::UeDescription* ue_ref_p = nullptr;
 
   // get each eNB in s1ap_state
   for (auto itr = s1ap_state_p->enbs.map->begin();
@@ -220,3 +222,6 @@ void remove_ues_without_imsi_from_ue_id_coll() {
     }
   }
 }
+
+}  // namespace lte
+}  // namespace magma

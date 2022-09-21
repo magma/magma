@@ -17,23 +17,20 @@
  */
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 
-using magma::lte::oai::EnbDescription;
-using magma::lte::oai::S1apState;
-using magma::lte::oai::UeDescription;
-
 namespace magma {
 namespace lte {
 
 S1apStateConverter::~S1apStateConverter() = default;
 S1apStateConverter::S1apStateConverter() = default;
 
-void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
+void S1apStateConverter::state_to_proto(s1ap_state_t* state,
+                                        oai::S1apState* proto) {
   proto->Clear();
 
   // copy over enbs
   state_map_to_proto<map_uint32_enb_description_t, enb_description_t,
-                     EnbDescription>(state->enbs, proto->mutable_enbs(),
-                                     enb_to_proto, LOG_S1AP);
+                     oai::EnbDescription>(state->enbs, proto->mutable_enbs(),
+                                          enb_to_proto, LOG_S1AP);
 
   // copy over mmeid2associd
   mme_ue_s1ap_id_t mmeid;
@@ -56,9 +53,9 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   proto->set_num_enbs(state->num_enbs);
 }
 
-void S1apStateConverter::proto_to_state(const S1apState& proto,
+void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
                                         s1ap_state_t* state) {
-  proto_to_state_map<map_uint32_enb_description_t, EnbDescription,
+  proto_to_state_map<map_uint32_enb_description_t, oai::EnbDescription,
                      enb_description_t>(proto.enbs(), state->enbs, proto_to_enb,
                                         LOG_S1AP);
 
@@ -124,60 +121,16 @@ void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
   proto_to_supported_ta_list(&enb->supported_ta_list,
                              proto.supported_ta_list());
 }
-void S1apStateConverter::ue_to_proto(const ue_description_t* ue,
+void S1apStateConverter::ue_to_proto(const oai::UeDescription* ue,
                                      oai::UeDescription* proto) {
   proto->Clear();
-
-  proto->set_s1_ue_state(ue->s1_ue_state);
-  proto->set_enb_ue_s1ap_id(ue->enb_ue_s1ap_id);
-  proto->set_mme_ue_s1ap_id(ue->mme_ue_s1ap_id);
-  proto->set_sctp_assoc_id(ue->sctp_assoc_id);
-  proto->set_sctp_stream_recv(ue->sctp_stream_recv);
-  proto->set_sctp_stream_send(ue->sctp_stream_send);
-  proto->mutable_s1ap_ue_context_rel_timer()->set_id(
-      ue->s1ap_ue_context_rel_timer.id);
-  proto->mutable_s1ap_ue_context_rel_timer()->set_msec(
-      ue->s1ap_ue_context_rel_timer.msec);
-  proto->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(
-      ue->s1ap_handover_state.mme_ue_s1ap_id);
-  proto->mutable_s1ap_handover_state()->set_source_enb_id(
-      ue->s1ap_handover_state.source_enb_id);
-  proto->mutable_s1ap_handover_state()->set_target_enb_id(
-      ue->s1ap_handover_state.target_enb_id);
-  proto->mutable_s1ap_handover_state()->set_target_enb_ue_s1ap_id(
-      ue->s1ap_handover_state.target_enb_ue_s1ap_id);
-  proto->mutable_s1ap_handover_state()->set_target_sctp_stream_recv(
-      ue->s1ap_handover_state.target_sctp_stream_recv);
-  proto->mutable_s1ap_handover_state()->set_target_sctp_stream_send(
-      ue->s1ap_handover_state.target_sctp_stream_send);
+  proto->MergeFrom(*ue);
 }
+
 void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
-                                     ue_description_t* ue) {
-  memset(ue, 0, sizeof(*ue));
-
-  ue->s1_ue_state = (s1_ue_state_s)proto.s1_ue_state();
-  ue->enb_ue_s1ap_id = proto.enb_ue_s1ap_id();
-  ue->mme_ue_s1ap_id = proto.mme_ue_s1ap_id();
-  ue->sctp_assoc_id = proto.sctp_assoc_id();
-  ue->sctp_stream_recv = proto.sctp_stream_recv();
-  ue->sctp_stream_send = proto.sctp_stream_send();
-  ue->s1ap_ue_context_rel_timer.id = proto.s1ap_ue_context_rel_timer().id();
-  ue->s1ap_ue_context_rel_timer.msec = proto.s1ap_ue_context_rel_timer().msec();
-  ue->s1ap_handover_state.mme_ue_s1ap_id =
-      proto.s1ap_handover_state().mme_ue_s1ap_id();
-  ue->s1ap_handover_state.source_enb_id =
-      proto.s1ap_handover_state().source_enb_id();
-  ue->s1ap_handover_state.target_enb_id =
-      proto.s1ap_handover_state().target_enb_id();
-  ue->s1ap_handover_state.target_enb_ue_s1ap_id =
-      proto.s1ap_handover_state().target_enb_ue_s1ap_id();
-  ue->s1ap_handover_state.target_sctp_stream_recv =
-      proto.s1ap_handover_state().target_sctp_stream_recv();
-  ue->s1ap_handover_state.target_sctp_stream_send =
-      proto.s1ap_handover_state().target_sctp_stream_send();
-
-  ue->comp_s1ap_id =
-      S1AP_GENERATE_COMP_S1AP_ID(ue->sctp_assoc_id, ue->enb_ue_s1ap_id);
+                                     oai::UeDescription* ue) {
+  ue->Clear();
+  ue->MergeFrom(proto);
 }
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
