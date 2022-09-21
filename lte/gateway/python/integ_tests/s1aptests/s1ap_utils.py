@@ -1144,14 +1144,24 @@ class MagmadUtil(object):
         Returns:
             service active status
         """
+        service_name = self.get_service_name_from_init_system(service)
         if self._init_system == InitMode.SYSTEMD:
-            is_active_service_cmd = "systemctl is-active magma@" + service
-            return self.check_service_activity(is_active_service_cmd).strip() == "active"
+            is_active_service_cmd = f"systemctl is-active {service_name}"
+            return (
+                self.check_service_activity(
+                    is_active_service_cmd,
+                ).strip() == "active"
+            )
         elif self._init_system == InitMode.DOCKER:
             is_active_service_cmd = (
-                f"docker ps --filter 'name={service}' --format '{{.Status}}'"
+                f"docker inspect --format="
+                f"'{{{{.State.Health.Status}}}}' {service_name}"
             )
-            return self.check_service_activity(is_active_service_cmd).strip()[:2] == "up"
+            return (
+                self.check_service_activity(
+                    is_active_service_cmd,
+                ).strip() == "healthy"
+            )
         return False
 
     def check_service_activity(self, is_active_service_cmd):
