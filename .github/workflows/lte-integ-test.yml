@@ -101,9 +101,10 @@ jobs:
           path: lte/gateway/logs.tar.gz
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
         with:
-          files: lte/gateway/test-results/**/*.xml
+          check_name: LTE integration test results
+          junit_files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
       - name: Publish results to Firebase
         if: always() && github.event.workflow_run.event == 'push'
