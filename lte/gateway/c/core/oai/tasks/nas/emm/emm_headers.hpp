@@ -1,46 +1,16 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
+Copyright 2022 The Magma Authors.
 
-/*****************************************************************************
-Source      emm_headers.hpp
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
 
-Version     0.1
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
-Date        2022/09/13
-
-Product     NAS stack
-
-Subsystem   EPS Mobility Management
-
-Author      Pruthvi Hebbani
-
-Description Defines callback functions executed within EMM common procedures
-        by the Non-Access Stratum running at the network side.
-
-        Following EMM common procedures can always be initiated by the
-        network whilst a NAS signalling connection exists:
-
-        GUTI reallocation
-        authentication
-        security mode control
-        identification
-        EMM information
-
-*****************************************************************************/
 #ifndef FILE_EMM_HEARDERS_SEEN
 #define FILE_EMM_HEADERS_SEEN
 
