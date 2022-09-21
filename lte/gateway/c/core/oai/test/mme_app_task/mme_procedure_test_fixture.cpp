@@ -12,6 +12,7 @@
  */
 
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 
 namespace magma {
 namespace lte {

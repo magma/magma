@@ -48,8 +48,15 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#ifdef __cplusplus
+}
+#endif
 
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
