@@ -1135,6 +1135,26 @@ class MagmadUtil(object):
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(f"docker stop {service_name}")
 
+    def check_if_magma_services_are_active(self) -> bool:
+        """check if all services in the list are active (only works for docker
+         init_system)
+
+        Returns:
+            (bool) True if all services are active, False otherwise
+        """
+        magma_services = {
+            "mme", "magmad", "sctpd", "sessiond", "policydb", "state",
+            "directoryd", "connectiond", "td-agent-bit", "redis",
+            "subscriberdb", "eventd", "mobilityd", "pipelined", "monitord",
+            "envoy_controller", "smsd", "enodebd", "redirectd", "ctraced",
+            "control_proxy",
+        }
+        for service in magma_services:
+            if not self.is_service_active(service):
+                print(f"************* {service} is not running")
+                return False
+        return True
+
     def is_service_active(self, service) -> bool:
         """Check if a magma service on magma_dev VM is active
 
