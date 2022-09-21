@@ -73,7 +73,7 @@ static const char* sgs_fsm_state_str[SGS_STATE_MAX] = {
 */
 
 /* Type of the SGS state machine handler */
-typedef int (*sgs_fsm_handler_t)(const sgs_fsm_t*);
+typedef status_code_e (*sgs_fsm_handler_t)(const sgs_fsm_t*);
 
 status_code_e sgs_null_handler(const sgs_fsm_t*);
 status_code_e sgs_la_update_requested_handler(const sgs_fsm_t*);

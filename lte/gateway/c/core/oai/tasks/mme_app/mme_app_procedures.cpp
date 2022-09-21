@@ -36,8 +36,8 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.hpp"
 
 static void mme_app_free_s11_procedure_create_bearer(
     mme_app_s11_proc_t** s11_proc);
@@ -65,7 +65,7 @@ void mme_app_delete_s11_procedures(ue_mm_context_t* const ue_context_p) {
 mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
     ue_mm_context_t* const ue_context_p) {
   mme_app_s11_proc_create_bearer_t* s11_proc_create_bearer =
-      calloc(1, sizeof(mme_app_s11_proc_create_bearer_t));
+      reinterpret_cast<mme_app_s11_proc_create_bearer_t*>(calloc(1, sizeof(mme_app_s11_proc_create_bearer_t)));
   s11_proc_create_bearer->proc.proc.type = MME_APP_BASE_PROC_TYPE_S11;
   s11_proc_create_bearer->proc.type = MME_APP_S11_PROC_TYPE_CREATE_BEARER;
   mme_app_s11_proc_t* s11_proc = (mme_app_s11_proc_t*)s11_proc_create_bearer;
@@ -191,7 +191,7 @@ void mme_app_s11_procedure_create_bearer_send_response(
       &message_p->ittiMsg.s11_create_bearer_response;
   s11_create_bearer_response->local_teid = ue_context_p->mme_teid_s11;
   s11_create_bearer_response->trxn = (void*)s11_proc_create->proc.s11_trxn;
-  s11_create_bearer_response->cause.cause_value = 0;
+  s11_create_bearer_response->cause.cause_value = REQUEST_ACCEPTED;
   int msg_bearer_index = 0;
   int num_rejected = 0;
 

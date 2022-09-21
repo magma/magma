@@ -33,9 +33,9 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.hpp"
 
 static void mme_app_pdn_context_init(ue_mm_context_t* const ue_context,
                                      pdn_context_t* const pdn_context);
@@ -67,7 +67,7 @@ pdn_context_t* mme_app_create_pdn_context(
     const context_identifier_t context_identifier) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (!ue_mm_context->pdn_contexts[pdn_cid]) {
-    pdn_context_t* pdn_context = calloc(1, sizeof(*pdn_context));
+    pdn_context_t* pdn_context = reinterpret_cast<pdn_context_t*>(calloc(1, sizeof(*pdn_context)));
 
     if (pdn_context) {
       struct apn_configuration_s* apn_configuration =

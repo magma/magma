@@ -236,7 +236,7 @@ status_code_e mme_app_handle_s6a_reset_req(const s6a_reset_req_t* rsr_pP);
 
 int mme_app_send_s6a_reset_ans(int rsa_result, void* msg_rsa_p);
 
-int mme_app_send_sgsap_service_request(uint8_t service_indicator,
+status_code_e mme_app_send_sgsap_service_request(uint8_t service_indicator,
                                        struct ue_mm_context_s* ue_context_p);
 
 status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
@@ -262,17 +262,17 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
 
 int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
-int mme_app_handle_sgsap_reset_indication(
+status_code_e mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* reset_indication_pP);
 
-int sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
 
 status_code_e mme_app_handle_reset_indication(const hash_key_t keyP,
                                      void* const ue_context_pP,
                                      void* unused_param_pP,
                                      void** unused_result_pP);
 
-int mme_app_handle_sgsap_alert_request(
+status_code_e mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_alert_request_t* sgsap_alert_req_pP);
 
@@ -280,7 +280,7 @@ status_code_e mme_app_paging_request_helper(ue_mm_context_t* ue_context_p, bool 
                                   uint8_t paging_id_imsi,
                                   s1ap_cn_domain_t domain_indicator);
 
-int mme_app_handle_sgsap_paging_request(
+status_code_e mme_app_handle_sgsap_paging_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_paging_request_t* sgsap_paging_req_pP);
 
@@ -296,7 +296,7 @@ status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
                                        char* failed_statement,
                                        uint8_t failed_procedure);
 
-int mme_app_handle_sgsap_service_abort_request(
+status_code_e mme_app_handle_sgsap_service_abort_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_service_abort_req_t* itti_sgsap_service_abort_req_p);
 

@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
 
 static obj_hash_table_t* g_e_dns_entries = NULL;
 

@@ -44,10 +44,10 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
@@ -355,7 +355,7 @@ status_code_e mme_app_send_s11_create_session_req(
                   selected_apn_config_p->pdn_type,
                   ue_mm_context->mme_ue_s1ap_id);
   session_request_p->pdn_type = selected_apn_config_p->pdn_type;
-  session_request_p->paa.pdn_type = selected_apn_config_p->pdn_type;
+  session_request_p->paa.pdn_type = (pdn_type_value_t)selected_apn_config_p->pdn_type;
 
   if (selected_apn_config_p->nb_ip_address == 0) {
     /*

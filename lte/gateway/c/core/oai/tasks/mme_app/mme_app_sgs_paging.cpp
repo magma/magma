@@ -42,37 +42,37 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
-static int mme_app_send_sgsap_ue_unreachable(
+static status_code_e mme_app_send_sgsap_ue_unreachable(
     struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause);
 
-static int sgsap_handle_paging_request_without_lai(
+static status_code_e sgsap_handle_paging_request_without_lai(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt);
+static status_code_e sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt);
 
-static int sgs_handle_paging_request_for_mt_call_in_connected(
+static status_code_e sgs_handle_paging_request_for_mt_call_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int sgs_handle_paging_request_for_mt_call_in_idle(
+static status_code_e sgs_handle_paging_request_for_mt_call_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt);
+static status_code_e sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt);
 
-static int sgs_handle_paging_request_for_mt_sms_in_connected(
+static status_code_e sgs_handle_paging_request_for_mt_sms_in_connected(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static int sgs_handle_paging_request_for_mt_sms_in_idle(
+static status_code_e sgs_handle_paging_request_for_mt_sms_in_idle(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 /*****************************************************************************
