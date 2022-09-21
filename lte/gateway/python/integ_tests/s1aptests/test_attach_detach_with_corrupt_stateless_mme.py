@@ -66,11 +66,10 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
             )
 
             print("************************* Restarting %s service" % s)
-            self._s1ap_wrapper.magmad_util.restart_services([s])
-
-            for j in range(100):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
+            wait_for_restart = 100
+            self._s1ap_wrapper.magmad_util.restart_services(
+                [s], wait_for_restart,
+            )
 
             # Re-establish S1 connection between eNB and MME
             self._s1ap_wrapper._s1setup()

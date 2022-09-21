@@ -40,7 +40,14 @@ jobs:
         with:
           filters: |
             filesChanged:
-              - [".github/workflows/cloud-workflow.yml", "lte/protos/**", "cwf/cloud/**", "feg/cloud/**", "lte/cloud/**", "orc8r/**"]
+              - ".github/workflows/cloud-workflow.yml"
+              - "lte/protos/**"
+              - "cwf/cloud/**"
+              - "feg/cloud/**"
+              - "lte/cloud/**"
+              - "orc8r/**"
+              - "dp/cloud/**"
+              - "dp/protos/**"
       - name: Save should_not_skip output
         if: always()
         run: |

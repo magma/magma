@@ -18,15 +18,19 @@
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 #include <cstdlib>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
 }
+#endif
 
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
 
@@ -114,18 +118,6 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
           reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
     }
     free_wrapper((void**)sgw_eps_bearer_ctxt);
-  }
-}
-
-void pgw_free_pcc_rule(void** rule) {
-  if (rule) {
-    auto* pcc_rule = (pcc_rule_t*)*rule;
-    if (pcc_rule) {
-      if (pcc_rule->name) {
-        bdestroy_wrapper(&pcc_rule->name);
-      }
-      free_wrapper(rule);
-    }
   }
 }
 

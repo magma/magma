@@ -117,6 +117,31 @@ uint16_t sm_process_pco_dns_server_request(
                      (poc_id_resp.length + SM_PCO_IPCP_HDR_LENGTH));
 }
 
+uint16_t sm_process_pco_p_cscf_address_request(
+    protocol_configuration_options_t* const pco_resp) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+  in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
+  pco_protocol_or_container_id_t poc_id_resp = {0};
+  uint8_t dns_array[4];
+
+  amf_config_read_lock(&amf_config);
+  ipcp_out_dns_prim_ipv4_addr = amf_config.ipv4.default_dns.s_addr;
+  amf_config_unlock(&amf_config);
+
+  poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
+  poc_id_resp.length = 4;
+  dns_array[0] = (uint8_t)(ipcp_out_dns_prim_ipv4_addr & 0x000000FF);
+  dns_array[1] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 8) & 0x000000FF);
+  dns_array[2] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 16) & 0x000000FF);
+  dns_array[3] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
+  poc_id_resp.contents = blk2bstr(dns_array, sizeof(dns_array));
+
+  sm_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
+
+  OAILOG_FUNC_RETURN(LOG_AMF_APP,
+                     (poc_id_resp.length + SM_PCO_IPCP_HDR_LENGTH));
+}
+
 uint16_t sm_process_pco_request_ipcp(
     protocol_configuration_options_t* pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
@@ -214,6 +239,10 @@ uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
       case PCO_PI_IPCP:
         length += sm_process_pco_request_ipcp(
             pco_resp, &pco_req->protocol_or_container_ids[id]);
+        break;
+
+      case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
+        length += sm_process_pco_p_cscf_address_request(pco_resp);
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:

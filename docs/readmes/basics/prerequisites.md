@@ -42,7 +42,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    pyenv install 3.8.10
    pyenv global 3.8.10
    pip3 install ansible fabric3 jsonpickle requests PyYAML
-   vagrant plugin install vagrant-vbguest
+   vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
    ```
 
    **Note**: In the case where installation of `fabric3` through pip was unsuccessful,
@@ -150,7 +150,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 5. Install `vagrant` necessary plugin.
 
    ```bash
-   vagrant plugin install vagrant-vbguest
+   vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
    ```
 
     Make sure `virtualbox` is the default provider for `vagrant` by adding the following line to your `.bashrc` (or equivalent) and restart your shell: `export VAGRANT_DEFAULT_PROVIDER="virtualbox"`.

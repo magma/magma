@@ -219,7 +219,6 @@ jobs:
         uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
         with:
           flags: src_go
-          fail_ci_if_error: true
           verbose: true
       - name: Extract commit title
         id: commit

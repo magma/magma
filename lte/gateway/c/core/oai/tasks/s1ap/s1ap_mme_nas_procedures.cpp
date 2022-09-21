@@ -99,7 +99,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
   S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi = NULL, *ie_csg_id = NULL,
                               *ie_gummei = NULL, *ie_cause = NULL;
   oai::UeDescription* ue_ref = nullptr;
-  oai::EnbDescription* eNB_ref = NULL;
+  oai::EnbDescription* eNB_ref = nullptr;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -284,7 +284,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
   S1ap_UplinkNASTransport_t* container = NULL;
   S1ap_UplinkNASTransport_IEs_t *ie, *ie_nas_pdu = NULL;
   oai::UeDescription* ue_ref = nullptr;
-  oai::EnbDescription* enb_ref = NULL;
+  oai::EnbDescription* enb_ref = nullptr;
   tai_t tai = {0};
   ecgi_t ecgi = {.plmn = {0}, .cell_identity = {0}};
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -1207,8 +1207,7 @@ void s1ap_handle_mme_ue_id_notification(
 
       magma::proto_map_uint32_uint64_t ue_id_coll;
       ue_id_coll.map = enb_ref->mutable_ue_id_map();
-      ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
-                        ue_ref->comp_s1ap_id());
+      ue_id_coll.insert(mme_ue_s1ap_id, ue_ref->comp_s1ap_id());
 
       OAILOG_DEBUG(LOG_S1AP,
                    "Num elements in ue_id_coll %lu and num ue associated %u",

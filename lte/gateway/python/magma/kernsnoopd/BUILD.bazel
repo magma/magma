@@ -21,10 +21,6 @@ LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 py_binary(
     name = "kernsnoopd",
     srcs = ["main.py"],
-    data = [
-        "ebpf/byte_count.bpf.c",
-        "ebpf/common.bpf.h",
-    ],
     imports = [
         LTE_ROOT,
         ORC8R_ROOT,
@@ -33,7 +29,7 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    visibility = ["//lte/gateway/python:__pkg__"],
     deps = [
         ":kernsnoopd_lib",
         "//orc8r/gateway/python/magma/common:sentry",

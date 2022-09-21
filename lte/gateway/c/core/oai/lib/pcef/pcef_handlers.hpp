@@ -27,8 +27,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#ifdef __cplusplus
+}
+#endif
 
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 struct pcef_create_session_data {
   char msisdn[MSISDN_LENGTH + 1];
   char imeisv[IMEISV_DIGITS_MAX + 1];
@@ -104,6 +107,3 @@ int get_imeisv_from_session_req(
 void convert_imeisv_to_string(char* imeisv);
 
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list);
-#ifdef __cplusplus
-}
-#endif

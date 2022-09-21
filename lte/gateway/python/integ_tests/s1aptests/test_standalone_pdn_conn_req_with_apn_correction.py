@@ -40,10 +40,10 @@ class TestStandalonePdnConnReqWithApnCorrection(unittest.TestCase):
         num_ues = 1
 
         print("************************* restarting mme")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-        for j in range(30):
-            print("Waiting mme restart for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         self._s1ap_wrapper.configUEDevice(num_ues)
         req = self._s1ap_wrapper.ue_req
@@ -109,10 +109,10 @@ class TestStandalonePdnConnReqWithApnCorrection(unittest.TestCase):
         self._s1ap_wrapper.magmad_util.config_apn_correction(
             MagmadUtil.apn_correction_cmds.DISABLE,
         )
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-        for j in range(30):
-            print("Waiting mme restart for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
 
 if __name__ == "__main__":

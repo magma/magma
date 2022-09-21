@@ -403,7 +403,7 @@ oai::EnbDescription* s1ap_new_enb(void) {
 oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
                                 const sctp_assoc_id_t sctp_assoc_id,
                                 enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  oai::EnbDescription* enb_ref = NULL;
+  oai::EnbDescription* enb_ref = nullptr;
   oai::UeDescription* ue_ref = nullptr;
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
@@ -447,7 +447,7 @@ oai::UeDescription* s1ap_new_ue(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
-  oai::EnbDescription* enb_ref = NULL;
+  oai::EnbDescription* enb_ref = nullptr;
 
   // NULL reference...
   if (ue_ref == nullptr) return;

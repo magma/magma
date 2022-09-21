@@ -134,7 +134,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
 TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
-  EnbDescription* enb_associated = NULL;
+  oai::EnbDescription* enb_associated = NULL;
   state->enbs.get(assoc_id, &enb_associated);
   enb_associated->set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
 

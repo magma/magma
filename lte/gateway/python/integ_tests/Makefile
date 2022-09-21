@@ -88,8 +88,3 @@ ifdef TESTS
 else
 	$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
 endif
-
-local_integ_test:
-	# check if magma services are running
-	systemctl is-active --quiet magma@magmad || (echo "Local integ tests should be run on access gw with magma services running"; exit 1)
-	. $(PYTHON_BUILD)/bin/activate; sudo $(BIN)/pytest -s $(LOCAL_INTEG_TESTS)

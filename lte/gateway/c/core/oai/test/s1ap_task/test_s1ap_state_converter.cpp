@@ -50,7 +50,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   s1ap_state_t* init_state = create_s1ap_state();
   s1ap_state_t* final_state = create_s1ap_state();
 
-  EnbDescription* enb_association = s1ap_new_enb();
+  oai::EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
   enb_association->set_enb_id(0xFFFFFFFF);
   enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);
@@ -91,8 +91,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   S1apStateConverter::proto_to_state(state_proto, final_state);
 
   EXPECT_EQ(init_state->num_enbs, final_state->num_enbs);
-  EnbDescription* enbd = nullptr;
-  EnbDescription* enbd_final = nullptr;
+  oai::EnbDescription* enbd = nullptr;
+  oai::EnbDescription* enbd_final = nullptr;
   EXPECT_EQ(init_state->enbs.get(assoc_id, &enbd), magma::PROTO_MAP_OK);
   EXPECT_EQ(final_state->enbs.get(assoc_id, &enbd_final), magma::PROTO_MAP_OK);
 
@@ -114,7 +114,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   s1ap_state_t* init_state = create_s1ap_state();
   s1ap_state_t* final_state = create_s1ap_state();
 
-  EnbDescription* enb_association = s1ap_new_enb();
+  oai::EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
   enb_association->set_enb_id(0xFFFFFFFF);
   enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);

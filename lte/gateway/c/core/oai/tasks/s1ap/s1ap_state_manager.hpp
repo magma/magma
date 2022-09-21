@@ -56,8 +56,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p);
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager
-    : public StateManager<s1ap_state_t, oai::UeDescription,
-                          oai::S1apState,
+    : public StateManager<s1ap_state_t, oai::UeDescription, oai::S1apState,
                           oai::UeDescription, S1apStateConverter> {
  public:
   /**
@@ -100,6 +99,8 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
+  void s1ap_write_ue_state_to_db(const oai::UeDescription* ue_context,
+                                 const std::string& imsi_str);
 
  private:
   S1apStateManager();

@@ -53,7 +53,9 @@ typedef struct s1ap_imsi_map_s {
   magma::proto_map_uint32_uint64_t mme_ueid2imsi_map;
 } s1ap_imsi_map_t;
 
-// Map- Key:uint64_t, Data: pointer to protobuf object, UeDescription
+
+// Map- Key:comp_s1ap_id of uint64_t, Data: pointer to protobuf object,
+// UeDescription
 typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
     map_uint64_ue_description_t;
 

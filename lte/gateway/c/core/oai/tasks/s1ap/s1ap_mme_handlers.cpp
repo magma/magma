@@ -1123,7 +1123,7 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
   S1ap_UEContextReleaseRequest_t* container;
   S1ap_UEContextReleaseRequest_IEs_t* ie = NULL;
   oai::UeDescription* ue_ref_p = nullptr;
-  oai::EnbDescription* enb_ref_p = NULL;
+  oai::EnbDescription* enb_ref_p = nullptr;
   S1ap_Cause_PR cause_type;
   long cause_value;
   enum s1cause s1_release_cause = S1AP_RADIO_EUTRAN_GENERATED_REASON;
@@ -3071,7 +3071,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
                                               S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverNotify_t* container = NULL;
   S1ap_HandoverNotifyIEs_t* ie = NULL;
-  oai::EnbDescription* target_enb = NULL;
+  oai::EnbDescription* target_enb = nullptr;
   oai::UeDescription* src_ue_ref_p = nullptr;
   oai::UeDescription* new_ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -3344,7 +3344,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
   S1ap_PathSwitchRequest_t* container = NULL;
   S1ap_PathSwitchRequestIEs_t* ie = NULL;
   S1ap_E_RABToBeSwitchedDLItemIEs_t* eRABToBeSwitchedDlItemIEs_p = NULL;
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
   oai::UeDescription* ue_ref_p = nullptr;
   oai::UeDescription* new_ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -4121,7 +4121,7 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
   MessageDef* msg = NULL;
   itti_s1ap_enb_initiated_reset_req_t* reset_req = NULL;
   oai::UeDescription* ue_ref_p = nullptr;
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
   s1ap_reset_type_t s1ap_reset_type;
   S1ap_Reset_t* container = NULL;
   S1ap_ResetIEs_t* ie = NULL;

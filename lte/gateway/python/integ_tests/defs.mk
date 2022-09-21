@@ -131,6 +131,7 @@ s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 s1aptests/test_enable_ipv6_iface.py \
+s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
 s1aptests/test_disable_ipv6_iface.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
@@ -274,7 +275,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 #s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
 #s1aptests/test_ipv6_non_nat_dp_ul_udp.py
 #s1aptests/test_ipv6_non_nat_dp_dl_udp.py
-#s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 #---------------
 
 # TODO: Add ipv6 tests to integ test suite
@@ -308,7 +308,15 @@ s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_detach_after_ue_context_release.py \
 s1aptests/test_attach_esm_information_wrong_apn.py \
 s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
-s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
+s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
+s1aptests/test_attach_service_without_mac.py \
+s1aptests/test_attach_mme_restart_detach_multi_ue.py \
+s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_detach_looped.py \
+s1aptests/test_attach_ipv4v6_pdn_type.py \
+s1aptests/test_standalone_pdn_conn_req.py \
+s1aptests/test_attach_detach_dedicated_multi_ue.py \
+s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py
 
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
@@ -317,6 +325,3 @@ cloud_tests/config_test.py
 
 S1AP_TESTER_CFG=$(MAGMA_ROOT)/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
 S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
-
-# Local integ tests are run on the magma access gateway, not the test VM
-LOCAL_INTEG_TESTS = gxgy_tests

@@ -57,7 +57,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./lte/gateway/python/integ_tests/cloud"
   "./lte/gateway/python/integ_tests/cloud_tests"
   "./lte/gateway/python/integ_tests/federated_tests"
-  "./lte/gateway/python/integ_tests/gxgy_tests"
   "./lte/gateway/python/integ_tests/s1aptests/workflow"
   "./lte/gateway/python/integ_tests/s1aptests/test_agw_offload_mixed_idle_active_multiue.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py"

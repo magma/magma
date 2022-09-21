@@ -163,7 +163,7 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
       return RETURNerror;
     }
 
-    S1apStateConverter::proto_to_ue(ue_proto, ue_context);
+    ue_context->MergeFrom(ue_proto);
 
     proto_map_rc_t rc =
         state_ue_map.insert(ue_context->comp_s1ap_id(), ue_context);
@@ -236,5 +236,28 @@ map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
 
+void S1apStateManager::s1ap_write_ue_state_to_db(
+    const oai::UeDescription* ue_context, const std::string& imsi_str) {
+  AssertFatal(
+      is_initialized,
+      "StateManager init() function should be called to initialize state");
+
+  std::string proto_str;
+  redis_client->serialize(*ue_context, proto_str);
+  std::size_t new_hash = std::hash<std::string>{}(proto_str);
+  if (new_hash != this->ue_state_hash[imsi_str]) {
+    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    if (redis_client->write_proto_str(key, proto_str,
+                                      ue_state_version[imsi_str]) != RETURNok) {
+      OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
+                   imsi_str.c_str());
+      return;
+    }
+    this->ue_state_version[imsi_str]++;
+    this->ue_state_hash[imsi_str] = new_hash;
+    OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",
+                 imsi_str.c_str());
+  }
+}
 }  // namespace lte
 }  // namespace magma

@@ -11,10 +11,6 @@ build:
     useBuildkit: true
     concurrency: 1
   artifacts:
-    - image: active-mode-controller
-      context: ..
-      docker:
-        dockerfile: dp/cloud/docker/go/active_mode_controller/Dockerfile
     - image: configuration-controller
       context: ..
       docker:
@@ -70,8 +66,6 @@ deploy:
         namespace: default
         version: "0.1.0"
         artifactOverrides:
-          dp.active_mode_controller:
-            image: active-mode-controller
           dp.configuration_controller:
             image: configuration-controller
           dp.radio_controller:
@@ -96,11 +90,6 @@ profiles:
         path: /deploy/helm/releases/0/setValueTemplates
         value:
           dp:
-            active_mode_controller:
-              extraEnv:
-                POLLING_INTERVAL_SEC: "'1'"
-                REQUEST_PROCESSING_INTERVAL_SEC: "'1'"
-                CBSD_INACTIVITY_TIMEOUT_SEC: "'3'"
             configuration_controller:
               extraEnv:
                 APP_CONFIG: "TestConfig"
@@ -136,6 +125,9 @@ profiles:
             spec:
               database:
                 db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_integration_tests.yaml
   - name: integration-tests-dev
     patches:
       - op: add
@@ -185,7 +177,6 @@ profiles:
                 - lte/**
                 - orc8r/**
               ignore:
-                - dp/cloud/go/active_mode_controller/**
                 - lte/cloud/helm/lte-orc8r/charts/**
                 - orc8r/cloud/helm/orc8r/charts/**
                 - "**/*.swp"
@@ -304,8 +295,8 @@ profiles:
   - name: remote-push
     patches:
       - op: remove
-        path: /build/artifacts/4  # remove fake sas image
+        path: /build/artifacts/3  # remove fake sas image
       - op: remove
-        path: /build/artifacts/4  # remove fluentd-forward image
+        path: /build/artifacts/3  # remove fluentd-forward image
       - op: remove
-        path: /build/artifacts/4  # remove postgresql image
+        path: /build/artifacts/3  # remove postgresql image

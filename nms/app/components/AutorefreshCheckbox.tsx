@@ -16,8 +16,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import makeStyles from '@mui/styles/makeStyles';
-import moment from 'moment';
 import {colors} from '../theme/default';
+import {subHours} from 'date-fns';
 import {useCallback, useEffect, useState} from 'react';
 
 export type UseRefreshingDateRangeHook = (
@@ -25,10 +25,10 @@ export type UseRefreshingDateRangeHook = (
   updateInterval: number,
   onDateRangeChange: () => void,
 ) => {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
-  setStartDate: (date: moment.Moment) => void;
-  setEndDate: (date: moment.Moment) => void;
+  startDate: Date;
+  endDate: Date;
+  setStartDate: (date: Date) => void;
+  setEndDate: (date: Date) => void;
 };
 
 export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
@@ -36,13 +36,13 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   updateInterval,
   onDateRangeChange,
 ) => {
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(subHours(new Date(), 3));
+  const [endDate, setEndDate] = useState(new Date());
 
   useEffect(() => {
     if (isAutoRefreshing) {
       const interval = setInterval(() => {
-        setEndDate(moment());
+        setEndDate(new Date());
         onDateRangeChange();
       }, updateInterval);
 
@@ -51,7 +51,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   }, [endDate, startDate, onDateRangeChange, isAutoRefreshing, updateInterval]);
 
   const modifiedSetStartDate = useCallback(
-    (date: moment.Moment) => {
+    (date: Date) => {
       setStartDate(date);
       onDateRangeChange();
     },
@@ -59,7 +59,7 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
   );
 
   const modifiedSetEndDate = useCallback(
-    (date: moment.Moment) => {
+    (date: Date) => {
       setEndDate(date);
       onDateRangeChange();
     },

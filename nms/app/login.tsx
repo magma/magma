@@ -24,7 +24,11 @@ import {AppContextProvider} from './context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 
+const LOGIN_ERROR_MESSAGE = 'Invalid email or password';
+
 function LoginWrapper() {
+  const params = new URLSearchParams(window.location.search);
+  const loginInvalid = params.get('invalid');
   return (
     <LoginForm
       action="/user/login"
@@ -32,6 +36,7 @@ function LoginWrapper() {
       ssoAction="/user/login/saml"
       ssoEnabled={window.CONFIG.appData.ssoEnabled}
       csrfToken={window.CONFIG.appData.csrfToken}
+      error={loginInvalid ? LOGIN_ERROR_MESSAGE : undefined}
     />
   );
 }
