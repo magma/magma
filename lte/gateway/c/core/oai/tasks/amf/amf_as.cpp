@@ -513,7 +513,8 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .network_feature.IMS_VoPS_N3GPP = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
-      .network_feature.IMS_VoPS_3GPP = 0;
+      .network_feature.IMS_VoPS_3GPP =
+      amf_config.nas_config.enable_IMS_VoPS_3GPP;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .network_feature.MCSI = 0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
