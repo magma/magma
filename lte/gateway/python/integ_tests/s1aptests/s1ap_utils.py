@@ -1114,11 +1114,12 @@ class MagmadUtil(object):
         Args:
             service: (str) service to enable
         """
+        service_name = self.get_service_name_from_init_system(service)
         if self._init_system == InitMode.SYSTEMD:
-            self.exec_command(f"sudo systemctl unmask magma@{service}")
-            self.exec_command(f"sudo systemctl start magma@{service}")
+            self.exec_command(f"sudo systemctl unmask {service_name}")
+            self.exec_command(f"sudo systemctl start {service_name}")
         elif self._init_system == InitMode.DOCKER:
-            self.exec_command(f"docker start {service}")
+            self.exec_command(f"docker start {service_name}")
 
     def disable_service(self, service):
         """Disables a magma service on magma_dev VM, preventing from
