@@ -144,7 +144,7 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
 
   EnbDescription* enb_ref = new EnbDescription();
 
-  EnbDescription* enb_associated = NULL;
+  EnbDescription* enb_associated = nullptr;
   s->enbs.get(p.assoc_id, &enb_associated);
 
   enb_ref->set_enb_id(enb_associated->enb_id());

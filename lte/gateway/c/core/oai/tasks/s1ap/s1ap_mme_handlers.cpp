@@ -477,7 +477,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   S1ap_S1SetupRequestIEs_t* ie_supported_tas = NULL;
   S1ap_S1SetupRequestIEs_t* ie_default_paging_drx = NULL;
 
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
   uint32_t enb_id = 0;
   char* enb_name = NULL;
   int ta_ret = 0;
@@ -535,7 +535,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
    * this message when the s1 interface of the MME is in RESETTING stage then we
    * return S1ap_TimeToWait_v20s.
    */
-  if ((enb_association = s1ap_state_get_enb(state, assoc_id)) == NULL) {
+  if ((enb_association = s1ap_state_get_enb(state, assoc_id)) == nullptr) {
     /*
      *
      * This should not happen as the thread processing new associations is the
@@ -548,8 +548,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
 
   magma::proto_map_uint32_uint64_t ue_id_coll;
   ue_id_coll.map = enb_association->mutable_ue_id_map();
-  if (enb_association->s1_enb_state() == magma::lte::oai::S1AP_RESETING ||
-      enb_association->s1_enb_state() == magma::lte::oai::S1AP_SHUTDOWN) {
+  if (enb_association->s1_enb_state() == oai::S1AP_RESETING ||
+      enb_association->s1_enb_state() == oai::S1AP_SHUTDOWN) {
     OAILOG_WARNING(LOG_S1AP,
                    "Ignoring s1setup from eNB in state %s on assoc id %u",
                    s1_enb_state2str(enb_association->s1_enb_state()), assoc_id);
@@ -660,7 +660,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
   }
 
   S1ap_SupportedTAs_t* ta_list = &ie_supported_tas->value.choice.SupportedTAs;
-  magma::lte::oai::SupportedTaList* supported_ta_list_proto =
+  oai::SupportedTaList* supported_ta_list_proto =
       enb_association->mutable_supported_ta_list();
   supported_ta_list_proto->set_list_count(ta_list->list.count);
 
@@ -669,7 +669,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
        tai_idx++) {
     S1ap_SupportedTAs_Item_t* tai = NULL;
     uint32_t tac;
-    magma::lte::oai::SupportedTaiItems* supported_tai_item =
+    oai::SupportedTaiItems* supported_tai_item =
         supported_ta_list_proto->add_supported_tai_items();
     tai = ta_list->list.array[tai_idx];
     OCTET_STRING_TO_TAC(&tai->tAC, tac);
@@ -683,7 +683,7 @@ status_code_e s1ap_mme_handle_s1_setup_request(s1ap_state_t* state,
     supported_tai_item->set_bplmnlist_count(bplmn_list_count);
     for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
       char plmn_array[PLMN_BYTES] = {0};
-      plmn_t plmn = {0};
+      plmn_t plmn = {};
       TBCD_TO_PLMN_T(tai->broadcastPLMNs.list.array[plmn_idx], &plmn);
       COPY_PLMN_IN_CHAR_ARRAY_FMT(plmn_array, plmn);
       supported_tai_item->add_bplmns(plmn_array);
@@ -734,8 +734,8 @@ status_code_e s1ap_generate_s1_setup_response(
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  if (enb_association == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "enb_association is NULL\n");
+  if (enb_association == nullptr) {
+    OAILOG_ERROR(LOG_S1AP, "enb_association is nullptr\n");
     return RETURNerror;
   }
   memset(&pdu, 0, sizeof(pdu));
@@ -824,7 +824,7 @@ status_code_e s1ap_generate_s1_setup_response(
     /*
      * Consider the response as sent. S1AP is ready to accept UE contexts
      */
-    enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+    enb_association->set_s1_enb_state(oai::S1AP_READY);
   }
 
   /*
@@ -2067,10 +2067,8 @@ status_code_e s1ap_mme_handle_handover_request_ack(
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverRequestAcknowledge_t* container = NULL;
   S1ap_HandoverRequestAcknowledgeIEs_t* ie = NULL;
-  oai::EnbDescription* source_enb = NULL;
-  oai::EnbDescription* target_enb = NULL;
-  hashtable_element_array_t* enb_array = NULL;
-  uint32_t idx = 0;
+  oai::EnbDescription* source_enb = nullptr;
+  oai::EnbDescription* target_enb = nullptr;
   oai::UeDescription* ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
@@ -2507,7 +2505,7 @@ status_code_e s1ap_mme_handle_handover_request(
   S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
   S1ap_HandoverRequest_t* out;
   S1ap_HandoverRequestIEs_t* ie = NULL;
-  oai::EnbDescription* target_enb = NULL;
+  oai::EnbDescription* target_enb = nullptr;
   sctp_stream_id_t stream = 0x0;
   oai::UeDescription* ue_ref_p = nullptr;
 
@@ -2531,7 +2529,7 @@ status_code_e s1ap_mme_handle_handover_request(
   }
 
   if ((target_enb = s1ap_state_get_enb(
-           state, ho_request_p->target_sctp_assoc_id)) == NULL) {
+           state, ho_request_p->target_sctp_assoc_id)) == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "Could not get enb description for assoc_id %u\n",
                  ho_request_p->target_sctp_assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -2764,7 +2762,7 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
                                                 S1ap_S1AP_PDU_t* pdu) {
   S1ap_HandoverRequired_t* container = NULL;
   S1ap_HandoverRequiredIEs_t* ie = NULL;
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   S1ap_HandoverType_t handover_type = -1;
@@ -2774,16 +2772,15 @@ status_code_e s1ap_mme_handle_handover_required(s1ap_state_t* state,
   S1ap_TargeteNB_ID_t* targeteNB_ID = NULL;
   bstring src_tgt_container = {0};
   uint8_t* enb_id_buf = NULL;
-  oai::EnbDescription* target_enb_association = NULL;
+  oai::EnbDescription* target_enb_association = nullptr;
   uint32_t target_enb_id = 0;
-  uint32_t idx = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   enb_association = s1ap_state_get_enb(state, assoc_id);
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_ERROR(LOG_S1AP,
                  "Ignore Handover Required from unknown assoc "
                  "%u\n",
@@ -3084,7 +3081,7 @@ status_code_e s1ap_mme_handle_handover_notify(s1ap_state_t* state,
   OAILOG_FUNC_IN(LOG_S1AP);
 
   target_enb = s1ap_state_get_enb(state, assoc_id);
-  if (target_enb == NULL) {
+  if (target_enb == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "Ignore HandoverNotify from unknown assoc %u\n",
                  assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -3243,10 +3240,9 @@ status_code_e s1ap_mme_handle_enb_status_transfer(
   S1ap_ENBStatusTransferIEs_t* ie = NULL;
   oai::UeDescription* ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  oai::EnbDescription* target_enb_association = NULL;
+  oai::EnbDescription* target_enb_association = nullptr;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  uint32_t idx = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   container = &pdu->choice.initiatingMessage.value.choice.ENBStatusTransfer;
@@ -3363,7 +3359,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
   OAILOG_FUNC_IN(LOG_S1AP);
 
   enb_association = s1ap_state_get_enb(state, assoc_id);
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_ERROR(LOG_S1AP,
                  "Ignore Path Switch Request from unknown assoc "
                  "%u\n",
@@ -3673,13 +3669,13 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
                                              bool reset) {
   arg_s1ap_send_enb_dereg_ind_t arg = {0};
   MessageDef* message_p = NULL;
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Checking if the assoc id has a valid eNB attached to it
   enb_association = s1ap_state_get_enb(state, assoc_id);
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -3702,7 +3698,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 
       OAILOG_INFO(LOG_S1AP, "Moving eNB with assoc_id %u to INIT state\n",
                   assoc_id);
-      enb_association->set_s1_enb_state(magma::lte::oai::S1AP_INIT);
+      enb_association->set_s1_enb_state(oai::S1AP_INIT);
       state->num_enbs--;
     } else {
       OAILOG_INFO(
@@ -3745,8 +3741,8 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
    * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
    * moved to init state when the last UE's s1 state is cleaned up
    */
-  magma::lte::oai::S1apEnbState s1ap_state =
-      reset ? magma::lte::oai::S1AP_RESETING : magma::lte::oai::S1AP_SHUTDOWN;
+  oai::S1apEnbState s1ap_state =
+      reset ? oai::S1AP_RESETING : oai::S1AP_SHUTDOWN;
   enb_association->set_s1_enb_state(s1ap_state);
   OAILOG_INFO(LOG_S1AP,
               "Marked enb s1 status to %s, attached to assoc_id: %d\n",
@@ -3758,7 +3754,7 @@ status_code_e s1ap_handle_sctp_disconnection(s1ap_state_t* state,
 //------------------------------------------------------------------------------
 status_code_e s1ap_handle_new_association(s1ap_state_t* state,
                                           sctp_new_peer_t* sctp_new_peer_p) {
-  oai::EnbDescription* enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -3771,7 +3767,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
    * Checking that the assoc id has a valid eNB attached to.
    */
   enb_association = s1ap_state_get_enb(state, sctp_new_peer_p->assoc_id);
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_DEBUG(LOG_S1AP, "Create eNB context for assoc_id: %d\n",
                  sctp_new_peer_p->assoc_id);
     /*
@@ -3779,7 +3775,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
      */
     enb_association = s1ap_new_enb();
 
-    if (enb_association == NULL) {
+    if (enb_association == nullptr) {
       /*
        * We failed to allocate memory
        */
@@ -3799,10 +3795,8 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
     if (rc != magma::PROTO_MAP_OK) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
-  } else if ((enb_association->s1_enb_state() ==
-              magma::lte::oai::S1AP_SHUTDOWN) ||
-             (enb_association->s1_enb_state() ==
-              magma::lte::oai::S1AP_RESETING)) {
+  } else if ((enb_association->s1_enb_state() == oai::S1AP_SHUTDOWN) ||
+             (enb_association->s1_enb_state() == oai::S1AP_RESETING)) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Received new association request on an association that is being %s, "
@@ -3835,7 +3829,7 @@ status_code_e s1ap_handle_new_association(s1ap_state_t* state,
    * * * * ue associated signalling.
    */
   enb_association->set_next_sctp_stream(1);
-  enb_association->set_s1_enb_state(magma::lte::oai::S1AP_INIT);
+  enb_association->set_s1_enb_state(oai::S1AP_INIT);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
@@ -4138,12 +4132,12 @@ status_code_e s1ap_mme_handle_enb_reset(s1ap_state_t* state,
 
   enb_association = s1ap_state_get_enb(state, assoc_id);
 
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (enb_association->s1_enb_state() != magma::lte::oai::S1AP_READY) {
+  if (enb_association->s1_enb_state() != oai::S1AP_READY) {
     // ignore the message if s1 not ready
     OAILOG_INFO(
         LOG_S1AP,
@@ -4580,7 +4574,7 @@ status_code_e s1ap_handle_paging_request(
   }
 
   /*Fetching eNB list to send paging request message*/
-  oai::EnbDescription* enb_ref_p = NULL;
+  oai::EnbDescription* enb_ref_p = nullptr;
   if (state == NULL) {
     OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -4596,9 +4590,8 @@ status_code_e s1ap_handle_paging_request(
     if (!enb_ref_p) {
       continue;
     }
-    if (enb_ref_p->s1_enb_state() == magma::lte::oai::S1AP_READY) {
-      magma::lte::oai::SupportedTaList enb_ta_list =
-          enb_ref_p->supported_ta_list();
+    if (enb_ref_p->s1_enb_state() == oai::S1AP_READY) {
+      oai::SupportedTaList enb_ta_list = enb_ref_p->supported_ta_list();
       if ((is_tai_found = s1ap_paging_compare_ta_lists(
                enb_ta_list, p_tai_list, paging_request->tai_list_count))) {
         bstring paging_msg_buffer = blk2bstr(buffer_p, length);
@@ -4891,8 +4884,8 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   S1ap_ENBConfigurationTransferIEs_t* ie = NULL;
   S1ap_TargeteNB_ID_t* targeteNB_ID = NULL;
   uint8_t* enb_id_buf = NULL;
-  oai::EnbDescription* enb_association = NULL;
-  oai::EnbDescription* target_enb_association = NULL;
+  oai::EnbDescription* enb_association = nullptr;
+  oai::EnbDescription* target_enb_association = nullptr;
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
@@ -4911,14 +4904,14 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   OAILOG_DEBUG(LOG_S1AP, "Received eNB Confiuration Request from assoc_id %u\n",
                assoc_id);
   enb_association = s1ap_state_get_enb(state, assoc_id);
-  if (enb_association == NULL) {
+  if (enb_association == nullptr) {
     OAILOG_ERROR(LOG_S1AP,
                  "Ignoring eNB Confiuration Request from unknown assoc %u\n",
                  assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (enb_association->s1_enb_state() != magma::lte::oai::S1AP_READY) {
+  if (enb_association->s1_enb_state() != oai::S1AP_READY) {
     // ignore the message if s1 not ready
     OAILOG_INFO(
         LOG_S1AP,
@@ -5214,15 +5207,15 @@ status_code_e s1ap_handle_path_switch_req_failure(
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
-const char* s1_enb_state2str(magma::lte::oai::S1apEnbState state) {
+const char* s1_enb_state2str(oai::S1apEnbState state) {
   switch (state) {
-    case magma::lte::oai::S1AP_INIT:
+    case oai::S1AP_INIT:
       return "S1AP_INIT";
-    case magma::lte::oai::S1AP_RESETING:
+    case oai::S1AP_RESETING:
       return "S1AP_RESETING";
-    case magma::lte::oai::S1AP_READY:
+    case oai::S1AP_READY:
       return "S1AP_READY";
-    case magma::lte::oai::S1AP_SHUTDOWN:
+    case oai::S1AP_SHUTDOWN:
       return "S1AP_SHUTDOWN";
     default:
       return "unknown s1ap_enb_state";
@@ -5426,34 +5419,40 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
 // Frees the contents of pointer, called while freeing an entry from protobuf
 // map
 void free_enb_description(void** ptr) {
-  if (ptr) {
-    magma::lte::oai::EnbDescription* enb_context_p =
-        reinterpret_cast<magma::lte::oai::EnbDescription*>(*ptr);
-
-    if (enb_context_p->ue_id_map_size()) {
-      enb_context_p->clear_ue_id_map();
-    }
-    if (enb_context_p->has_supported_ta_list()) {
-      if (enb_context_p->supported_ta_list().supported_tai_items_size()) {
-        for (int idx = 0;
-             idx <
-             enb_context_p->supported_ta_list().supported_tai_items_size();
-             idx++) {
-          if (enb_context_p->supported_ta_list()
-                  .supported_tai_items(idx)
-                  .bplmns_size()) {
-            enb_context_p->mutable_supported_ta_list()
-                ->mutable_supported_tai_items(idx)
-                ->clear_bplmns();
-          }
-        }
-        enb_context_p->mutable_supported_ta_list()->clear_supported_tai_items();
-      }
-      enb_context_p->clear_supported_ta_list();
-    }
-    delete enb_context_p;
-    *ptr = nullptr;
+  OAILOG_FUNC_IN(LOG_S1AP);
+  if (!ptr) {
+    OAILOG_ERROR(LOG_S1AP, "Received null pointer");
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
+  oai::EnbDescription* enb_context_p =
+      reinterpret_cast<oai::EnbDescription*>(*ptr);
+  if (!enb_context_p) {
+    OAILOG_ERROR(LOG_S1AP, "Received nullptr for enb context");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+  if (enb_context_p->ue_id_map_size()) {
+    enb_context_p->clear_ue_id_map();
+  }
+  if (enb_context_p->has_supported_ta_list()) {
+    if (enb_context_p->supported_ta_list().supported_tai_items_size()) {
+      for (int idx = 0;
+           idx < enb_context_p->supported_ta_list().supported_tai_items_size();
+           idx++) {
+        if (enb_context_p->supported_ta_list()
+                .supported_tai_items(idx)
+                .bplmns_size()) {
+          enb_context_p->mutable_supported_ta_list()
+              ->mutable_supported_tai_items(idx)
+              ->clear_bplmns();
+        }
+      }
+      enb_context_p->mutable_supported_ta_list()->clear_supported_tai_items();
+    }
+    enb_context_p->clear_supported_ta_list();
+  }
+  delete enb_context_p;
+  *ptr = nullptr;
+  OAILOG_FUNC_IN(LOG_S1AP);
 }
 
 // Frees the contents of UE context, called while freeing an entry from protobuf

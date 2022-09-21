@@ -183,11 +183,6 @@ static int s1ap_paging_compare_plmns(
            sizeof(plmn_array));
     COPY_PLMN_FROM_CHAR_ARRAY_FMT(enb_plmn, plmn_array);
 
-    OAILOG_INFO(LOG_S1AP,
-                "Rashmi mcc-1 :%d mcc-2:%d mcc-3:%d mnc-1:%d mnc-2:%d "
-                "mnc-3:%d ",
-                enb_plmn.mcc_digit1, enb_plmn.mcc_digit2, enb_plmn.mcc_digit3,
-                enb_plmn.mnc_digit1, enb_plmn.mnc_digit2, enb_plmn.mnc_digit3);
     for (p_plmn_idx = 0; p_plmn_idx < (p_tai_list->numoftac + 1);
          p_plmn_idx++) {
       tai_t p_plmn;

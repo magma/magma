@@ -30,8 +30,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
-using magma::lte::oai::EnbDescription;
-
 static bool trigger_agw_offload_for_ue(const hash_key_t keyP,
                                        void* const elementP, void* parameterP,
                                        void** resultP);
@@ -100,7 +98,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
 
   IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
 
-  EnbDescription* enb_ref_p = magma::lte::s1ap_state_get_enb(
+  magma::lte::oai::EnbDescription* enb_ref_p = magma::lte::s1ap_state_get_enb(
       s1ap_state, ue_context_p->sctp_assoc_id_key);
 
   if (!enb_ref_p) {

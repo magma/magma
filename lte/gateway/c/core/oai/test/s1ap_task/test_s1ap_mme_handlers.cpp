@@ -134,9 +134,9 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
 TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
-  oai::EnbDescription* enb_associated = NULL;
+  oai::EnbDescription* enb_associated = nullptr;
   state->enbs.get(assoc_id, &enb_associated);
-  enb_associated->set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  enb_associated->set_s1_enb_state(oai::S1AP_RESETING);
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -170,8 +170,7 @@ TEST_F(S1apMmeHandlersTest, HandleCloseSctpAssociation) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -208,8 +207,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_context_setup_failure())
       .Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -218,8 +216,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -271,8 +268,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t ics_release_bytes[] = {0x00, 0x12, 0x40, 0x15, 0x00, 0x00, 0x03,
@@ -301,8 +297,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSFailure) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_context_setup_failure())
       .Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -311,8 +306,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSFailure) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -369,8 +363,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -379,8 +372,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -418,8 +410,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Freeing pdu and payload data
@@ -440,8 +431,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -450,8 +440,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -488,8 +477,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -513,8 +501,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
@@ -566,8 +553,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -575,8 +561,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -612,8 +597,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -621,8 +605,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -657,8 +640,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabRelCmd) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -666,8 +648,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabRelCmd) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -699,8 +680,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabSetupReq) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -708,8 +688,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabSetupReq) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -742,8 +721,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_e_rab_setup_rsp()).Times(1);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -751,8 +729,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
   ASSERT_EQ(s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1),
             RETURNok);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -813,8 +790,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -822,8 +798,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -858,8 +833,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -867,8 +841,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -886,8 +859,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
@@ -907,8 +879,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -916,8 +887,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -935,8 +905,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
@@ -956,8 +925,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchFailure) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -965,8 +933,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchFailure) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -999,8 +966,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -1008,8 +974,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -1040,8 +1005,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
 TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1055,8 +1019,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -1949,8 +1912,7 @@ TEST_F(S1apMmeHandlersTest, HandleEnbResetPartial) {
 TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1964,8 +1926,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -1988,8 +1949,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
@@ -2005,8 +1965,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
 TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -2020,8 +1979,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -2039,8 +1997,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
@@ -2056,8 +2013,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
 
   bool is_state_same = true;
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(5);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -2154,8 +2110,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
 
   // State validation
   ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -2236,8 +2191,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
 
   bool is_state_same = false;
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -2245,8 +2199,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -2306,8 +2259,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), 1);
 
