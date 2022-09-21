@@ -509,10 +509,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* mme_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_MME_APP);
+  const task_id_t peer_task_id[] = {TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A, TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8};
   init_task_context(
       TASK_MME_APP,
-      (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
-                    TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8},
+      peer_task_id,
       9, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet

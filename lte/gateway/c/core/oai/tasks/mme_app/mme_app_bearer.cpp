@@ -647,7 +647,7 @@ imsi64_t mme_app_handle_initial_ue_message(
         "eNB.\n",
         initial_pP->opt_s_tmsi.mme_code, initial_pP->opt_s_tmsi.m_tmsi);
     guti_t guti = {};
-    guti.m_tmsi = INVALID_M_TMSI};
+    guti.m_tmsi = INVALID_M_TMSI;
     plmn_t plmn;
     COPY_PLMN(plmn, (initial_pP->tai.plmn));
     is_guti_valid =
@@ -690,8 +690,8 @@ imsi64_t mme_app_handle_initial_ue_message(
           // Store the received initial ue message and process after releasing
           // previous s1 connection
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id =
-              (itti_s1ap_initial_ue_message_t*)calloc(
-                  1, sizeof(itti_s1ap_initial_ue_message_t));
+              reinterpret_cast<itti_s1ap_initial_ue_message_t*>(calloc(
+                  1, sizeof(itti_s1ap_initial_ue_message_t)));
           memcpy(ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id,
                  initial_pP, sizeof(itti_s1ap_initial_ue_message_t));
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id->nas =
@@ -1110,6 +1110,8 @@ status_code_e mme_app_handle_create_sess_resp(
   bearer_context_t* current_bearer_p = NULL;
   ebi_t bearer_id = 0;
   status_code_e rc = RETURNok;
+  emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
+  int num_successful_bearers = 0;
 
   if (create_sess_resp_pP == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -1162,7 +1164,7 @@ status_code_e mme_app_handle_create_sess_resp(
   //---------------------------------------------------------
   // Process itti_sgw_create_session_response_t.bearer_context_created
   //---------------------------------------------------------
-  int num_successful_bearers = 0;
+  //int num_successful_bearers = 0;
   for (int i = 0;
        i < create_sess_resp_pP->bearer_contexts_created.num_bearer_context;
        i++) {
@@ -1324,7 +1326,7 @@ status_code_e mme_app_handle_create_sess_resp(
     goto error_handling_csr_failure;
   }
   /* Send Create Session Response to NAS module */
-  emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
+  //emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
   nas_pdn_cs_respose_success.pdn_cid = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier;  // NAS internal ref
 
@@ -3190,13 +3192,13 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
          &nw_init_bearer_actv_req_p->s1_u_sgw_fteid, sizeof(fteid_t));
 
   if (nw_init_bearer_actv_req_p->tft.numberofpacketfilters) {
-    activate_ded_bearer_req.tft = <traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
+    activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
     copy_traffic_flow_template(activate_ded_bearer_req.tft,
                                &nw_init_bearer_actv_req_p->tft);
   }
   if (nw_init_bearer_actv_req_p->pco.num_protocol_or_container_id) {
     activate_ded_bearer_req.pco =
-        <protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
+        reinterpret_cast<protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
     copy_protocol_configuration_options(activate_ded_bearer_req.pco,
                                         &nw_init_bearer_actv_req_p->pco);
   }
@@ -3209,7 +3211,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (!(ue_context_p->pending_ded_ber_req[idx])) {
         ue_context_p->pending_ded_ber_req[idx] =
-            <emm_cn_activate_dedicated_bearer_req_t*>(calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t)));
+            reinterpret_cast<emm_cn_activate_dedicated_bearer_req_t*>(calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t)));
         memcpy(ue_context_p->pending_ded_ber_req[idx], &activate_ded_bearer_req,
                sizeof(emm_cn_activate_dedicated_bearer_req_t));
         is_msg_saved = true;
@@ -3272,7 +3274,7 @@ void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
   s11_deact_ded_bearer_rsp->cause.cause_value = cause;
 
   if (delete_default_bearer) {
-    s11_deact_ded_bearer_rsp->lbi = calloc(1, sizeof(ebi_t));
+    s11_deact_ded_bearer_rsp->lbi = reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
     *s11_deact_ded_bearer_rsp->lbi = ebi[0];
     s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;

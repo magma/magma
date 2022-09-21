@@ -43,11 +43,11 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_messages.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_messages.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
@@ -220,7 +220,7 @@ static int build_sgs_status(char* imsi, uint8_t imsi_length, lai_t laicsfb,
   sgsap_status->imsi_length = imsi_length;
 
   // Encode Cause
-  sgsap_status->cause = SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE;
+  sgsap_status->cause = (SgsCause_t)SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE;
 
   // Erroneous message
   sgsap_status->error_msg.msg_type = msg_id;
@@ -911,14 +911,15 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-status_code_e mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
                                                 void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  int rc = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_MME_APP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs ts6_1 timer");
@@ -927,14 +928,14 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
         LOG_MME_APP,
         "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
                  "Ts6-1  Timer expired, but sgs context is NULL for "
                  "ue-id " MME_UE_S1AP_ID_FMT "\n",
                  mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
 
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -944,7 +945,7 @@ status_code_e mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
   nas_proc_cs_domain_location_updt_fail(SGS_MSC_NOT_REACHABLE, NULL,
                                         mme_ue_s1ap_id);
 
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 /**********************************************************************************
@@ -1003,7 +1004,7 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  ue_context_p->sgs_context = calloc(1, sizeof(sgs_context_t));
+  ue_context_p->sgs_context = reinterpret_cast<sgs_context_t*>(calloc(1, sizeof(sgs_context_t)));
   if (!ue_context_p->sgs_context) {
     OAILOG_CRITICAL(LOG_MME_APP,
                     "Cannot create SGS Context for UE-ID " MME_UE_S1AP_ID_FMT

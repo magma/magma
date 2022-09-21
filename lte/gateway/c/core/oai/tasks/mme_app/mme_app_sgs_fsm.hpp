@@ -90,12 +90,12 @@ status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void* ctx,
 void sgs_fsm_initialize(void);
 sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ueid, void* ctx);
 
-int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt);
-int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt);
-int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt);
-int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt);
-int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt);
-int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt);
 int sgs_handle_associated_paging_request(const sgs_fsm_t* sgs_evt);
 int sgs_handle_null_paging_request(const sgs_fsm_t* sgs_evt);
 int sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt);

@@ -181,10 +181,10 @@ void gummei_config_init(gummei_config_t* gummei_conf) {
 
 void served_tai_config_init(served_tai_t* served_tai) {
   served_tai->nb_tai = 1;
-  served_tai->plmn_mcc = calloc(1, sizeof(*served_tai->plmn_mcc));
-  served_tai->plmn_mnc = calloc(1, sizeof(*served_tai->plmn_mnc));
-  served_tai->plmn_mnc_len = calloc(1, sizeof(*served_tai->plmn_mnc_len));
-  served_tai->tac = calloc(1, sizeof(*served_tai->tac));
+  served_tai->plmn_mcc = reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mcc)));
+  served_tai->plmn_mnc = reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mnc)));
+  served_tai->plmn_mnc_len = reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mnc_len)));
+  served_tai->tac = reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->tac)));
   served_tai->plmn_mcc[0] = PLMN_MCC;
   served_tai->plmn_mnc[0] = PLMN_MNC;
   served_tai->plmn_mnc_len[0] = PLMN_MNC_LEN;
@@ -390,7 +390,7 @@ void create_partial_lists(mme_config_t* config_pP) {
   uint8_t served_tai_size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED
                                 ? MAX_TAI_SUPPORTED
                                 : config_pP->served_tai.nb_tai;
-  config_pP->partial_list = calloc(served_tai_size, sizeof(partial_list_t));
+  config_pP->partial_list = reinterpret_cast<partial_list_t*>(calloc(served_tai_size, sizeof(partial_list_t)));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
       list_idx++;
@@ -398,11 +398,11 @@ void create_partial_lists(mme_config_t* config_pP) {
     }
     if (!config_pP->partial_list[list_idx].plmn) {
       config_pP->partial_list[list_idx].plmn =
-          calloc(served_tai_size, sizeof(plmn_t));
+          reinterpret_cast<plmn_t*>(calloc(served_tai_size, sizeof(plmn_t)));
     }
     if (!config_pP->partial_list[list_idx].tac) {
       config_pP->partial_list[list_idx].tac =
-          calloc(served_tai_size, sizeof(tac_t));
+          reinterpret_cast<uint16_t*>(calloc(served_tai_size, sizeof(tac_t)));
     }
     copy_plmn_from_config(&config_pP->served_tai, itr,
                           &config_pP->partial_list[list_idx].plmn[elem_idx]);
@@ -882,13 +882,13 @@ int mme_config_parse_string(const char* config_string,
           free_wrapper((void**)&config_pP->served_tai.tac);
 
         config_pP->served_tai.plmn_mcc =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mcc));
+            reinterpret_cast<uint16_t*>(calloc(num, sizeof(*config_pP->served_tai.plmn_mcc)));
         config_pP->served_tai.plmn_mnc =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mnc));
+            reinterpret_cast<uint16_t*>(calloc(num, sizeof(*config_pP->served_tai.plmn_mnc)));
         config_pP->served_tai.plmn_mnc_len =
-            calloc(num, sizeof(*config_pP->served_tai.plmn_mnc_len));
+            reinterpret_cast<uint16_t*>(calloc(num, sizeof(*config_pP->served_tai.plmn_mnc_len)));
         config_pP->served_tai.tac =
-            calloc(num, sizeof(*config_pP->served_tai.tac));
+            reinterpret_cast<uint16_t*>(calloc(num, sizeof(*config_pP->served_tai.tac)));
       }
 
       config_pP->served_tai.nb_tai = num;
@@ -1306,7 +1306,7 @@ int mme_config_parse_string(const char* config_string,
                 uint8_t num_tacs = config_setting_length(sub3setting);
                 if (num_tacs > 0) {
                   config_pP->sac_to_tacs_map.tac_list =
-                      calloc(1, sizeof(tac_list_per_sac_t));
+                      reinterpret_cast<tac_list_per_sac_t*>(calloc(1, sizeof(tac_list_per_sac_t)));
                   AssertFatal(config_pP->sac_to_tacs_map.tac_list != NULL,
                               "Memory allocation failed for tac_list\n");
                   config_pP->sac_to_tacs_map.tac_list->num_tac_entries =

@@ -37,7 +37,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 
 status_code_e mme_app_send_s6a_purge_ue_req(
     mme_app_desc_t* mme_app_desc_p,
@@ -46,7 +46,7 @@ status_code_e mme_app_send_s6a_purge_ue_req(
   uint64_t imsi = 0;
   MessageDef* message_p = NULL;
   s6a_purge_ue_req_t* s6a_pur_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   imsi = ue_context_pP->emm_context._imsi64;

@@ -125,7 +125,7 @@ static void mme_app_handle_timer_for_unregistered_ue(
 //------------------------------------------------------------------------------
 // warning: lock the UE context
 ue_mm_context_t* mme_create_new_ue_context(void) {
-  ue_mm_context_t* new_p = reinterpret_cast<guti_t*>(calloc(1, sizeof(ue_mm_context_t)));
+  ue_mm_context_t* new_p = reinterpret_cast<ue_mm_context_t*>(calloc(1, sizeof(ue_mm_context_t)));
   if (!new_p) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to allocate memory for UE context \n");
     return NULL;
