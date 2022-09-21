@@ -2177,9 +2177,13 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
                .pduSessResourceModRespList.item[index]
                .PDU_Session_Resource_Mpdify_Response_Transfer
                .qos_flow_add_or_modify_response_list;
-      qos_add_or_modify_list->maxNumOfQosFlows =
-          pDUSessionResourceModifyResponseTransfer
-              ->qosFlowAddOrModifyResponseList->list.count;
+      if (pDUSessionResourceModifyResponseTransfer
+              ->qosFlowAddOrModifyResponseList != NULL)
+        qos_add_or_modify_list->maxNumOfQosFlows =
+            pDUSessionResourceModifyResponseTransfer
+                ->qosFlowAddOrModifyResponseList->list.count;
+      else
+        qos_add_or_modify_list->maxNumOfQosFlows = 0;
       for (int i = 0; i < qos_add_or_modify_list->maxNumOfQosFlows; i++) {
         qos_add_or_modify_list->item[i].qos_flow_identifier =
             pDUSessionResourceModifyResponseTransfer
@@ -2190,11 +2194,11 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
       }
 
       if (pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList->list.array)
-       free(pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList->list.array);
+              ->qosFlowAddOrModifyResponseList != NULL)
+        free(pDUSessionResourceModifyResponseTransfer
+                 ->qosFlowAddOrModifyResponseList->list.array);
       if (pDUSessionResourceModifyResponseTransfer
-              ->qosFlowAddOrModifyResponseList)
+              ->qosFlowAddOrModifyResponseList != NULL)
         free(pDUSessionResourceModifyResponseTransfer
                  ->qosFlowAddOrModifyResponseList);
       if (pDUSessionResourceModifyResponseTransfer)
