@@ -1231,6 +1231,7 @@ class MagmadUtil(object):
         Returns:
             (str) service name
         """
+
         if self._init_system == InitMode.SYSTEMD:
             if service == "sctpd":
                 return "sctpd"
@@ -2321,7 +2322,7 @@ class HeaderEnrichmentUtils(object):
         print("restarting envoy")
         if self.magma_utils.init_system == InitMode.SYSTEMD:
             self.magma_utils.exec_command_output(
-                "sudo service magma@envoy_controller restart",
+                "sudo systemctl restart magma@envoy_controller",
             )
         elif self.magma_utils.init_system == InitMode.DOCKER:
             self.magma_utils.exec_command_output(
@@ -2329,7 +2330,7 @@ class HeaderEnrichmentUtils(object):
             )
         time.sleep(5)
         self.magma_utils.exec_command_output(
-            "sudo service magma_dp@envoy restart",
+            "sudo systemctl restart magma_dp@envoy",
         )
         time.sleep(20)
         print("restarting envoy done")
