@@ -34,8 +34,15 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
+#ifdef __cplusplus
+}
+#endif
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;
@@ -106,7 +113,7 @@ static bool ue_ip_is_in_subnet(struct in_addr _net, int mask,
 }
 
 //------------------------------------------------------------------------------
-int gtpv1u_init(spgw_state_t* spgw_state_p, spgw_config_t* spgw_config,
+int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
                 bool persist_state) {
   int rv = 0;
   struct in_addr netaddr;
@@ -151,8 +158,7 @@ int gtpv1u_init(spgw_state_t* spgw_state_p, spgw_config_t* spgw_config,
 
   // Init GTP device, using the same MTU as SGi.
   gtp_tunnel_ops->init(&netaddr, netmask, spgw_config->pgw_config.ipv4.mtu_SGI,
-                       &spgw_state_p->gtpv1u_data.fd0,
-                       &spgw_state_p->gtpv1u_data.fd1u, persist_state);
+                       &gtpv1u_data->fd0, &gtpv1u_data->fd1u, persist_state);
 
   // END-GTP quick integration only for evaluation purpose
 

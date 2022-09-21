@@ -11,6 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+#
+
+# Install vagrant-disksize to allow resizing the vagrant box disk.
+unless Vagrant.has_plugin?("vagrant-disksize")
+    raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+end
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
@@ -23,10 +29,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :magma, primary: true do |magma|
     magma.vm.box = "magmacore/magma_dev"
     magma.vm.box_version = "1.2.20220801"
+    magma.disksize.size = '75GB'
+
      # Enable Dynamic Swap Space to prevent Out of Memory crashes
     magma.vm.provision :shell, inline: "swapoff -a && fallocate -l 4G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab && swapon -a"
     magma.vm.provision :shell, inline: "echo vm.swappiness = 10 >> /etc/sysctl.conf && echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.conf && sysctl -p"
-
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -229,6 +236,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                               ["--timeout=30"]
       ansible.verbose = 'v'
     end
+
+    # Reload VM to apply correct network configuration
+    magma_deb.vm.provision :reload
+    
   end
 
 end

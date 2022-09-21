@@ -93,11 +93,10 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
         print("Received Esm Information Request ue-id", ue_id)
 
         print("************************* Restarting MME service on", "gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Receive UE_ESM_INFORMATION_REQ, as sometimes MME retransmits
         # UE_ESM_INFORMATION_REQ message before it restarts

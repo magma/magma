@@ -72,8 +72,6 @@ map_uint64_ue_description_t* get_s1ap_ue_state(void);
 
 int read_s1ap_ue_state_db(void);
 
-void remove_ues_without_imsi_from_ue_id_coll(void);
-
 void put_s1ap_ue_state(imsi64_t imsi64);
 
 void delete_s1ap_ue_state(imsi64_t imsi64);

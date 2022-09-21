@@ -397,6 +397,12 @@ oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
                                 enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   oai::UeDescription* ue_ref = nullptr;
 
+  if (!enb_ref) {
+    OAILOG_ERROR(LOG_S1AP, "Invalid enb context for assoc_id: %u",
+                 sctp_assoc_id);
+    return nullptr;
+  }
+
   ue_ref = new oai::UeDescription();
   /*
    * Something bad happened during memory allocation...
@@ -487,12 +493,12 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %lu",
                enb_ref.nb_ue_associated(), ue_id_coll.size());
   if (!enb_ref.nb_ue_associated()) {
-    if (enb_ref.s1_enb_state() == magma::lte::oai::S1AP_RESETING) {
+    if (enb_ref.s1_enb_state() == oai::S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
-      enb_ref.set_s1_state(magma::lte::oai::S1AP_INIT);
+      enb_ref.set_s1_state(oai::S1AP_INIT);
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
       state->set_num_enbs(state->num_enbs() - 1);
-    } else if (enb_ref.s1_enb_state() == magma::lte::oai::S1AP_SHUTDOWN) {
+    } else if (enb_ref.s1_enb_state() == oai::S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
       s1ap_remove_enb(state, &enb_ref);
@@ -508,7 +514,7 @@ void s1ap_remove_enb(oai::S1apState* state, oai::EnbDescription* enb_ref) {
   }
   magma::proto_map_uint32_uint64_t ue_id_coll;
   proto_map_uint32_enb_description_t enb_map;
-  enb_ref->set_s1_state(magma::lte::oai::S1AP_INIT);
+  enb_ref->set_s1_state(oai::S1AP_INIT);
 
   ue_id_coll.map = enb_ref->mutable_ue_id_map();
   ue_id_coll.clear();

@@ -1185,54 +1185,56 @@ void s1ap_handle_mme_ue_id_notification(
 
   if (notification_p == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "notification_p is NULL\n");
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
   sctp_assoc_id_t sctp_assoc_id = notification_p->sctp_assoc_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = notification_p->enb_ue_s1ap_id;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = notification_p->mme_ue_s1ap_id;
 
   oai::EnbDescription enb_ref;
-  if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) == PROTO_MAP_OK) {
-    oai::UeDescription* ue_ref =
-        s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
-    if (ue_ref) {
-      if (enb_ref.s1_enb_state() == magma::lte::oai::S1AP_RESETING) {
-        send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id,
-                                  enb_ref.enb_id());
-        return;
-      }
-      ue_ref->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
-      proto_map_uint32_uint32_t mmeid2associd_map;
-      mmeid2associd_map.map = state->mutable_mmeid2associd();
-      magma::proto_map_rc_t rc =
-          mmeid2associd_map.insert(mme_ue_s1ap_id, sctp_assoc_id);
-
-      magma::proto_map_uint32_uint64_t ue_id_coll;
-      ue_id_coll.map = enb_ref.mutable_ue_id_map();
-      ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
-                        ue_ref->comp_s1ap_id());
-      s1ap_state_update_enb_map(state, sctp_assoc_id, &enb_ref);
-      OAILOG_DEBUG(LOG_S1AP,
-                   "Num elements in ue_id_coll %lu and num ue associated %u",
-                   ue_id_coll.size(), enb_ref.nb_ue_associated());
-
-      OAILOG_DEBUG(
-          LOG_S1AP,
-          "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-          ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
-          sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
-          magma::map_rc_code2string(rc));
-      return;
-    }
-    OAILOG_DEBUG(LOG_S1AP,
-                 "Could not find  ue  with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+  if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB with sctp_assoc_id %u ",
+                 sctp_assoc_id);
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+  oai::UeDescription* ue_ref =
+      s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
+  if (!ue_ref) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Could not find ue with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
                  "\n",
                  enb_ue_s1ap_id);
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
-  OAILOG_DEBUG(LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n",
-               sctp_assoc_id);
 
+  if (enb_ref.s1_enb_state() == oai::S1AP_RESETING) {
+    send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id, enb_ref.enb_id());
+    OAILOG_INFO(LOG_S1AP,
+                "Received mme_ue_s1ap_id notification while enb is in "
+                "S1AP_RESETING state");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+
+  ue_ref->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
+  magma::proto_map_rc_t rc =
+      mmeid2associd_map.insert(mme_ue_s1ap_id, sctp_assoc_id);
+
+  magma::proto_map_uint32_uint64_t ue_id_coll;
+  ue_id_coll.map = enb_ref.mutable_ue_id_map();
+  ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id, ue_ref->comp_s1ap_id());
+  s1ap_state_update_enb_map(state, sctp_assoc_id, &enb_ref);
+
+  OAILOG_DEBUG(LOG_S1AP,
+               "Num elements in ue_id_coll %lu and num ue associated %u",
+               ue_id_coll.size(), enb_ref.nb_ue_associated());
+
+  OAILOG_DEBUG(LOG_S1AP,
+               "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+               ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
+               sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
+               magma::map_rc_code2string(rc));
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -1254,9 +1256,12 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
     oai::EnbDescription enb_ref;
-    if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) == PROTO_MAP_OK) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
+    if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) != PROTO_MAP_OK) {
+      OAILOG_ERROR(LOG_S1AP, "Could not find eNB with sctp_assoc_id %u ",
+                   sctp_assoc_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
+    ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
   }
   if (!ue_ref) {
     ue_ref = s1ap_state_get_ue_mmeid(ue_id);

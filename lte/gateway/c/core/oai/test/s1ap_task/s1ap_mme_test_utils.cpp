@@ -30,7 +30,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-using oai::EnbDescription;
 using oai::S1apUeState;
 using oai::UeDescription;
 task_zmq_ctx_t task_zmq_ctx_main_s1ap;
@@ -413,7 +412,7 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
 bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
                         magma::lte::oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues) {
-  EnbDescription enb_associated;
+  oai::EnbDescription enb_associated;
   proto_map_uint32_enb_description_t enb_map;
   enb_map.map = state->mutable_enbs();
   enb_map.get(assoc_id, &enb_associated);

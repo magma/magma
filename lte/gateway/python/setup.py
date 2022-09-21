@@ -134,7 +134,8 @@ setup(
     ],
     extras_require={
         'dev': [
-            'grpcio-tools>=1.46.3',
+            # Should be kept in sync with the version in python.mk
+            'grpcio-tools>=1.46.3,<1.49.0',
             'coverage==6.4.2',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',

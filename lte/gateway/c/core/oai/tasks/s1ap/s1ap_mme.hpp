@@ -50,8 +50,8 @@ extern bool hss_associated;
 namespace magma {
 namespace lte {
 
-/** \brief Allocate and add to the list a new eNB descriptor
- * @returns Reference to the new eNB element in list
+/** \Initialize an object of EnbDescription, which is passed as
+ * argument
  **/
 void s1ap_new_enb(oai::EnbDescription*);
 

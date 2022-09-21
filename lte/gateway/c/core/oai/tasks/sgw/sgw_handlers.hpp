@@ -22,8 +22,7 @@
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_SGW_HANDLERS_SEEN
-#define FILE_SGW_HANDLERS_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -72,7 +71,11 @@ uint32_t spgw_get_new_s1u_teid(spgw_state_t* state);
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p);
+status_code_e sgw_handle_sgi_endpoint_created(
+    spgw_state_t* state, itti_sgi_create_end_point_response_t* const resp_p,
+    imsi64_t imsi64);
 status_code_e send_mbr_failure(
     log_proto_t module,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
@@ -132,4 +135,3 @@ void generate_dl_flow(packet_filter_contents_t* packet_filter,
 void sgw_handle_delete_bearer_cmd(
     itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64);
-#endif /* FILE_SGW_HANDLERS_SEEN */

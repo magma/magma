@@ -149,11 +149,10 @@ class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
 
         # Do not send deactivate eps bearer context accept
         print("************************* Restarting MME service on", "gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(

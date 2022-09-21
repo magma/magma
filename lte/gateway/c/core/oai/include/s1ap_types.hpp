@@ -36,7 +36,7 @@ extern "C" {
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
-// Map- Key: uint32_t , Data: EnbDescription
+// Map- Key: sctp_assoc_id of uint32_t , Data: enb_description_t*
 typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription>
     proto_map_uint32_enb_description_t;
 
@@ -44,7 +44,8 @@ typedef struct s1ap_imsi_map_s {
   magma::proto_map_uint32_uint64_t mme_ueid2imsi_map;
 } s1ap_imsi_map_t;
 
-// Map- Key:uint64_t, Data: pointer to protobuf object, UeDescription
+// Map- Key:comp_s1ap_id of uint64_t, Data: pointer to protobuf object,
+// UeDescription
 typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
     map_uint64_ue_description_t;
 

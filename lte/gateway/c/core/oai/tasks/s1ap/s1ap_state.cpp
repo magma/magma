@@ -164,7 +164,8 @@ void put_s1ap_ue_state(imsi64_t imsi64) {
     oai::UeDescription* ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
     if (ue_ctxt) {
       auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
-      S1apStateManager::getInstance().write_ue_state_to_db(ue_ctxt, imsi_str);
+      S1apStateManager::getInstance().s1ap_write_ue_state_to_db(ue_ctxt,
+                                                                imsi_str);
     }
   }
 }

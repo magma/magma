@@ -30,8 +30,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 
-using magma::lte::oai::EnbDescription;
-
 static bool trigger_agw_offload_for_ue(const hash_key_t keyP,
                                        void* const elementP, void* parameterP,
                                        void** resultP);

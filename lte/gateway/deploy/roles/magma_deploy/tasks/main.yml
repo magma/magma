@@ -121,7 +121,6 @@
   become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes
   vars:
     packages:
       - graphviz
@@ -130,6 +129,17 @@
       - openssl
       - dkms
       - uuid-runtime
+  tags:
+    - agwc
+    - base
+
+- name: Ensure ca-certificates is up to date
+  become: true
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
       - ca-certificates
   tags:
     - agwc

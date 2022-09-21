@@ -94,7 +94,7 @@ async function createOrFetchOrganization(
 function main() {
   const args = process.argv.slice(2);
   if (args.length !== 3) {
-    console.log('Usage: setPassword.js <organization> <email> <password>');
+    console.log('Usage: setPassword.ts <organization> <email> <password>');
     process.exit(1);
   }
   const userObject = {

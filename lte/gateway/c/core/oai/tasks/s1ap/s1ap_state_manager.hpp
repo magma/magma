@@ -101,6 +101,8 @@ class S1apStateManager
   map_uint64_ue_description_t* get_s1ap_ue_state();
   oai::S1apState* get_state(bool read_from_db) override;
   void write_s1ap_state_to_db();
+  void s1ap_write_ue_state_to_db(const oai::UeDescription* ue_context,
+                                 const std::string& imsi_str);
 
  private:
   S1apStateManager();

@@ -24,7 +24,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-using oai::S1apEnbState;
 using oai::S1apUeState;
 status_code_e setup_new_association(oai::S1apState* state,
                                     sctp_assoc_id_t assoc_id);
@@ -81,7 +80,7 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
                                          mme_ue_s1ap_id_t ue_id);
 
 bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
-                        enum S1apEnbState expected_state,
+                        enum oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues);
 
 bool is_num_enbs_valid(oai::S1apState* state, uint32_t expected_num_enbs);
