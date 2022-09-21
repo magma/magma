@@ -22,8 +22,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S1AP_MME_NAS_PROCEDURES_SEEN
-#define FILE_S1AP_MME_NAS_PROCEDURES_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -32,6 +31,9 @@
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+
+namespace magma {
+namespace lte {
 
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)
@@ -86,4 +88,5 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
 status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     s1ap_state_t* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd);
 
-#endif /* FILE_S1AP_MME_NAS_PROCEDURES_SEEN */
+}  // namespace lte
+}  // namespace magma

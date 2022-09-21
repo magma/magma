@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+import OrchestratorAPI from '../api/OrchestratorAPI';
 import Sequelize from 'sequelize';
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
@@ -26,6 +27,10 @@ import {Request, Router} from 'express';
 import {User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from '../auth/util';
+import {
+  rethrowUnlessNotFoundError,
+  syncOrganizationWithOrc8rTenant,
+} from '../util/tenantsSync';
 import type {FeatureID} from '../../shared/types/features';
 
 const logger = logging.getLogger(module);
@@ -168,7 +173,7 @@ router.post(
         ),
       });
       if (organization) {
-        return res.status(404).send({error: 'Organization already exists'});
+        return res.status(409).send({error: 'Organization exists already'});
       }
       organization = await Organization.create({
         name: req.body.name,
@@ -179,6 +184,7 @@ router.post(
         ssoEntrypoint: '',
         ssoIssuer: '',
       });
+      await syncOrganizationWithOrc8rTenant(organization);
       res.status(200).send({organization});
     },
   ),
@@ -197,6 +203,7 @@ router.put(
       return res.status(404).send({error: 'Organization does not exist'});
     }
     const updated = await organization.update(req.body);
+    await syncOrganizationWithOrc8rTenant(updated);
     res.status(200).send({organization: updated});
   }),
 );
@@ -268,8 +275,8 @@ router.delete(
     });
 
     if (!organization) {
-      res.status(200).send({success: true});
-      return;
+      await deleteOrc8rTenant(+req.params.id);
+      return res.status(200).send({success: true});
     }
 
     await sequelize.transaction(async transaction => {
@@ -282,8 +289,20 @@ router.delete(
       });
     });
 
+    await deleteOrc8rTenant(+req.params.id);
     res.status(200).send({success: true});
   }),
 );
+
+async function deleteOrc8rTenant(organizationId: number) {
+  try {
+    await OrchestratorAPI.tenants.tenantsTenantIdDelete({
+      tenantId: organizationId,
+    });
+  } catch (error) {
+    // Ignore "not found" since there is no guarantee NMS and Orc8r are in sync
+    rethrowUnlessNotFoundError(error);
+  }
+}
 
 export default router;

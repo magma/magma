@@ -374,7 +374,7 @@ pipeline {
                     echo "Maybe we could not generate the coverage HTML report"
                   }
                 }
-                sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"')
+                sh('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* stop"')
                 // Retrieving the sys logs and mme log for more debugging.
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog" > ${WORKSPACE}/archives/magma_dev_syslog.log')
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/envoy.log" > ${WORKSPACE}/archives/magma_dev_envoy.log')
@@ -503,7 +503,7 @@ pipeline {
       post {
         always {
           script {
-            sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"')
+            sh('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* stop"')
             // Stopping capture
             sh('cd lte/gateway && vagrant ssh magma -c "sudo pkill tcpdump"')
             // Retrieving the sys logs and mme log for more debugging.

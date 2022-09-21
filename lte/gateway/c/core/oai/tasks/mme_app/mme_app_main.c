@@ -48,10 +48,14 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_network.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
-#if MME_BENCHMARK
-#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
+#ifdef __cplusplus
+}
 #endif
 
 static void check_mme_healthy_and_notify_service(void);
@@ -462,15 +466,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
     } break;
 
-#if MME_BENCHMARK
-    case MME_APP_TEST_PROTOBUF_SERIALIZATION: {
-      mme_app_test_protobuf_serialization(
-          mme_app_desc_p,
-          MME_APP_TEST_PROTOBUF_SERIALIZATION(received_message_p).num_ues);
-      force_ue_write = false;
-      is_task_state_same = true;
-    } break;
-#endif
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
       free(received_message_p);

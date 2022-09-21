@@ -1796,13 +1796,6 @@ void mme_config_display(mme_config_t* config_pP) {
               config_pP->daylight_saving_time);
   OAILOG_INFO(LOG_CONFIG, "- Run mode .............................: %s\n",
               (RUN_MODE_TEST == config_pP->run_mode) ? "TEST" : "NORMAL");
-#if MME_BENCHMARK
-  if (RUN_MODE_TEST == config_pP->run_mode) {
-    OAILOG_INFO(LOG_CONFIG,
-                "- Benchmark Test param ...........................: %u\n",
-                config_pP->test_param);
-  }
-#endif
   OAILOG_INFO(LOG_CONFIG, "- Max eNBs .............................: %u\n",
               config_pP->max_enbs);
   OAILOG_INFO(LOG_CONFIG, "- Max UEs ..............................: %u\n",
@@ -2133,7 +2126,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
   /*
    * Parsing command line
    */
-  while ((c = getopt(argc, argv, "c:s:p:h:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:s:h:v:V")) != -1) {
     switch (c) {
       case 'c': {
         /*
@@ -2156,15 +2149,6 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
             PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
       } break;
 
-#if MME_BENCHMARK
-      case 'p': {
-        config_pP->test_param = atoi(optarg);
-        config_pP->test_type = TEST_SERIALIZATION_PROTOBUF;
-        config_pP->run_mode = RUN_MODE_TEST;
-        OAI_FPRINTF_INFO("Test serialization protobuf, parameter %u\n",
-                         config_pP->test_param);
-      } break;
-#endif
       case 's': {
         OAI_FPRINTF_INFO(
             "Ignoring command line option s as there is no embedded sgw \n");
@@ -2172,9 +2156,6 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
 
       case 'h': /* Fall through */
 
-#if !MME_BENCHMARK
-      case 'p': /* Fall through */
-#endif
       default:
         OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
         usage(argv[0]);

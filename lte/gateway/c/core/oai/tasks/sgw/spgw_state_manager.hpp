@@ -24,7 +24,6 @@
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
-constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";

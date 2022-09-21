@@ -38,5 +38,5 @@ class TestRemoveCpiRelatedFields(AlembicTestCase):
         self.upgrade()
         self.downgrade()
         table = self.get_table(TABLE)
-        has = all(self.has_column(table, c) for c in COLUMNS)
+        has = self.has_columns(table, COLUMNS)
         self.assertTrue(has)

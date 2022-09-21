@@ -1,0 +1,10 @@
+---
+dp:
+  config:
+    dp_backend:
+      cbsd_inactivity_interval_sec: 3
+    active_mode_controller:
+      heartbeat_send_timeout_sec: 30
+      request_processing_interval_sec: 1
+      polling_interval: 1
+      cbsd_inactivity_interval_sec: 3

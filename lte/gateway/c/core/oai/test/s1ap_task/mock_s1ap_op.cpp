@@ -20,9 +20,7 @@
 #include <sstream>
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
-
-using magma::lte::oai::S1apState;
-using magma::lte::oai::UeDescription;
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace magma {
 namespace lte {
@@ -59,7 +57,7 @@ status_code_e mock_read_s1ap_ue_state_db(
   }
 
   for (const auto& name_of_sample_file : ue_samples) {
-    UeDescription ue_proto = UeDescription();
+    oai::UeDescription ue_proto = oai::UeDescription();
     std::fstream input(name_of_sample_file.c_str(),
                        std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
@@ -68,20 +66,21 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    ue_description_t* ue_context_p = new ue_description_t();
+    oai::UeDescription* ue_context_p = new oai::UeDescription();
     if (!ue_context_p) {
       std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
       return RETURNerror;
     }
     S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
 
-    proto_map_rc_t rc =
-        state_ue_map->insert(ue_context_p->comp_s1ap_id,
-                             reinterpret_cast<ue_description_t*>(ue_context_p));
+    proto_map_rc_t rc = state_ue_map->insert(
+        ue_context_p->comp_s1ap_id(),
+        reinterpret_cast<oai::UeDescription*>(ue_context_p));
 
     if (rc != magma::PROTO_MAP_OK) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
+      free_ue_description(reinterpret_cast<void**>(&ue_context_p));
       return RETURNerror;
     }
   }
@@ -94,7 +93,7 @@ status_code_e mock_read_s1ap_state_db(
     const std::string& file_name_state_sample) {
   s1ap_state_t* state_cache_p = get_s1ap_state(false);
 
-  S1apState state_proto = S1apState();
+  oai::S1apState state_proto = oai::S1apState();
 
   std::ifstream input(file_name_state_sample.c_str(),
                       std::ios::in | std::ios::binary);

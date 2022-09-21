@@ -67,8 +67,9 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.h"
@@ -3703,10 +3704,8 @@ void mme_app_handle_handover_notify(
             "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
             blength(e_rab_admitted_list.item[i].transport_layer_address),
             handover_notify_p->mme_ue_s1ap_id);
-        bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
-      bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
       s11_modify_bearer_request->bearer_contexts_to_be_modified
           .num_bearer_context++;
 

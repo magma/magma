@@ -127,27 +127,27 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
 }
 
 TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
-  ue_description_t* ue = new ue_description_t();
-  ue_description_t* final_ue = new ue_description_t();
+  oai::UeDescription* ue = new oai::UeDescription();
+  oai::UeDescription* final_ue = new oai::UeDescription();
 
   // filling with test values
-  ue->mme_ue_s1ap_id = 1;
-  ue->enb_ue_s1ap_id = 1;
-  ue->sctp_assoc_id = 1;
-  ue->comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(1, 1);
-  ue->s1ap_handover_state.mme_ue_s1ap_id = 1;
-  ue->s1ap_handover_state.source_enb_id = 1;
-  ue->s1ap_ue_context_rel_timer.id = 1;
-  ue->s1ap_ue_context_rel_timer.msec = 1000;
+  ue->set_mme_ue_s1ap_id(1);
+  ue->set_enb_ue_s1ap_id(1);
+  ue->set_sctp_assoc_id(1);
+  ue->set_comp_s1ap_id(S1AP_GENERATE_COMP_S1AP_ID(1, 1));
+  ue->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(1);
+  ue->mutable_s1ap_handover_state()->set_source_enb_id(1);
+  ue->mutable_s1ap_ue_context_rel_timer()->set_id(1);
+  ue->mutable_s1ap_ue_context_rel_timer()->set_msec(1000);
 
   oai::UeDescription ue_proto;
   S1apStateConverter::ue_to_proto(ue, &ue_proto);
   S1apStateConverter::proto_to_ue(ue_proto, final_ue);
 
-  EXPECT_EQ(ue->comp_s1ap_id, final_ue->comp_s1ap_id);
-  EXPECT_EQ(ue->mme_ue_s1ap_id, final_ue->mme_ue_s1ap_id);
-  EXPECT_EQ(ue->s1ap_ue_context_rel_timer.id,
-            final_ue->s1ap_ue_context_rel_timer.id);
+  EXPECT_EQ(ue->comp_s1ap_id(), final_ue->comp_s1ap_id());
+  EXPECT_EQ(ue->mme_ue_s1ap_id(), final_ue->mme_ue_s1ap_id());
+  EXPECT_EQ(ue->s1ap_ue_context_rel_timer().id(),
+            final_ue->s1ap_ue_context_rel_timer().id());
 
   delete ue;
   delete final_ue;

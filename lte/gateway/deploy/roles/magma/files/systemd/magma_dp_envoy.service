@@ -19,7 +19,9 @@ Type=simple
 EnvironmentFile=/etc/environment
 # Add delay to let envoy-controller init
 ExecStartPre=/bin/sleep 40
+ExecStartPre=/bin/bash /usr/local/bin/configure_envoy_namespace.sh setup
 ExecStart=/sbin/ip netns exec envoy_ns1 /usr/bin/envoy -c /var/opt/magma/envoy.yaml --log-path /var/log/envoy.log
+ExecStopPost=/bin/bash /usr/local/bin/configure_envoy_namespace.sh destroy
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog

@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
 load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -25,4 +26,14 @@ py_library(
         requirement("pyroute2"),
         requirement("scapy"),
     ],
+)
+
+pkg_files(
+    name = "magma_ebpf_pipelined",
+    srcs = [
+        ":ebpf_dl_handler.c",
+        ":ebpf_manager.py",
+        ":ebpf_ul_handler.c",
+    ],
+    visibility = ["//lte/gateway/release:__pkg__"],
 )

@@ -20,7 +20,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 	}{{
 		name: "should update if installation parameters have changes",
 		prev: &storage.DBCbsd{
-			AntennaGain:       db.MakeFloat(10),
+			AntennaGainDbi:    db.MakeFloat(10),
 			CbsdCategory:      sql.NullString{},
 			LatitudeDeg:       db.MakeFloat(50),
 			LongitudeDeg:      db.MakeFloat(100),
@@ -30,7 +30,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 			SingleStepEnabled: db.MakeBool(true),
 		},
 		next: &storage.DBCbsd{
-			AntennaGain:      db.MakeFloat(20),
+			AntennaGainDbi:   db.MakeFloat(20),
 			CbsdCategory:     db.MakeString("A"),
 			LatitudeDeg:      db.MakeFloat(50),
 			LongitudeDeg:     db.MakeFloat(100),
@@ -42,7 +42,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 	}, {
 		name: "should not update all parameters are the same",
 		prev: &storage.DBCbsd{
-			AntennaGain:       db.MakeFloat(20),
+			AntennaGainDbi:    db.MakeFloat(20),
 			CbsdCategory:      db.MakeString("A"),
 			LatitudeDeg:       db.MakeFloat(50),
 			LongitudeDeg:      db.MakeFloat(100),
@@ -52,7 +52,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 			SingleStepEnabled: db.MakeBool(true),
 		},
 		next: &storage.DBCbsd{
-			AntennaGain:      db.MakeFloat(20),
+			AntennaGainDbi:   db.MakeFloat(20),
 			CbsdCategory:     db.MakeString("A"),
 			LatitudeDeg:      db.MakeFloat(50),
 			LongitudeDeg:     db.MakeFloat(100),
@@ -64,7 +64,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 	}, {
 		name: "should update if any of coordinates are empty",
 		prev: &storage.DBCbsd{
-			AntennaGain:       db.MakeFloat(20),
+			AntennaGainDbi:    db.MakeFloat(20),
 			CbsdCategory:      db.MakeString("A"),
 			LatitudeDeg:       sql.NullFloat64{},
 			LongitudeDeg:      sql.NullFloat64{},
@@ -74,7 +74,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 			IndoorDeployment:  db.MakeBool(true),
 		},
 		next: &storage.DBCbsd{
-			AntennaGain:      db.MakeFloat(20),
+			AntennaGainDbi:   db.MakeFloat(20),
 			CbsdCategory:     db.MakeString("A"),
 			LatitudeDeg:      sql.NullFloat64{},
 			LongitudeDeg:     sql.NullFloat64{},
@@ -86,7 +86,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 	}, {
 		name: "should not update if coordinates changed less than 10m",
 		prev: &storage.DBCbsd{
-			AntennaGain:       db.MakeFloat(20),
+			AntennaGainDbi:    db.MakeFloat(20),
 			CbsdCategory:      db.MakeString("A"),
 			LatitudeDeg:       db.MakeFloat(50),
 			LongitudeDeg:      db.MakeFloat(100),
@@ -96,7 +96,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 			IndoorDeployment:  db.MakeBool(true),
 		},
 		next: &storage.DBCbsd{
-			AntennaGain:      db.MakeFloat(20),
+			AntennaGainDbi:   db.MakeFloat(20),
 			CbsdCategory:     db.MakeString("A"),
 			LatitudeDeg:      db.MakeFloat(50.00006),
 			LongitudeDeg:     db.MakeFloat(100.0001),
@@ -108,7 +108,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 	}, {
 		name: "should update if coordinates changed more than 10m",
 		prev: &storage.DBCbsd{
-			AntennaGain:       db.MakeFloat(20),
+			AntennaGainDbi:    db.MakeFloat(20),
 			CbsdCategory:      db.MakeString("A"),
 			LatitudeDeg:       db.MakeFloat(50),
 			LongitudeDeg:      db.MakeFloat(100),
@@ -118,7 +118,7 @@ func TestShouldENodeBDUpdateInstallationParams(t *testing.T) {
 			IndoorDeployment:  db.MakeBool(true),
 		},
 		next: &storage.DBCbsd{
-			AntennaGain:      db.MakeFloat(20),
+			AntennaGainDbi:   db.MakeFloat(20),
 			CbsdCategory:     db.MakeString("A"),
 			LatitudeDeg:      db.MakeFloat(50.00007),
 			LongitudeDeg:     db.MakeFloat(100.0001),

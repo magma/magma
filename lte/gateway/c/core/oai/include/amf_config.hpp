@@ -50,6 +50,7 @@
 #define AMF_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
 #define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
 #define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
+#define AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP "ENABLE_IMS_VoPS_3GPP"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -70,6 +71,7 @@ typedef struct nas5g_config_s {
   bool force_reject_tau;
   bool force_reject_sr;
   bool disable_esm_information;
+  bool enable_IMS_VoPS_3GPP;
 } nas5g_config_t;
 
 typedef struct m5g_apn_map_s {
