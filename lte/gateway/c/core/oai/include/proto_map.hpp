@@ -170,7 +170,7 @@ struct proto_map_s {
   **              the map. If key does not exists returns error             **
   **                                                                        **
   ***************************************************************************/
-  proto_map_rc_t remove(const keyT key) {
+  proto_map_rc_t remove(const keyT key, bool free_an_entry = true) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -178,7 +178,7 @@ struct proto_map_s {
       return PROTO_MAP_EMPTY;
     }
 
-    if (free_callback_func) {
+    if (free_callback_func && free_an_entry) {
       valueT value;
       if (get(key, &value) == PROTO_MAP_OK) {
         free_callback_func(reinterpret_cast<void**>(&value));

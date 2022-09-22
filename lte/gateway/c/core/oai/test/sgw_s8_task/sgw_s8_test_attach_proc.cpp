@@ -52,11 +52,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
           sgw_state, &temporary_create_session_procedure_id);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
   sgw_pdn_session = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(sgw_state->temporary_create_session_procedure_id_htbl,
-                       temporary_create_session_procedure_id,
-                       reinterpret_cast<void**>(&sgw_pdn_session)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(sgw_state->temporary_create_session_procedure_id_map.get(
+                temporary_create_session_procedure_id, &sgw_pdn_session),
+            magma::PROTO_MAP_OK);
 
   // validates creation of bearer context on reception of Create Session Req
   itti_s11_create_session_request_t session_req = {0};
@@ -133,12 +131,10 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
               csresp.bearer_context[0].pgw_s8_up.teid);
   EXPECT_GT(bearer_ctx_p->s_gw_teid_S5_S8_up, 0);
   // Check pdn session is removed from
-  // temporary_create_session_procedure_id_htbl
-  EXPECT_EQ(
-      hashtable_ts_get(sgw_state->temporary_create_session_procedure_id_htbl,
-                       temporary_create_session_procedure_id,
-                       reinterpret_cast<void**>(&sgw_pdn_session)),
-      HASH_TABLE_KEY_NOT_EXISTS);
+  // temporary_create_session_procedure_id_map
+  EXPECT_EQ(sgw_state->temporary_create_session_procedure_id_map.get(
+                temporary_create_session_procedure_id, &sgw_pdn_session),
+            magma::PROTO_MAP_EMPTY);
 }
 
 // TC indicates that SGW_S8 has received incorrect temporary session id in
