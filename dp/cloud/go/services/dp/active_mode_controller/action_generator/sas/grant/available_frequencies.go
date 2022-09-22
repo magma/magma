@@ -64,3 +64,22 @@ func makeMaskForRange(begin int64, end int64, band int64) uint32 {
 	}
 	return r<<1 - l
 }
+
+func UnsetGrantFrequency(cbsd *storage.DBCbsd, grant *storage.DBGrant) []uint32 {
+	low := grant.LowFrequencyHz.Int64
+	high := grant.HighFrequencyHz.Int64
+	if cbsd.AvailableFrequencies == nil || low == 0 || high == 0 {
+		return cbsd.AvailableFrequencies
+	}
+
+	frequencies := make([]uint32, len(cbsd.AvailableFrequencies))
+	copy(frequencies, cbsd.AvailableFrequencies)
+
+	bwHz := high - low
+	mid := (low + high) / 2
+	bitToUnset := (mid - int64(3550*1e6)) / int64(5*1e6)
+	bwIndex := bwHz/int64(5*1e6) - 1
+
+	frequencies[bwIndex] = frequencies[bwIndex] & ^(1 << bitToUnset)
+	return frequencies
+}
