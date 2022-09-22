@@ -89,6 +89,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
+  docker.io \
   ethtool \
   inetutils-ping \
   iproute2 \
