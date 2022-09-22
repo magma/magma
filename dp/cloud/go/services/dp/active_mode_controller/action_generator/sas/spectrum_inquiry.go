@@ -14,11 +14,16 @@ limitations under the License.
 package sas
 
 import (
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/frequency"
 	"magma/dp/cloud/go/services/dp/storage"
 )
 
 type SpectrumInquiryRequestGenerator struct{}
+
+func (*SpectrumInquiryRequestGenerator) GenerateActions(_ *storage.DetailedCbsd) []action.Action {
+	return []action.Action{}
+}
 
 func (*SpectrumInquiryRequestGenerator) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {
 	payload := &SpectrumInquiryRequest{

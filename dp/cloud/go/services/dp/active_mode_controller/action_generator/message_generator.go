@@ -65,8 +65,6 @@ func (a *ActionGenerator) getPerCbsdMessageGenerator(cbsd *storage.DetailedCbsd,
 		return &sasRequestGenerator{g: &sas.RelinquishmentRequestGenerator{}}
 	} else if len(cbsd.Cbsd.Channels) == 0 {
 		return &sasRequestGenerator{g: &sas.SpectrumInquiryRequestGenerator{}}
-	} else if len(cbsd.Cbsd.AvailableFrequencies) == 0 {
-		return &storeAvailableFrequenciesGenerator{}
 	} else {
 		nextSend := now.Add(a.HeartbeatTimeout).Unix()
 		gm := &grantManager{

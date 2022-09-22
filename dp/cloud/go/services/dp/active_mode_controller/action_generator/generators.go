@@ -24,11 +24,12 @@ type sasRequestGenerator struct {
 }
 
 type sasGenerator interface {
+	GenerateActions(*storage.DetailedCbsd) []action.Action
 	GenerateRequests(*storage.DetailedCbsd) []*storage.MutableRequest
 }
 
 func (s *sasRequestGenerator) generateActions(cbsd *storage.DetailedCbsd) []action.Action {
-	actions := grant.RemoveIdleGrants(cbsd)
+	actions := s.g.GenerateActions(cbsd)
 	reqs := s.g.GenerateRequests(cbsd)
 	for _, r := range reqs {
 		if r != nil {
@@ -70,23 +71,22 @@ func (a *acknowledgeRelinquishGenerator) generateActions(cbsd *storage.DetailedC
 	return []action.Action{act}
 }
 
-type storeAvailableFrequenciesGenerator struct{}
-
-func (s *storeAvailableFrequenciesGenerator) generateActions(cbsd *storage.DetailedCbsd) []action.Action {
-	calc := eirp.NewCalculator(cbsd.Cbsd)
-	frequencies := grant.CalcAvailableFrequencies(cbsd.Cbsd.Channels, calc)
-	data := &storage.DBCbsd{
-		Id:                   cbsd.Cbsd.Id,
-		AvailableFrequencies: frequencies,
-	}
-	mask := db.NewIncludeMask("available_frequencies")
-	act := &action.UpdateCbsd{Data: data, Mask: mask}
-	return []action.Action{act}
-}
-
 type grantManager struct {
 	nextSendTimestamp int64
 	rng               RNG
+}
+
+func (g *grantManager) GenerateActions(cbsd *storage.DetailedCbsd) []action.Action {
+	var actions []action.Action
+
+	if len(cbsd.Cbsd.AvailableFrequencies) == 0 {
+		act := action.SetAvailableFrequences(cbsd.Cbsd)
+		actions = append(actions, act)
+	}
+
+	idleGrantActions := action.RemoveIdleGrants(cbsd)
+	actions = append(actions, idleGrantActions...)
+	return actions
 }
 
 func (g *grantManager) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {

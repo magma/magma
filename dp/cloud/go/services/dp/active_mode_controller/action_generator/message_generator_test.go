@@ -83,7 +83,7 @@ func TestGenerateMessages(t *testing.T) {
 			}),
 		},
 	}, {
-		name: "Should set available frequencies when they are nil but there are channels",
+		name: "Should set available frequencies and request grant, when available frequencies are nil but there are channels",
 		cbsd: NewCbsdBuilder().
 			WithChannel(storage.Channel{
 				LowFrequencyHz:  3590e6,
@@ -104,6 +104,16 @@ func TestGenerateMessages(t *testing.T) {
 				},
 				Mask: db.NewIncludeMask("available_frequencies"),
 			},
+			makeRequest(sas.Grant, &sas.GrantRequest{
+				CbsdId: cbsdId,
+				OperationParam: &sas.OperationParam{
+					MaxEirp: 31,
+					OperationFrequencyRange: &sas.FrequencyRange{
+						LowFrequency:  3590e6,
+						HighFrequency: 3610e6,
+					},
+				},
+			}),
 		},
 	}, {
 		name: "Should generate spectrum inquiry request when no suitable available frequencies",
