@@ -14,10 +14,10 @@ limitations under the License.
 package action
 
 import (
+	sq "github.com/Masterminds/squirrel"
+
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
-
-	sq "github.com/Masterminds/squirrel"
 )
 
 type Action interface {

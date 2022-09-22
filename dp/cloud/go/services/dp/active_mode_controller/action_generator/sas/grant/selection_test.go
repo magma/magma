@@ -16,12 +16,12 @@ package grant_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	action_pkg "magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/grant"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestProcessGrants(t *testing.T) {

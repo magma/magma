@@ -16,12 +16,12 @@ package grant
 import (
 	"math/bits"
 
+	"golang.org/x/exp/slices"
+
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/frequency"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
-
-	"golang.org/x/exp/slices"
 )
 
 type Processor[T any] interface {

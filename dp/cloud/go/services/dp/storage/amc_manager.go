@@ -17,10 +17,10 @@ import (
 	"context"
 	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"magma/dp/cloud/go/services/dp/storage/db"
 	"magma/orc8r/cloud/go/sqorc"
-
-	sq "github.com/Masterminds/squirrel"
 )
 
 // AmcManager is supposed to be a library that will replace radio controller

@@ -16,11 +16,11 @@ package grant_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/grant"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCalcAvailableFrequencies(t *testing.T) {

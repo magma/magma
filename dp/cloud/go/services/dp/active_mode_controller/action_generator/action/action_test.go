@@ -16,13 +16,13 @@ package action_test
 import (
 	"testing"
 
-	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
-	"magma/dp/cloud/go/services/dp/storage"
-	"magma/dp/cloud/go/services/dp/storage/db"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
+	"magma/dp/cloud/go/services/dp/storage"
+	"magma/dp/cloud/go/services/dp/storage/db"
 )
 
 func TestRequest(t *testing.T) {
