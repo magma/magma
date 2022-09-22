@@ -45,6 +45,27 @@ single_channel_for_one_cbsd = {
     ],
 }
 
+single_channel_for_one_cbsd_with_no_max_eirp = {
+    "spectrumInquiryResponse": [
+        {
+            "response": {
+                "responseCode": 0,
+            },
+            "cbsdId": "foo",
+            "availableChannel": [
+                {
+                    "frequencyRange": {
+                        "lowFrequency": 1,
+                        "highFrequency": 1,
+                    },
+                    "channelType": "test",
+                    "ruleApplied": "test",
+                },
+            ],
+        },
+    ],
+}
+
 two_channels_for_one_cbsd = {
     "spectrumInquiryResponse": [
         {

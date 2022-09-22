@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ProtocolDiscriminator.hpp
-"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ProtocolDiscriminator.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -25,8 +24,7 @@
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 
-    int
-    decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
+int decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
   Fatal("TODO Implement decode_protocol_discriminator");
   return -1;

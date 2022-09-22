@@ -62,6 +62,14 @@ func (rt *DBRequestType) GetMetadata() *db.ModelMetadata {
 	}
 }
 
+func (rt *DBRequestType) GetId() int64 {
+	return rt.Id.Int64
+}
+
+func (rt *DBRequestType) GetName() string {
+	return rt.Name.String
+}
+
 type DBRequest struct {
 	Id      sql.NullInt64
 	TypeId  sql.NullInt64
@@ -139,17 +147,18 @@ func (gs *DBGrantState) GetName() string {
 }
 
 type DBGrant struct {
-	Id                 sql.NullInt64
-	StateId            sql.NullInt64
-	CbsdId             sql.NullInt64
-	GrantId            sql.NullString
-	GrantExpireTime    sql.NullTime
-	TransmitExpireTime sql.NullTime
-	HeartbeatInterval  sql.NullInt64
-	ChannelType        sql.NullString
-	LowFrequency       sql.NullInt64
-	HighFrequency      sql.NullInt64
-	MaxEirp            sql.NullFloat64
+	Id                       sql.NullInt64
+	StateId                  sql.NullInt64
+	CbsdId                   sql.NullInt64
+	GrantId                  sql.NullString
+	GrantExpireTime          sql.NullTime
+	TransmitExpireTime       sql.NullTime
+	HeartbeatIntervalSec     sql.NullInt64
+	LastHeartbeatRequestTime sql.NullTime
+	ChannelType              sql.NullString
+	LowFrequencyHz           sql.NullInt64
+	HighFrequencyHz          sql.NullInt64
+	MaxEirp                  sql.NullFloat64
 }
 
 func (g *DBGrant) Fields() []db.BaseType {
@@ -160,10 +169,11 @@ func (g *DBGrant) Fields() []db.BaseType {
 		db.StringType{X: &g.GrantId},
 		db.TimeType{X: &g.GrantExpireTime},
 		db.TimeType{X: &g.TransmitExpireTime},
-		db.IntType{X: &g.HeartbeatInterval},
+		db.IntType{X: &g.HeartbeatIntervalSec},
+		db.TimeType{X: &g.LastHeartbeatRequestTime},
 		db.StringType{X: &g.ChannelType},
-		db.IntType{X: &g.LowFrequency},
-		db.IntType{X: &g.HighFrequency},
+		db.IntType{X: &g.LowFrequencyHz},
+		db.IntType{X: &g.HighFrequencyHz},
 		db.FloatType{X: &g.MaxEirp},
 	}
 }
@@ -197,6 +207,10 @@ func (g *DBGrant) GetMetadata() *db.ModelMetadata {
 		}, {
 			Name:     "heartbeat_interval",
 			SqlType:  sqorc.ColumnTypeInt,
+			Nullable: true,
+		}, {
+			Name:     "last_heartbeat_request_time",
+			SqlType:  sqorc.ColumnTypeDatetime,
 			Nullable: true,
 		}, {
 			Name:     "channel_type",
@@ -268,7 +282,7 @@ type DBCbsd struct {
 	PreferredFrequenciesMHz   []int64
 	MinPower                  sql.NullFloat64
 	MaxPower                  sql.NullFloat64
-	AntennaGain               sql.NullFloat64
+	AntennaGainDbi            sql.NullFloat64
 	NumberOfPorts             sql.NullInt64
 	IsDeleted                 sql.NullBool
 	ShouldDeregister          sql.NullBool
@@ -289,15 +303,9 @@ type DBCbsd struct {
 
 type Channel struct {
 	// TODO some of the fields may not be required
-	FrequencyRange FrequencyRange `json:"frequencyRange"`
-	ChannelType    string         `json:"channelType"`
-	RuleApplied    string         `json:"ruleApplied"`
-	MaxEirp        float64        `json:"maxEirp"`
-}
-
-type FrequencyRange struct {
-	LowFrequency  int64 `json:"lowFrequency"`
-	HighFrequency int64 `json:"highFrequency"`
+	LowFrequencyHz  int64   `json:"low_frequency"`
+	HighFrequencyHz int64   `json:"high_frequency"`
+	MaxEirp         float64 `json:"max_eirp"`
 }
 
 func (c *DBCbsd) Fields() []db.BaseType {
@@ -315,7 +323,7 @@ func (c *DBCbsd) Fields() []db.BaseType {
 		db.JsonType{X: &c.PreferredFrequenciesMHz},
 		db.FloatType{X: &c.MinPower},
 		db.FloatType{X: &c.MaxPower},
-		db.FloatType{X: &c.AntennaGain},
+		db.FloatType{X: &c.AntennaGainDbi},
 		db.IntType{X: &c.NumberOfPorts},
 		db.BoolType{X: &c.IsDeleted},
 		db.BoolType{X: &c.ShouldDeregister},
@@ -461,9 +469,11 @@ func (c *DBCbsd) GetMetadata() *db.ModelMetadata {
 			SqlType:  sqorc.ColumnTypeText,
 			Nullable: true,
 		}, {
-			Name:     "channels",
-			SqlType:  sqorc.ColumnTypeText,
-			Nullable: true,
+			Name:         "channels",
+			SqlType:      sqorc.ColumnTypeText,
+			Nullable:     false,
+			HasDefault:   true,
+			DefaultValue: "'[]'",
 		}},
 		CreateObject: func() db.Model {
 			return &DBCbsd{}

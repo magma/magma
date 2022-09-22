@@ -49,63 +49,64 @@ RUN apt-get update && \
 
 # Install dependencies required for building
 RUN apt-get update && apt-get install -y \
-  sudo \
-  curl \
-  wget \
-  unzip \
-  cmake \
-  git \
-  build-essential \
   autoconf \
-  libtool \
-  pkg-config \
-  libgflags-dev \
-  libc++-dev \
-  protobuf-compiler \
-  ninja-build \
   autogen \
+  build-essential \
   ccache \
-  libprotoc-dev \
-  libxml2-dev \
-  libxslt-dev \
-  libyaml-cpp-dev \
-  nlohmann-json3-dev \
-  libgoogle-glog-dev \
-  libsctp-dev \
-  libpcap-dev \
-  libmnl-dev \
-  uuid-dev \
-  python3-pip \
-  libcurl4-openssl-dev \
-  libdouble-conversion-dev \
+  check \
+  cmake \
+  curl \
+  git \
   libboost-chrono-dev \
   libboost-context-dev \
   libboost-program-options-dev \
   libboost-filesystem-dev \
   libboost-regex-dev \
-  check \
-  libssl-dev \
-  libsctp-dev \
-  libtspi-dev \
+  libc++-dev \
   libconfig-dev \
-  libgmp3-dev \
+  libcurl4-openssl-dev \
   libczmq-dev \
-  libsqlite3-dev
+  libdouble-conversion-dev \
+  libgflags-dev \
+  libgmp3-dev \
+  libgoogle-glog-dev \
+  libmnl-dev \
+  libpcap-dev \
+  libprotoc-dev \
+  libsctp-dev \
+  libsqlite3-dev \
+  libssl-dev \
+  libtspi-dev \
+  libtool \
+  libxml2-dev \
+  libxslt-dev \
+  libyaml-cpp-dev \
+  ninja-build \
+  nlohmann-json3-dev \
+  pkg-config \
+  protobuf-compiler \
+  python3-pip \
+  sudo \
+  unzip \
+  uuid-dev \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
 RUN apt-get update && apt-get install -y \
+  grpc-dev \
   libfolly-dev \
+  liblfds710 \
+  magma-cpp-redis \
+  magma-libfluid \
   oai-asn1c \
   oai-freediameter \
   oai-gnutls \
   oai-nettle \
-  magma-cpp-redis \
-  magma-libfluid \
-  grpc-dev \
   prometheus-cpp-dev \
-  liblfds710
-RUN rm /etc/apt/sources.list.d/magma.list
+  && rm -rf /var/lib/apt/lists/* \
+  && rm /etc/apt/sources.list.d/magma.list
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -169,35 +170,36 @@ ENV TZ=Europe/Paris
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-  apt-utils \
   apt-transport-https \
+  apt-utils \
   ca-certificates \
-  wget \
   gnupg \
-  sudo \
-  netcat \
-  libyaml-cpp-dev \
-  libgoogle-glog-dev \
-  libprotoc-dev \
-  libmnl-dev \
-  libsctp-dev \
-  psmisc \
-  openssl \
-  net-tools \
-  tshark \
-  tzdata \
   iproute2 \
   iptables \
+  libgoogle-glog-dev \
+  libmnl-dev \
+  libprotoc-dev \
+  libsctp-dev \
   libtspi1 \
+  libyaml-cpp-dev \
+  net-tools \
+  netcat \
+  openssl \
+  psmisc \
+  sudo \
+  tshark \
+  tzdata \
+  wget \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
 RUN apt-get update && apt-get install -y \
   libopenvswitch \
-  openvswitch-datapath-dkms \
   openvswitch-common \
-  openvswitch-switch
+  openvswitch-datapath-dkms \
+  openvswitch-switch \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
 COPY --from=builder /usr/lib/"${CPU_ARCH}"-linux-gnu/liblsan.so.0 /usr/lib/"${CPU_ARCH}"-linux-gnu/

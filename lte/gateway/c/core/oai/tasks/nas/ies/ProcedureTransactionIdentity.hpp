@@ -19,6 +19,8 @@
 #define PROCEDURE_TRANSACTION_IDENTITY_H_
 #include <stdint.h>
 
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+
 #define PROCEDURE_TRANSACTION_IDENTITY_MINIMUM_LENGTH 1
 #define PROCEDURE_TRANSACTION_IDENTITY_MAXIMUM_LENGTH 1
 

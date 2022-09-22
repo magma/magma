@@ -86,12 +86,10 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
         wait_time = 0.3
         time.sleep(wait_time)
         print('************************* Restarting MME service on', 'gateway')
-        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
-
-        wait_time = 20
-        for j in range(wait_time, 0, -1):
-            print('Waiting for', j, 'seconds')
-            time.sleep(1)
+        wait_for_restart = 20
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         print(
             '************************* Running UE downlink (UDP) for UE id ',

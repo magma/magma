@@ -22,7 +22,6 @@ add_library(TASK_SGW
     pgw_pco.cpp
     mobilityd_ue_ip_address_alloc.cpp
     sgw_paging.cpp
-    pgw_pcef_emulation.cpp
     pgw_procedures.cpp
     spgw_state.cpp
     spgw_state_manager.cpp

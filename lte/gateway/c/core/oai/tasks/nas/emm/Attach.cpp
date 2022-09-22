@@ -54,9 +54,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,6 +68,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/common/common_ies.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
@@ -78,6 +78,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -839,11 +840,13 @@ status_code_e emm_proc_attach_complete(
  */
 
 void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc) {
-  ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t)emm_attach_abort;
-  ((nas_base_proc_t*)attach_proc)->fail_in = NULL;
-  ((nas_base_proc_t*)attach_proc)->time_out =
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->abort =
+      (proc_abort_t)emm_attach_abort;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_in = NULL;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->time_out =
       (time_out_t)mme_app_handle_emm_attach_t3450_expiry;
-  ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
+  (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_out =
+      _emm_attach_reject;
 }
 
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
@@ -873,11 +876,14 @@ static void emm_proc_create_procedure_attach_request(
   if ((attach_proc)) {
     attach_proc->ies = ies;
     attach_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
-    ((nas_base_proc_t*)attach_proc)->abort = (proc_abort_t)emm_attach_abort;
-    ((nas_base_proc_t*)attach_proc)->fail_in = NULL;  // No parent procedure
-    ((nas_base_proc_t*)attach_proc)->time_out =
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->abort =
+        (proc_abort_t)emm_attach_abort;
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_in =
+        NULL;  // No parent procedure
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->time_out =
         (time_out_t)mme_app_handle_emm_attach_t3450_expiry;
-    ((nas_base_proc_t*)attach_proc)->fail_out = _emm_attach_reject;
+    (reinterpret_cast<nas_base_proc_t*>(attach_proc))->fail_out =
+        _emm_attach_reject;
   }
 }
 /*
@@ -1152,13 +1158,15 @@ static status_code_e emm_attach_run_procedure(emm_context_t* emm_context) {
       } else {
         // force identification, even if not necessary
         rc = emm_proc_identification(
-            emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMSI,
+            emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+            IDENTITY_TYPE_2_IMSI,
             (success_cb_t)emm_attach_success_identification_cb,
             (failure_cb_t)emm_attach_failure_identification_cb);
       }
     } else if (attach_proc->ies->guti) {
       rc = emm_proc_identification(
-          emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMSI,
+          emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+          IDENTITY_TYPE_2_IMSI,
           (success_cb_t)emm_attach_success_identification_cb,
           (failure_cb_t)emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
@@ -1359,7 +1367,8 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
     OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_context->_imsi64,
                     "Trigger identity procedure\n");
     rc = emm_proc_identification(
-        emm_context, (nas_emm_proc_t*)attach_proc, IDENTITY_TYPE_2_IMEISV,
+        emm_context, reinterpret_cast<nas_emm_proc_t*>(attach_proc),
+        IDENTITY_TYPE_2_IMEISV,
         (success_cb_t)emm_attach_identification_after_smc_success_cb,
         (failure_cb_t)emm_attach_failure_identification_cb);
 
@@ -1655,6 +1664,7 @@ static status_code_e emm_send_attach_accept(emm_context_t* emm_context) {
         guti_t old_guti = emm_context->_old_guti;
         guti_t guti = {};
         clear_guti(&guti);
+        guti.m_tmsi = INVALID_M_TMSI;
 
         rc = mme_api_new_guti(&emm_context->_imsi, &old_guti, &guti,
                               &emm_context->originating_tai,

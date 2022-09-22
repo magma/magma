@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AccessPointName.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AccessPointName.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>

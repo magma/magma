@@ -84,12 +84,6 @@ void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p);
  */
 void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
 /**
- * Callback function for pcc_rule hashtables freefunc
- * @param rule pcc_rule entry on hashtable
- */
-void pgw_free_pcc_rule(void** rule);
-
-/**
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
