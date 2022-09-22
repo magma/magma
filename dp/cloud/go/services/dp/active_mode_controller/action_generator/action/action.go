@@ -20,22 +20,35 @@ import (
 	"magma/dp/cloud/go/services/dp/storage/db"
 )
 
-type Delete struct {
+type Action interface {
+	Do(sq.BaseRunner, storage.AmcManager) error
+}
+
+type DeleteCbsd struct {
 	Id int64
 }
 
-func (d *Delete) Do(runner sq.BaseRunner, manager storage.AmcManager) error {
+func (d *DeleteCbsd) Do(runner sq.BaseRunner, manager storage.AmcManager) error {
 	cbsd := &storage.DBCbsd{Id: db.MakeInt(d.Id)}
 	return manager.DeleteCbsd(runner, cbsd)
 }
 
-type Update struct {
+type UpdateCbsd struct {
 	Data *storage.DBCbsd
 	Mask db.FieldMask
 }
 
-func (u *Update) Do(runner sq.BaseRunner, manager storage.AmcManager) error {
+func (u *UpdateCbsd) Do(runner sq.BaseRunner, manager storage.AmcManager) error {
 	return manager.UpdateCbsd(runner, u.Data, u.Mask)
+}
+
+type DeleteGrant struct {
+	Id int64
+}
+
+func (d *DeleteGrant) Do(runner sq.BaseRunner, manager storage.AmcManager) error {
+	grant := &storage.DBGrant{Id: db.MakeInt(d.Id)}
+	return manager.DeleteGrant(runner, grant)
 }
 
 type Request struct {

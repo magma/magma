@@ -16,8 +16,12 @@ package grant
 import (
 	"math/bits"
 
+	"golang.org/x/exp/slices"
+
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/frequency"
 	"magma/dp/cloud/go/services/dp/storage"
+	"magma/dp/cloud/go/services/dp/storage/db"
 )
 
 type Processor[T any] interface {
@@ -113,4 +117,34 @@ func processTypedGrants[T any](processor Processor[T], grants uint32, bandwidthH
 
 func maskToHz(mask uint32) int64 {
 	return int64(bits.TrailingZeros32(mask))*unitToHz + frequency.LowestHz
+}
+
+func RemoveIdleGrants(cbsd *storage.DetailedCbsd) []action.Action {
+	var actions []action.Action
+	var notIdleGrants []*storage.DetailedGrant
+
+	for _, gt := range cbsd.Grants {
+		if gt.GrantState.Name.String != "idle" {
+			notIdleGrants = append(notIdleGrants, gt)
+			continue
+		}
+
+		newFrequencies := UnsetGrantFrequency(cbsd.Cbsd, gt.Grant)
+		if !slices.Equal(newFrequencies, cbsd.Cbsd.AvailableFrequencies) {
+			cbsd.Cbsd.AvailableFrequencies = newFrequencies
+
+			data := &storage.DBCbsd{
+				Id:                   cbsd.Cbsd.Id,
+				AvailableFrequencies: newFrequencies,
+			}
+			mask := db.NewIncludeMask("available_frequencies")
+			actions = append(actions, &action.UpdateCbsd{Data: data, Mask: mask})
+		}
+
+		actDelGrat := &action.DeleteGrant{Id: gt.Grant.Id.Int64}
+		actions = append(actions, actDelGrat)
+	}
+
+	cbsd.Grants = notIdleGrants
+	return actions
 }
