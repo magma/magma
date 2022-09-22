@@ -44,14 +44,14 @@ func TestRequest(t *testing.T) {
 	assert.Equal(t, m.request, data)
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateCbsd(t *testing.T) {
 	m := &stubAmcManager{}
 	data := &storage.DBCbsd{
 		AvailableFrequencies: []uint32{1, 2, 3, 4},
 	}
 	mask := db.NewIncludeMask("available_frequencies")
 
-	a := action.Update{Data: data, Mask: mask}
+	a := action.UpdateCbsd{Data: data, Mask: mask}
 	require.NoError(t, a.Do(nil, m))
 
 	assert.Equal(t, m.action, updateCbsd)
@@ -59,14 +59,24 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, m.mask, mask)
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteCbsd(t *testing.T) {
 	m := &stubAmcManager{}
 
-	a := action.Delete{Id: 123}
+	a := action.DeleteCbsd{Id: 123}
 	require.NoError(t, a.Do(nil, m))
 
 	assert.Equal(t, m.action, deleteCbsd)
 	assert.Equal(t, &storage.DBCbsd{Id: db.MakeInt(123)}, m.cbsd)
+}
+
+func TestDeleteGrant(t *testing.T) {
+	m := &stubAmcManager{}
+
+	a := action.DeleteGrant{Id: 123}
+	require.NoError(t, a.Do(nil, m))
+
+	assert.Equal(t, m.action, deleteGrant)
+	assert.Equal(t, &storage.DBGrant{Id: db.MakeInt(123)}, m.grant)
 }
 
 type actionType uint8
@@ -75,12 +85,14 @@ const (
 	createRequest actionType = iota
 	deleteCbsd
 	updateCbsd
+	deleteGrant
 )
 
 type stubAmcManager struct {
 	action  actionType
 	request *storage.MutableRequest
 	cbsd    *storage.DBCbsd
+	grant   *storage.DBGrant
 	mask    db.FieldMask
 }
 
@@ -97,6 +109,12 @@ func (s *stubAmcManager) CreateRequest(_ squirrel.BaseRunner, request *storage.M
 func (s *stubAmcManager) DeleteCbsd(_ squirrel.BaseRunner, cbsd *storage.DBCbsd) error {
 	s.action = deleteCbsd
 	s.cbsd = cbsd
+	return nil
+}
+
+func (s *stubAmcManager) DeleteGrant(_ squirrel.BaseRunner, grant *storage.DBGrant) error {
+	s.action = deleteGrant
+	s.grant = grant
 	return nil
 }
 
