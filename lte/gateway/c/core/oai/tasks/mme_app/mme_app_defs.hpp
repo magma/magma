@@ -32,7 +32,14 @@
 
 #include <czmq.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
@@ -267,7 +274,7 @@ status_code_e mme_app_handle_sgsap_reset_indication(
 
 status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
 
-status_code_e mme_app_handle_reset_indication(const hash_key_t keyP,
+bool mme_app_handle_reset_indication(const hash_key_t keyP,
                                      void* const ue_context_pP,
                                      void* unused_param_pP,
                                      void** unused_result_pP);
@@ -308,7 +315,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_nw_init_actv_bearer_request_t* nw_init_bearer_actv_req_p);
 
-int mme_app_handle_sgs_status_message(mme_app_desc_t* mme_app_desc_p,
+status_code_e mme_app_handle_sgs_status_message(mme_app_desc_t* mme_app_desc_p,
                                       itti_sgsap_status_t* sgsap_status_pP);
 
 #ifdef __cplusplus

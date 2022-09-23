@@ -18,9 +18,16 @@
 #ifndef FILE_MME_APP_EDNS_EMULATION_SEEN
 #define FILE_MME_APP_EDNS_EMULATION_SEEN
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/mme_config.h"
 
 struct in_addr;
 /*! \file mme_app_edns_emulation.hpp

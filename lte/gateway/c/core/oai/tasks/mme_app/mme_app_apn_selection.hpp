@@ -38,8 +38,15 @@
 #ifndef FILE_MME_APP_APN_SELECTION_SEEN
 #define FILE_MME_APP_APN_SELECTION_SEEN
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 

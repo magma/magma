@@ -26,13 +26,20 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
@@ -61,7 +68,7 @@ bearer_context_t* mme_app_create_bearer_context(
     return NULL;
   }
 
-  bearer_context_t* bearer_context = reinterpret_cast<bearer_context_t>(malloc(sizeof(*bearer_context)));
+  bearer_context_t* bearer_context = reinterpret_cast<bearer_context_t*>(malloc(sizeof(*bearer_context)));
 
   if (bearer_context) {
     mme_app_bearer_context_init(bearer_context);

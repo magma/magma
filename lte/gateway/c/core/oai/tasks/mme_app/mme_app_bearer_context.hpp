@@ -40,9 +40,16 @@
 
 #include <stdbool.h>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 
 typedef uint8_t mme_app_bearer_state_t;

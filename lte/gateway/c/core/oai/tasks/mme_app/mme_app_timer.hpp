@@ -20,10 +20,17 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 #define MME_APP_TIMER_INACTIVE_ID (-1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int mme_app_start_timer_arg(size_t msec, timer_repeat_t repeat,
                             zloop_timer_fn handler, timer_arg_t* arg);
 

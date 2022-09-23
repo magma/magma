@@ -24,18 +24,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.hpp"
 
@@ -71,7 +78,7 @@ mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
   mme_app_s11_proc_t* s11_proc = (mme_app_s11_proc_t*)s11_proc_create_bearer;
 
   if (!ue_context_p->s11_procedures) {
-    ue_context_p->s11_procedures = calloc(1, sizeof(struct s11_procedures_s));
+    ue_context_p->s11_procedures = reinterpret_cast<ue_mm_context_s::s11_procedures_s*>(calloc(1, sizeof(ue_mm_context_s::s11_procedures_s)));
     LIST_INIT(ue_context_p->s11_procedures);
   }
   LIST_INSERT_HEAD((ue_context_p->s11_procedures), s11_proc, entries);

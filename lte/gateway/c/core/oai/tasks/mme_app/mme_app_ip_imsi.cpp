@@ -14,7 +14,7 @@ limitations under the License.
 #include <unordered_map>
 #include <iostream>
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ueip_imsi_map.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ueip_imsi_map.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 
 using magma::lte::MmeNasStateManager;
