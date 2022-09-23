@@ -592,7 +592,7 @@ def get_test_logs(
         '/var/log/openvswitch/ovs*.log',
     ]
     test_files = ['/var/log/syslog', '/tmp/fw/']
-    trf_files = ['/home/admin/nohup.out']
+    trf_files = ['/home/vagrant/trfserver.log']
 
     # Set up to enter the gateway host
     env.host_string = gateway_host
@@ -801,33 +801,18 @@ def _set_service_config_var(service, var_name, value):
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    # disable-tcp-checksumming
-    # trfgen-server non daemon
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
-    # set tty on cbreak mode as background ssh process breaks indentation
-    local(
-        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' sh -c "sudo ethtool --offload eth1 rx off tx off; '
-        '";'
-        % (key, host, port),
-    )
-    local(
-        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' sh -c "sudo ethtool --offload eth2 rx off tx off; '
-        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
-        % (key, host, port),
-    )
-    local(
-        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' sh -c "'
-        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
-        % (key, host, port),
-    )
+
+    def _call_trfserver_ssh_command(cmd):
+        local(
+            f'ssh -f -i {key} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -tt {host} -p {port} "{cmd}"',
+        )
+
+    _call_trfserver_ssh_command('sudo ethtool --offload eth1 rx off tx off')
+    _call_trfserver_ssh_command('sudo ethtool --offload eth2 rx off tx off')
+    _call_trfserver_ssh_command('nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > trfserver.log 2>&1')
 
 
 def _make_integ_tests():
