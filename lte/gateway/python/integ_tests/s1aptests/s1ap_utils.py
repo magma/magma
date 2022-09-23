@@ -1161,6 +1161,26 @@ class MagmadUtil(object):
             result_str = e.output
         return result_str
 
+    def get_service_name_from_init_system(self, service):
+        """Get the correct service name depending on the init system
+
+        Args:
+            service: (str) service name
+
+        Returns:
+            (str) service name
+        """
+        if self._init_system == InitMode.SYSTEMD:
+            if service == "sctpd":
+                return "sctpd"
+            else:
+                return f"magma@{service}"
+        elif self._init_system == InitMode.DOCKER:
+            if service == "mme":
+                return "oai_mme"
+            else:
+                return service
+
     def update_mme_config_for_sanity(self, cmd):
         """Update MME configuration for all sanity test cases"""
         mme_config_update_script = (
