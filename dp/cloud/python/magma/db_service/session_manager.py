@@ -26,7 +26,7 @@ class SessionManager(object):
     """
 
     def __init__(self, db_engine: Engine):
-        self.session_factory = sessionmaker(bind=db_engine)
+        self.session_factory = sessionmaker(bind=db_engine, autoflush=False)
 
     @contextmanager
     def session_scope(self) -> Session:

@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import threading
 from json.decoder import JSONDecodeError
 from typing import Callable, List
 
@@ -42,12 +43,16 @@ class ResponseDBProcessor(object):
         response_type: str,
         process_responses_func: Callable,
         fluentd_client: FluentdClient,
+        grant_states_map,
+        cbsd_states_map,
     ):
         self.response_type = response_type
         self.process_responses_func = process_responses_func
         self.grant_states_map = {}
         self.request_states_map = {}
         self.fluentd_client = fluentd_client
+        self.grant_states_map = grant_states_map
+        self.cbsd_states_map = cbsd_states_map
 
     @SAS_RESPONSE_PROCESSING_TIME.time()
     def process_response(self, db_requests: List[DBRequest], response: requests.Response, session: Session) -> None:
@@ -64,19 +69,14 @@ class ResponseDBProcessor(object):
         """
         try:
             logger.debug(
-                f"[{self.response_type}] Processing requests: {db_requests} using response {response.json()}",
+                f"[{self.response_type}] Processing requests using SAS response",
             )
-            self._populate_grant_states_map(session)
             self._process_responses(db_requests, response, session)
         except JSONDecodeError:
             logger.warning(
                 f"[{self.response_type}] Cannot update requests from SAS reply: {response.content}",
             )
             return
-
-    def _populate_grant_states_map(self, session):
-        grant_states = session.query(DBGrantState).all()
-        self.grant_states_map = {gs.name: gs for gs in grant_states}
 
     def _process_responses(
             self,
@@ -86,10 +86,6 @@ class ResponseDBProcessor(object):
     ) -> None:
 
         response_json_list = sas_response.json().get(self.response_type, [])
-        logger.debug(
-            f"[{self.response_type}] requests json list: {response_json_list}",
-        )
-
         no_of_requests = len(db_requests)
         no_of_responses = len(response_json_list)
         if no_of_responses != no_of_requests:
@@ -98,29 +94,28 @@ class ResponseDBProcessor(object):
             )
         log_list = []
         for response_json, db_request in zip(response_json_list, db_requests):
-            response_type = next(iter(response_json))
             db_response = DBResponse(
                 response_code=int(response_json["response"]["responseCode"]),
                 payload=response_json,
                 request=db_request,
             )
-            logger.info(
-                f"[{self.response_type}] Adding Response: {db_response} for Request {db_request}",
-            )
             log_list.append(make_dp_log(db_response))
-            logger.debug(
-                f'[{self.response_type}] About to process Response: {db_response}',
-            )
+            logger.debug(f'[{self.response_type}] About to process Response: {db_response}')
             self._process_response(db_response, session)
             self._process_request(session, db_request)
         if log_list:
             self._log_responses(log_list=log_list)
 
     def _log_responses(self, log_list: List[DPLog]):
-        try:
-            self.fluentd_client.send_dp_logs_batch(log_list)
-        except (FluentdClientException, TypeError) as err:
-            logging.error(f"Failed to log responses. {err}")
+        def _log():
+            try:
+                self.fluentd_client.send_dp_logs_batch(log_list)
+            except (FluentdClientException, TypeError) as err:
+                logging.error(f"Failed to log responses. {err}")
+
+        thread = threading.Thread(target=_log)
+        thread.daemon = True
+        thread.start()
 
     def _process_response(self, response: DBResponse, session: Session) -> None:
         self.process_responses_func(self, response, session)

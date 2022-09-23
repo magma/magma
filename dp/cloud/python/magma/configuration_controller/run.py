@@ -12,7 +12,9 @@ limitations under the License.
 """
 
 import logging
+import threading
 import time
+from datetime import datetime
 from typing import Optional
 
 import click
@@ -41,6 +43,7 @@ from magma.configuration_controller.response_processor.response_db_processor imp
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
 )
+from magma.db_service.models import DBCbsdState, DBGrantState, DBRequestType
 from magma.db_service.session_manager import SessionManager
 from magma.fluentd_client.client import FluentdClient, FluentdClientException
 from magma.fluentd_client.dp_logs import make_dp_log
@@ -83,6 +86,11 @@ def run():
         max_overflow=config.SQLALCHEMY_ENGINE_MAX_OVERFLOW,
     )
     session_manager = SessionManager(db_engine=db_engine)
+    with session_manager.session_scope() as session:
+        grant_states = session.query(DBGrantState).all()
+        grant_states_map = {gs.name: gs.id for gs in grant_states}
+        cbsd_states = session.query(DBCbsdState).all()
+        cbsd_states_map = {cs.name: cs.id for cs in cbsd_states}
     ssl_validator = CRLValidator(urls=[config.SAS_URL])
     router = RequestRouter(
         sas_url=config.SAS_URL,
@@ -107,6 +115,8 @@ def run():
             response_type=response_type,
             process_responses_func=processor_strategies[req_type]["process_responses"],
             fluentd_client=fluentd_client,
+            grant_states_map=grant_states_map,
+            cbsd_states_map=cbsd_states_map,
         )
 
         scheduler.add_job(
@@ -152,7 +162,7 @@ def process_requests(
     """
     Process SAS requests
     """
-
+    start = datetime.now()
     with session_manager.session_scope() as session:
         requests_map = consumer.get_pending_requests(session)
         requests_type = next(iter(requests_map))
@@ -163,38 +173,41 @@ def process_requests(
             return None
 
         no_of_requests = len(requests_list)
-        logger.info(
+        logger.debug(
             f'Processing {no_of_requests} {requests_type} requests',
         )
         bulked_sas_requests = merge_requests(requests_map)
 
-        _log_requests_map(requests_map, fluentd_client)
+        _log_requests_map(requests_map, fluentd_client, requests_type)
         try:
             sas_response = router.post_to_sas(bulked_sas_requests)
-            logger.debug(
-                f"Sent {bulked_sas_requests} to SAS and got the following response: {sas_response.content}",
-            )
         except RequestRouterError as e:
-            logging.error(f"Error posting request to SAS: {e}")
+            logger.error(f"Error posting request to SAS: {e}")
             return None
 
         logger.debug(f"About to process responses {sas_response=}")
         processor.process_response(requests_list, sas_response, session)
 
         session.commit()
+        took = (datetime.now() - start).total_seconds()
+        logger.debug(f"processing {requests_type} requests took {took}")
 
         return sas_response
 
 
-def _log_requests_map(requests_map: dict, fluentd_client: FluentdClient):
-    requests_type = next(iter(requests_map))
-    log_list = []
-    for request in requests_map[requests_type]:
-        log_list.append(make_dp_log(request))
-    try:
-        fluentd_client.send_dp_logs_batch(log_list)
-    except (FluentdClientException, TypeError) as err:
-        logging.error(f"Failed to log {requests_type} requests. {err}")
+def _log_requests_map(requests_map: dict, fluentd_client: FluentdClient, requests_type: str):
+    def _log():
+        log_list = []
+        for request in requests_map[requests_type]:
+            log_list.append(make_dp_log(request))
+        try:
+            fluentd_client.send_dp_logs_batch(log_list)
+        except (FluentdClientException, TypeError) as err:
+            logger.error(f"Failed to log {requests_type} requests. {err}")
+
+    thread = threading.Thread(target=_log)
+    thread.daemon = True
+    thread.start()
 
 
 if __name__ == '__main__':

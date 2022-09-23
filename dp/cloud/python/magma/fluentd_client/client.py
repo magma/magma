@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from typing import List, Optional
 
 import requests
@@ -96,7 +97,5 @@ class FluentdClient(object):
         Raises:
             FluentdClientException: Generic Fluentd Client Exception
         """
-        logger.debug(f"Sending logs batch to Fluentd")
         fluentd_payload = [asdict(log) for log in log_list]
-        resp = self._send_to_fluentd(payload=fluentd_payload)
-        logger.debug(f"Sent logs batch to Fluentd. Response code = {resp.status_code}")
+        self._send_to_fluentd(payload=fluentd_payload)
