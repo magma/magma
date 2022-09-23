@@ -49,56 +49,49 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
             "UE id ", req.ue_id,
         )
 
-        for s in services_state_dict:
-            # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
-                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t,
-            )
+        self._s1ap_wrapper._s1_util.attach(
+            req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t,
+        )
 
-            # Wait on EMM Information from MME
-            self._s1ap_wrapper._s1_util.receive_emm_info()
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
 
-            print("************************* Corrupting %s state" % s)
-            self._s1ap_wrapper.magmad_util.corrupt_agw_state(
-                services_state_dict[s],
-            )
+        print("************************* Corrupting sctpd state")
+        self._s1ap_wrapper.magmad_util.corrupt_agw_state("sctpd")
 
-            print("************************* Restarting %s service" % s)
-            wait_for_restart = 100
-            self._s1ap_wrapper.magmad_util.restart_services(
-                [s], wait_for_restart,
-            )
+        print("************************* Restarting %s service sctpd")
+        self._s1ap_wrapper.magmad_util.restart_services(["sctpd"], wait_time=60)
 
-            # Re-establish S1 connection between eNB and MME
-            self._s1ap_wrapper._s1setup()
+        # Re-establish S1 connection between eNB and MME
+        self._s1ap_wrapper._s1setup()
 
-            print(
-                "************************* Re-running End to End attach for ",
-                "UE id ",
-                req.ue_id,
-            )
+        print(
+            "************************* Re-running End to End attach for ",
+            "UE id ",
+            req.ue_id,
+        )
 
-            # Repeat the attach
-            self._s1ap_wrapper._s1_util.attach(
-                req.ue_id,
-                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t,
-            )
+        # Repeat the attach
+        self._s1ap_wrapper._s1_util.attach(
+            req.ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t,
+        )
 
-            # Wait on EMM Information from MME
-            self._s1ap_wrapper._s1_util.receive_emm_info()
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
 
-            # Now detach the UE
-            print(
-                "************************* Running UE detach for UE id ",
-                req.ue_id,
-            )
-            self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type, wait_for_s1,
-            )
+        # Now detach the UE
+        print(
+            "************************* Running UE detach for UE id ",
+            req.ue_id,
+        )
+        self._s1ap_wrapper.s1_util.detach(
+            req.ue_id, detach_type, wait_for_s1,
+        )
 
 
 if __name__ == "__main__":
