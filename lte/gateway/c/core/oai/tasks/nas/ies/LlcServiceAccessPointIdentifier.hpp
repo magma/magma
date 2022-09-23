@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef LLC_SERVICE_ACCESS_POINT_IDENTIFIER_H_
-#define LLC_SERVICE_ACCESS_POINT_IDENTIFIER_H_
+#pragma once
+
 #include <stdint.h>
 
 #define LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MINIMUM_LENGTH 2
@@ -35,5 +35,3 @@ void dump_llc_service_access_point_identifier_xml(
 int decode_llc_service_access_point_identifier(
     LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
     uint8_t iei, uint8_t* buffer, uint32_t len);
-
-#endif /* LLC SERVICE ACCESS POINT IDENTIFIER_H_ */

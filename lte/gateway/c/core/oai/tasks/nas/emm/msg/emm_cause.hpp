@@ -33,8 +33,8 @@ Description Defines error cause code returned upon receiving unknown,
     data.
 
 *****************************************************************************/
-#ifndef FILE_EMM_CAUSE_H_SEEN
-#define FILE_EMM_CAUSE_H_SEEN
+
+#pragma once
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -45,5 +45,3 @@ Description Defines error cause code returned upon receiving unknown,
  * has been successfully processed
  */
 #define EMM_CAUSE_SUCCESS (255)
-
-#endif /* FILE_EMM_CAUSE_H_SEEN*/

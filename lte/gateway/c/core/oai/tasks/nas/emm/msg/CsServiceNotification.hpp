@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_CS_SERVICE_NOTIFICATION_SEEN
-#define FILE_CS_SERVICE_NOTIFICATION_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -85,5 +84,3 @@ int decode_cs_service_notification(
 int encode_cs_service_notification(
     cs_service_notification_msg* csservicenotification, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_CS_SERVICE_NOTIFICATION_SEEN) */

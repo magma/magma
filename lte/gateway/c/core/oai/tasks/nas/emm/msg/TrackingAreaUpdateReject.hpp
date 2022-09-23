@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_TRACKING_AREA_UPDATE_REJECT_SEEN
-#define FILE_TRACKING_AREA_UPDATE_REJECT_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
@@ -54,5 +54,3 @@ int decode_tracking_area_update_reject(
 int encode_tracking_area_update_reject(
     tracking_area_update_reject_msg* trackingareaupdatereject, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_TRACKING_AREA_UPDATE_REJECT_SEEN) */

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef QUALITY_OF_SERVICE_H_
-#define QUALITY_OF_SERVICE_H_
+#pragma once
+
 #include <stdint.h>
 
 #define QUALITY_OF_SERVICE_MINIMUM_LENGTH 14
@@ -52,5 +52,3 @@ int decode_quality_of_service(QualityOfService* qualityofservice, uint8_t iei,
 
 void dump_quality_of_service_xml(QualityOfService* qualityofservice,
                                  uint8_t iei);
-
-#endif /* QUALITY OF SERVICE_H_ */

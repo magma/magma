@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NONCE_SEEN
-#define NONCE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -34,5 +33,3 @@ int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* NONCE_SEEN */

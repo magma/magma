@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef DETACH_TYPE_SEEN
-#define DETACH_TYPE_SEEN
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -52,5 +51,3 @@ int decode_u8_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t value,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* DETACH_TYPE_SEEN */

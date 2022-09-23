@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_AUTHENTICATION_REJECT_SEEN
-#define FILE_AUTHENTICATION_REJECT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -53,5 +52,3 @@ int decode_authentication_reject(
 int encode_authentication_reject(
     authentication_reject_msg* authenticationreject, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_AUTHENTICATION_REJECT_SEEN) */

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef CSFB_RESPONSE_SEEN
-#define CSFB_RESPONSE_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #define CSFB_RESPONSE_MINIMUM_LENGTH 1
@@ -50,5 +50,3 @@ int decode_u8_csfb_response(csfb_response_t* csfbresponse, uint8_t iei,
  */
 
 typedef enum { CSFB_REJECTED_BY_UE, CSFB_ACCEPTED_BY_UE } Csfb_response;
-
-#endif /* CSFB_RESPONSE_SEEN */

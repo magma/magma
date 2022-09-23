@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef P_TMSI_SIGNATURE_H_
-#define P_TMSI_SIGNATURE_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -32,5 +32,3 @@ void dump_p_tmsi_signature_xml(PTmsiSignature ptmsisignature, uint8_t iei);
 
 int decode_p_tmsi_signature(PTmsiSignature* ptmsisignature, uint8_t iei,
                             uint8_t* buffer, uint32_t len);
-
-#endif /* P TMSI SIGNATURE_H_ */

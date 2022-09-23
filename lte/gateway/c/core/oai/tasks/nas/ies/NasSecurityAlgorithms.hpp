@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NAS_SECURITY_ALGORITHMS_SEEN
-#define NAS_SECURITY_ALGORITHMS_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #define NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH 1
@@ -54,4 +54,3 @@ int decode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
 #ifdef __cplusplus
 }
 #endif
-#endif /* NAS SECURITY ALGORITHMS_SEEN */

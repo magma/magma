@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SUPPORTED_CODEC_LIST_H_
-#define SUPPORTED_CODEC_LIST_H_
+#pragma once
+
 #include <stdint.h>
 
 #define SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION \
@@ -40,5 +40,3 @@ int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
 
 void dump_supported_codec_list_xml(SupportedCodecList* supportedcodeclist,
                                    uint8_t iei);
-
-#endif /* SUPPORTED CODEC LIST_H_ */

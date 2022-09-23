@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_MESSAGE_CONTAINER_SEEN
-#define ESM_MESSAGE_CONTAINER_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -47,5 +47,3 @@ int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* ESM_MESSAGE_CONTAINER_SEEN */

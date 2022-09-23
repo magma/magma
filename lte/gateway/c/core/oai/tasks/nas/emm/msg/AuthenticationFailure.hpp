@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_AUTHENTICATION_FAILURE_SEEN
-#define FILE_AUTHENTICATION_FAILURE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -69,5 +68,3 @@ int decode_authentication_failure(
 int encode_authentication_failure(
     authentication_failure_msg* authenticationfailure, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_AUTHENTICATION_FAILURE_SEEN) */

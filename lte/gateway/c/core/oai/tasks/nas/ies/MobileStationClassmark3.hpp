@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MOBILE_STATION_CLASSMARK_3_H_
-#define MOBILE_STATION_CLASSMARK_3_H_
+#pragma once
+
 #include <stdint.h>
 
 #define MOBILE_STATION_CLASSMARK_3_MINIMUM_LENGTH 1
@@ -36,5 +36,3 @@ void dump_mobile_station_classmark_3_xml(
 int decode_mobile_station_classmark_3(
     MobileStationClassmark3* mobilestationclassmark3, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
-#endif /* MOBILE STATION CLASSMARK 3_H_ */

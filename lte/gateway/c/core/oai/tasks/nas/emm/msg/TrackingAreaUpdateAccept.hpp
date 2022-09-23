@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN
-#define FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -132,5 +131,3 @@ int encode_tracking_area_update_accept(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* ! defined(FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN) */

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MOBILE_IDENTITY_H_
-#define MOBILE_IDENTITY_H_
+#pragma once
+
 #include <stdint.h>
 
 #define MOBILE_IDENTITY_MINIMUM_LENGTH 3
@@ -132,5 +132,3 @@ int decode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
                            uint8_t* buffer, uint32_t len);
 
 void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei);
-
-#endif /* MOBILE IDENTITY_H_ */

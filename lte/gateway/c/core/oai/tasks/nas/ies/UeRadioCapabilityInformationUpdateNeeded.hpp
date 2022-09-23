@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef UE_RADIO_CAPABILITY_INFORMATION_UPDATE_NEEDED_SEEN
-#define UE_RADIO_CAPABILITY_INFORMATION_UPDATE_NEEDED_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -49,4 +48,3 @@ int decode_u8_ue_radio_capability_information_update_needed(
 #ifdef __cplusplus
 }
 #endif
-#endif /* UE RADIO CAPABILITY INFORMATION UPDATE NEEDED_SEEN */

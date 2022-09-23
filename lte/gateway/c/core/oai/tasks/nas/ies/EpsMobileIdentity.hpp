@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_MOBILE_IDENTITY_SEEN
-#define EPS_MOBILE_IDENTITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -87,5 +86,3 @@ int decode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* EPS_MOBILE_IDENTITY_SEEN */

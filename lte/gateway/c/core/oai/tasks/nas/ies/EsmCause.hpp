@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_CAUSE_SEEN
-#define ESM_CAUSE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -31,5 +30,3 @@ int encode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
 
 int decode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
                      uint32_t len);
-
-#endif /* ESM CAUSE_SEEN */

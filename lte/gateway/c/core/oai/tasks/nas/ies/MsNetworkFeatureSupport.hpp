@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MS_NETWORK_FEATURE_SUPPORT_H_
-#define MS_NETWORK_FEATURE_SUPPORT_H_
+#pragma once
+
 #include <stdint.h>
 
 #define MS_NETWORK_FEATURE_SUPPORT_MINIMUM_LENGTH 3
@@ -37,5 +37,3 @@ int decode_ms_network_feature_support(
 
 void dump_ms_network_feature_support_xml(
     MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei);
-
-#endif /* MS NETWORK CAPABILITY_H_ */

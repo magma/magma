@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SERVICE_REQUEST_SEEN
-#define FILE_SERVICE_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -64,4 +63,3 @@ int encode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
 #ifdef __cplusplus
 }
 #endif
-#endif /* ! defined(FILE_SERVICE_REQUEST_SEEN) */

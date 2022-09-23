@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_ATTACH_REJECT_SEEN
-#define FILE_ATTACH_REJECT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -68,5 +67,3 @@ int decode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
 
 int encode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
                          uint32_t len);
-
-#endif /* ! defined(FILE_ATTACH_REJECT_SEEN) */

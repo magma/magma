@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NR_UE_SECURITY_CAPABILITY_SEEN
-#define NR_UE_SECURITY_CAPABILITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -29,5 +28,3 @@ int encode_nr_ue_security_capability(
 int decode_nr_ue_security_capability(
     nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
-#endif /* NR UE SECURITY CAPABILITY_SEEN */

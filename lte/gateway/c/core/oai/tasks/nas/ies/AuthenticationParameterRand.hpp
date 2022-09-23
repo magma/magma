@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef AUTHENTICATION_PARAMETER_RAND_H_
-#define AUTHENTICATION_PARAMETER_RAND_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -35,5 +35,3 @@ void dump_authentication_parameter_rand_xml(
 int decode_authentication_parameter_rand(
     AuthenticationParameterRand* authenticationparameterrand, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
-#endif /* AUTHENTICATION PARAMETER RAND_H_ */

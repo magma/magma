@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_UPDATE_RESULT_SEEN
-#define EPS_UPDATE_RESULT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -45,5 +44,3 @@ int decode_u8_eps_update_result(eps_update_result_t* epsupdateresult,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* EPS UPDATE RESULT_SEEN */

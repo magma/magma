@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NAS_KEY_SET_IDENTIFIER_SEEN
-#define NAS_KEY_SET_IDENTIFIER_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -48,5 +47,3 @@ int decode_u8_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* NAS KEY SET IDENTIFIER_SEEN */

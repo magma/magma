@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_BEARER_CONTEXT_STATUS_SEEN
-#define EPS_BEARER_CONTEXT_STATUS_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -38,4 +37,3 @@ int decode_eps_bearer_context_status(
 #ifdef __cplusplus
 }
 #endif
-#endif /* EPS_BEARER_CONTEXT_STATUS_SEEN */

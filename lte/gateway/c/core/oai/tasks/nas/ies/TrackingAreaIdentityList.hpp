@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef TRACKING_AREA_IDENTITY_LIST_SEEN
-#define TRACKING_AREA_IDENTITY_LIST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -65,5 +64,3 @@ int decode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* TRACKING AREA IDENTITY LIST_SEEN */

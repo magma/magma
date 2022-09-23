@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_ADDRESS_SEEN
-#define PDN_ADDRESS_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -38,5 +37,3 @@ int encode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
 
 int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
                        uint32_t len);
-
-#endif /* PDN ADDRESS_SEEN */

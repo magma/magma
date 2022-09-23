@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NAS_REQUEST_TYPE_SEEN
-#define NAS_REQUEST_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -40,5 +39,3 @@ int decode_request_type(request_type_t* requesttype, uint8_t iei,
 
 int decode_u8_request_type(request_type_t* requesttype, uint8_t iei,
                            uint8_t value, uint32_t len);
-
-#endif /* NAS_REQUEST_TYPE_SEEN */

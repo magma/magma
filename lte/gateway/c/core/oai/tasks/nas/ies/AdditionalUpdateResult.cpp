@@ -16,6 +16,7 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
+
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"

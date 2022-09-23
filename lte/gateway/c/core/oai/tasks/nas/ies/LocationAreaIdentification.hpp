@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef LOCATION_AREA_IDENTIFICATION_H_
-#define LOCATION_AREA_IDENTIFICATION_H_
+#pragma once
+
 #include <stdint.h>
 
 #define LOCATION_AREA_IDENTIFICATION_MINIMUM_LENGTH 6
@@ -42,5 +42,3 @@ void dump_location_area_identification_xml(
 int decode_location_area_identification(
     LocationAreaIdentification* locationareaidentification, uint8_t iei,
     uint8_t* buffer, uint32_t len);
-
-#endif /* LOCATION AREA IDENTIFICATION_H_ */

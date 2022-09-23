@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef LINKED_EPS_BEARER_IDENTITY_SEEN
-#define LINKED_EPS_BEARER_IDENTITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ int decode_linked_eps_bearer_identity(
 int decode_u8_linked_eps_bearer_identity(
     linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
     uint8_t value, uint32_t len);
-
-#endif /* LINKED EPS BEARER IDENTITY_SEEN */

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SECURITY_HEADER_TYPE_SEEN
-#define SECURITY_HEADER_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -30,5 +29,3 @@ int encode_security_header_type(security_header_type_t* securityheadertype,
 
 int decode_security_header_type(security_header_type_t* securityheadertype,
                                 uint8_t iei, uint8_t* buffer, uint32_t len);
-
-#endif /* SECURITY HEADER TYPE_SEEN */

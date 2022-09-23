@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef IDENTITY_TYPE_2_H_
-#define IDENTITY_TYPE_2_H_
+#pragma once
+
 #include <stdint.h>
 
 #define IDENTITY_TYPE_2_MINIMUM_LENGTH 1
@@ -40,5 +40,3 @@ int decode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
 
 int decode_u8_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
                               uint8_t value, uint32_t len);
-
-#endif /* IDENTITY TYPE 2_H_ */

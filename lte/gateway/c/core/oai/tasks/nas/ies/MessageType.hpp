@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MESSAGE_TYPE_SEEN
-#define MESSAGE_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -30,5 +29,3 @@ int encode_message_type(message_type_t* messagetype, uint8_t iei,
 
 int decode_message_type(message_type_t* messagetype, uint8_t iei,
                         uint8_t* buffer, uint32_t len);
-
-#endif /* MESSAGE TYPE_SEEN */

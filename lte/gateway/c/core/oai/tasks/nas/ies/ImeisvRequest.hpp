@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef IMEISV_REQUEST_H_
-#define IMEISV_REQUEST_H_
+#pragma once
 
 #define IMEISV_REQUEST_MINIMUM_LENGTH 1
 #define IMEISV_REQUEST_MAXIMUM_LENGTH 1
@@ -36,5 +35,3 @@ int decode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
 
 int decode_u8_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
                              uint8_t value, uint32_t len);
-
-#endif /* IMEISV REQUEST_H_ */

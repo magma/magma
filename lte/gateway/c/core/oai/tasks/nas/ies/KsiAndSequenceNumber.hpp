@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef KSI_AND_SEQUENCE_NUMBER_SEEN
-#define KSI_AND_SEQUENCE_NUMBER_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ int decode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* KSI AND SEQUENCE NUMBER_H_ */

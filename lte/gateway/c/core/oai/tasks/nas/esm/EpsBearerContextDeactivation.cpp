@@ -28,6 +28,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -425,7 +426,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, (char*)"EPS BEARER DEACTIVATE T3495 Timer");
+      ue_id, const_cast<char*>("EPS BEARER DEACTIVATE T3495 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

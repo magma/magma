@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef CLI_SEEN
-#define CLI_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -42,5 +41,3 @@ int decode_cli(Cli* cli, uint8_t iei, uint8_t* buffer, uint32_t len);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* CLI_SEEN */

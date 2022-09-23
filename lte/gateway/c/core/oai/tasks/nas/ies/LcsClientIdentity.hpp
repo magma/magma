@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef LCS_CLIENT_IDENTITY_SEEN
-#define LCS_CLIENT_IDENTITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -44,5 +43,3 @@ int decode_lcs_client_identity(LcsClientIdentity* lcsclientidentity,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* LCS_CLIENT_IDENTITY_SEEN */

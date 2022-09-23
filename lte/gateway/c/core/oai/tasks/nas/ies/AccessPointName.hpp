@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ACCESS_POINT_NAME_H_
-#define ACCESS_POINT_NAME_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -32,5 +32,3 @@ int decode_access_point_name(AccessPointName* accesspointname, uint8_t iei,
                              uint8_t* buffer, uint32_t len);
 
 void dump_access_point_name_xml(AccessPointName accesspointname, uint8_t iei);
-
-#endif /* ACCESS POINT NAME_H_ */

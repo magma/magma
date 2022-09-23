@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_ATTACH_TYPE_SEEN
-#define EPS_ATTACH_TYPE_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #define EPS_ATTACH_TYPE_MINIMUM_LENGTH 1
@@ -45,4 +45,3 @@ int decode_u8_eps_attach_type(eps_attach_type_t* epsattachtype, uint8_t iei,
 #ifdef __cplusplus
 }
 #endif
-#endif /* EPS_ATTACH_TYPE_SEEN */

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef GUTI_TYPE_SEEN
-#define GUTI_TYPE_SEEN
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,5 +44,3 @@ int decode_u8_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t value,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* GUTI_TYPE_SEEN */

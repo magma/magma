@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_DOWNLINK_NAS_TRANSPORT_SEEN
-#define FILE_DOWNLINK_NAS_TRANSPORT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -57,5 +56,3 @@ int decode_downlink_nas_transport(
 int encode_downlink_nas_transport(
     downlink_nas_transport_msg* downlinknastransport, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_DOWNLINK_NAS_TRANSPORT_SEEN) */

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SS_CODE_SEEN
-#define SS_CODE_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #define SS_CODE_MINIMUM_LENGTH 2
@@ -35,5 +35,3 @@ int decode_ss_code(ss_code_t* sscode, uint8_t iei, uint8_t* buffer,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* SS CODE_SEEN */
