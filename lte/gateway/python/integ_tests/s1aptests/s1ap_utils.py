@@ -1100,13 +1100,27 @@ class MagmadUtil(object):
             )
         self.wait_for_restart_to_finish(wait_time)
 
-    @staticmethod
-    def wait_for_restart_to_finish(wait_time):
-        for j in range(wait_time):
-            print(
-                f"Waiting for {wait_time - j} seconds for restart to complete",
-            )
-            time.sleep(1)
+    def wait_for_restart_to_finish(self, wait_time):
+        """wait for started services to become active or until timeout
+
+        Args:
+            wait_time: (int) max time to wait for services to become active
+        """
+        print(
+            f"Waiting for a maximum of {wait_time} "
+            f"seconds for restart to finish",
+        )
+        if self._init_system == InitMode.DOCKER:
+            start_time = time.time()
+            all_services_active = False
+            while (
+                not all_services_active
+                and time.time() - start_time < wait_time
+            ):
+                all_services_active = self.check_if_magma_services_are_active()
+                time.sleep(5)
+        elif self._init_system == InitMode.SYSTEMD:
+            time.sleep(wait_time)
 
     def enable_service(self, service):
         """Enable a magma service on magma_dev VM and starts it
