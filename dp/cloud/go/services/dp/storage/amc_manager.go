@@ -28,17 +28,11 @@ import (
 // could be implemented in this file as separate struct or combined with cbsd manager
 // also its methods are supposed to be used in transaction (they should start a new one)
 type AmcManager interface {
-	// GetState is equivalent to GetState grpc method
-	// it should return list of all feasible cbsd with grants
-	// cbsd is considered feasible if and only if
-	// - it has no pending requests
-	// - one of the following conditions is satisfied
-	//	 - it has all necessary parameters to perform sas requests (registration/grant)
-	//   - it has some pending db action (e.g. it needs to be deleted)
 	GetState(sq.BaseRunner) ([]*DetailedCbsd, error)
 	CreateRequest(sq.BaseRunner, *MutableRequest) error
 	DeleteCbsd(sq.BaseRunner, *DBCbsd) error
 	UpdateCbsd(sq.BaseRunner, *DBCbsd, db.FieldMask) error
+	DeleteGrant(runner sq.BaseRunner, grant *DBGrant) error
 }
 
 type MutableRequest struct {
@@ -125,9 +119,27 @@ func (m *amcManager) UpdateCbsd(tx sq.BaseRunner, cbsd *DBCbsd, mask db.FieldMas
 	return err
 }
 
+// GetState is equivalent to GetState grpc method
+// it should return list of all feasible cbsd with grants
+// cbsd is considered feasible if and only if
+// - it has no pending requests
+// - one of the following conditions is satisfied
+//	 - it has all necessary parameters to perform sas requests (registration/grant)
+//   - it has some pending db action (e.g. it needs to be deleted)
 func (m *amcManager) GetState(tx sq.BaseRunner) ([]*DetailedCbsd, error) {
 	runner := m.getQueryRunner(tx)
 	return runner.getState()
+}
+
+// DeleteGrant removes given grant from the DB.
+func (m *amcManager) DeleteGrant(tx sq.BaseRunner, grant *DBGrant) error {
+	builder := m.builder.RunWith(tx)
+	where := sq.Eq{"id": grant.Id}
+	return db.NewQuery().
+		WithBuilder(builder).
+		From(grant).
+		Where(where).
+		Delete()
 }
 
 func notNull(fields ...string) sq.Sqlizer {

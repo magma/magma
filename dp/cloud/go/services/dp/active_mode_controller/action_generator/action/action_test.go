@@ -75,12 +75,14 @@ const (
 	createRequest actionType = iota
 	deleteCbsd
 	updateCbsd
+	deleteGrant
 )
 
 type stubAmcManager struct {
 	action  actionType
 	request *storage.MutableRequest
 	cbsd    *storage.DBCbsd
+	grant   *storage.DBGrant
 	mask    db.FieldMask
 }
 
@@ -97,6 +99,12 @@ func (s *stubAmcManager) CreateRequest(_ squirrel.BaseRunner, request *storage.M
 func (s *stubAmcManager) DeleteCbsd(_ squirrel.BaseRunner, cbsd *storage.DBCbsd) error {
 	s.action = deleteCbsd
 	s.cbsd = cbsd
+	return nil
+}
+
+func (s *stubAmcManager) DeleteGrant(_ squirrel.BaseRunner, grant *storage.DBGrant) error {
+	s.action = deleteGrant
+	s.grant = grant
 	return nil
 }
 
