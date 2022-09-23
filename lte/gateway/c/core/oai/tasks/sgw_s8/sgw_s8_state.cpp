@@ -37,8 +37,8 @@ sgw_state_t* get_sgw_state(bool read_from_db) {
   return SgwStateManager::getInstance().get_state(read_from_db);
 }
 
-hash_table_ts_t* get_sgw_ue_state() {
-  return SgwStateManager::getInstance().get_ue_state_ht();
+map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map() {
+  return SgwStateManager::getInstance().get_s8_state_teid_map();
 }
 
 int read_sgw_ue_state_db() {

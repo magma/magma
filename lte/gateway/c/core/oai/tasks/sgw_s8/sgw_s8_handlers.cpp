@@ -83,11 +83,10 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
   OAILOG_FUNC_IN(LOG_SGW_S8);
   int rc = 0;
 
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
-  rc = hashtable_ts_free(state_imsi_ht, teid);
-  if (rc != HASH_TABLE_OK) {
+  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
+  if (state_teid_ht->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                    "Failed to free teid from state_imsi_ht\n");
+                    "Failed to free teid from state_teid_map \n");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   spgw_ue_context_t* ue_context_p = NULL;
@@ -121,11 +120,10 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
 sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
     teid_t teid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_context_information_t* sgw_bearer_context_info = NULL;
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
+  sgw_eps_bearer_context_information_t* sgw_bearer_context_info = nullptr;
+  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
 
-  hashtable_ts_get(state_imsi_ht, (const hash_key_t)teid,
-                   (void**)&sgw_bearer_context_info);
+  state_teid_ht->get(teid, &sgw_bearer_context_info);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_bearer_context_info);
 }
 
@@ -1860,10 +1858,8 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
   sgw_context_p->pdn_connection.s_gw_teid_S5_S8_cp =
       session_rsp_p->context_teid;
   // Insert the new tunnel with sgw_s11_teid into the hash list.
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
-  hashtable_ts_insert(state_imsi_ht,
-                      (const hash_key_t)session_rsp_p->context_teid,
-                      sgw_context_p);
+  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
+  state_teid_ht->insert(session_rsp_p->context_teid, sgw_context_p);
 
   OAILOG_DEBUG(
       LOG_SGW_S8,

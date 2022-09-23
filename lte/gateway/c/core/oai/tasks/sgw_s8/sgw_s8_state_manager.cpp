@@ -55,18 +55,21 @@ void SgwStateManager::create_state() {
   }
 
   OAILOG_INFO(LOG_SGW_S8, "Creating SGW_S8 state ");
-  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
 
-  // sgw_free_s11_bearer_context_information is called when hashtable_ts_free is
-  // invoked, so as to remove any contexts allocated within sgw_bearer context
-  state_ue_ht = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**))sgw_free_s11_bearer_context_information, b);
-  if (!state_ue_ht) {
+  // sgw_free_s11_bearer_context_information is called when destroy_map or
+  // remove_map is invoked, so as to remove any contexts allocated within
+  // sgw_bearer context
+  s8_state_teid_map.map =
+      new google::protobuf::Map<unsigned int,
+                                struct sgw_eps_bearer_context_information_s*>();
+  if (!(s8_state_teid_map.map)) {
     OAILOG_CRITICAL(LOG_SGW_S8,
-                    "Failed to create state_ue_ht for SGW_S8 task \n");
+                    "Failed to create s8_state_teid_map for "
+                    "SGW_S8 task \n");
     return;
   }
+  s8_state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_MAP_NAME);
+  s8_state_teid_map.bind_callback(sgw_free_s11_bearer_context_information);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->ipv4.S1u_S12_S4_up.s_addr;
@@ -103,7 +106,6 @@ void SgwStateManager::create_state() {
 
   state_cache_p->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
   state_cache_p->s5s8u_teid = 0;
-  bdestroy_wrapper(&b);
 }
 
 void SgwStateManager::free_state() {
@@ -114,17 +116,18 @@ void SgwStateManager::free_state() {
   if (state_cache_p == nullptr) {
     return;
   }
-  if (state_ue_ht == nullptr) {
-    return;
+
+  if (s8_state_teid_map.map) {
+    if (s8_state_teid_map.destroy_map() != PROTO_MAP_OK) {
+      OAILOG_ERROR(LOG_SGW_S8,
+                   "An error occurred while destroying "
+                   "temporary_create_session_procedure_id_map ");
+    }
   }
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR(
-        "An error occurred while destroying SGW s11_bearer_context_information "
-        "hashtable");
-  }
-  state_ue_ht = nullptr;
+  s8_state_teid_map.map = nullptr;
 
   hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
+
   if (state_cache_p->temporary_create_session_procedure_id_map.map) {
     if (state_cache_p->temporary_create_session_procedure_id_map
             .destroy_map() != PROTO_MAP_OK) {
@@ -134,7 +137,7 @@ void SgwStateManager::free_state() {
     }
   }
   state_cache_p->temporary_create_session_procedure_id_map.map = nullptr;
-  delete state_cache_p;
+  free_cpp_wrapper((void**)&state_cache_p);
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {
@@ -145,5 +148,14 @@ status_code_e SgwStateManager::read_ue_state_from_db() {
 sgw_state_t* SgwStateManager::get_state(bool read_from_db) {
   return state_cache_p;
 }
+
+map_uint32_sgw_eps_bearer_context_t* SgwStateManager::get_s8_state_teid_map() {
+  AssertFatal(
+      is_initialized,
+      "StateManager init() function should be called to initialize state");
+
+  return &s8_state_teid_map;
+}
+
 }  // namespace lte
 }  // namespace magma
