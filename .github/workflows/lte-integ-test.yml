@@ -89,13 +89,13 @@ jobs:
           name: test-results
           path: lte/gateway/test-results/**/*.xml
       - name: Get test logs
-        if: failure()
+        if: always()
         run: |
           cd lte/gateway
           fab get_test_logs:dst_path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: failure()
+        if: always()
         with:
           name: test-logs
           path: lte/gateway/logs.tar.gz
