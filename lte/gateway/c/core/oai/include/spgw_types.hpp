@@ -91,8 +91,10 @@ typedef struct mme_sgw_tunnel_s {
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
-// Map- Key: csr_proc_id of uint32_t , Data: sgw_eps_bearer_context_information_s*
-typedef magma::proto_map_s<uint32_t, struct sgw_eps_bearer_context_information_s*>
+// Map- Key: csr_proc_id of uint32_t , Data:
+// sgw_eps_bearer_context_information_s*
+typedef magma::proto_map_s<uint32_t,
+                           struct sgw_eps_bearer_context_information_s*>
     map_uint32_sgw_eps_bearer_context_t;
 
 // AGW-wide state for SGW task
