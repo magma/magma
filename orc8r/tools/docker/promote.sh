@@ -13,7 +13,7 @@ declare -A repositories=(
   [cwf]="cwag_go gateway_go gateway_pipelined gateway_python gateway_sessiond operator"
 )
 
-for repo in ${!repositories["$@"]}; do
+for repo in ${!repositories[@]}; do
   for image in ${repositories[${repo}]}; do
 
     # Change docker URL to Artifactory

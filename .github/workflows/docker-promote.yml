@@ -1,4 +1,3 @@
-
 name: docker promote
 
 on: workflow_dispatch
@@ -6,6 +5,10 @@ on: workflow_dispatch
 jobs:
   docker-promote:
     runs-on: ubuntu-latest
+    env:
+      MAGMA_TAG: 1.8
+      NEW_MAGMA_TAG: 1.8.0
+      MAGMA_ARTIFACTORY: artifactory.magmacore.org
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v1
@@ -14,4 +17,8 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_USERNAME }}
           password: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
-      - run: ./promote.sh
+      - run: |
+          wget https://github.com/magma/magma/raw/master/orc8r/tools/helm/promote.sh
+          chmod 755 promote.sh
+          # Promote Helm charts
+          ./promote.sh ${MAGMA_TAG} ${NEW_MAGMA_TAG}
