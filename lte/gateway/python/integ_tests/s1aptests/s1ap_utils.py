@@ -1017,6 +1017,7 @@ class MagmadUtil(object):
                 "cd /home/vagrant/magma/lte/gateway/docker "
                 "&& docker-compose restart",
             )
+            self.wait_for_restart_to_finish(wait_time=30)
 
         self._wait_for_pipelined_to_initialize()
 
