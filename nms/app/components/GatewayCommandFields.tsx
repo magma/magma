@@ -339,7 +339,9 @@ export function GenericCommandControls(props: ChildProps) {
   const {networkId} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [commandName, setCommandName] = useState('');
-  const [commandParams, setCommandParams] = useState('{\n}');
+  const [commandParams, setCommandParams] = useState(
+    '{\n    "shell_params": [""]\n}',
+  );
   const [genericResponse, setGenericResponse] = useState<string>();
   const [showProgress, setShowProgress] = useState<boolean>();
 
