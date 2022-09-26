@@ -46,6 +46,6 @@ for repo in ${!repositories[@]}; do
 
     # Change docker URL back to docker
     sed -i "s/${repo}-prod/docker/g" ~/.docker/config.json
-    echo "Promoted docker image artifact ${image} from test to production registry successfully."
+    echo "Promoted docker image artifact ${image} from ${repo}-test to ${repo}-prod registry successfully."
   done
 done

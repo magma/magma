@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAGMA_VERSION: 1.8.0
+      MAGMA_ARTIFACTORY: https://artifactory.magmacore.org:443/artifactory
       HELM_CHART_MUSEUM_TOKEN: ${{ secrets.HELM_CHART_MUSEUM_TOKEN }}
       HELM_CHART_MUSEUM_USERNAME: ${{ secrets.HELM_CHART_MUSEUM_USERNAME }}
     steps:
