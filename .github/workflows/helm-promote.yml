@@ -1,0 +1,21 @@
+name: helm promote
+
+on: workflow_dispatch
+
+jobs:
+  helm-promote:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_VERSION: 1.8.0
+      HELM_CHART_MUSEUM_TOKEN: ${{ secrets.HELM_CHART_MUSEUM_TOKEN }}
+      HELM_CHART_MUSEUM_USERNAME: ${{ secrets.HELM_CHART_MUSEUM_USERNAME }}
+    steps:
+      - run: |
+          wget https://github.com/magma/magma/raw/master/orc8r/tools/helm/promote.sh
+          chmod 755 promote.sh
+          # Promote Helm charts
+          ./promote.sh orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh cwf-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh feg-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh lte-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh domain-proxy-${MAGMA_VERSION}.tgz
