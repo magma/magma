@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 
-set -ex
+set -eou pipefail
 
-MAGMA_TAG=$0
-NEW_MAGMA_TAG=$1
-MAGMA_ARTIFACTORY=$2
+if [[ -z $MAGMA_ARTIFACTORY ]]; then
+  exitmsg "Environment variable MAGMA_ARTIFACTORY must be set."
+fi
+
+if [[ -z $MAGMA_TAG ]]; then
+  exitmsg "Environment variable MAGMA_TAG must be set."
+fi
+
+if [[ -z $NEW_MAGMA_TAG ]]; then
+  exitmsg "Environment variable NEW_MAGMA_TAG must be set."
+fi
 
 declare -A repositories=(
   [orc8r]="controller magmalte nginx active-mode-controller configuration-controller radio-controller db-service"
@@ -13,6 +21,7 @@ declare -A repositories=(
   [cwf]="cwag_go gateway_go gateway_pipelined gateway_python gateway_sessiond operator"
 )
 
+# shellcheck disable=SC2068
 for repo in ${!repositories[@]}; do
   for image in ${repositories[${repo}]}; do
 
@@ -37,6 +46,6 @@ for repo in ${!repositories[@]}; do
 
     # Change docker URL back to docker
     sed -i "s/${repo}-prod/docker/g" ~/.docker/config.json
-
+    echo "Promoted docker image artifact ${image} from test to production registry successfully."
   done
 done
