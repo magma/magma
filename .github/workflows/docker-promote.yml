@@ -1,0 +1,17 @@
+
+name: docker promote
+
+on: workflow_dispatch
+
+jobs:
+  docker-promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v1
+        with:
+          registry: docker.artifactory.magmacore.org
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+      - run: ./promote.sh
