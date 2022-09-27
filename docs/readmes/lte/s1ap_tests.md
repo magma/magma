@@ -33,8 +33,8 @@ acts as the gateway between *magma_test* and *magma_trfserver*.
 ### Gateway VM setup
 
 There are two options for setting up the gateway VM, with the difference being the magma installation
-method: it can either be installed via `make` or from debian packages, the latter being the
-method by which magma is usually deployed. For everyday development, the `make` installation is
+method: it can either be installed via `Bazel` or from debian packages, the latter being the
+method by which magma is usually deployed. For everyday development, the `Bazel` installation is
 recommended, while the debian installation is useful for testing packages before release.
 
 > **Warning**: These two VMs use the same network configuration, so one must only run one of them
@@ -42,44 +42,57 @@ at a time.
 
 #### Make installation
 
-Spin up and provision the gateway VM, then make and start its services:
+Spin up and provision the gateway VM, then build and start its services:
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
-1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
+1. Now in the gateway VM (TODO: Make this more comfortable):
+   1. 
+   ```bash
+    vagrant up magma
+    vagrant ssh magma
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+    cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh magma-dev-vm false
+    sudo sed -i "s@#precedence ::ffff:0:0/96  100@precedence ::ffff:0:0/96  100@" /etc/gai.conf;
+    cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;
+    sudo sed -i "s@precedence ::ffff:0:0/96  100@#precedence ::ffff:0:0/96  100@" /etc/gai.conf;
+    cd ~/magma; bazel/scripts/link_scripts_for_bazel_integ_tests.sh;
+    sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo service magma@magmad start
+   ```
 
 #### Debian installation
 
 Spin up the *magma_deb* VM. The services start automatically:
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma_deb && vagrant ssh magma_deb`
-1. To check the services are running, run `systemctl list-units --type=service magma@*`
+2. To check the services are running, run `systemctl list-units --type=service magma@*`
 
 > **Warning**: During provisioning, the latest magma gateway debian build from the magma artifactory
 is installed. That is, the deployed gateway might not match your local repository state.
 
 ### Test VM setup
 
-Spin up and provision the s1ap tester's VM, make, then make in the integ_tests directory.
+Spin up and provision the s1ap tester's VM.
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma_test && vagrant ssh magma_test`
-1. Now in the *magma_test* VM:
-    1. `cd $MAGMA_ROOT/lte/gateway/python && make`
-    1. `cd integ_tests && make`
 
 ### Run tests
 
-From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
+From `$MAGMA_ROOT/bazel/scripts/` on the *magma_test* VM, run
 either individual tests or the full suite of tests. A safe, non-flaky test to
 run is `s1aptests/test_attach_detach.py`.
 
-- Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
-- All Sanity tests: `make integ_test`
-- All Non-Sanity tests: `make nonsanity`
-- Minimal set of tests to be executed before committing changes to magma repository: `make precommit`
-- Run with *-i* flag to enable continuous test runs (ignoring the failing test(s), if any):\
- `make -i precommit` or `make -i integ_test`
-- Set *enable-flaky-retry=true* to re-run the failing test(s) to identify flaky behavior:\
-`make precommit enable-flaky-retry=true` or `make integ_test enable-flaky-retry=true`
+- Individual test(s): `run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_detach`
+- All Sanity tests: `run_integ_tests.sh`
+- All Non-Sanity tests: `run_integ_tests.sh --nonsanity`
+- Minimal set of tests to be executed before committing changes to magma repository: `run_integ_tests.sh --precommit`
+- All tests are run even if some of fail during the process. At the end a summary will be provided.
+- You can enable flaky-retry behavior to re-run the failing test(s) to identify flaky behavior:\
+`run_integ_tests.sh --retry-on-failure` or `run_integ_tests.sh --retry-on-failure --precommit --retry-attempts 5`
+- For more information about the usage and features of this script execute the following command:\
+`run_integ_tests.sh --help`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.
@@ -94,7 +107,7 @@ setup. Look at the section below on running traffic tests.
 
 1. From *magma_trfserver* VM, run `disable-tcp-checksumming && trfgen-server`
 
-Running `make integ_test` in *magma_test* VM should succeed now.
+Running `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh` in *magma_test* VM should succeed now.
 
 ## Testing stateless Access Gateway
 
@@ -136,11 +149,11 @@ the redis service with `sudo service magma@redis start` and then try again.
 On test VM:
 
 1. Basic attach/detach test where MME is restarted mid-way:\
-  `make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py`
+  `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_detach_with_mme_restart`
 
 1. Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
 flowing:\
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py`\
+ `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_ul_udp_data_with_mme_restart`\
  , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.
 
@@ -163,13 +176,11 @@ the redis service with `sudo service magma@redis start` and then try again.
 
 On test VM:
 
-1. `cd $MAGMA_ROOT/lte/gateway/python && make`
-1. `cd integ_tests && make`
 1. Basic attach/detach test where Mobilityd is restarted mid-way:\
- `make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py`
+ `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_detach_with_mobilityd_restart`
 
 1. Test IP blocks are maintained across service restart\
- `make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py`
+ `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_detach_multiple_ip_blocks_mobilityd_restart`
 
 #### Stateless Pipelined
 
@@ -192,10 +203,8 @@ the redis service with `sudo service magma@redis start` and then try again.
 
 On test VM:
 
-1. `cd $MAGMA_ROOT/lte/gateway/python && make`
-1. `cd integ_tests && make`
 1. UDP traffic test where Pipelined is restarted mid-way:
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py`
+ `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_ul_udp_data_with_pipelined_restart`
 
 ### Testing stateless gateway with all services
 
@@ -207,7 +216,7 @@ listed above
 1. On test VM, you can run any of the test cases for individual service restarts
 listed above. Further, you can test attach with uplink UDP traffic, where
 multiple services are restarted while UDP traffic is flowing:\
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py`\
+ `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh //lte/gateway/python/integ_tests/s1aptests:test_attach_ul_udp_data_with_multiple_service_restart`\
  , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.
 

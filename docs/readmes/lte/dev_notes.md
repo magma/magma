@@ -83,7 +83,6 @@ To connect a physical UE to the gateway VM,
 1. Use a programmable SIM which is provisioned with the LTE auth key that you
 will use in the EPC.
 1. On the gateway VM, add the subscriber using the CLI:
-1. `magtivate`
 1. `subscriber_cli.py add --lte-auth-key <base64 LTE auth key> IMSI<15 digit
 IMSI>`
 
@@ -286,58 +285,30 @@ num_enbs: 1
 
 ## Combining XML Unit test reports
 
-At the moment of writing, running the unit test targets does not generate the aggregated XML report file by default. To get the report of all unit tests, you have two options.
+The script `runtime_report.py` is used by existing scripts (`$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh`, `$MAGMA_ROOT/bazel/scripts/run_sudo_tests.sh`) and should not be executed as a standalone one. This section is only served as a guideline in case, in the future, a developer would like to make some changes to this script or would like to know how to use it.
 
-### Option 1: Running unit test target
+#### Generating XML files
 
-If you prefer a simple method, you can simply do:
-
-```bash
-cd ${MAGMA_ROOT}/lte/gateway/
-make test_oai_runtime
-```
-
-And you will get the combined report at `${MAGMA_ROOT}/report/merged_report/report_all_tests.xml`
-
-### Option 2: Manual method
-
-The script `runtime_report.py` is intended to use as in option 1. This section is only served as a guideline in case, in the future, a developer would like to make some changes to this script or how to use it.
-
-#### Enabling generating the unit test report
-
-Setting the value for the `$GTEST_OUTPUT` as below:
-
-```bash
-export GTEST_OUTPUT=xml:/where/you/want/to/store/the/reports/
-```
-
-#### Running the OAI unit test targets as usual on `magma` VM
-
-```bash
-make test_oai
-```
-
-The report XML files are generated inside your desired folder.
+In order to use the script you need XML files that can be merged together. You can create some from scratch or you can generate some with the above mentioned scripts, you just need to comment out the use of the `create_xml_report` function at the end. The XML files should be in a folder of your choice, lets name it `PATH/TO/FOLDER/XML_FILES_FOLDER`.
 
 #### Combine all the reports into a single report file
 
-Assume that you chose to store all the generated report files at `/where/you/stored/the/reports/` which is called the **working directory** here. You can simply set a regex pattern that matches the **relative** paths of all XML report files from the **working directory** as in the example below.
+Assume that you chose to store all the generated report files at `PATH/TO/FOLDER/XML_FILES_FOLDER` which is called the **working directory** here. You can simply set a regex pattern that matches the **relative** paths of all XML report files from the **working directory** as in the example below.
 
 ```bash
-cd ${MAGMA_ROOT}/lte/gateway/
-## optional: activate your python virtual environment
-python3 python/scripts/runtime_report.py -i [regex_pattern_matches_relative_path_of_report] -w /where/you/stored/the/reports/
+cd ${MAGMA_ROOT}/lte/gateway/python/scripts/
+python3 runtime_report.py -i [regex_pattern_matches_relative_path_of_report] -w PATH/TO/FOLDER/XML_FILES_FOLDER
 ```
 
 For example, when you generated all the `.xml` report files at `${MAGMA_ROOT}/logs/`  and want to combine them, you can run:
 
 ```bash
-python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${MAGMA_ROOT}/logs/
+python3 runtime_report.py -i .+\\.xml$$ -w ${MAGMA_ROOT}/logs/
 ```
 
 By default, the XML output file will be generated at `${MAGMA_ROOT}/report/merged_report/report_all_tests.xml`.
 You can overwrite this by using the `-o` option of `runtime_report.py`. Let's reuse the example above:
 
 ```bash
-python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${MAGMA_ROOT}/logs/ -o /where/you/want/to/store/this/file.xml
+python3 runtime_report.py -i .+\\.xml$$ -w ${MAGMA_ROOT}/logs/ -o /PATH/TO/DESIRED/FOLDER/FOR/THE/RESULT.xml
 ```

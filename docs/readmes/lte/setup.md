@@ -29,8 +29,8 @@ Vagrant will bring up the VM, then Ansible will provision the VM.
 
 ```text
 HOST:magma/lte/gateway USER$ vagrant ssh magma
-AGW:~ USER$ cd magma/lte/gateway
-AGW:~/magma/lte/gateway USER$ make run
+AGW:~ USER$ cd magma
+AGW:~/magma USER$ bazel build $(bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/…)") && sudo service magma@* stop && sudo service magma@magmad start
 ```
 
 Once the Access Gateway VM is running successfully, proceed to attaching the eNodeB.

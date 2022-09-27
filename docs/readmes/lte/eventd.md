@@ -80,4 +80,4 @@ An event must be defined before they can be send to `eventd` service.
 - Create a spec under `<plugin_name>/swagger` e.g. `lte/swagger/mock_events.v1.yml`, or add an event to one of the specs
 - Register the `event_type` and the location of the swagger file under `eventd.yml`'s event registry.
 - Make an RPC call to eventd's `log_event` from your service, using the appropriate client API.
-    - (Python-only) Use `make build` under `lte/gateway` to generate swagger models into the `$PYTHON_BUILD` directory. e.g. Use model `ue_added` with the import `<plugin_name>.swagger.models.ue_added`
+    - (Python-only) Use `bazel build $(bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)")` under any directory to generate swagger models into the `$PYTHON_BUILD` directory. e.g. Use model `ue_added` with the import `<plugin_name>.swagger.models.ue_added`

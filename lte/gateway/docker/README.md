@@ -38,7 +38,6 @@ The magma VM defined in [../Vagrantfile](../Vagrantfile) can be used to run the
 containerized AGW by running the following steps inside the VM:
 
 ```
-cd $MAGMA_ROOT/lte/gateway && make run  # You can skip this if you have built the AGW with make before
 for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done
 sed -i 's/init_system: systemd/init_system: docker/' "${MAGMA_ROOT}"/lte/gateway/configs/magmad.yml
 sudo systemctl stop 'magma@*' 'sctpd' # We don't want the systemd-based AGW to run when we start the containerized AGW
