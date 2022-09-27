@@ -3,22 +3,22 @@ name: docker promote
 on:
   workflow_dispatch:
     inputs:
-      version_to_promote:
-        description: 'Magma version to promote'
+      branch_tag:
+        description: 'Branch version number'
+        required: true
+        default: '1.8'
+      release_tag:
+        description: 'Release version number'
         required: true
         default: '1.8.0'
-      new_tag:
-        description: 'New version to promote to'
-        required: true
-        default: '1.8.1'
 
 
 jobs:
   docker-promote:
     runs-on: ubuntu-latest
     env:
-      MAGMA_TAG: ${{ inputs.version_to_promote }}
-      NEW_MAGMA_TAG: ${{ inputs.new_tag }}
+      BRANCH_TAG: ${{ inputs.branch_tag }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
       MAGMA_ARTIFACTORY: artifactory.magmacore.org
     steps:
       - uses: tspascoal/get-user-teams-membership@533553aa88900a17c59177d65bcf8c5c97ff1a90 # pin@v1.0.3

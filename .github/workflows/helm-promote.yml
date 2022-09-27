@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       magma_version:
-        description: 'Magma version'
+        description: 'Magma version number'
         required: true
         default: '1.8.0'
 
