@@ -30,13 +30,20 @@
 #ifndef FILE_MME_APP_DEFS_SEEN
 #define FILE_MME_APP_DEFS_SEEN
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include <czmq.h>
 
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
-#include <czmq.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
+#ifdef __cplusplus
+}
+#endif
 
 #define INVALID_BEARER_INDEX (-1)
 #define IPV6_ADDRESS_SIZE 16
@@ -76,6 +83,25 @@ int mme_app_send_s6a_update_location_req(
 
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
     mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
+
+void mme_app_handle_detach_req(mme_ue_s1ap_id_t ue_id);
+
+void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* nas_conn_est_cnf_pP);
+
+int mme_app_handle_nas_dl_req(mme_ue_s1ap_id_t ue_id, bstring nas_msg,
+                              nas_error_code_t transaction_status);
+
+void mme_app_handle_create_dedicated_bearer_rsp(ue_mm_context_t* ue_context_p,
+
+                                                ebi_t ebi);
+void mme_app_handle_create_dedicated_bearer_rej(ue_mm_context_t* ue_context_p,
+                                                ebi_t ebi);
+
+status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
+                                                 void* args);
+
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+                                   emm_proc_sgs_detach_type_t detach_type);
 #ifdef __cplusplus
 }
 #endif
@@ -90,11 +116,6 @@ int mme_app_handle_nas_extended_service_req(mme_ue_s1ap_id_t ue_id,
                                             uint8_t servicetype,
                                             uint8_t csfb_response);
 
-void mme_app_handle_detach_req(mme_ue_s1ap_id_t ue_id);
-
-void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
-                                   emm_proc_sgs_detach_type_t detach_type);
-
 int mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
     const itti_sgsap_eps_detach_ack_t* eps_detach_ack_p);
@@ -102,8 +123,6 @@ int mme_app_handle_sgs_eps_detach_ack(
 int mme_app_handle_sgs_imsi_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
     const itti_sgsap_imsi_detach_ack_t* imsi_detach_ack_p);
-
-void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* nas_conn_est_cnf_pP);
 
 imsi64_t mme_app_handle_initial_ue_message(
     mme_app_desc_t* mme_app_desc_p,
@@ -147,23 +166,8 @@ void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p);
 
-int mme_app_handle_nas_dl_req(mme_ue_s1ap_id_t ue_id, bstring nas_msg,
-                              nas_error_code_t transaction_status);
-
 void mme_app_handle_e_rab_setup_rsp(
     itti_s1ap_e_rab_setup_rsp_t* e_rab_setup_rsp);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-void mme_app_handle_create_dedicated_bearer_rsp(ue_mm_context_t* ue_context_p,
-
-                                                ebi_t ebi);
-void mme_app_handle_create_dedicated_bearer_rej(ue_mm_context_t* ue_context_p,
-                                                ebi_t ebi);
-#ifdef __cplusplus
-}
-#endif
 
 void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* mme_ue_context_p, struct ue_mm_context_s* ue_context_p,
@@ -191,20 +195,23 @@ imsi64_t mme_app_handle_initial_paging_request(
     const itti_s11_paging_request_t* paging_req);
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
-int mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id, void* args);
+status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
+                                              void* args);
 int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
-int mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id, void* args);
-int mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
-                                         void* args);
-int mme_app_handle_identification_t3470_expiry(zloop_t* loop, int timer_id,
+status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
                                                void* args);
-int mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id, void* args);
-int mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop, int timer_id,
-                                           void* args);
+status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
+                                                   void* args);
+status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
+                                                         int timer_id,
+                                                         void* args);
+status_code_e mme_app_handle_tau_t3450_expiry(zloop_t* loop, int timer_id,
+                                              void* args);
+status_code_e mme_app_handle_emm_attach_t3450_expiry(zloop_t* loop,
+                                                     int timer_id, void* args);
 status_code_e mme_app_handle_esm_information_t3489_expiry(zloop_t* loop,
                                                           int timer_id,
                                                           void* args);
-int mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop, int timer_id,
                                                void* args);
@@ -241,9 +248,14 @@ int mme_app_send_sgsap_service_request(uint8_t service_indicator,
 
 int mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                uint8_t detach_type);
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 int mme_app_handle_nas_cs_domain_location_update_req(
     ue_mm_context_t* ue_context_p, uint8_t msg_type);
+#ifdef __cplusplus
+}
+#endif
 
 int mme_app_handle_sgsap_location_update_acc(
     mme_app_desc_t* mme_app_desc_p,
@@ -306,10 +318,16 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 int mme_app_handle_sgs_status_message(mme_app_desc_t* mme_app_desc_p,
                                       itti_sgsap_status_t* sgsap_status_pP);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void mme_app_handle_erab_rel_cmd(mme_ue_s1ap_id_t ue_id, ebi_t ebi,
                                  bstring nas_msg);
 
 void mme_app_handle_e_rab_rel_rsp(itti_s1ap_e_rab_rel_rsp_t* e_rab_rel_rsp);
+#ifdef __cplusplus
+}
+#endif
 
 void mme_app_handle_nw_init_bearer_deactv_req(
     mme_app_desc_t* mme_app_desc_p,
@@ -343,9 +361,6 @@ void mme_app_handle_path_switch_req_failure(
 void mme_app_send_itti_sgsap_ue_activity_ind(const char* imsi,
                                              unsigned int imsi_len);
 
-status_code_e emm_send_cs_domain_attach_or_tau_accept(
-    struct ue_mm_context_s* ue_context_p);
-
 void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
                                     partial_tai_list_t* tai_list,
                                     uint8_t num_of_tac);
@@ -353,6 +368,9 @@ void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
 #ifdef __cplusplus
 extern "C" {
 #endif
+status_code_e emm_send_cs_domain_attach_or_tau_accept(
+    struct ue_mm_context_s* ue_context_p);
+
 void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
                                       bool delete_default_bearer, ebi_t ebi[],
                                       uint32_t num_bearer_context,
@@ -360,13 +378,13 @@ void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
                                       gtpv2c_cause_value_t cause,
                                       bool route_s11_messages_to_s8_task,
                                       bool mme_initiated_local_deact);
+
+int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 #ifdef __cplusplus
 }
 #endif
 
 int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
-
-int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* s11_modify_bearer_response,

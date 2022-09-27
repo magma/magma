@@ -156,3 +156,10 @@
     - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_sessiond.service', dest: 'magma@sessiond.service' }
     - { src: 'orc8r/tools/ansible/roles/fluent_bit/files/magma_td-agent-bit.service', dest: 'magma@td-agent-bit.service' }
     - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_dp_envoy.service', dest: 'magma_dp@envoy.service' }
+
+- name: link python ipv6 config script that is only used for tests and not deployed
+  file:
+    src: /home/vagrant/magma/lte/gateway/python/scripts/config_iface_for_ipv6.py
+    dest: /usr/local/bin/config_iface_for_ipv6.py
+    state: link
+    force: yes
