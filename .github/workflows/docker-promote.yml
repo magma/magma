@@ -1,15 +1,37 @@
 name: docker promote
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      version_to_promote:
+        description: 'Magma version to promote'
+        required: true
+        default: '1.8.0'
+      new_tag:
+        description: 'New version to promote to'
+        required: true
+        default: '1.8.1'
+
 
 jobs:
   docker-promote:
     runs-on: ubuntu-latest
     env:
-      MAGMA_TAG: 1.8
-      NEW_MAGMA_TAG: 1.8.0
+      MAGMA_TAG: ${{ github.event.inputs.version_to_promote }}
+      NEW_MAGMA_TAG: ${{ github.event.inputs.new_tag }}
       MAGMA_ARTIFACTORY: artifactory.magmacore.org
     steps:
+      - uses: tspascoal/get-user-teams-membership@v533553aa88900a17c59177d65bcf8c5c97ff1a90 # pin@v1.0.3
+        name: Check if user has rights to promote
+        id: checkUserMember
+        with:
+          username: ${{ github.actor }}
+          team: 'approvers-ci'
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+      - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
+        run: |
+          echo "User is not a member of the team"
+          exit 1
       - uses: docker/login-action@v49ed152c8eca782a232dede0303416e8f356c37b # Pin v2.0.0
         name: Login to Artifactory
         with:
@@ -17,7 +39,7 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_USERNAME }}
           password: ${{ secrets.ARTIFACTORY_PASSWORD }}
       - run: |
-          wget https://github.com/magma/magma/raw/master/orc8r/tools/helm/promote.sh
+          wget https://github.com/magma/magma/raw/master/orc8r/tools/docker/promote.sh
           chmod 755 promote.sh
           # Promote Docker images
           ./promote.sh
