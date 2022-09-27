@@ -68,6 +68,15 @@ py_library(
 )
 
 pytest_test(
+    name = "test_services_are_running",
+    size = "small",
+    srcs = ["test_services_are_running.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
     name = "test_attach_detach",
     size = "small",
     srcs = ["test_attach_detach.py"],
