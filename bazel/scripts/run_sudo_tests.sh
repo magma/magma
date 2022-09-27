@@ -76,10 +76,11 @@ run_test() {
 }
 
 create_xml_report() {
-    rm -f "${MERGED_REPORT_FOLDER}/"*.xml
-    mkdir -p "${MERGED_REPORT_FOLDER}"
-    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${SUDO_TEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/sudo_tests_report.xml" 
-    rm -f "${SUDO_TEST_REPORT_FOLDER}/"*.xml
+    local MERGED_REPORT_XML="sudotests_report.xml"
+    rm -f "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}"
+    mkdir -p "${SUDO_TEST_REPORT_FOLDER}"
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${SUDO_TEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}" 
+    sudo rm -f "${SUDO_TEST_REPORT_FOLDER}/"*.xml
 }
 
 print_summary() {
@@ -104,8 +105,8 @@ NUM_SUCCESS=0
 NUM_RUN=1
 RETRY_ON_FAILURE="false"
 RETRY_ATTEMPTS=2
-SUDO_TEST_REPORT_FOLDER="/var/tmp/test_results"
-MERGED_REPORT_FOLDER="${SUDO_TEST_REPORT_FOLDER}/sudo_merged_report"
+MERGED_REPORT_FOLDER="/var/tmp/test_results"
+SUDO_TEST_REPORT_FOLDER="${MERGED_REPORT_FOLDER}/sudotest_reports"
 
 BOLD='\033[1m'
 RED='\033[0;31m'

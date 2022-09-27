@@ -543,16 +543,25 @@ def get_test_summaries(
         gateway_host=None,
         test_host=None,
         dst_path="/tmp",
+        integration_tests=True,
+        sudo_tests=True,
+        dev_vm_name="magma",
 ):
     local('mkdir -p ' + dst_path)
 
-    # TODO we may want to zip up all these files
-    _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
-    with settings(warn_only=True):
-        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
-    with settings(warn_only=True):
-        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    vm_name_to_yaml = {
+        "magma": "magma_dev.yml",
+        "magma_deb": "magma_deb.yml",
+    }
+
+    if sudo_tests:
+        _switch_to_vm_no_provision(gateway_host, dev_vm_name, vm_name_to_yaml[dev_vm_name])
+        with settings(warn_only=True):
+            get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    if integration_tests:
+        _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
+        with settings(warn_only=True):
+            get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
 
 
 def get_test_logs(
