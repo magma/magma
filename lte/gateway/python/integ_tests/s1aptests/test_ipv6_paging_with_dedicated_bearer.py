@@ -174,7 +174,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
         )
         self._s1ap_wrapper.s1_util.run_ipv6_data(default_ipv6)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
         print("********** Received UE_PAGING_IND")
         # Send service request to reconnect UE
         ser_req = s1ap_types.ueserviceReq_t()

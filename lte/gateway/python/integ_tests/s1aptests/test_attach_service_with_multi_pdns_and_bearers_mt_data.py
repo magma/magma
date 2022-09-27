@@ -314,7 +314,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
             req, duration=1, is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
             # Send service request to reconnect UE
             print(
                 "************************* Sending Service request for UE id ",
