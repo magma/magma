@@ -29,20 +29,20 @@ for repo in ${!repositories[@]}; do
     sed -i "s/docker/${repo}-prod/g" ~/.docker/config.json
 
     # Pull docker image from test registry
-    docker pull ${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG}
+    docker pull "${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG}"
 
     # Tag docker image with new tag
-    docker tag ${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG} ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}
-    docker tag ${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG} ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest
+    docker tag "${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG} ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}"
+    docker tag "${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG} ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest"
 
     # Push docker image to prod registry
-    docker push ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}
-    docker push ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest
+    docker push "${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}"
+    docker push "${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest"
 
     # Remove uploaded image
-    docker rmi ${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG}
-    docker rmi ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}
-    docker rmi ${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest
+    docker rmi "${repo}-test.${MAGMA_ARTIFACTORY}/${image}:${MAGMA_TAG}"
+    docker rmi "${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:${NEW_MAGMA_TAG}"
+    docker rmi "${repo}-prod.${MAGMA_ARTIFACTORY}/${image}:latest"
 
     # Change docker URL back to docker
     sed -i "s/${repo}-prod/docker/g" ~/.docker/config.json
