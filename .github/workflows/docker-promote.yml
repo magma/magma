@@ -32,7 +32,7 @@ jobs:
         run: |
           echo "User is not a member of the team"
           exit 1
-      - uses: docker/login-action@v49ed152c8eca782a232dede0303416e8f356c37b # Pin v2.0.0
+      - uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b # Pin v2.0.0
         name: Login to Artifactory
         with:
           registry: docker.${{ env.MAGMA_ARTIFACTORY }}
