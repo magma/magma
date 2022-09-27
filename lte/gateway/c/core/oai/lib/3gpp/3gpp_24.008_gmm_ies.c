@@ -504,8 +504,8 @@ int decode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
 
 //------------------------------------------------------------------------------
 int encode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
-                            const bool iei_present, uint8_t* buffer,
-                            const uint32_t len) {
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -520,8 +520,8 @@ int encode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
 
   *(buffer + encoded) = edrxparameter->length;
   encoded++;
-  *(buffer + encoded) = (edrxparameter->pagingtimewindow << 4) |
-                        edrxparameter->edrxvalue;
+  *(buffer + encoded) =
+      (edrxparameter->pagingtimewindow << 4) | edrxparameter->edrxvalue;
   encoded++;
   return encoded;
 }
