@@ -1061,7 +1061,7 @@ class MagmadUtil(object):
 
     def restart_mme(self, wait_time=20):
         """
-        Restart MME service
+        Restart MME service and wait for the service to come up properly
         """
         print("Restarting mme service on gateway")
         if self._init_system == InitMode.SYSTEMD:
@@ -1074,7 +1074,7 @@ class MagmadUtil(object):
 
     def restart_sctpd(self, wait_time=30):
         """
-        Restart sctpd service
+        Restart sctpd service explicitly because it is not managed by magmad
         """
         print("Restarting sctpd service on gateway")
         if self._init_system == InitMode.SYSTEMD:

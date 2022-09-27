@@ -39,10 +39,6 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
         wait_for_s1 = True
         self._s1ap_wrapper.configUEDevice(1)
 
-        services_state_dict = {
-            'mme': 'mme_nas_state',
-        }
-
         req = self._s1ap_wrapper.ue_req
         print(
             "************************* Running End to End attach for ",
@@ -58,10 +54,10 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        print("************************* Corrupting sctpd state")
-        self._s1ap_wrapper.magmad_util.corrupt_agw_state("sctpd")
+        print("************************* Corrupting mme state")
+        self._s1ap_wrapper.magmad_util.corrupt_agw_state("mme_nas_state")
 
-        print("************************* Restarting %s service sctpd")
+        print("************************* Restarting service sctpd")
         self._s1ap_wrapper.magmad_util.restart_services(["sctpd"], wait_time=60)
 
         # Re-establish S1 connection between eNB and MME
