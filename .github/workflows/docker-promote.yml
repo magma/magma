@@ -17,8 +17,8 @@ jobs:
   docker-promote:
     runs-on: ubuntu-latest
     env:
-      MAGMA_TAG: ${{ github.event.inputs.version_to_promote }}
-      NEW_MAGMA_TAG: ${{ github.event.inputs.new_tag }}
+      MAGMA_TAG: ${{ inputs.version_to_promote }}
+      NEW_MAGMA_TAG: ${{ inputs.new_tag }}
       MAGMA_ARTIFACTORY: artifactory.magmacore.org
     steps:
       - uses: tspascoal/get-user-teams-membership@533553aa88900a17c59177d65bcf8c5c97ff1a90 # pin@v1.0.3
