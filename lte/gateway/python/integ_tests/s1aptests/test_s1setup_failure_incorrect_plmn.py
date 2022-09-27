@@ -50,7 +50,7 @@ class TestS1SetupFailureIncorrectPlmn(unittest.TestCase):
             print("The test has failed. Restarting Sctpd for cleanup")
             magmad_client = MagmadServiceGrpc()
             magmad_util = MagmadUtil(magmad_client)
-            magmad_util.restart_sctpd()
+            magmad_util.restart_services(['sctpd'], wait_time=30)
             magmad_util.print_redis_state()
             if s1ap_wrapper.TestWrapper.TEST_CASE_EXECUTION_COUNT == 3:
                 s1ap_wrapper.TestWrapper.generate_flaky_summary()
