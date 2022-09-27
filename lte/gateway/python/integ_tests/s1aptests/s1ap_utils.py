@@ -1386,7 +1386,7 @@ class MagmadUtil(object):
             )
             self.exec_command(f"sudo {health_config_cmd}")
             if not self.is_service_active(magma_health_service_name):
-                self.enable_service("health")
+                self.enable_service(magma_health_service_name)
             print("Health service is enabled")
 
     def config_ha_service(self, cmd):
