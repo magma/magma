@@ -22,10 +22,11 @@ limitations under the License.
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr char S11_BEARER_CONTEXT_INFO_MAP_NAME[] =
-    "s11_bearer_context_information_htbl";
+    "s11_bearer_context_information_map";
 constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
 constexpr char SGW_TASK_NAME[] = "SGW";
 constexpr char SGW_S8_CSR_PROC_ID_MAP[] = "sgw_s8_csr_proc_id_map";
+constexpr char SGW_S8_STATE_UE_MAP[] = "sgw_s8_state_ue_map";
 }  // namespace
 
 namespace magma {

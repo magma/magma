@@ -74,4 +74,4 @@ void sgw_free_s11_bearer_context_information(void** ptr);
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
+void sgw_free_ue_context(void** ptr);

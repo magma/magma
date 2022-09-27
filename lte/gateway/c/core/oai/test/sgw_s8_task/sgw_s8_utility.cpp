@@ -218,8 +218,7 @@ bool is_num_s1_bearers_valid(sgw_state_t* sgw_state, imsi64_t imsi64,
                              int expected_num_active_bearers) {
   spgw_ue_context_t* ue_context_p = NULL;
 
-  hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
 
   if (!ue_context_p) {
     return false;

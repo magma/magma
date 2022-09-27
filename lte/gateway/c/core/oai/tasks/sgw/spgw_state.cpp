@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
@@ -121,9 +121,14 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
   }
 }
 
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
-  if (*ue_context_p) {
-    sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
+void sgw_free_ue_context(void** ptr) {
+  if (!ptr) {
+    return;
+  }
+  spgw_ue_context_t* ue_context_p = *ptr;
+
+  if (ue_context_p) {
+    sgw_s11_teid_t* p1 = LIST_FIRST(&ue_context_p->sgw_s11_teid_list);
     sgw_s11_teid_t* p2 = nullptr;
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
@@ -131,6 +136,6 @@ void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
       free_wrapper((void**)&p1);
       p1 = p2;
     }
-    free_wrapper((void**)ue_context_p);
+    free_cpp_wrapper((void**)ptr);
   }
 }

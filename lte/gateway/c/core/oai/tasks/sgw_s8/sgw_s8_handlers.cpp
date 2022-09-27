@@ -89,9 +89,8 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
                     "Failed to free teid from state_teid_map \n");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
-  spgw_ue_context_t* ue_context_p = NULL;
-  hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  spgw_ue_context_t* ue_context_p = nullptr;
+  sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
   if (ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
     while (p1) {
@@ -103,11 +102,10 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
       p1 = LIST_NEXT(p1, entries);
     }
     if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
-      rc = hashtable_ts_free(sgw_state->imsi_ue_context_htbl,
-                             (const hash_key_t)imsi64);
-      if (rc != HASH_TABLE_OK) {
+      if (sgw_state->imsi_ue_context_map.remove(imsi64) !=
+          magma::PROTO_MAP_OK) {
         OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                        "Failed to free imsi64 from imsi_ue_context_htbl\n");
+                        "Failed to remove imsi64 from imsi_ue_context_map\n");
         OAILOG_FUNC_OUT(LOG_SGW_S8);
       }
       delete_sgw_ue_state(imsi64);
@@ -132,15 +130,14 @@ sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
 spgw_ue_context_t* sgw_create_or_get_ue_context(sgw_state_t* sgw_state,
                                                 imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  spgw_ue_context_t* ue_context_p = NULL;
-  hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  spgw_ue_context_t* ue_context_p = nullptr;
+
+  sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
   if (!ue_context_p) {
-    ue_context_p = (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    ue_context_p = new spgw_ue_context_t();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
-      hashtable_ts_insert(sgw_state->imsi_ue_context_htbl,
-                          (const hash_key_t)imsi64, (void*)ue_context_p);
+      sgw_state->imsi_ue_context_map.insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                       "Failed to allocate memory for UE context\n");
@@ -560,19 +557,18 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
   uint8_t teid_list_idx = 0;
   IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
-  spgw_ue_context_t* ue_context_p = NULL;
+  spgw_ue_context_t* ue_context_p = nullptr;
 
   if (!((teid_type == CP_TEID) || (teid_type == UP_TEID))) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Invalid teid type :%u \n", teid_type);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
-  hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
   if (!ue_context_p) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Failed to find ue context");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }  // end of ue context
-  sgw_s11_teid_t* s11_teid_p = NULL;
+  sgw_s11_teid_t* s11_teid_p = nullptr;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if (!s11_teid_p) {
       OAILOG_ERROR_UE(
@@ -1214,17 +1210,16 @@ void sgw_s8_handle_release_access_bearers_request(
   OAILOG_DEBUG_UE(LOG_SGW_S8, imsi64,
                   "Release Access Bearer Request Received in SGW_S8 task");
 
-  spgw_ue_context_t* ue_context_p = NULL;
+  spgw_ue_context_t* ue_context_p = nullptr;
   gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
 
-  hashtable_ts_get(sgw_state->imsi_ue_context_htbl, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
 
   if (!ue_context_p) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Failed to find ue context");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }  // end of ue context
-  sgw_s11_teid_t* s11_teid_p = NULL;
+  sgw_s11_teid_t* s11_teid_p = nullptr;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if (!s11_teid_p) {
       OAILOG_ERROR_UE(
