@@ -14,6 +14,7 @@ limitations under the License.
 import sys
 from distutils.util import strtobool
 from time import sleep
+from typing import List
 
 from fabric.api import cd, env, execute, local, run, settings, sudo
 from fabric.contrib.files import exists
@@ -511,6 +512,62 @@ def integ_test_deb_installation(
     execute(_run_integ_tests, gateway_ip)
 
 
+def integ_test_containerized(
+        gateway_host=None, test_host=None, trf_host=None,
+        destroy_vm='True', provision_vm='True',
+):
+    """
+    Run the integration tests. This defaults to running on local vagrant
+    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
+    passing "address:port" as arguments
+
+    gateway_host: The ssh address string of the machine to run the gateway
+        services on. Formatted as "host:port". If not specified, defaults to
+        the `magma` vagrant box.
+
+    test_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the TrafficServer
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
+    """
+
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Setup the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    run('rm -rf /etc/snowflake; sudo touch /etc/snowflake')
+    execute(_start_gateway_containerized)
+
+    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip)
+
+
+def _start_gateway_containerized():
+    """ Starts the gateway """
+    with cd(AGW_PYTHON_ROOT):
+        run('make buildenv')
+
+    with cd(AGW_ROOT):
+        run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
+
+    with cd(AGW_ROOT + "/docker"):
+        run('docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull')
+        run('sleep 60; docker-compose ps')
+
+
 def run_integ_tests(tests=None, federated_mode=False):
     """
     Function is required to run tests only in pre-configured Jenkins env.
@@ -873,6 +930,10 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
+    # healthy = _health()
+    # if not healthy:
+    #    raise RuntimeError("Containerized AGW not healthy")
+
     local(
         'ssh -i %s -o UserKnownHostsFile=/dev/null'
         ' -o StrictHostKeyChecking=no -tt %s -p %s'
@@ -885,6 +946,26 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         ' make %s enable-flaky-retry=true %s\''
         % (key, host, port, gateway_ip, test_mode, tests),
     )
+
+
+def _health(start_period: int = 30, interval: int = 5, retry_limit: int = 20, services: List[str] = ("pipelined", "sessiond", "control_proxy")):
+    print(f"Waiting {start_period} seconds to give agw time to start up")
+    for i in range(start_period):
+        sleep(1)
+        print(".")
+    result = False
+    retry_limit, retry = retry_limit, 0
+    while result is False and retry < retry_limit :
+        which_docker = run("which docker")
+        print("#################################################")
+        print(f"####### {which_docker}")
+        docker_version = run("docker --version")
+        print(f"####### {docker_version}")
+        output = run("docker inspect --format='{{.State.Health.Status}}' %s %s %s" % (services[0], services[1], services[2]))
+        result = all(line.strip() == "healthy" for line in output.split("\n"))
+        retry += 1
+        sleep(interval)
+    return result
 
 
 def _run_load_tests(gateway_ip='192.168.60.142'):
