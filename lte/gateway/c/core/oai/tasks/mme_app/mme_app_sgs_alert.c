@@ -52,7 +52,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 static int mme_app_send_sgsap_alert_reject(

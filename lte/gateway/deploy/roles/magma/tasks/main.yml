@@ -130,6 +130,7 @@
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
+    - icmpv6.py
   when: full_provision
 
 - name: Copy Envoy config

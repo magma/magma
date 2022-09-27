@@ -281,6 +281,15 @@ networks.forEach(network => {
       res.status(200).jsonp([]);
     }
   });
+  server.get(`/magma/v1/tenants`, (req, res) => {
+    res.status(200).jsonp([]);
+  });
+  server.post(`/magma/v1/tenants`, (req, res) => {
+    res.status(201).jsonp({});
+  });
+  server.put(`/magma/v1/tenants`, (req, res) => {
+    res.status(204).jsonp({});
+  });
   server.get(
     `/magma/v1/lte/{network}/enodebs/12020000051696P0013/state`,
     (req, res) => {
