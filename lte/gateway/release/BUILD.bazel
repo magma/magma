@@ -151,17 +151,10 @@ pkg_filegroup(
     prefix = "/etc/magma",
 )
 
-pkg_files(
-    name = "magma_config_stretch_snapshot",
-    srcs = [":stretch_snapshot"],
-    prefix = "/usr/local/share/magma",
-)
-
 pkg_tar(
     name = "magma_content",
     srcs = [
         ":magma_c_binaries",
-        ":magma_config_stretch_snapshot",
         ":magma_configs",
         ":magma_ebpf",
         ":magma_go_binaries",
