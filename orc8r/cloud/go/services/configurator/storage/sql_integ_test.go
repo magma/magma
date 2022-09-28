@@ -18,14 +18,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/proto"
-
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	orc8r_storage "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/cloud/go/test_utils"
+
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -846,7 +845,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// Load paginated entities of the same type
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	paginatedLoadCriteria := proto.Clone(&storage.FullEntityLoadCriteria).(*storage.EntityLoadCriteria)
+	paginatedLoadCriteria := &storage.FullEntityLoadCriteria
 	paginatedLoadCriteria.PageToken = ""
 	paginatedLoadCriteria.PageSize = 2
 	actualEntityLoad, err = store.LoadEntities("n1", &storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
