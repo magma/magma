@@ -536,7 +536,20 @@ def run_integ_tests(tests=None, federated_mode=False):
     if tests:
         tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests, federated_mode)
+    execute(_run_integ_tests, gateway_ip, tests, _to_boolean(federated_mode))
+
+
+def _to_boolean(value):
+    """Fabric function arguments passed by calling fab from external are strings.
+    This is, boolean arguments set to "True" and "False" must be interpreted.
+    """
+    if isinstance(value, bool):
+        return value
+
+    if not isinstance(value, str):
+        raise ValueError('Input can not be parsed to boolean - not a string or a boolean.')
+
+    return bool(strtobool(value))
 
 
 def get_test_summaries(
@@ -554,11 +567,11 @@ def get_test_summaries(
         "magma_deb": "magma_deb.yml",
     }
 
-    if sudo_tests:
+    if _to_boolean(sudo_tests):
         _switch_to_vm_no_provision(gateway_host, dev_vm_name, vm_name_to_yaml[dev_vm_name])
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    if integration_tests:
+    if _to_boolean(integration_tests):
         _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
@@ -677,7 +690,7 @@ def load_test(gateway_host=None, destroy_vm=True):
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
     else:
-        gateway_host = vagrant_setup('magma', destroy_vm)
+        gateway_host = vagrant_setup('magma', _to_boolean(destroy_vm))
         gateway_ip = '192.168.60.142'
 
     execute(_build_magma)
