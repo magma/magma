@@ -19,11 +19,11 @@ import (
 	"reflect"
 	"sort"
 
-	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/cloud/go/storage"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/thoas/go-funk"
+
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 )
 
 func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.TK) (bool, error) {
