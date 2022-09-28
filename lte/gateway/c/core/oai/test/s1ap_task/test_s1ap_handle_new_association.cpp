@@ -46,7 +46,7 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
   EXPECT_EQ(enbd->instreams(), 1);
   EXPECT_EQ(enbd->outstreams(), 2);
   EXPECT_EQ(enbd->enb_id(), 0xFFFFFFFF);
-  EXPECT_EQ(enbd->s1_enb_state(), magma::lte::oai::S1AP_INIT);
+  EXPECT_EQ(enbd->s1_enb_state(), oai::S1AP_INIT);
   EXPECT_EQ(enbd->next_sctp_stream(), 1);
   EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(),
                "\300\250<\215\0\0\0\0\0\0\0\0\0\0\0\0");
@@ -67,7 +67,7 @@ TEST(test_s1ap_handle_new_association, shutdown) {
   // set enb to shutdown state
   EnbDescription* enbd = nullptr;
   EXPECT_EQ(s->enbs.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_SHUTDOWN);
+  enbd->set_s1_enb_state(oai::S1AP_SHUTDOWN);
 
   // expect error
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNerror);
@@ -83,7 +83,7 @@ TEST(test_s1ap_handle_new_association, resetting) {
   // set enb to shutdown state
   EnbDescription* enbd = nullptr;
   EXPECT_EQ(s->enbs.get(p.assoc_id, &enbd), magma::PROTO_MAP_OK);
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  enbd->set_s1_enb_state(oai::S1AP_RESETING);
 
   // expect error
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNerror);
@@ -105,7 +105,7 @@ TEST(test_s1ap_handle_new_association, reassociate) {
   EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(), "");
   EXPECT_EQ(enbd->ran_cp_ipaddr_sz(), 0);
   // should be OK if enb status is READY
-  enbd->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+  enbd->set_s1_enb_state(oai::S1AP_READY);
 
   // new assoc with same id should overwrite
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
@@ -122,7 +122,7 @@ TEST(test_s1ap_handle_new_association, reassociate) {
   EXPECT_EQ(enbd->outstreams(), 20);
   EXPECT_STREQ(enbd->ran_cp_ipaddr().c_str(), "\300\250<\215");
   EXPECT_EQ(enbd->ran_cp_ipaddr_sz(), 4);
-  EXPECT_EQ(enbd->s1_enb_state(), magma::lte::oai::S1AP_INIT);
+  EXPECT_EQ(enbd->s1_enb_state(), oai::S1AP_INIT);
 
   bdestroy(ran_cp_ipaddr);
   free_s1ap_state(s);
@@ -152,7 +152,7 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
   EXPECT_EQ(s->enbs.size(), 0);
 
   bdestroy(ran_cp_ipaddr);
-  free_enb_description((void**)&enb_ref);
+  free_enb_description(reinterpret_cast<void**>(&enb_ref));
   free_s1ap_state(s);
 }
 

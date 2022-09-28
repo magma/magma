@@ -72,8 +72,7 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref);
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
  **/
-void s1ap_remove_enb(s1ap_state_t* state,
-                     oai::EnbDescription* enb_ref);
+void s1ap_remove_enb(s1ap_state_t* state, oai::EnbDescription* enb_ref);
 
 void free_enb_description(void** ptr);
 

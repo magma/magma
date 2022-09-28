@@ -72,12 +72,14 @@ void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
   }
 }
 
+// TODO(rsarwad): Shall be removed while handling github issue, 11192
 void S1apStateConverter::enb_to_proto(oai::EnbDescription* enb,
                                       oai::EnbDescription* proto) {
   proto->Clear();
   proto->MergeFrom(*enb);
 }
 
+// TODO(rsarwad): Shall be removed while handling github issue, 11192
 void S1apStateConverter::proto_to_enb(const oai::EnbDescription& proto,
                                       oai::EnbDescription* enb) {
   enb->Clear();

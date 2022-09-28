@@ -53,7 +53,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   oai::EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
   enb_association->set_enb_id(0xFFFFFFFF);
-  enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+  enb_association->set_s1_enb_state(oai::S1AP_READY);
 
   // filling ue_id_coll
   magma::proto_map_uint32_uint64_t ue_id_coll;
@@ -63,17 +63,16 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
 
   // filling supported_tai_items
 
-  magma::lte::oai::SupportedTaList* enb_ta_list =
+  oai::SupportedTaList* enb_ta_list =
       enb_association->mutable_supported_ta_list();
   enb_ta_list->set_list_count(1);
 
   for (int tai_idx = 0; tai_idx < enb_ta_list->list_count(); tai_idx++) {
-    magma::lte::oai::SupportedTaiItems* supported_tai_items =
+    oai::SupportedTaiItems* supported_tai_items =
         enb_ta_list->add_supported_tai_items();
     supported_tai_items->set_tac(1);
 
     supported_tai_items->set_bplmnlist_count(1);
-#define PLMN_BYTES 7
     char plmn_array[PLMN_BYTES] = {1, 2, 3, 4, 5, 6};
     for (int plmn_idx = 0; plmn_idx < supported_tai_items->bplmnlist_count();
          plmn_idx++) {
@@ -117,7 +116,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   oai::EnbDescription* enb_association = s1ap_new_enb();
   enb_association->set_sctp_assoc_id(assoc_id);
   enb_association->set_enb_id(0xFFFFFFFF);
-  enb_association->set_s1_enb_state(magma::lte::oai::S1AP_READY);
+  enb_association->set_s1_enb_state(oai::S1AP_READY);
   // Inserting 1 enb association
   init_state->enbs.insert(enb_association->sctp_assoc_id(), enb_association);
   // state_to_proto should update num_enbs to match expected eNB count on the

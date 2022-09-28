@@ -387,8 +387,10 @@ bool get_stale_enb_connection_with_enb_id(__attribute__((unused))
                                           const uint32_t keyP,
                                           oai::EnbDescription* const elementP,
                                           void* parameterP, void** resultP) {
-  oai::EnbDescription* new_enb_association = (oai::EnbDescription*)parameterP;
-  oai::EnbDescription* ht_enb_association = (oai::EnbDescription*)elementP;
+  oai::EnbDescription* new_enb_association =
+      reinterpret_cast<oai::EnbDescription*>(parameterP);
+  oai::EnbDescription* ht_enb_association =
+      reinterpret_cast<oai::EnbDescription*>(elementP);
 
   // No need to clean the newly created eNB association
   if (ht_enb_association == new_enb_association) {
@@ -406,13 +408,13 @@ bool get_stale_enb_connection_with_enb_id(__attribute__((unused))
 
 void clean_stale_enb_state(s1ap_state_t* state,
                            oai::EnbDescription* new_enb_association) {
-  oai::EnbDescription* stale_enb_association = NULL;
+  oai::EnbDescription* stale_enb_association = nullptr;
 
   state->enbs.map_apply_callback_on_all_elements(
       get_stale_enb_connection_with_enb_id,
       reinterpret_cast<void*>(new_enb_association),
       (void**)&stale_enb_association);
-  if (stale_enb_association == NULL) {
+  if (stale_enb_association == nullptr) {
     // No stale eNB connection found;
     return;
   }
@@ -4586,7 +4588,7 @@ status_code_e s1ap_handle_paging_request(
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = state->enbs.map->begin(); itr != state->enbs.map->end();
        itr++) {
-    enb_ref_p = (oai::EnbDescription*)itr->second;
+    enb_ref_p = reinterpret_cast<oai::EnbDescription*>(itr->second);
     if (!enb_ref_p) {
       continue;
     }

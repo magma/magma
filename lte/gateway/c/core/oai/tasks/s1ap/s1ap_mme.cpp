@@ -378,7 +378,7 @@ static void s1ap_mme_exit(void) {
 
 //------------------------------------------------------------------------------
 oai::EnbDescription* s1ap_new_enb(void) {
-  oai::EnbDescription* enb_ref = NULL;
+  oai::EnbDescription* enb_ref = nullptr;
   magma::proto_map_uint32_uint64_t ue_id_coll;
 
   enb_ref = new oai::EnbDescription();
@@ -387,7 +387,7 @@ oai::EnbDescription* s1ap_new_enb(void) {
    * * * * May be we are running out of memory.
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
-  if (enb_ref == NULL) {
+  if (enb_ref == nullptr) {
     OAILOG_CRITICAL(
         LOG_S1AP,
         "Failed to allocate memory for structure, oai::EnbDescription \n");
@@ -505,7 +505,7 @@ void s1ap_remove_ue(s1ap_state_t* state, oai::UeDescription* ue_ref) {
 
 //------------------------------------------------------------------------------
 void s1ap_remove_enb(s1ap_state_t* state, oai::EnbDescription* enb_ref) {
-  if (enb_ref == NULL) {
+  if (enb_ref == nullptr) {
     return;
   }
   magma::proto_map_uint32_uint64_t ue_id_coll;

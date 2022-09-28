@@ -136,8 +136,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY,
-                                 number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Invalid S1 Cause returns error
@@ -152,8 +152,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
   EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer().id(), S1AP_TIMER_INACTIVE_ID);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY,
-                                 number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -163,8 +163,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap_with_injected_states.ready, true);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY,
-                                 number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), number_attached_ue);
 
@@ -172,8 +172,8 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(send_s1ap_path_switch_req(assoc_id, 1, 7), RETURNok);
 
   // verify number of ues after sending S1AP_PATH_SWITCH_REQUEST_ACK
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, magma::lte::oai::S1AP_READY,
-                                 number_attached_ue));
+  ASSERT_TRUE(
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 }
 
 }  // namespace lte

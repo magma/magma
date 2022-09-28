@@ -37,8 +37,8 @@ s1ap_state_t* get_s1ap_state(bool read_from_db);
 
 void put_s1ap_state(void);
 
-magma::lte::oai::EnbDescription* s1ap_state_get_enb(s1ap_state_t* state,
-                                                    sctp_assoc_id_t assoc_id);
+oai::EnbDescription* s1ap_state_get_enb(s1ap_state_t* state,
+                                        sctp_assoc_id_t assoc_id);
 
 oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
                                             enb_ue_s1ap_id_t enb_ue_s1ap_id);
