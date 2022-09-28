@@ -18,11 +18,10 @@ import (
 	"fmt"
 	"sort"
 
+	"magma/orc8r/cloud/go/storage"
+
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
-	"google.golang.org/protobuf/proto"
-
-	"magma/orc8r/cloud/go/storage"
 )
 
 // ConfiguratorStorageFactory creates ConfiguratorStorage implementations bound
@@ -162,12 +161,11 @@ func (m *NetworkEntity) GetTK() storage.TK {
 }
 
 func (m *NetworkEntity) GetGraphEdges() []*GraphEdge {
-	mCopy := proto.Clone(m).(*NetworkEntity)
-	myID := mCopy.GetID()
+	myID := m.GetID()
 	existingAssocs := map[storage.TK]bool{}
 
-	edges := make([]*GraphEdge, 0, len(mCopy.Associations))
-	for _, assoc := range mCopy.Associations {
+	edges := make([]*GraphEdge, 0, len(m.Associations))
+	for _, assoc := range m.Associations {
 		if _, exists := existingAssocs[assoc.ToTK()]; exists {
 			continue
 		}
