@@ -138,7 +138,9 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        assert response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
+        assert (
+            response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
+        )
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,

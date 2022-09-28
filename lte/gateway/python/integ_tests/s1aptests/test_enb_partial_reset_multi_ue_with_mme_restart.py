@@ -126,7 +126,9 @@ class TestEnbPartialResetMultiUeWithMmeRestart(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            assert (
+                response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
 
         # Trigger detach request
         for ue in ue_ids:

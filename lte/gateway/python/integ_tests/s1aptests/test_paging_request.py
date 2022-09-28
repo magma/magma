@@ -101,7 +101,9 @@ class TestPagingRequest(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            assert (
+                response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
             test.verify()
 
         time.sleep(0.5)

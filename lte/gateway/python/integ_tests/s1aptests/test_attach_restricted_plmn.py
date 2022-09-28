@@ -79,7 +79,9 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
 
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+        assert (
+            response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+        )
 
         attach_rej = response.cast(s1ap_types.ueAttachRejInd_t)
         print(

@@ -91,7 +91,10 @@ class TestAttachEsmInformationTimerExpiration(unittest.TestCase):
                 sec_mode_complete.ue_Id,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            assert response.msg_type == s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
+            assert (
+                response.msg_type
+                == s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
+            )
             esm_info_req = response.cast(s1ap_types.ueEsmInformationReq_t)
 
         # Sending Esm Information Response

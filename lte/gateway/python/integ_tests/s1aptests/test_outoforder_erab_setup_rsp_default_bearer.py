@@ -128,7 +128,9 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+        assert (
+            response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+        )
 
         print(
             "******************* Received deactivate eps bearer context"

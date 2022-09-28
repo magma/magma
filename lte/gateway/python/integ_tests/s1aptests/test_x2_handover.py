@@ -81,12 +81,18 @@ class TestX2HandOver(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        assert response.msg_type == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
+        assert (
+            response.msg_type
+            == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
+        )
 
         print("************************* Received MME_CONFIGURATION_TRANSFER")
         print("************************* Sending ENB_CONFIGURATION_TRANSFER")
         response = self._s1ap_wrapper.s1_util.get_response()
-        assert response.msg_type == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
+        assert (
+            response.msg_type
+            == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
+        )
 
         print("************************* Received MME_CONFIGURATION_TRANSFER")
         print("************************* Sending X2_HO_TRIGGER_REQ")

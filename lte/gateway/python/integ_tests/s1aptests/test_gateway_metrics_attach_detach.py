@@ -95,13 +95,13 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
                 "ue_attach",
                 label_values_ue_attach_result,
             )
-            assert(val == v_ue_attach + 1)
+            assert (val == v_ue_attach + 1)
 
             val = self._getMetricValueGivenLabel(
                 "spgw_create_session",
                 label_values_success,
             )
-            assert(val == v_spgw_create_session + 1)
+            assert (val == v_spgw_create_session + 1)
 
             val = self._getMetricValueGivenLabel(
                 "ue_detach",
