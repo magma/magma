@@ -81,9 +81,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
 
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_sec_pdn = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_sec_pdn.m.pdnInfo.pAddr.addrInfo
         sec_ip = ipaddress.ip_address(bytes(addr[:4]))
@@ -108,9 +106,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         )
         # Receive Activate dedicated EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         # Send Activate dedicated EPS bearer context accept
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
@@ -142,9 +138,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
 
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         print(
