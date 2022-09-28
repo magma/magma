@@ -54,10 +54,7 @@ class TestDuplicateAttach(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
@@ -90,10 +87,7 @@ class TestDuplicateAttach(unittest.TestCase):
                 )
                 continue
 
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
             print(
                 "************************ Received UE context release indication",
             )

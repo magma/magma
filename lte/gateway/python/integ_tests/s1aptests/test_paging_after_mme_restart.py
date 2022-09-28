@@ -80,9 +80,7 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         wait_time = 0.3
         time.sleep(wait_time)
         print('************************* Restarting MME service on', 'gateway')
@@ -119,9 +117,7 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
                 )
                 response = self._s1ap_wrapper.s1_util.get_response()
 
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             test.verify()
 
         time.sleep(0.5)

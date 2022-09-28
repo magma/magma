@@ -43,7 +43,7 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
             "mme_new_association",
             label_values_success,
         )
-        self.assertGreater(mme_new_association, 0)
+        assert mme_new_association > 0
 
         num_ues = 2
         detach_type = [

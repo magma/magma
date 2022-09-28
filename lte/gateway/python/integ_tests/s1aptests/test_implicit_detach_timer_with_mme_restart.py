@@ -88,10 +88,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
         # Mobile Reachability Timer value = 1 minute (conf file) + delta value
@@ -141,10 +138,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,
@@ -152,10 +146,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
 
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

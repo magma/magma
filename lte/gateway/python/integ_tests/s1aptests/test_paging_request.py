@@ -79,9 +79,7 @@ class TestPagingRequest(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(0.3)
         print(
@@ -103,9 +101,7 @@ class TestPagingRequest(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             test.verify()
 
         time.sleep(0.5)

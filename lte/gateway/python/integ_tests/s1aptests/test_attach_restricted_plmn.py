@@ -79,9 +79,7 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
 
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
 
         attach_rej = response.cast(s1ap_types.ueAttachRejInd_t)
         print(
@@ -90,13 +88,11 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
         )
 
         # Verify cause
-        self.assertEqual(attach_rej.cause, s1ap_types.TFW_EMM_CAUSE_PLMN_NA)
+        assert attach_rej.cause == s1ap_types.TFW_EMM_CAUSE_PLMN_NA
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print(
             "************************* Received ue context release cmd for "
             "UE id ",

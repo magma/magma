@@ -192,9 +192,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req1 = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -220,9 +218,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req2 = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -253,8 +249,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(uplink_flows) > 2, "Uplink flow missing for UE"
-            self.assertIsNotNone(
-                uplink_flows[0]["match"]["tunnel_id"],
+            assert (
+                uplink_flows[0]["match"]["tunnel_id"] is not None,
                 "Uplink flow missing tunnel id match",
             )
 
@@ -281,9 +277,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(downlink_flows) > 2, "Downlink flow missing for UE"
-            self.assertEqual(
-                downlink_flows[0]["match"]["ipv4_dst"],
-                ue_ip,
+            assert (
+                downlink_flows[0]["match"]["ipv4_dst"] == ue_ip,
                 "UE IP match missing from downlink flow",
             )
 
@@ -294,7 +289,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 if action["field"] == "tunnel_id"
                 and action["type"] == "SET_FIELD"
             )
-            self.assertTrue(
+            assert (
                 has_tunnel_action, "Downlink flow missing set tunnel action",
             )
 
@@ -315,10 +310,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
 
             print("******************* Received deactivate eps bearer context")
 

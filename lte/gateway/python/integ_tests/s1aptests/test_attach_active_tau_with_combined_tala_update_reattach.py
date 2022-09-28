@@ -76,10 +76,7 @@ class TestAttachActiveTauWithCombinedTalaUpdateReattach(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print(
             "************************* Received UE context release indication",
         )
