@@ -133,7 +133,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	response, err := magmad.GatewayGenericCommand(c.Request().Context(), networkID, gatewayID, &genericCommandParams)
 	if err != nil {
 		st, _ := status.FromError(err)
-		if st.Code() == codes.NotFound {
+		if st.Code() == codes.InvalidArgument {
 			return echo.NewHTTPError(http.StatusNotFound, st.Message())
 		} else {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)

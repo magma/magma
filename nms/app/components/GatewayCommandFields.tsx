@@ -346,6 +346,13 @@ export function GenericCommandControls(props: ChildProps) {
   const [showProgress, setShowProgress] = useState<boolean>();
 
   const onClick = () => {
+    if (commandName === '') {
+      enqueueSnackbar('Generic command failed: no command provided', {
+        variant: 'error',
+      });
+      return;
+    }
+
     const {gatewayID} = props;
     let params: Record<string, object> = {};
     try {

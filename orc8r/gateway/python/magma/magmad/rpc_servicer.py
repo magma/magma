@@ -235,7 +235,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             future.cancel()
             set_grpc_err(
                 context,
-                grpc.StatusCode.NOT_FOUND,
+                grpc.StatusCode.INVALID_ARGUMENT,
                 str(e),
             )
         except Exception as e:  # pylint: disable=broad-except
