@@ -16,15 +16,14 @@ package tenants
 import (
 	"context"
 
-	"github.com/golang/glog"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
-
 	tenant_protos "magma/orc8r/cloud/go/services/tenants/protos"
 	"magma/orc8r/lib/go/merrors"
 	"magma/orc8r/lib/go/protos"
 	srvRegistry "magma/orc8r/lib/go/registry"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // getTenantsClient is a utility function to get a RPC connection to the
@@ -92,12 +91,11 @@ func SetTenant(ctx context.Context, tenantID int64, tenant *tenant_protos.Tenant
 		return err
 	}
 
-	tenantCopy := proto.Clone(tenant).(*tenant_protos.Tenant)
 	_, err = oc.SetTenant(
 		ctx,
 		&tenant_protos.IDAndTenant{
 			Id:     tenantID,
-			Tenant: tenantCopy,
+			Tenant: tenant,
 		},
 	)
 	if err != nil {
@@ -155,8 +153,7 @@ func CreateOrUpdateControlProxy(ctx context.Context, controlProxy *tenant_protos
 		return err
 	}
 
-	controlProxyCopy := proto.Clone(controlProxy).(*tenant_protos.CreateOrUpdateControlProxyRequest)
-	_, err = oc.CreateOrUpdateControlProxy(ctx, controlProxyCopy)
+	_, err = oc.CreateOrUpdateControlProxy(ctx, controlProxy)
 	if err != nil {
 		return mapErr(err)
 	}
