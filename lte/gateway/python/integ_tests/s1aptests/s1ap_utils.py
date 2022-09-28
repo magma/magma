@@ -1012,18 +1012,18 @@ class MagmadUtil(object):
                 "sudo systemctl stop 'magma@*' 'sctpd' ;"
                 "sudo systemctl start magma@magmad",
             )
+            self._wait_for_pipelined_to_initialize()
+
+            EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS = 10
+            print(f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} seconds to ensure all services restarted ...")
+            time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
                 "cd /home/vagrant/magma/lte/gateway/docker "
                 "&& docker-compose restart",
             )
             self.wait_for_restart_to_finish(wait_time=30)
-
-        self._wait_for_pipelined_to_initialize()
-
-        EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS = 10
-        print(f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} seconds to ensure all services restarted ...")
-        time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
+            self._wait_for_pipelined_to_initialize()
 
     def _wait_for_pipelined_to_initialize(self):
         """
@@ -1036,11 +1036,8 @@ class MagmadUtil(object):
         WAIT_INTERVAL_SECONDS = 5
         MAX_WAIT_SECONDS = 120
         print(f"  check every {WAIT_INTERVAL_SECONDS} seconds (max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...")
-        pipelined_is_running = False
         datapath_is_initialized = False
         while not datapath_is_initialized:
-            time.sleep(WAIT_INTERVAL_SECONDS)
-            wait_time_seconds += WAIT_INTERVAL_SECONDS
             pipelined_is_running, datapath_is_initialized = get_datapath_state()
             if not pipelined_is_running:
                 print(f"  pipelined not yet running for {wait_time_seconds} seconds ...")
@@ -1048,9 +1045,12 @@ class MagmadUtil(object):
                 print(f"  datapath not yet initialized for {wait_time_seconds} seconds ...")
             else:
                 print(f"  datapath is initialized after {wait_time_seconds} seconds!")
+                break
 
             if wait_time_seconds >= MAX_WAIT_SECONDS and not datapath_is_initialized:
                 raise RuntimeError(f"Pipelined failed to initialize after {MAX_WAIT_SECONDS} seconds.")
+            time.sleep(WAIT_INTERVAL_SECONDS)
+            wait_time_seconds += WAIT_INTERVAL_SECONDS
 
     def restart_services(self, services, wait_time=0):
         """
