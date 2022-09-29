@@ -17,12 +17,9 @@ on:
       branch_tag:
         description: 'Branch version number'
         required: true
-        default: '1.8'
       release_tag:
         description: 'Release version number'
         required: true
-        default: '1.8.0'
-
 
 jobs:
   docker-promote:

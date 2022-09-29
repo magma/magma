@@ -17,7 +17,6 @@ on:
       magma_version:
         description: 'Magma version number'
         required: true
-        default: '1.8.0'
 
 jobs:
   helm-promote:
