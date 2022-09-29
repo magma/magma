@@ -161,6 +161,16 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
   return 0;
 }
 
+static bool parse_bool(const char* str) {
+  if (strcasecmp(str, "yes") == 0) return true;
+  if (strcasecmp(str, "true") == 0) return true;
+  if (strcasecmp(str, "no") == 0) return false;
+  if (strcasecmp(str, "false") == 0) return false;
+  if (strcasecmp(str, "") == 0) return false;
+
+  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -329,6 +339,13 @@ int amf_config_parse_file(amf_config_t* config_pP,
         }  // If MCC/MNC/Slice Information is found
       }    // For the number of entries in the list for PLMN SUPPORT
     }      // PLMN_SUPPORT LIST is present
+
+    // enable VoNR support
+    if ((config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP,
+            &astring))) {
+      config_pP->nas_config.enable_IMS_VoPS_3GPP = parse_bool(astring);
+    }
 
     // guamfi SETTING
     setting =
