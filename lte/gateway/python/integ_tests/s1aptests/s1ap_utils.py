@@ -858,11 +858,10 @@ class MagmadUtil(object):
         """
         self._magmad_client = magmad_client
 
-        self._data = {
+        self._credentials = {
             "user": "vagrant",
             "host": "192.168.60.142",
             "password": "vagrant",
-            "command": "test",
         }
 
         self._command = (
@@ -886,9 +885,7 @@ class MagmadUtil(object):
         Returns:
             status of command execution
         """
-        data = self._data
-        data["command"] = '"' + command + '"'
-        param_list = shlex.split(self._command.format(**data))
+        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
         return subprocess.call(
             param_list,
             shell=False,
@@ -906,35 +903,39 @@ class MagmadUtil(object):
         Returns:
             output of command execution
         """
-        data = self._data
-        data["command"] = '"' + command + '"'
-        param_list = shlex.split(self._command.format(**data))
+        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
         return subprocess.check_output(
             param_list,
             shell=False,
         ).decode("utf-8")
 
+    def exec_command_capture_output(self, command):
+        """Run a command remotely on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        Returns:
+            output of command execution
+        """
+        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
+        return subprocess.run(
+            param_list,
+            shell=False,
+            capture_output=True,
+        )
+
     def detect_init_system(self) -> InitMode:
         """Detect whether services are running with Docker or systemd."""
-        def _is_installed(cmd):
-            is_installed = self.exec_command(f"type {cmd} >/dev/null 2>&1") == 0
-            if not is_installed:
-                logging.info(f"{cmd} is not installed")
-            return is_installed
-
-        if _is_installed("docker"):
-            docker_magmad_running = self.exec_command_output(
-                "docker ps --filter 'name=magmad' --format '{{.Names}}'",
-            ).strip() == "magmad"
-        else:
-            docker_magmad_running = False
-
-        if _is_installed("systemctl"):
-            systemd_magmad_running = self.exec_command_output(
-                "systemctl is-active magma@magmad",
-            ).strip() == "active"
-        else:
-            systemd_magmad_running = False
+        res_docker = self.exec_command_capture_output(
+            "docker ps --filter 'name=magmad' --format '{{.Names}}'",
+        )
+        res_systemd = self.exec_command_capture_output(
+            "systemctl is-active magma@magmad",
+        )
+        docker_magmad_running = res_docker.stdout.decode("utf-8").strip('\n') == 'magmad'
+        systemd_magmad_running = res_systemd.stdout.decode("utf-8").strip('\n') == 'active'
 
         if systemd_magmad_running:
             # default to systemd if docker and systemd are running - needed by feg integ tests
