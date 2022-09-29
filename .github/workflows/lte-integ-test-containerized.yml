@@ -12,8 +12,15 @@
 name: LTE integ test containerized agw
 
 on:
-  pull_request:
-    types: [ opened, reopened, synchronize ]
+  workflow_dispatch: null
+  workflow_run:
+    workflows:
+      - build-all
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - completed
 
 jobs:
   lte-integ-test-containerized:
