@@ -54,7 +54,7 @@ jobs:
         env:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
-          MAGMA_PACKAGE: ${{ github.event.client_payload.magma_package }}
+          MAGMA_PACKAGE: ${{ github.event.client_payload.artifact }}
         run: |
           cd lte/gateway
           fab integ_test_deb_installation
