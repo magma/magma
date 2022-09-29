@@ -66,12 +66,6 @@ jobs:
           cd lte/gateway
           fab --version
           fab --show=debug integ_test_containerized
-      - name: Setup upterm session
-        if: always()
-        uses: lhotari/action-upterm@v1
-        with:
-          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
-          limit-access-to-actor: true
       - name: Get test results
         if: always()
         run: |
