@@ -552,7 +552,7 @@ def integ_test_containerized(
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
-    execute(_run_integ_tests, gateway_ip,tests=["s1aptests/test_attach_detach.py"])
+    execute(_run_integ_tests, gateway_ip, tests=["s1aptests/test_attach_detach.py"])
 
 
 def _start_gateway_containerized():
@@ -938,7 +938,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         f' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
         f' source ~/build/python/bin/activate;'
         f' export GATEWAY_IP={gateway_ip};'
-        f' make {test_mode} enable-flaky-retry=true {tests}\''
+        f' make {test_mode} enable-flaky-retry=true {tests}\'',
     )
 
 
