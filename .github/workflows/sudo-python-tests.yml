@@ -69,6 +69,25 @@ jobs:
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results",integration_tests=False
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        with:
+          check_name: Sudo Python test results
+          junit_files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
       - name: Notify failure to slack
         if: failure() && github.repository_owner == 'magma'
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0

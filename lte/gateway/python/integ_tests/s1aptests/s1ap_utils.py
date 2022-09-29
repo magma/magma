@@ -916,30 +916,31 @@ class MagmadUtil(object):
 
     def detect_init_system(self) -> InitMode:
         """Detect whether services are running with Docker or systemd."""
+        def _is_installed(cmd):
+            is_installed = self.exec_command(f"type {cmd} >/dev/null 2>&1") == 0
+            if not is_installed:
+                logging.info(f"{cmd} is not installed")
+            return is_installed
 
-        try:
-            docker_running = self.exec_command_output(
+        if _is_installed("docker"):
+            docker_magmad_running = self.exec_command_output(
                 "docker ps --filter 'name=magmad' --format '{{.Names}}'",
             ).strip() == "magmad"
-        except subprocess.CalledProcessError:
-            docker_running = False
-            logging.info("Docker is not installed")
+        else:
+            docker_magmad_running = False
 
-        try:
-            systemd_running = self.exec_command_output(
+        if _is_installed("systemctl"):
+            systemd_magmad_running = self.exec_command_output(
                 "systemctl is-active magma@magmad",
             ).strip() == "active"
-        except subprocess.CalledProcessError:
-            systemd_running = False
-            logging.info("systemd is not installed")
+        else:
+            systemd_magmad_running = False
 
-        if docker_running and systemd_running:
-            # default to systemd if both are running, needed by feg integ tests
+        if systemd_magmad_running:
+            # default to systemd if docker and systemd are running - needed by feg integ tests
             return InitMode.SYSTEMD
-        elif docker_running:
+        elif docker_magmad_running:
             return InitMode.DOCKER
-        elif systemd_running:
-            return InitMode.SYSTEMD
         else:
             raise RuntimeError(
                 "Magmad is not running, you have to start magmad "
@@ -998,7 +999,8 @@ class MagmadUtil(object):
         """Restart all magma services on magma_dev VM"""
         if self._init_system == InitMode.SYSTEMD:
             self.exec_command(
-                "sudo service magma@* stop ; sudo service magma@magmad start",
+                "sudo systemctl stop 'magma@*' 'sctpd' ;"
+                "sudo systemctl start magma@magmad",
             )
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
@@ -1491,7 +1493,6 @@ class MagmadUtil(object):
         with open(mconfig_conf, "w") as json_file:
             json.dump(data, json_file, sort_keys=True, indent=2)
 
-        self.restart_sctpd(0)
         self.restart_all_services()
 
     def _validate_non_nat_datapath(self, ip_version=4):

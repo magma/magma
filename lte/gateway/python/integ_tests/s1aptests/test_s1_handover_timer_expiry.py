@@ -121,10 +121,7 @@ class TestS1HandoverTimerExpiry(unittest.TestCase):
         # Handover Request to Target ENB.
         # Wait for S1 Handover Request Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value
         s1ho_req_ind = response.cast(s1ap_types.FwNbS1HoReqInd_t)
         print(
             "************************* Received S1 Handover Request "
@@ -155,10 +152,7 @@ class TestS1HandoverTimerExpiry(unittest.TestCase):
         # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value
         s1ho_cmd_ind = response.cast(s1ap_types.FwNbS1HoCmdInd_t)
         print(
             "************************* Received S1 Handover Command "
@@ -177,10 +171,7 @@ class TestS1HandoverTimerExpiry(unittest.TestCase):
         # Command Indication to allow the S1 Reloc Timer to Expire
         # Wait for S1 HO Command Drop Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CMD_DROP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CMD_DROP_IND.value
         s1ho_cmd_drp_ind = response.cast(s1ap_types.FwNbS1HoCmdDropInd_t)
         print(
             "************************* Received S1 Handover Command Drop "
@@ -200,10 +191,7 @@ class TestS1HandoverTimerExpiry(unittest.TestCase):
         # source ENB
         # Wait for S1 HO Cancel Ack Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CANCEL_ACK_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CANCEL_ACK_IND.value
         s1ho_cancl_ack_ind = response.cast(s1ap_types.FwNbS1HoCancelAckInd_t)
         print(
             "************************* Received S1 Handover Cancel Ack "

@@ -43,9 +43,8 @@ var mockResult = sqlmock.NewResult(1, 1)
 
 func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 	runFactory := func(ids []string, loadCriteria *storage.NetworkLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.NetworkLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadNetworks(&storage.NetworkLoadFilter{Ids: ids}, loadCriteriaCopy)
+			return store.LoadNetworks(&storage.NetworkLoadFilter{Ids: ids}, loadCriteria)
 		}
 	}
 
@@ -204,9 +203,8 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 
 func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 	runFactory := func(network *storage.Network) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		networkCopy := proto.Clone(network).(*storage.Network)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.CreateNetwork(networkCopy)
+			return store.CreateNetwork(network)
 		}
 	}
 
@@ -431,10 +429,8 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 
 func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	runFactory := func(networkID string, filter *storage.EntityLoadFilter, loadCriteria *storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		filterCopy := proto.Clone(filter).(*storage.EntityLoadFilter)
-		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.EntityLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadEntities(networkID, filterCopy, loadCriteriaCopy)
+			return store.LoadEntities(networkID, filter, loadCriteria)
 		}
 	}
 
@@ -944,9 +940,8 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 
 func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	runFactory := func(networkID string, entity *storage.NetworkEntity) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		entityCopy := proto.Clone(entity).(*storage.NetworkEntity)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.CreateEntity(networkID, entityCopy)
+			return store.CreateEntity(networkID, entity)
 		}
 	}
 
@@ -1063,9 +1058,8 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 
 func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	runFactory := func(networkID string, update *storage.EntityUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		updateCopy := proto.Clone(update).(*storage.EntityUpdateCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.UpdateEntity(networkID, updateCopy)
+			return store.UpdateEntity(networkID, update)
 		}
 	}
 
@@ -1339,10 +1333,8 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 
 func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 	runFactory := func(networkID string, entityID *storage.EntityID, loadCriteria *storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
-		entityIDCopy := proto.Clone(entityID).(*storage.EntityID)
-		loadCriteriaCopy := proto.Clone(loadCriteria).(*storage.EntityLoadCriteria)
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadGraphForEntity(networkID, entityIDCopy, loadCriteriaCopy)
+			return store.LoadGraphForEntity(networkID, entityID, loadCriteria)
 		}
 	}
 
@@ -1655,7 +1647,6 @@ func getTestCaseForEntityUpdate(
 	expectedEdgeLoads []expectedEntQueryResult,
 	expectedGraphMerges ...[2]string,
 ) *testCase {
-	updateCopy := proto.Clone(update).(*storage.EntityUpdateCriteria)
 	expectedResult := &storage.NetworkEntity{
 		NetworkID: "network",
 		Type:      entToUpdate.entType,
@@ -1664,12 +1655,12 @@ func getTestCaseForEntityUpdate(
 		Pk:        entToUpdate.pk,
 		Version:   entToUpdate.version + 1,
 
-		Name:        stringValue(updateCopy.NewName),
-		Description: stringValue(updateCopy.NewDescription),
-		Config:      bytesVal(updateCopy.NewConfig),
+		Name:        stringValue(update.NewName),
+		Description: stringValue(update.NewDescription),
+		Config:      bytesVal(update.NewConfig),
 	}
-	if updateCopy.NewPhysicalID != nil {
-		expectedResult.PhysicalID = updateCopy.NewPhysicalID.Value
+	if update.NewPhysicalID != nil {
+		expectedResult.PhysicalID = update.NewPhysicalID.Value
 	} else {
 		expectedResult.PhysicalID = entToUpdate.physicalID
 	}
@@ -1681,11 +1672,11 @@ func getTestCaseForEntityUpdate(
 		},
 	).(map[orc8r_storage.TK]expectedEntQueryResult)
 
-	if !funk.IsEmpty(updateCopy.AssociationsToAdd) {
-		expectedResult.Associations = append(expectedResult.Associations, updateCopy.AssociationsToAdd...)
+	if !funk.IsEmpty(update.AssociationsToAdd) {
+		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
 	}
-	if updateCopy.AssociationsToSet != nil {
-		expectedResult.Associations = append(expectedResult.Associations, updateCopy.AssociationsToSet.AssociationsToSet...)
+	if update.AssociationsToSet != nil {
+		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToSet.AssociationsToSet...)
 	}
 
 	if !funk.IsEmpty(expectedGraphMerges) {
@@ -1696,28 +1687,28 @@ func getTestCaseForEntityUpdate(
 		setup: func(m sqlmock.Sqlmock) {
 			// Basic fields
 			expectBasicEntityQueries(m, entToUpdate)
-			updateWithArgs := []driver.Value{}
-			if updateCopy.NewName != nil {
-				updateWithArgs = append(updateWithArgs, updateCopy.NewName.Value)
+			var updateWithArgs []driver.Value
+			if update.NewName != nil {
+				updateWithArgs = append(updateWithArgs, update.NewName.Value)
 			}
-			if updateCopy.NewDescription != nil {
-				updateWithArgs = append(updateWithArgs, updateCopy.NewDescription.Value)
+			if update.NewDescription != nil {
+				updateWithArgs = append(updateWithArgs, update.NewDescription.Value)
 			}
-			if updateCopy.NewPhysicalID != nil {
-				updateWithArgs = append(updateWithArgs, updateCopy.NewPhysicalID.Value)
+			if update.NewPhysicalID != nil {
+				updateWithArgs = append(updateWithArgs, update.NewPhysicalID.Value)
 			}
-			if updateCopy.NewConfig != nil {
-				updateWithArgs = append(updateWithArgs, updateCopy.NewConfig.Value)
+			if update.NewConfig != nil {
+				updateWithArgs = append(updateWithArgs, update.NewConfig.Value)
 			}
 			updateWithArgs = append(updateWithArgs, entToUpdate.pk)
 
 			m.ExpectExec("UPDATE cfg_entities").WithArgs(updateWithArgs...).WillReturnResult(mockResult)
 
 			// Graph
-			if updateCopy.AssociationsToSet != nil {
+			if update.AssociationsToSet != nil {
 				m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(entToUpdate.pk).WillReturnResult(mockResult)
-				expectEdgeQueries(m, updateCopy.AssociationsToSet.AssociationsToSet, edgeLoadsByTk)
-				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToSet.AssociationsToSet, edgeLoadsByTk))
+				expectEdgeQueries(m, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk))
 				if !funk.IsEmpty(expectedGraphMerges) {
 					expectMergeGraphs(m, expectedGraphMerges)
 				}
@@ -1732,17 +1723,17 @@ func getTestCaseForEntityUpdate(
 				)
 			}
 
-			if !funk.IsEmpty(updateCopy.AssociationsToAdd) {
-				expectEdgeQueries(m, updateCopy.AssociationsToAdd, edgeLoadsByTk)
-				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToAdd, edgeLoadsByTk))
+			if !funk.IsEmpty(update.AssociationsToAdd) {
+				expectEdgeQueries(m, update.AssociationsToAdd, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToAdd, edgeLoadsByTk))
 				if !funk.IsEmpty(expectedGraphMerges) {
 					expectMergeGraphs(m, expectedGraphMerges)
 				}
 			}
 
-			if !funk.IsEmpty(updateCopy.AssociationsToDelete) {
-				expectEdgeQueries(m, updateCopy.AssociationsToDelete, edgeLoadsByTk)
-				expectEdgeDeletions(m, assocsToEdges(entToUpdate.pk, updateCopy.AssociationsToDelete, edgeLoadsByTk))
+			if !funk.IsEmpty(update.AssociationsToDelete) {
+				expectEdgeQueries(m, update.AssociationsToDelete, edgeLoadsByTk)
+				expectEdgeDeletions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToDelete, edgeLoadsByTk))
 
 				// fix graph, but no partition detected
 				expectBulkEntityQuery(m, []driver.Value{entToUpdate.graphID}, entToUpdate)
@@ -1755,7 +1746,7 @@ func getTestCaseForEntityUpdate(
 			}
 		},
 		run: func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.UpdateEntity("network", updateCopy)
+			return store.UpdateEntity("network", update)
 		},
 		expectedResult: expectedResult,
 	}

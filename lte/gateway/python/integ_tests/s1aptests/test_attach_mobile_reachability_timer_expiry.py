@@ -77,9 +77,7 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
         # MOBILE REACHABILITY TIMER VALUE = 1 minute (conf file) + delta value
@@ -107,9 +105,7 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
