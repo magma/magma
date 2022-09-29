@@ -93,23 +93,17 @@ class TestNoAuthResponse(unittest.TestCase):
         # Wait for timer 3460 expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
             print("************************* Timeout", i + 1)
 
         print("************************* Timeouts complete")
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("************************* Context released")
 
 

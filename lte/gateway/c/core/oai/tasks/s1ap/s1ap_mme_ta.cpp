@@ -168,8 +168,8 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
 /* @brief compare PLMNs
  */
 static int s1ap_paging_compare_plmns(
-    magma::lte::oai::SupportedTaiItems& enb_tai_item, uint8_t enb_plmn_count,
-    const paging_tai_list_t* p_tai_list) {
+    const magma::lte::oai::SupportedTaiItems& enb_tai_item,
+    uint8_t enb_plmn_count, const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
   if (!(enb_tai_item.bplmns_size())) {

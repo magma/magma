@@ -4592,20 +4592,19 @@ status_code_e s1ap_handle_paging_request(
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
-    enb_ref_p = (oai::EnbDescription)itr->second;
+    enb_ref_p = itr->second;
     if (!enb_ref_p.sctp_assoc_id()) {
-      continue;
-    }
-    if (enb_ref_p.s1_enb_state() == oai::S1AP_READY) {
-      oai::SupportedTaList enb_ta_list = enb_ref_p.supported_ta_list();
-      if ((is_tai_found = s1ap_paging_compare_ta_lists(
-               enb_ta_list, p_tai_list, paging_request->tai_list_count))) {
-        bstring paging_msg_buffer = blk2bstr(buffer_p, length);
-        rc = s1ap_mme_itti_send_sctp_request(
-            &paging_msg_buffer, enb_ref_p.sctp_assoc_id(),
-            0,   // Stream id 0 for non UE related
-                 // S1AP message
-            0);  // mme_ue_s1ap_id 0 because UE in idle
+      if (enb_ref_p.s1_enb_state() == oai::S1AP_READY) {
+        oai::SupportedTaList enb_ta_list = enb_ref_p.supported_ta_list();
+        if ((is_tai_found = s1ap_paging_compare_ta_lists(
+                 enb_ta_list, p_tai_list, paging_request->tai_list_count))) {
+          bstring paging_msg_buffer = blk2bstr(buffer_p, length);
+          rc = s1ap_mme_itti_send_sctp_request(
+              &paging_msg_buffer, enb_ref_p.sctp_assoc_id(),
+              0,   // Stream id 0 for non UE related
+                   // S1AP message
+              0);  // mme_ue_s1ap_id 0 because UE in idle
+        }
       }
     }
   }

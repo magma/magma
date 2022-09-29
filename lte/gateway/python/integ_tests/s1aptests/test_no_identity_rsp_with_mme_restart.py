@@ -65,10 +65,7 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
         print(
             "Received Identity req ind ",
             s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
@@ -125,10 +122,7 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
                 break
 
         # Context release
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("********** UE Context released **********")
 
         time.sleep(5)

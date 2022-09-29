@@ -80,15 +80,10 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn, pdn_type=2)
         # Receive PDN Connectivity reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         # Verify cause
         pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
-        self.assertEqual(
-            pdn_con_rsp.m.conRejInfo.cause,
-            s1ap_types.TFW_ESM_CAUSE_UNKNOWN_PDN_TYPE,
-        )
+        assert pdn_con_rsp.m.conRejInfo.cause == s1ap_types.TFW_ESM_CAUSE_UNKNOWN_PDN_TYPE
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

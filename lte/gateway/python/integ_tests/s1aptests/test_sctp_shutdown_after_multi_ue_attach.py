@@ -27,7 +27,9 @@ class TestSctpShutdownAfterMultiUeAttach(unittest.TestCase):
             "Restart sctpd service to clear Redis state as test case doesn't"
             " intend to initiate detach procedure",
         )
-        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ['sctpd'], wait_time=30,
+        )
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def test_sctp_shutdown_after_multi_ue_attach(self):

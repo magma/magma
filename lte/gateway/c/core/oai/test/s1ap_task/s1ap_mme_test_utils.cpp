@@ -410,7 +410,7 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
 }
 
 bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
-                        magma::lte::oai::S1apEnbState expected_state,
+                        oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues) {
   oai::EnbDescription enb_associated;
   proto_map_uint32_enb_description_t enb_map;

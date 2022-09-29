@@ -509,7 +509,7 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
 
 //------------------------------------------------------------------------------
 void s1ap_remove_enb(oai::S1apState* state, oai::EnbDescription* enb_ref) {
-  if (enb_ref == NULL) {
+  if (enb_ref == nullptr) {
     return;
   }
   magma::proto_map_uint32_uint64_t ue_id_coll;

@@ -126,7 +126,7 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
                                      oai::UeDescription* elementP,
                                      void* parameterP, void** resultP) {
   mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*)parameterP;
-  oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
+  oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
   if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id()) {
     *resultP = elementP;
     OAILOG_TRACE(LOG_S1AP,
@@ -142,7 +142,7 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
                              void** resultP) {
   imsi64_t imsi64 = INVALID_IMSI64;
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
-  oai::UeDescription* ue_ref = (oai::UeDescription*)elementP;
+  oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
