@@ -931,7 +931,7 @@ class MagmadUtil(object):
 
         if _is_installed("systemctl"):
             systemd_magmad_running = self.exec_command_output(
-                "systemctl is-active magma@magmad",
+                "systemctl is-active magma@magmad || /bin/true",
             ).strip() == "active"
         else:
             systemd_magmad_running = False
