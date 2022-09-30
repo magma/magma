@@ -94,9 +94,7 @@ class TestIPv4v6SecondaryPdn(unittest.TestCase):
             )
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
             pdnType = act_def_bearer_req.m.pdnInfo.pAddr.pdnType
@@ -122,9 +120,7 @@ class TestIPv4v6SecondaryPdn(unittest.TestCase):
 
             # Receive Router Advertisement message
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
             routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
             print(
                 "************* Received Router Advertisement for APN-%s"

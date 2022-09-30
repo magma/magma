@@ -81,17 +81,17 @@ class TestX2HandOver(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value,
+        assert (
+            response.msg_type
+            == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
         )
 
         print("************************* Received MME_CONFIGURATION_TRANSFER")
         print("************************* Sending ENB_CONFIGURATION_TRANSFER")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value,
+        assert (
+            response.msg_type
+            == s1ap_types.tfwCmd.MME_CONFIGURATION_TRANSFER.value
         )
 
         print("************************* Received MME_CONFIGURATION_TRANSFER")
@@ -102,9 +102,7 @@ class TestX2HandOver(unittest.TestCase):
         )
         # Receive Path Switch Request Ack
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value
 
         print("************************* Received Path Switch Request Ack")
 

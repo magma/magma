@@ -13,10 +13,15 @@ limitations under the License.
 import asyncio
 import importlib
 from abc import ABC, abstractmethod
+from functools import partial
 from typing import Any, Awaitable, Callable, Dict, List, Union
 
 ParamValueT = Union[str, int, float, bool, List[Union[str, int, float, bool]]]
 ExecutorFuncT = Callable[[Dict[str, ParamValueT]], Awaitable[Dict[str, Any]]]
+
+
+class CommandExecutionException(Exception):
+    pass
 
 
 class CommandExecutor(ABC):
@@ -40,7 +45,13 @@ class CommandExecutor(ABC):
         """
         Run the command from the dispatch table with params
         """
-        result = await self.get_command_dispatch()[command](params)
+        cmd = self.get_command_dispatch().get(command)
+        if not cmd:
+            raise CommandExecutionException(f"no config for {command}")
+        allow_params = isinstance(cmd, partial) and cmd.args[-1]
+        if allow_params and list(params.keys()) != ["shell_params"]:
+            raise CommandExecutionException("the parameters must be JSON with one key, 'shell_params'")
+        result = await cmd(params)
         return result
 
     @abstractmethod

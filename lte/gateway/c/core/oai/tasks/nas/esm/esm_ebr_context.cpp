@@ -37,11 +37,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

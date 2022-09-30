@@ -122,13 +122,14 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
 };
 
 TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
-  ue_description_t ue_ref_p = {
-      .enb_ue_s1ap_id = 1,
-      .mme_ue_s1ap_id = 99,
-      .sctp_assoc_id = assoc_id,
-      .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
-  ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
-  ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
+  oai::UeDescription ue_ref_p;
+  ue_ref_p.Clear();
+  ue_ref_p.set_enb_ue_s1ap_id(1);
+  ue_ref_p.set_mme_ue_s1ap_id(99);
+  ue_ref_p.set_sctp_assoc_id(assoc_id);
+  ue_ref_p.set_comp_s1ap_id(S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1));
+  ue_ref_p.mutable_s1ap_ue_context_rel_timer()->set_id(-1);
+  ue_ref_p.mutable_s1ap_ue_context_rel_timer()->set_msec(1000);
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -148,7 +149,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
                           INVALID_IMSI64, assoc_id, stream_id, 99, 1));
 
-  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
+  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer().id(), S1AP_TIMER_INACTIVE_ID);
 
   // State validation
   ASSERT_TRUE(

@@ -75,9 +75,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
         router_adv = response.cast(s1ap_types.ueRouterAdv_t)
         print(
             "********** Received Router Advertisement for APN-%s"
@@ -118,9 +116,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
             qos,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
             req.ue_id, act_ded_ber_req.bearerId,
@@ -157,9 +153,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("********** UE moved to idle mode")
 
         print("********** Sleeping for 5 seconds")
@@ -174,7 +168,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
         )
         self._s1ap_wrapper.s1_util.run_ipv6_data(default_ipv6)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
         print("********** Received UE_PAGING_IND")
         # Send service request to reconnect UE
         ser_req = s1ap_types.ueserviceReq_t()
@@ -187,9 +181,7 @@ class TestIpv6PagingWithDedicatedBearer(unittest.TestCase):
         )
         print("********** Sent UE_SERVICE_REQUEST")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
         print("********** Received INT_CTX_SETUP_IND")
 
         print("********** Sleeping for 5 seconds")

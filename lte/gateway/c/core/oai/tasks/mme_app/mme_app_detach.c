@@ -45,7 +45,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"

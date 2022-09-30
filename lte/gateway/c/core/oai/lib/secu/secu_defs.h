@@ -31,8 +31,14 @@ void kdf(const uint8_t* key, const unsigned key_len, uint8_t* s,
 int derive_keNB(const uint8_t* kasme_32, const uint32_t nas_count,
                 uint8_t* keNB);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int derive_key_nas(algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
                    const uint8_t* kasme_32, uint8_t* knas);
+#ifdef __cplusplus
+}
+#endif
 
 int derive_5gkey_amf(const uint8_t* imsi, uint8_t imsi_length,
                      const uint8_t* kasme_32, uint8_t* knas);
@@ -75,17 +81,20 @@ typedef struct {
   uint32_t blength;
 } nas_stream_cipher_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
                             uint8_t* const out);
-
-int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
-                            uint8_t const out[4]);
-
 int nas_stream_encrypt_eea2(nas_stream_cipher_t* const stream_cipher,
                             uint8_t* const out);
-
+int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
+                            uint8_t const out[4]);
 int nas_stream_encrypt_eia2(nas_stream_cipher_t* const stream_cipher,
                             uint8_t const out[4]);
+#ifdef __cplusplus
+}
+#endif
 
 int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb);
 

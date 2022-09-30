@@ -95,6 +95,15 @@ py_binary(
     ],
 )
 
+# Note: Not included in the magma debian package. Only used for integration tests.
+py_binary(
+    name = "config_iface_for_ipv6",
+    srcs = ["config_iface_for_ipv6.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
+)
+
 py_binary(
     name = "config_stateless_agw",
     srcs = ["config_stateless_agw.py"],

@@ -80,10 +80,7 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS.value
             erab_setup_failed_for_bearers = response.cast(
                 s1ap_types.FwErabSetupFailedTosetup,
             )

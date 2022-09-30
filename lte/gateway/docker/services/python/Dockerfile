@@ -63,10 +63,10 @@ RUN gem install fpm
 COPY . $MAGMA_ROOT/
 WORKDIR /var/tmp/
 RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
-    dpkg -i python3-aioeventlet*
+  dpkg -i python3-aioeventlet*
 
 RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
+  wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
 WORKDIR /magma/lte/gateway/python
 RUN make buildenv
@@ -89,6 +89,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
+  docker.io \
   ethtool \
   inetutils-ping \
   iproute2 \

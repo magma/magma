@@ -13,13 +13,8 @@ name: LTE integ test magma-deb
 
 on:
   workflow_dispatch: null
-  workflow_run:
-    workflows:
-      - build-all
-    branches:
-      - master
-    types:
-      - completed
+  repository_dispatch:
+    types: [build-all-artifact]
 
 jobs:
   lte-integ-test-magma-deb:
@@ -59,6 +54,26 @@ jobs:
         env:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
+          MAGMA_PACKAGE: ${{ github.event.client_payload.artifact }}
         run: |
           cd lte/gateway
           fab integ_test_deb_installation
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        with:
+          check_name: LTE Debian integration test results
+          junit_files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
