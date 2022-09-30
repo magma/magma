@@ -60,14 +60,12 @@ and dirty way to run the containers locally.
 
 ### Running the S1AP integration tests against the containerized AGW
 
-At present, of the S1AP integration tests, it has been verified that `test_attach_detach` can be run versus the containerized AGW.
-To run this test, development mode needs to be enabled when starting the containers, which can be done by using an override
-file `docker-compose.dev.yaml`:
+At present, of the S1AP integration tests, it has been verified that most of the tests can be run versus the containerized AGW;
 
 ```
 cd $MAGMA_ROOT/lte/gateway/docker
 docker-compose down # If containers are already running
-docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+docker-compose up
 ```
 
 The test VM can then be set up and the test executed by following
