@@ -1054,29 +1054,51 @@ class MagmadUtil(object):
 
     def restart_services(self, services, wait_time=0):
         """
-        Restart a list of magmad services. Blocking command.
+        Restart a list of magmad services.
+        Hint:
+            Not all conbination of magma services in the list do make sense.
+            Many magma services depend on each other / restart one another
+            anyway.
 
         Args:
             services: List of (str) services names
-            wait_time: (int) Time to wait for restart of the services
+            wait_time: (int) max wait time for restart of the services
         """
         for service in services:
             service_name = self.get_service_name_from_init_system(service)
             if self._init_system == InitMode.SYSTEMD:
                 self.exec_command(f"sudo systemctl restart {service_name}")
             elif self._init_system == InitMode.DOCKER:
-                if service_name == "oai_mme":
+                # TODO GH14055
+                # The docker restart part is ugly due to some technical debt:
+                # The interdependencies of systemd services is denoted in their
+                # respective config-.yaml files. This is not the case with
+                # docker containers at the moment, which exist independently of
+                # one another. These dependencies get hardcoded here for the
+                # S1AP-Tests, but this is not yet the case for a containerized
+                # AGW in production.
+                #
+
+                if (
+                    service_name == "oai_mme"
+                    or service_name == "sessiond"
+                    or service_name == "mobilityd"
+                    or service_name == "pipelined"
+                ):
                     self.exec_command(
-                        f"docker restart mobilityd pipelined sessiond oai_mme",
+                        "docker restart oai_mme mobilityd sessiond "
+                        "connectiond pipelined envoy_controller",
                     )
                 elif service_name == "sctpd":
                     self.exec_command_output(
                         "docker stop "
-                        "sctpd mobilityd pipelined sessiond oai_mme;"
+                        "sctpd oai_mme mobilityd sessiond "
+                        "connectiond pipelined envoy_controller ;"
                         "sudo su -c '/usr/bin/env python3 "
                         "/usr/local/bin/config_stateless_agw.py sctpd_pre';"
                         "docker start "
-                        "sctpd mobilityd pipelined sessiond oai_mme",
+                        "sctpd oai_mme mobilityd sessiond "
+                        "connectiond pipelined envoy_controller",
                     )
                 else:
                     self.exec_command(f"docker restart {service_name}")
@@ -1130,7 +1152,23 @@ class MagmadUtil(object):
             self.exec_command(f"sudo systemctl mask {service_name}")
             self.exec_command(f"sudo systemctl stop {service_name}")
         elif self._init_system == InitMode.DOCKER:
-            self.exec_command(f"docker stop {service_name}")
+            # TODO GH14055
+            # Same argument as above: The container interdependencies
+            # are handled manually at the moment
+            #
+
+            if (
+                service_name == "oai_mme"
+                or service_name == "sessiond"
+                or service_name == "mobilityd"
+                or service_name == "pipelined"
+            ):
+                self.exec_command(
+                    "docker stop oai_mme mobilityd sessiond "
+                    "connectiond pipelined envoy_controller",
+                )
+            else:
+                self.exec_command(f"docker stop {service_name}")
 
     def check_if_magma_services_are_active(self) -> bool:
         """check if all services in the list are active (only works for docker
