@@ -934,8 +934,12 @@ class MagmadUtil(object):
         res_systemd = self.exec_command_capture_output(
             "systemctl is-active magma@magmad",
         )
-        docker_magmad_running = res_docker.stdout.decode("utf-8").strip('\n') == 'magmad'
-        systemd_magmad_running = res_systemd.stdout.decode("utf-8").strip('\n') == 'active'
+        docker_magmad_running = \
+            self._is_installed("docker") & \
+            (res_docker.stdout.decode("utf-8").strip('\n') == 'magmad')
+        systemd_magmad_running = \
+            self._is_installed("systemctl") & \
+            (res_systemd.stdout.decode("utf-8").strip('\n') == 'active')
 
         if systemd_magmad_running:
             # default to systemd if docker and systemd are running - needed by feg integ tests
@@ -947,6 +951,13 @@ class MagmadUtil(object):
                 "Magmad is not running, you have to start magmad "
                 "either in Docker or systemd",
             )
+
+    def _is_installed(self, cmd):
+        """Check if a command is installed on the system."""
+        is_installed = self.exec_command(f"type {cmd} >/dev/null 2>&1") == 0
+        if not is_installed:
+            logging.info(f"{cmd} is not installed")
+        return is_installed
 
     @property
     def init_system(self):
