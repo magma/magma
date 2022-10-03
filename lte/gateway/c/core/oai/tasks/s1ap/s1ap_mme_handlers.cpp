@@ -3469,7 +3469,6 @@ status_code_e s1ap_mme_handle_path_switch_request(
   }
   /* Remove ue description from source eNB */
   s1ap_remove_ue(state, ue_ref_p);
-
   /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
   proto_map_uint32_uint32_t mmeid2associd_map;
   mmeid2associd_map.map = state->mutable_mmeid2associd();
@@ -3481,7 +3480,6 @@ status_code_e s1ap_mme_handle_path_switch_request(
   ue_id_coll.insert(new_ue_ref_p->mme_ue_s1ap_id(),
                     new_ue_ref_p->comp_s1ap_id());
   s1ap_state_update_enb_map(state, assoc_id, &enb_association);
-
   OAILOG_DEBUG_UE(
       LOG_S1AP, imsi64,
       "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
@@ -4466,7 +4464,7 @@ status_code_e s1ap_handle_paging_request(
     OAILOG_ERROR(LOG_S1AP, "paging_request is NULL\n");
     return RETURNerror;
   }
-  status_code_e rc = RETURNok;
+  status_code_e rc = RETURNerror;
   uint8_t num_of_tac = 0;
   uint16_t tai_list_count = paging_request->tai_list_count;
 
@@ -4593,7 +4591,7 @@ status_code_e s1ap_handle_paging_request(
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
     enb_ref_p = itr->second;
-    if (!enb_ref_p.sctp_assoc_id()) {
+    if (enb_ref_p.sctp_assoc_id()) {
       if (enb_ref_p.s1_enb_state() == oai::S1AP_READY) {
         oai::SupportedTaList enb_ta_list = enb_ref_p.supported_ta_list();
         if ((is_tai_found = s1ap_paging_compare_ta_lists(

@@ -41,7 +41,8 @@ class S1apStateConverter : StateConverter {
  public:
   static void state_to_proto(oai::S1apState* state, oai::S1apState* proto);
 
-  static void proto_to_state(const oai::S1apState& proto, oai::S1apState* state);
+  static void proto_to_state(const oai::S1apState& proto,
+                             oai::S1apState* state);
 
   /**
    * Serializes s1ap_imsi_map_t to S1apImsiMap proto

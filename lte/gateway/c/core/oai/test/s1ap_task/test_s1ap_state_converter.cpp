@@ -110,7 +110,6 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
             enbd_final.supported_ta_list().list_count());
   EXPECT_EQ(enbd.supported_ta_list().supported_tai_items(0).tac(),
             enbd_final.supported_ta_list().supported_tai_items(0).tac());
-
   free_s1ap_state(init_state);
   free_s1ap_state(final_state);
 }

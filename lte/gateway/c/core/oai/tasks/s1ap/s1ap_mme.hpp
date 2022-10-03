@@ -53,7 +53,7 @@ namespace lte {
 /** \Initialize an object of EnbDescription, which is passed as
  * argument
  **/
-void s1ap_new_enb(oai::EnbDescription*);
+void s1ap_new_enb(oai::EnbDescription* enb_ref);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP

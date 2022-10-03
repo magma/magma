@@ -443,7 +443,6 @@ oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
 //------------------------------------------------------------------------------
 void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   oai::EnbDescription enb_ref;
-
   // NULL reference...
   if (ue_ref == nullptr) return;
 
@@ -457,7 +456,6 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   DevAssert(enb_ref.nb_ue_associated() > 0);
   // Updating number of UE
   enb_ref.set_nb_ue_associated((enb_ref.nb_ue_associated() - 1));
-
   OAILOG_TRACE(LOG_S1AP,
                "Removing UE enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
                " mme_ue_s1ap_id:" MME_UE_S1AP_ID_FMT " in eNB id : %d\n",

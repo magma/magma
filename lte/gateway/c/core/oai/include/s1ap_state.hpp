@@ -27,6 +27,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/protos/oai/s1ap_state.pb.h"
+
 namespace magma {
 namespace lte {
 
