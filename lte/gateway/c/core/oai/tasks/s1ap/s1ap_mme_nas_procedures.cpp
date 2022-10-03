@@ -1223,7 +1223,7 @@ void s1ap_handle_mme_ue_id_notification(
 
   magma::proto_map_uint32_uint64_t ue_id_coll;
   ue_id_coll.map = enb_ref.mutable_ue_id_map();
-  ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id, ue_ref->comp_s1ap_id());
+  ue_id_coll.insert(mme_ue_s1ap_id, ue_ref->comp_s1ap_id());
   s1ap_state_update_enb_map(state, sctp_assoc_id, &enb_ref);
 
   OAILOG_DEBUG(LOG_S1AP,

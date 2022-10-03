@@ -104,7 +104,6 @@ void free_s1ap_state(oai::S1apState* state_cache_p) {
   AssertFatal(state_cache_p,
               "S1apState passed to free_s1ap_state must not be null");
 
-  oai::EnbDescription enb;
   proto_map_uint32_enb_description_t enb_map;
   enb_map.map = state_cache_p->mutable_enbs();
 
@@ -112,7 +111,7 @@ void free_s1ap_state(oai::S1apState* state_cache_p) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
     for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
-      enb = itr->second;
+      oai::EnbDescription enb = itr->second;
       enb.clear_ue_id_map();
     }
   }
@@ -230,19 +229,17 @@ map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
 }
 
 oai::S1apState* S1apStateManager::get_state(bool read_from_db) {
-  OAILOG_FUNC_IN(LOG_AMF_APP);
+  OAILOG_FUNC_IN(LOG_S1AP);
   AssertFatal(
       is_initialized,
       "S1apStateManager init() function should be called to initialize state");
-  // TODO: Add check for reentrant read/write function, to block multiple
-  // reads
   state_dirty = true;
   AssertFatal(state_cache_p != nullptr, " S1ap State cache is NULL");
   if (persist_state_enabled && read_from_db) {
     read_state_from_db();
     read_ue_state_from_db();
   }
-  OAILOG_FUNC_RETURN(LOG_AMF_APP, state_cache_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, state_cache_p);
 }
 
 void S1apStateManager::write_s1ap_state_to_db() {

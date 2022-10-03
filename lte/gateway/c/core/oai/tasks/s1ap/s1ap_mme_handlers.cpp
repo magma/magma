@@ -396,7 +396,7 @@ void clean_stale_enb_state(oai::S1apState* state,
     if ((stale_enb_association.sctp_assoc_id() !=
          new_enb_association->sctp_assoc_id()) &&
         (stale_enb_association.enb_id() == new_enb_association->enb_id())) {
-      OAILOG_INFO(LOG_S1AP, "Found stale eNB at association id %d",
+      OAILOG_INFO(LOG_S1AP, "Found stale eNB at association id %u",
                   stale_enb_association.sctp_assoc_id());
       delete_state_enb = true;
       break;
@@ -3685,7 +3685,7 @@ status_code_e s1ap_handle_sctp_disconnection(oai::S1apState* state,
 
   // Checking if the assoc id has a valid eNB attached to it
   if ((s1ap_state_get_enb(state, assoc_id, &enb_association)) != PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
+    OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %u\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -4914,7 +4914,7 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (enb_association.s1_enb_state() != magma::lte::oai::S1AP_READY) {
+  if (enb_association.s1_enb_state() != oai::S1AP_READY) {
     // ignore the message if s1 not ready
     OAILOG_INFO(
         LOG_S1AP,
@@ -5393,7 +5393,7 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   oai::UeDescription* ue_ref_p = nullptr;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   imsi64_t imsi64 = INVALID_IMSI64;
-  oai::S1apState* state = NULL;
+  oai::S1apState* state = nullptr;
   if (!s1ap_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
     OAILOG_WARNING(LOG_S1AP, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
