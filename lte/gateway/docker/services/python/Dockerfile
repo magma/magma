@@ -60,8 +60,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN gem install fpm
 
-#COPY . $MAGMA_ROOT/
-COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
 COPY ./third_party/build/bin/aioeventlet_build.sh $MAGMA_ROOT/third_party/build/bin/aioeventlet_build.sh
 COPY ./third_party/build/lib/util.sh $MAGMA_ROOT/third_party/build/lib/util.sh
 WORKDIR /var/tmp/
@@ -71,7 +69,6 @@ RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
 RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
   wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
 
-WORKDIR /magma/lte/gateway/python
 COPY \
     ./lte/gateway/python/Makefile \
     ./lte/gateway/python/defs.mk \
@@ -79,21 +76,19 @@ COPY \
     $MAGMA_ROOT/lte/gateway/python/
 COPY ./lte/gateway/python/load_tests $MAGMA_ROOT/lte/gateway/python/load_tests
 COPY ./lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
-COPY ./orc8r/gateway/python/magma $MAGMA_ROOT/orc8r/gateway/python/magma
-COPY \
-    ./orc8r/gateway/python/python.mk \
-    ./orc8r/gateway/python/Makefile \
-    ./orc8r/gateway/python/defs.mk \
-    ./orc8r/gateway/python/setup.py \
-     $MAGMA_ROOT/orc8r/gateway/python/
-COPY ./orc8r/gateway/python/scripts $MAGMA_ROOT/orc8r/gateway/python/scripts
+COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
+COPY ./orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
+
 COPY ./protos $MAGMA_ROOT/protos
 COPY ./lte/protos $MAGMA_ROOT/lte/protos
 COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY ./feg/protos $MAGMA_ROOT/feg/protos
 COPY ./dp/protos $MAGMA_ROOT/dp/protos
+
 COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
 COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
+
+WORKDIR /magma/lte/gateway/python
 RUN make buildenv
 
 # -----------------------------------------------------------------------------
@@ -164,12 +159,9 @@ COPY ./lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_
 COPY --from=builder /build /build
 COPY --from=builder /magma/lte/gateway/python/magma /magma/lte/gateway/python/magma
 COPY --from=builder /magma/orc8r/gateway/python/magma /magma/orc8r/gateway/python/magma
-COPY --from=builder /var/tmp/python3-aioeventlet* /var/tmp/
+COPY --from=builder /var/tmp/python3-aioeventlet*.deb /var/tmp/
 
 RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
   dpkg -i /var/tmp/python3-aioeventlet* && \
   pip install jsonpointer>$JSONPOINTER_VERSION && \
   mkdir -p /var/opt/magma/
-
-
-
