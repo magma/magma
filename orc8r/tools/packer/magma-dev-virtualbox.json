@@ -87,7 +87,7 @@
     },
     {
       "type": "ansible-local",
-      "playbook_file": "../../../lte/gateway/deploy/magma_dev_focal.yml",
+      "playbook_file": "../../../lte/gateway/deploy/magma_dev.yml",
       "role_paths": [
         "../../../lte/gateway/deploy/roles/bazel",
         "../../../lte/gateway/deploy/roles/dev_common",
@@ -120,7 +120,7 @@
     [
       {
         "type": "vagrant",
-        "output": "builds/magma_dev_focal_{{.Provider}}.box"
+        "output": "builds/magma_dev_{{.Provider}}.box"
       }
     ]
   ]
