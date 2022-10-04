@@ -23,6 +23,7 @@
     full_provision: true
 
   roles:
+    - role: gai_config
     - role: gateway_dev
       vars:
         distribution: "focal"
