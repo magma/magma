@@ -137,7 +137,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Invalid S1 Cause returns error
@@ -153,7 +153,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -164,7 +164,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
   ASSERT_EQ(state->mmeid2associd.size(), number_attached_ue);
 
@@ -173,7 +173,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 
   // verify number of ues after sending S1AP_PATH_SWITCH_REQUEST_ACK
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 }
 
 }  // namespace lte

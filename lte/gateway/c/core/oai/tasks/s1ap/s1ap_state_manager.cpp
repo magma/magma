@@ -68,9 +68,9 @@ s1ap_state_t* create_s1ap_state(void) {
 
   s1ap_state_t* state_cache_p = new s1ap_state_t();
   state_cache_p->enbs.map =
-      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
+      new google::protobuf::Map<unsigned int, oai::EnbDescription*>();
   state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
+  state_cache_p->enbs.bind_callback(free_enb_description);
 
   state_cache_p->mmeid2associd.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
@@ -102,14 +102,10 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
   AssertFatal(state_cache_p,
               "s1ap_state_t passed to free_s1ap_state must not be null");
 
-  int i;
-  hashtable_rc_t ht_rc;
-  hashtable_key_array_t* keys;
-  sctp_assoc_id_t assoc_id;
-  enb_description_t* enb;
+  oai::EnbDescription* enb;
 
   if (state_cache_p->enbs.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
     for (auto itr = state_cache_p->enbs.map->begin();
          itr != state_cache_p->enbs.map->end(); itr++) {
@@ -117,7 +113,7 @@ void free_s1ap_state(s1ap_state_t* state_cache_p) {
       if (!enb) {
         OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
       } else {
-        enb->ue_id_coll.destroy_map();
+        enb->clear_ue_id_map();
       }
     }
   }
