@@ -875,7 +875,7 @@ class MagmadUtil(object):
         if self._init_system is None:
             self._init_system = self.detect_init_system()
 
-    def exec_command(self, command):
+    def exec_command(self, command: str) -> int:
         """Run a command remotely on magma_dev VM.
 
         Args:
@@ -893,7 +893,7 @@ class MagmadUtil(object):
             stderr=subprocess.DEVNULL,
         )
 
-    def exec_command_output(self, command):
+    def exec_command_output(self, command: str) -> str:
         """Run a command remotely on magma_dev VM.
 
         Args:
@@ -909,15 +909,18 @@ class MagmadUtil(object):
             shell=False,
         ).decode("utf-8")
 
-    def exec_command_capture_output(self, command):
+    def exec_command_capture_output(self, command: str) -> subprocess.CompletedProcess:
         """Run a command remotely on magma_dev VM.
+
+        Unlike `exec_command_output`, this method does not cause an exception
+        if the command returns a non-zero error code.
 
         Args:
             command: command (str) to be executed on remote host
             e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
 
         Returns:
-            output of command execution
+            Output  of command execution as instance of subprocess.CompletedProcess
         """
         param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
         return subprocess.run(
@@ -935,10 +938,10 @@ class MagmadUtil(object):
             "systemctl is-active magma@magmad",
         )
         docker_magmad_running = \
-            self._is_installed("docker") & \
+            self._is_installed("docker") and \
             (res_docker.stdout.decode("utf-8").strip('\n') == 'magmad')
         systemd_magmad_running = \
-            self._is_installed("systemctl") & \
+            self._is_installed("systemctl") and \
             (res_systemd.stdout.decode("utf-8").strip('\n') == 'active')
 
         if systemd_magmad_running:
