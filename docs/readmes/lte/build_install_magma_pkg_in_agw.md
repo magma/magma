@@ -11,11 +11,11 @@ hide_title: true
 
 **Steps:**
 
-1. **Clone or Update  your local repository**. In any machine (i.e. your computer) clone the magma repo  and checkout the version from where you would like to build your package. For example, for v1.1 you can run:
+1. **Clone or Update  your local repository**. In any machine (i.e. your computer) clone the magma repo  and checkout the version from where you would like to build your package. For example, for v1.8 you can run:
 
     ```bash
     git clone https://github.com/magma/magma.git
-    git checkout v1.1
+    git checkout v1.8
     ```
 
 2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites <https://magma.github.io/magma/docs/basics/prerequisites#prerequisites>
