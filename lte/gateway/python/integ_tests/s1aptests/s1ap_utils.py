@@ -931,29 +931,24 @@ class MagmadUtil(object):
 
     def detect_init_system(self) -> InitMode:
         """Detect whether services are running with Docker or systemd."""
-        res_docker = self.exec_command_capture_output(
-            "docker ps --filter 'name=magmad' --format '{{.Names}}'",
-        )
-        res_systemd = self.exec_command_capture_output(
-            "systemctl is-active magma@magmad",
-        )
-        docker_magmad_running = \
-            self._is_installed("docker") and \
-            (res_docker.stdout.decode("utf-8").strip('\n') == 'magmad')
-        systemd_magmad_running = \
-            self._is_installed("systemctl") and \
-            (res_systemd.stdout.decode("utf-8").strip('\n') == 'active')
+        if self._is_installed("systemctl"):
+            res_systemd = self.exec_command_capture_output(
+                "systemctl is-active magma@magmad",
+            ).stdout.decode("utf-8").strip('\n')
+            if res_systemd == 'active':
+                # default to systemd if docker and systemd are running - needed by feg integ tests
+                return InitMode.SYSTEMD
 
-        if systemd_magmad_running:
-            # default to systemd if docker and systemd are running - needed by feg integ tests
-            return InitMode.SYSTEMD
-        elif docker_magmad_running:
-            return InitMode.DOCKER
-        else:
-            raise RuntimeError(
-                "Magmad is not running, you have to start magmad "
-                "either in Docker or systemd",
-            )
+        if self._is_installed("docker"):
+            res_docker = self.exec_command_capture_output(
+                "docker ps --filter 'name=magmad' --format '{{.Names}}'",
+            ).stdout.decode("utf-8").strip('\n')
+            if res_docker == 'magmad':
+                return InitMode.DOCKER
+        raise RuntimeError(
+            "Magmad is not running, you have to start magmad "
+            "either in Docker or systemd",
+        )
 
     def _is_installed(self, cmd):
         """Check if a command is installed on the system."""
