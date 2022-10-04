@@ -11,7 +11,7 @@
 # limitations under the License.
 
 - name: Install openvswitch and dependencies
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == 'Ubuntu'
   include_tasks: debian.yml
 
 - name: Install openvswitch and dependencies
