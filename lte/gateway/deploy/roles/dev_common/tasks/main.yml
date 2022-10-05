@@ -398,6 +398,15 @@
     state: directory
     mode: 0777
 
+- name: Install multipath-tools
+  become: yes
+  apt:
+    pkg: multipath-tools
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
+
 - name: Patch multipath conf
   when: preburn
   patch:
