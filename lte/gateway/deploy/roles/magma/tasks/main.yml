@@ -264,8 +264,6 @@
     state: present
     update_cache: yes
     pkg:
-      # install prometheus
-      - prometheus-cpp-dev
       # install openvswitch
       - libopenvswitch
       - libopenvswitch-dev
@@ -305,7 +303,6 @@
     state: present
     update_cache: yes
     pkg:
-      - python3-openvswitch
       - nlohmann-json3-dev
       # managing gtp interface
       - ifupdown
@@ -472,7 +469,6 @@
     state: present
     update_cache: yes
     pkg:
-      - bcc-tools
       - linux-headers-5.4.0-74-generic
   when: preburn
 
