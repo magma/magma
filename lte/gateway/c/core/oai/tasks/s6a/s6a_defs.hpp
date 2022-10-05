@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_defs.h
+/*! \file s6a_defs.hpp
   \brief
   \author Sebastien ROUX
   \company Eurecom
@@ -27,6 +27,9 @@
 #include "config.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
@@ -34,6 +37,9 @@
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 extern task_zmq_ctx_t s6a_task_zmq_ctx;
 
@@ -203,7 +209,13 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_PDN_TYPE (1456)
 #define AVP_CODE_SUBSCRIBED_PERIODIC_RAU_TAU_TIMER (1619)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e s6a_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
+}
+#endif
 
 status_code_e s6a_fd_new_peer(void);
 
@@ -211,14 +223,14 @@ void s6a_peer_connected_cb(struct peer_info* info, void* arg);
 
 status_code_e s6a_fd_init_dict_objs(void);
 
-status_code_e s6a_parse_subscription_data(
-    struct avp* avp_subscription_data, subscription_data_t* subscription_data);
+int s6a_parse_subscription_data(struct avp* avp_subscription_data,
+                                subscription_data_t* subscription_data);
 
 int s6a_parse_supported_features(struct avp* avp_supported_features,
                                  supported_features_t* subscription_data);
 
-status_code_e s6a_parse_experimental_result(struct avp* avp,
-                                            s6a_experimental_result_t* ptr);
+int s6a_parse_experimental_result(struct avp* avp,
+                                  s6a_experimental_result_t* ptr);
 char* experimental_retcode_2_string(uint32_t ret_code);
 char* retcode_2_string(uint32_t ret_code);
 

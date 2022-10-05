@@ -21,15 +21,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.hpp"
 
 class S6aFdIface : public S6aViface {
  public:

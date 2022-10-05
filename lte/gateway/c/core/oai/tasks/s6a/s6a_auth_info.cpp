@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_auth_info.c
+/*! \file s6a_auth_info.cpp
   \brief
   \author Sebastien ROUX
   \company Eurecom
@@ -25,23 +25,30 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 
 struct avp;
 struct msg;
@@ -97,7 +104,8 @@ static inline int s6a_parse_e_utran_vector(struct avp* avp_vector,
   CHECK_FCT(fd_msg_avp_hdr(avp_vector, &hdr));
   DevCheck(hdr->avp_code == AVP_CODE_E_UTRAN_VECTOR, hdr->avp_code,
            AVP_CODE_E_UTRAN_VECTOR, 0);
-  CHECK_FCT(fd_msg_browse(avp_vector, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_vector, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -135,7 +143,8 @@ static inline int s6a_parse_e_utran_vector(struct avp* avp_vector,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   if (ret) {
@@ -157,7 +166,8 @@ static inline int s6a_parse_authentication_info_avp(
   DevCheck(hdr->avp_code == AVP_CODE_AUTHENTICATION_INFO, hdr->avp_code,
            AVP_CODE_AUTHENTICATION_INFO, 0);
   authentication_info->nb_of_vectors = 0;
-  CHECK_FCT(fd_msg_browse(avp_auth_info, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_auth_info, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -182,15 +192,15 @@ static inline int s6a_parse_authentication_info_avp(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;
 }
 
-status_code_e s6a_aia_cb(struct msg** msg, struct avp* paramavp,
-                         struct session* sess, void* opaque,
-                         enum disp_action* act) {
+int s6a_aia_cb(struct msg** msg, struct avp* paramavp, struct session* sess,
+               void* opaque, enum disp_action* act) {
   struct msg* ans = NULL;
   struct msg* qry = NULL;
   struct avp* avp = NULL;
@@ -229,7 +239,8 @@ status_code_e s6a_aia_cb(struct msg** msg, struct avp* paramavp,
   if (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
     s6a_auth_info_ans_p->result.present = S6A_RESULT_BASE;
-    s6a_auth_info_ans_p->result.choice.base = hdr->avp_value->u32;
+    s6a_auth_info_ans_p->result.choice.base =
+        (s6a_base_result_t)hdr->avp_value->u32;
 
     if (hdr->avp_value->u32 != ER_DIAMETER_SUCCESS) {
       OAILOG_ERROR(LOG_S6A, "Got error %u:%s\n", hdr->avp_value->u32,
@@ -290,7 +301,7 @@ err:
   return RETURNok;
 }
 
-status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
+int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct avp* avp;
   struct msg* msg;
   struct session* sess;

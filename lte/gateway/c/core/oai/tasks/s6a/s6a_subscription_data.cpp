@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_subscription_data.c
+/*! \file s6a_subscription_data.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -31,7 +31,7 @@
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 struct avp;
 
@@ -39,7 +39,7 @@ static inline int s6a_parse_subscriber_status(struct avp_hdr* hdr_sub_status,
                                               subscriber_status_t* sub_status) {
   DevCheck(hdr_sub_status->avp_value->u32 < SS_MAX,
            hdr_sub_status->avp_value->u32, SS_MAX, 0);
-  *sub_status = hdr_sub_status->avp_value->u32;
+  *sub_status = (subscriber_status_t)hdr_sub_status->avp_value->u32;
   return RETURNok;
 }
 
@@ -65,7 +65,7 @@ static inline int s6a_parse_network_access_mode(
   DevCheck(hdr_network_am->avp_value->u32 < NAM_MAX &&
                hdr_network_am->avp_value->u32 != NAM_RESERVED,
            hdr_network_am->avp_value->u32, NAM_MAX, NAM_RESERVED);
-  *access_mode = hdr_network_am->avp_value->u32;
+  *access_mode = (network_access_mode_t)hdr_network_am->avp_value->u32;
   return RETURNok;
 }
 
@@ -90,7 +90,8 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
   bitrate_t ext_max_req_bw_ul = ULONG_MAX;
   bitrate_t ext_max_req_bw_dl = ULONG_MAX;
 
-  CHECK_FCT(fd_msg_browse(avp_ambr, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_ambr, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   if (!avp) {
     /*
@@ -130,7 +131,8 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
   if ((ambr->br_ul != 4294967295) && (ext_max_req_bw_ul == ULONG_MAX)) {
     ambr->br_unit = BPS;
@@ -163,7 +165,7 @@ static inline int s6a_parse_all_apn_conf_inc_ind(struct avp_hdr* hdr,
                                                  all_apn_conf_ind_t* ptr) {
   DevCheck(hdr->avp_value->u32 < ALL_APN_MAX, hdr->avp_value->u32, ALL_APN_MAX,
            0);
-  *ptr = hdr->avp_value->u32;
+  *ptr = (all_apn_conf_ind_t)hdr->avp_value->u32;
   return RETURNok;
 }
 
@@ -207,7 +209,7 @@ static inline int s6a_parse_pre_emp_capability(
     struct avp_hdr* hdr, pre_emption_capability_t* pre_emp_capability) {
   DevCheck(hdr->avp_value->u32 < PRE_EMPTION_CAPABILITY_MAX,
            hdr->avp_value->u32, PRE_EMPTION_CAPABILITY_MAX, 0);
-  *pre_emp_capability = hdr->avp_value->u32;
+  *pre_emp_capability = (pre_emption_capability_t)hdr->avp_value->u32;
   return RETURNok;
 }
 
@@ -215,7 +217,7 @@ static inline int s6a_parse_pre_emp_vulnerability(
     struct avp_hdr* hdr, pre_emption_vulnerability_t* pre_emp_vulnerability) {
   DevCheck(hdr->avp_value->u32 < PRE_EMPTION_VULNERABILITY_MAX,
            hdr->avp_value->u32, PRE_EMPTION_VULNERABILITY_MAX, 0);
-  *pre_emp_vulnerability = hdr->avp_value->u32;
+  *pre_emp_vulnerability = (pre_emption_vulnerability_t)hdr->avp_value->u32;
   return RETURNok;
 }
 
@@ -229,14 +231,17 @@ static inline int s6a_parse_allocation_retention_priority(
    * * * * Allocation-Retention-Priority AVP, the default value shall be
    * * * * PRE-EMPTION_CAPABILITY_DISABLED (1).
    */
-  ptr->pre_emp_capability = PRE_EMPTION_CAPABILITY_DISABLED;
+  ptr->pre_emp_capability =
+      (pre_emption_capability_t)PRE_EMPTION_CAPABILITY_DISABLED;
   /*
    * If the Pre-emption-Vulnerability AVP is not present in the
    * * * * Allocation-Retention-Priority AVP, the default value shall be
    * * * * PRE-EMPTION_VULNERABILITY_ENABLED (0).
    */
-  ptr->pre_emp_vulnerability = PRE_EMPTION_VULNERABILITY_ENABLED;
-  CHECK_FCT(fd_msg_browse(avp_arp, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  ptr->pre_emp_vulnerability =
+      (pre_emption_vulnerability_t)PRE_EMPTION_VULNERABILITY_ENABLED;
+  CHECK_FCT(fd_msg_browse_internal(avp_arp, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -262,7 +267,8 @@ static inline int s6a_parse_allocation_retention_priority(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;
@@ -273,7 +279,8 @@ static inline int s6a_parse_eps_subscribed_qos_profile(
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
 
-  CHECK_FCT(fd_msg_browse(avp_qos, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_qos, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -295,7 +302,8 @@ static inline int s6a_parse_eps_subscribed_qos_profile(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;
@@ -343,7 +351,8 @@ static inline int s6a_parse_apn_configuration(struct avp* avp_apn_conf_prof,
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
 
-  CHECK_FCT(fd_msg_browse(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
   memset(apn_config, 0, sizeof *apn_config);
   DevAssert(apn_config->nb_ip_address == 0);
 
@@ -412,7 +421,8 @@ static inline int s6a_parse_apn_configuration(struct avp* avp_apn_conf_prof,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;
@@ -423,7 +433,8 @@ static inline int s6a_parse_apn_configuration_profile(
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
 
-  CHECK_FCT(fd_msg_browse(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   apn_config_profile->nb_apns = 0;
 
@@ -453,19 +464,20 @@ static inline int s6a_parse_apn_configuration_profile(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;
 }
 
-status_code_e s6a_parse_subscription_data(
-    struct avp* avp_subscription_data, subscription_data_t* subscription_data) {
+int s6a_parse_subscription_data(struct avp* avp_subscription_data,
+                                subscription_data_t* subscription_data) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
 
-  CHECK_FCT(
-      fd_msg_browse(avp_subscription_data, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_subscription_data, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     hdr = NULL;
@@ -539,7 +551,8 @@ status_code_e s6a_parse_subscription_data(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
   return RETURNok;
 }

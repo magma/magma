@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_task.c
+/*! \file s6a_task.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -30,23 +30,39 @@
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.hpp"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 
 static void s6a_exit(void);
 
@@ -125,9 +141,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* s6a_thread(void* args) {
   itti_mark_task_ready(TASK_S6A);
-  init_task_context(TASK_S6A,
-                    (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_AMF_APP}, 3,
-                    handle_message, &s6a_task_zmq_ctx);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP, TASK_S1AP, TASK_AMF_APP};
+  init_task_context(TASK_S6A, peer_task_ids, 3, handle_message,
+                    &s6a_task_zmq_ctx);
 
   if (!s6a_viface_open((s6a_config_t*)args)) {
     OAILOG_ERROR(LOG_S6A, "Failed to initialize S6a interface");
@@ -144,7 +160,7 @@ static void* s6a_thread(void* args) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e s6a_init(const mme_config_t* mme_config_p) {
+extern "C" status_code_e s6a_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface\n");
 
   if (itti_create_task(TASK_S6A, &s6a_thread,

@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 /**
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway

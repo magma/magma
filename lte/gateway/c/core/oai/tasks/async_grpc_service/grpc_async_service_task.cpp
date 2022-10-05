@@ -22,12 +22,12 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s6a_service_handler.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/oai/include/s6a_service_handler.hpp"
 
 static void grpc_async_service_exit(void);
 task_zmq_ctx_t grpc_async_service_task_zmq_ctx;

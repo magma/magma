@@ -28,14 +28,14 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
 
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 

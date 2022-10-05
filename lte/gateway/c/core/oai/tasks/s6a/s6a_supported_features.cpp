@@ -20,11 +20,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 struct avp;
 
@@ -35,8 +41,8 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
   uint32_t feature_list_id = 0;
   uint32_t feature_list = 0;
 
-  CHECK_FCT(
-      fd_msg_browse(avp_supported_features, MSG_BRW_FIRST_CHILD, &avp, NULL));
+  CHECK_FCT(fd_msg_browse_internal(avp_supported_features, MSG_BRW_FIRST_CHILD,
+                                   (msg_or_avp**)&avp, NULL));
 
   while (avp) {
     hdr = NULL;
@@ -82,7 +88,8 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
+    CHECK_FCT(
+        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
   }
 
   return RETURNok;

@@ -19,8 +19,8 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 }
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 using grpc::ServerContext;
 using ::testing::Test;

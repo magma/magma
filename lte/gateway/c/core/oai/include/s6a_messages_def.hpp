@@ -29,7 +29,7 @@
  */
 // WARNING: Do not include this header directly. Use intertask_interface.h
 // instead.
-/*! \file s6a_messages_def.h
+/*! \file s6a_messages_def.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
