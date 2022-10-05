@@ -722,7 +722,9 @@ class S1ApUtil(object):
     def run_ipv6_data(self, ipv6_addr):
         """Run ipv6 data"""
         self.magma_utils = MagmadUtil(None)
-        icmpv6_script = "/usr/local/bin/icmpv6.py"
+        icmpv6_script = "/home/vagrant/magma/lte/gateway/python/scripts/icmpv6.py"
+        if os.path.exists("/usr/local/bin/icmpv6.py"):
+            icmpv6_script = "/usr/local/bin/icmpv6.py"
         execute_icmpv6_cmd = (
             MAGTIVATE_CMD
             + " && "
