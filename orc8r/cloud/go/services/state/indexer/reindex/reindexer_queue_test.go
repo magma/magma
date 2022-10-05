@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
@@ -115,35 +116,195 @@ func init() {
 	_ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 }
 
-// func TestRunBrokenIndexer(t *testing.T) {
-// 	dbName := "state___reindex_test___run_broken_indexer"
-//
-// 	// Writes to channel after completing a job
-// 	ch := make(chan interface{})
-// 	reindex.TestHookReindexDone = func() { ch <- nil }
-// 	defer func() { reindex.TestHookReindexDone = func() {} }()
-//
-// 	clock.SkipSleeps(t)
-// 	defer clock.ResumeSleeps(t)
-//
-// 	r, q := initReindexTest(t, dbName)
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	go r.Run(ctx)
-// 	defer cancel()
-//
-// 	// Job exists but indexer's broken
-// 	// Populate
-// 	broken := getBasicIndexer(id0, version0)
-// 	broken.On("GetTypes").Return(allTypes).Once()
-// 	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
-// 	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
-// 	registerAndPopulate(t, q, broken)
-// 	// Check
-// 	recvCh(t, ch)
-// 	recvCh(t, ch) // twice to go through full loop at least once with indexer available
-// 	broken.AssertExpectations(t)
-// 	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
-// }
+func TestRun(t *testing.T) {
+	dbName := "state___reindex_test___run"
+
+	// Make nullipotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexSuccess()
+	reindex.TestHookReindexDone()
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexSuccess = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexSuccess = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
+	defer cancel()
+
+	// Single indexer
+	// Populate
+	idx0 := getIndexer(id0, zero, version0, true)
+	idx0.On("GetTypes").Return(allTypes).Once()
+	registerAndPopulate(t, q, idx0)
+	// Check
+	recvCh(t, ch)
+	idx0.AssertExpectations(t)
+	assertComplete(t, q, id0)
+
+	// Bump existing indexer version
+	// Populate
+	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
+	idx0a.On("GetTypes").Return(gwStateType).Once()
+	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
+	registerAndPopulate(t, q, idx0a)
+	// Check
+	recvCh(t, ch)
+	idx0a.AssertExpectations(t)
+	assertComplete(t, q, id0)
+
+	// Indexer returns err => reindex jobs fail
+	// Populate
+	// Fail1 at PrepareReindex
+	fail1 := getBasicIndexer(id1, version1)
+	fail1.On("GetTypes").Return(allTypes).Once()
+	fail1.On("PrepareReindex", zero, version1, true).Return(someErr1).Once()
+	// Fail2 at first Reindex
+	fail2 := getBasicIndexer(id2, version2)
+	fail2.On("GetTypes").Return(allTypes).Once()
+	fail2.On("PrepareReindex", zero, version2, true).Return(nil).Once()
+	fail2.On("Index", mock.Anything, mock.Anything).Return(nil, someErr2).Once()
+	// Fail3 at CompleteReindex
+	fail3 := getBasicIndexer(id3, version3)
+	fail3.On("GetTypes").Return(allTypes).Once()
+	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
+	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
+	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
+	registerAndPopulate(t, q, fail1, fail2, fail3)
+	// Check
+	recvCh(t, ch)
+	recvCh(t, ch)
+	recvCh(t, ch)
+	fail1.AssertExpectations(t)
+	fail2.AssertExpectations(t)
+	fail3.AssertExpectations(t)
+	assertErrored(t, q, id1, reindex.ErrPrepare, someErr1)
+	assertErrored(t, q, id2, reindex.ErrReindex, someErr2)
+	assertErrored(t, q, id3, reindex.ErrComplete, someErr3)
+}
+
+func TestRunBrokenIndexer(t *testing.T) {
+	dbName := "state___reindex_test___run_broken_indexer"
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexDone = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
+	defer cancel()
+
+	// Job exists but indexer's broken
+	// Populate
+	broken := getBasicIndexer(id0, version0)
+	broken.On("GetTypes").Return(allTypes).Once()
+	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
+	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
+	registerAndPopulate(t, q, broken)
+	// Check
+	recvCh(t, ch)
+	recvCh(t, ch) // twice to go through full loop at least once with indexer available
+	broken.AssertExpectations(t)
+	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
+}
+
+func TestRunMissingIndexer(t *testing.T) {
+	dbName := "state___reindex_test___run_missing_indexer"
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexDone = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	// Job exists but indexer doesn't exist
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	missing := getIndexer(id0, zero, version0, true)
+	missing.On("GetTypes").Return(allTypes).Once()
+	registerAndPopulate(t, q, missing)
+	indexer.DeregisterAllForTest(t)
+	go r.Run(ctx)
+	defer cancel()
+
+	// Check
+	recvCh(t, ch)
+	recvCh(t, ch) // twice to go through full loop at least once with indexer available
+	assertErrored(t, q, id0, "", errors.New("indexer not found"))
+}
+
+func TestRunUnsafe(t *testing.T) {
+	dbName := "state___reindex_test___run_unsafe"
+	r, q := initReindexTest(t, dbName)
+	ctx := context.Background()
+
+	// New indexer => reindex
+	idx0 := getIndexer(id0, zero, version0, true)
+	idx0.On("GetTypes").Return(allTypes).Once()
+	register(t, idx0)
+
+	updates := func(m string) {
+		assert.Contains(t, m, id0)
+	}
+	err := r.RunUnsafe(ctx, id0, updates) // this run gets updates to ensure it doesn't break
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0, version0)
+
+	// Old version => reindex
+	idx0a := getIndexer(id0, version0, version0a, false)
+	idx0a.On("GetTypes").Return(allTypes).Once()
+	register(t, idx0a)
+	err = r.RunUnsafe(ctx, id0, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0a, version0a)
+
+	// Up-to-date version => no reindex
+	idx0b := getIndexer(id0, version0a, version0a, false)
+	idx0b.On("GetTypes").Return(allTypes).Once()
+	register(t, idx0b)
+	err = r.RunUnsafe(ctx, id0, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id0, version0a, version0a)
+
+	// Reindex: filter all but one state
+	idx1 := getIndexerNoIndex(id1, zero, version1, true)
+	idx1.On("GetTypes").Return(gwStateType).Once()
+	idx1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
+	register(t, idx1)
+	err = r.RunUnsafe(ctx, id1, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id1, version1, version1)
+
+	// Reindex: filter all
+	idx2 := getIndexerNoIndex(id2, zero, version2, true)
+	idx2.On("GetTypes").Return(noTypes).Once()
+	register(t, idx2)
+	err = r.RunUnsafe(ctx, id2, nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id2, version2, version2)
+
+	// Two new indexers => reindex
+	idx3 := getIndexer(id3, zero, version3, true)
+	idx4 := getIndexer(id4, zero, version4, true)
+	idx3.On("GetTypes").Return(allTypes).Once()
+	idx4.On("GetTypes").Return(allTypes).Once()
+	register(t, idx3, idx4)
+	err = r.RunUnsafe(ctx, "", nil)
+	assert.NoError(t, err)
+	assertVersions(t, q, id3, version3, version3)
+	assertVersions(t, q, id4, version4, version4)
+}
 
 // initReindexTest reports enough directory records to cause 3 batches per network
 // (with the +1 gateway status per network). It creates 3 networks,
