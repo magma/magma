@@ -102,7 +102,7 @@
         "../../../orc8r/tools/ansible/roles/python_dev",
         "../../../orc8r/tools/ansible/roles/test_certs"
       ],
-      "inventory_groups": "focal_dev",
+      "inventory_groups": "dev",
       "extra_arguments": [
         "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
       ]

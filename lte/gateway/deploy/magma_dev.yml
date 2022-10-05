@@ -13,7 +13,7 @@
 ################################################################################
 
 - name: Set up Magma dev build environment on a local machine
-  hosts: focal_dev
+  hosts: dev
   become: yes
 
   vars:
