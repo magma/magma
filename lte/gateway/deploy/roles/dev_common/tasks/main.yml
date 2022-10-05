@@ -54,6 +54,7 @@
   become_user: "{{ ansible_user }}"
   command: ansible-galaxy collection install community.general
   ignore_errors: yes
+  when: preburn
 
 - name: Set build environment variables
   lineinfile:
@@ -90,6 +91,7 @@
     line: "{{ item }}"
   with_items:
     - export PATH=$PATH:"/usr/local/go/bin"
+  when: preburn
 
 - name: Create the ccache directory
   file:
@@ -97,7 +99,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-  when: full_provision
+  when: preburn
 
 #################################
 # Add common convenience aliases
@@ -108,7 +110,7 @@
     dest: /home/{{ ansible_user }}/.bashrc
     state: present
     line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
-  when: full_provision
+  when: preburn
 
 ##############################
 # Install dependency packages
@@ -214,7 +216,7 @@
   file:
     path: /etc/profile.d/env.sh
     state: touch
-  when: full_provision
+  when: preburn
 
 - name: Override the default compiler with cache
   lineinfile:
@@ -235,6 +237,7 @@
     url: "https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64"
     dest: /usr/sbin/bazelisk-linux-amd64
     mode: ugo+x
+  when: preburn
 
 - name: Create a symlink for /usr/sbin/bazel
   # yamllint disable rule:truthy
@@ -244,6 +247,7 @@
     path: /usr/sbin/bazel
     state: link
     force: yes
+  when: preburn
 
 ########################################
 # Install common Magma dev dependencies
@@ -397,6 +401,7 @@
     path: /var/tmp/test_results
     state: directory
     mode: 0777
+  when: preburn
 
 - name: Install multipath-tools
   become: yes
