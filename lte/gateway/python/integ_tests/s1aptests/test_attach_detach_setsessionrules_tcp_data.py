@@ -214,10 +214,8 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
         assert len(uplink_flows) == 2, "There should be 2 UL flow rules for UE"
         for i in range(len(uplink_flows)):
-            assert (
-                uplink_flows[i]["match"]["tunnel_id"] is not None,
-                "Uplink flow missing tunnel id match",
-            )
+            assert uplink_flows[i]["match"]["tunnel_id"] is not None, \
+                "Uplink flow missing tunnel id match"
 
         # DOWNLINK
         print("Checking for downlink flow")
@@ -242,10 +240,8 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             time.sleep(5)  # sleep for 5 seconds before retrying
 
         assert len(downlink_flows) == 3, "Downlink flows must have been 3 for UE"
-        assert (
-            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip,
-            "UE IP match missing from downlink flow",
-        )
+        assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip, \
+            "UE IP match missing from downlink flow"
 
         actions = downlink_flows[0]["instructions"][0]["actions"]
         has_tunnel_action = any(
@@ -254,9 +250,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             if action["field"] == "tunnel_id"
             and action["type"] == "SET_FIELD"
         )
-        assert (
-            has_tunnel_action, "Downlink flow missing set tunnel action",
-        )
+        assert has_tunnel_action, "Downlink flow missing set tunnel action"
 
         # Get UL Flow Rule for TCP flows for verifying rate limits enforced
         print("**********************Get uplink TCP flow for UE before UL traffic test:")
