@@ -1,0 +1,485 @@
+/*
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package tests
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/metadata"
+
+	"magma/feg/cloud/go/feg"
+	feg_protos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/serdes"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
+	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
+	servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers/southbound"
+	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
+	lte_protos "magma/lte/cloud/go/protos"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	service_test_utils "magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
+)
+
+const (
+	s6aProxyService  = "s6a_proxy"
+	testHelloService = "feg_hello"
+)
+
+type testS6aProxy struct {
+	feg_protos.UnimplementedS6AProxyServer
+	resultChan chan string // Calling FeG ID string on success
+}
+
+func (tp *testS6aProxy) AuthenticationInformation(
+	ctx context.Context,
+	req *feg_protos.AuthenticationInformationRequest) (*feg_protos.AuthenticationInformationAnswer, error) {
+
+	if tp == nil {
+		return nil, fmt.Errorf("nil test S6a proxy")
+	}
+	if tp.resultChan == nil {
+		return nil, fmt.Errorf("nil test S6a proxy resultChan")
+	}
+	var targetFegId = "<MISSING METADATA>"
+	ctxMetadata, ok := metadata.FromIncomingContext(ctx)
+	if ok && ctxMetadata != nil {
+		targetFegId = "<MISSING GW ID>"
+		values, ok := ctxMetadata[gateway_registry.GatewayIdHeaderKey]
+		if !ok {
+			values, ok = ctxMetadata[strings.ToLower(gateway_registry.GatewayIdHeaderKey)]
+		}
+		if ok && len(values) > 0 {
+			targetFegId = values[0]
+		}
+	}
+	tp.resultChan <- targetFegId
+	return &feg_protos.AuthenticationInformationAnswer{}, nil
+}
+
+type testHelloServer struct {
+}
+
+func (tp *testHelloServer) SayHello(c context.Context, req *feg_protos.HelloRequest) (*feg_protos.HelloReply, error) {
+	return &feg_protos.HelloReply{
+		Greeting:   "testHelloService reply to: " + req.GetGreeting(),
+		Timestamps: &feg_protos.ResponseTimestamps{},
+	}, nil
+}
+
+type testCentralSessionController struct {
+	lte_protos.UnimplementedCentralSessionControllerServer
+	resultChan chan string // Calling FeG ID string on success
+}
+
+func (tp *testCentralSessionController) UpdateSession(
+	ctx context.Context,
+	req *lte_protos.UpdateSessionRequest) (*lte_protos.UpdateSessionResponse, error) {
+
+	var res *lte_protos.UpdateSessionResponse
+	var ratType lte_protos.RATType
+
+	if tp == nil {
+		return nil, fmt.Errorf("nil test Central Session Controller")
+	}
+	if tp.resultChan == nil {
+		return nil, fmt.Errorf("nil test Central Session Controller channel")
+	}
+	var targetFegId = "<MISSING METADATA>"
+	ctxMetadata, ok := metadata.FromIncomingContext(ctx)
+	if ok && ctxMetadata != nil {
+		targetFegId = "<MISSING GW ID>"
+		values, ok := ctxMetadata[gateway_registry.GatewayIdHeaderKey]
+		if !ok {
+			values, ok = ctxMetadata[strings.ToLower(gateway_registry.GatewayIdHeaderKey)]
+		}
+		if ok && len(values) > 0 {
+			targetFegId = values[0]
+		}
+	}
+	tp.resultChan <- targetFegId
+
+	if len(req.Updates) > 0 {
+		ratType = req.Updates[0].GetCommonContext().GetRatType()
+	} else if len(req.UsageMonitors) > 0 {
+		ratType = req.UsageMonitors[0].GetRatType()
+	} else {
+		return nil, fmt.Errorf("empty data in UpdateSessionRequest")
+	}
+
+	if ratType == lte_protos.RATType_TGPP_NR {
+		res = &lte_protos.UpdateSessionResponse{
+			Responses: []*lte_protos.CreditUpdateResponse{
+				createCreditUsageResponse(nhImsi2, 2),
+			},
+			UsageMonitorResponses: []*lte_protos.UsageMonitoringUpdateResponse{
+				createUsageMonitoringResponse(nhImsi2, "mkey2"),
+				createUsageMonitoringResponse(nhImsi2, "mkey3"),
+			},
+		}
+	} else {
+		res = &lte_protos.UpdateSessionResponse{
+			Responses: []*lte_protos.CreditUpdateResponse{
+				createCreditUsageResponse(nhImsi, 1),
+			},
+			UsageMonitorResponses: []*lte_protos.UsageMonitoringUpdateResponse{
+				createUsageMonitoringResponse(nhImsi, "mkey"),
+			},
+		}
+	}
+
+	return res, nil
+}
+
+func createCreditUsageRequest(
+	imsi string,
+	chargingKey uint32,
+	requestNumber uint32,
+	requestType lte_protos.CreditUsage_UpdateType,
+	ratType lte_protos.RATType,
+) *lte_protos.CreditUsageUpdate {
+	return &lte_protos.CreditUsageUpdate{
+		Usage: &lte_protos.CreditUsage{
+			BytesTx:     1024,
+			BytesRx:     2048,
+			ChargingKey: chargingKey,
+			Type:        requestType,
+		},
+		SessionId:     imsi,
+		RequestNumber: requestNumber,
+		CommonContext: &lte_protos.CommonSessionContext{
+			Sid: &lte_protos.SubscriberID{
+				Id: imsi,
+			},
+			RatType: ratType,
+		},
+	}
+}
+
+func createCreditUsageResponse(
+	imsi string,
+	chargingKey uint32,
+) *lte_protos.CreditUpdateResponse {
+	return &lte_protos.CreditUpdateResponse{
+		Success:     true,
+		SessionId:   genSessionID(imsi),
+		Sid:         imsi,
+		ChargingKey: chargingKey,
+	}
+}
+
+func createUsageMonitoringRequest(
+	imsi string,
+	monitoringKey string,
+	requestNumber uint32,
+	monitoringLevel lte_protos.MonitoringLevel,
+	ratType lte_protos.RATType,
+) *lte_protos.UsageMonitoringUpdateRequest {
+	return &lte_protos.UsageMonitoringUpdateRequest{
+		Update: &lte_protos.UsageMonitorUpdate{
+			BytesTx:       1024,
+			BytesRx:       2048,
+			MonitoringKey: []byte(monitoringKey),
+			Level:         monitoringLevel,
+		},
+		SessionId:     genSessionID(imsi),
+		RequestNumber: requestNumber,
+		Sid:           imsi,
+		EventTrigger:  lte_protos.EventTrigger_USAGE_REPORT,
+		RatType:       ratType,
+	}
+}
+
+func createUsageMonitoringResponse(
+	imsi string,
+	monitoringKey string,
+) *lte_protos.UsageMonitoringUpdateResponse {
+	return &lte_protos.UsageMonitoringUpdateResponse{
+		Success:   true,
+		SessionId: genSessionID(imsi),
+		Sid:       imsi,
+		Credit: &lte_protos.UsageMonitoringCredit{
+			MonitoringKey: []byte(monitoringKey),
+		},
+	}
+}
+
+func genSessionID(imsi string) string {
+	return fmt.Sprintf("%s-1234", imsi)
+}
+
+func TestNHRouting(t *testing.T) {
+	testHealthServiser := setupNeutralHostNetworks(t)
+
+	// test # 1: Verify, relay finds the right serving FeG for IMSI's PLMN ID
+	foundFegHwId, err := gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
+	assert.NoError(t, err)
+	assert.Equal(t, fegHwId, foundFegHwId)
+
+	// test #2: Verify routing of matched user PLMNID
+	//
+	// Start & register Serving FeG's test S6a Proxy Server
+	s6aProxy := &testS6aProxy{resultChan: make(chan string, 3)}
+	srv, lis, _ := test_utils.NewTestService(t, "feg", s6aProxyService)
+	s6aAddr := lis.Addr().(*net.TCPAddr)
+	s6aHost := "localhost"
+	t.Logf("Serving FeG S6a Proxy Address: %s", s6aAddr)
+
+	feg_protos.RegisterS6AProxyServer(srv.GrpcServer, s6aProxy)
+
+	// Register FeG's test Hello Server
+	feg_protos.RegisterHelloServer(srv.GrpcServer, &testHelloServer{})
+
+	// Register FeG's Central Session Controller Server
+	sessionProxy := &testCentralSessionController{resultChan: make(chan string, 2)}
+	lte_protos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionProxy)
+	go srv.RunTest(lis, nil)
+
+	// Add Serving FeG Host to directoryd
+	directoryd_test_init.StartTestService(t)
+	directoryd.MapHWIDToHostname(context.Background(), fegHwId, s6aHost)
+	gateway_registry.SetPort(s6aAddr.Port)
+
+	// Start S6a relay Service
+	relaySrv, relayLis, _ := test_utils.NewTestService(t, "", s6aProxyService)
+
+	t.Logf("Relay S6a Proxy Address: %s", relayLis.Addr())
+
+	relayRouter := servicers.NewRelayRouter()
+	feg_protos.RegisterS6AProxyServer(relaySrv.GrpcServer, relayRouter)
+	feg_protos.RegisterHelloServer(relaySrv.GrpcServer, relayRouter)
+	lte_protos.RegisterCentralSessionControllerServer(relaySrv.GrpcServer, relayRouter)
+	go relaySrv.RunTest(relayLis, nil)
+
+	ctx := service_test_utils.GetContextWithCertificate(t, agwHwId)
+	connectCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	conn, err := registry.GetClientConnection(connectCtx, relayLis.Addr().String())
+	cancel()
+
+	assert.NoError(t, err)
+	s6aClient := feg_protos.NewS6AProxyClient(conn)
+	aiReq := &feg_protos.AuthenticationInformationRequest{UserName: nhImsi}
+
+	toutctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.NoError(t, err)
+	select {
+	case servingFegHwId := <-s6aProxy.resultChan:
+		assert.Equal(t, fegHwId, servingFegHwId)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Neutral Host Routed S6a Proxy Call timed out")
+	}
+
+	// Test UpdateSession routing
+	sessProxyClient := lte_protos.NewCentralSessionControllerClient(conn)
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	updateSessReq := &lte_protos.UpdateSessionRequest{
+		Updates: []*lte_protos.CreditUsageUpdate{
+			createCreditUsageRequest(nhImsi, 1, 1, lte_protos.CreditUsage_QUOTA_EXHAUSTED, lte_protos.RATType_TGPP_LTE),
+			createCreditUsageRequest(nhImsi2, 2, 2, lte_protos.CreditUsage_TERMINATED, lte_protos.RATType_TGPP_NR),
+		},
+		UsageMonitors: []*lte_protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(nhImsi, "mkey", 1, lte_protos.MonitoringLevel_SESSION_LEVEL, lte_protos.RATType_TGPP_LTE),
+			createUsageMonitoringRequest(nhImsi2, "mkey2", 2, lte_protos.MonitoringLevel_PCC_RULE_LEVEL, lte_protos.RATType_TGPP_NR),
+			createUsageMonitoringRequest(nhImsi2, "mkey3", 3, lte_protos.MonitoringLevel_SESSION_LEVEL, lte_protos.RATType_TGPP_NR),
+		},
+	}
+
+	res, err := sessProxyClient.UpdateSession(toutctx, updateSessReq)
+	cancel()
+	assert.NoError(t, err)
+
+	// Based on RATType, feg_relay UpdateSession splits and relays the request to session_proxy and n7_n40_proxy
+	// in serving feg. As testCentralSessionController UpdateSession is executed twice,
+	// verifying the servingFegHwId twice
+	for i := len(sessionProxy.resultChan); i > 0; i-- {
+		servingFegHwId := <-sessionProxy.resultChan
+		assert.Equal(t, fegHwId, servingFegHwId)
+	}
+
+	// Verifying the collective response from session_proxy and n7_n40_proxy of serving Feg
+	assert.Equal(t, len(updateSessReq.Updates), len(res.Responses))
+	assert.Equal(t, len(updateSessReq.UsageMonitors), len(res.UsageMonitorResponses))
+
+	// Test SayHello routing & NH argumentation regex
+	helloClient := feg_protos.NewHelloClient(conn)
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+
+	// regex style: @nh-Feg-for Imsi 123456
+	helloReq := &feg_protos.HelloRequest{Greeting: "Hello FeG @nh-Feg-for Imsi " + nhImsi}
+	helloResp, err := helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG", helloResp.GetGreeting())
+
+	// regex style: @NH-FEG-FOR: IMSI123456
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hello FeG test 2 @NH-FEG-FOR: IMSI" + nhImsi}
+	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG test 2", helloResp.GetGreeting())
+
+	// regex style: @NH-FeG-FOR IMSI123456
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hello FeG t3 @NH-FEG-FOR IMSI" + nhImsi}
+	helloResp, err = helloClient.SayHello(toutctx, helloReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "testHelloService reply to: Hello FeG t3", helloResp.GetGreeting())
+
+	// expect failure on absent default local FeG
+	helloReq = &feg_protos.HelloRequest{Greeting: "Hi" + nhImsi}
+	_, err = helloClient.SayHello(toutctx, helloReq)
+	assert.Error(t, err)
+
+	cancel()
+
+	// test #3: Verify failure of routing of unknown PLMN IDs
+	aiReq.UserName = nonNhImsi
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	// The call for non-matching PLMN ID should end up on NH Network's FeG, but none is configured, expect an error
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.Error(t, err)
+
+	// test #4: Verify serving of non-matching PLMN IDs by default NH FeG (if exist)
+	//
+	// Add a FeG to serve non-matching PLMN IDs to NH network
+	_, err = configurator.CreateEntities(context.Background(), nhNetworkID, []configurator.NetworkEntity{
+		{
+			Type: feg.FegGatewayType, Key: nhFegId,
+		},
+		{
+			Type: orc8r.MagmadGatewayType, Key: nhFegId,
+			Name: "nh_feg_gateway", Description: "neutral host federation gateway",
+			PhysicalID:   nhFegHwId,
+			Config:       &models.MagmadGatewayConfigs{},
+			Associations: storage.TKs{{Type: feg.FegGatewayType, Key: nhFegId}},
+		},
+		{
+			Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: storage.TKs{
+				{Type: orc8r.MagmadGatewayType, Key: nhFegId},
+			},
+		},
+	}, serdes.Entity)
+	assert.NoError(t, err)
+	err = device.RegisterDevice(context.Background(), nhNetworkID, orc8r.AccessGatewayRecordType, nhFegHwId, &models.GatewayDevice{HardwareID: nhFegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
+	assert.NoError(t, err)
+
+	// Map NH FeG to already running test S6a proxy address
+	directoryd.MapHWIDToHostname(context.Background(), nhFegHwId, "localhost")
+
+	// Update Serving FeG Health status
+	healthctx := protos.NewGatewayIdentity(nhFegHwId, nhNetworkID, nhFegId).NewContextWithIdentity(context.Background())
+	req := healthTestUtils.GetHealthyRequest()
+	_, err = testHealthServiser.UpdateHealth(healthctx, req)
+	assert.NoError(t, err)
+
+	// Verify that NH FeG will be used as "catch all" for all but nhPlmnId
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
+	assert.NoError(t, err)
+	assert.Equal(t, nhFegHwId, foundFegHwId)
+
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi) // NH IMSI
+	assert.NoError(t, err)
+	assert.Equal(t, fegHwId, foundFegHwId)
+
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	// Now the call for non-matching PLMN ID should end up on NH Network's FeG
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.NoError(t, err)
+	select {
+	case servingFegHwId := <-s6aProxy.resultChan:
+		assert.Equal(t, nhFegHwId, servingFegHwId)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Neutral Host Non Routed S6a Proxy Call timed out")
+	}
+	// Verify that matching PLMN ID routing still works
+	aiReq.UserName = nhImsi
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.NoError(t, err)
+	select {
+	case servingFegHwId := <-s6aProxy.resultChan:
+		assert.Equal(t, fegHwId, servingFegHwId)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Neutral Host Routed S6a Proxy Call timed out")
+	}
+
+	// test #5: Remove Neutral Host settings (making NH FeG network a legacy FeG Network) and verify that
+	//			legacy (non NH) relay logic works as expected (GW requests with NH IMSI are routed to NH FeG)
+	nhNet, err := configurator.LoadNetwork(context.Background(), nhNetworkID, true, true, serdes.Network)
+	assert.NoError(t, err)
+	assert.NotNil(t, nhNet)
+	cfg, ok := nhNet.Configs[feg.FegNetworkType]
+	assert.True(t, ok)
+	assert.NotNil(t, cfg)
+	fegCfg, ok := cfg.(*models2.NetworkFederationConfigs)
+	assert.True(t, ok)
+	assert.NotNil(t, fegCfg)
+	fegCfg.NhRoutes = nil // delete NH configuration, now FeG Network is just a regular FeG Network
+	err = configurator.UpdateNetworkConfig(context.Background(), nhNetworkID, feg.FegNetworkType, fegCfg, serdes.Network)
+	assert.NoError(t, err)
+
+	// Verify, relay now finds the NH local FeG for any IMSI
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nhImsi)
+	assert.NoError(t, err)
+	assert.Equal(t, nhFegHwId, foundFegHwId)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, nonNhImsi)
+	assert.NoError(t, err)
+	assert.Equal(t, nhFegHwId, foundFegHwId)
+	foundFegHwId, err = gw_to_feg_relay.FindServingFeGHwId(context.Background(), federatedLteNetworkID, "") // no IMSI
+	assert.NoError(t, err)
+	assert.Equal(t, nhFegHwId, foundFegHwId)
+
+	aiReq.UserName = nhImsi
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	// Now the call for non-matching PLMN ID should end up on NH Network's FeG
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.NoError(t, err)
+	select {
+	case servingFegHwId := <-s6aProxy.resultChan:
+		assert.Equal(t, nhFegHwId, servingFegHwId)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Non Neutral Host & NH IMSI S6a Proxy Call timed out")
+	}
+
+	aiReq.UserName = nonNhImsi
+	toutctx, cancel = context.WithTimeout(ctx, 5*time.Second)
+	// Now the call for non-matching PLMN ID should end up on NH Network's FeG
+	_, err = s6aClient.AuthenticationInformation(toutctx, aiReq)
+	cancel()
+	assert.NoError(t, err)
+	select {
+	case servingFegHwId := <-s6aProxy.resultChan:
+		assert.Equal(t, nhFegHwId, servingFegHwId)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Non Neutral Host, Non NH IMSI S6a Proxy Call timed out")
+	}
+}
