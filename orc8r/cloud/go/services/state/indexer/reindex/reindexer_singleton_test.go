@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,107 @@ import (
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test "magma/orc8r/cloud/go/services/state/test_utils"
 )
+
+func TestSingletonRunSuccess00(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail00(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess01(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail01(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess02(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail02(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess03(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail03(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess04(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail04(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess05(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail05(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess06(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail06(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess07(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail07(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess08(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail08(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess09(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail09(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess10(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail10(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess11(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail11(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess12(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail12(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess13(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail13(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess14(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail14(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess15(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail15(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess16(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail16(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess17(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail17(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess18(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail18(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess19(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail19(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess20(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail20(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess21(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail21(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess22(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail22(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess23(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail23(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess24(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail24(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess25(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail25(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess26(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail26(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess27(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail27(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess28(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail28(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess29(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail29(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess30(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail30(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess31(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail31(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess32(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail32(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess33(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail33(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess34(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail34(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess35(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail35(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess36(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail36(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess37(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail37(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess38(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail38(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess39(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail39(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess40(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail40(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess41(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail41(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess42(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail42(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess43(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail43(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess44(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail44(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess45(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail45(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess46(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail46(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess47(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail47(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess48(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail48(t *testing.T)    { TestSingletonRunFail(t) }
+func TestSingletonRunSuccess49(t *testing.T) { TestSingletonRunSuccess(t) }
+func TestSingletonRunFail49(t *testing.T)    { TestSingletonRunFail(t) }
 
 func TestSingletonRunSuccess(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
@@ -112,6 +214,13 @@ func TestSingletonRunSuccess(t *testing.T) {
 	require.Equal(t, 3, reindexSuccessNum)
 	require.Equal(t, 3, reindexDoneNum)
 	cancel()
+	select {
+	case <-ctx.Done():
+		indexer.DeregisterAllForTest(t)
+	case <-time.After(defaultTestTimeout):
+		indexer.DeregisterAllForTest(t)
+		t.Fatal("Timed out waiting for context to cancel.")
+	}
 }
 
 func TestSingletonRunFail(t *testing.T) {
@@ -129,9 +238,7 @@ func TestSingletonRunFail(t *testing.T) {
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
-		if reindexDoneNum < 6 {
-			ch <- nil
-		}
+		ch <- nil
 		reindexDoneNum += 1
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
@@ -141,9 +248,6 @@ func TestSingletonRunFail(t *testing.T) {
 
 	r := initSingletonReindexTest(t)
 	reportAdditionalState(t, nid3, hwid3, 3)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go r.Run(ctx)
 
 	// Indexer returns err => reindex jobs fail
 
@@ -168,18 +272,31 @@ func TestSingletonRunFail(t *testing.T) {
 	// Register indexers
 	register(t, fail1, fail2, fail3)
 
+	// Only run the reindexer after all indexers have been registered.
+	// This is to ensure that the reindexer will not start with only one
+	// or two indexers registered, which would cause the reindexer to
+	// run four or five times, respectively.
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
+
 	// Check
 	recvCh(t, ch)
 	recvCh(t, ch)
 	recvCh(t, ch)
 	cancel()
-	recvNoCh(t, ch)
-
-	fail1.AssertExpectations(t)
-	fail2.AssertExpectations(t)
-	fail3.AssertExpectations(t)
-	require.Equal(t, 0, reindexSuccessNum)
-	require.Equal(t, 0, reindexDoneNum%3)
+	select {
+	case <-ctx.Done():
+		indexer.DeregisterAllForTest(t)
+		recvNoCh(t, ch)
+		fail1.AssertExpectations(t)
+		fail2.AssertExpectations(t)
+		fail3.AssertExpectations(t)
+		require.Equal(t, 0, reindexSuccessNum)
+		require.Equal(t, 3, reindexDoneNum)
+	case <-time.After(defaultTestTimeout):
+		indexer.DeregisterAllForTest(t)
+		t.Fatal("Timed out waiting for context to cancel.")
+	}
 }
 
 // initSingletonReindexTest reports enough directory records to cause 3 batches per network
