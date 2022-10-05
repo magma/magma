@@ -72,9 +72,7 @@
     },
     {
       "type": "shell",
-      "inline": [
-        "sudo reboot"
-      ],
+      "inline": "sudo reboot",
       "expect_disconnect": true
     },
     {
@@ -91,8 +89,10 @@
       "role_paths": [
         "../../../lte/gateway/deploy/roles/bazel",
         "../../../lte/gateway/deploy/roles/dev_common",
+        "../../../lte/gateway/deploy/roles/gai_config",
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/pyvenv",
+        "../../../lte/gateway/deploy/roles/service_aliases",
         "../../../orc8r/tools/ansible/roles/apt_cache",
         "../../../orc8r/tools/ansible/roles/docker",
         "../../../orc8r/tools/ansible/roles/fluent_bit",
@@ -110,6 +110,8 @@
     {
       "type": "shell",
       "scripts": [
+        "scripts/cleanup.sh",
+        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
         "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
