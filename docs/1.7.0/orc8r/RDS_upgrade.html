@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Orchestrator DB Upgrade · Magma Documentation</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="# Summary"/><meta name="docsearch:version" content="1.7.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Orchestrator DB Upgrade · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="# Summary"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script type="text/javascript" src="/init.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.7.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Magma Website</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma/magma/wiki/Contributor-Guide" target="_self">Contributing</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://wiki.magmacore.org/" target="_self">Wiki</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="summary"></a><a href="#summary" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Summary</h1>
+<p>AWS will deprecate all RDS instances that are running on 9.6.X version as of January 2022. In preparation for that, the following instructions will allow a network administrator to upgrade the RDS version to Version 12.8.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> This upgrade procedure is mandatory for all RDS versions running Postgres 9.6.X version. Versions 10 and above are not mandatory at this time.*</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="pre-requisites"></a><a href="#pre-requisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pre-Requisites</h2>
+<ol>
+<li><p>Access to AWS Dashboard (read/write).</p></li>
+<li><p>Permissions to modify the orc8r deployment via Terraform</p></li>
+<li><p>Access to k8’s cluster and the kubeconfig file.</p></li>
+<li><p>A <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateSnapshot.html"><em>new snapshot</em></a> created in case a database recovery is needed.</p></li>
+</ol>
+<h2><a class="anchor" aria-hidden="true" id="downtime"></a><a href="#downtime" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Downtime:</h2>
+<p>This operation is going to cause noticeable downtime. During this time the NMS will not be reachable and new subscribers cannot be added to gateways. If a public cloud orc8r instance is being used for Federated setups, attach and policy management will be impacted.</p>
+<p>Depending on the starting version, up to two upgrades might be necessary. Based on our testing, this can take up to an hour (including validation). It is recommended to schedule this work in a maintenance window.</p>
+<h2><a class="anchor" aria-hidden="true" id="execution"></a><a href="#execution" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Execution:</h2>
+<p>Three minor modifications are necessary to the terraform files. Please note that these modifications were committed to the Magma Repo in <a href="https://github.com/magma/magma/pull/10602"><em>PR 10602</em></a>.</p>
+<p>Please note that these changes need to be made to the local copy of the modules downloaded.</p>
+<p><strong>Change 1:</strong>
+In <code>.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/db.tf</code> add the following snippet:</p>
+<p><code>apply_immediately = var.orc8r_db_apply_immediately</code></p>
+<p><strong>Change 2:</strong>
+In <code>.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf</code> add the following snippet:</p>
+<pre><code class="hljs">variable <span class="hljs-string">"orc8r_db_apply_immediately"</span>{
+  description = <span class="hljs-string">"Flag to immediately upgrade RDS without waiting for a maintenance window"</span>
+ <span class="hljs-built_in"> type </span>= bool
+ <span class="hljs-built_in"> default </span>= <span class="hljs-literal">false</span>
+}
+</code></pre>
+<p><strong>Change 3:</strong>
+In <code>main.tf</code> set the following variables in <code>module &quot;orc8r&quot; {...}</code> stanza:</p>
+<p><code>orc8r_db_engine_version = &quot;12.8&quot;</code>
+<code>orc8r_db_apply_immediately = &quot;true&quot;</code></p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> If the current version of the <code>orc8r_db_engine_version</code> is <em>not</em> <code>9.6.23</code> (i.e. a minor version <em>older</em> than 9.6.23), the RDS has to be first upgraded to this version (using the same process) and then a second time to <code>12.8</code></p>
+</blockquote>
+<blockquote>
+<p><strong><em>NOTE</em></strong>: <code>terraform init --upgrade</code> should be run once at the start of this activity. This will ensure that the latest changes from Github are downloaded to the local version on your workstation. <code>terraform init --upgrade</code> should NOT be run between upgrades, else all the local changes will be overwritten.</p>
+</blockquote>
+<p>After confirming the notes above, run the following commands:</p>
+<ul>
+<li><code>terraform plan</code></li>
+<li><code>terraform apply</code></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="logs-and-validation"></a><a href="#logs-and-validation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Logs and Validation</h2>
+<ul>
+<li>Each time the RDS instance is upgraded, please check the <code>terraform plan</code> output. Each time, it should explicitly specify that the instance will be <em>updated in place</em>.</li>
+<li>Once satisfied that the RDS instance will be updated in place, you can run the <code>terraform apply</code> command.</li>
+<li>Logs from an RDS upgrade (9.6.22 -&gt; 9.6.23 -&gt; 12.8) have been captured <a href="https://gist.github.com/sudhikan/8e42985bc0db13512c9cd602d8acab3a"><em>here</em></a> for reference.</li>
+<li>Between each upgrade step, please verify that you are able to login to the NMS, access the subscriber page, modify values, and gateways are successfully checking-in.</li>
+<li>It is also recommended to take snapshots before each upgrade. Refer to the link in the prerequisites section for more information.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="cleanup"></a><a href="#cleanup" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cleanup</h2>
+<ul>
+<li>Modify main.tf as follows:</li>
+</ul>
+<p><code>orc8r_db_apply_immediately = &quot;false&quot;</code></p>
+<ul>
+<li>Run <code>terraform plan</code> and <code>terraform apply</code>. These are not expected to have any impact other than to disable immediate major upgrades of the RDS instance.</li>
+</ul>
+<pre><code class="hljs">An execution plan has been generated <span class="hljs-keyword">and</span> is shown below.<span class="hljs-built_in">
+Resource </span>actions are indicated with the following symbols:
+  ~ update in-place
+
+Terraform will perform the following actions:
+
+  # module.orc8r.aws_db_instance.default will be updated in-place
+  ~<span class="hljs-built_in"> resource </span><span class="hljs-string">"aws_db_instance"</span> <span class="hljs-string">"default"</span> {
+      ~ apply_immediately                     = <span class="hljs-literal">true</span> -&gt; <span class="hljs-literal">false</span>
+        id                                    = <span class="hljs-string">"orc8rdb"</span>
+        name                                  = <span class="hljs-string">"orc8r"</span>
+        tags                                  = {}
+        # (48 unchanged attributes hidden)
+    }
+
+Plan: 0 <span class="hljs-keyword">to</span> add, 1 <span class="hljs-keyword">to</span> change, 0 <span class="hljs-keyword">to</span> destroy.
+</code></pre>
+<ul>
+<li>After terraform has finished running, run <code>terraform show</code> to validate the DB settings.</li>
+</ul>
+<pre><code class="hljs"><span class="hljs-comment"># module.orc8r.aws_db_instance.default:</span>
+resource <span class="hljs-string">"aws_db_instance"</span> <span class="hljs-string">"default"</span> {
+    <span class="hljs-attr">address</span>                               = <span class="hljs-string">"orc8rdb.abcdy9gi9jk5o.eu-west-2.rds.amazonaws.com"</span>
+    <span class="hljs-attr">allocated_storage</span>                     = <span class="hljs-number">64</span>
+    <span class="hljs-attr">allow_major_version_upgrade</span>           = <span class="hljs-literal">true</span>
+    <span class="hljs-attr">apply_immediately</span>                     = <span class="hljs-literal">false</span>
+    <span class="hljs-attr">arn</span>                                   = <span class="hljs-string">"arn:aws:rds:eu-west-2:************:db:orc8rdb"</span>
+    <span class="hljs-attr">auto_minor_version_upgrade</span>            = <span class="hljs-literal">true</span>
+    <span class="hljs-attr">availability_zone</span>                     = <span class="hljs-string">"eu-west-2a"</span>
+    <span class="hljs-attr">backup_retention_period</span>               = <span class="hljs-number">7</span>
+    <span class="hljs-attr">backup_window</span>                         = <span class="hljs-string">"01:00-01:30"</span>
+    <span class="hljs-attr">ca_cert_identifier</span>                    = <span class="hljs-string">"rds-ca-2019"</span>
+    <span class="hljs-attr">copy_tags_to_snapshot</span>                 = <span class="hljs-literal">false</span>
+    <span class="hljs-attr">customer_owned_ip_enabled</span>             = <span class="hljs-literal">false</span>
+    <span class="hljs-attr">db_subnet_group_name</span>                  = <span class="hljs-string">"orc8r"</span>
+    <span class="hljs-attr">delete_automated_backups</span>              = <span class="hljs-literal">true</span>
+    <span class="hljs-attr">deletion_protection</span>                   = <span class="hljs-literal">false</span>
+    <span class="hljs-attr">enabled_cloudwatch_logs_exports</span>       = []
+    <span class="hljs-attr">endpoint</span>                              = <span class="hljs-string">"orc8rdb.abcdy9gi9jk5o.eu-west-2.rds.amazonaws.com:5432"</span>
+    <span class="hljs-attr">engine</span>                                = <span class="hljs-string">"postgres"</span>
+    <span class="hljs-attr">engine_version</span>                        = <span class="hljs-string">"12.8"</span>
+    <span class="hljs-attr">engine_version_actual</span>                 = <span class="hljs-string">"12.8"</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="backout"></a><a href="#backout" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Backout</h2>
+<ul>
+<li>If for some reason the DB upgrades fail, please <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html"><em>restore</em></a> your database from the snapshot created in the prerequisites section.</li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="screenshots"></a><a href="#screenshots" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Screenshots</h2>
+<p><img src="/magma/docs/assets/orc8r/rds_upgrade_nms.png" alt="nms_rds_upgrade"></p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> Expected output when accessing the NMS during the upgrade. Errors are expected on screen.</p>
+</blockquote>
+<p><img src="/magma/docs/assets/orc8r/rds_upgrade_aws_9_6_22.png" alt="nms_upgrade_aws"></p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> Upgrade from 9.6.22 to 9.6.23. Per AWS’s RDS upgrade guide, jumping to 12.8 can only be done from 9.6.23.</p>
+</blockquote>
+<p><img src="/magma/docs/assets/orc8r/rds_upgrade_aws_complete.png" alt="rds_upgrade_complete"></p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> This screenshot displays a successful upgrade.</p>
+</blockquote>
+</span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#pre-requisites">Pre-Requisites</a></li><li><a href="#downtime">Downtime:</a></li><li><a href="#execution">Execution:</a></li><li><a href="#logs-and-validation">Logs and Validation</a></li><li><a href="#cleanup">Cleanup</a></li><li><a href="#backout">Backout</a></li><li><a href="#screenshots">Screenshots</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/magma/magma/blob/master/docs/pdfs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/magma/magma/blob/master/docs/pdfs/Magma_Specs_FFWA_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://slack.magmacore.org">Slack</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://magmacore.org/blog/">Blog</a><a href="https://github.com/magma/magma">GitHub</a></div></section><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
