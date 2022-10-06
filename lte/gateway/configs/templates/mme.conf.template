@@ -355,4 +355,7 @@ AMF :
     GUAMFI_LIST = (
      { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; AMF_REGION_ID="{{ amf_region_id }}" ; AMF_SET_ID="{{ amf_set_id }}"; AMF_POINTER="{{ amf_pointer }}"}
     );
+
+    # IMP VoPS FEATURE
+    ENABLE_IMS_VoPS_3GPP = "{{ enable_IMS_VoPS_3GPP }}";
 };

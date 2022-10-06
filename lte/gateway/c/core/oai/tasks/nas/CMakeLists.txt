@@ -13,11 +13,11 @@ message("Proto_srcs are ${PROTO_SRCS}")
 include_directories("${S1AP_C_DIR}")
 include_directories(${CMAKE_SOURCE_DIR})
 set(libnas_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.cpp
     )
 
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 set(libnas_emm_msg_OBJS
@@ -130,46 +130,46 @@ set(libnas_ies_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)
 set(libnas_utils_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/api/mme)
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm)
 set(libnas_mme_emm_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm/sap)
 set(libnas_mme_emm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)
@@ -197,9 +197,9 @@ set(libnas_mme_esm_sap_OBJS
     )
 
 add_library(TASK_NAS
-    nas_network.c
-    nas_proc.c
-    nas_procedures.c
+    nas_network.cpp
+    nas_proc.cpp
+    nas_procedures.cpp
     nas_state_converter.cpp
     ${libnas_api_OBJS}
     ${libnas_mme_api_OBJS}

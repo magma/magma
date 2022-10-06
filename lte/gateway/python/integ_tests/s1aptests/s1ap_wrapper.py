@@ -533,7 +533,7 @@ class TestWrapper(object):
 
         if not is_test_successful:
             print("The test has failed. Restarting Sctpd for cleanup")
-            self.magmad_util.restart_sctpd()
+            self.magmad_util.restart_services(['sctpd'], wait_time=30)
             self.magmad_util.print_redis_state()
             if TestWrapper.TEST_CASE_EXECUTION_COUNT == 3:
                 self.generate_flaky_summary()
@@ -543,7 +543,7 @@ class TestWrapper(object):
 
         if not self.magmad_util.is_redis_empty():
             print("************************* Redis not empty, initiating cleanup")
-            self.magmad_util.restart_sctpd()
+            self.magmad_util.restart_services(['sctpd'], wait_time=30)
             self.magmad_util.print_redis_state()
 
     def multiEnbConfig(self, num_of_enbs, enb_list=None):

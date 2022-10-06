@@ -17,6 +17,7 @@ import {AccessRoles} from '../shared/roles';
 import {Organization, User} from '../shared/sequelize_models';
 import {OrganizationModel} from '../shared/sequelize_models/models/organization';
 import {UserModel} from '../shared/sequelize_models/models/user';
+import {syncOrganizationWithOrc8rTenant} from '../server/util/tenantsSync';
 
 const SALT_GEN_ROUNDS = 10;
 
@@ -88,13 +89,14 @@ async function createOrFetchOrganization(
     ]);
     org = o;
   }
+  await syncOrganizationWithOrc8rTenant(org);
   return org;
 }
 
 function main() {
   const args = process.argv.slice(2);
   if (args.length !== 3) {
-    console.log('Usage: setPassword.js <organization> <email> <password>');
+    console.log('Usage: setPassword.ts <organization> <email> <password>');
     process.exit(1);
   }
   const userObject = {

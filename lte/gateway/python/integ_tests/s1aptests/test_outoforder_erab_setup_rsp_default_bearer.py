@@ -90,9 +90,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
         sec_ip = ipaddress.ip_address(bytes(addr[:4]))
@@ -130,8 +128,8 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
+        assert (
+            response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
         )
 
         print(

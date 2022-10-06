@@ -18,6 +18,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -130,7 +132,12 @@ func gatewayGenericCommand(c echo.Context) error {
 
 	response, err := magmad.GatewayGenericCommand(c.Request().Context(), networkID, gatewayID, &genericCommandParams)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		st, _ := status.FromError(err)
+		if st.Code() == codes.InvalidArgument {
+			return echo.NewHTTPError(http.StatusNotFound, st.Message())
+		} else {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
 	}
 
 	resp, err := models2.ProtobufStructToJSONMap(response.Response)

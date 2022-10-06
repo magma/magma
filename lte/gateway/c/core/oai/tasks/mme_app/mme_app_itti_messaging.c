@@ -48,7 +48,7 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
 #if EMBEDDED_SGW

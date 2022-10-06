@@ -28,7 +28,9 @@ setup(
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
         'magma.enodebd.devices',
+        'magma.enodebd.devices.baicells_qrtb',
         'magma.enodebd.devices.experimental',
+        'magma.enodebd.devices.freedomfi_one',
         'magma.enodebd.state_machines',
         'magma.enodebd.tr069',
         'magma.health',
@@ -134,7 +136,8 @@ setup(
     ],
     extras_require={
         'dev': [
-            'grpcio-tools>=1.46.3',
+            # Should be kept in sync with the version in python.mk
+            'grpcio-tools>=1.46.3,<1.49.0',
             'coverage==6.4.2',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',

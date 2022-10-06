@@ -41,14 +41,11 @@ class TestAttachDetachWithOVS(unittest.TestCase):
                 if a["field"] == "metadata"
             ), None,
         )
-        self.assertIsNotNone(imsi_action)
+        assert imsi_action is not None
         imsi64 = imsi_action["value"]
         # Convert between compacted uint IMSI and string
         received_imsi = decode_imsi(imsi64)
-        self.assertEqual(
-            sent_imsi, received_imsi,
-            "IMSI set in metadata field does not match sent IMSI",
-        )
+        assert sent_imsi == received_imsi, "IMSI set in metadata field does not match sent IMSI"
 
     def test_attach_detach_with_ovs(self):
         """
@@ -60,10 +57,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
 
         print("Checking for default table 0 flows")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE})
-        self.assertEqual(
-            len(flows), 2,
-            "There should only be 2 default table 0 flows",
-        )
+        assert len(flows) == 2, "There should only be 2 default table 0 flows"
 
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
@@ -96,9 +90,9 @@ class TestAttachDetachWithOVS(unittest.TestCase):
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
 
-        self.assertEqual(len(uplink_flows), 1, "Uplink flow missing for UE")
-        self.assertIsNotNone(
-            uplink_flows[0]["match"]["tunnel_id"],
+        assert len(uplink_flows) == 1, "Uplink flow missing for UE"
+        assert (
+            uplink_flows[0]["match"]["tunnel_id"] is not None,
             "Uplink flow missing tunnel id match",
         )
         self.check_imsi_metadata(uplink_flows[0], req)
@@ -126,12 +120,9 @@ class TestAttachDetachWithOVS(unittest.TestCase):
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
 
-        self.assertEqual(
-            len(downlink_flows), 1,
-            "Downlink flow missing for UE",
-        )
-        self.assertEqual(
-            downlink_flows[0]["match"]["ipv4_dst"], ue_ip,
+        assert len(downlink_flows) == 1, "Downlink flow missing for UE"
+        assert (
+            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip,
             "UE IP match missing from downlink flow",
         )
 
@@ -141,7 +132,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             if action["field"] == "tunnel_id" and
             action["type"] == "SET_FIELD"
         )
-        self.assertTrue(
+        assert (
             has_tunnel_action,
             "Downlink flow missing set tunnel action",
         )
@@ -155,10 +146,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
 
         print("Checking that uplink/downlink flows were deleted")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE})
-        self.assertEqual(
-            len(flows), 2,
-            "There should only be 2 default table 0 flows",
-        )
+        assert len(flows) == 2, "There should only be 2 default table 0 flows"
 
 
 if __name__ == "__main__":

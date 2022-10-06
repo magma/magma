@@ -50,9 +50,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("************* Received Auth Req for ue", req.ue_id)
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
@@ -66,9 +64,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         print("************* Received SMC for ue", req.ue_id)
 
@@ -84,9 +80,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
             print("Received SMC retx from previous run... Ignoring")
             response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("****** Triggering end-end attach after mme restart *********")
 

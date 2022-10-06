@@ -30,7 +30,3 @@
  * @returns -1 in case of failure
  **/
 status_code_e s1ap_mme_init(const mme_config_t* mme_config);
-
-/** \brief S1AP layer top exit
- **/
-void s1ap_mme_exit(void);

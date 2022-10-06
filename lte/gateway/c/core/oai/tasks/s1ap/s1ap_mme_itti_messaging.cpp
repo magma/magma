@@ -40,6 +40,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 
+namespace magma {
+namespace lte {
+
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
                                               const sctp_assoc_id_t assoc_id,
@@ -71,7 +74,7 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
   MessageDef* message_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
   imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
 
   OAILOG_INFO_UE(
@@ -368,7 +371,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
 
 status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const s1ap_handover_state_t handover_state,
+    const oai::S1apHandoverState handover_state,
     const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
     const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
     imsi64_t imsi64) {
@@ -380,14 +383,29 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   }
 
   S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
-  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id = handover_state.target_enb_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id =
+      handover_state.target_enb_id();
   S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id = target_sctp_assoc_id;
   S1AP_HANDOVER_NOTIFY(message_p).ecgi = ecgi;
   S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = target_enb_ue_s1ap_id;
-  S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list =
-      handover_state.e_rab_admitted_list;
+  e_rab_admitted_list_t* e_rab_admitted_list =
+      &S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list;
+  e_rab_admitted_list->no_of_items =
+      handover_state.e_rab_admitted_list().no_of_items();
+  for (uint8_t idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
+    const oai::ERabAdmittedItem& proto_e_rab_item =
+        handover_state.e_rab_admitted_list().item(idx);
+    e_rab_admitted_list->item[idx].e_rab_id = proto_e_rab_item.e_rab_id();
+    e_rab_admitted_list->item[idx].transport_layer_address =
+        blk2bstr(proto_e_rab_item.transport_layer_address().c_str(),
+                 proto_e_rab_item.transport_layer_address().length());
+    e_rab_admitted_list->item[idx].gtp_teid = proto_e_rab_item.gtp_teid();
+  }
 
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
+}  // namespace lte
+}  // namespace magma

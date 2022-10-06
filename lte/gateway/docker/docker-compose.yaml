@@ -11,7 +11,6 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
   - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
-  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
   - /etc/snowflake:/etc/snowflake
   - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
   - ./:/var/opt/magma/docker
@@ -19,6 +18,22 @@ x-standard-volumes: &volumes_anchor
   - /tmp:/tmp
   - /var/log:/var/log
   - /etc/openvswitch:/etc/openvswitch
+
+# Magmad volumes mounted
+x-magmad-volumes: &magmad_volumes_anchor
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
+  - /etc/snowflake:/etc/snowflake
+  - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
+  - ./:/var/opt/magma/docker
+  - /var/run:/var/run
+  - /tmp:/tmp
+  - /var/log:/var/log
+  - /etc/openvswitch:/etc/openvswitch
+  - /var/run/docker.sock:/var/run/docker.sock
 
 x-generic-service: &service
   volumes: *volumes_anchor
@@ -36,15 +51,16 @@ x-agw-c-service: &cservice
   <<: *service
   image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
-# Generic anchor for go services
-x-agw-go-service: &goservice
-  <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
-
 services:
   magmad:
     <<: *pyservice
     container_name: magmad
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50052"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    volumes: *magmad_volumes_anchor
     environment:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
@@ -59,6 +75,7 @@ services:
     container_name: redis
     healthcheck:
       test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: >
@@ -73,6 +90,7 @@ services:
       - redis
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50067"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.directoryd.main
@@ -82,6 +100,7 @@ services:
     container_name: subscriberdb
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50051"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.subscriberdb.main
@@ -91,6 +110,7 @@ services:
     container_name: enodebd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "60055"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     cap_add:
@@ -102,6 +122,7 @@ services:
     container_name: state
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50074"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     depends_on:
@@ -115,6 +136,7 @@ services:
       - redis
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50068"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.policydb.main
@@ -124,6 +146,7 @@ services:
     container_name: health
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50080"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.health.main
@@ -133,6 +156,7 @@ services:
     container_name: monitord
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50076"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     cap_add:
@@ -144,6 +168,7 @@ services:
     container_name: redirectd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50071"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.redirectd.main
@@ -153,6 +178,7 @@ services:
     container_name: smsd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50078"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.smsd.main
@@ -162,6 +188,7 @@ services:
     container_name: control_proxy
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "8443"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: >
@@ -174,6 +201,7 @@ services:
     container_name: ctraced
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50079"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.ctraced.main
@@ -183,6 +211,11 @@ services:
     container_name: sctpd
     ulimits:
       core: -1
+    healthcheck:
+      test: ["CMD", "test", "-S", "/tmp/sctpd_downstream.sock"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
     security_opt:
       - seccomp:unconfined
     environment:
@@ -194,6 +227,7 @@ services:
     container_name: oai_mme
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50073"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     ulimits:
@@ -226,6 +260,7 @@ services:
       - SYS_NICE
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50063"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: >
@@ -249,6 +284,7 @@ services:
       - directoryd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     cap_drop:
@@ -260,6 +296,7 @@ services:
     container_name: mobilityd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "60051"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command:
@@ -270,6 +307,7 @@ services:
     container_name: td-agent-bit
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "5140"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     logging:
@@ -283,6 +321,7 @@ services:
     container_name: eventd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50075"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/bin/env python3 -m magma.eventd.main
@@ -292,6 +331,7 @@ services:
     container_name: connectiond
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50082"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     cap_add:
@@ -303,16 +343,19 @@ services:
     container_name: liagentd
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /usr/local/bin/liagentd
     restart: "no"
 
   envoy_controller:
-    <<: *goservice
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
     container_name: envoy_controller
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50081"]
+      interval: "4s"
       timeout: "4s"
       retries: 3
     command: /var/opt/magma/bin/envoy_controller

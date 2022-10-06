@@ -61,10 +61,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
             print(
                 "*** Authentication Request Message Received (",
                 str(i + 1),
@@ -97,10 +94,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
             print(
                 "*** Security Mode Command Message Received (",
                 str(i + 1),
@@ -143,10 +137,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
             print(
                 "*** Attach Accept Message Received in DL NAS transport msg (",
                 str(i + 1),

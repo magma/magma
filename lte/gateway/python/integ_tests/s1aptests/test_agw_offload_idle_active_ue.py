@@ -69,7 +69,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
             "*************************  Offloading UE at state ECM-CONNECTED",
         )
         # Send offloading request
-        self.assertTrue(
+        assert (
             self._ha_util.offload_agw(
                 "".join(["IMSI"] + [str(i) for i in req.imsi]),
                 enb_list[0][0],
@@ -77,14 +77,11 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("*************************  Offloading UE at state ECM-IDLE")
         # Send offloading request
-        self.assertTrue(
+        assert (
             self._ha_util.offload_agw(
                 "".join(["IMSI"] + [str(i) for i in req.imsi]),
                 enb_list[0][0],
@@ -92,7 +89,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
         # Send service request to reconnect UE
         # Auto-release should happen
         ser_req = s1ap_types.ueserviceReq_t()
@@ -105,16 +102,10 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
             ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Send service request again:
         # This time auto-release should not happen
@@ -123,10 +114,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
             ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         print("************************* SLEEPING for 2 sec")
         time.sleep(2)

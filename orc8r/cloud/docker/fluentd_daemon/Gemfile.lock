@@ -61,7 +61,7 @@ GEM
       strptime (>= 0.2.4, < 1.0.0)
       tzinfo (>= 1.0, < 3.0)
       tzinfo-data (~> 1.0)
-      webrick (>= 1.4.2, < 1.8.0 )
+      webrick (>= 1.4.2, < 1.8.0)
       yajl-ruby (~> 1.0)
     http (3.3.0)
       addressable (~> 2.3)
@@ -110,7 +110,7 @@ GEM
       unf_ext
     unf_ext (0.0.7.6)
     webrick (1.7.0)
-    yajl-ruby (1.4.2)
+    yajl-ruby (1.4.3)
 
 PLATFORMS
   ruby
