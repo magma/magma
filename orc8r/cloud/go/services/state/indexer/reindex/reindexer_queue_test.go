@@ -27,6 +27,8 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -426,7 +428,7 @@ func recvCh(t *testing.T, ch chan interface{}) {
 	select {
 	case <-ch:
 		return
-	case <-time.After(defaultTestTimeout):
+	case <-time.After(600 * time.Second):
 		t.Fatal("receive on hook channel timed out")
 	}
 }
