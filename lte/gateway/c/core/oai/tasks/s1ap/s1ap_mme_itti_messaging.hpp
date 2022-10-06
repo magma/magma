@@ -22,8 +22,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S1AP_MME_ITTI_MESSAGING_SEEN
-#define FILE_S1AP_MME_ITTI_MESSAGING_SEEN
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -40,6 +39,9 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+
+namespace magma {
+namespace lte {
 
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 extern long s1ap_last_msg_latency;
@@ -100,8 +102,10 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
 
 status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const s1ap_handover_state_t handover_state,
+    const oai::S1apHandoverState handover_state,
     const enb_ue_s1ap_id_t target_ue_s1ap_id,
     const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
     imsi64_t imsi64);
-#endif /* FILE_S1AP_MME_ITTI_MESSAGING_SEEN */
+
+}  // namespace lte
+}  // namespace magma

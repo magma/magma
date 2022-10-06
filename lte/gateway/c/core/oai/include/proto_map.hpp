@@ -220,8 +220,14 @@ struct proto_map_s {
       return PROTO_MAP_NOT_CREATED;
     }
     if (!(map->empty())) {
-      map->clear();
+      for (auto itr = map->begin(); itr != map->end(); itr++) {
+        if (free_callback_func) {
+          valueT value = itr->second;
+          free_callback_func(reinterpret_cast<void**>(&value));
+        }
+      }
     }
+    map->clear();
     return PROTO_MAP_OK;
   }
   /***************************************************************************

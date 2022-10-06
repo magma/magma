@@ -52,15 +52,15 @@ First define some necessary variables
 ```bash
 export PUBLISH=${MAGMA_ROOT}/orc8r/tools/docker/publish.sh  # or add to path
 export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
-export MAGMA_TAG=1.6.0-master  # or desired tag
+export MAGMA_TAG=1.8.0-master  # or desired tag
 ```
 
-Checkout the desired Git target, e.g. the v1.6 branch
+Checkout the desired Git target, e.g. the v1.8 branch
 
 ```bash
 cd ${MAGMA_ROOT}
 git fetch origin
-git checkout -b v1.6 origin/v1.6  # or desired Git target, e.g. master
+git checkout -b v1.8 origin/v1.8  # or desired Git target, e.g. master
 ```
 
 Build and publish Orchestrator images

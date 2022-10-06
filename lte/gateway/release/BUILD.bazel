@@ -16,8 +16,10 @@ bazel build lte/gateway/release:sctpd_deb_pkg --config=production
 """
 
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS")
 
 SCTPD_PKGNAME = "magma-sctpd"
 
@@ -25,11 +27,21 @@ VERSION = "1.8.0"
 
 ARCH = "amd64"
 
-FILE_NAME = "{name}_{ver}_{arch}".format(
+SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = SCTPD_PKGNAME,
     arch = ARCH,
     ver = VERSION,
 )
+
+MAGMA_PKGNAME = "magma"
+
+MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = MAGMA_PKGNAME,
+    arch = ARCH,
+    ver = VERSION,
+)
+
+### SCTPD BUILD
 
 genrule(
     name = "gen_sctpd_version",
@@ -44,12 +56,6 @@ pkg_files(
 )
 
 pkg_files(
-    name = "sctpd_service_definition",
-    srcs = ["//lte/gateway/deploy/roles/magma/files/systemd:sctpd.service"],
-    prefix = "/etc/systemd/system/",
-)
-
-pkg_files(
     name = "sctpd_binary",
     srcs = ["//lte/gateway/c/sctpd/src:sctpd"],
     attributes = pkg_attributes(mode = "0755"),
@@ -60,11 +66,10 @@ pkg_tar(
     name = "sctpd_content",
     srcs = [
         ":sctpd_binary",
-        ":sctpd_service_definition",
         ":sctpd_version",
+        "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
     ],
-    package_dir = "./",
-    package_file_name = "{fname}.tar".format(fname = FILE_NAME),
+    package_file_name = "{fname}.tar".format(fname = SCTPD_FILE_NAME),
 )
 
 pkg_deb(
@@ -73,6 +78,105 @@ pkg_deb(
     description = "Magma SCTPD",
     maintainer = "Copyright (c) 2022 The Magma Authors",
     package = SCTPD_PKGNAME,
-    package_file_name = "{fname}.deb".format(fname = FILE_NAME),
+    package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
+    version = VERSION,
+)
+
+### MAGMA BUILD
+
+pkg_filegroup(
+    name = "magma_service_definitions",
+    srcs = [
+        "//lte/gateway/deploy/roles/magma/files/systemd:magma_lte_service_definitions",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_fluent_bit_service_definition",
+        "//orc8r/tools/ansible/roles/gateway_services/files:magma_orc8r_service_definitions",
+    ],
+    prefix = "/etc/systemd/system",
+)
+
+pkg_filegroup(
+    name = "magma_ebpf",
+    srcs = [
+        "//lte/gateway/python/magma/kernsnoopd/ebpf:magma_ebpf_kernsnoopd",
+        "//lte/gateway/python/magma/pipelined/ebpf:magma_ebpf_pipelined",
+    ],
+    prefix = "/var/opt/magma/ebpf",
+)
+
+pkg_filegroup(
+    name = "magma_python_scripts",
+    srcs = [
+        "//lte/gateway/python/load_tests:magma_lte_loadtest_scripts",
+        "//lte/gateway/python/scripts:magma_lte_scripts",
+        "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
+    ],
+)
+
+pkg_files(
+    name = "magma_go_binaries",
+    srcs = ["//feg/gateway/services/envoy_controller"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+)
+
+pkg_files(
+    name = "magma_c_binaries",
+    srcs = [
+        "//lte/gateway/c/connection_tracker/src:connectiond",
+        "//lte/gateway/c/core:agw_of",
+        "//lte/gateway/c/li_agent/src:liagentd",
+        "//lte/gateway/c/session_manager:sessiond",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+    renames = {"//lte/gateway/c/core:agw_of": "mme"},
+)
+
+pkg_filegroup(
+    name = "magma_python_services",
+    srcs = [
+        "//lte/gateway/python:magma_python_lte_services",
+        "//orc8r/gateway/python:magma_python_orc8r_services",
+    ],
+    prefix = PY_DEST,
+)
+
+pkg_filegroup(
+    name = "magma_configs",
+    srcs = [
+        "//lte/gateway/configs:magma_config_files",
+        "//lte/gateway/configs/templates:magma_lte_config_template_files",
+        "//orc8r/gateway/configs/templates:magma_orc8r_config_template_files",
+    ],
+    prefix = "/etc/magma",
+)
+
+pkg_tar(
+    name = "magma_content",
+    srcs = [
+        ":magma_c_binaries",
+        ":magma_configs",
+        ":magma_ebpf",
+        ":magma_go_binaries",
+        ":magma_python_scripts",
+        ":magma_python_services",
+        ":magma_service_definitions",
+        "//lte/gateway/deploy/roles/magma/files:ansible_configs",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
+    ],
+    package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
+)
+
+pkg_deb(
+    name = "magma_deb_pkg",
+    data = ":magma_content",
+    depends = MAGMA_DEPS + OAI_DEPS + OVS_DEPS,
+    description = "Magma Access Gateway",
+    maintainer = "Copyright (c) 2022 The Magma Authors",
+    package = MAGMA_PKGNAME,
+    package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
+    postinst = ":magma-postinst-bazel",
+    provides = [MAGMA_PKGNAME],
+    replaces = [MAGMA_PKGNAME],
     version = VERSION,
 )

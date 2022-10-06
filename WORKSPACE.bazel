@@ -150,12 +150,13 @@ load("//bazel:python_repositories.bzl", "python_repositories")
 
 python_repositories()
 
+# TODO: GH13522 upgrade to >0.7.0 when landed - see issue
 http_archive(
     name = "rules_pkg",
-    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    sha256 = "bdac8d3d178467c89f246e1e894b59c26c784569e91798901fb81291de834708",
+    strip_prefix = "rules_pkg-7f7bcf9c93bed9ee693b5bfedde5d72f9a2d6ea4",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/archive/7f7bcf9c93bed9ee693b5bfedde5d72f9a2d6ea4.zip",
     ],
 )
 

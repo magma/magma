@@ -91,11 +91,6 @@
     },
     {
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/setup.sh",
-      "type": "shell"
-    },
-    {
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
       "script": "scripts/ansible.sh",
       "type": "shell"
     },
@@ -110,7 +105,6 @@
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/magma_test",
         "../../../lte/gateway/deploy/roles/trfserver",
-        "../../../lte/gateway/deploy/roles/uselocalpkgrepo",
         "../../../orc8r/tools/ansible/roles/apt_cache",
         "../../../orc8r/tools/ansible/roles/distro_snapshot",
         "../../../orc8r/tools/ansible/roles/docker",
@@ -127,4 +121,3 @@
     }
   ]
 }
-

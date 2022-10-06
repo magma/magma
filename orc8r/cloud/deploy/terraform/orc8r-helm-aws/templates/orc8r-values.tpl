@@ -231,7 +231,7 @@ logging:
 
 dp:
   create: ${dp_enabled}
-
+  enabled: ${dp_enabled}
   configuration_controller:
     sasEndpointUrl: "${dp_sas_endpoint_url}"
     image:
@@ -245,12 +245,6 @@ dp:
       port: ${orc8r_db_port}
       user: ${orc8r_db_user}
       pass: ${orc8r_db_pass}
-
-  protocol_controller:
-    enabled: false
-    image:
-      repository: "${docker_registry}/protocol-controller"
-      tag: "${docker_tag}"
 
   radio_controller:
     image:

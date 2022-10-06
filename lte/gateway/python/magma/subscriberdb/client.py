@@ -38,6 +38,7 @@ from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_LATENCY,
     SUBSCRIBER_SYNC_SUCCESS_TOTAL,
 )
+from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.sqlite import SqliteStore
 from orc8r.protos.digest_pb2 import Changeset, Digest, LeafDigest
 
@@ -179,7 +180,13 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                 self._store.upsert_subscriber(subscriber_data)
             for sid in changeset.deleted:
                 self._store.delete_subscriber(sid)
-            self._detach_subscribers_by_ids(changeset.deleted)
+
+            inactive = [
+                SIDUtils.to_str(subscriber.sid)
+                for subscriber in changeset.to_renew
+                if (subscriber.lte and subscriber.lte.state != LTESubscription.ACTIVE)
+            ]
+            self._detach_subscribers_by_ids(list(changeset.deleted) + inactive)
 
             self._update_root_digest(res.digests.root_digest)
             self._update_leaf_digests(res.digests.leaf_digests)

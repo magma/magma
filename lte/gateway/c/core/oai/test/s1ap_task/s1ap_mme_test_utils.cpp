@@ -30,6 +30,8 @@ extern "C" {
 namespace magma {
 namespace lte {
 
+using oai::S1apUeState;
+using oai::UeDescription;
 task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
 status_code_e setup_new_association(s1ap_state_t* state,
@@ -407,12 +409,12 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
 }
 
 bool is_enb_state_valid(s1ap_state_t* state, sctp_assoc_id_t assoc_id,
-                        mme_s1_enb_state_s expected_state,
+                        oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues) {
-  enb_description_t* enb_associated = nullptr;
+  oai::EnbDescription* enb_associated = nullptr;
   state->enbs.get(assoc_id, &enb_associated);
-  if (enb_associated->nb_ue_associated == expected_num_ues &&
-      enb_associated->s1_state == expected_state) {
+  if (enb_associated->nb_ue_associated() == expected_num_ues &&
+      enb_associated->s1_enb_state() == expected_state) {
     return true;
   }
   return false;
@@ -428,8 +430,8 @@ bool is_num_enbs_valid(s1ap_state_t* state, uint32_t expected_num_enbs) {
 }
 
 bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
-                       enum s1_ue_state_s expected_ue_state) {
-  ue_description_t* ue = nullptr;
+                       enum S1apUeState expected_ue_state) {
+  UeDescription* ue = nullptr;
   map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     std::cerr << "Failed to get s1ap_ue_state" << std::endl;
@@ -441,7 +443,7 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
   if (rc != magma::PROTO_MAP_OK) {
     return false;
   }
-  return ue->s1_ue_state == expected_ue_state ? true : false;
+  return ue->s1ap_ue_state() == expected_ue_state ? true : false;
 }
 
 status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,

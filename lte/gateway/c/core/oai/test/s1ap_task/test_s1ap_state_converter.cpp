@@ -50,29 +50,37 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   s1ap_state_t* init_state = create_s1ap_state();
   s1ap_state_t* final_state = create_s1ap_state();
 
-  enb_description_t* enb_association = s1ap_new_enb();
-  enb_association->sctp_assoc_id = assoc_id;
-  enb_association->enb_id = 0xFFFFFFFF;
-  enb_association->s1_state = S1AP_READY;
+  oai::EnbDescription* enb_association = s1ap_new_enb();
+  enb_association->set_sctp_assoc_id(assoc_id);
+  enb_association->set_enb_id(0xFFFFFFFF);
+  enb_association->set_s1_enb_state(oai::S1AP_READY);
 
   // filling ue_id_coll
-  enb_association->ue_id_coll.insert(1, 17);
-  enb_association->ue_id_coll.insert(2, 25);
+  magma::proto_map_uint32_uint64_t ue_id_coll;
+  ue_id_coll.map = enb_association->mutable_ue_id_map();
+  ue_id_coll.insert(1, 17);
+  ue_id_coll.insert(2, 25);
 
   // filling supported_tai_items
-  supported_ta_list_t* enb_ta_list = &enb_association->supported_ta_list;
-  enb_ta_list->list_count = 1;
-  enb_ta_list->supported_tai_items[0].tac = 1;
-  enb_ta_list->supported_tai_items[0].bplmnlist_count = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mcc_digit1 = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mcc_digit2 = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mcc_digit3 = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mnc_digit1 = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mnc_digit2 = 1;
-  enb_ta_list->supported_tai_items[0].bplmns[0].mnc_digit3 = 1;
 
+  oai::SupportedTaList* enb_ta_list =
+      enb_association->mutable_supported_ta_list();
+  enb_ta_list->set_list_count(1);
+
+  for (int tai_idx = 0; tai_idx < enb_ta_list->list_count(); tai_idx++) {
+    oai::SupportedTaiItems* supported_tai_items =
+        enb_ta_list->add_supported_tai_items();
+    supported_tai_items->set_tac(1);
+
+    supported_tai_items->set_bplmnlist_count(1);
+    char plmn_array[PLMN_BYTES] = {1, 2, 3, 4, 5, 6};
+    for (int plmn_idx = 0; plmn_idx < supported_tai_items->bplmnlist_count();
+         plmn_idx++) {
+      supported_tai_items->add_bplmns(plmn_array);
+    }
+  }
   // Inserting 1 enb association
-  init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
+  init_state->enbs.insert(enb_association->sctp_assoc_id(), enb_association);
   init_state->num_enbs = 1;
 
   init_state->mmeid2associd.insert(1, assoc_id);
@@ -82,19 +90,19 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   S1apStateConverter::proto_to_state(state_proto, final_state);
 
   EXPECT_EQ(init_state->num_enbs, final_state->num_enbs);
-  enb_description_t* enbd = nullptr;
-  enb_description_t* enbd_final = nullptr;
+  oai::EnbDescription* enbd = nullptr;
+  oai::EnbDescription* enbd_final = nullptr;
   EXPECT_EQ(init_state->enbs.get(assoc_id, &enbd), magma::PROTO_MAP_OK);
   EXPECT_EQ(final_state->enbs.get(assoc_id, &enbd_final), magma::PROTO_MAP_OK);
 
-  EXPECT_EQ(enbd->sctp_assoc_id, enbd_final->sctp_assoc_id);
-  EXPECT_EQ(enbd->enb_id, enbd_final->enb_id);
-  EXPECT_EQ(enbd->s1_state, enbd_final->s1_state);
+  EXPECT_EQ(enbd->sctp_assoc_id(), enbd_final->sctp_assoc_id());
+  EXPECT_EQ(enbd->enb_id(), enbd_final->enb_id());
+  EXPECT_EQ(enbd->s1_enb_state(), enbd_final->s1_enb_state());
 
-  EXPECT_EQ(enbd->supported_ta_list.list_count,
-            enbd_final->supported_ta_list.list_count);
-  EXPECT_EQ(enbd->supported_ta_list.supported_tai_items[0].tac,
-            enbd_final->supported_ta_list.supported_tai_items[0].tac);
+  EXPECT_EQ(enbd->supported_ta_list().list_count(),
+            enbd_final->supported_ta_list().list_count());
+  EXPECT_EQ(enbd->supported_ta_list().supported_tai_items(0).tac(),
+            enbd_final->supported_ta_list().supported_tai_items(0).tac());
 
   free_s1ap_state(init_state);
   free_s1ap_state(final_state);
@@ -105,12 +113,12 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   s1ap_state_t* init_state = create_s1ap_state();
   s1ap_state_t* final_state = create_s1ap_state();
 
-  enb_description_t* enb_association = s1ap_new_enb();
-  enb_association->sctp_assoc_id = assoc_id;
-  enb_association->enb_id = 0xFFFFFFFF;
-  enb_association->s1_state = S1AP_READY;
+  oai::EnbDescription* enb_association = s1ap_new_enb();
+  enb_association->set_sctp_assoc_id(assoc_id);
+  enb_association->set_enb_id(0xFFFFFFFF);
+  enb_association->set_s1_enb_state(oai::S1AP_READY);
   // Inserting 1 enb association
-  init_state->enbs.insert(enb_association->sctp_assoc_id, enb_association);
+  init_state->enbs.insert(enb_association->sctp_assoc_id(), enb_association);
   // state_to_proto should update num_enbs to match expected eNB count on the
   // map
   init_state->num_enbs = 5;
@@ -127,27 +135,27 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
 }
 
 TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
-  ue_description_t* ue = new ue_description_t();
-  ue_description_t* final_ue = new ue_description_t();
+  oai::UeDescription* ue = new oai::UeDescription();
+  oai::UeDescription* final_ue = new oai::UeDescription();
 
   // filling with test values
-  ue->mme_ue_s1ap_id = 1;
-  ue->enb_ue_s1ap_id = 1;
-  ue->sctp_assoc_id = 1;
-  ue->comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(1, 1);
-  ue->s1ap_handover_state.mme_ue_s1ap_id = 1;
-  ue->s1ap_handover_state.source_enb_id = 1;
-  ue->s1ap_ue_context_rel_timer.id = 1;
-  ue->s1ap_ue_context_rel_timer.msec = 1000;
+  ue->set_mme_ue_s1ap_id(1);
+  ue->set_enb_ue_s1ap_id(1);
+  ue->set_sctp_assoc_id(1);
+  ue->set_comp_s1ap_id(S1AP_GENERATE_COMP_S1AP_ID(1, 1));
+  ue->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(1);
+  ue->mutable_s1ap_handover_state()->set_source_enb_id(1);
+  ue->mutable_s1ap_ue_context_rel_timer()->set_id(1);
+  ue->mutable_s1ap_ue_context_rel_timer()->set_msec(1000);
 
   oai::UeDescription ue_proto;
   S1apStateConverter::ue_to_proto(ue, &ue_proto);
   S1apStateConverter::proto_to_ue(ue_proto, final_ue);
 
-  EXPECT_EQ(ue->comp_s1ap_id, final_ue->comp_s1ap_id);
-  EXPECT_EQ(ue->mme_ue_s1ap_id, final_ue->mme_ue_s1ap_id);
-  EXPECT_EQ(ue->s1ap_ue_context_rel_timer.id,
-            final_ue->s1ap_ue_context_rel_timer.id);
+  EXPECT_EQ(ue->comp_s1ap_id(), final_ue->comp_s1ap_id());
+  EXPECT_EQ(ue->mme_ue_s1ap_id(), final_ue->mme_ue_s1ap_id());
+  EXPECT_EQ(ue->s1ap_ue_context_rel_timer().id(),
+            final_ue->s1ap_ue_context_rel_timer().id());
 
   delete ue;
   delete final_ue;

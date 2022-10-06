@@ -119,10 +119,7 @@ class TestS1HandoverFailure(unittest.TestCase):
         # Handover Request to Target ENB.
         # Wait for S1 Handover Request Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value
         s1ho_req_ind = response.cast(s1ap_types.FwNbS1HoReqInd_t)
         print(
             "************************* Received S1 Handover Request "
@@ -153,10 +150,7 @@ class TestS1HandoverFailure(unittest.TestCase):
         # Handover Preparation Failure to Source ENB.
         # Wait for S1 Handover Preparation Failure Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_PREP_FAIL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_PREP_FAIL_IND.value
         s1ho_prep_fail_ind = response.cast(s1ap_types.FwNbS1HoPrepFailInd_t)
         print(
             "************************* Received S1 Handover Preparation "

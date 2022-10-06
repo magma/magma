@@ -116,7 +116,7 @@ prometheus_proto:
 
 # If you update the version here, you probably also want to update it in setup.py
 $(BIN)/grpcio-tools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools>=1.16.1"
+	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools>=1.46.3,<1.49.0"
 
 .test: .tests .sudo_tests
 

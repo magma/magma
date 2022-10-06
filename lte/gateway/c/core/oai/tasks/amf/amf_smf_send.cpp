@@ -38,7 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
@@ -927,6 +927,16 @@ status_code_e amf_smf_handle_ip_address_response(
                  "Smf Context not found for pdu session id: [%s] \n",
                  reinterpret_cast<char*>(response_p->pdu_session_id));
     return rc;
+  }
+  if (response_p->result != SGI_STATUS_OK) {
+    rc = amf_pdu_session_establishment_reject(
+        ue_context->amf_ue_ngap_id, response_p->pdu_session_id, response_p->pti,
+        AMF_CAUSE_PROTOCOL_ERROR);
+    ue_context->amf_context.smf_ctxt_map.erase(response_p->pdu_session_id);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "Ip address allocation failed. Rejecting with cause %d",
+                 AMF_CAUSE_PROTOCOL_ERROR);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
   rc = amf_update_smf_context_pdu_ip(smf_ctx, &(response_p->paa));

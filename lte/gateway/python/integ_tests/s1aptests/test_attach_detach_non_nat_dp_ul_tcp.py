@@ -70,7 +70,7 @@ class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
             # Validate assigned IP address.
             addr = attach.esmInfo.pAddr.addrInfo
             ue_ipv4 = ipaddress.ip_address(bytes(addr[:4]))
-            self.assertEqual(ue_ipv4, ipaddress.IPv4Address(ue_ips[i]))
+            assert ue_ipv4 == ipaddress.IPv4Address(ue_ips[i])
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()

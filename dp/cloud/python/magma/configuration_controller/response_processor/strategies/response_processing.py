@@ -141,7 +141,7 @@ def _create_channels(response: DBResponse, session: Session):
         channels.append({
             "low_frequency": frequency_range["lowFrequency"],
             "high_frequency": frequency_range["highFrequency"],
-            "max_eirp": ac.get("maxEirp"),
+            "max_eirp": ac.get("maxEirp", 37),
         })
     cbsd.channels = channels
 
