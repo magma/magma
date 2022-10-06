@@ -40,7 +40,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	reindex.TestHookReindexFailure()
 
 	// Writes to channel after completing a job
-	reindexSuccessNum, reindexDoneNum, reindexConnectionFails := 0, 0, 0
+	reindexSuccessNum, reindexDoneNum := 0, 0
 	reindexConnectionFailsTotal := 0
 	ch := make(chan interface{})
 
@@ -54,13 +54,6 @@ func TestSingletonRunSuccess(t *testing.T) {
 		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
-	// The remote indexer can in rare cases fail to establish a connection.
-	// In that case the connection is re-attempted during the next reindexing.
-	// We keep track of these failures with this test hook.
-	reindex.TestHookReindexFailure = func() {
-		reindexConnectionFails += 1
-	}
-	defer func() { reindex.TestHookReindexFailure = func() {} }()
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
@@ -83,19 +76,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0)
 
 	// Check
-	remainingNumberOfReindexingRuns := 1
-	for {
-		recvCh(t, ch)
-		remainingNumberOfReindexingRuns -= 1
-		if reindexConnectionFails > 0 {
-			reindexConnectionFailsTotal += reindexConnectionFails
-			remainingNumberOfReindexingRuns = reindexConnectionFails
-			reindexConnectionFails = 0
-		}
-		if remainingNumberOfReindexingRuns == 0 {
-			break
-		}
-	}
+	reindexConnectionFailsTotal += recvChSafe(t, ch)
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
@@ -110,21 +91,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0a)
 
 	// Check
-	remainingNumberOfReindexingRuns = 1
-	for {
-		recvCh(t, ch)
-		remainingNumberOfReindexingRuns -= 1
-		if reindexConnectionFails > 0 {
-			reindexConnectionFailsTotal += reindexConnectionFails
-			remainingNumberOfReindexingRuns = reindexConnectionFails
-			reindexConnectionFails = 0
-		}
-		if remainingNumberOfReindexingRuns == 0 {
-			break
-		}
-	}
-	reindexConnectionFailsTotal += reindexConnectionFails
-	reindexConnectionFails = 0
+	reindexConnectionFailsTotal += recvChSafe(t, ch)
 	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
@@ -146,7 +113,26 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx5)
 
 	// Check
-	remainingNumberOfReindexingRuns = 1
+	reindexConnectionFailsTotal += recvChSafe(t, ch)
+	recvNoCh(t, ch)
+
+	idx5.AssertExpectations(t)
+	require.Equal(t, 3, reindexSuccessNum)
+	require.Equal(t, 3+reindexConnectionFailsTotal, reindexDoneNum)
+}
+
+func recvChSafe(t *testing.T, ch chan interface{}) int {
+	// Check
+	// The remote indexer can in rare cases fail to establish a connection.
+	// In that case the connection is re-attempted during the next reindexing.
+	// We keep track of these failures with this test hook.
+	reindexConnectionFails := 0
+	reindexConnectionFailsTotal := 0
+	reindex.TestHookReindexFailure = func() {
+		reindexConnectionFails += 1
+	}
+	defer func() { reindex.TestHookReindexFailure = func() {} }()
+	remainingNumberOfReindexingRuns := 1
 	for {
 		recvCh(t, ch)
 		remainingNumberOfReindexingRuns -= 1
@@ -159,11 +145,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 			break
 		}
 	}
-	recvNoCh(t, ch)
-
-	idx5.AssertExpectations(t)
-	require.Equal(t, 3, reindexSuccessNum)
-	require.Equal(t, 3+reindexConnectionFailsTotal, reindexDoneNum)
+	return reindexConnectionFailsTotal
 }
 
 func TestSingletonRunFail(t *testing.T) {
