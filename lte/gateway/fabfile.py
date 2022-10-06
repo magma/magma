@@ -516,21 +516,8 @@ def integ_test_containerized(
         destroy_vm='True', provision_vm='True',
 ):
     """
-    Run the integration tests. This defaults to running on local vagrant
-    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
-    passing "address:port" as arguments
-
-    gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `magma` vagrant box.
-
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_test` vagrant box.
-
-    trf_host: The ssh address string of the machine to run the TrafficServer
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box.
+    Run the integration tests against the containerized AGW.
+    Other than that the same as `integ_test`.
     """
 
     destroy_vm = bool(strtobool(destroy_vm))
@@ -556,7 +543,7 @@ def integ_test_containerized(
 
 
 def _start_gateway_containerized():
-    """ Starts the gateway """
+    """ Starts the containerized AGW """
     with cd(AGW_PYTHON_ROOT):
         run('make buildenv')
 
