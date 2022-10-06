@@ -235,6 +235,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]
       ansible.verbose = 'v'
+      # The magma package to be installed is given by the env variable MAGMA_PACKAGE
+      #   MAGMA_PACKAGE not set or empty: install latest magma from artifactory
+      #   MAGMA_PACKAGE="magma=version": install specific version from artifactory
+      #   MAGMA_PACKAGE="magma.deb": install magma debian file expected at /home/vagrant/magma/magma.deb
       ansible.extra_vars = { MAGMA_PACKAGE: ENV.fetch('MAGMA_PACKAGE', 'magma') }
     end
 
