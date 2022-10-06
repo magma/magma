@@ -62,5 +62,4 @@ jobs:
           MAGMA_DEV_MEMORY_MB: 9216
         working-directory: lte/gateway
         run: |
-          fab --version
           fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized
