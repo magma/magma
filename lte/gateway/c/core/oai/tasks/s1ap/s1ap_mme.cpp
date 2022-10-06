@@ -483,10 +483,12 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   ue_id_coll.remove(mme_ue_s1ap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
-  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
   delete_s1ap_ue_state(imsi64);
-  s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_s1ap_id);
+  ueid_imsi_map.remove(mme_ue_s1ap_id);
 
   OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %lu",
                enb_ref.nb_ue_associated(), ue_id_coll.size());

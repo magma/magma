@@ -74,8 +74,10 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
   MessageDef* message_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
+  ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  ueid_imsi_map.get(ue_id, &imsi64);
 
   OAILOG_INFO_UE(
       LOG_S1AP, imsi64,
@@ -117,8 +119,11 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  ueid_imsi_map.get(ue_id, &imsi64);
+
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64,
