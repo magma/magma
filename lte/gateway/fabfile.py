@@ -579,6 +579,7 @@ def get_test_summaries(
 
 def get_test_logs(
     gateway_host=None,
+    gateway_host_name='magma',
     test_host=None,
     trf_host=None,
     dst_path="/tmp/build_logs.tar.gz",
@@ -619,7 +620,7 @@ def get_test_logs(
     # Set up to enter the gateway host
     env.host_string = gateway_host
     if not gateway_host:
-        setup_env_vagrant("magma")
+        setup_env_vagrant(gateway_host_name)
         gateway_host = env.hosts[0]
     (env.user, _, _) = split_hoststring(gateway_host)
 
