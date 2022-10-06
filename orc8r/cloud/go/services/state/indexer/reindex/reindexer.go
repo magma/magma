@@ -58,10 +58,10 @@ var (
 	// This should only be set by test code.
 	TestHookReindexSuccess = func() {}
 
-	// TestHookReindexConnectionFailure is a function called whenever we fail
+	// TestHookReindexFailure is a function called whenever we fail
 	// to establish a connection in the remote indexer.
 	// This should only be set by test code.
-	TestHookReindexConnectionFailure = func() {}
+	TestHookReindexFailure = func() {}
 )
 
 type Reindexer interface {
