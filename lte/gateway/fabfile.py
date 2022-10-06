@@ -192,7 +192,7 @@ def connect_gateway_to_cloud(
     cert_path=DEFAULT_CERT,
 ):
     """
-    Setup the gateway VM to connects to the cloud
+    Set up the gateway VM to connects to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
     non-default control proxy setting and certificates
     """
@@ -372,7 +372,7 @@ def bazel_integ_test_post_build(
     execute(_modify_for_bazel_services)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     if not trf_host:
         trf_host = vagrant_setup(
@@ -444,7 +444,7 @@ def integ_test(
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_dist_upgrade)
@@ -452,7 +452,7 @@ def integ_test(
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
@@ -536,14 +536,14 @@ def integ_test_containerized(
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     # TODO: Remove temporary workaround after resolution of https://github.com/magma/magma/issues/13912
     run('rm -rf /etc/snowflake; sudo touch /etc/snowflake')
     execute(_start_gateway_containerized)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
@@ -742,7 +742,7 @@ def load_test(gateway_host=None, destroy_vm=True):
         destroy_vm: If the vagrant VM should be destroyed and setup
         before running load tests.
     """
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     if gateway_host:
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
