@@ -192,11 +192,7 @@ func TestRunBrokenIndexer(t *testing.T) {
 
 	// Writes to channel after completing a job
 	ch := make(chan interface{})
-	reindexDoneNum := 0
-	reindex.TestHookReindexDone = func() {
-		ch <- nil
-		reindexDoneNum++
-	}
+	reindex.TestHookReindexDone = func() { ch <- nil }
 	defer func() { reindex.TestHookReindexDone = func() {} }()
 
 	clock.SkipSleeps(t)
@@ -204,8 +200,6 @@ func TestRunBrokenIndexer(t *testing.T) {
 
 	r, q := initReindexTest(t, dbName)
 	ctx, cancel := context.WithCancel(context.Background())
-	go r.Run(ctx)
-	defer cancel()
 
 	// Job exists but indexer's broken
 	// Populate
@@ -214,13 +208,10 @@ func TestRunBrokenIndexer(t *testing.T) {
 	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
 	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
 	registerAndPopulate(t, q, broken)
-
-	for {
-		if reindexDoneNum != 0 {
-			break
-		}
-		recvCh(t, ch)
-	}
+	go r.Run(ctx)
+	defer cancel()
+	// Check
+	recvCh(t, ch)
 	broken.AssertExpectations(t)
 	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
 }
