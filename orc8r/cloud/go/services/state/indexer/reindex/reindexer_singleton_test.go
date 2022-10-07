@@ -44,12 +44,12 @@ func TestSingletonRunSuccess(t *testing.T) {
 	ch := make(chan interface{})
 
 	reindex.TestHookReindexSuccess = func() {
-		reindexSuccessNum += 1
+		reindexSuccessNum++
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
-		reindexDoneNum += 1
+		reindexDoneNum++
 		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
