@@ -192,6 +192,7 @@ func TestRunBrokenIndexer(t *testing.T) {
 	registerAndPopulate(t, q, broken)
 	// Check
 	recvCh(t, ch)
+	recvCh(t, ch) // twice to go through full loop at least once with indexer available
 	broken.AssertExpectations(t)
 	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
 }
