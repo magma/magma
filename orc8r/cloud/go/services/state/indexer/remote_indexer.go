@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -38,8 +37,6 @@ type remoteIndexer struct {
 	// types is the types of state the indexer should receive
 	types []string
 }
-
-var check = 0
 
 // NewRemoteIndexer returns an indexer that forwards its methods to the
 // remote indexer servicer.
@@ -138,10 +135,6 @@ func (r *remoteIndexer) DeIndex(networkID string, states state_types.SerializedS
 
 func (r *remoteIndexer) getIndexerClient() (state_protos.IndexerClient, error) {
 	conn, err := registry.GetConnection(r.service, lib_protos.ServiceType_PROTECTED)
-	if check == 0 {
-		err = errors.New("error")
-		check = 1
-	}
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)
