@@ -48,7 +48,7 @@ void delete_pending_procedures(
       base_proc1 = base_proc2;
     }
     LIST_INIT(ctx_p->pending_procedures);
-    free_cpp_wrapper((void**)&ctx_p->pending_procedures);
+    free_cpp_wrapper(reinterpret_cast<void**>(&ctx_p->pending_procedures));
   }
 }
 //------------------------------------------------------------------------------

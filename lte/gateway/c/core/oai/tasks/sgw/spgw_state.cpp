@@ -93,7 +93,7 @@ void spgw_free_s11_bearer_context_information(void** ptr) {
       delete_pending_procedures(
           &(context_p->sgw_eps_bearer_context_information));
 
-      free_cpp_wrapper((void**)ptr);
+      free_cpp_wrapper(reinterpret_cast<void**>(ptr));
     }
   }
 }
