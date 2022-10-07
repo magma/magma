@@ -69,11 +69,9 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
             "*************************  Offloading UE at state ECM-CONNECTED",
         )
         # Send offloading request
-        assert (
-            self._ha_util.offload_agw(
-                "".join(["IMSI"] + [str(i) for i in req.imsi]),
-                enb_list[0][0],
-            ),
+        assert self._ha_util.offload_agw(
+            "".join(["IMSI"] + [str(i) for i in req.imsi]),
+            enb_list[0][0],
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -81,11 +79,9 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
 
         print("*************************  Offloading UE at state ECM-IDLE")
         # Send offloading request
-        assert (
-            self._ha_util.offload_agw(
-                "".join(["IMSI"] + [str(i) for i in req.imsi]),
-                enb_list[0][0],
-            ),
+        assert self._ha_util.offload_agw(
+            "".join(["IMSI"] + [str(i) for i in req.imsi]),
+            enb_list[0][0],
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
