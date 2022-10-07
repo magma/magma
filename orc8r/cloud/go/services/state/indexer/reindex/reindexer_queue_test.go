@@ -30,6 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
@@ -115,35 +116,85 @@ func init() {
 	_ = flag.Set("logtostderr", "true") // uncomment to view logs during test
 }
 
-// func TestRunBrokenIndexer(t *testing.T) {
-// 	dbName := "state___reindex_test___run_broken_indexer"
-//
-// 	// Writes to channel after completing a job
-// 	ch := make(chan interface{})
-// 	reindex.TestHookReindexDone = func() { ch <- nil }
-// 	defer func() { reindex.TestHookReindexDone = func() {} }()
-//
-// 	clock.SkipSleeps(t)
-// 	defer clock.ResumeSleeps(t)
-//
-// 	r, q := initReindexTest(t, dbName)
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	go r.Run(ctx)
-// 	defer cancel()
-//
-// 	// Job exists but indexer's broken
-// 	// Populate
-// 	broken := getBasicIndexer(id0, version0)
-// 	broken.On("GetTypes").Return(allTypes).Once()
-// 	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
-// 	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
-// 	registerAndPopulate(t, q, broken)
-// 	// Check
-// 	recvCh(t, ch)
-// 	recvCh(t, ch) // twice to go through full loop at least once with indexer available
-// 	broken.AssertExpectations(t)
-// 	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
-// }
+func TestRunBrokenIndexer00(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer01(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer02(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer03(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer04(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer05(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer06(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer07(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer08(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer09(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer10(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer11(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer12(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer13(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer14(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer15(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer16(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer17(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer18(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer19(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer20(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer21(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer22(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer23(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer24(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer25(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer26(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer27(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer28(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer29(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer30(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer31(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer32(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer33(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer34(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer35(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer36(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer37(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer38(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer39(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer40(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer41(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer42(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer43(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer44(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer45(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer46(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer47(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer48(t *testing.T) { TestRunBrokenIndexer(t) }
+func TestRunBrokenIndexer49(t *testing.T) { TestRunBrokenIndexer(t) }
+
+func TestRunBrokenIndexer(t *testing.T) {
+	dbName := "state___reindex_test___run_broken_indexer"
+
+	// Writes to channel after completing a job
+	ch := make(chan interface{})
+	reindex.TestHookReindexDone = func() { ch <- nil }
+	defer func() { reindex.TestHookReindexDone = func() {} }()
+
+	clock.SkipSleeps(t)
+	defer clock.ResumeSleeps(t)
+
+	r, q := initReindexTest(t, dbName)
+	ctx, cancel := context.WithCancel(context.Background())
+	// Job exists but indexer's broken
+	// Populate
+	go r.Run(ctx)
+	defer cancel()
+
+	broken := getBasicIndexer(id0, version0)
+	broken.On("GetTypes").Return(allTypes).Once()
+	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
+	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
+	registerAndPopulate(t, q, broken)
+	// Check
+	recvCh(t, ch)
+	broken.AssertExpectations(t)
+	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
+}
 
 // initReindexTest reports enough directory records to cause 3 batches per network
 // (with the +1 gateway status per network). It creates 3 networks,
