@@ -15,6 +15,7 @@
   ansible.builtin.file:
     path: /etc/apt/sources.list.d/*.list
     state: absent
+  when: preburn
 
 - name: Ensure ca-certificates is up to date
   become: yes
@@ -27,20 +28,25 @@
   vars:
     packages:
       - ca-certificates
+  when: preburn
 
 - name: Copy gpg key from codebase
   copy:
     src: jfrog.pub
     dest: /tmp/jfrog.pub
+  when: preburn
 
 - name: Adding the key to agent
   apt_key:
     file: /tmp/jfrog.pub
     state: present
+  when: preburn
 
 - name: Configuring the registry in sources.list.d
   shell: "echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list"
+  when: preburn
 
 - name: Update apt
   apt:
     update_cache: yes
+  when: preburn
