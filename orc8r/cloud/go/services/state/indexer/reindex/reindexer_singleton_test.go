@@ -37,7 +37,6 @@ func TestSingletonRunSuccess(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
-	reindex.TestHookReindexFailure()
 
 	// Writes to channel after completing a job
 	reindexSuccessNum, reindexDoneNum := 0, 0
@@ -122,12 +121,13 @@ func TestSingletonRunSuccess(t *testing.T) {
 }
 
 func recvChSafe(t *testing.T, ch chan interface{}) int {
-	// Check
 	// The remote indexer can in rare cases fail to establish a connection.
 	// In that case the connection is re-attempted during the next reindexing.
 	// We keep track of these failures with this test hook.
-	reindexConnectionFails := 0
-	reindexConnectionFailsTotal := 0
+
+	// Make nullimpotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexFailure()
+	reindexConnectionFails, reindexConnectionFailsTotal := 0, 0
 	reindex.TestHookReindexFailure = func() {
 		reindexConnectionFails += 1
 	}
