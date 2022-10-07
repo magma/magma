@@ -25,7 +25,7 @@ jobs:
       - name: Cache magma-deb-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_deb
+          path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
           key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
