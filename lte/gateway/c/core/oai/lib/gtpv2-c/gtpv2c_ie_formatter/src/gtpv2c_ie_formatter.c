@@ -50,7 +50,7 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_imsi_ie_get(uint8_t ieType, uint16_t ieLength,
