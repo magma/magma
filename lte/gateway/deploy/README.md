@@ -76,11 +76,18 @@ CONFIGS_DEFAULT_VOLUME=../configs
 CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 LOG_DRIVER=journald
 ```
-### h. Build AGW docker images for ARM architecture
+### h. Build AGW docker images 
+#### h.1 For ARM architecture
 ```bash
 cd ${MAGMA_ROOT}/lte/gateway/docker/
 sudo docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64 --parallel
 ```
+#### h.2 For X86 archtecture
+```bash
+cd ${MAGMA_ROOT}/lte/gateway/docker/
+sudo docker-compose build --parallel
+```
+
 ### i. Start the services
 ```bash
 cd ${MAGMA_ROOT}/lte/gateway/docker/
