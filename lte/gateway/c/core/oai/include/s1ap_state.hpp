@@ -31,7 +31,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
+int s1ap_state_init(bool use_stateless);
 
 void s1ap_state_exit(void);
 

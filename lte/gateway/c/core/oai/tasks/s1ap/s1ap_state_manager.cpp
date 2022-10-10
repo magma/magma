@@ -34,10 +34,7 @@ namespace magma {
 namespace lte {
 
 S1apStateManager::S1apStateManager()
-    : max_ues_(0),
-      max_enbs_(0),
-      s1ap_imsi_map_hash_(0),
-      s1ap_imsi_map_(nullptr) {}
+    : s1ap_imsi_map_hash_(0), s1ap_imsi_map_(nullptr) {}
 
 S1apStateManager::~S1apStateManager() { free_state(); }
 
@@ -46,14 +43,11 @@ S1apStateManager& S1apStateManager::getInstance() {
   return instance;
 }
 
-void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
-                            bool persist_state) {
+void S1apStateManager::init(bool persist_state) {
   log_task = LOG_S1AP;
   table_key = S1AP_STATE_TABLE;
   task_name = S1AP_TASK_NAME;
   persist_state_enabled = persist_state;
-  max_ues_ = max_ues;
-  max_enbs_ = max_enbs;
   redis_client = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
@@ -154,6 +148,9 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
+
+    // Update each UE state version from redis
+    this->ue_state_version[key] = redis_client->read_version(table_key);
 
     ue_context->MergeFrom(ue_proto);
 
@@ -281,7 +278,7 @@ void S1apStateManager::s1ap_write_ue_state_to_db(
   redis_client->serialize(*ue_context, proto_str);
   std::size_t new_hash = std::hash<std::string>{}(proto_str);
   if (new_hash != this->ue_state_hash[imsi_str]) {
-    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    std::string key = IMSI_STR_PREFIX + imsi_str + ":" + task_name;
     if (redis_client->write_proto_str(key, proto_str,
                                       ue_state_version[imsi_str]) != RETURNok) {
       OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
@@ -293,6 +290,25 @@ void S1apStateManager::s1ap_write_ue_state_to_db(
     OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",
                  imsi_str.c_str());
   }
+}
+
+status_code_e S1apStateManager::read_state_from_db() {
+#if !MME_UNIT_TEST
+  if (persist_state_enabled) {
+    oai::S1apState state_proto = oai::S1apState();
+    if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
+      OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+      return RETURNerror;
+    }
+
+    // Update the state version from redis
+    this->task_state_version = redis_client->read_version(table_key);
+
+    state_cache_p->Clear();
+    state_cache_p->MergeFrom(state_proto);
+  }
+#endif
+  return RETURNok;
 }
 
 }  // namespace lte

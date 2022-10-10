@@ -343,8 +343,7 @@ extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   // Initialize global stats timer
   epc_stats_timer_sec = (size_t)mme_config_p->stats_timer_sec;
 
-  if (s1ap_state_init(mme_config_p->max_ues, mme_config_p->max_enbs,
-                      mme_config_p->use_stateless) < 0) {
+  if (s1ap_state_init(mme_config_p->use_stateless) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
     return RETURNerror;
   }

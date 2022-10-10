@@ -34,8 +34,7 @@ class S1APStateConverterTest : public ::testing::Test {
     itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
               NULL, NULL);
     mme_config_init(&mme_config);
-    s1ap_state_init(amf_config.max_ues, amf_config.max_gnbs,
-                    amf_config.use_stateless);
+    s1ap_state_init(mme_config.use_stateless);
   }
 
   void TearDown() {
@@ -91,8 +90,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionSuccess) {
   mmeid2associd_map.insert(1, assoc_id);
 
   oai::S1apState state_proto;
-  S1apStateConverter::state_to_proto(init_state, &state_proto);
-  S1apStateConverter::proto_to_state(state_proto, final_state);
+  state_proto.MergeFrom(*init_state);
+  final_state->MergeFrom(state_proto);
 
   proto_map_uint32_enb_description_t final_enb_map;
   final_enb_map.map = final_state->mutable_enbs();
@@ -129,15 +128,15 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   enb_map.map = init_state->mutable_enbs();
   // Inserting 1 enb association
   enb_map.insert(enb_association.sctp_assoc_id(), enb_association);
-  // state_to_proto should update num_enbs to match expected eNB count on the
-  // map
+  // Write the state info to DB and should update num_enbs to match expected eNB
+  // count on the map
   init_state->set_num_enbs(5);
 
   oai::S1apState state_proto;
-  S1apStateConverter::state_to_proto(init_state, &state_proto);
+  state_proto.MergeFrom(*init_state);
   EXPECT_EQ(init_state->num_enbs(), 5);
 
-  S1apStateConverter::proto_to_state(state_proto, final_state);
+  final_state->MergeFrom(state_proto);
   EXPECT_EQ(final_state->num_enbs(), 5);
 
   free_s1ap_state(init_state);
@@ -159,8 +158,8 @@ TEST_F(S1APStateConverterTest, S1apStateConversionUeContext) {
   ue->mutable_s1ap_ue_context_rel_timer()->set_msec(1000);
 
   oai::UeDescription ue_proto;
-  S1apStateConverter::ue_to_proto(ue, &ue_proto);
-  S1apStateConverter::proto_to_ue(ue_proto, final_ue);
+  ue_proto.MergeFrom(*ue);
+  final_ue->MergeFrom(ue_proto);
 
   EXPECT_EQ(ue->comp_s1ap_id(), final_ue->comp_s1ap_id());
   EXPECT_EQ(ue->mme_ue_s1ap_id(), final_ue->mme_ue_s1ap_id());

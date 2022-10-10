@@ -23,30 +23,6 @@ namespace lte {
 S1apStateConverter::~S1apStateConverter() = default;
 S1apStateConverter::S1apStateConverter() = default;
 
-void S1apStateConverter::state_to_proto(oai::S1apState* state,
-                                        oai::S1apState* proto) {
-  proto->Clear();
-  proto->MergeFrom(*state);
-}
-
-void S1apStateConverter::proto_to_state(const oai::S1apState& proto,
-                                        oai::S1apState* state) {
-  state->Clear();
-  state->MergeFrom(proto);
-}
-
-void S1apStateConverter::ue_to_proto(const oai::UeDescription* ue,
-                                     oai::UeDescription* proto) {
-  proto->Clear();
-  proto->MergeFrom(*ue);
-}
-
-void S1apStateConverter::proto_to_ue(const oai::UeDescription& proto,
-                                     oai::UeDescription* ue) {
-  ue->Clear();
-  ue->MergeFrom(proto);
-}
-
 void S1apStateConverter::s1ap_imsi_map_to_proto(
     const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto) {
   *s1ap_imsi_proto->mutable_mme_ue_s1ap_id_imsi_map() =
