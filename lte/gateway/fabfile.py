@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import sys
-from distutils.util import strtobool
 from time import sleep
 
 from fabric.api import cd, env, execute, local, run, settings, sudo
@@ -24,6 +23,7 @@ import tools.fab.dev_utils as dev_utils
 import tools.fab.pkg as pkg
 from fabric.api import lcd
 from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
+from tools.fab.python_utils import strtobool
 from tools.fab.vagrant import setup_env_vagrant
 
 """
@@ -82,14 +82,14 @@ def release():
 
 
 def package(
-    all_deps="False",
+    all_deps='False',
     cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
     destroy_vm='False',
     vm='magma', os="ubuntu",
 ):
     """ Builds the magma package """
-    all_deps = False if all_deps == "False" else True
-    destroy_vm = bool(strtobool(destroy_vm))
+    all_deps = strtobool(all_deps)
+    destroy_vm = strtobool(destroy_vm)
 
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
@@ -158,7 +158,7 @@ def package(
 
 
 def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
-    destroy_vm = bool(strtobool(destroy_vm))
+    destroy_vm = strtobool(destroy_vm)
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
@@ -256,11 +256,11 @@ def federated_integ_test(
         build_all='False', clear_orc8r='False', provision_vm='False',
         destroy_vm='False', orc8r_on_vagrant='False',
 ):
-    build_all = bool(strtobool(build_all))
-    clear_orc8r = bool(strtobool(clear_orc8r))
-    provision_vm = bool(strtobool(provision_vm))
-    destroy_vm = bool(strtobool(destroy_vm))
-    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
+    build_all = strtobool(build_all)
+    clear_orc8r = strtobool(clear_orc8r)
+    provision_vm = strtobool(provision_vm)
+    destroy_vm = strtobool(destroy_vm)
+    orc8r_on_vagrant = strtobool(orc8r_on_vagrant)
 
     if orc8r_on_vagrant:
         # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
@@ -300,7 +300,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(run_integ_tests, federated_mode=True)
+    execute(run_integ_tests, federated_mode='True')
 
 
 def _modify_for_bazel_services():
@@ -322,8 +322,8 @@ def provision_magma_dev_vm(
         services on. Formatted as "host:port". If not specified, defaults to
         the `magma` vagrant box.
     """
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     if not gateway_host:
         gateway_host = vagrant_setup(
@@ -331,8 +331,6 @@ def provision_magma_dev_vm(
         )
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
-
-    execute(_dist_upgrade)
 
 
 def bazel_integ_test_post_build(
@@ -356,8 +354,8 @@ def bazel_integ_test_post_build(
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
     """
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     gateway_ip = '192.168.60.142'
 
@@ -441,13 +439,12 @@ def integ_test(
         `magma_trfserver` vagrant box.
     """
 
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
-    execute(_dist_upgrade)
     execute(_build_magma)
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
@@ -491,8 +488,8 @@ def integ_test_deb_installation(
         `magma_trfserver` vagrant box.
     """
 
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -556,7 +553,7 @@ def _start_gateway_containerized():
         run('sleep 60; docker-compose ps')
 
 
-def run_integ_tests(tests=None, federated_mode=False):
+def run_integ_tests(tests=None, federated_mode='False'):
     """
     Function is required to run tests only in pre-configured Jenkins env.
 
@@ -581,28 +578,15 @@ def run_integ_tests(tests=None, federated_mode=False):
     if tests:
         tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests, _to_boolean(federated_mode))
-
-
-def _to_boolean(value):
-    """Fabric function arguments passed by calling fab from external are strings.
-    This is, boolean arguments set to "True" and "False" must be interpreted.
-    """
-    if isinstance(value, bool):
-        return value
-
-    if not isinstance(value, str):
-        raise ValueError('Input can not be parsed to boolean - not a string or a boolean.')
-
-    return bool(strtobool(value))
+    execute(_run_integ_tests, gateway_ip, tests, strtobool(federated_mode))
 
 
 def get_test_summaries(
         gateway_host=None,
         test_host=None,
         dst_path="/tmp",
-        integration_tests=True,
-        sudo_tests=True,
+        integration_tests='True',
+        sudo_tests='True',
         dev_vm_name="magma",
 ):
     local('mkdir -p ' + dst_path)
@@ -612,11 +596,11 @@ def get_test_summaries(
         "magma_deb": "magma_deb.yml",
     }
 
-    if _to_boolean(sudo_tests):
+    if strtobool(sudo_tests):
         _switch_to_vm_no_provision(gateway_host, dev_vm_name, vm_name_to_yaml[dev_vm_name])
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    if _to_boolean(integration_tests):
+    if strtobool(integration_tests):
         _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
@@ -716,7 +700,7 @@ def get_test_logs(
     local('rm -rf /tmp/build_logs')
 
 
-def load_test(gateway_host=None, destroy_vm=True):
+def load_test(gateway_host=None, destroy_vm='True'):
     """
     Run the load performance tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -735,7 +719,7 @@ def load_test(gateway_host=None, destroy_vm=True):
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
     else:
-        gateway_host = vagrant_setup('magma', _to_boolean(destroy_vm))
+        gateway_host = vagrant_setup('magma', strtobool(destroy_vm))
         gateway_ip = '192.168.60.142'
 
     execute(_build_magma)
@@ -763,8 +747,8 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
     Returns:
 
     """
-    provision_vm = bool(strtobool(provision_vm))
-    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = strtobool(provision_vm)
+    destroy_vm = strtobool(destroy_vm)
     if gateway_host:
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
     else:
@@ -775,8 +759,8 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
 
 
 def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma_test', destroy_vm, force_provision=provision_vm)
     else:
@@ -785,8 +769,8 @@ def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
 
 
 def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma_trfserver', destroy_vm, force_provision=provision_vm)
     else:
@@ -795,8 +779,8 @@ def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='
 
 
 def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma', destroy_vm, force_provision=provision_vm)
     else:
@@ -805,6 +789,8 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
 
 
 def build_test_vms(provision_vm='False', destroy_vm='False'):
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     vagrant_setup(
         'magma_trfserver', destroy_vm, force_provision=provision_vm,
     )
@@ -829,12 +815,6 @@ def _copy_out_c_execs_in_magma_vm():
                 print(exec_path + " does not exist")
                 continue
             run('cp ' + exec_path + ' ' + dest_path)
-
-
-def _dist_upgrade():
-    """ Upgrades OS packages on dev box """
-    run('sudo apt-get update')
-    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
