@@ -14,13 +14,13 @@ limitations under the License.
 import subprocess
 import sys
 import time
-from distutils.util import strtobool
 
 from fabric.api import cd, run
 
 sys.path.append('../../../../../orc8r')
 import tools.fab.dev_utils as dev_utils
 from tools.fab.hosts import vagrant_setup
+from tools.fab.python_utils import strtobool
 
 magma_path = "../../../../../"
 orc8_docker_path = magma_path + "orc8r/cloud/docker/"
@@ -63,7 +63,7 @@ def build_all(clear_orc8r='False', provision_vm='False', orc8r_on_vagrant='False
     build_feg()
     build_agw(provision_vm=provision_vm)
 
-    if clear_orc8r:
+    if strtobool(clear_orc8r):
         clear_orc8r_db()
 
     # build other VMs
@@ -75,7 +75,7 @@ def build_orc8r(on_vagrant='False'):
     """
     Build orc8r locally on the host VM
     """
-    on_vagrant = bool(strtobool(on_vagrant))
+    on_vagrant = strtobool(on_vagrant)
     command = './build.py -a'
     if not on_vagrant:
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
@@ -89,7 +89,7 @@ def start_orc8r(on_vagrant='False'):
     """
     Start orc8r locally on Docker
     """
-    on_vagrant = bool(strtobool(on_vagrant))
+    on_vagrant = strtobool(on_vagrant)
     command = './run.py'
     if not on_vagrant:
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
@@ -103,7 +103,7 @@ def stop_orc8r(on_vagrant='False'):
     """
     Start orc8r locally on Docker
     """
-    on_vagrant = bool(strtobool(on_vagrant))
+    on_vagrant = strtobool(on_vagrant)
     command = './run.py --down'
     if not on_vagrant:
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
@@ -117,7 +117,7 @@ def configure_orc8r(on_vagrant='False'):
     """
     Configure orc8r with a federated AGW and FEG
     """
-    on_vagrant = bool(strtobool(on_vagrant))
+    on_vagrant = strtobool(on_vagrant)
     print('#### Configuring orc8r ####')
     command_agw = 'fab --fabfile=dev_tools.py register_federated_vm'
     command_feg = 'fab register_feg_gw'
@@ -341,7 +341,6 @@ def build_and_test_all(
         provision_vm: forces the re-provision of the magma VM
         timeout: amount of time the command will retry
     """
-    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
     build_all(clear_orc8r, provision_vm, orc8r_on_vagrant=orc8r_on_vagrant)
     start_all(orc8r_on_vagrant=orc8r_on_vagrant)
     configure_orc8r()
