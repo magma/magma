@@ -45,7 +45,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         imsi64 = imsi_action["value"]
         # Convert between compacted uint IMSI and string
         received_imsi = decode_imsi(imsi64)
-        assert sent_imsi == received_imsi, "IMSI set in metadata field does not match sent IMSI"
+        assert sent_imsi == received_imsi, \
+            "IMSI set in metadata field does not match sent IMSI"
 
     def test_attach_detach_with_ovs(self):
         """
@@ -91,10 +92,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             time.sleep(5)  # sleep for 5 seconds before retrying
 
         assert len(uplink_flows) == 1, "Uplink flow missing for UE"
-        assert (
-            uplink_flows[0]["match"]["tunnel_id"] is not None,
-            "Uplink flow missing tunnel id match",
-        )
+        assert uplink_flows[0]["match"]["tunnel_id"] is not None,\
+            "Uplink flow missing tunnel id match"
         self.check_imsi_metadata(uplink_flows[0], req)
 
         # DOWNLINK
@@ -121,10 +120,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             time.sleep(5)  # sleep for 5 seconds before retrying
 
         assert len(downlink_flows) == 1, "Downlink flow missing for UE"
-        assert (
-            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip,
-            "UE IP match missing from downlink flow",
-        )
+        assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip, \
+            "UE IP match missing from downlink flow"
 
         actions = downlink_flows[0]["instructions"][0]["actions"]
         has_tunnel_action = any(
@@ -132,10 +129,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             if action["field"] == "tunnel_id" and
             action["type"] == "SET_FIELD"
         )
-        assert (
-            has_tunnel_action,
-            "Downlink flow missing set tunnel action",
-        )
+        assert has_tunnel_action, "Downlink flow missing set tunnel action"
         self.check_imsi_metadata(downlink_flows[0], req)
 
         print("Running UE detach for UE id ", req.ue_id)

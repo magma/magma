@@ -585,9 +585,8 @@ class S1ApUtil(object):
                             time.sleep(
                                 5,
                             )  # sleep for 5 seconds before retrying
-                        assert (
-                            len(downlink_flows) >= num_dl_flows
-                        ), "Downlink flow missing for UE"
+                        assert len(downlink_flows) >= num_dl_flows, \
+                            "Downlink flow missing for UE"
                         assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
@@ -627,9 +626,8 @@ class S1ApUtil(object):
             if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-        assert (
-            len(uplink_flows) == num_ul_flows
-        ), f"Uplink flow missing for UE: {len(uplink_flows)} != {num_ul_flows}"
+        assert len(uplink_flows) == num_ul_flows, \
+            f"Uplink flow missing for UE: {len(uplink_flows)} != {num_ul_flows}"
 
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
@@ -669,9 +667,8 @@ class S1ApUtil(object):
                 if len(paging_flows) == num_paging_flows_to_be_verified:
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
-            assert (
-                len(paging_flows) == num_paging_flows_to_be_verified
-            ), "Paging flow missing for UE"
+            assert len(paging_flows) == num_paging_flows_to_be_verified,\
+                "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
             # controller_port = 4294967293
