@@ -24,11 +24,18 @@
 #ifndef S6A_MESSAGES_H_
 #define S6A_MESSAGES_H_
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdproto.h>
+
+#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 int s6a_generate_update_location(s6a_update_location_req_t* ulr_p);
 int s6a_generate_authentication_info_req(s6a_auth_info_req_t* uar_p);
