@@ -42,21 +42,21 @@ namespace magma {
 namespace lte {
 
 /**
- * create_s1ap_state allocates a new s1ap_state_t struct and initializes
+ * create_s1ap_state allocates a new S1apState struct and initializes
  * its properties.
  */
-s1ap_state_t* create_s1ap_state(void);
+oai::S1apState* create_s1ap_state(void);
 /**
- * free_s1ap_state deallocates a s1ap_state_t struct and its properties.
+ * free_s1ap_state deallocates a S1apState struct and its properties.
  */
-void free_s1ap_state(s1ap_state_t* state_cache_p);
+void free_s1ap_state(oai::S1apState* state_cache_p);
 
 /**
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager
-    : public StateManager<s1ap_state_t, oai::UeDescription, oai::S1apState,
+    : public StateManager<oai::S1apState, oai::UeDescription, oai::S1apState,
                           oai::UeDescription, S1apStateConverter> {
  public:
   /**
@@ -99,6 +99,8 @@ class S1apStateManager
    */
   s1ap_imsi_map_t* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
+  oai::S1apState* get_state(bool read_from_db) override;
+  void write_s1ap_state_to_db();
   void s1ap_write_ue_state_to_db(const oai::UeDescription* ue_context,
                                  const std::string& imsi_str);
 
@@ -107,7 +109,7 @@ class S1apStateManager
   ~S1apStateManager() override;
 
   /**
-   * Allocates new s1ap_state_t struct and its properties
+   * Allocates new S1apState struct and its properties
    */
   void create_state() override;
 

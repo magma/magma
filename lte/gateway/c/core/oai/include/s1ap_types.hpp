@@ -36,18 +36,9 @@ extern "C" {
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
-// Map- Key: sctp_assoc_id (uint32_t) , Data: enb_description_t*
-typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription*>
-    map_uint32_enb_description_t;
-
-typedef struct s1ap_state_s {
-  // key:sctp_assoc_id, value: pointer to eNB_description_s
-  map_uint32_enb_description_t enbs;
-  // contains sctp association id, key is mme_ue_s1ap_id
-  magma::proto_map_uint32_uint32_t mmeid2associd;
-
-  uint32_t num_enbs;
-} s1ap_state_t;
+// Map- Key: sctp_assoc_id of (uint32_t), Data: EnbDescription
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription>
+    proto_map_uint32_enb_description_t;
 
 typedef struct s1ap_imsi_map_s {
   magma::proto_map_uint32_uint64_t mme_ueid2imsi_map;
