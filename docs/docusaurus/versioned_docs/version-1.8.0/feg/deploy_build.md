@@ -1,7 +1,8 @@
 ---
-id: deploy_build
+id: version-1.8.0-deploy_build
 title: Build FeG
 hide_title: true
+original_id: deploy_build
 ---
 
 # Build Federation Gateway Components
@@ -18,7 +19,7 @@ git tag -l
 # to switch to a different release (for example v1.8)
 git checkout v1.8
 
-# to switch to master (development version)
+# to switch to master (developement version)
 git checkout master
 ```
 
