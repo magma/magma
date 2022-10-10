@@ -24,10 +24,11 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 int decode_esm_status(esm_status_msg* esm_status, uint8_t* buffer,
                       uint32_t len) {
