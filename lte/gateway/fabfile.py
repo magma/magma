@@ -192,7 +192,7 @@ def connect_gateway_to_cloud(
     cert_path=DEFAULT_CERT,
 ):
     """
-    Setup the gateway VM to connects to the cloud
+    Set up the gateway VM to connects to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
     non-default control proxy setting and certificates
     """
@@ -372,7 +372,7 @@ def bazel_integ_test_post_build(
     execute(_modify_for_bazel_services)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     if not trf_host:
         trf_host = vagrant_setup(
@@ -444,7 +444,7 @@ def integ_test(
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_dist_upgrade)
@@ -452,7 +452,7 @@ def integ_test(
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
@@ -511,6 +511,51 @@ def integ_test_deb_installation(
     execute(_run_integ_tests, gateway_ip)
 
 
+def integ_test_containerized(
+        gateway_host=None, test_host=None, trf_host=None,
+        destroy_vm='True', provision_vm='True',
+):
+    """
+    Run the integration tests against the containerized AGW.
+    Other than that the same as `integ_test`.
+    """
+
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Set up the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    # TODO: Remove temporary workaround after resolution of https://github.com/magma/magma/issues/13912
+    run('rm -rf /etc/snowflake; sudo touch /etc/snowflake')
+    execute(_start_gateway_containerized)
+
+    # Set up the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
+
+
+def _start_gateway_containerized():
+    """ Starts the containerized AGW """
+    with cd(AGW_PYTHON_ROOT):
+        run('make buildenv')
+
+    with cd(AGW_ROOT):
+        run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
+
+    with cd(AGW_ROOT + "/docker"):
+        run('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+        # TODO: With docker compose v1 there is no good native way to wait for containers to be reliably up
+        run('sleep 60; docker-compose ps')
+
+
 def run_integ_tests(tests=None, federated_mode=False):
     """
     Function is required to run tests only in pre-configured Jenkins env.
@@ -536,23 +581,45 @@ def run_integ_tests(tests=None, federated_mode=False):
     if tests:
         tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests, federated_mode)
+    execute(_run_integ_tests, gateway_ip, tests, _to_boolean(federated_mode))
+
+
+def _to_boolean(value):
+    """Fabric function arguments passed by calling fab from external are strings.
+    This is, boolean arguments set to "True" and "False" must be interpreted.
+    """
+    if isinstance(value, bool):
+        return value
+
+    if not isinstance(value, str):
+        raise ValueError('Input can not be parsed to boolean - not a string or a boolean.')
+
+    return bool(strtobool(value))
 
 
 def get_test_summaries(
         gateway_host=None,
         test_host=None,
         dst_path="/tmp",
+        integration_tests=True,
+        sudo_tests=True,
+        dev_vm_name="magma",
 ):
     local('mkdir -p ' + dst_path)
 
-    # TODO we may want to zip up all these files
-    _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
-    with settings(warn_only=True):
-        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
-    with settings(warn_only=True):
-        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    vm_name_to_yaml = {
+        "magma": "magma_dev.yml",
+        "magma_deb": "magma_deb.yml",
+    }
+
+    if _to_boolean(sudo_tests):
+        _switch_to_vm_no_provision(gateway_host, dev_vm_name, vm_name_to_yaml[dev_vm_name])
+        with settings(warn_only=True):
+            get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    if _to_boolean(integration_tests):
+        _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
+        with settings(warn_only=True):
+            get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
 
 
 def get_test_logs(
@@ -662,13 +729,13 @@ def load_test(gateway_host=None, destroy_vm=True):
         destroy_vm: If the vagrant VM should be destroyed and setup
         before running load tests.
     """
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     if gateway_host:
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
     else:
-        gateway_host = vagrant_setup('magma', destroy_vm)
+        gateway_host = vagrant_setup('magma', _to_boolean(destroy_vm))
         gateway_ip = '192.168.60.142'
 
     execute(_build_magma)
@@ -852,16 +919,15 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
          never prompt to confirm the host fingerprints
     """
     local(
-        'ssh -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
+        f'ssh -i {key} -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no -tt {host} -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
         # We don't have a proper shell, so the `magtivate` alias isn't
         # available. We instead directly source the activate file
-        ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-        ' source ~/build/python/bin/activate;'
-        ' export GATEWAY_IP=%s;'
-        ' make %s enable-flaky-retry=true %s\''
-        % (key, host, port, gateway_ip, test_mode, tests),
+        f' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
+        f' source ~/build/python/bin/activate;'
+        f' export GATEWAY_IP={gateway_ip};'
+        f' make {test_mode} enable-flaky-retry=true {tests}\'',
     )
 
 

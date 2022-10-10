@@ -91,9 +91,7 @@ class TestConcurrentSecondaryPdns(unittest.TestCase):
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req1 = response.cast(s1ap_types.uePdnConRsp_t)
         print(
             "************************* Received Activate default EPS bearer "
@@ -114,9 +112,7 @@ class TestConcurrentSecondaryPdns(unittest.TestCase):
 
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req2 = response.cast(s1ap_types.uePdnConRsp_t)
         addr2 = act_def_bearer_req2.m.pdnInfo.pAddr.addrInfo
         sec_ip2 = ipaddress.ip_address(bytes(addr2[:4]))
@@ -162,9 +158,7 @@ class TestConcurrentSecondaryPdns(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         print(
             "******************* Received deactivate eps bearer context"

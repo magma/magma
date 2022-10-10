@@ -37,7 +37,9 @@ class TestContinuousRandomAttach(unittest.TestCase):
             "subsequent test cases",
         )
         self._s1ap_wrapper._s1_util.delete_ovs_flow_rules()
-        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ['sctpd'], wait_time=30,
+        )
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def handle_msg(self, msg):

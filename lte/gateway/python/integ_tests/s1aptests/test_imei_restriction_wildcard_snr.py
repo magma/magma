@@ -68,9 +68,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         auth_req = response.cast(s1ap_types.ueAuthReqInd_t)
         print(
             "********************** Received auth req for UE id",
@@ -89,9 +87,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         print("********************** Sent auth rsp for UE id", req.ue_id)
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         sec_mod_cmd = response.cast(s1ap_types.ueSecModeCmdInd_t)
         print(
             "********************** Received security mode cmd for UE id",
@@ -104,7 +100,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         sec_mode_complete.imeisv_pres = True
         imeisv = "9933382135103723"
         # Check if the len of imeisv exceeds 16
-        self.assertLessEqual(len(imeisv), 16)
+        assert len(imeisv) <= 16
         for i in range(0, len(imeisv)):
             sec_mode_complete.imeisv[i] = ctypes.c_ubyte(int(imeisv[i]))
         self._s1ap_wrapper._s1_util.issue_cmd(
@@ -117,9 +113,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
 
         # Receive Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
         attach_rej = response.cast(s1ap_types.ueAttachRejInd_t)
         print(
             "********************** Received attach reject for UE id %d"
@@ -127,15 +121,11 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         )
 
         # Verify cause
-        self.assertEqual(
-            attach_rej.cause, s1ap_types.TFW_EMM_CAUSE_IMEI_NOT_ACCEPTED,
-        )
+        assert attach_rej.cause == s1ap_types.TFW_EMM_CAUSE_IMEI_NOT_ACCEPTED
 
         # UE Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         ue_context_rel = response.cast(s1ap_types.ueCntxtRelReq_t)
         print(

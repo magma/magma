@@ -71,10 +71,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
             ureq,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(5)
 
@@ -114,10 +111,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
         id_req = response.cast(s1ap_types.ueIdentityReqInd_t)
         print(
             "********************** Received identity req for UE id",
@@ -137,10 +131,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         auth_req = response.cast(s1ap_types.ueAuthReqInd_t)
         print(
             "********************** Received auth req for UE id",
@@ -161,10 +152,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         response = self._s1ap_wrapper.s1_util.get_response()
         sec_mode_cmd = response.cast(s1ap_types.ueSecModeCmdInd_t)
 
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print(
             "********************** Received security mode cmd for UE id",
             sec_mode_cmd.ue_Id,
@@ -221,10 +209,7 @@ class TestGutiAttachWithZeroMtmsi(unittest.TestCase):
         )
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

@@ -70,10 +70,7 @@ class TestEnbPartialResetConDereg(unittest.TestCase):
                 attach_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
             # Trigger Authentication Response
             auth_res = s1ap_types.ueAuthResp_t()
@@ -86,10 +83,7 @@ class TestEnbPartialResetConDereg(unittest.TestCase):
                 auth_res,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
             # Trigger Security Mode Complete
             sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -143,7 +137,7 @@ class TestEnbPartialResetConDereg(unittest.TestCase):
             reset_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+        assert response.msg_type == s1ap_types.tfwCmd.RESET_ACK.value
 
 
 if __name__ == "__main__":
