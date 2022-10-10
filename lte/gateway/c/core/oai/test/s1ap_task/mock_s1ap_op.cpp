@@ -91,7 +91,7 @@ status_code_e mock_read_s1ap_ue_state_db(
 // samples
 status_code_e mock_read_s1ap_state_db(
     const std::string& file_name_state_sample) {
-  s1ap_state_t* state_cache_p = get_s1ap_state(false);
+  oai::S1apState* state_cache_p = get_s1ap_state(false);
 
   oai::S1apState state_proto = oai::S1apState();
 

@@ -332,8 +332,6 @@ def provision_magma_dev_vm(
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
 
-    execute(_dist_upgrade)
-
 
 def bazel_integ_test_post_build(
     gateway_host=None, test_host=None, trf_host=None,
@@ -447,7 +445,6 @@ def integ_test(
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
-    execute(_dist_upgrade)
     execute(_build_magma)
     execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
@@ -818,12 +815,6 @@ def _copy_out_c_execs_in_magma_vm():
                 print(exec_path + " does not exist")
                 continue
             run('cp ' + exec_path + ' ' + dest_path)
-
-
-def _dist_upgrade():
-    """ Upgrades OS packages on dev box """
-    run('sudo apt-get update')
-    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
