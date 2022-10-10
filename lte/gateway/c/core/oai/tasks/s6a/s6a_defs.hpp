@@ -20,8 +20,8 @@
   \author Sebastien ROUX
   \company Eurecom
 */
-#ifndef S6A_DEFS_H_
-#define S6A_DEFS_H_
+
+#pragma once
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -238,5 +238,3 @@ int s6a_add_result_code(struct msg* ans, struct avp* failed_avp,
                         int result_code, int experimental);
 
 void send_activate_messages(void);
-
-#endif /* S6A_DEFS_H_ */

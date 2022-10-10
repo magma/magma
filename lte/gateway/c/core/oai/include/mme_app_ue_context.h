@@ -26,8 +26,8 @@
  *  @{
  */
 
-#ifndef FILE_MME_APP_UE_CONTEXT_SEEN
-#define FILE_MME_APP_UE_CONTEXT_SEEN
+#pragma once
+
 #include <stdint.h>
 #include <inttypes.h> /* For sscanf formats */
 #include <time.h>     /* to provide time_t */
@@ -648,6 +648,5 @@ imsi64_t update_ue_context_and_indicate_to_nas(
 bool mme_app_construct_guti(const plmn_t* const plmn_p,
                             const s_tmsi_t* const s_tmsi_p,
                             guti_t* const guti_p);
-#endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 
 /* @} */

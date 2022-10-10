@@ -21,8 +21,7 @@
   \company Eurecom
 */
 
-#ifndef S6A_MESSAGES_H_
-#define S6A_MESSAGES_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,5 +56,3 @@ int s6a_rsr_cb(struct msg** msg, struct avp* paramavp, struct session* sess,
 
 int s6a_parse_subscription_data(struct avp* avp_subscription_data,
                                 subscription_data_t* subscription_data);
-
-#endif /* S6A_MESSAGES_H_ */

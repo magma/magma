@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef S6A_FD_IFACE_H_SEEN
-#define S6A_FD_IFACE_H_SEEN
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,5 +38,3 @@ class S6aFdIface : public S6aViface {
   bool purge_ue(const char* imsi);
   ~S6aFdIface();
 };
-
-#endif /* S6A_FD_IFACE_H_SEEN */
