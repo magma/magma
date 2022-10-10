@@ -297,7 +297,7 @@ status_code_e S1apStateManager::read_state_from_db() {
   if (persist_state_enabled) {
     oai::S1apState state_proto = oai::S1apState();
     if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
-      OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
+      OAILOG_ERROR(LOG_MME_APP, "Failed to read proto from db \n");
       return RETURNerror;
     }
 

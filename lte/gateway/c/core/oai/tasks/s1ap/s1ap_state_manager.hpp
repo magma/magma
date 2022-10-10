@@ -123,8 +123,7 @@ class S1apStateManager : public StateUtility {
   // Last written hash values for task and ue context
   std::size_t task_state_hash;
   std::unordered_map<std::string, std::size_t> ue_state_hash;
-
-
 };
+
 }  // namespace lte
 }  // namespace magma
