@@ -27,10 +27,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 struct avp;
@@ -91,7 +98,7 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
   bitrate_t ext_max_req_bw_dl = ULONG_MAX;
 
   CHECK_FCT(fd_msg_browse_internal(avp_ambr, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   if (!avp) {
     /*
@@ -131,8 +138,8 @@ static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
   if ((ambr->br_ul != 4294967295) && (ext_max_req_bw_ul == ULONG_MAX)) {
     ambr->br_unit = BPS;
@@ -241,7 +248,7 @@ static inline int s6a_parse_allocation_retention_priority(
   ptr->pre_emp_vulnerability =
       (pre_emption_vulnerability_t)PRE_EMPTION_VULNERABILITY_ENABLED;
   CHECK_FCT(fd_msg_browse_internal(avp_arp, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -267,8 +274,8 @@ static inline int s6a_parse_allocation_retention_priority(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;
@@ -280,7 +287,7 @@ static inline int s6a_parse_eps_subscribed_qos_profile(
   struct avp_hdr* hdr;
 
   CHECK_FCT(fd_msg_browse_internal(avp_qos, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -302,8 +309,8 @@ static inline int s6a_parse_eps_subscribed_qos_profile(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;
@@ -352,7 +359,7 @@ static inline int s6a_parse_apn_configuration(struct avp* avp_apn_conf_prof,
   struct avp_hdr* hdr;
 
   CHECK_FCT(fd_msg_browse_internal(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
   memset(apn_config, 0, sizeof *apn_config);
   DevAssert(apn_config->nb_ip_address == 0);
 
@@ -421,8 +428,8 @@ static inline int s6a_parse_apn_configuration(struct avp* avp_apn_conf_prof,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;
@@ -434,7 +441,7 @@ static inline int s6a_parse_apn_configuration_profile(
   struct avp_hdr* hdr;
 
   CHECK_FCT(fd_msg_browse_internal(avp_apn_conf_prof, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   apn_config_profile->nb_apns = 0;
 
@@ -464,8 +471,8 @@ static inline int s6a_parse_apn_configuration_profile(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;
@@ -477,7 +484,7 @@ int s6a_parse_subscription_data(struct avp* avp_subscription_data,
   struct avp_hdr* hdr;
 
   CHECK_FCT(fd_msg_browse_internal(avp_subscription_data, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     hdr = NULL;
@@ -551,8 +558,8 @@ int s6a_parse_subscription_data(struct avp* avp_subscription_data,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
   return RETURNok;
 }

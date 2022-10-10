@@ -53,7 +53,8 @@ int s6a_parse_experimental_result(struct avp* avp,
   CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
   DevAssert(hdr->avp_code == AVP_CODE_EXPERIMENTAL_RESULT);
   CHECK_FCT(fd_msg_browse_internal(avp, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&child_avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&child_avp),
+                                   NULL));
 
   while (child_avp) {
     CHECK_FCT(fd_msg_avp_hdr(child_avp, &hdr));
@@ -83,7 +84,8 @@ int s6a_parse_experimental_result(struct avp* avp,
      * Go to next AVP in the grouped AVP
      */
     CHECK_FCT(fd_msg_browse_internal(child_avp, MSG_BRW_NEXT,
-                                     (msg_or_avp**)&child_avp, NULL));
+                                     reinterpret_cast<msg_or_avp**>(&child_avp),
+                                     NULL));
   }
 
   return RETURNok;

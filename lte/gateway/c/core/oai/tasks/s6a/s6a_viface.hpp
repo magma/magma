@@ -18,13 +18,7 @@
 #ifndef S6A_VIFACE_H_SEEN
 #define S6A_VIFACE_H_SEEN
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
-#ifdef __cplusplus
-}
-#endif
 
 class S6aViface {
  public:

@@ -12,6 +12,7 @@
  */
 
 #include <iostream>
+
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 

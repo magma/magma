@@ -30,6 +30,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 struct avp;
@@ -42,7 +43,7 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
   uint32_t feature_list = 0;
 
   CHECK_FCT(fd_msg_browse_internal(avp_supported_features, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     hdr = NULL;
@@ -88,8 +89,8 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;

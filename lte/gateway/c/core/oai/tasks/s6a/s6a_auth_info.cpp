@@ -30,8 +30,6 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -46,6 +44,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
@@ -105,7 +106,7 @@ static inline int s6a_parse_e_utran_vector(struct avp* avp_vector,
   DevCheck(hdr->avp_code == AVP_CODE_E_UTRAN_VECTOR, hdr->avp_code,
            AVP_CODE_E_UTRAN_VECTOR, 0);
   CHECK_FCT(fd_msg_browse_internal(avp_vector, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -143,8 +144,8 @@ static inline int s6a_parse_e_utran_vector(struct avp* avp_vector,
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   if (ret) {
@@ -167,7 +168,7 @@ static inline int s6a_parse_authentication_info_avp(
            AVP_CODE_AUTHENTICATION_INFO, 0);
   authentication_info->nb_of_vectors = 0;
   CHECK_FCT(fd_msg_browse_internal(avp_auth_info, MSG_BRW_FIRST_CHILD,
-                                   (msg_or_avp**)&avp, NULL));
+                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
@@ -192,8 +193,8 @@ static inline int s6a_parse_authentication_info_avp(
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(
-        fd_msg_browse_internal(avp, MSG_BRW_NEXT, (msg_or_avp**)&avp, NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
   }
 
   return RETURNok;
