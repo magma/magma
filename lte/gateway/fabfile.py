@@ -498,6 +498,7 @@ def integ_test_containerized(
     Run the integration tests against the containerized AGW.
     Other than that the same as `integ_test`.
     """
+    start_time = datetime.now()
 
     destroy_vm = bool(strtobool(destroy_vm))
     provision_vm = bool(strtobool(provision_vm))
@@ -505,20 +506,25 @@ def integ_test_containerized(
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    fastprint(f"########## {datetime.now() - start_time} until finished setup gateway\n")
     # TODO: Remove temporary workaround after resolution of https://github.com/magma/magma/issues/13912
     run('rm -rf /etc/snowflake; sudo touch /etc/snowflake')
     execute(_start_gateway_containerized)
+    fastprint(f"########## {datetime.now() - start_time} until finished start gateway\n")
 
     # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
+    fastprint(f"########## {datetime.now() - start_time} until finished start trf server\n")
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    fastprint(f"########## {datetime.now() - start_time} until finished setup test vm\n")
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip, test_mode=test_mode, tests=tests)
+    fastprint(f"########## {datetime.now() - start_time} until finished integration tests\n")
 
 
 def _start_gateway_containerized():
