@@ -82,7 +82,7 @@ RUN apt-get -y update && apt-get -y install \
   libjansson4 \
   libjemalloc2 \
   libssl-dev \
-  libsystemd-dev \
+  libsystemd-dev=245.4-4ubuntu3.18 \
   magma-nghttpx=1.31.1-1 \
   net-tools \
   openssl \

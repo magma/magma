@@ -48,7 +48,7 @@ RUN echo "Install general purpose packages" && \
         libsctp-dev \
         libssl-dev \
         # dependency of pip systemd
-        libsystemd-dev \
+        libsystemd-dev=245.4-4ubuntu3.18 \
         lld \
         # dependency of python services (e.g. magmad)
         net-tools \

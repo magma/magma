@@ -123,7 +123,7 @@ MAGMA_DEPS=(
     "python3-pip"
     "python3-apt" # The version in pypi is abandoned and broken on stretch
     "python3-aioeventlet" # The version in pypi got deleted
-    "libsystemd-dev"
+    "libsystemd-dev >= 245.4-4ubuntu3.18"
     "libyaml-cpp-dev" # install yaml parser
     "libgoogle-glog-dev"
     "python-redis"

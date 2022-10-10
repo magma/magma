@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     libjansson-dev \
     libjemalloc-dev \
     libssl-dev \
-    libsystemd-dev \
+    libsystemd-dev=245.4-4ubuntu3.18 \
     magma-nghttpx=1.31.1-1 \
     make \
     net-tools \

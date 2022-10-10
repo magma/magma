@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y \
   openjdk-8-jre-headless \
   openjdk-8-jdk \
   pkg-config \
-  libsystemd-dev \
+  libsystemd-dev=245.4-4ubuntu3.18 \
   libprotobuf-dev
 
 
