@@ -46,17 +46,27 @@ def merge_all_report(working_dir, list_xml_report_paths, output_path):
         xml_file_path = working_dir + "/" + xml_file_path
         test_result = ET.parse(xml_file_path)
         test_suites_data = test_result.getroot()
-        # for the integration tests pytest generates the XML files with a slightly different structure
-        integration_tests = test_suites_data.attrib == {}
-        if integration_tests:
+        # for the Python tests, the XML files have a slightly different structure
+        python_tests = test_suites_data.attrib == {}
+        if python_tests:
             test_suites_data.attrib = test_suites_data[0].attrib
         num_all_failures += int(test_suites_data.attrib['failures'])
+        # some Python test-suites might not have a time attribute
+        if test_suites_data.attrib.get('time') is None:
+            test_suites_time = 0
+            for test_suite in test_suites_data:
+                for test_case in test_suite.findall(".//testcase"):
+                    test_suites_time += float(test_case.attrib['time'])
+            test_suites_data.attrib['time'] = str(test_suites_time)
         num_all_tests += int(test_suites_data.attrib['tests'])
         total_time += float(test_suites_data.attrib['time'])
         num_all_errors += int(test_suites_data.attrib['errors'])
-        if not integration_tests:
+        if not python_tests:
             num_all_disabled += int(test_suites_data.attrib['disabled'])
-        init_time = min(init_time, datetime.fromisoformat(test_suites_data.attrib['timestamp']))
+        try:
+            init_time = min(init_time, datetime.fromisoformat(test_suites_data.attrib['timestamp']))
+        except KeyError:
+            pass
 
         for single_test_suite_data in test_suites_data:
             testsuites_node.append(single_test_suite_data)

@@ -124,11 +124,22 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
+            TEST_FAILED="false"
             bazel test \
               ${{ matrix.bazel-target }} \
               ${{ matrix.bazel-config }} \
               --test_output=errors \
-              --profile=Bazel_test_all_profile
+              --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            # Create Bazel unit-test results
+            # Can't be a separate step, because the container's '/tmp' folder is not preserved between steps
+            mkdir bazel_unit_test_results/
+            UNIQUE_FILENAME_INDEX=0
+            TEST_REPORT_PATHS=( $(find bazel-testlogs/ -name 'test.xml') )
+            for TEST_REPORT_PATH in "${TEST_REPORT_PATHS[@]}"
+            do
+              cp "${TEST_REPORT_PATH}" "bazel_unit_test_results/test_result_${UNIQUE_FILENAME_INDEX}.xml"
+              UNIQUE_FILENAME_INDEX=$((UNIQUE_FILENAME_INDEX + 1))
+            done
 
             if [ -z "${{ matrix.bazel-config }}" ];
             then
@@ -145,6 +156,17 @@ jobs:
               printf '\r%s\r' '###############################' 1>&2
               bazel/scripts/test_python_service_imports.sh;
             fi
+
+            if [[ "${TEST_FAILED}" == "true" ]];
+            then
+              echo "ERROR: 'bazel test' failed!"
+              exit 1
+            fi
+      - name: Create merged test-result XML file
+        if: always()
+        run: |
+          mkdir -p lte/gateway/test_results/
+          python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel build profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
@@ -157,6 +179,19 @@ jobs:
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
+      - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: Bazel unit-test results ${{ matrix.bazel-config }}
+          path: lte/gateway/test_results/merged_unit_test_reports.xml
+      - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        with:
+          check_name: Bazel unit-test results ${{ matrix.bazel-config }}
+          junit_files: lte/gateway/test_results/**/*.xml
+          check_run_annotations: all tests
       - name: Build space left after run
         shell: bash
         run: |

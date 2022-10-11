@@ -64,6 +64,9 @@ build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
 build --test_env=MAGMA_ROOT
 build --test_env=S1AP_TESTER_ROOT
 
+# Needed for go tests to generate the test result XML in the correct format  
+test --test_env=GO_TEST_WRAP_TESTV=1
+
 # MME specific compile time defines
 # Compile mme libraries with unit test flag
 test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST  # See GH issue #13073
