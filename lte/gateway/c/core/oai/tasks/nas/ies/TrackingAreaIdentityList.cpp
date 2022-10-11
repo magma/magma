@@ -19,10 +19,17 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 
 //------------------------------------------------------------------------------
 int decode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,

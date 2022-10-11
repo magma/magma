@@ -21,9 +21,15 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 int decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
