@@ -63,3 +63,14 @@ jobs:
         working-directory: lte/gateway
         run: |
           fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results,sudo_tests=False"
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
