@@ -60,7 +60,7 @@ and dirty way to run the containers locally.
 
 ### Running the S1AP integration tests against the containerized AGW
 
-At present, of the S1AP integration tests, it has been verified that most of the tests can be run versus the containerized AGW;
+To run the tests, first start the docker containers:
 
 ```
 cd $MAGMA_ROOT/lte/gateway/docker
@@ -68,5 +68,5 @@ docker-compose down # If containers are already running
 docker-compose up
 ```
 
-The test VM can then be set up and the test executed by following
+The test VM can then be set up and the tests executed by following
 [these instructions](https://docs.magmacore.org/docs/next/lte/s1ap_tests#test-vm-setup).
