@@ -25,6 +25,10 @@ jobs:
   lte-integ-test-containerized:
     if: (github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'magma') || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
+    strategy:
+      fail-fast: false
+      matrix:
+        test_targets: [ "precommit", "extended_tests" ]
     steps:
       - name: Cache magma-dev-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
@@ -62,16 +66,15 @@ jobs:
           MAGMA_DEV_MEMORY_MB: 9216
         working-directory: lte/gateway
         run: |
-          fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized:test_mode="selected_tests",tests="TESTS=s1aptests/test_attach_detach.py"
-
+          fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized:test_mode=${{ matrix.test_targets }}
       - name: Get test results
         if: always()
+        working-directory: lte/gateway
         run: |
-          cd lte/gateway
-          fab get_test_summaries:dst_path="test-results,sudo_tests=False"
+          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ matrix.test_targets }}
           path: lte/gateway/test-results/**/*.xml
