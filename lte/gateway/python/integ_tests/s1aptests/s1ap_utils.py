@@ -1215,13 +1215,7 @@ class MagmadUtil(object):
         Returns:
             (bool) True if all services are active, False otherwise
         """
-        magma_services = {
-            "mme", "magmad", "sctpd", "sessiond", "policydb", "state",
-            "directoryd", "connectiond", "td-agent-bit", "redis",
-            "subscriberdb", "eventd", "mobilityd", "pipelined", "monitord",
-            "envoy_controller", "smsd", "enodebd", "redirectd", "ctraced",
-            "control_proxy",
-        }
+        magma_services = self.get_magma_services()
         for service in magma_services:
             if not self.is_service_active(service):
                 print(f"************* {service} is not running")
@@ -1276,8 +1270,12 @@ class MagmadUtil(object):
             (str) service name
         """
         if self._init_system == InitMode.SYSTEMD:
-            if service == "sctpd":
-                return "sctpd"
+            if (
+                service == "sctpd"
+                or service == "openvswitch-switch"
+                or service == "magma_dp@envoy"
+            ):
+                return service
             else:
                 return f"magma@{service}"
         elif self._init_system == InitMode.DOCKER:

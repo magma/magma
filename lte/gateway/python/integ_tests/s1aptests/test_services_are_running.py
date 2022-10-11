@@ -14,10 +14,8 @@ limitations under the License.
 import time
 import unittest
 
-import yaml
 from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import InitMode, MagmadUtil
-from yaml.loader import SafeLoader
 
 SERVICE_START_TIME = 'start_time'
 SERVICE_ACTIVE = 'active_status'
@@ -42,7 +40,7 @@ class TestServicesAreRunning(unittest.TestCase):
         if self._s1ap_wrapper.magmad_util.init_system.value != InitMode.SYSTEMD.value:
             self.skipTest("Systemd only test.")
 
-        services = self._get_services()
+        services = self._s1ap_wrapper.magmad_util.get_magma_services()
 
         """
         Initialize service status dictionary.
@@ -72,23 +70,6 @@ class TestServicesAreRunning(unittest.TestCase):
             print(self.get_failed_service_info(service))
 
         assert not failed_services, "Services are not running correctly. See logging above."
-
-    def _get_services(self):
-        """
-        Returns a list of all services managed by magmad and additionally magmad itself,
-        openvswitch-switch and sctpd.
-        """
-        non_magmad_services = [
-            'magma@magmad',
-            'openvswitch-switch',
-            'sctpd',
-        ]
-
-        raw_magmad_yml = self._s1ap_wrapper.magmad_util.exec_command_output('cat /etc/magma/magmad.yml')
-        magmad_yml = yaml.load(raw_magmad_yml, Loader=SafeLoader)
-        magmad_services = magmad_yml['magma_services']
-
-        return non_magmad_services + [f'magma@{service}' for service in magmad_services]
 
     def _query_state_of_services(self, service_status):
         for service, status in service_status.items():
