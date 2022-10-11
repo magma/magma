@@ -35,7 +35,7 @@ jobs:
       WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
       AGW_DOCKER_AMI: "ami-0150e153a94c122b5"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run apt
         run: sudo apt-get update && sudo apt -y upgrade
       - name: setup pyenv

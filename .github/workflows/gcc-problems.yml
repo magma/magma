@@ -44,7 +44,7 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
@@ -65,7 +65,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
