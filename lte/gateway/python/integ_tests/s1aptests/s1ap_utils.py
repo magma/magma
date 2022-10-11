@@ -1123,48 +1123,50 @@ class MagmadUtil(object):
                     print("Timeout reached while waiting for services to restart")
                     return
 
-    def enable_service(self, service):
+    def enable_services(self, services):
         """Enable a magma service on magma_dev VM and starts it
 
         Args:
             service: (str) service to enable
         """
-        service_name = self.get_service_name_from_init_system(service)
-        if self._init_system == InitMode.SYSTEMD:
-            self.exec_command(f"sudo systemctl unmask {service_name}")
-            self.exec_command(f"sudo systemctl start {service_name}")
-        elif self._init_system == InitMode.DOCKER:
-            self.exec_command(f"docker start {service_name}")
+        for service in services:
+            service_name = self.get_service_name_from_init_system(service)
+            if self._init_system == InitMode.SYSTEMD:
+                self.exec_command(f"sudo systemctl unmask {service_name}")
+                self.exec_command(f"sudo systemctl start {service_name}")
+            elif self._init_system == InitMode.DOCKER:
+                self.exec_command(f"docker start {service_name}")
 
-    def disable_service(self, service):
+    def disable_services(self, services):
         """Disables a magma service on magma_dev VM, preventing from
         starting again
 
         Args:
             service: (str) service to disable
         """
-        service_name = self.get_service_name_from_init_system(service)
-        if self._init_system == InitMode.SYSTEMD:
-            self.exec_command(f"sudo systemctl mask {service_name}")
-            self.exec_command(f"sudo systemctl stop {service_name}")
-        elif self._init_system == InitMode.DOCKER:
-            # TODO GH14055
-            # Same argument as above: The container interdependencies
-            # are handled manually at the moment
-            #
+        for service in services:
+            service_name = self.get_service_name_from_init_system(service)
+            if self._init_system == InitMode.SYSTEMD:
+                self.exec_command(f"sudo systemctl mask {service_name}")
+                self.exec_command(f"sudo systemctl stop {service_name}")
+            elif self._init_system == InitMode.DOCKER:
+                # TODO GH14055
+                # Same argument as above: The container interdependencies
+                # are handled manually at the moment
+                #
 
-            if (
-                service_name == "oai_mme"
-                or service_name == "sessiond"
-                or service_name == "mobilityd"
-                or service_name == "pipelined"
-            ):
-                self.exec_command(
-                    "docker stop oai_mme mobilityd sessiond "
-                    "connectiond pipelined envoy_controller",
-                )
-            else:
-                self.exec_command(f"docker stop {service_name}")
+                if (
+                    service_name == "oai_mme"
+                    or service_name == "sessiond"
+                    or service_name == "mobilityd"
+                    or service_name == "pipelined"
+                ):
+                    self.exec_command(
+                        "docker stop oai_mme mobilityd sessiond "
+                        "connectiond pipelined envoy_controller",
+                    )
+                else:
+                    self.exec_command(f"docker stop {service_name}")
 
     def check_if_magma_services_are_active(self) -> bool:
         """check if all services in the list are active (only works for docker
@@ -1378,7 +1380,7 @@ class MagmadUtil(object):
             )
             self.exec_command(f"sudo {health_config_cmd}")
             if self.is_service_active(magma_health_service_name):
-                self.disable_service(magma_health_service_name)
+                self.disable_services([magma_health_service_name])
             print("Health service is disabled")
         elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
             health_config_cmd = (
@@ -1387,7 +1389,7 @@ class MagmadUtil(object):
             )
             self.exec_command(f"sudo {health_config_cmd}")
             if not self.is_service_active(magma_health_service_name):
-                self.enable_service(magma_health_service_name)
+                self.enable_services([magma_health_service_name])
             print("Health service is enabled")
 
     def config_ha_service(self, cmd):
