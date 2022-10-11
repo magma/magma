@@ -34,7 +34,7 @@ Magma packages released to different channels have different version schemes.
 
     - dev: used for development.
 
-    - test: used for Continuous Integration (CI). Packages in the `test`
+    - release: used for Continuous Integration (CI). Packages in the `release`
             channel should be built and released automatically.
 
 # HOWTO build magma.deb
@@ -69,12 +69,6 @@ env.disable_known_hosts = True
 
 def dev():
     env.debug_mode = True
-
-
-# TODO: Deprecate
-def test():
-    print("Caution! 'test' will be deprecated soon. Please migrate to using 'release'.")
-    env.debug_mode = False
 
 
 def release():
