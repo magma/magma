@@ -73,11 +73,16 @@ class TestServicesAreRunning(unittest.TestCase):
 
     def _query_state_of_services(self, service_status):
         for service, status in service_status.items():
-            active_state = self._s1ap_wrapper.magmad_util.check_service_activity(
-                f'systemctl is-active {service}',
-            ).strip()
+            active_state = "not active"
+            if self._s1ap_wrapper.magmad_util.is_service_active(service):
+                active_state = "active"
+            service_name = (
+                self._s1ap_wrapper.magmad_util.
+                map_service_to_init_system_service_name(service)
+            )
             start_time = self._s1ap_wrapper.magmad_util.exec_command_output(
-                f'systemctl show {service} --property=ActiveEnterTimestamp',
+                f'systemctl show {service_name} '
+                f'--property=ActiveEnterTimestamp',
             ).strip()
 
             status[SERVICE_START_TIME].append(start_time)
