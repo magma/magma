@@ -624,8 +624,12 @@ class S1ApUtil(object):
             if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-        assert len(uplink_flows) == num_ul_flows, \
-            f"Uplink flow missing for UE: {len(uplink_flows)} != {num_ul_flows}"
+        assert (
+            len(uplink_flows) == num_ul_flows
+        ), (
+            f"Uplink flow missing for UE: "
+            f"{len(uplink_flows)} != {num_ul_flows}",
+        )
 
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
@@ -884,7 +888,9 @@ class MagmadUtil(object):
         Returns:
             status of command execution
         """
-        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
+        param_list = shlex.split(
+            self._command.format(**self._credentials, command=f'"{command}"'),
+        )
         return subprocess.call(
             param_list,
             shell=False,
@@ -902,13 +908,18 @@ class MagmadUtil(object):
         Returns:
             output of command execution
         """
-        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
+        param_list = shlex.split(
+            self._command.format(**self._credentials, command=f'"{command}"'),
+        )
         return subprocess.check_output(
             param_list,
             shell=False,
         ).decode("utf-8")
 
-    def exec_command_capture_output(self, command: str) -> subprocess.CompletedProcess:
+    def exec_command_capture_output(
+        self,
+        command: str,
+    ) -> subprocess.CompletedProcess:
         """Run a command remotely on magma_dev VM.
 
         Unlike `exec_command_output`, this method does not raise an exception
@@ -919,9 +930,12 @@ class MagmadUtil(object):
             e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
 
         Returns:
-            Output  of command execution as instance of subprocess.CompletedProcess
+            Output of command execution as instance
+            of subprocess.CompletedProcess
         """
-        param_list = shlex.split(self._command.format(**self._credentials, command=f'"{command}"'))
+        param_list = shlex.split(
+            self._command.format(**self._credentials, command=f'"{command}"'),
+        )
         return subprocess.run(
             param_list,
             shell=False,
@@ -935,7 +949,8 @@ class MagmadUtil(object):
                 "systemctl is-active magma@magmad",
             ).stdout.decode("utf-8").strip('\n')
             if res_systemd == 'active':
-                # default to systemd if docker and systemd are running - needed by feg integ tests
+                # default to systemd if docker and systemd are running
+                # - needed by feg integ tests
                 return InitMode.SYSTEMD
 
         if self._is_installed("docker"):
@@ -1013,7 +1028,10 @@ class MagmadUtil(object):
             )
             self._wait_for_pipelined_to_initialize()
 
-            print(f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} seconds to ensure all services restarted ...")
+            print(
+                f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} "
+                f"seconds to ensure all services restarted ...",
+            )
             time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
@@ -1025,26 +1043,46 @@ class MagmadUtil(object):
 
     def _wait_for_pipelined_to_initialize(self):
         """
-        Introduced, because pipelined is the first service the tests communicate with and
-        it has been observed that the previous static waiting time is not sufficient.
+        Introduced, because pipelined is the first service the tests
+        communicate with and it has been observed that the previous
+        static waiting time is not sufficient.
         """
         print("Waiting for pipelined to be started ...")
         wait_time_seconds = 0
 
-        print(f"  check every {WAIT_INTERVAL_SECONDS} seconds (max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...")
+        print(
+            f"  check every {WAIT_INTERVAL_SECONDS} seconds "
+            f"(max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...",
+        )
         datapath_is_initialized = False
         while not datapath_is_initialized:
-            pipelined_is_running, datapath_is_initialized = get_datapath_state()
+            pipelined_is_running, datapath_is_initialized =\
+                get_datapath_state()
             if not pipelined_is_running:
-                print(f"  pipelined not yet running for {wait_time_seconds} seconds ...")
+                print(
+                    f"  pipelined not yet running for "
+                    f"{wait_time_seconds} seconds ...",
+                )
             elif not datapath_is_initialized:
-                print(f"  datapath not yet initialized for {wait_time_seconds} seconds ...")
+                print(
+                    f"  datapath not yet initialized for "
+                    f"{wait_time_seconds} seconds ...",
+                )
             else:
-                print(f"  datapath is initialized after {wait_time_seconds} seconds!")
+                print(
+                    f"  datapath is initialized after "
+                    f"{wait_time_seconds} seconds!",
+                )
                 break
 
-            if wait_time_seconds >= MAX_WAIT_SECONDS and not datapath_is_initialized:
-                raise RuntimeError(f"Pipelined failed to initialize after {MAX_WAIT_SECONDS} seconds.")
+            if (
+                wait_time_seconds >= MAX_WAIT_SECONDS
+                and not datapath_is_initialized
+            ):
+                raise RuntimeError(
+                    f"Pipelined failed to initialize after "
+                    f"{MAX_WAIT_SECONDS} seconds.",
+                )
             time.sleep(WAIT_INTERVAL_SECONDS)
             wait_time_seconds += WAIT_INTERVAL_SECONDS
 
@@ -1572,7 +1610,8 @@ class MagmadUtil(object):
             )
             self.exec_command("sudo ip addr replace 3001::10 dev uplink_br0")
             self.exec_command(
-                "sudo ip route -A inet6 add default via 3001::2 dev uplink_br0",
+                "sudo ip route -A inet6 add default "
+                "via 3001::2 dev uplink_br0",
             )
 
         self._set_agw_nat(False)
@@ -2290,7 +2329,8 @@ class GTPBridgeUtils(object):
         )
         if ret_code != 0:
             print(
-                f"Failed to delete OVS flow rules for gtp_br0 table={table_id}",
+                f"Failed to delete OVS flow rules "
+                f"for gtp_br0 table={table_id}",
             )
 
 
