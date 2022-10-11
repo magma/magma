@@ -841,6 +841,10 @@ class MagmadUtil(object):
     ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
     config_ipv6_iface_cmds = Enum("config_ipv6_iface_cmds", "DISABLE ENABLE")
 
+    EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS = 10
+    WAIT_INTERVAL_SECONDS = 5
+    MAX_WAIT_SECONDS = 120
+
     _init_system = None
 
     def __init__(self, magmad_client):
@@ -1008,7 +1012,6 @@ class MagmadUtil(object):
             )
             self._wait_for_pipelined_to_initialize()
 
-            EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS = 10
             print(f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} seconds to ensure all services restarted ...")
             time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
         elif self._init_system == InitMode.DOCKER:
@@ -1027,8 +1030,6 @@ class MagmadUtil(object):
         print("Waiting for pipelined to be started ...")
         wait_time_seconds = 0
 
-        WAIT_INTERVAL_SECONDS = 5
-        MAX_WAIT_SECONDS = 120
         print(f"  check every {WAIT_INTERVAL_SECONDS} seconds (max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...")
         datapath_is_initialized = False
         while not datapath_is_initialized:
