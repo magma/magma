@@ -83,27 +83,26 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
                 ue_cntxt_rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("*************************  Send Offload Request to AGW")
         # Send offloading request
-        self.assertTrue(self._ha_util.offload_agw(None, enb_list[0][0]))
+        assert self._ha_util.offload_agw(None, enb_list[0][0])
 
         # All UEs should eventually receive Context Release Request
         # The first half should get it immediately
         # The second half should first get paging
         for _ in range(num_ues):
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertIn(
-                response.msg_type,
+            assert (
+                response.msg_type
+                in
                 [
                     s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
                     s1ap_types.tfwCmd.UE_PAGING_IND.value,
-                ],
-                "Not a paging or ue context release message",
+                ]
+            ), (
+                "Not a paging or ue context release message"
             )
 
         # Send service request as paging response
@@ -120,16 +119,10 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
                 ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         for i in range(num_ues):
             # Send service request again:
@@ -143,10 +136,7 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
                 ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         # Now detach the UEs normally
         for ue in ue_ids:

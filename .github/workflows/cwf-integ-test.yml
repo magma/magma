@@ -128,10 +128,11 @@ jobs:
           path: cwf/gateway/tests.xml
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
         with:
+          check_name: CWF integration test results
+          junit_files: cwf/gateway/tests.xml
           check_run_annotations: all tests
-          files: cwf/gateway/tests.xml
       - name: Fetch logs
         if: always()
         run: |

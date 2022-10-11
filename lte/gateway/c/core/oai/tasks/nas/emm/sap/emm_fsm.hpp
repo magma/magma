@@ -85,6 +85,7 @@ status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ueid,
 /* TODO:These declarations are temporarily moved to emm_headers.hpp file to
  * resolve undefined references. Uncomment these functions and delete
  * emm_headers.hpp after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
  */
 
 /*emm_fsm_state_t emm_fsm_get_state(

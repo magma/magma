@@ -33,7 +33,6 @@
  *****************************************************************************/
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/socket.hpp"
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdlib.h>  // malloc, free, atoi
 #include <string.h>  // memset
@@ -43,6 +42,10 @@
 #include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
 #include <netdb.h>       // getaddrinfo
 #include <stdbool.h>     // true, false
+
+#include <iostream>
+
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -387,12 +390,13 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
  ***************************************************************************/
 status_code_e socket_get_fd(const void* id) {
   if (id) {
-    return ((socket_id_t*)id)->fd;
+    int socket_file_descriptor =
+        const_cast<socket_id_t*>(reinterpret_cast<const socket_id_t*>(id))->fd;
+    return static_cast<status_code_e>(socket_file_descriptor);
   }
 
   return RETURNerror;
 }
-
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/

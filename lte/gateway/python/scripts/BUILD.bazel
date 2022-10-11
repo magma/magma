@@ -10,7 +10,68 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+
+SCRIPTS = [
+    "agw_health_cli",
+    "config_stateless_agw",
+    "cpe_monitoring_cli",
+    "create_oai_certs",
+    "dp_probe_cli",
+    "enodebd_cli",
+    "fake_user",
+    "feg_hello_cli",
+    "generate_dnsd_config",
+    "generate_oai_config",
+    "ha_cli",
+    "hello_cli",
+    "icmpv6",
+    "mobility_cli",
+    "mobility_dhcp_cli",
+    "ocs_cli",
+    "packet_ryu_cli",
+    "packet_tracer_cli",
+    "pcrf_cli",
+    "pipelined_cli",
+    "policydb_cli",
+    "s6a_proxy_cli",
+    "s6a_service_cli",
+    "session_manager_cli",
+    "sgs_cli",
+    "sms_cli",
+    "spgw_service_cli",
+    "state_cli",
+    "subscriber_cli",
+    "user_trace_cli",
+]
+
+expand_runfiles(
+    name = "scripts_expanded",
+    targets = [":{script}".format(script = script) for script in SCRIPTS],
+)
+
+[
+    pkg_mklink(
+        name = "{script}_symlink".format(script = script),
+        link_name = "/usr/local/bin/{script}.py".format(script = script),
+        target = "{dest}/scripts/{script}.py".format(
+            dest = PY_DEST,
+            script = script,
+        ),
+    )
+    for script in SCRIPTS
+]
+
+pkg_filegroup(
+    name = "magma_lte_scripts",
+    srcs = [":scripts_expanded"] +
+           ["{script}_symlink".format(script = script) for script in SCRIPTS],
+    prefix = PY_DEST,
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
 
 MAGMA_ROOT = "../../../../"
 
@@ -32,6 +93,15 @@ py_binary(
         "//lte/gateway/python/magma/health:health_service",
         requirement("fire"),
     ],
+)
+
+# Note: Not included in the magma debian package. Only used for integration tests.
+py_binary(
+    name = "config_iface_for_ipv6",
+    srcs = ["config_iface_for_ipv6.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
 )
 
 py_binary(

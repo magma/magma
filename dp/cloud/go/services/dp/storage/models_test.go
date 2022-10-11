@@ -67,10 +67,11 @@ func TestFields(t *testing.T) {
 			db.StringType{X: &dbGrant.GrantId},
 			db.TimeType{X: &dbGrant.GrantExpireTime},
 			db.TimeType{X: &dbGrant.TransmitExpireTime},
-			db.IntType{X: &dbGrant.HeartbeatInterval},
+			db.IntType{X: &dbGrant.HeartbeatIntervalSec},
+			db.TimeType{X: &dbGrant.LastHeartbeatRequestTime},
 			db.StringType{X: &dbGrant.ChannelType},
-			db.IntType{X: &dbGrant.LowFrequency},
-			db.IntType{X: &dbGrant.HighFrequency},
+			db.IntType{X: &dbGrant.LowFrequencyHz},
+			db.IntType{X: &dbGrant.HighFrequencyHz},
 			db.FloatType{X: &dbGrant.MaxEirp},
 		},
 	}, {
@@ -97,7 +98,7 @@ func TestFields(t *testing.T) {
 			db.JsonType{X: &dbCbsd.PreferredFrequenciesMHz},
 			db.FloatType{X: &dbCbsd.MinPower},
 			db.FloatType{X: &dbCbsd.MaxPower},
-			db.FloatType{X: &dbCbsd.AntennaGain},
+			db.FloatType{X: &dbCbsd.AntennaGainDbi},
 			db.IntType{X: &dbCbsd.NumberOfPorts},
 			db.BoolType{X: &dbCbsd.IsDeleted},
 			db.BoolType{X: &dbCbsd.ShouldDeregister},
@@ -206,6 +207,10 @@ func TestGetMetadata(t *testing.T) {
 			}, {
 				Name:     "heartbeat_interval",
 				SqlType:  sqorc.ColumnTypeInt,
+				Nullable: true,
+			}, {
+				Name:     "last_heartbeat_request_time",
+				SqlType:  sqorc.ColumnTypeDatetime,
 				Nullable: true,
 			}, {
 				Name:     "channel_type",
@@ -363,9 +368,11 @@ func TestGetMetadata(t *testing.T) {
 				SqlType:  sqorc.ColumnTypeText,
 				Nullable: true,
 			}, {
-				Name:     "channels",
-				SqlType:  sqorc.ColumnTypeText,
-				Nullable: true,
+				Name:         "channels",
+				SqlType:      sqorc.ColumnTypeText,
+				Nullable:     false,
+				HasDefault:   true,
+				DefaultValue: "'[]'",
 			}},
 		},
 	}}

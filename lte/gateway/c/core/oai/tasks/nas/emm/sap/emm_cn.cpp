@@ -39,6 +39,7 @@
 #include <stdlib.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,6 +51,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"

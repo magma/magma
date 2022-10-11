@@ -43,18 +43,18 @@ Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
   // Get state from S1APStateManager
   // TODO: Get state through ITTI message from S1AP task, as it's read only
   // it will not affect ownership
-  s1ap_state_t* s1ap_state = get_s1ap_state(false);
+  oai::S1apState* s1ap_state = get_s1ap_state(false);
   if (s1ap_state != nullptr) {
-    if (!(s1ap_state->enbs.size())) {
+    if (!(s1ap_state->enbs_size())) {
       return Status::OK;
     }
-
-    for (auto itr = s1ap_state->enbs.map->begin();
-         itr != s1ap_state->enbs.map->end(); itr++) {
-      enb_description_t* enb_ref = itr->second;
-      if (enb_ref) {
-        (*response->mutable_enb_state_map())[enb_ref->enb_id] =
-            enb_ref->nb_ue_associated;
+    proto_map_uint32_enb_description_t enb_map;
+    enb_map.map = s1ap_state->mutable_enbs();
+    for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
+      oai::EnbDescription enb_ref = itr->second;
+      if (enb_ref.sctp_assoc_id()) {
+        (*response->mutable_enb_state_map())[enb_ref.enb_id()] =
+            enb_ref.nb_ue_associated();
       }
     }
   }

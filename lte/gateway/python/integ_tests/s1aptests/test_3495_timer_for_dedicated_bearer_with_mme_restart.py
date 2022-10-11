@@ -89,9 +89,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -122,10 +120,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
 
             print("******************* Received deactivate eps bearer context")
             # Do not send deactivate eps bearer context accept
@@ -133,17 +128,13 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
                 "************************* Restarting MME service on",
                 "gateway",
             )
-            self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
+            wait_for_restart = 30
+            self._s1ap_wrapper.magmad_util.restart_services(
+                ["mme"], wait_for_restart,
+            )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 req.ue_id, deactv_bearer_req.bearerId,

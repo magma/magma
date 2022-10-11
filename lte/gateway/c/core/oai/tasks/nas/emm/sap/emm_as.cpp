@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +33,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
@@ -298,7 +299,7 @@ static status_code_e emm_as_recv(mme_ue_s1ap_id_t ue_id,
                                  nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   nas_message_decode_status_t local_decode_status = {0};
-  int decoder_rc = RETURNok;
+  int decoder_rc = 0;
   status_code_e rc = RETURNerror;
   nas_message_t nas_msg = {};
   emm_security_context_t* emm_security_context =

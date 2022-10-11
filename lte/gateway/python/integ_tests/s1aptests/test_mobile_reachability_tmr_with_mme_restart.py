@@ -87,17 +87,13 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("************************* Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Delay by 11 minutes to ensure Mobile reachability timer and Implicit
         # detach timer expires
@@ -133,10 +129,7 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,
@@ -144,10 +137,7 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
 
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

@@ -10,7 +10,53 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+
+SCRIPTS = [
+    "checkin_cli",
+    "ctraced_cli",
+    "directoryd_cli",
+    "generate_fluent_bit_config",
+    "generate_lighttpd_config",
+    "generate_nghttpx_config",
+    "generate_service_config",
+    "health_cli",
+    "magma_conditional_service",
+    "magma_get_config",
+    "magmad_cli",
+    "service303_cli",
+    "service_util",
+    "show_gateway_info",
+    "traffic_cli",
+]
+
+expand_runfiles(
+    name = "scripts_expanded",
+    targets = [":{script}".format(script = script) for script in SCRIPTS],
+)
+
+[
+    pkg_mklink(
+        name = "{script}_symlink".format(script = script),
+        link_name = "/usr/local/bin/{script}.py".format(script = script),
+        target = "{dest}/scripts/{script}.py".format(
+            dest = PY_DEST,
+            script = script,
+        ),
+    )
+    for script in SCRIPTS
+]
+
+pkg_filegroup(
+    name = "magma_orc8r_scripts",
+    srcs = [":scripts_expanded"] +
+           ["{script}_symlink".format(script = script) for script in SCRIPTS],
+    prefix = PY_DEST,
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
 
 MAGMA_ROOT = "../../../../"
 

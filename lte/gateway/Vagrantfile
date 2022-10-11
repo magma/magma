@@ -57,7 +57,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
     magma.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
-      ansible.playbook = "deploy/magma_dev_focal.yml"
+      ansible.playbook = "deploy/magma_dev.yml"
       ansible.inventory_path = "deploy/hosts"
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]
@@ -235,6 +235,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]
       ansible.verbose = 'v'
+      ansible.extra_vars = { MAGMA_PACKAGE: ENV.fetch('MAGMA_PACKAGE', 'magma') }
     end
 
     # Reload VM to apply correct network configuration

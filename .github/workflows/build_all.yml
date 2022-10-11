@@ -115,6 +115,7 @@ jobs:
     runs-on: macos-12
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
+      magma_package: ${{ steps.publish_packages.outputs.magma_package }}
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
@@ -178,6 +179,14 @@ jobs:
             HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
             if [[ "$HTTP_STATUS" != "2"* ]]; then
               PUBLISH_ERROR="true"
+            fi
+            # extract magma debian package version
+            match="magma_[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+_[a-z0-9]+.deb"
+            if [[ $i =~ $match ]]; then
+              magma_package=${i#magma_}
+              magma_package=${magma_package%_[a-z0-9]*.deb}
+              magma_package='magma='${magma_package}
+              echo "::set-output name=magma_package::${magma_package}"
             fi
           done
           # set output
@@ -991,3 +1000,15 @@ jobs:
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
+  trigger-debian-integ-test:
+    if: always() && github.event_name == 'push' && github.repository_owner == 'magma' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: agw-build
+    steps:
+      - name: Trigger debian integ test workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: magma/magma
+          event-type: build-all-artifact
+          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}" }'

@@ -83,20 +83,23 @@ extern "C" {
 
 #define EXT_UE_AMBR_UL 10000000000
 #define EXT_UE_AMBR_DL 10000000000
+
+namespace magma {
+namespace lte {
+
 extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
-
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
                                                  const sctp_assoc_id_t assoc_id,
                                                  const sctp_stream_id_t stream,
                                                  S1ap_S1AP_PDU_t* pdu) {
   S1ap_InitialUEMessage_t* container = NULL;
   S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi = NULL, *ie_csg_id = NULL,
                               *ie_gummei = NULL, *ie_cause = NULL;
-  ue_description_t* ue_ref = NULL;
-  enb_description_t* eNB_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
+  oai::EnbDescription eNB_ref;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -121,7 +124,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
+  if ((s1ap_state_get_enb(state, assoc_id, &eNB_ref)) != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -132,10 +135,10 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
       LOG_S1AP,
       "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
       " assoc-id :%d \n",
-      enb_ue_s1ap_id, eNB_ref->sctp_assoc_id);
-  ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
+      enb_ue_s1ap_id, eNB_ref.sctp_assoc_id());
+  ue_ref = s1ap_state_get_ue_enbid(eNB_ref.sctp_assoc_id(), enb_ue_s1ap_id);
 
-  if (ue_ref == NULL) {
+  if (ue_ref == nullptr) {
     tai_t tai = {0};
     gummei_t gummei = {0};
     s_tmsi_t s_tmsi = {.mme_code = 0, .m_tmsi = INVALID_M_TMSI};
@@ -148,7 +151,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
      * * * * Update eNB UE list.
      * * * * Forward message to NAS.
      */
-    if ((ue_ref = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
+    if ((ue_ref = s1ap_new_ue(&eNB_ref, assoc_id, enb_ue_s1ap_id)) == nullptr) {
       // If we failed to allocate a new UE return -1
       OAILOG_ERROR(LOG_S1AP,
                    "Initial UE Message- Failed to allocate S1AP UE Context, "
@@ -159,19 +162,19 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
 
     OAILOG_DEBUG(LOG_S1AP, "Creating new UE Ref on S1ap");
 
-    ue_ref->s1_ue_state = S1AP_UE_WAITING_CSR;
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_WAITING_ICSR);
 
-    ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
+    ue_ref->set_enb_ue_s1ap_id(enb_ue_s1ap_id);
     // Will be allocated by NAS
-    ue_ref->mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+    ue_ref->set_mme_ue_s1ap_id(INVALID_MME_UE_S1AP_ID);
 
-    ue_ref->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-    ue_ref->s1ap_ue_context_rel_timer.msec =
-        1000 * S1AP_UE_CONTEXT_REL_COMP_TIMER;
+    ue_ref->mutable_s1ap_ue_context_rel_timer()->set_id(S1AP_TIMER_INACTIVE_ID);
+    ue_ref->mutable_s1ap_ue_context_rel_timer()->set_msec(
+        1000 * S1AP_UE_CONTEXT_REL_COMP_TIMER);
 
     // On which stream we received the message
-    ue_ref->sctp_stream_recv = stream;
-    ue_ref->sctp_stream_send = eNB_ref->next_sctp_stream;
+    ue_ref->set_sctp_stream_recv(stream);
+    ue_ref->set_sctp_stream_send(eNB_ref.next_sctp_stream());
 
     /*
      * Increment the sctp stream for the eNB association.
@@ -184,9 +187,9 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
      * TODO task#15456359.
      * Below logic seems to be incorrect , revisit it.
      */
-    eNB_ref->next_sctp_stream += 1;
-    if (eNB_ref->next_sctp_stream >= eNB_ref->instreams) {
-      eNB_ref->next_sctp_stream = 1;
+    eNB_ref.set_next_sctp_stream(eNB_ref.next_sctp_stream() + 1);
+    if (eNB_ref.next_sctp_stream() >= eNB_ref.instreams()) {
+      eNB_ref.set_next_sctp_stream(1);
     }
     // TAI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
@@ -210,7 +213,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
                                 ecgi.cell_identity);
 
     /** Set the ENB Id. */
-    ecgi.cell_identity.enb_id = eNB_ref->enb_id;
+    ecgi.cell_identity.enb_id = eNB_ref.enb_id();
 
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_e_tmsi,
                                container, S1ap_ProtocolIE_ID_id_S_TMSI, false);
@@ -247,7 +250,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
                                S1ap_ProtocolIE_ID_id_RRC_Establishment_Cause,
                                true);
     s1ap_mme_itti_s1ap_initial_ue_message(
-        assoc_id, eNB_ref->enb_id, ue_ref->enb_ue_s1ap_id,
+        assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
         ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
         &ecgi, ie_cause->value.choice.RRC_Establishment_Cause,
         ie_e_tmsi ? &s_tmsi : NULL, ie_csg_id ? &csg_id : NULL,
@@ -260,28 +263,29 @@ status_code_e s1ap_mme_handle_initial_ue_message(s1ap_state_t* state,
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;
     s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-    s1ap_imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id, &imsi64);
+    s1ap_imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
     OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
         "Initial UE Message- Duplicate ENB_UE_S1AP_ID. Ignoring the "
         "message, eNB UE S1AP ID:" ENB_UE_S1AP_ID_FMT
         "\n, mme UE s1ap ID: " MME_UE_S1AP_ID_FMT "UE state %u",
-        enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, ue_ref->s1_ue_state);
+        enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id(), ue_ref->s1ap_ue_state());
   }
+  s1ap_state_update_enb_map(state, eNB_ref.sctp_assoc_id(), &eNB_ref);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_handle_uplink_nas_transport(
-    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    oai::S1apState* state, const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
   S1ap_UplinkNASTransport_t* container = NULL;
   S1ap_UplinkNASTransport_IEs_t *ie, *ie_nas_pdu = NULL;
-  ue_description_t* ue_ref = NULL;
-  enb_description_t* enb_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
+  oai::EnbDescription enb_ref;
   tai_t tai = {0};
   ecgi_t ecgi = {.plmn = {0}, .cell_identity = {0}};
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
@@ -298,8 +302,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
                              S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t)ie->value.choice.MME_UE_S1AP_ID;
 
-  enb_ref = s1ap_state_get_enb(state, assoc_id);
-  if (enb_ref == NULL) {
+  if ((s1ap_state_get_enb(state, assoc_id, &enb_ref)) != PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "No eNB reference exists for association id %d\n",
                  assoc_id);
     return RETURNerror;
@@ -310,7 +313,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
 
-    if (!(ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id,
+    if (!(ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(),
                                            enb_ue_s1ap_id))) {
       OAILOG_WARNING(
           LOG_S1AP,
@@ -341,12 +344,12 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
       /* If UE context doesn't exist for received mme_ue_s1ap_id
        * remove the corresponding enb_ue_s1ap_id_key entry in mme_app
        */
-      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
+      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref.enb_id());
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
 
-  if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
+  if (ue_ref->s1ap_ue_state() != oai::S1AP_UE_CONNECTED) {
     OAILOG_WARNING(LOG_S1AP,
                    "Received S1AP UPLINK_NAS_TRANSPORT while UE in state != "
                    "S1AP_UE_CONNECTED\n");
@@ -377,7 +380,7 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
   BIT_STRING_TO_CELL_IDENTITY(&ie->value.choice.EUTRAN_CGI.cell_ID,
                               ecgi.cell_identity);
   // set the eNB ID
-  ecgi.cell_identity.enb_id = enb_ref->enb_id;
+  ecgi.cell_identity.enb_id = enb_ref.enb_id();
   // TODO optional GW Transport Layer Address
 
   bstring b = blk2bstr(ie_nas_pdu->value.choice.NAS_PDU.buf,
@@ -387,14 +390,14 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
+status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
                                                __attribute__((unused))
                                                sctp_assoc_id_t assoc_id,
                                                sctp_stream_id_t stream,
                                                S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
   S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu = NULL;
-  ue_description_t* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   imsi64_t imsi64 = INVALID_IMSI64;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
@@ -444,7 +447,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
                 " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
                 mme_ue_s1ap_id, enb_ue_s1ap_id);
 
-  if ((ue_ref = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+  if ((ue_ref = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == nullptr) {
     OAILOG_DEBUG(LOG_S1AP,
                  "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
                  "\n",
@@ -455,7 +458,7 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
-  if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
+  if (ue_ref->s1ap_ue_state() != oai::S1AP_UE_CONNECTED) {
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "Received S1AP NAS_NON_DELIVERY_INDICATION while UE in state != "
@@ -472,10 +475,10 @@ status_code_e s1ap_mme_handle_nas_non_delivery(s1ap_state_t* state,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_downlink_nas_transport(
-    s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    oai::S1apState* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const imsi64_t imsi64, bool* is_state_same) {
-  ue_description_t* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t sctp_assoc_id = 0;
@@ -484,11 +487,12 @@ status_code_e s1ap_generate_downlink_nas_transport(
   OAILOG_FUNC_IN(LOG_S1AP);
 
   // Try to retrieve SCTP association id using mme_ue_s1ap_id
-  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
-      magma::PROTO_MAP_OK) {
-    enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
-    if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
+  if ((mmeid2associd_map.get(ue_id, &sctp_assoc_id)) == magma::PROTO_MAP_OK) {
+    oai::EnbDescription enb_ref;
+    if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) == PROTO_MAP_OK) {
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
     } else {
       OAILOG_ERROR(LOG_S1AP, "No eNB for SCTP association id %d \n",
                    sctp_assoc_id);
@@ -535,14 +539,14 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
     out = &pdu.choice.initiatingMessage.value.choice.DownlinkNASTransport;
 
-    if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
+    if (ue_ref->s1ap_ue_state() == oai::S1AP_UE_WAITING_CRC) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
           "Already triggered UE Context Release Command and UE is"
-          "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
+          "in S1AP_UE_WAITING_CRC, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
-      ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+      ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
     }
     /*
      * Setting UE informations with the ones found in ue_ref
@@ -552,7 +556,7 @@ status_code_e s1ap_generate_downlink_nas_transport(
     ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_DownlinkNASTransport_IEs__value_PR_MME_UE_S1AP_ID;
-    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     /* mandatory */
@@ -561,7 +565,7 @@ status_code_e s1ap_generate_downlink_nas_transport(
     ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_DownlinkNASTransport_IEs__value_PR_ENB_UE_S1AP_ID;
-    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
     /* mandatory */
     ie = reinterpret_cast<S1ap_DownlinkNASTransport_IEs_t*>(
@@ -589,12 +593,12 @@ status_code_e s1ap_generate_downlink_nas_transport(
         "Send S1AP DOWNLINK_NAS_TRANSPORT message ue_id = " MME_UE_S1AP_ID_FMT
         " MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
         " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-        ue_id, ue_ref->mme_ue_s1ap_id, enb_ue_s1ap_id);
+        ue_id, ue_ref->mme_ue_s1ap_id(), enb_ue_s1ap_id);
     bstring b = blk2bstr(buffer_p, length);
     free(buffer_p);
-    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id,
-                                    ue_ref->sctp_stream_send,
-                                    ue_ref->mme_ue_s1ap_id);
+    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id(),
+                                    ue_ref->sctp_stream_send(),
+                                    ue_ref->mme_ue_s1ap_id());
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -602,20 +606,21 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1ap_e_rab_setup_req(
-    s1ap_state_t* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
+    oai::S1apState* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  ue_description_t* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t sctp_assoc_id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_setup_req->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
-  if ((state->mmeid2associd.get(ue_id, &sctp_assoc_id)) ==
-      magma::PROTO_MAP_OK) {
-    enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
-    if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
+  if ((mmeid2associd_map.get(ue_id, &sctp_assoc_id)) == magma::PROTO_MAP_OK) {
+    oai::EnbDescription enb_ref;
+    if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) == PROTO_MAP_OK) {
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
     }
   }
   // TODO remove soon:
@@ -649,7 +654,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     pdu.choice.initiatingMessage.value.present =
         S1ap_InitiatingMessage__value_PR_E_RABSetupRequest;
     out = &pdu.choice.initiatingMessage.value.choice.E_RABSetupRequest;
-    ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
     /*
      * Setting UE information with the ones found in ue_ref
      */
@@ -658,7 +663,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_E_RABSetupRequestIEs__value_PR_MME_UE_S1AP_ID;
-    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     /* mandatory */
@@ -667,7 +672,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_E_RABSetupRequestIEs__value_PR_ENB_UE_S1AP_ID;
-    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
     /*eNB
      * Fill in the NAS pdu
@@ -821,13 +826,13 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
         LOG_S1AP,
         "Send S1AP E_RABSetup message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
         " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-        (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id,
-        (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id);
+        (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id(),
+        (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id());
     bstring b = blk2bstr(buffer_p, length);
     free(buffer_p);
-    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id,
-                                    ue_ref->sctp_stream_send,
-                                    ue_ref->mme_ue_s1ap_id);
+    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id(),
+                                    ue_ref->sctp_stream_send(),
+                                    ue_ref->mme_ue_s1ap_id());
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -835,7 +840,7 @@ status_code_e s1ap_generate_s1ap_e_rab_setup_req(
 
 //------------------------------------------------------------------------------
 void s1ap_handle_conn_est_cnf(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_mme_app_connection_establishment_cnf_t* const conn_est_cnf_pP,
     imsi64_t imsi64) {
   /*
@@ -846,7 +851,7 @@ void s1ap_handle_conn_est_cnf(
   uint8_t* buffer_p = NULL;
   uint8_t err = 0;
   uint32_t length = 0;
-  ue_description_t* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
   S1ap_UEAggregate_MaximumBitrates_ExtIEs_t* ie_ambrext = NULL;
@@ -892,7 +897,7 @@ void s1ap_handle_conn_est_cnf(
   ie->criticality = S1ap_Criticality_reject;
   ie->value.present =
       S1ap_InitialContextSetupRequestIEs__value_PR_MME_UE_S1AP_ID;
-  ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+  ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id();
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -902,7 +907,7 @@ void s1ap_handle_conn_est_cnf(
   ie->criticality = S1ap_Criticality_reject;
   ie->value.present =
       S1ap_InitialContextSetupRequestIEs__value_PR_ENB_UE_S1AP_ID;
-  ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+  ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id();
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -1148,13 +1153,13 @@ void s1ap_handle_conn_est_cnf(
       LOG_S1AP, imsi64,
       "Send S1AP_INITIAL_CONTEXT_SETUP_REQUEST message MME_UE_S1AP_ID "
       "= " MME_UE_S1AP_ID_FMT " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-      (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id,
-      (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id);
+      (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id(),
+      (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id());
   bstring b = blk2bstr(buffer_p, length);
   free(buffer_p);
-  s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id,
-                                  ue_ref->sctp_stream_send,
-                                  ue_ref->mme_ue_s1ap_id);
+  s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id(),
+                                  ue_ref->sctp_stream_send(),
+                                  ue_ref->mme_ue_s1ap_id());
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -1174,78 +1179,89 @@ void send_dereg_ind_to_mme_app(enb_ue_s1ap_id_t enb_ue_s1ap_id,
 }
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
-    s1ap_state_t* state,
+    oai::S1apState* state,
     const itti_mme_app_s1ap_mme_ue_id_notification_t* const notification_p) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
   if (notification_p == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "notification_p is NULL\n");
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
   sctp_assoc_id_t sctp_assoc_id = notification_p->sctp_assoc_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = notification_p->enb_ue_s1ap_id;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = notification_p->mme_ue_s1ap_id;
 
-  enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
-  if (enb_ref) {
-    ue_description_t* ue_ref =
-        s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
-    if (ue_ref) {
-      if (enb_ref->s1_state == S1AP_RESETING) {
-        send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id,
-                                  enb_ref->enb_id);
-        return;
-      }
-      ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
-      magma::proto_map_rc_t rc =
-          state->mmeid2associd.insert(mme_ue_s1ap_id, sctp_assoc_id);
-
-      enb_ref->ue_id_coll.insert((const hash_key_t)mme_ue_s1ap_id,
-                                 ue_ref->comp_s1ap_id);
-
-      OAILOG_DEBUG(LOG_S1AP,
-                   "Num elements in ue_id_coll %lu and num ue associated %u",
-                   enb_ref->ue_id_coll.size(), enb_ref->nb_ue_associated);
-
-      OAILOG_DEBUG(
-          LOG_S1AP,
-          "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-          ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
-          sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
-          magma::map_rc_code2string(rc));
-      return;
-    }
-    OAILOG_DEBUG(LOG_S1AP,
-                 "Could not find  ue  with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+  oai::EnbDescription enb_ref;
+  if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB with sctp_assoc_id %u ",
+                 sctp_assoc_id);
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+  oai::UeDescription* ue_ref =
+      s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
+  if (!ue_ref) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Could not find ue with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
                  "\n",
                  enb_ue_s1ap_id);
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
-  OAILOG_DEBUG(LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n",
-               sctp_assoc_id);
 
+  if (enb_ref.s1_enb_state() == oai::S1AP_RESETING) {
+    send_dereg_ind_to_mme_app(enb_ue_s1ap_id, mme_ue_s1ap_id, enb_ref.enb_id());
+    OAILOG_INFO(LOG_S1AP,
+                "Received mme_ue_s1ap_id notification while enb is in "
+                "S1AP_RESETING state");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+
+  ue_ref->set_mme_ue_s1ap_id(mme_ue_s1ap_id);
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
+  magma::proto_map_rc_t rc =
+      mmeid2associd_map.insert(mme_ue_s1ap_id, sctp_assoc_id);
+
+  magma::proto_map_uint32_uint64_t ue_id_coll;
+  ue_id_coll.map = enb_ref.mutable_ue_id_map();
+  ue_id_coll.insert(mme_ue_s1ap_id, ue_ref->comp_s1ap_id());
+  s1ap_state_update_enb_map(state, sctp_assoc_id, &enb_ref);
+
+  OAILOG_DEBUG(LOG_S1AP,
+               "Num elements in ue_id_coll %lu and num ue associated %u",
+               ue_id_coll.size(), enb_ref.nb_ue_associated());
+
+  OAILOG_DEBUG(LOG_S1AP,
+               "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+               ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
+               sctp_assoc_id, enb_ue_s1ap_id, mme_ue_s1ap_id,
+               magma::map_rc_code2string(rc));
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
-    s1ap_state_t* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
+    oai::S1apState* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  ue_description_t* ue_ref = NULL;
+  oai::UeDescription* ue_ref = nullptr;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   uint32_t id = 0;
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
 
-  state->mmeid2associd.get(ue_id, &id);
+  proto_map_uint32_uint32_t mmeid2associd_map;
+  mmeid2associd_map.map = state->mutable_mmeid2associd();
+  mmeid2associd_map.get(ue_id, &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t)id;
-    enb_description_t* enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
-    if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(enb_ref->sctp_assoc_id, enb_ue_s1ap_id);
+    oai::EnbDescription enb_ref;
+    if ((s1ap_state_get_enb(state, sctp_assoc_id, &enb_ref)) != PROTO_MAP_OK) {
+      OAILOG_ERROR(LOG_S1AP, "Could not find eNB with sctp_assoc_id %u ",
+                   sctp_assoc_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
+    ue_ref = s1ap_state_get_ue_enbid(enb_ref.sctp_assoc_id(), enb_ue_s1ap_id);
   }
   if (!ue_ref) {
     ue_ref = s1ap_state_get_ue_mmeid(ue_id);
@@ -1286,7 +1302,7 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_MME_UE_S1AP_ID;
-    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
     /* mandatory */
     ie = (S1ap_E_RABReleaseCommandIEs_t*)calloc(
@@ -1294,9 +1310,9 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
     ie->criticality = S1ap_Criticality_reject;
     ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_ENB_UE_S1AP_ID;
-    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id();
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+    ue_ref->set_s1ap_ue_state(oai::S1AP_UE_CONNECTED);
 
     ie = (S1ap_E_RABReleaseCommandIEs_t*)calloc(
         1, sizeof(S1ap_E_RABReleaseCommandIEs_t));
@@ -1357,14 +1373,17 @@ status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
                   "Send S1AP E_RABRelease Command message MME_UE_S1AP_ID "
                   "= " MME_UE_S1AP_ID_FMT
                   " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-                  (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id,
-                  (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id);
+                  (mme_ue_s1ap_id_t)ue_ref->mme_ue_s1ap_id(),
+                  (enb_ue_s1ap_id_t)ue_ref->enb_ue_s1ap_id());
     bstring b = blk2bstr(buffer_p, length);
     free(buffer_p);
-    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id,
-                                    ue_ref->sctp_stream_send,
-                                    ue_ref->mme_ue_s1ap_id);
+    s1ap_mme_itti_send_sctp_request(&b, ue_ref->sctp_assoc_id(),
+                                    ue_ref->sctp_stream_send(),
+                                    ue_ref->mme_ue_s1ap_id());
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
+}  // namespace lte
+}  // namespace magma

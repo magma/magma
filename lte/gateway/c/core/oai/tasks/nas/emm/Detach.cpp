@@ -555,8 +555,8 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
                         (time_out_t)mme_app_handle_detach_t3422_expiry);
       } else {
-        nw_detach_data_t* data =
-            (nw_detach_data_t*)calloc(1, sizeof(nw_detach_data_t));
+        nw_detach_data_t* data = reinterpret_cast<nw_detach_data_t*>(
+            calloc(1, sizeof(nw_detach_data_t)));
         if (!data) {
           OAILOG_ERROR_UE(
               LOG_NAS_EMM, emm_ctx->_imsi64,

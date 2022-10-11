@@ -56,11 +56,10 @@ class TestAttachDetachWithMobilitydRestart(unittest.TestCase):
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
             print('************************* Restarting mobilityd')
-            self._s1ap_wrapper.magmad_util.restart_services(['mobilityd'])
-            # Timeout for mobilityd restart
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                sleep(1)
+            wait_for_restart = 30
+            self._s1ap_wrapper.magmad_util.restart_services(
+                ["mobilityd"], wait_for_restart,
+            )
 
             print(
                 "************************* Running UE detach for UE id ",

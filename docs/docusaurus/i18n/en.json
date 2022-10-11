@@ -1991,6 +1991,105 @@
       },
       "version-1.7.0/resources/version-1.7.0-ref_pcap": {
         "title": "PCAP Collection"
+      },
+      "version-1.8.0/basics/version-1.8.0-prerequisites": {
+        "title": "Prerequisites"
+      },
+      "version-1.8.0/basics/version-1.8.0-quick_start_guide": {
+        "title": "Quick Start Guide"
+      },
+      "version-1.8.0/cwf/version-1.8.0-dev_testing": {
+        "title": "Test CWAG"
+      },
+      "version-1.8.0/feg/version-1.8.0-deploy_build": {
+        "title": "Build FeG"
+      },
+      "version-1.8.0/feg/version-1.8.0-deploy_install": {
+        "title": "Install FeG"
+      },
+      "version-1.8.0/feg/version-1.8.0-s1ap_federated_tests": {
+        "title": "S1AP Federated Integration Tests"
+      },
+      "version-1.8.0/general/version-1.8.0-aws_cloudstrapper": {
+        "title": "AWS Cloudstrapper Install"
+      },
+      "version-1.8.0/howtos/version-1.8.0-inbound_roaming": {
+        "title": "Inbound Roaming"
+      },
+      "version-1.8.0/howtos/version-1.8.0-network_probe": {
+        "title": "Network Probe"
+      },
+      "version-1.8.0/howtos/troubleshooting/version-1.8.0-datapath_connectivity": {
+        "title": "Debugging AGW datapath issues"
+      },
+      "version-1.8.0/lte/version-1.8.0-architecture_overview": {
+        "title": "Overview"
+      },
+      "version-1.8.0/lte/version-1.8.0-build_install_magma_pkg_in_agw": {
+        "title": "Build and install a magma package in AGW"
+      },
+      "version-1.8.0/lte/version-1.8.0-deploy_install_docker": {
+        "title": "Install Docker AGW"
+      },
+      "version-1.8.0/lte/version-1.8.0-deploy_install": {
+        "title": "Install AGW"
+      },
+      "version-1.8.0/lte/version-1.8.0-dev_notes": {
+        "title": "Developer Notes"
+      },
+      "version-1.8.0/lte/version-1.8.0-dev_unit_testing": {
+        "title": "Test AGW"
+      },
+      "version-1.8.0/lte/version-1.8.0-extended_5G_sa_features": {
+        "title": "Extended 5G SA Features"
+      },
+      "version-1.8.0/lte/version-1.8.0-pipelined": {
+        "title": "Pipelined"
+      },
+      "version-1.8.0/lte/version-1.8.0-s1ap_tests": {
+        "title": "S1AP Integration Tests"
+      },
+      "version-1.8.0/lte/version-1.8.0-suci_extensions": {
+        "title": "SUCI Extensions"
+      },
+      "version-1.8.0/nms/version-1.8.0-nms_arch_overview": {
+        "title": "Overview"
+      },
+      "version-1.8.0/nms/version-1.8.0-dev_components": {
+        "title": "Components"
+      },
+      "version-1.8.0/nms/version-1.8.0-dev_spacing": {
+        "title": "Spacing Guidelines"
+      },
+      "version-1.8.0/nms/version-1.8.0-dev_testing": {
+        "title": "Test NMS"
+      },
+      "version-1.8.0/nms/version-1.8.0-nms_organizations": {
+        "title": "Multitenancy (Organizations)"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-deploy_install": {
+        "title": "Install Orchestrator"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-deploy_intro": {
+        "title": "Introduction"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju (Beta)"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-dev_build": {
+        "title": "Build Orchestrator"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-dev_gateway_registration": {
+        "title": "Gateway Registration"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-dev_minikube": {
+        "title": "Deploy on Minikube"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-dev_rest_api_auth": {
+        "title": "REST API Auth"
+      },
+      "version-1.8.0/proposals/version-1.8.0-p014_proposal_process": {
+        "title": "Magma Proposals"
       }
     },
     "links": {
