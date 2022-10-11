@@ -22,10 +22,11 @@ import threading
 import time
 from enum import Enum
 from queue import Empty, Queue
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import grpc
 import s1ap_types
+from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.gateway.rpc import get_rpc_channel
 from integ_tests.s1aptests.ovs.rest_api import (
     get_datapath,
@@ -847,12 +848,12 @@ class MagmadUtil(object):
 
     _init_system = None
 
-    def __init__(self, magmad_client):
+    def __init__(self, magmad_client: MagmadServiceGrpc):
         """
         Init magmad util.
 
         Args:
-            magmad_client: MagmadServiceClient
+            magmad_client: MagmadServiceGrpc
         """
         self._magmad_client = magmad_client
 
@@ -948,7 +949,7 @@ class MagmadUtil(object):
             "either in Docker or systemd",
         )
 
-    def _is_installed(self, cmd):
+    def _is_installed(self, cmd: str):
         """Check if a command is installed on the system."""
         is_installed = self.exec_command(f"type {cmd} >/dev/null 2>&1") == 0
         if not is_installed:
@@ -959,7 +960,7 @@ class MagmadUtil(object):
     def init_system(self):
         return self._init_system
 
-    def config_stateless(self, cmd):
+    def config_stateless(self, cmd: stateless_cmds):
         """
         Configure the stateless mode on the access gateway
 
@@ -1047,7 +1048,7 @@ class MagmadUtil(object):
             time.sleep(WAIT_INTERVAL_SECONDS)
             wait_time_seconds += WAIT_INTERVAL_SECONDS
 
-    def restart_services(self, services, wait_time=0):
+    def restart_services(self, services: str, wait_time: int = 0):
         """
         Restart a list of magmad services.
         Hint:
@@ -1100,7 +1101,7 @@ class MagmadUtil(object):
 
         self.wait_for_restart_to_finish(wait_time)
 
-    def wait_for_restart_to_finish(self, wait_time):
+    def wait_for_restart_to_finish(self, wait_time: int):
         """wait for started services to become active or until timeout
 
         Args:
@@ -1123,7 +1124,7 @@ class MagmadUtil(object):
                     print("Timeout reached while waiting for services to restart")
                     return
 
-    def enable_services(self, services):
+    def enable_services(self, services: List[str]):
         """Enable a magma service on magma_dev VM and starts it
 
         Args:
@@ -1137,7 +1138,7 @@ class MagmadUtil(object):
             elif self._init_system == InitMode.DOCKER:
                 self.exec_command(f"docker start {service_name}")
 
-    def disable_services(self, services):
+    def disable_services(self, services: List[str]):
         """Disables a magma service on magma_dev VM, preventing from
         starting again
 
@@ -1188,7 +1189,7 @@ class MagmadUtil(object):
                 return False
         return True
 
-    def is_service_active(self, service) -> bool:
+    def is_service_active(self, service: str) -> bool:
         """Check if a magma service on magma_dev VM is active
 
         Args:
@@ -1217,7 +1218,7 @@ class MagmadUtil(object):
             )
         return False
 
-    def check_service_activity(self, is_active_service_cmd):
+    def check_service_activity(self, is_active_service_cmd: str) -> str:
         try:
             result_str = self.exec_command_output(is_active_service_cmd)
         except subprocess.CalledProcessError as e:
@@ -1226,7 +1227,7 @@ class MagmadUtil(object):
             result_str = e.output
         return result_str
 
-    def get_service_name_from_init_system(self, service):
+    def get_service_name_from_init_system(self, service: str) -> str:
         """Get the correct service name depending on the init system
 
         Args:
@@ -1245,8 +1246,10 @@ class MagmadUtil(object):
                 return "oai_mme"
             else:
                 return service
+        else:
+            return service
 
-    def update_mme_config_for_sanity(self, cmd):
+    def update_mme_config_for_sanity(self, cmd: config_update_cmds):
         """Update MME configuration for all sanity test cases"""
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
@@ -1287,7 +1290,7 @@ class MagmadUtil(object):
                 + " MME configuration. Error: Unknown error"
             )
 
-    def update_mme_config_for_non_sanity(self, cmd):
+    def update_mme_config_for_non_sanity(self, cmd: config_update_cmds):
         """Update mme config file to test non-sanity testcases
 
         Args:
@@ -1335,7 +1338,7 @@ class MagmadUtil(object):
                 + " MME configuration. Error: Unknown error",
             )
 
-    def config_apn_correction(self, cmd):
+    def config_apn_correction(self, cmd: apn_correction_cmds):
         """Configure the apn correction mode on the access gateway
 
         Args:
@@ -1392,7 +1395,7 @@ class MagmadUtil(object):
                 self.enable_services([magma_health_service_name])
             print("Health service is enabled")
 
-    def config_ha_service(self, cmd):
+    def config_ha_service(self, cmd: ha_service_cmds) -> int:
         """
         Modify the mme configuration by enabling/disabling use of Ha service
 
@@ -1468,7 +1471,7 @@ class MagmadUtil(object):
             mme_ueip_imsi_map_entries,
         )
 
-    def is_redis_empty(self):
+    def is_redis_empty(self) -> bool:
         """
         Check that the per-IMSI state in Redis data store on AGW is empty
         """
@@ -1480,7 +1483,7 @@ class MagmadUtil(object):
             num_htbl_entries == 0 and \
             s1ap_imsi_map_entries == 0
 
-    def get_redis_state(self):
+    def get_redis_state(self) -> Tuple[List[str], int, int, int]:
         """
         Get the per-IMSI state in Redis data store on AGW
         """
@@ -1524,7 +1527,7 @@ class MagmadUtil(object):
         return keys_to_be_cleaned, mme_ueip_imsi_map_entries, \
             num_htbl_entries, s1ap_imsi_map_entries
 
-    def enable_nat(self, ip_version=4):
+    def enable_nat(self, ip_version: int = 4):
         """Enable Nat"""
         self._set_agw_nat(True)
         self._validate_nated_datapath(ip_version)
@@ -1539,7 +1542,7 @@ class MagmadUtil(object):
                 "sudo ip route add default via 2020::10 dev eth0",
             )
 
-    def disable_nat(self, ip_version=4):
+    def disable_nat(self, ip_version: int = 4):
         """
         Disable Nat
 
@@ -1590,21 +1593,21 @@ class MagmadUtil(object):
 
         self.restart_all_services()
 
-    def _validate_non_nat_datapath(self, ip_version=4):
+    def _validate_non_nat_datapath(self, ip_version: int = 4):
         # validate SGi interface is part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
         iface = "eth2" if ip_version == 4 else "eth3"
         assert iface in str(out1)
         print("NAT is disabled")
 
-    def _validate_nated_datapath(self, ip_version=4):
+    def _validate_nated_datapath(self, ip_version: int = 4):
         # validate SGi interface is not part of uplink-bridge.
         out1 = self.exec_command_output("sudo ovs-vsctl list-ports uplink_br0")
         iface = "eth2" if ip_version == 4 else "eth3"
         assert iface not in str(out1)
         print("NAT is enabled")
 
-    def config_ipv6_iface(self, cmd):
+    def config_ipv6_iface(self, cmd: config_ipv6_iface_cmds):
         """
         Configure eth3 interface for ipv6 data on the access gateway
 
