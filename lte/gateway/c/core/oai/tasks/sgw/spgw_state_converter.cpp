@@ -233,8 +233,7 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
 
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
-      auto* eps_bearer_entry =
-          (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      auto* eps_bearer_entry = new sgw_eps_bearer_ctxt_t();
       proto_to_sgw_eps_bearer(proto.eps_bearer_list(i), eps_bearer_entry);
       state_pdn->sgw_eps_bearers_array[i] = eps_bearer_entry;
     }
@@ -937,8 +936,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
     const oai::PgwCbrProcedure& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s*
         pending_procedures) {
-  pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      (pgw_ni_cbr_proc_t*)calloc(1, sizeof(pgw_ni_cbr_proc_t));
+  pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
   s11_proc_create_bearer->teid = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t)proto.sdf_id();
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -946,17 +944,15 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      (struct pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
-          1, sizeof(*s11_proc_create_bearer->pending_eps_bearers));
+      new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
   for (auto& eps_bearer_proto : proto.pending_eps_bearers()) {
-    sgw_eps_bearer_ctxt_t* eps_bearer =
-        (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    sgw_eps_bearer_ctxt_t* eps_bearer = new sgw_eps_bearer_ctxt_t();
+
     proto_to_sgw_eps_bearer(eps_bearer_proto, eps_bearer);
 
     sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_wrapper =
-        (sgw_eps_bearer_entry_wrapper_t*)calloc(
-            1, sizeof(*sgw_eps_bearer_entry_wrapper));
+        new sgw_eps_bearer_entry_wrapper_t();
     sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry = eps_bearer;
     LIST_INSERT_HEAD((s11_proc_create_bearer->pending_eps_bearers),
                      sgw_eps_bearer_entry_wrapper, entries);

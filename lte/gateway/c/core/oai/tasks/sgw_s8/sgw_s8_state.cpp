@@ -19,10 +19,10 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
@@ -65,6 +65,6 @@ void sgw_free_s11_bearer_context_information(
     sgw_free_pdn_connection(&(*sgw_eps_context)->pdn_connection);
     delete_pending_procedures((*sgw_eps_context));
   }
-  free_wrapper((void**)sgw_eps_context);
+  free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_context));
   return;
 }

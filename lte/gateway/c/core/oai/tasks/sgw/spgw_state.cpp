@@ -97,7 +97,7 @@ void spgw_free_s11_bearer_context_information(void** ptr) {
       delete_pending_procedures(
           &(context_p->sgw_eps_bearer_context_information));
 
-      free_cpp_wrapper((void**)ptr);
+      free_cpp_wrapper(reinterpret_cast<void**>(ptr));
     }
   }
 }
@@ -120,7 +120,7 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
       free_wrapper(
           reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
     }
-    free_wrapper((void**)sgw_eps_bearer_ctxt);
+    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
   }
 }
 
@@ -149,7 +149,7 @@ void sgw_free_ue_context(void** ptr) {
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       LIST_REMOVE(p1, entries);
-      free_cpp_wrapper((void**)&p1);
+      free_cpp_wrapper(reinterpret_cast<void**>(&p1));
       p1 = p2;
     }
     free_cpp_wrapper(ptr);

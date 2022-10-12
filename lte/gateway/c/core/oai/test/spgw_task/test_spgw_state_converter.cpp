@@ -118,7 +118,7 @@ TEST(SPGWStateConverterTest, TestUEContextConversion) {
     EXPECT_TRUE(!memcmp(&want_sgw.last_known_cell_Id,
                         &got_sgw.last_known_cell_Id,
                         sizeof(want_sgw.last_known_cell_Id)));
-    sgw_free_ue_context((void**)&final_ctx);
+    sgw_free_ue_context(reinterpret_cast<void**>(&final_ctx));
   }
 }
 }  // namespace lte

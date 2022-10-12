@@ -97,7 +97,7 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_cpp_wrapper((void**)&p1);
+        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
         break;
       }
       p1 = LIST_NEXT(p1, entries);
@@ -186,8 +186,7 @@ sgw_create_bearer_context_information_in_collection(
 
   *temporary_create_session_procedure_id_p = (uint32_t)rand();
   sgw_eps_bearer_context_information_t* new_sgw_bearer_context_information =
-      reinterpret_cast<sgw_eps_bearer_context_information_t*>(
-          calloc(1, sizeof(sgw_eps_bearer_context_information_t)));
+      new sgw_eps_bearer_context_information_t();
 
   if (new_sgw_bearer_context_information == NULL) {
     OAILOG_ERROR(
@@ -226,7 +225,7 @@ int sgw_update_bearer_context_information_on_csreq(
     sgw_eps_bearer_context_information_t* new_sgw_eps_context,
     itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
   memcpy(new_sgw_eps_context->imsi.digit, session_req_pP->imsi.digit,
          IMSI_BCD_DIGITS_MAX);
   new_sgw_eps_context->imsi.length = session_req_pP->imsi.length;
@@ -251,7 +250,7 @@ int sgw_update_bearer_context_information_on_csreq(
 
   eps_bearer_ctxt_p = sgw_cm_create_eps_bearer_ctxt_in_collection(
       &new_sgw_eps_context->pdn_connection, csr_bearer_context->eps_bearer_id);
-  if (eps_bearer_ctxt_p == NULL) {
+  if (eps_bearer_ctxt_p == nullptr) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                     "Failed to create new EPS bearer entry\n");
     increment_counter("sgw_s8_create_session", 1, 2, "result", "failure",
@@ -1466,7 +1465,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
       }
       // Remove the temporary spgw entry
       LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
-      free_wrapper((void**)&sgw_eps_bearer_entry_p);
+      free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
       break;
     }
     sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1474,8 +1473,10 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   if (pgw_ni_cbr_proc && (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
     pgw_base_proc_t* base_proc1 = LIST_FIRST(sgw_context_p->pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_cpp_wrapper((void**)&sgw_context_p->pending_procedures);
-    free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
