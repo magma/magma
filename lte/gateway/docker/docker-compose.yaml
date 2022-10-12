@@ -230,6 +230,7 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+      start_period: "10s"
     ulimits:
       core: -1
     security_opt:
