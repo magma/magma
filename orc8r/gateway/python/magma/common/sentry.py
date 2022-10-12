@@ -22,6 +22,8 @@ from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.mconfig import mconfigs_pb2
 from sentry_sdk.integrations.redis import RedisIntegration
 
+PATH_INTEG_TEST_NAME = "/etc/magma/integ_test_name"
+
 Event = Dict[str, Any]
 Hint = Dict[str, Any]
 SentryHook = Callable[[Event, Hint], Optional[Event]]
@@ -93,19 +95,17 @@ def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -
     return SharedSentryConfig(dsn, sample_rate, exclusion_patterns)
 
 
-def _force_fingerprint_to_integ_test_name(event: Event) -> Event:
-    with open("/etc/magma/integ_test_name", 'r') as f:
+def _add_integ_test_name_to_tags(event: Event) -> Event:
+    with open(PATH_INTEG_TEST_NAME, 'r') as f:
         test_name = f.read()
-        logging.error(f"XXXXXXXXXXX {test_name}")
-        logging.error(f"EEEEEEEE  {event}")
-        event['fingerprint'] = [test_name]
+        event['tags']['integ_test_name'] = test_name
     return event
 
 
 def _ignore_if_marked(event: Event) -> Optional[Event]:
     if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(EXCLUDE_FROM_ERROR_MONITORING_KEY):
         return None
-    return _force_fingerprint_to_integ_test_name(event)
+    return _add_integ_test_name_to_tags(event)
 
 
 def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: List[str]) -> Optional[Event]:
@@ -119,14 +119,14 @@ def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: Lis
 
     messages = [msg for msg in (explicit_message, log_message, exception_message) if msg]
     if not messages:
-        return _force_fingerprint_to_integ_test_name(event)
+        return _add_integ_test_name_to_tags(event)
 
     for pattern in patterns_to_exclude:
         for message in messages:
             if re.search(pattern, message):
                 return None
 
-    return _force_fingerprint_to_integ_test_name(event)
+    return _add_integ_test_name_to_tags(event)
 
 
 def _get_before_send_hook(patterns_to_exclude: List[str]) -> SentryHook:
