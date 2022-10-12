@@ -77,9 +77,7 @@ class TestTauTaUpdatingConnectedMode(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value
             tau_acc = response.cast(s1ap_types.ueTauAccept_t)
             print(
                 "************************* Received Tracking Area Update ",

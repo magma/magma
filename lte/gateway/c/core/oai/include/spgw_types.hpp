@@ -81,7 +81,7 @@ typedef struct sgw_s11_teid_s {
   LIST_ENTRY(sgw_s11_teid_s) entries;
 } sgw_s11_teid_t;
 
-// Map- Key:teid of uint32_t ,
+// Map- Key:teid (uint32_t) ,
 // Data:s_plus_p_gw_eps_bearer_context_information_s*
 typedef magma::proto_map_s<uint32_t,
                            struct s_plus_p_gw_eps_bearer_context_information_s*>

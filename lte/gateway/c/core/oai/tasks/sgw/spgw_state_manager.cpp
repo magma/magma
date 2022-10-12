@@ -80,10 +80,6 @@ void SpgwStateManager::create_state() {
          &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
          sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
 
-  // Creating PGW related state structs
-  state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
-      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
-
   state_cache_p->gtpv1u_teid = 0;
 }
 
@@ -102,10 +98,6 @@ void SpgwStateManager::free_state() {
 
   if (state_teid_map.destroy_map() != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_teid_map");
-  }
-
-  if (state_cache_p->deactivated_predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->deactivated_predefined_pcc_rules);
   }
 
   free_wrapper((void**)&state_cache_p);

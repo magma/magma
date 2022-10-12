@@ -28,6 +28,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -38,9 +39,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
@@ -48,7 +49,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -425,7 +426,7 @@ status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
   ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, "EPS BEARER DEACTIVATE T3495 Timer");
+      ue_id, const_cast<char*>("EPS BEARER DEACTIVATE T3495 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

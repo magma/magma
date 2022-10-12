@@ -40,15 +40,15 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

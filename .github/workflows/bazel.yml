@@ -23,8 +23,9 @@ on:
       - master
 
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-4a878d8"
-  CACHE_KEY: bazel-base-image
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  # see GH14041
+  CACHE_KEY: bazel-base-image-sha-c4de1e5
   REMOTE_DOWNLOAD_OPTIMIZATION: true
 
 concurrency:
@@ -84,7 +85,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -229,7 +230,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -280,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Execute check
         shell: bash
         run: |
@@ -302,7 +303,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Execute check
         shell: bash
         run: |

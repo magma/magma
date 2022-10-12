@@ -214,10 +214,10 @@ func (srv *UESimServer) Disconnect(ctx context.Context, id *cwfprotos.Disconnect
 // GenTraffic generates traffic using a remote iperf server. The command to be sent is configured using GenTrafficRequest
 // Note that GenTrafficRequest have parameter that configures iperf client itself, and parameters that configure UESim
 // Configuration parameters related to the UESim client itself (not iperf) are:
-// - timeout: if different than 0 stops iperf externally after n seconds. Use it to avoid the test to hang on a unreachable server
-// 	 If the test timesout it will be counted as an error. By default this is 0 (DISABLED)
-// - disableServerReachabilityCheck: enables/disables the function to request the server to send the UE small packets to check if
-//   the server is alive. By default this is ENABLED
+//   - timeout: if different than 0 stops iperf externally after n seconds. Use it to avoid the test to hang on a unreachable server
+//     If the test timesout it will be counted as an error. By default this is 0 (DISABLED)
+//   - disableServerReachabilityCheck: enables/disables the function to request the server to send the UE small packets to check if
+//     the server is alive. By default this is ENABLED
 func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	if req == nil {
 		return &cwfprotos.GenTrafficResponse{}, fmt.Errorf("Nil GenTrafficRequest provided")

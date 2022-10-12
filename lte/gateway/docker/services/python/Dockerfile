@@ -38,34 +38,55 @@ ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-  wget \
-  ruby \
-  sudo \
-  ruby-dev \
   docker.io \
-  python3-pip \
+  git \
+  lsb-release \
+  libsystemd-dev \
+  libprotobuf-dev \
+  pkg-config \
   python3-dev \
   python3-eventlet \
-  python3-pystemd \
+  python3-pip \
   python3-protobuf \
-  git \
-  virtualenv \
-  lsb-release \
-  openjdk-8-jre-headless \
+  python3-pystemd \
+  ruby \
+  ruby-dev \
+  sudo \
   openjdk-8-jdk \
-  pkg-config \
-  libsystemd-dev \
-  libprotobuf-dev
+  openjdk-8-jre-headless \
+  virtualenv \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN gem install fpm
 
-COPY . $MAGMA_ROOT/
+COPY ./third_party/build/bin/aioeventlet_build.sh $MAGMA_ROOT/third_party/build/bin/aioeventlet_build.sh
+COPY ./third_party/build/lib/util.sh $MAGMA_ROOT/third_party/build/lib/util.sh
 WORKDIR /var/tmp/
 RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
-    dpkg -i python3-aioeventlet*
+  dpkg -i python3-aioeventlet*
 
 RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
+  wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
+
+COPY \
+    ./lte/gateway/python/Makefile \
+    ./lte/gateway/python/defs.mk \
+    ./lte/gateway/python/setup.py \
+    $MAGMA_ROOT/lte/gateway/python/
+COPY ./lte/gateway/python/load_tests $MAGMA_ROOT/lte/gateway/python/load_tests
+COPY ./lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
+COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
+COPY ./orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
+
+COPY ./protos $MAGMA_ROOT/protos
+COPY ./lte/protos $MAGMA_ROOT/lte/protos
+COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
+COPY ./feg/protos $MAGMA_ROOT/feg/protos
+COPY ./dp/protos $MAGMA_ROOT/dp/protos
+
+COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
+COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 
 WORKDIR /magma/lte/gateway/python
 RUN make buildenv
@@ -88,23 +109,26 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
+  docker.io \
+  ethtool \
+  inetutils-ping \
+  iproute2 \
+  iptables \
+  isc-dhcp-client \
+  linux-headers-generic \
+  net-tools \
   netcat \
-  sudo \
+  nghttp2-proxy \
   python3-pip \
   python3-venv \
-  virtualenv \
   python3-eventlet \
   python3-pystemd \
   python3-jinja2 \
-  nghttp2-proxy \
-  net-tools \
-  inetutils-ping \
   redis-server \
+  sudo \
+  virtualenv \
   wget \
-  ethtool \
-  linux-headers-generic \
-  iptables \
-  iproute2
+  && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv $VIRTUAL_ENV
 
@@ -117,25 +141,27 @@ RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
 
 RUN apt-get update && apt-get install -y \
-  td-agent-bit \
+  bcc-tools \
   libopenvswitch \
   openvswitch-datapath-dkms \
   openvswitch-common \
   openvswitch-switch \
-  bcc-tools \
-  wireguard
+  td-agent-bit \
+  wireguard \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY \
+    ./orc8r/gateway/python/scripts/ \
+    ./lte/gateway/python/scripts/ \
+    /usr/local/bin/
+COPY ./lte/gateway/configs/templates /etc/magma/templates/
+COPY ./lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
+COPY ./lte/gateway/python/magma /magma/lte/gateway/python/magma
+COPY ./orc8r/gateway/configs/templates/nghttpx.conf.template /etc/magma/templates/nghttpx.conf.template
+COPY ./orc8r/gateway/python/magma /magma/orc8r/gateway/python/magma
 
 COPY --from=builder /build /build
-COPY --from=builder /magma /magma
-COPY --from=builder /magma/orc8r/gateway/python/scripts/ /usr/local/bin
-COPY --from=builder /magma/lte/gateway/python/scripts/ /usr/local/bin
-COPY --from=builder /var/tmp/python3-aioeventlet* /var/tmp/
-COPY --from=builder /magma/lte/gateway/configs/templates /etc/magma/templates/
-COPY --from=builder /magma/orc8r/gateway/configs/templates/nghttpx.conf.template /etc/magma/templates/nghttpx.conf.template
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_service_config.py /usr/local/bin/generate_service_config.py
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_fluent_bit_config.py /usr/local/bin/generate_fluent_bit_config.py
-COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
+COPY --from=builder /var/tmp/python3-aioeventlet*.deb /var/tmp/
 
 RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
   dpkg -i /var/tmp/python3-aioeventlet* && \

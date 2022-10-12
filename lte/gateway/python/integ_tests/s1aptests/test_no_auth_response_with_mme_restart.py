@@ -56,33 +56,26 @@ class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
         # Wait for timer expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
             print("************************* Timeout", i + 1)
             print("********* Received Auth Req for ue", req.ue_id)
 
         print("************************* Timeouts complete")
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
         print("********* Received Attach Reject for ue", req.ue_id)
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("********* Received UE_CTX_REL_IND for ue", req.ue_id)
 
         print("************************* Restarting MME service on", "gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         print("****** Triggering attach after mme restart *********")
 
@@ -95,9 +88,7 @@ class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
 
         time.sleep(0.5)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_EMM_INFORMATION.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value
 
         print(
             "******************* Running UE detach (switch-off) for ",

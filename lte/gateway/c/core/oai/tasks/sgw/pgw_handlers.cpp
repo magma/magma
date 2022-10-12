@@ -325,7 +325,7 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
   status_code_e rc = RETURNok;
   state_teid_map_t* state_teid_map = nullptr;
   uint32_t num_elements = 0;
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = NULL;
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = nullptr;
   hash_node_t* node = NULL;
   bool is_lbi_found = false;
   bool is_imsi_found = false;
@@ -357,7 +357,7 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
        itr != state_teid_map->map->end(); itr++) {
     if (!is_lbi_found) {
       state_teid_map->get(itr->first, &spgw_ctxt_p);
-      if (spgw_ctxt_p != NULL) {
+      if (spgw_ctxt_p != nullptr) {
         if (!strcmp((const char*)spgw_ctxt_p->sgw_eps_bearer_context_information
                         .imsi.digit,
                     (const char*)bearer_req_p->imsi)) {

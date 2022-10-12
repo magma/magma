@@ -66,7 +66,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"

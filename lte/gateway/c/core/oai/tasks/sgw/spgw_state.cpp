@@ -124,18 +124,6 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
   }
 }
 
-void pgw_free_pcc_rule(void** rule) {
-  if (rule) {
-    auto* pcc_rule = (pcc_rule_t*)*rule;
-    if (pcc_rule) {
-      if (pcc_rule->name) {
-        bdestroy_wrapper(&pcc_rule->name);
-      }
-      free_wrapper(rule);
-    }
-  }
-}
-
 void sgw_free_ue_context(void** ptr) {
   if (!ptr) {
     OAILOG_ERROR(LOG_SPGW_APP,

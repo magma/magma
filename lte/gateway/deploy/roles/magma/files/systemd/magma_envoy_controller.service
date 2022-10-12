@@ -19,10 +19,8 @@ Before=magma_dp@envoy.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStartPre=/bin/bash /usr/local/bin/configure_envoy_namespace.sh setup
 ExecStart=/usr/local/bin/envoy_controller  --log_dir="/var/log"
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py envoy_controller
-ExecStopPost=/bin/bash /usr/local/bin/configure_envoy_namespace.sh destroy
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog

@@ -42,14 +42,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_pt.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_cause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

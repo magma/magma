@@ -23,13 +23,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH (0)

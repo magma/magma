@@ -54,8 +54,6 @@ TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
 OAI_TESTS ?= ".*"
-OAI_BENCHMARK_FLAGS = -DMME_BENCHMARK=True
-OAI_NOBENCHMARK_FLAGS = -DMME_BENCHMARK=False
 
 all: build
 
@@ -72,15 +70,9 @@ clean_python: ## Clean Python-only builds
 clean_envoy_controller: ## Clean envoy controller build
 	rm -rf  $(GO_BUILD)/envoy_controller
 
-start: ## Start all services
-	sudo service magma@magmad start
-
-stop: ## Stop all services
+run: build ## Build and run all services
 	sudo service magma@* stop
-
-restart: stop start ## Restart all services
-
-run: build restart ## Build and run all services
+	sudo service magma@magmad start
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
@@ -97,17 +89,15 @@ $(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
 cd $(2) && ctest --output-on-failure -R $(5)
 endef
 
-build_python: stop ## Build Python environment
+build_python: ## Build Python environment
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-benchmark_pb: ## Benchmark ProtoBuf, same build_oai but with -DMME_BENCHMARK=True
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_BENCHMARK_FLAGS))
-
 build_oai: ## Build OAI
-	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS))
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
 format_all:
 	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
@@ -137,10 +127,12 @@ build_envoy_controller: ## Build envoy controller
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
-test_python: stop ## Run all Python-specific tests
+test_python: ## Run all Python-specific tests
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_sudo_python: stop ## Run Python tests that require sudo (datapath, etc.)
+test_sudo_python: ## Run Python tests that require sudo (datapath, etc.)
+	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
 
 test_python_service: ## Run all Python-specific tests for a given service
@@ -150,7 +142,7 @@ endif
 	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 
 test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
 test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
@@ -159,7 +151,7 @@ test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
 test_oai_runtime: ## Run all OAI-specific tests with report about the running time
 	mkdir -p ${UNITTEST_REPORT_FOLDER}
 	mkdir -p ${MERGED_REPORT_FOLDER}
-	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS) $(OAI_NOBENCHMARK_FLAGS), $(OAI_TESTS))
+	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
 	rm ${UNITTEST_REPORT_FOLDER}/*.xml
 

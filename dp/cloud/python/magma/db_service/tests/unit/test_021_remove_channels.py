@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from magma.db_service.tests.alembic_testcase import AlembicTestCase
+from parameterized import parameterized
 from sqlalchemy import select
 from sqlalchemy.exc import NoSuchTableError
 
@@ -30,6 +31,15 @@ CHANNEL_DATA = {
     "low_frequency": 1,
     "high_frequency": 2,
     "max_eirp": 3.0,
+}
+INCOMPLETE_CHANNEL_DATA = {
+    "low_frequency": 1,
+    "high_frequency": 2,
+}
+CHANNEL_DATA_WITH_DEFAULT_MAX_EIRP = {
+    "low_frequency": 1,
+    "high_frequency": 2,
+    "max_eirp": 37,
 }
 
 
@@ -75,15 +85,18 @@ class TestRemoveChannelsUpgrade(TestRemoveChannels):
         data_after = self.engine.execute(cbsds.select()).mappings().one().get(CBSDS_CHANNELS_COLUMN)
         self.assertEqual(data_after, [])
 
-    def test_data_migrated(self):
+    @parameterized.expand([
+        (CHANNEL_DATA, CHANNEL_DATA),
+        (INCOMPLETE_CHANNEL_DATA, CHANNEL_DATA_WITH_DEFAULT_MAX_EIRP),
+    ])
+    def test_data_migrated(self, channel_data, expected_channel_data):
         # Given
         self._given_cbsd_created(id=CBSD_ID, state_id=TEST_STATE_ID, desired_state_id=TEST_STATE_ID)
 
         channels = self.get_table(CHANNELS_TABLE)
         self.given_resource_inserted(
-            channels, id=CHANNEL_ID, cbsd_id=CBSD_ID, channel_type='channel', rule_applied='rule', **CHANNEL_DATA,
+            channels, id=CHANNEL_ID, cbsd_id=CBSD_ID, channel_type='channel', rule_applied='rule', **channel_data,
         )
-        data_before = [CHANNEL_DATA]
 
         # When
         self.upgrade()
@@ -92,7 +105,7 @@ class TestRemoveChannelsUpgrade(TestRemoveChannels):
         cbsds = self.get_table(CBSDS_TABLE)
         data_after = self.engine.execute(cbsds.select()).mappings().one().get(CBSDS_CHANNELS_COLUMN)
 
-        self.assertEqual(data_before, data_after, 'Data was not migrated')
+        self.assertEqual([expected_channel_data], data_after, 'Data was not migrated')
 
 
 class TestRemoveChannelsDowngrade(TestRemoveChannels):

@@ -15,13 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_UPLINK_NAS_TRANSPORT_SEEN
-#define FILE_UPLINK_NAS_TRANSPORT_SEEN
+#pragma once
+
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -54,4 +54,3 @@ int decode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
 
 int encode_uplink_nas_transport(uplink_nas_transport_msg* uplinknastransport,
                                 uint8_t* buffer, uint32_t len);
-#endif /* ! defined(FILE_UPLINK_NAS_TRANSPORT_SEEN) */

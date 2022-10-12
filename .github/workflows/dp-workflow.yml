@@ -31,13 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
-      am: ${{ steps.filter.outputs.am }}
       rc: ${{ steps.filter.outputs.rc }}
       db: ${{ steps.filter.outputs.db }}
       helm: ${{ steps.filter.outputs.helm }}
       integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: filter
@@ -49,14 +48,6 @@ jobs:
               - 'dp/cloud/docker/python/configuration_controller/**'
               - 'dp/cloud/python/magma/db_service/**'
               - 'dp/cloud/python/magma/fluentd_client/**'
-              - 'dp/protos/**'
-              - 'dp/cloud/go/protos/**'
-              - 'dp/cloud/go/active_mode_controller/protos'
-            am:
-              - '.github/workflows/dp-workflow.yml'
-              - 'dp/cloud/go/active_mode_controller/**'
-              - 'dp/cloud/docker/go/active_mode_controller/**'
-              - 'dp/cloud/python/magma/db_service/**'
               - 'dp/protos/**'
               - 'dp/cloud/go/protos/**'
               - 'dp/cloud/go/active_mode_controller/protos'
@@ -107,8 +98,7 @@ jobs:
       run:
         working-directory: dp/cloud/python/magma/configuration_controller
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
@@ -141,45 +131,6 @@ jobs:
           name: codecov-configuration-controller
           verbose: true
 
-  active_mode_controller_unit_tests:
-    needs: path_filter
-    if: ${{ needs.path_filter.outputs.am == 'true' }}
-    name: "Active mode controller unit tests"
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: dp/cloud/go/active_mode_controller
-    env:
-      GO_VERSION: 1.18.3
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Run Go linter
-        uses: golangci/golangci-lint-action@5c56cd6c9dc07901af25baab6f2b0d9f3b7c3018 # pin@v2
-        with:
-          version: v1.46.2
-          working-directory: dp/cloud/go/active_mode_controller
-          skip-go-installation: true
-
-      - name: Run Go tests
-        run: |
-          go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
-        with:
-          flags: unittests,active-mode-controller
-          name: codecov-active-mode-controller
-          verbose: true
-
   radio_controller_unit_tests:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.rc == 'true' }}
@@ -197,8 +148,7 @@ jobs:
         working-directory: dp/cloud/python/magma/radio_controller
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
@@ -281,8 +231,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
@@ -319,8 +268,7 @@ jobs:
         working-directory: dp/cloud/python/magma/db_service
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
@@ -360,8 +308,7 @@ jobs:
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run DP integration test (with orc8r)
         uses: ./.github/workflows/composite/dp-integ-tests
         with:
@@ -376,8 +323,7 @@ jobs:
       run:
         working-directory: dp
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV

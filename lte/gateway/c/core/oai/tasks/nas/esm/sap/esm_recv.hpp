@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_recv.h
+Source      esm_recv.hpp
 
 Version     0.1
 
@@ -37,7 +37,7 @@ Description Defines functions executed at the ESM Service Access
 #define __ESM_RECV_H__
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.hpp"
@@ -51,7 +51,7 @@ Description Defines functions executed at the ESM Service Access
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 
 /****************************************************************************/

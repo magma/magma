@@ -108,12 +108,10 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
 
         print('************************* Restarting MME service on gateway')
-        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
-
         wait_for_restart = 20
-        for j in range(wait_for_restart):
-            print('Waiting for', j, 'seconds')
-            time.sleep(1)
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ['mme'], wait_for_restart,
+        )
 
         print(
             '*** Sending indication to drop Activate Default EPS bearer Ctxt'
@@ -130,9 +128,9 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         )
 
         retransmitted_response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            retransmitted_response.msg_type,
-            s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
+        assert (
+            retransmitted_response.msg_type
+            == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_def_bearer_req = retransmitted_response.cast(
             s1ap_types.uePdnConRsp_t,
@@ -151,11 +149,8 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
         msg_type = s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
-        while (response.msg_type != msg_type):
+        while response.msg_type != msg_type:
             response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
 
         print(
             '******************* Received deactivate eps bearer context'

@@ -48,9 +48,9 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_messages.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 
 /*******************************************************************************

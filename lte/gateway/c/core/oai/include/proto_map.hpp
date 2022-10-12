@@ -221,8 +221,14 @@ struct proto_map_s {
       return PROTO_MAP_NOT_CREATED;
     }
     if (!(map->empty())) {
-      map->clear();
+      for (auto itr = map->begin(); itr != map->end(); itr++) {
+        if (free_callback_func) {
+          valueT value = itr->second;
+          free_callback_func(reinterpret_cast<void**>(&value));
+        }
+      }
     }
+    map->clear();
     return PROTO_MAP_OK;
   }
   /***************************************************************************
@@ -287,6 +293,35 @@ struct proto_map_s {
       }
     }
     return PROTO_MAP_DUMP_FAIL;
+  }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    update_val()                                                  **
+  **                                                                        **
+  ** Description: Takes key and valueP as parameters.If the key exists,     **
+  **              updates the value corresponding to key                    **
+  **              else returns error.                                       **
+  **                                                                        **
+  ***************************************************************************/
+
+  proto_map_rc_t update_val(const keyT key, valueT* valueP) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
+    if (map->empty()) {
+      return PROTO_MAP_EMPTY;
+    }
+    if (valueP == nullptr) {
+      return PROTO_MAP_BAD_PARAMETER_VALUE;
+    }
+    auto search_result = map->find(key);
+    if (search_result != map->end()) {
+      (*map)[key] = *valueP;
+      return PROTO_MAP_OK;
+    } else {
+      return PROTO_MAP_KEY_NOT_EXISTS;
+    }
   }
 };
 
