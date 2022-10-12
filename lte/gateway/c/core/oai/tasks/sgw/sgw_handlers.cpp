@@ -1635,9 +1635,8 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     pgw_base_proc_t* base_proc1 = LIST_FIRST(
         spgw_context->sgw_eps_bearer_context_information.pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    delete spgw_context->sgw_eps_bearer_context_information.pending_procedures;
-    spgw_context->sgw_eps_bearer_context_information.pending_procedures =
-        nullptr;
+    free_cpp_wrapper(reinterpret_cast<void**>(
+        &spgw_context->sgw_eps_bearer_context_information.pending_procedures));
     free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
@@ -1984,8 +1983,8 @@ void handle_failed_create_bearer_response(
         pgw_base_proc_t* base_proc1 =
             LIST_FIRST(sgw_context_p->pending_procedures);
         LIST_REMOVE(base_proc1, entries);
-        delete sgw_context_p->pending_procedures;
-        sgw_context_p->pending_procedures = nullptr;
+        free_cpp_wrapper(
+            reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
         free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
         pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
       }
