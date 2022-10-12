@@ -92,7 +92,6 @@
         "../../../lte/gateway/deploy/roles/dev_common",
         "../../../lte/gateway/deploy/roles/gai_config",
         "../../../lte/gateway/deploy/roles/magma_test",
-        "../../../orc8r/tools/ansible/roles/apt_cache",
         "../../../orc8r/tools/ansible/roles/pkgrepo",
         "../../../orc8r/tools/ansible/roles/python_dev"
       ],

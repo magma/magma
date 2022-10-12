@@ -23,11 +23,6 @@
 
   roles:
     - role: gai_config
-    - role: apt_cache
-      vars:
-        distribution: "focal"
-        oai_build: "{{ c_build }}/core/oai"
-        repo: "dev"
     - role: pkgrepo
     - role: python_dev
     - role: dev_common

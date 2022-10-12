@@ -93,7 +93,6 @@
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/pyvenv",
         "../../../lte/gateway/deploy/roles/service_aliases",
-        "../../../orc8r/tools/ansible/roles/apt_cache",
         "../../../orc8r/tools/ansible/roles/docker",
         "../../../orc8r/tools/ansible/roles/fluent_bit",
         "../../../orc8r/tools/ansible/roles/gateway_dev",
