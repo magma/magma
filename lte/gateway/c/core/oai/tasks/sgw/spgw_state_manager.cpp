@@ -97,7 +97,7 @@ void SpgwStateManager::free_state() {
   }
 
   if (state_teid_map.destroy_map() != magma::PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_teid_map");
+    OAI_FPRINTF_ERR("An error occurred while destroying state_teid_map");
   }
 
   free_wrapper((void**)&state_cache_p);

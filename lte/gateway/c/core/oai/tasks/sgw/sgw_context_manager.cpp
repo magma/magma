@@ -173,7 +173,6 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 //-----------------------------------------------------------------------------
 magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
     teid_t teid, imsi64_t imsi64) {
-
   state_teid_map_t* state_teid_map = get_spgw_teid_state();
   if (!state_teid_map) {
     OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
