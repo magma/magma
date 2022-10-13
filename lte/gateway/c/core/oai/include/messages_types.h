@@ -48,7 +48,7 @@
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
 #include "lte/gateway/c/core/oai/include/udp_messages_types.h"
-#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s8_messages_types.h"
 

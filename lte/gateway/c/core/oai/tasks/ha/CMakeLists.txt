@@ -19,7 +19,7 @@ generate_all_protos("${HA_LTE_CPP_PROTOS}" "${HA_ORC8R_CPP_PROTOS}" "${HA_LTE_GR
     "${HA_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
 
 add_library(TASK_HA
-    ha_task.c
+    ha_task.cpp
     ha_service_handler.cpp
     HaClient.cpp
     ${PROTO_SRCS}

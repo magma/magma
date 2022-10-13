@@ -18,7 +18,7 @@ limitations under the License.
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 
@@ -70,8 +70,8 @@ static void* ha_thread(__attribute__((unused)) void* args_p) {
   task_zmq_ctx_t* task_zmq_ctx_p = &ha_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_HA);
-  init_task_context(TASK_HA, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
-                    task_zmq_ctx_p);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP};
+  init_task_context(TASK_HA, peer_task_ids, 1, handle_message, task_zmq_ctx_p);
 
   ha_task_timer_id =
       start_timer(task_zmq_ctx_p, 1000 * HA_ORC8R_STATE_SYNC_PERIOD,
