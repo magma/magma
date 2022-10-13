@@ -44,19 +44,16 @@ prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 prepare_federation:
 	$(eval export FEDERATED_MODE = True)
 
+.PHONY: selected_tests
+selected_tests: prepare_environment
+	$(foreach test,$(TESTS),$(call execute_test,$(test));)
+
 .PHONY: precommit
 precommit: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
 	$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-endif
 
 .PHONY: integ_test
 integ_test: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
 	echo "pass" > $(MAGMA_ROOT)/test_status.txt
 ifndef enable-flaky-retry
 	echo "Flaky test retries are disabled"
@@ -66,13 +63,9 @@ else
 	-$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final integ_test status: Passed"; else echo "Final integ_test status: Failed"; exit 1; fi
 endif
-endif
 
 .PHONY: federated_integ_test
 federated_integ_test: prepare_environment prepare_federation
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
 	echo "pass" > $(MAGMA_ROOT)/test_status.txt
 ifndef enable-flaky-retry
 	echo "Flaky test retries are disabled"
@@ -82,12 +75,7 @@ else
 	-$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
 	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final federated_integ_test status: Passed"; else echo "Final federated_integ_test status: Failed"; exit 1; fi
 endif
-endif
 
 .PHONY: nonsanity
 nonsanity: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
 	$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
-endif
