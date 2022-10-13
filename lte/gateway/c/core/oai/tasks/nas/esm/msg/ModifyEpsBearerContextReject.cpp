@@ -26,10 +26,11 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 int decode_modify_eps_bearer_context_reject(
     modify_eps_bearer_context_reject_msg* modify_eps_bearer_context_reject,

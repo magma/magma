@@ -64,8 +64,9 @@ class TestAttachDetachWithSctpdRestart(unittest.TestCase):
                 "gateway",
             )
 
-            self._s1ap_wrapper.magmad_util.restart_sctpd()
-
+            self._s1ap_wrapper.magmad_util.restart_services(
+                ['sctpd'], wait_time=30,
+            )
             # Re-establish S1 connection between eNB and MME
             self._s1ap_wrapper._s1setup()
 

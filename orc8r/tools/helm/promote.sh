@@ -13,7 +13,7 @@
 
 # promote.sh copies specified artifacts from one repo to another.
 
-set -e -o pipefail
+set -eou pipefail
 
 promote_artifact () {
   ARTIFACT="$1"
@@ -40,18 +40,23 @@ exitmsg() {
 # Check if the required args and env-vars present
 [ $# -eq 0 ] && usage
 
-# Define default values
-HELM_CHART_ARTIFACTORY_URL="${HELM_CHART_ARTIFACTORY_URL:-https://artifactory.magmacore.org:443/artifactory}"
-HELM_CHART_MUSEUM_ORIGIN_REPO="${HELM_CHART_MUSEUM_ORIGIN_REPO:-helm-test}"
-HELM_CHART_MUSEUM_DEST_REPO="${HELM_CHART_MUSEUM_DEST_REPO:-helm-prod}"
+if [[ -z $MAGMA_ARTIFACTORY ]]; then
+  exitmsg "Environment variable MAGMA_ARTIFACTORY must be set."
+fi
 
 if [[ -z $HELM_CHART_MUSEUM_USERNAME ]]; then
-  exitmsg "Environment variable HELM_CHART_MUSEUM_USERNAME must be set"
+  exitmsg "Environment variable HELM_CHART_MUSEUM_USERNAME must be set."
 fi
 
 if [[ -z $HELM_CHART_MUSEUM_TOKEN ]]; then
-  exitmsg "Environment variable HELM_CHART_MUSEUM_TOKEN must be set"
+  exitmsg "Environment variable HELM_CHART_MUSEUM_TOKEN must be set."
 fi
+
+
+# Define default values
+HELM_CHART_ARTIFACTORY_URL="${HELM_CHART_ARTIFACTORY_URL:-${MAGMA_ARTIFACTORY}}"
+HELM_CHART_MUSEUM_ORIGIN_REPO="${HELM_CHART_MUSEUM_ORIGIN_REPO:-helm-test}"
+HELM_CHART_MUSEUM_DEST_REPO="${HELM_CHART_MUSEUM_DEST_REPO:-helm-prod}"
 
 # Trim last backslash if exists
 # shellcheck disable=SC2001

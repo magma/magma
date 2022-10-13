@@ -63,20 +63,22 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(void) {
-  bstring ht_name;
+oai::S1apState* create_s1ap_state(void) {
+  proto_map_uint32_enb_description_t enb_map;
 
-  s1ap_state_t* state_cache_p = new s1ap_state_t();
-  state_cache_p->enbs.map =
-      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
-  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
+  oai::S1apState* state_cache_p = new oai::S1apState();
+  if (!state_cache_p) {
+    OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
+    return state_cache_p;
+  }
+  enb_map.map = state_cache_p->mutable_enbs();
+  enb_map.set_name(S1AP_ENB_COLL);
+  enb_map.bind_callback(free_enb_description);
 
-  state_cache_p->mmeid2associd.map =
-      new google::protobuf::Map<uint32_t, uint32_t>();
-  state_cache_p->mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+  mmeid2associd.map = state_cache_p->mutable_mmeid2associd();
+  mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
-  state_cache_p->num_enbs = 0;
   return state_cache_p;
 }
 
@@ -98,36 +100,22 @@ void S1apStateManager::create_state() {
   create_s1ap_imsi_map();
 }
 
-void free_s1ap_state(s1ap_state_t* state_cache_p) {
+void free_s1ap_state(oai::S1apState* state_cache_p) {
   AssertFatal(state_cache_p,
-              "s1ap_state_t passed to free_s1ap_state must not be null");
+              "S1apState passed to free_s1ap_state must not be null");
 
-  int i;
-  hashtable_rc_t ht_rc;
-  hashtable_key_array_t* keys;
-  sctp_assoc_id_t assoc_id;
-  enb_description_t* enb;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state_cache_p->mutable_enbs();
 
-  if (state_cache_p->enbs.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+  if (enb_map.isEmpty()) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
-    for (auto itr = state_cache_p->enbs.map->begin();
-         itr != state_cache_p->enbs.map->end(); itr++) {
-      enb = itr->second;
-      if (!enb) {
-        OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
-      } else {
-        enb->ue_id_coll.destroy_map();
-      }
+    for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
+      oai::EnbDescription enb = itr->second;
+      enb.clear_ue_id_map();
     }
   }
-  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
-  }
-  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying mmeid2associd map");
-  }
+  state_cache_p->Clear();
   delete state_cache_p;
 }
 
@@ -240,6 +228,49 @@ map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
 
+oai::S1apState* S1apStateManager::get_state(bool read_from_db) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  AssertFatal(
+      is_initialized,
+      "S1apStateManager init() function should be called to initialize state");
+  state_dirty = true;
+  AssertFatal(state_cache_p != nullptr, " S1ap State cache is NULL");
+  if (persist_state_enabled && read_from_db) {
+    read_state_from_db();
+    read_ue_state_from_db();
+  }
+  OAILOG_FUNC_RETURN(LOG_S1AP, state_cache_p);
+}
+
+void S1apStateManager::write_s1ap_state_to_db() {
+  AssertFatal(
+      is_initialized,
+      "S1ap StateManager init() function should be called to initialize state");
+
+  if (!state_dirty) {
+    OAILOG_ERROR(log_task, "Tried to put state while it was not in use");
+    return;
+  }
+
+  if (persist_state_enabled) {
+    std::string proto_str;
+    redis_client->serialize(*state_cache_p, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+
+    if (new_hash != this->task_state_hash) {
+      if (redis_client->write_proto_str(table_key, proto_str,
+                                        this->task_state_version) != RETURNok) {
+        OAILOG_ERROR(log_task, "Failed to write state to db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Finished writing state");
+      this->task_state_version++;
+      this->state_dirty = false;
+      this->task_state_hash = new_hash;
+    }
+  }
+}
+
 void S1apStateManager::s1ap_write_ue_state_to_db(
     const oai::UeDescription* ue_context, const std::string& imsi_str) {
   AssertFatal(
@@ -263,5 +294,6 @@ void S1apStateManager::s1ap_write_ue_state_to_db(
                  imsi_str.c_str());
   }
 }
+
 }  // namespace lte
 }  // namespace magma

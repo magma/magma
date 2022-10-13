@@ -32,10 +32,19 @@ message ERabAdmittedList {
   repeated ERabAdmittedItem item = 2;
 }
 
+enum S1apEnbState {
+  S1AP_INIT = 0; /// The sctp association has been established but s1 hasn't been
+                 /// setup.
+  S1AP_RESETING = 1; /// The s1state is resetting due to an SCTP reset on the bound
+                     /// association.
+  S1AP_READY = 2; ///< MME and eNB are S1 associated, UE contexts can be added
+  S1AP_SHUTDOWN = 3; /// The S1 state is being torn down due to sctp shutdown.
+}
+
 message EnbDescription {
   uint32 enb_id = 1;
 
-  int32 s1_state = 2;            // enum mme_s1_enb_state_s
+  int32 s1_state = 2 [deprecated = true];            // enum mme_s1_enb_state_s
   bytes enb_name = 3;            // char[]
   uint32 default_paging_drx = 4; // uint8_t
   uint32 nb_ue_associated = 5;
@@ -50,6 +59,7 @@ message EnbDescription {
   bytes ran_cp_ipaddr = 12; // eNB sctp end point IP addr
   uint32 ran_cp_ipaddr_sz = 13; // eNB sctp end point IP addr size
   map<uint32, uint64> ue_id_map = 14; // mme_ue_s1ap_id -> comp_s1ap_id
+  S1apEnbState s1_enb_state = 15;
 }
 
 enum S1apUeState {

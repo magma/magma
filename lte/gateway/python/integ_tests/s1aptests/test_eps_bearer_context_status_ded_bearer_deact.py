@@ -104,10 +104,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
             self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn[i])
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
             print(
@@ -136,10 +133,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -162,10 +156,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -205,10 +196,7 @@ class TestEpsBearerContextStatusDedBearerDeact(unittest.TestCase):
             cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print(" Sleeping for 2 seconds")
         time.sleep(2)
         print(

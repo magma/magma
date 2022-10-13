@@ -29,7 +29,7 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           ref: ${{ env.SHA }}
       - name: Run docker compose
@@ -71,7 +71,7 @@ jobs:
     runs-on: macos-12
     needs: docker-build
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           ref: ${{ env.SHA }}
       - name: Cache Vagrant Boxes
@@ -128,10 +128,11 @@ jobs:
           path: cwf/gateway/tests.xml
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
         with:
+          check_name: CWF integration test results
+          junit_files: cwf/gateway/tests.xml
           check_run_annotations: all tests
-          files: cwf/gateway/tests.xml
       - name: Fetch logs
         if: always()
         run: |

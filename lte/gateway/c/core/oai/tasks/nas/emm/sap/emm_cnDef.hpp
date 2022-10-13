@@ -40,7 +40,7 @@ Description
 
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.hpp"
 
 typedef enum emmcn_primitive_s {
   _EMMCN_START = 400,
