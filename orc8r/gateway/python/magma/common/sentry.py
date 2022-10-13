@@ -22,6 +22,7 @@ from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.mconfig import mconfigs_pb2
 from sentry_sdk.integrations.redis import RedisIntegration
 
+INTEG_TEST_NAME = 'integ_test_name'
 PATH_INTEG_TEST_NAME = "/etc/magma/integ_test_name"
 
 Event = Dict[str, Any]
@@ -43,6 +44,7 @@ LOGGING_EXTRA = 'extra'
 EXCLUDE_FROM_ERROR_MONITORING_KEY = 'exclude_from_error_monitoring'
 # Dictionary constant for convenience, must not be mutated
 EXCLUDE_FROM_ERROR_MONITORING = {EXCLUDE_FROM_ERROR_MONITORING_KEY: True}  # noqa: WPS407
+ORC8R_NOT_CONNECTED_KEY = 'orc8r_not_connected_indicator'
 
 
 @dataclass
@@ -98,15 +100,16 @@ def _get_shared_sentry_config(sentry_mconfig: mconfigs_pb2.SharedSentryConfig) -
 def _add_integ_test_name_to_tags(event: Event) -> Event:
     with open(PATH_INTEG_TEST_NAME, 'r') as f:
         test_name = f.read()
-        event['tags']['integ_test_name'] = test_name
+        event['tags'][INTEG_TEST_NAME] = test_name
     return event
 
 
 def _ignore_if_marked(event: Event) -> Optional[Event]:
     if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(EXCLUDE_FROM_ERROR_MONITORING_KEY):
         return None
-    return _add_integ_test_name_to_tags(event)
-
+    if event.get(LOGGING_EXTRA) and event.get(LOGGING_EXTRA).get(ORC8R_NOT_CONNECTED_KEY) and event.get('tags').get(INTEG_TEST_NAME):
+        return None
+    return event
 
 def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: List[str]) -> Optional[Event]:
     explicit_message = event.get('message')
@@ -119,14 +122,14 @@ def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: Lis
 
     messages = [msg for msg in (explicit_message, log_message, exception_message) if msg]
     if not messages:
-        return _add_integ_test_name_to_tags(event)
+        return event
 
     for pattern in patterns_to_exclude:
         for message in messages:
             if re.search(pattern, message):
                 return None
 
-    return _add_integ_test_name_to_tags(event)
+    return event
 
 
 def _get_before_send_hook(patterns_to_exclude: List[str]) -> SentryHook:
@@ -134,7 +137,7 @@ def _get_before_send_hook(patterns_to_exclude: List[str]) -> SentryHook:
     def filter_excluded_and_marked_messages(
             event: Event, hint: Hint,
     ) -> Optional[Event]:
-        event = _ignore_if_marked(event)
+        event = _ignore_if_marked(_add_integ_test_name_to_tags(event))
         if event:
             return _filter_excluded_messages(event, hint, patterns_to_exclude)
         return None
@@ -142,7 +145,7 @@ def _get_before_send_hook(patterns_to_exclude: List[str]) -> SentryHook:
     def filter_marked_messages(
             event: Event, _: Hint,
     ) -> Optional[Event]:
-        return _ignore_if_marked(event)
+        return _ignore_if_marked(_add_integ_test_name_to_tags(event))
 
     if patterns_to_exclude:
         return filter_excluded_and_marked_messages
