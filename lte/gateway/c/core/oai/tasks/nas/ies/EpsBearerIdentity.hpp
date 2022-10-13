@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_BEARER_IDENTITY_H_
-#define EPS_BEARER_IDENTITY_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
@@ -24,5 +24,3 @@
 #define EPS_BEARER_IDENTITY_MAXIMUM_LENGTH 1
 
 typedef ebi_t EpsBearerIdentity;
-
-#endif /* EPS BEARER IDENTITY_H_ */

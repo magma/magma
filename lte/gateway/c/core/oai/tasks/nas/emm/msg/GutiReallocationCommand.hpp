@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_GUTI_REALLOCATION_COMMAND_SEEN
-#define FILE_GUTI_REALLOCATION_COMMAND_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -73,5 +72,3 @@ int decode_guti_reallocation_command(
 int encode_guti_reallocation_command(
     guti_reallocation_command_msg* gutireallocationcommand, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_GUTI_REALLOCATION_COMMAND_SEEN) */

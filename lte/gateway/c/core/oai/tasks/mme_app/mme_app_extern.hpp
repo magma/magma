@@ -18,6 +18,12 @@
 #ifndef FILE_MME_APP_EXTERN_SEEN
 #define FILE_MME_APP_EXTERN_SEEN
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e mme_app_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FILE_MME_APP_EXTERN_SEEN */

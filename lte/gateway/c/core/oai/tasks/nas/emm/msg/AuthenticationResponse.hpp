@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_AUTHENTICATION_RESPONSE_SEEN
-#define FILE_AUTHENTICATION_RESPONSE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -57,4 +56,3 @@ int decode_authentication_response(
 int encode_authentication_response(
     authentication_response_msg* authenticationresponse, uint8_t* buffer,
     uint32_t len);
-#endif /* ! defined(FILE_AUTHENTICATION_RESPONSE_SEEN) */

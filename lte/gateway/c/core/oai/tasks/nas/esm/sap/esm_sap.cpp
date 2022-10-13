@@ -54,13 +54,7 @@ extern "C" {
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int pdn_connectivity_delete(emm_context_t* ctx, int pid);
-#ifdef __cplusplus
-}
-#endif
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/

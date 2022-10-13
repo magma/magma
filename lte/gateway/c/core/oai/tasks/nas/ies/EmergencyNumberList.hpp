@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EMERGENCY_NUMBER_LIST_H_
-#define EMERGENCY_NUMBER_LIST_H_
+#pragma once
+
 #include <stdint.h>
 
 #define EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH 5
@@ -35,5 +35,3 @@ int decode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
 
 void dump_emergency_number_list_xml(EmergencyNumberList* emergencynumberlist,
                                     uint8_t iei);
-
-#endif /* EMERGENCY NUMBER LIST_H_ */

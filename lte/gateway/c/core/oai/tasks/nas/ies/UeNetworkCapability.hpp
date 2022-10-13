@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef UE_NETWORK_CAPABILITY_SEEN
-#define UE_NETWORK_CAPABILITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -33,4 +32,3 @@ int decode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
 #ifdef __cplusplus
 }
 #endif
-#endif /* UE NETWORK CAPABILITY_H_ */

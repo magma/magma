@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SECURITY_MODE_REJECT_SEEN
-#define FILE_SECURITY_MODE_REJECT_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
@@ -52,5 +52,3 @@ int decode_security_mode_reject(security_mode_reject_msg* securitymodereject,
 
 int encode_security_mode_reject(security_mode_reject_msg* securitymodereject,
                                 uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_SECURITY_MODE_REJECT_SEEN) */

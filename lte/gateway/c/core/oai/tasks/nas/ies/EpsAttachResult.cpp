@@ -16,10 +16,17 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
+
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 int decode_eps_attach_result(eps_attach_result_t* epsattachresult, uint8_t iei,

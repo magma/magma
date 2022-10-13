@@ -34,7 +34,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run golang_check_version.sh script
         run: ./.github/workflows/scripts/golang_check_version.sh
 
@@ -44,7 +44,7 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
@@ -77,7 +77,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Test
         run: |
           cd src/go/
@@ -118,7 +118,7 @@ jobs:
         with:
           gotestsum_version: 1.7.0
       - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Test
         run: |
           cd src/go/
@@ -166,7 +166,7 @@ jobs:
         with:
           gotestsum_version: 1.7.0
       - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run tests via qemu/binfmt
         run: |
           cd src/go/
@@ -210,7 +210,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Test
         run: |
           cd src/go/

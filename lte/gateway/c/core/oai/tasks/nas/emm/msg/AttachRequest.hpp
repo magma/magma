@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_ATTACH_REQUEST_SEEN
-#define FILE_ATTACH_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -148,5 +147,3 @@ int decode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
 
 int encode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
                           uint32_t len);
-
-#endif /* ! defined(FILE_ATTACH_REQUEST_SEEN) */

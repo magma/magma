@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ADDITIONAL_UPDATE_TYPE_SEEN
-#define ADDITIONAL_UPDATE_TYPE_SEEN
+#pragma once
+
 #include <stdint.h>
 
 #define ADDITIONAL_UPDATE_TYPE_MINIMUM_LENGTH 1
@@ -42,5 +42,3 @@ int decode_additional_update_type(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* ADDITIONAL_UPDATE_TYPE_SEEN */

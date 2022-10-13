@@ -36,7 +36,7 @@ jobs:
       files_changed: ${{ steps.changes.outputs.filesChanged_files }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
         id: changes
@@ -65,7 +65,7 @@ jobs:
     name: Python Format Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           fetch-depth: 0
       - name: Build the python-precommit Docker base image

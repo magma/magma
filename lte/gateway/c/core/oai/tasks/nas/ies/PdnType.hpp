@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_TYPE_SEEN
-#define PDN_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -43,5 +42,3 @@ int decode_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer,
 
 int decode_u8_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t value,
                        uint32_t len);
-
-#endif /* PDN TYPE_SEEN */

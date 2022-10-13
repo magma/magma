@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SECURITY_MODE_COMPLETE_SEEN
-#define FILE_SECURITY_MODE_COMPLETE_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
@@ -63,5 +62,3 @@ int decode_security_mode_complete(
 int encode_security_mode_complete(
     security_mode_complete_msg* securitymodecomplete, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_SECURITY_MODE_COMPLETE_SEEN) */

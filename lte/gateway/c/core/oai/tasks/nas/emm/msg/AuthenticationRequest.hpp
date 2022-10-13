@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_AUTHENTICATION_REQUEST_SEEN
-#define FILE_AUTHENTICATION_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -63,5 +62,3 @@ int decode_authentication_request(
 int encode_authentication_request(
     authentication_request_msg* authenticationrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_AUTHENTICATION_REQUEST_SEEN) */

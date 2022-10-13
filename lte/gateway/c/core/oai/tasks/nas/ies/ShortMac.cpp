@@ -19,8 +19,14 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 int decode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PAGING_IDENTITY_SEEN
-#define PAGING_IDENTITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -36,5 +35,3 @@ int decode_paging_identity(paging_identity_t* pagingidentity, uint8_t iei,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* PAGING IDENTITY_SEEN */

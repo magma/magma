@@ -21,9 +21,15 @@
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e mme_config_embedded_spgw_parse_opt_line(int argc, char* argv[],
                                                       mme_config_t*,
                                                       amf_config_t*,
                                                       spgw_config_t*);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ifndef FILE_MME_APP_SPGW_SEEN */

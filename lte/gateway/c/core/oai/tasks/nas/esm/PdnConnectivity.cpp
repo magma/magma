@@ -73,14 +73,9 @@ static status_code_e pdn_connectivity_create(
     protocol_configuration_options_t* const pco, const bool is_emergency,
     esm_cause_t* esm_cause);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 proc_tid_t pdn_connectivity_delete(emm_context_t* emm_context,
                                    pdn_cid_t pdn_cid);
-#ifdef __cplusplus
-}
-#endif
+
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/

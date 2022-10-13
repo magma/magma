@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_NETWORK_FEATURE_SUPPORT_SEEN
-#define EPS_NETWORK_FEATURE_SUPPORT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -78,4 +77,3 @@ int decode_eps_network_feature_support(
 #ifdef __cplusplus
 }
 #endif
-#endif /* EPS_NETWORK_FEATURE_SUPPORT_SEEN */

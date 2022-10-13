@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_NAS_SECURITY_MODE_COMMAND_SEEN
-#define FILE_NAS_SECURITY_MODE_COMMAND_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
@@ -88,4 +87,3 @@ int decode_security_mode_command(security_mode_command_msg* securitymodecommand,
 
 int encode_security_mode_command(security_mode_command_msg* securitymodecommand,
                                  uint8_t* buffer, uint32_t len);
-#endif /* ! defined(FILE_NAS_SECURITY_MODE_COMMAND_SEEN) */

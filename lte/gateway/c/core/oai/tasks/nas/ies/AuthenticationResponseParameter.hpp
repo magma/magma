@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef AUTHENTICATION_RESPONSE_PARAMETER_H_
-#define AUTHENTICATION_RESPONSE_PARAMETER_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -36,5 +36,3 @@ int decode_authentication_response_parameter(
 void dump_authentication_response_parameter_xml(
     AuthenticationResponseParameter authenticationresponseparameter,
     uint8_t iei);
-
-#endif /* AUTHENTICATION RESPONSE PARAMETER_H_ */

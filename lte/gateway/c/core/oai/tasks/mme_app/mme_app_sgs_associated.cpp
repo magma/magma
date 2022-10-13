@@ -34,8 +34,15 @@
 
 *****************************************************************************/
 
-#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 

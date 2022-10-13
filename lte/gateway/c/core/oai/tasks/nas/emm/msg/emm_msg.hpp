@@ -32,8 +32,8 @@ Description Defines EPS Mobility Management messages and functions used
     to encode and decode
 
 *****************************************************************************/
-#ifndef FILE_EMM_MSG_SEEN
-#define FILE_EMM_MSG_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
@@ -169,5 +169,3 @@ int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len);
 
 int emm_msg_encode_header(const emm_msg_header_t* header, uint8_t* buffer,
                           uint32_t len);
-
-#endif /* FILE_EMM_MSG_SEEN */

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PLMN_LIST_H_
-#define PLMN_LIST_H_
+#pragma once
+
 #include <stdint.h>
 
 #define PLMN_LIST_MINIMUM_LENGTH 5
@@ -38,5 +38,3 @@ int decode_plmn_list(PlmnList* plmnlist, uint8_t iei, uint8_t* buffer,
                      uint32_t len);
 
 void dump_plmn_list_xml(PlmnList* plmnlist, uint8_t iei);
-
-#endif /* PLMN LIST_H_ */

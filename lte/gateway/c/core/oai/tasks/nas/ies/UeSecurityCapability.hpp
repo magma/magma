@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef UE_SECURITY_CAPABILITY_SEEN
-#define UE_SECURITY_CAPABILITY_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -35,5 +34,3 @@ int decode_ue_security_capability(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* UE SECURITY CAPABILITY_SEEN */

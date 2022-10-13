@@ -20,11 +20,17 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 
+#include "lte/gateway/c/core/common/common_defs.h"
 //------------------------------------------------------------------------------
 int decode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
                                  uint8_t iei, uint8_t* buffer, uint32_t len) {

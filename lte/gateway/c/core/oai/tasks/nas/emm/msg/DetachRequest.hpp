@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_DETACH_REQUEST_SEEN
-#define FILE_DETACH_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -88,5 +87,3 @@ typedef struct nw_detach_request_msg_tag {
 
 int encode_nw_detach_request(nw_detach_request_msg* nw_detachrequest,
                              uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_DETACH_REQUEST_SEEN) */

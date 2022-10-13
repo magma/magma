@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_EMM_STATUS_SEEN
-#define FILE_EMM_STATUS_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -52,5 +51,3 @@ typedef struct emm_status_msg_tag {
 int decode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
 
 int encode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_EMM_STATUS_SEEN) */

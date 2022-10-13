@@ -20,10 +20,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
 
 static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
                                            uint8_t* buffer);

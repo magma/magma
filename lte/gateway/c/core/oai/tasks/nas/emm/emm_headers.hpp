@@ -184,6 +184,10 @@ void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
+bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
+
+void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                                       bool neaf);
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef DRX_PARAMETER_H_
-#define DRX_PARAMETER_H_
+#pragma once
+
 #include <stdint.h>
 
 #define DRX_PARAMETER_MINIMUM_LENGTH 3
@@ -36,5 +36,3 @@ void dump_drx_parameter_xml(DrxParameter* drxparameter, uint8_t iei);
 
 int decode_drx_parameter(DrxParameter* drxparameter, uint8_t iei,
                          uint8_t* buffer, uint32_t len);
-
-#endif /* DRX PARAMETER_H_ */

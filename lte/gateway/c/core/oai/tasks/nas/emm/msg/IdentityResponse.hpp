@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_IDENTITY_RESPONSE_SEEN
-#define FILE_IDENTITY_RESPONSE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -52,5 +51,3 @@ int decode_identity_response(identity_response_msg* identityresponse,
 
 int encode_identity_response(identity_response_msg* identityresponse,
                              uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_IDENTITY_RESPONSE_SEEN) */

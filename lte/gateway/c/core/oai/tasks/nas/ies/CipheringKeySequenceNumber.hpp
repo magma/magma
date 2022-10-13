@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef CIPHERING_KEY_SEQUENCE_NUMBER_H_
-#define CIPHERING_KEY_SEQUENCE_NUMBER_H_
+#pragma once
+
 #include <stdint.h>
 
 #define CIPHERING_KEY_SEQUENCE_NUMBER_MINIMUM_LENGTH 1
@@ -41,5 +41,3 @@ int decode_ciphering_key_sequence_number(
 int decode_u8_ciphering_key_sequence_number(
     CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
     uint8_t value, uint32_t len);
-
-#endif /* CIPHERING KEY SEQUENCE NUMBER_H_ */

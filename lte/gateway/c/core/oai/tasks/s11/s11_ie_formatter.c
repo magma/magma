@@ -52,7 +52,7 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
 

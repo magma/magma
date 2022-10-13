@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_INFORMATION_TRANSFER_FLAG_SEEN
-#define ESM_INFORMATION_TRANSFER_FLAG_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -39,5 +38,3 @@ int decode_esm_information_transfer_flag(
 int decode_u8_esm_information_transfer_flag(
     esm_information_transfer_flag_t* esminformationtransferflag, uint8_t iei,
     uint8_t value, uint32_t len);
-
-#endif /* ESM INFORMATION TRANSFER FLAG_SEEN */

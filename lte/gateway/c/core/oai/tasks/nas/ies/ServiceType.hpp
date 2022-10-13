@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SERVICE_TYPE_SEEN
-#define SERVICE_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -74,5 +73,3 @@ typedef enum {
   PKT_SRV_VIA_S1_2,
   PKT_SRV_VIA_S1_3
 } Service_Type;
-
-#endif /* SERVICE_TYPE_SEEN */

@@ -39,17 +39,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_ATTACH_ACCEPT_SEEN
-#define FILE_ATTACH_ACCEPT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -115,5 +114,3 @@ int decode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
 
 int encode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
                          uint32_t len);
-
-#endif /* ! defined(FILE_ATTACH_ACCEPT_SEEN) */

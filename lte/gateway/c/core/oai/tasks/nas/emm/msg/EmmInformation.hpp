@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_EMM_INFORMATION_SEEN
-#define FILE_EMM_INFORMATION_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -79,5 +78,3 @@ int decode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
 
 int encode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
                            uint32_t len);
-
-#endif /* ! defined(FILE_EMM_INFORMATION_SEEN) */

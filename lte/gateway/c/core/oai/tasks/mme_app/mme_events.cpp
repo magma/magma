@@ -22,7 +22,14 @@
 #include <nlohmann/json.hpp>
 #include <grpcpp/support/status.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/common/common_types.h"
 
 #include "orc8r/protos/common.pb.h"

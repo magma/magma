@@ -20,8 +20,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 static int decode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
                                        uint8_t* buffer);

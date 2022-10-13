@@ -16,10 +16,17 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
+
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 int decode_csfb_response(csfb_response_t* csfbresponse, uint8_t iei,

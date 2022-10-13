@@ -186,6 +186,9 @@ void gummei_config_init(gummei_config_t* gummei_conf) {
   gummei_conf->gummei[0].plmn.mnc_digit3 = 0x0F;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void served_tai_config_init(served_tai_t* served_tai) {
   served_tai->nb_tai = 1;
   served_tai->plmn_mcc = reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mcc)));
@@ -197,6 +200,9 @@ void served_tai_config_init(served_tai_t* served_tai) {
   served_tai->plmn_mnc_len[0] = PLMN_MNC_LEN;
   served_tai->tac[0] = PLMN_TAC;
 }
+#ifdef __cplusplus
+}
+#endif
 
 void service303_config_init(service303_data_t* service303_conf) {
   service303_conf->name = bfromcstr(SERVICE303_MME_PACKAGE_NAME);

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ADDITIONAL_UPDATE_RESULT_SEEN
-#define ADDITIONAL_UPDATE_RESULT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -45,5 +44,3 @@ int decode_u8_additional_update_result(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* ADDITIONAL_UPDATE_RESULT_SEEN */

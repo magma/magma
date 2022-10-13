@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PROTOCOL_DISCRIMINATOR_H_
-#define PROTOCOL_DISCRIMINATOR_H_
+#pragma once
+
 #include <stdint.h>
 
 #define PROTOCOL_DISCRIMINATOR_MINIMUM_LENGTH 1
@@ -32,5 +32,3 @@ void dump_protocol_discriminator_xml(
 
 int decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
                                   uint8_t iei, uint8_t* buffer, uint32_t len);
-
-#endif /* PROTOCOL DISCRIMINATOR_H_ */

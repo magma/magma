@@ -66,8 +66,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 
 #include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -108,6 +106,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 
 /****************************************************************************/

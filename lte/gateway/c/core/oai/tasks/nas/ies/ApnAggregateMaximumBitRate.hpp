@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN
-#define APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN
+#pragma once
 
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/common/common_types.h"
@@ -48,5 +47,3 @@ int decode_apn_aggregate_maximum_bit_rate(
 void bit_rate_value_to_eps_qos(ApnAggregateMaximumBitRate* apn_ambr,
                                uint64_t ambr_dl, uint64_t ambr_ul,
                                const apn_ambr_bitrate_unit_t br_unit);
-
-#endif /* APN_AGGREGATE_MAXIMUM_BIT_RATE_SEEN */

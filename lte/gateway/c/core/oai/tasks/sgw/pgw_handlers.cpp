@@ -64,11 +64,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 #ifdef __cplusplus
 }
 #endif
 
+extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern spgw_config_t spgw_config;
 

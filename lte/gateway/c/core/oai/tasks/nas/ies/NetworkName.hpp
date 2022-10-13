@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef NETWORK_NAME_H_
-#define NETWORK_NAME_H_
+#pragma once
+
 #include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -37,5 +37,3 @@ int decode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
                         uint32_t len);
 
 void dump_network_name_xml(NetworkName* networkname, uint8_t iei);
-
-#endif /* NETWORK NAME_H_ */

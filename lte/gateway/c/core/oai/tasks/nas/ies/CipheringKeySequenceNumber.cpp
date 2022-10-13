@@ -21,8 +21,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#ifdef __cplusplus
+}
+#endif
 
 int decode_ciphering_key_sequence_number(
     CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,

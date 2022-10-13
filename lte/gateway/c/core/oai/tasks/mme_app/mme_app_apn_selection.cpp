@@ -30,6 +30,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
@@ -37,7 +38,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
 //------------------------------------------------------------------------------
 status_code_e select_pdn_type(struct apn_configuration_s* apn_config,

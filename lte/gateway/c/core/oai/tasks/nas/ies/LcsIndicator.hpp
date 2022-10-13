@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef LCS_INDICATOR_SEEN
-#define LCS_INDICATOR_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -36,5 +35,3 @@ int decode_lcs_indicator(lcs_indicator_t* lcsindicator, uint8_t iei,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* LCS INDICATOR_SEEN */

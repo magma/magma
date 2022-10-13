@@ -41,10 +41,16 @@
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
+#ifdef __cplusplus
+}
+#endif
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
@@ -87,8 +93,14 @@ uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src);
 void mme_app_ue_context_uint_to_imsi(uint64_t imsi_src,
                                      mme_app_imsi_t* imsi_dst);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
     mme_ue_s1ap_id_t* mme_app_ue_s1ap_id_generator_p);
+#ifdef __cplusplus
+}
+#endif
 
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
@@ -488,6 +500,9 @@ typedef struct mme_ue_context_s {
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
  * @returns an UE context matching the IMSI or NULL if the context doesn't
@@ -495,6 +510,9 @@ typedef struct mme_ue_context_s {
  **/
 ue_mm_context_t* mme_ue_context_exists_imsi(
     mme_ue_context_t* const mme_ue_context, imsi64_t imsi);
+#ifdef __cplusplus
+}
+#endif
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
  * \param teid The tunnel endpoint identifier used between MME and S-GW
@@ -525,6 +543,9 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
 ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
     mme_ue_context_t* const mme_ue_context_p, const enb_s1ap_id_key_t enb_key);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /** \brief Retrieve an UE context by selecting the provided guti
  * \param guti The GUTI used by the UE
  * @returns an UE context matching the guti or NULL if the context doesn't
@@ -532,6 +553,9 @@ ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
  **/
 ue_mm_context_t* mme_ue_context_exists_guti(
     mme_ue_context_t* const mme_ue_context, const guti_t* const guti);
+#ifdef __cplusplus
+}
+#endif
 
 /** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share
  * the same mme_ue_s1ap_id)
@@ -544,6 +568,9 @@ void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_key, const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const bool is_remove_old);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /** \brief Update an UE context by selecting the provided guti
  * \param mme_ue_context_p The MME context
  * \param ue_context_p The UE context
@@ -563,6 +590,10 @@ void mme_ue_context_update_coll_keys(mme_ue_context_t* const mme_ue_context_p,
                                      const s11_teid_t mme_s11_teid,
                                      const guti_t* const guti_p);
 
+#ifdef __cplusplus
+}
+#endif
+
 /** \brief dump MME associative collections
  **/
 
@@ -576,11 +607,17 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
 status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
                           const struct ue_mm_context_s* const ue_context_p);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove
  **/
 void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context,
                            struct ue_mm_context_s* const ue_context_p);
+#ifdef __cplusplus
+}
+#endif
 
 /** \brief Allocate memory for a new UE context
  * @returns Pointer to the new structure, NULL if allocation failed
@@ -589,12 +626,18 @@ ue_mm_context_t* mme_create_new_ue_context(void);
 
 void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * Release memory allocated by MmeNasStateManager through MmeNasStateConverter
  * and NasStateConverter for each UE context, this is called by
  * hashtable_ts_destroy
  */
 void mme_app_state_free_ue_context(void** ue_context_node);
+#ifdef __cplusplus
+}
+#endif
 
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
@@ -604,20 +647,20 @@ void mme_app_handle_enb_deregister_ind(
 
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 
-void mme_app_free_bearer_context(bearer_context_t** bc);
+//void mme_app_free_bearer_context(bearer_context_t** bc);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(
     const itti_s1ap_ue_context_mod_resp_fail_t* s1ap_ue_context_mod_fail);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void mme_app_ue_sgs_context_free_content(sgs_context_t* const sgs_context_p,
                                          imsi64_t imsi);
 bool is_mme_ue_context_network_access_mode_packet_only(
     ue_mm_context_t* ue_context_p);
-#ifdef __cplusplus
-extern "C" {
-#endif
 bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
                                              const ebi_t ebi);
 void mme_app_send_delete_session_request(
@@ -626,14 +669,15 @@ void mme_app_send_delete_session_request(
 
 status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
+
+void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
+                         struct ue_mm_context_s* ue_context_p);
 #ifdef __cplusplus
 }
 #endif
 
 void mme_app_recover_timers_for_all_ues(void);
 
-void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
-                         struct ue_mm_context_s* ue_context_p);
 
 status_code_e eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi,
                                  pdn_cid_t* pid, int* bidx);

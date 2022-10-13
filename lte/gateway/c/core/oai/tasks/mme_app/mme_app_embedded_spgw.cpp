@@ -23,6 +23,7 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #ifdef __cplusplus
 }
 #endif

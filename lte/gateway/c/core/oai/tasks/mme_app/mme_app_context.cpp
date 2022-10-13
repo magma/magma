@@ -37,12 +37,25 @@
 #include <sys/time.h>
 #include <time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/enum_string.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -52,13 +65,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SHORT_MAC_SEEN
-#define SHORT_MAC_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -38,4 +37,3 @@ int decode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
 #ifdef __cplusplus
 }
 #endif
-#endif /* SHORT MAC_SEEN */

@@ -17,6 +17,7 @@ from time import sleep
 from fabric.api import cd, env, execute, local, run, settings, sudo
 from fabric.contrib.files import exists
 from fabric.operations import get
+from fabric.utils import fastprint
 
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils
@@ -33,7 +34,7 @@ Magma packages released to different channels have different version schemes.
 
     - dev: used for development.
 
-    - test: used for Continuous Integration (CI). Packages in the `test`
+    - release: used for Continuous Integration (CI). Packages in the `release`
             channel should be built and released automatically.
 
 # HOWTO build magma.deb
@@ -68,12 +69,6 @@ env.disable_known_hosts = True
 
 def dev():
     env.debug_mode = True
-
-
-# TODO: Deprecate
-def test():
-    print("Caution! 'test' will be deprecated soon. Please migrate to using 'release'.")
-    env.debug_mode = False
 
 
 def release():
@@ -548,9 +543,21 @@ def _start_gateway_containerized():
         run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
 
     with cd(AGW_ROOT + "/docker"):
-        run('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
-        # TODO: With docker compose v1 there is no good native way to wait for containers to be reliably up
-        run('sleep 60; docker-compose ps')
+        # The `docker-compose up` times are machine dependent, such that a retry is needed here for resilience.
+        run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+
+
+def run_with_retry(command, retries=3):
+    iteration = 0
+    while iteration < retries:
+        iteration += 1
+        try:
+            run(command)
+            break
+        except:
+            fastprint(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
+    else:
+        raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
 
 
 def run_integ_tests(tests=None, federated_mode='False'):

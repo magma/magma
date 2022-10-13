@@ -50,13 +50,13 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
@@ -456,11 +456,18 @@ typedef struct mme_config_s {
 
 extern mme_config_t mme_config;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void mme_config_init(mme_config_t*);
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_file(mme_config_t*);
-int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void mme_config_display(mme_config_t*);
+#ifdef __cplusplus
+}
+#endif
+
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
+int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
 

@@ -19,9 +19,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 
 //------------------------------------------------------------------------------
 int decode_eps_update_result(eps_update_result_t* epsupdateresult, uint8_t iei,

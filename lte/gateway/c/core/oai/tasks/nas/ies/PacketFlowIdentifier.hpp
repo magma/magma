@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PACKET_FLOW_IDENTIFIER_H_
-#define PACKET_FLOW_IDENTIFIER_H_
+#pragma once
+
 #include <stdint.h>
 
 #define PACKET_FLOW_IDENTIFIER_MINIMUM_LENGTH 3
@@ -32,5 +32,3 @@ int decode_packet_flow_identifier(PacketFlowIdentifier* packetflowidentifier,
 
 void dump_packet_flow_identifier_xml(PacketFlowIdentifier* packetflowidentifier,
                                      uint8_t iei);
-
-#endif /* PACKET FLOW IDENTIFIER_H_ */

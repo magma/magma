@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_EXTENDED_SERVICE_REQUEST_SEEN
-#define FILE_EXTENDED_SERVICE_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -72,4 +71,3 @@ int decode_extended_service_request(
 int encode_extended_service_request(
     extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
     uint32_t len);
-#endif /* ! defined(FILE_EXTENDED_SERVICE_REQUEST_SEEN) */

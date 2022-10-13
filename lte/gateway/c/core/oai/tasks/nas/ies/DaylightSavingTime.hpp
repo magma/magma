@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef DAYLIGHT_SAVING_TIME_H_
-#define DAYLIGHT_SAVING_TIME_H_
+#pragma once
+
 #include <stdint.h>
 
 #define DAYLIGHT_SAVING_TIME_MINIMUM_LENGTH 3
@@ -32,5 +32,3 @@ int decode_daylight_saving_time(DaylightSavingTime* daylightsavingtime,
 
 void dump_daylight_saving_time_xml(DaylightSavingTime* daylightsavingtime,
                                    uint8_t iei);
-
-#endif /* DAYLIGHT SAVING TIME_H_ */

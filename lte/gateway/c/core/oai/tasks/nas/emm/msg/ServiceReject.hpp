@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SERVICE_REJECT_SEEN
-#define FILE_SERVICE_REJECT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -57,5 +56,3 @@ int decode_service_reject(service_reject_msg* servicereject, uint8_t* buffer,
 
 int encode_service_reject(service_reject_msg* servicereject, uint8_t* buffer,
                           uint32_t len);
-
-#endif /* ! defined(FILE_SERVICE_REJECT_SEEN) */

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_DETACH_ACCEPT_SEEN
-#define FILE_DETACH_ACCEPT_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -51,5 +50,3 @@ int decode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
 
 int encode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
                          uint32_t len);
-
-#endif /* ! defined(FILE_DETACH_ACCEPT_SEEN) */

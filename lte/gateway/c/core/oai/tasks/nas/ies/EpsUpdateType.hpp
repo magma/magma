@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EPS_UPDATE_TYPE_SEEN
-#define EPS_UPDATE_TYPE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -49,5 +48,3 @@ int decode_u8_eps_update_type(EpsUpdateType* epsupdatetype, uint8_t iei,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* EPS UPDATE TYPE_SEEN */

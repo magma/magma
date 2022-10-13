@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MOBILE_STATION_CLASSMARK_2_H_
-#define MOBILE_STATION_CLASSMARK_2_H_
+#pragma once
+
 #include <stdint.h>
 
 #define MOBILE_STATION_CLASSMARK_2_MINIMUM_LENGTH 5
@@ -52,5 +52,3 @@ int decode_mobile_station_classmark_2(
 
 void dump_mobile_station_classmark_2_xml(
     MobileStationClassmark2* mobilestationclassmark2, uint8_t iei);
-
-#endif /* MOBILE STATION CLASSMARK 2_H_ */

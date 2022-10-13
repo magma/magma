@@ -169,7 +169,11 @@ status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
 status_code_e mme_api_new_guti(const imsi_t* const imsi,
                                const guti_t* const old_guti, guti_t* const guti,
                                const tai_t* const originating_tai,
-                               tai_list_t* const tai_list);*/
+                               tai_list_t* const tai_list);
+bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
+
+void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                                       bool neaf);*/
 
 status_code_e mme_api_subscribe(bstring* apn,
                                 mme_api_ip_version_t mme_pdn_index,
@@ -186,13 +190,10 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 #ifdef __cplusplus
 }
 #endif
-bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                                bool vlr_reliable);
 
-void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                       bool neaf);
 
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)           \

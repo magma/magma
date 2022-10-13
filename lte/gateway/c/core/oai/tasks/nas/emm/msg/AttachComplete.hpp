@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_ATTACH_COMPLETE_SEEN
-#define FILE_ATTACH_COMPLETE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -53,5 +52,3 @@ int decode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
 
 int encode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
                            uint32_t len);
-
-#endif /* ! defined(FILE_ATTACH_COMPLETE_SEEN) */

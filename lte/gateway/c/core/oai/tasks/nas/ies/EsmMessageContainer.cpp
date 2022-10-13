@@ -20,8 +20,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "lte/gateway/c/core/common/common_defs.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +30,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/common/common_defs.h"
 //------------------------------------------------------------------------------
 int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
                                  uint8_t iei, uint8_t* buffer, uint32_t len) {

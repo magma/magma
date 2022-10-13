@@ -42,6 +42,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
@@ -66,7 +67,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"

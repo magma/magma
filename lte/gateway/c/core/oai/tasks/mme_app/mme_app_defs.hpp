@@ -249,14 +249,14 @@ status_code_e mme_app_send_sgsap_service_request(uint8_t service_indicator,
 
 status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                uint8_t detach_type);
-#ifdef __cplusplus
+/*#ifdef __cplusplus
 extern "C" {
-#endif
+#endif*/
 status_code_e mme_app_handle_nas_cs_domain_location_update_req(
     ue_mm_context_t* ue_context_p, uint8_t msg_type);
-#ifdef __cplusplus
+/*#ifdef __cplusplus
 }
-#endif
+#endif*/
 
 status_code_e mme_app_handle_sgsap_location_update_acc(
     mme_app_desc_t* mme_app_desc_p,

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef EMM_CAUSE_SEEN
-#define EMM_CAUSE_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -38,5 +37,3 @@ int decode_emm_cause(emm_cause_t* emmcause, uint8_t iei, uint8_t* buffer,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* EMM CAUSE_SEEN */
