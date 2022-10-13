@@ -471,7 +471,7 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
   if (s1ap_ue_state == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
   s1ap_ue_state->remove(ue_ref->comp_s1ap_id());
   proto_map_uint32_uint32_t mmeid2associd_map;
@@ -485,6 +485,10 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   imsi64_t imsi64 = INVALID_IMSI64;
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
   delete_s1ap_ue_state(imsi64);

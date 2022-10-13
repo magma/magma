@@ -264,6 +264,10 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
     imsi64_t imsi64 = INVALID_IMSI64;
     magma::proto_map_uint32_uint64_t ueid_imsi_map;
     oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+    if (!s1ap_imsi_map) {
+      OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
     ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
     ueid_imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
@@ -340,6 +344,10 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 
       magma::proto_map_uint32_uint64_t ueid_imsi_map;
       oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+      if (!s1ap_imsi_map) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
       ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
       ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -462,6 +470,10 @@ status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -530,6 +542,10 @@ status_code_e s1ap_generate_downlink_nas_transport(
 
     magma::proto_map_uint32_uint64_t ueid_imsi_map;
     oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+    if (!s1ap_imsi_map) {
+      OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
     ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
     if ((ueid_imsi_map.insert(ue_id, imsi64) ==
          magma::PROTO_MAP_KEY_ALREADY_EXISTS)) {
@@ -891,6 +907,10 @@ void s1ap_handle_conn_est_cnf(
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.insert(conn_est_cnf_pP->ue_id, imsi64);
 

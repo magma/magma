@@ -870,6 +870,10 @@ status_code_e s1ap_mme_handle_ue_cap_indication(oai::S1apState* state,
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -987,6 +991,10 @@ status_code_e s1ap_mme_handle_initial_context_setup_response(
   }
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -1260,6 +1268,10 @@ status_code_e s1ap_mme_handle_ue_context_release_request(
   } else {
     magma::proto_map_uint32_uint64_t ueid_imsi_map;
     oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+    if (!imsi_map) {
+      OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
     ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
     ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
     if (ue_ref_p->sctp_assoc_id() == assoc_id &&
@@ -1669,6 +1681,10 @@ status_code_e s1ap_mme_handle_ue_context_release_complete(
       imsi64_t imsi64 = INVALID_IMSI64;
       magma::proto_map_uint32_uint64_t ueid_imsi_map;
       oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+      if (!imsi_map) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
       ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
       ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -1755,6 +1771,10 @@ status_code_e s1ap_mme_handle_initial_context_setup_failure(
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -1892,6 +1912,10 @@ status_code_e s1ap_mme_handle_ue_context_modification_response(
 
       magma::proto_map_uint32_uint64_t ueid_imsi_map;
       oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+      if (!imsi_map) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
       ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
       ueid_imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
@@ -1977,6 +2001,10 @@ status_code_e s1ap_mme_handle_ue_context_modification_failure(
          (ie_enb->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK))) {
       magma::proto_map_uint32_uint64_t ueid_imsi_map;
       oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+      if (!imsi_map) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
       ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
       ueid_imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
@@ -2168,6 +2196,10 @@ status_code_e s1ap_mme_handle_handover_request_ack(
   // get imsi for logging
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -2952,6 +2984,10 @@ status_code_e s1ap_mme_handle_handover_required(oai::S1apState* state,
   // get imsi for logging
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -3176,6 +3212,10 @@ status_code_e s1ap_mme_handle_handover_notify(oai::S1apState* state,
   // imsi for logging
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -3424,6 +3464,10 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -3954,6 +3998,10 @@ status_code_e s1ap_mme_handle_error_ind_message(oai::S1apState* state,
   imsi64_t imsi64 = INVALID_IMSI64;
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
@@ -4062,6 +4110,10 @@ status_code_e s1ap_mme_handle_erab_setup_response(
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(ue_ref_p->mme_ue_s1ap_id(), &imsi64);
 
@@ -4298,6 +4350,10 @@ status_code_e s1ap_mme_handle_enb_reset(oai::S1apState* state,
               (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
           magma::proto_map_uint32_uint64_t ueid_imsi_map;
           oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+          if (!imsi_map) {
+            OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+            OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+          }
           ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
           ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) != NULL) {
@@ -5312,6 +5368,10 @@ status_code_e s1ap_mme_handle_erab_rel_response(oai::S1apState* state,
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
@@ -5443,6 +5503,10 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int timer_id,
   ue_ref_p->mutable_s1ap_ue_context_rel_timer()->set_id(S1AP_TIMER_INACTIVE_ID);
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
+  if (!imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
   ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 

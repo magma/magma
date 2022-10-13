@@ -65,7 +65,7 @@ oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64);
 void put_s1ap_imsi_map(void);
 
 /**
- * @return s1ap_imsi_map_t pointer
+ * @return pointer to oai::S1apImsiMap
  */
 oai::S1apImsiMap* get_s1ap_imsi_map(void);
 
