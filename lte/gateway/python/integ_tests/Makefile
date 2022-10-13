@@ -36,9 +36,12 @@ define execute_test
 	# Testcase $(1) execution completed
 endef
 
-.PHONY: precommit
-precommit: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
+.PHONY: prepare_environment
+prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
+
+.PHONY: precommit
+precommit: prepare_environment
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
@@ -46,8 +49,7 @@ else
 endif
 
 .PHONY: integ_test
-integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
+integ_test: prepare_environment
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
@@ -63,8 +65,7 @@ endif
 endif
 
 .PHONY: fed_integ_test
-fed_integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
+fed_integ_test: prepare_environment
 	$(eval export FEDERATED_MODE = True)
 ifdef TESTS
 	$(call execute_test,$(TESTS))
@@ -81,8 +82,7 @@ endif
 endif
 
 .PHONY: nonsanity
-nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
+nonsanity: prepare_environment
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
