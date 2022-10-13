@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository, which is validated in the next step
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: GitHub CODEOWNERS Validator
         uses: mszostok/codeowners-validator@2f6e3bb39aa6837d7dcf8eff2de5d6c046d0c9a9 # pin@v0.6.0
         with:

@@ -104,7 +104,6 @@ void free_s1ap_state(oai::S1apState* state_cache_p) {
   AssertFatal(state_cache_p,
               "S1apState passed to free_s1ap_state must not be null");
 
-  oai::EnbDescription enb;
   proto_map_uint32_enb_description_t enb_map;
   enb_map.map = state_cache_p->mutable_enbs();
 
@@ -112,7 +111,7 @@ void free_s1ap_state(oai::S1apState* state_cache_p) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
     for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
-      enb = itr->second;
+      oai::EnbDescription enb = itr->second;
       enb.clear_ue_id_map();
     }
   }

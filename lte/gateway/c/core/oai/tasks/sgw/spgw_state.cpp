@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
@@ -49,8 +49,8 @@ hash_table_ts_t* get_spgw_ue_state() {
   return SpgwStateManager::getInstance().get_ue_state_ht();
 }
 
-hash_table_ts_t* get_spgw_teid_state() {
-  return SpgwStateManager::getInstance().get_state_teid_ht();
+state_teid_map_t* get_spgw_teid_state() {
+  return SpgwStateManager::getInstance().get_state_teid_map();
 }
 
 int read_spgw_ue_state_db() {
@@ -81,21 +81,20 @@ void delete_spgw_ue_state(imsi64_t imsi64) {
   SpgwStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
-void spgw_free_s11_bearer_context_information(
-    s_plus_p_gw_eps_bearer_context_information_t** context_p) {
-  if (*context_p) {
-    sgw_free_pdn_connection(
-        &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
-    clear_protocol_configuration_options(
-        &(*context_p)->sgw_eps_bearer_context_information.saved_message.pco);
-    delete_pending_procedures(
-        &(*context_p)->sgw_eps_bearer_context_information);
-    if ((*context_p)->pgw_eps_bearer_context_information.apns) {
-      obj_hashtable_ts_destroy(
-          (*context_p)->pgw_eps_bearer_context_information.apns);
-    }
+void spgw_free_s11_bearer_context_information(void** ptr) {
+  if (ptr) {
+    s_plus_p_gw_eps_bearer_context_information_t* context_p =
+        reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(*ptr);
+    if (context_p) {
+      sgw_free_pdn_connection(
+          &(context_p->sgw_eps_bearer_context_information.pdn_connection));
+      clear_protocol_configuration_options(
+          &(context_p->sgw_eps_bearer_context_information.saved_message.pco));
+      delete_pending_procedures(
+          &(context_p->sgw_eps_bearer_context_information));
 
-    free_wrapper((void**)context_p);
+      free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+    }
   }
 }
 

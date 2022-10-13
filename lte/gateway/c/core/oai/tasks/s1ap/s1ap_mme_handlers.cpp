@@ -3525,8 +3525,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
   num_erab = e_rab_to_be_switched_dl_list_req->list.count;
   for (index = 0; index < num_erab; ++index) {
     eRABToBeSwitchedDlItemIEs_p =
-        (S1ap_E_RABToBeSwitchedDLItemIEs_t*)
-            e_rab_to_be_switched_dl_list_req->list.array[index];
+        reinterpret_cast<S1ap_E_RABToBeSwitchedDLItemIEs_t*>(
+            e_rab_to_be_switched_dl_list_req->list.array[index]);
     S1ap_E_RABToBeSwitchedDLItem_t* eRab_ToBeSwitchedDLItem =
         &eRABToBeSwitchedDlItemIEs_p->value.choice.E_RABToBeSwitchedDLItem;
 
@@ -3535,8 +3535,8 @@ status_code_e s1ap_mme_handle_path_switch_request(
     e_rab_to_be_switched_dl_list.item[index].transport_layer_address =
         blk2bstr(eRab_ToBeSwitchedDLItem->transportLayerAddress.buf,
                  eRab_ToBeSwitchedDLItem->transportLayerAddress.size);
-    e_rab_to_be_switched_dl_list.item[index].gtp_teid =
-        htonl(*((uint32_t*)eRab_ToBeSwitchedDLItem->gTP_TEID.buf));
+    e_rab_to_be_switched_dl_list.item[index].gtp_teid = htonl(
+        *(reinterpret_cast<uint32_t*>(eRab_ToBeSwitchedDLItem->gTP_TEID.buf)));
     e_rab_to_be_switched_dl_list.no_of_items += 1;
   }
 

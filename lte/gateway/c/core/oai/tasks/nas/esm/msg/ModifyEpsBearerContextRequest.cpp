@@ -27,11 +27,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.hpp"
 
 int decode_modify_eps_bearer_context_request(
     modify_eps_bearer_context_request_msg* modify_eps_bearer_context_request,

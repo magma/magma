@@ -56,12 +56,6 @@ class S1apStateConverter : StateConverter {
   static void proto_to_s1ap_imsi_map(const oai::S1apImsiMap& s1ap_imsi_proto,
                                      s1ap_imsi_map_t* s1ap_imsi_map);
 
-  static void enb_to_proto(oai::EnbDescription* enb,
-                           oai::EnbDescription* proto);
-
-  static void proto_to_enb(const oai::EnbDescription& proto,
-                           oai::EnbDescription* enb);
-
   static void ue_to_proto(const oai::UeDescription* ue,
                           oai::UeDescription* proto);
 
