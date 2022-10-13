@@ -1475,8 +1475,10 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   if (pgw_ni_cbr_proc && (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
     pgw_base_proc_t* base_proc1 = LIST_FIRST(sgw_context_p->pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_wrapper((void**)&sgw_context_p->pending_procedures);
-    free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
+    free_wrapper(
+        reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);

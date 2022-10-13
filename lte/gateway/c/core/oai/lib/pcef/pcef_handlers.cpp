@@ -164,7 +164,9 @@ void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
 bool pcef_end_session(char* imsi, char* apn) {
   magma::LocalEndSessionRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
-  request.set_apn(apn);
+  if (apn) {
+    request.set_apn(apn);
+  }
   magma::PCEFClient::end_session(
       request,
       [&](grpc::Status status, magma::LocalEndSessionResponse response) {

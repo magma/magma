@@ -65,7 +65,7 @@ class TestAttachUlUdpDataWithMultipleServiceRestart(unittest.TestCase):
         )
         wait_for_restart = 30
         self._s1ap_wrapper.magmad_util.restart_services(
-            ["mobilityd", "mme", "pipelined"], wait_for_restart,
+            ["mme"], wait_for_restart,
         )
 
         print(

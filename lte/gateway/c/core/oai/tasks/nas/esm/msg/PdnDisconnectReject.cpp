@@ -25,11 +25,12 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #endif
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 int decode_pdn_disconnect_reject(
     pdn_disconnect_reject_msg* pdn_disconnect_reject, uint8_t* buffer,

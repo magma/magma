@@ -36,7 +36,7 @@ jobs:
       ISSUE_NUMBER: "${{ github.event.number }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       # Version is github job run number when running on master
       # Or is branch name when on release branch
       - name: Set Helm chart version
@@ -115,8 +115,9 @@ jobs:
     runs-on: macos-12
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
+      magma_package: ${{ steps.publish_packages.outputs.magma_package }}
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           fetch-depth: 0
       - name: Cache magma-dev-box
@@ -179,6 +180,14 @@ jobs:
             if [[ "$HTTP_STATUS" != "2"* ]]; then
               PUBLISH_ERROR="true"
             fi
+            # extract magma debian package version
+            match="magma_[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+_[a-z0-9]+.deb"
+            if [[ $i =~ $match ]]; then
+              magma_package=${i#magma_}
+              magma_package=${magma_package%_[a-z0-9]*.deb}
+              magma_package='magma='${magma_package}
+              echo "::set-output name=magma_package::${magma_package}"
+            fi
           done
           # set output
           if [[ "$PUBLISH_ERROR" != "true" ]]; then
@@ -233,7 +242,7 @@ jobs:
       MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
@@ -291,7 +300,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run apt-get update
         run: sudo apt-get update
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
@@ -372,7 +381,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       DOCKER_BUILDKIT: 1
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run agw docker compose
         id: agw-docker-compose
         continue-on-error: true
@@ -467,7 +476,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Install SwaggerHub CLI
         run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
@@ -516,7 +525,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run docker compose
         id: cwag-docker-compose
         continue-on-error: true
@@ -630,7 +639,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run docker compose build
         env:
           DOCKER_REGISTRY: cwf_
@@ -719,7 +728,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
@@ -821,7 +830,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
@@ -906,7 +915,7 @@ jobs:
         nms-build
       ]
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
         with:
           python-version: '3.8.10'
@@ -936,7 +945,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - name: Prepare tools
         working-directory: "${{ github.workspace }}/dp"
         run: |
@@ -991,3 +1000,15 @@ jobs:
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
+  trigger-debian-integ-test:
+    if: always() && github.event_name == 'push' && github.repository_owner == 'magma' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: agw-build
+    steps:
+      - name: Trigger debian integ test workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: magma/magma
+          event-type: build-all-artifact
+          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}" }'
