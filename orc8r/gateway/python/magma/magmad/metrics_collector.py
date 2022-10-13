@@ -20,7 +20,7 @@ import metrics_pb2
 import prometheus_client.core
 import requests
 import snowflake
-from magma.common.rpc_utils import indicates_connection_error
+from magma.common.rpc_utils import indicates_connection_error, get_exclude_conditions
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import metricsd_pb2
@@ -135,13 +135,14 @@ class MetricsCollector(object):
         """
         err = collect_future.exception()
         if err:
+            exclude_conditions = get_exclude_conditions(err)
             logging.error(
                 "Metrics upload error for service %s (chunk %d)! [%s] %s",
                 service_name,
                 chunk,
                 err.code(),
                 err.details(),
-                extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
+                extra=exclude_conditions if exclude_conditions else None,
             )
         else:
             logging.debug(

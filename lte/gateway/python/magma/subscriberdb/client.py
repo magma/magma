@@ -31,7 +31,7 @@ from lte.protos.subscriberdb_pb2 import (
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
-from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING, ORC8R_NOT_CONNECTED_KEY
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_FAILURE_TOTAL,
@@ -285,9 +285,11 @@ class SubscriberDBCloudClient(SDWatchdogTask):
             return res
 
         except grpc.RpcError as err:
+            exclude_conditions = {ORC8R_NOT_CONNECTED_KEY: True} if err.code() is grpc.StatusCode.UNKNOWN else {}
             logging.error(
                 "Fetch suci profiles error! [%s] %s", err.code(),
                 err.details(),
+                extra=exclude_conditions if exclude_conditions else None,
             )
             return None
 
@@ -438,8 +440,10 @@ def _log_grpc_error(err: grpc.RpcError) -> None:
             extra=EXCLUDE_FROM_ERROR_MONITORING,
         )
     else:
+        exclude_conditions = {ORC8R_NOT_CONNECTED_KEY: True} if err.code() is grpc.StatusCode.UNKNOWN else {}
         logging.error(
             # inspect.stack() indices: [1] -> frame record of penultimate caller; [3] -> function name
             "%s request error! [%s] %s", inspect.stack(context=0)[1][3], err.code(),
             err.details(),
+            extra=exclude_conditions if exclude_conditions else None,
         )

@@ -22,7 +22,7 @@ from magma.common.cert_validity import cert_is_invalid
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import (
     grpc_async_wrapper,
-    indicates_connection_error,
+    indicates_connection_error, get_exclude_conditions,
 )
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
@@ -79,11 +79,12 @@ class StateReporterErrorHandler:
         the threshold specified in the config. If it does, it will trigger a
         bootstrap if the certificate is invalid.
         """
+        exclude_conditions = get_exclude_conditions(err)
         logging.error(
             "Checkin Error! Failed to report states. [%s] %s",
             err.code(),
             err.details(),
-            extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
+            extra=exclude_conditions if exclude_conditions else None,
         )
         CHECKIN_STATUS.set(0)
         self.num_failed_state_reporting += 1

@@ -14,11 +14,15 @@ limitations under the License.
 
 import asyncio
 import logging
+from typing import Dict
+
 from enum import Enum
 
 import grpc
 from google.protobuf import message as proto_message
 from google.protobuf.json_format import MessageToJson
+
+from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING_KEY, ORC8R_NOT_CONNECTED_KEY
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import common_pb2
 
@@ -164,6 +168,35 @@ def indicates_connection_error(error: grpc.RpcError) -> bool:
     """
     return error.code() in {grpc.StatusCode.UNAVAILABLE, grpc.StatusCode.DEADLINE_EXCEEDED}
 
+
+def indicates_orc8r_not_connected(error: grpc.RpcError) -> bool:
+    """Try to determine if orc8r is connected or not.
+
+    Args:
+        error (grpc.RpcError): the rpc error
+
+    Returns:
+        bool: does this indicate orc8r is missing
+    """
+    return error.code() in {grpc.StatusCode.UNKNOWN}
+
+
+def get_exclude_conditions(err: Exception) -> Dict[str, bool]:
+    """Get exclude conditions for error monitoring.
+
+    Args:
+        err (Exception): the exception object
+
+    Returns:
+        Dict[str,bool]: contains a set of exclude conditions, with values indicating
+        whether they are met or not
+    """
+    exclude_conditions = {}
+    if indicates_connection_error(err):
+        exclude_conditions[EXCLUDE_FROM_ERROR_MONITORING_KEY] = True
+    if indicates_orc8r_not_connected(err):
+        exclude_conditions[ORC8R_NOT_CONNECTED_KEY] = True
+    return exclude_conditions
 
 def print_grpc(
     message: proto_message.Message, print_grpc_payload: bool,

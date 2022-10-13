@@ -22,8 +22,7 @@ import snowflake
 from google.protobuf import any_pb2
 from magma.common import serialization_utils
 from magma.common.metrics import STREAMER_RESPONSES
-from magma.common.rpc_utils import indicates_connection_error
-from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
+from magma.common.rpc_utils import get_exclude_conditions
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.streamer_pb2 import DataUpdate, StreamRequest
@@ -125,11 +124,12 @@ class StreamerClient(threading.Thread):
 
                 STREAMER_RESPONSES.labels(result='Success').inc()
             except grpc.RpcError as err:
+                exclude_conditions = get_exclude_conditions(err)
                 logging.error(
                     "Error! Streaming from the cloud failed! [%s] %s",
                     err.code(),
                     err.details(),
-                    extra=EXCLUDE_FROM_ERROR_MONITORING if indicates_connection_error(err) else None,
+                    extra=exclude_conditions if exclude_conditions else None,
                 )
                 STREAMER_RESPONSES.labels(result='RpcError').inc()
             except ValueError as err:
