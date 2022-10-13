@@ -195,6 +195,8 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
           MSG_MINIMAL: actions url,commit
+      - name: Change for testing
+        run: echo "The path filter will trigger the workflow with this change."
 
   python_file_check:
     name: Check if there are not bazelified python files
