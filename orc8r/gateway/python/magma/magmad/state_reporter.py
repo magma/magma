@@ -21,8 +21,9 @@ import snowflake
 from magma.common.cert_validity import cert_is_invalid
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import (
+    get_exclude_conditions,
     grpc_async_wrapper,
-    indicates_connection_error, get_exclude_conditions,
+    indicates_connection_error,
 )
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING

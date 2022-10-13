@@ -31,7 +31,10 @@ from lte.protos.subscriberdb_pb2 import (
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
-from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING, ORC8R_NOT_CONNECTED_KEY
+from magma.common.sentry import (
+    EXCLUDE_FROM_ERROR_MONITORING,
+    ORC8R_NOT_CONNECTED_KEY,
+)
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.metrics import (
     SUBSCRIBER_SYNC_FAILURE_TOTAL,

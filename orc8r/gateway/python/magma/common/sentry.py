@@ -111,6 +111,7 @@ def _ignore_if_marked(event: Event) -> Optional[Event]:
         return None
     return event
 
+
 def _filter_excluded_messages(event: Event, hint: Hint, patterns_to_exclude: List[str]) -> Optional[Event]:
     explicit_message = event.get('message')
 

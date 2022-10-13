@@ -20,7 +20,10 @@ import metrics_pb2
 import prometheus_client.core
 import requests
 import snowflake
-from magma.common.rpc_utils import indicates_connection_error, get_exclude_conditions
+from magma.common.rpc_utils import (
+    get_exclude_conditions,
+    indicates_connection_error,
+)
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import metricsd_pb2

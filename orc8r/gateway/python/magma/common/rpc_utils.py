@@ -14,15 +14,16 @@ limitations under the License.
 
 import asyncio
 import logging
-from typing import Dict
-
 from enum import Enum
+from typing import Dict
 
 import grpc
 from google.protobuf import message as proto_message
 from google.protobuf.json_format import MessageToJson
-
-from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING_KEY, ORC8R_NOT_CONNECTED_KEY
+from magma.common.sentry import (
+    EXCLUDE_FROM_ERROR_MONITORING_KEY,
+    ORC8R_NOT_CONNECTED_KEY,
+)
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import common_pb2
 
@@ -197,6 +198,7 @@ def get_exclude_conditions(err: Exception) -> Dict[str, bool]:
     if indicates_orc8r_not_connected(err):
         exclude_conditions[ORC8R_NOT_CONNECTED_KEY] = True
     return exclude_conditions
+
 
 def print_grpc(
     message: proto_message.Message, print_grpc_payload: bool,

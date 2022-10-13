@@ -16,8 +16,9 @@ import grpc
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.rpc_utils import (
+    get_exclude_conditions,
     grpc_async_wrapper,
-    print_grpc, get_exclude_conditions,
+    print_grpc,
 )
 from magma.common.service import MagmaService
 from magma.state.keys import make_scoped_device_id
