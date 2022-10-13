@@ -142,8 +142,9 @@ ubuntu@magma-trfserver:~$ git clone `https://github.com/magma/magma.git`
 To install the S1apTester, we need to run the Ansible Playbook `s1aptester.yml` with the inventory `hosts`
 ```bash
 cd $MAGMA_ROOT/lte/gateway/deploy
-ansible-playbook -i hosts s1aptester.yml -K --key-file "~/.ssh/arm-key-pair-s1ap.pem"
+ansible-playbook -i hosts s1aptester.yml -K --key-file <MYKEYPAIR.PEM>
 ```
+Where MYKEYPAIR.PEM is the key pair that you create on AWS for your instance(s) and you need to download to your working environment.
 
 ## 3. Run Tests
 ### a. Export variables
@@ -228,8 +229,10 @@ export MAGMA_ROOT=$HOME/magma
 To install the TrfServer, we need to run the Ansible Playbook `iperfserver.yml` with the inventory `hosts`
 ```bash
 cd $MAGMA_ROOT/lte/gateway/deploy
-ansible-playbook -i hosts iperfserver.yml -K --key-file "~/.ssh/arm-key-pair-s1ap.pem"
+ansible-playbook -i hosts iperfserver.yml -K --key-file <MYKEYPAIR.PEM>
 ```
+Where MYKEYPAIR.PEM is the key pair that you create on AWS for your instance(s) and you need to download to your working environment.
+
 ## 3. Running uplink/downlink traffic tests
 To run the uplink/downlink traffic tests, you need to disable the TCP checksum, then run the iperf on the TrfServer VM.
 ```bash
