@@ -166,7 +166,6 @@ jobs:
             vagrant ssh magma -c 'cat magma/lte/gateway/image.tar | docker load'
             rm image.tar
           done
-          mkdir -p /tmp/fed_integ_test-images
       - name: Run the federated integ test
         run: |
           cd lte/gateway
