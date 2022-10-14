@@ -100,7 +100,7 @@ void SgwStateManager::create_state() {
     return;
   }
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
-      SGW_S8_CSR_PROC_ID_MAP);
+      SGW_S8_CSR_PROC_ID_MAP_NAME);
   state_cache_p->temporary_create_session_procedure_id_map.bind_callback(
       sgw_free_s11_bearer_context_information);
 
@@ -124,7 +124,6 @@ void SgwStateManager::free_state() {
                    "temporary_create_session_procedure_id_map ");
     }
   }
-  s8_state_teid_map.map = nullptr;
 
   hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
 
@@ -136,7 +135,6 @@ void SgwStateManager::free_state() {
                    "temporary_create_session_procedure_id_map ");
     }
   }
-  state_cache_p->temporary_create_session_procedure_id_map.map = nullptr;
   free_cpp_wrapper(reinterpret_cast<void**>(&state_cache_p));
 }
 
