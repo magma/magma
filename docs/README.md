@@ -4,4 +4,3 @@ This document provides pointers for those looking to make documentation changes 
 
 - [Documentation Overview](https://github.com/magma/magma/wiki/Contributing-Documentation) for general documentation information
 - `make help` for specific commands
-
