@@ -1080,7 +1080,7 @@ class MagmadUtil(object):
                     or service_name == "pipelined"
                 ):
                     self.exec_command(
-                        "docker restart oai_mme mobilityd sessiond "
+                        "docker restart --time 1 oai_mme mobilityd sessiond "
                         "connectiond pipelined envoy_controller",
                     )
                 elif service_name == "sctpd":
@@ -1095,7 +1095,7 @@ class MagmadUtil(object):
                         "connectiond pipelined envoy_controller",
                     )
                 else:
-                    self.exec_command(f"docker restart {service_name}")
+                    self.exec_command(f"docker restart --time 1 {service_name}")
 
         self.wait_for_restart_to_finish(wait_time)
 
@@ -2325,7 +2325,7 @@ class HeaderEnrichmentUtils(object):
             )
         elif self.magma_utils.init_system == InitMode.DOCKER:
             self.magma_utils.exec_command_output(
-                "docker restart envoy_controller",
+                "docker restart --time 1 envoy_controller",
             )
         time.sleep(5)
         self.magma_utils.exec_command_output(

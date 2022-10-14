@@ -295,7 +295,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(run_integ_tests, federated_mode='True')
+    execute(_run_integ_tests, federated_mode=True)
 
 
 def _modify_for_bazel_services():
@@ -544,7 +544,7 @@ def _start_gateway_containerized():
 
     with cd(AGW_ROOT + "/docker"):
         # The `docker-compose up` times are machine dependent, such that a retry is needed here for resilience.
-        run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+        run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
 
 
 def run_with_retry(command, retries=3):
@@ -558,34 +558,6 @@ def run_with_retry(command, retries=3):
             fastprint(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
     else:
         raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
-
-
-def run_integ_tests(tests=None, federated_mode='False'):
-    """
-    Function is required to run tests only in pre-configured Jenkins env.
-
-    In case of no tests specified with command executed like follows:
-    $ fab run_integ_tests
-
-    default tests set will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test
-
-    In case of selecting specific test like follows:
-    $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-    $ fab run_integ_tests:tests=federated_tests/s1aptests/test_attach_detach.py,federated_mode=True
-
-    The specific test will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test TESTS=s1aptests/test_attach_detach.py
-    $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
-    """
-    vagrant_setup("magma_test", destroy_vm=False)
-    gateway_ip = '192.168.60.142'
-    if tests:
-        tests = "TESTS=" + tests
-
-    execute(_run_integ_tests, gateway_ip, tests, strtobool(federated_mode))
 
 
 def get_test_summaries(
@@ -615,6 +587,7 @@ def get_test_summaries(
 
 def get_test_logs(
     gateway_host=None,
+    gateway_host_name='magma',
     test_host=None,
     trf_host=None,
     dst_path="/tmp/build_logs.tar.gz",
@@ -655,7 +628,7 @@ def get_test_logs(
     # Set up to enter the gateway host
     env.host_string = gateway_host
     if not gateway_host:
-        setup_env_vagrant("magma")
+        setup_env_vagrant(gateway_host_name)
         gateway_host = env.hosts[0]
     (env.user, _, _) = split_hoststring(gateway_host)
 
