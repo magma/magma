@@ -56,6 +56,10 @@ status_code_e mock_read_spgw_ue_state_db(
     }
 
     spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
+    if (!ue_context_p) {
+      std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
+      OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
+    }
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

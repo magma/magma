@@ -115,6 +115,10 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
+    if (!ue_context_p) {
+      OAILOG_ERROR(log_task, "Failed to allocate memory for ue_context_p");
+      return RETURNok;
+    }
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

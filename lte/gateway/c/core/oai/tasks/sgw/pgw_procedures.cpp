@@ -55,6 +55,11 @@ void delete_pending_procedures(
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* ctx_p) {
   pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
+  if (!s11_proc_create_bearer) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "Failed to allocate memory for structure, pgw_ni_cbr_proc_t");
+    return nullptr;
+  }
   s11_proc_create_bearer->proc.type =
       PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST;
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -62,6 +67,12 @@ pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
   if (!ctx_p->pending_procedures) {
     ctx_p->pending_procedures =
         new sgw_eps_bearer_context_information_s::pending_procedures_s();
+    if (!ctx_p->pending_procedures) {
+      OAILOG_ERROR(LOG_SPGW_APP,
+                   "Failed to allocate memory for pending_procedures");
+      free_cpp_wrapper(reinterpret_cast<void**>(&s11_proc_create_bearer));
+      return nullptr;
+    }
     if (!(ctx_p->pending_procedures)) {
       return nullptr;
     }

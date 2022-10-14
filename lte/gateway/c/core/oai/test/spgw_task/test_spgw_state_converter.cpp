@@ -77,6 +77,7 @@ TEST(SPGWStateConverterTest, TestUEContextConversion) {
 
     oai::SpgwUeContext proto_ctx;
     spgw_ue_context_t* final_ctx = new spgw_ue_context_t();
+    EXPECT_NE(final_ctx, nullptr);
     SpgwStateConverter::ue_to_proto(initial_ctx, &proto_ctx);
     SpgwStateConverter::proto_to_ue(proto_ctx, final_ctx);
 
