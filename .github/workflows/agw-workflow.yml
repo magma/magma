@@ -18,8 +18,8 @@ concurrency:
 
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  CACHE_KEY: bazel-base-image
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-e533ea8"
+  CACHE_KEY: bazel-base-image-1_8
 
 jobs:
   path_filter:

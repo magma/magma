@@ -17,8 +17,8 @@ on:
     # Run four times a day to build bazel cache
     - cron: '0 0,6,12,18 * * *'
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  CACHE_KEY: bazel-base-image
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:sha-e533ea8"
+  CACHE_KEY: bazel-base-image-1_8
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
