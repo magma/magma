@@ -295,7 +295,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(_run_integ_tests, test_mode="fed_integ_test")
+    execute(_run_integ_tests, test_mode="federated_integ_test")
 
 
 def _modify_for_bazel_services():
