@@ -295,7 +295,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(_run_integ_tests, federated_mode=True)
+    execute(_run_integ_tests, test_mode="fed_integ_test")
 
 
 def _modify_for_bazel_services():
@@ -851,24 +851,12 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=False):
+def _run_integ_tests(gateway_ip='192.168.60.142', test_mode='integ_test', tests=''):
     """ Run the integration tests
 
-    For now, just run a single basic test
-    """
-
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
-    key = env.key_filename
-    tests = tests or ''
-    test_mode = 'integ_test'
-    if federated_mode:
-        test_mode = 'fed_integ_test'
-
-    """
-    NOTE: the s1aptester produces a bunch of output which the python ssh
+    NOTE: The S1AP-tester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
-    ssh into machine and run the tests
+    ssh into machine and run the tests.
 
     ssh switch reference:
         -i: identity file
@@ -878,13 +866,22 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
+    host = env.hosts[0].split(':')[0]
+    port = env.hosts[0].split(':')[1]
+    key = env.key_filename
+
+    # We do not have a proper shell, so the `magtivate` alias is not available.
+    # We instead directly source the activate file.
     local(
-        f'ssh -i {key} -o UserKnownHostsFile=/dev/null'
-        f' -o StrictHostKeyChecking=no -tt {host} -p {port}'
-        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        f' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
+        f'ssh'
+        f' -i {key}'
+        f' -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no'
+        f' -tt {host}'
+        f' -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests;'
+        f' sudo ethtool --offload eth1 rx off tx off;'
+        f' sudo ethtool --offload eth2 rx off tx off;'
         f' source ~/build/python/bin/activate;'
         f' export GATEWAY_IP={gateway_ip};'
         f' make {test_mode} enable-flaky-retry=true {tests}\'',
