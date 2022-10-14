@@ -908,17 +908,21 @@ def _run_load_tests(gateway_ip='192.168.60.142'):
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
 
+    # We don't have a proper shell, so the `magtivate` alias isn't
+    # available. We instead directly source the activate file
     local(
-        'ssh -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-        ' source ~/build/python/bin/activate;'
-        ' export GATEWAY_IP=%s;'
-        ' make load_test\''
-        % (key, host, port, gateway_ip),
+        f'ssh'
+        f' -i {key}'
+        f' -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no'
+        f' -tt {host}'
+        f' -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests;'
+        f' sudo ethtool --offload eth1 rx off tx off;'
+        f' sudo ethtool --offload eth2 rx off tx off;'
+        f' source ~/build/python/bin/activate;'
+        f' export GATEWAY_IP={gateway_ip};'
+        f' make load_test\'',
     )
 
 
