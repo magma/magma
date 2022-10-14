@@ -40,6 +40,10 @@ endef
 prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 
+.PHONY: prepare_federation
+prepare_federation:
+	$(eval export FEDERATED_MODE = True)
+
 .PHONY: precommit
 precommit: prepare_environment
 ifdef TESTS
@@ -64,9 +68,8 @@ else
 endif
 endif
 
-.PHONY: fed_integ_test
-fed_integ_test: prepare_environment
-	$(eval export FEDERATED_MODE = True)
+.PHONY: federated_integ_test
+federated_integ_test: prepare_environment prepare_federation
 ifdef TESTS
 	$(call execute_test,$(TESTS))
 else
@@ -77,7 +80,7 @@ ifndef enable-flaky-retry
 else
 	echo "Flaky test retries are enabled"
 	-$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
-	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final fed_integ_test status: Passed"; else echo "Final fed_integ_test status: Failed"; exit 1; fi
+	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final federated_integ_test status: Passed"; else echo "Final federated_integ_test status: Failed"; exit 1; fi
 endif
 endif
 
