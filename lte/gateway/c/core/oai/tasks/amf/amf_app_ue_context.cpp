@@ -897,8 +897,7 @@ void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
-  amf_app_itti_ue_context_release(ue_context_p,
-                                  ue_context_p->ue_context_rel_cause);
+  amf_app_itti_ue_context_release(ue_context_p, n2_cause);
 
   if (ue_context_p->m5_implicit_deregistration_timer.id !=
       NAS5G_TIMER_INACTIVE_ID) {

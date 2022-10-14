@@ -338,8 +338,10 @@ status_code_e amf_handle_registration_request(
   params->m5gsregistrationtype = m5gsregistrationtype;
 
   // Save the UE Security Capability into AMF's UE Context
-  memcpy(&(ue_context->amf_context.ue_sec_capability),
-         &(msg->ue_sec_capability), sizeof(UESecurityCapabilityMsg));
+  if (params->m5gsregistrationtype != AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    memcpy(&(ue_context->amf_context.ue_sec_capability),
+           &(msg->ue_sec_capability), sizeof(UESecurityCapabilityMsg));
+  }
   memcpy(&(ue_context->amf_context.originating_tai),
          (const void*)originating_tai, sizeof(tai_t));
 
