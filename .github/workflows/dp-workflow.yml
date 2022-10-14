@@ -99,8 +99,7 @@ jobs:
         working-directory: dp/cloud/python/magma/configuration_controller
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -149,8 +148,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -232,8 +230,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -269,8 +266,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
