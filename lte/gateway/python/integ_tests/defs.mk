@@ -16,6 +16,7 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 PRECOMMIT_TESTS = s1aptests/test_services_are_running.py \
 s1aptests/test_attach_detach.py \
 s1aptests/test_attach_detach_static_ip.py \
+s1aptests/test_disable_ipv6_iface.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
@@ -39,15 +40,12 @@ s1aptests/test_no_security_mode_complete.py \
 s1aptests/test_tau_periodic_inactive.py \
 s1aptests/test_tau_periodic_active.py \
 s1aptests/test_tau_ta_updating_connected_mode.py \
-s1aptests/test_eps_bearer_context_status_def_bearer_deact.py \
-s1aptests/test_eps_bearer_context_status_ded_bearer_deact.py \
 s1aptests/test_attach_service.py \
 s1aptests/test_attach_detach_service.py \
 s1aptests/test_attach_service_ue_radio_capability.py \
 s1aptests/test_attach_service_multi_ue.py \
 s1aptests/test_attach_ipv4v6_pdn_type.py \
 s1aptests/test_service_info.py \
-s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
 s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
@@ -75,107 +73,91 @@ s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
 s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
 s1aptests/test_attach_detach_multi_ue.py \
-s1aptests/test_attach_detach_dedicated_qci_0.py \
-s1aptests/test_attach_detach_dedicated_multi_ue.py \
-s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py \
-s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_imsi.py \
-s1aptests/test_attach_detach_dedicated_activation_reject.py \
-s1aptests/test_attach_detach_multiple_dedicated.py \
-s1aptests/test_attach_detach_secondary_pdn_multi_ue.py \
-s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
-s1aptests/test_attach_detach_secondary_pdn_disconnect_dedicated_bearer.py \
-s1aptests/test_attach_detach_secondary_pdn_disconnect_invalid_bearer.py \
-s1aptests/test_attach_detach_secondary_pdn_no_disconnect.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
-s1aptests/test_attach_detach_disconnect_default_pdn.py \
-s1aptests/test_attach_detach_maxbearers_twopdns.py \
-s1aptests/test_attach_detach_multiple_secondary_pdn.py \
-s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
-s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
-s1aptests/test_different_enb_s1ap_id_same_ue.py \
-s1aptests/test_attach_detach_with_pcscf_address.py \
-s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
-s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
-s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
-s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
-s1aptests/test_ics_timer_expiry_ue_registered.py \
-s1aptests/test_ics_timer_expiry_ue_unregistered.py \
-s1aptests/test_identity_timer_3470_expiry.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
-s1aptests/test_dedicated_bearer_activation_idle_mode_multi_ue.py \
-s1aptests/test_multi_enb_multi_ue.py \
-s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
-s1aptests/test_multi_enb_partial_reset.py \
-s1aptests/test_multi_enb_complete_reset.py \
-s1aptests/test_multi_enb_sctp_shutdown.py \
-s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
-s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
-s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
-s1aptests/test_attach_dl_udp_data.py \
-s1aptests/test_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
-s1aptests/test_attach_asr.py \
-s1aptests/test_attach_detach_with_sctpd_restart.py \
-s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
-s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
-s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
-s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
-s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
-s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
-s1aptests/test_enable_ipv6_iface.py \
-s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
-s1aptests/test_disable_ipv6_iface.py
+# s1aptests/test_attach_detach_dedicated_activation_reject.py \
+# s1aptests/test_attach_detach_multiple_dedicated.py \
+# s1aptests/test_attach_detach_secondary_pdn_multi_ue.py \
+# s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
+# s1aptests/test_attach_detach_secondary_pdn_disconnect_dedicated_bearer.py \
+# s1aptests/test_attach_detach_secondary_pdn_disconnect_invalid_bearer.py \
+# s1aptests/test_attach_detach_secondary_pdn_no_disconnect.py \
+# s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue.py \
+# s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
+# s1aptests/test_attach_detach_disconnect_default_pdn.py \
+# s1aptests/test_attach_detach_maxbearers_twopdns.py \
+# s1aptests/test_attach_detach_multiple_secondary_pdn.py \
+# s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
+# s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
+# s1aptests/test_different_enb_s1ap_id_same_ue.py \
+# s1aptests/test_attach_detach_with_pcscf_address.py \
+# s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
+# s1aptests/test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py \
+# s1aptests/test_secondary_pdn_reject_unknown_pdn_type.py \
+# s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
+# s1aptests/test_ics_timer_expiry_ue_registered.py \
+# s1aptests/test_ics_timer_expiry_ue_unregistered.py \
+# s1aptests/test_identity_timer_3470_expiry.py \
+# s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
+# s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
+# s1aptests/test_dedicated_bearer_activation_idle_mode_multi_ue.py \
+# s1aptests/test_multi_enb_multi_ue.py \
+# s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
+# s1aptests/test_multi_enb_partial_reset.py \
+# s1aptests/test_multi_enb_complete_reset.py \
+# s1aptests/test_multi_enb_sctp_shutdown.py \
+# s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
+# s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
+# s1aptests/test_attach_ul_udp_data.py \
+# s1aptests/test_attach_ul_tcp_data.py \
+# s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+# s1aptests/test_attach_dl_udp_data.py \
+# s1aptests/test_attach_dl_tcp_data.py \
+# s1aptests/test_attach_detach_attach_dl_tcp_data.py \
+# s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+# s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
+# s1aptests/test_attach_asr.py \
+# s1aptests/test_attach_detach_with_sctpd_restart.py \
+# s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
+# s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+# s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
+# s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
+# s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
+# s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
+# s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
+# s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
+# s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+
+# s1aptests/test_eps_bearer_context_status_def_bearer_deact.py \
+# s1aptests/test_eps_bearer_context_status_ded_bearer_deact.py \
+# s1aptests/test_attach_detach_with_ovs.py \
+# s1aptests/test_attach_detach_dedicated_qci_0.py \
+# s1aptests/test_attach_detach_dedicated_multi_ue.py \
+
+# s1aptests/test_enable_ipv6_iface.py \
+# s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
+# s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py \
+# s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_imsi.py \
+
+
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
-s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_detach_with_he_policy.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
 s1aptests/test_imei_restriction_wildcard_snr.py \
-s1aptests/test_attach_detach_dedicated.py \
-s1aptests/test_attach_detach_dedicated_looped.py \
-s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_lbi.py \
-s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_ebi.py \
-s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_lbi.py\
-s1aptests/test_attach_detach_dedicated_activation_timer_expiry.py \
-s1aptests/test_attach_detach_dedicated_deactivation_timer_expiry.py \
-s1aptests/test_dedicated_bearer_activation_idle_mode.py \
-s1aptests/test_attach_detach_secondary_pdn.py \
-s1aptests/test_attach_detach_secondary_pdn_looped.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
-s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
-s1aptests/test_s1_handover.py \
-s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
-s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
-s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
 s1aptests/test_tau_mixed_partial_lists.py \
-s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
@@ -183,6 +165,29 @@ s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \
 s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
+# s1aptests/test_attach_detach_rar_tcp_he.py \
+# s1aptests/test_attach_detach_flaky_retry_success.py \
+# s1aptests/test_attach_detach_dedicated.py \
+# s1aptests/test_attach_detach_dedicated_looped.py \
+# s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_lbi.py \
+# s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_ebi.py \
+# s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_lbi.py\
+# s1aptests/test_attach_detach_dedicated_activation_timer_expiry.py \
+# s1aptests/test_attach_detach_dedicated_deactivation_timer_expiry.py \
+# s1aptests/test_dedicated_bearer_activation_idle_mode.py \
+# s1aptests/test_attach_detach_secondary_pdn.py \
+# s1aptests/test_attach_detach_secondary_pdn_looped.py \
+# s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
+# s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
+# s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
+# s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
+# s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
+# s1aptests/test_s1_handover.py \
+# s1aptests/test_attach_detach_rar_tcp_data.py \
+# s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
+# s1aptests/test_paging_after_mme_restart.py \
+# s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
+
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
 s1aptests/test_attach_detach_non_nat_dp_ul_tcp.py \
