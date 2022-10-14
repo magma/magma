@@ -33,19 +33,33 @@ acts as the gateway between *magma_test* and *magma_trfserver*.
 ### Gateway VM setup
 
 There are two options for setting up the gateway VM, with the difference being the magma installation
-method: it can either be installed via `make` or from debian packages, the latter being the
-method by which magma is usually deployed. For everyday development, the `make` installation is
-recommended, while the debian installation is useful for testing packages before release.
+method: it can either be installed by directly compiling the services or from debian packages, the
+latter being the method by which magma is usually deployed. For everyday development, directly
+compiling the services is recommended, while the debian installation is useful for testing packages
+before release.
 
 > **Warning**: These two VMs use the same network configuration, so one must only run one of them
 at a time.
 
-#### Make installation
+#### Directly compiling services
 
-Spin up and provision the gateway VM, then make and start its services:
+Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run
+`vagrant up magma && vagrant ssh magma`.
 
-1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
-1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
+Now build the services with either make or bazel.
+
+##### Building with make
+
+In the gateway VM run `cd $MAGMA_ROOT/lte/gateway && make run`.
+
+##### Building with bazel
+
+> :warning: **Bazel based builds are still experimental but can already be used for development**
+
+1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
+2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
+3. Build the services: `cd $MAGMA_ROOT && magma-build-agw` (Note: this will take some time for the initial build, but will be fast for follow-up builds.)
+4. Start the access gateway: `magma-restart`
 
 #### Debian installation
 
