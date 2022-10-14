@@ -120,3 +120,9 @@ cc_library(
     name = "libsqlite3-dev",
     linkopts = ["-lsqlite3"],
 )
+
+cc_library(
+    name = "libsystemd",
+    linkopts = ["-lsystemd"],
+)
+

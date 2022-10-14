@@ -65,6 +65,7 @@ OAI_DEPS = [
     "libczmq-dev (>= 4.0.2-7)",
     "libasan5",
     "oai-freediameter (>= 0.0.2)",
+    "libsystemd-dev"
 ]
 
 # OVS runtime dependencies
