@@ -40,7 +40,7 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         if: github.event_name == 'pull_request'
         id: changes
         with:
