@@ -25,14 +25,14 @@
 
 - name: Set up S1AP tester build directory
   file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
-  when: full_provision
+  when: preburn
 
 - name: Set a convenience function for starting the S1AP tester
   lineinfile: >
     dest=/home/{{ ansible_user }}/.bashrc
     state=present
     line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
-  when: full_provision
+  when: preburn
 
 - name: Add integ test scripts to path
   become: yes
@@ -96,11 +96,6 @@
   register: swagger_yml_present
   when: full_provision
 
-#- name: Generate Python bindings for the REST API with swagger-codegen
-#  no_log: True
-#  command: "{{ test_scripts }}/generate_python_bindings.sh"
-#  when: full_provision and (swagger_yml_present.stat.exists == true)
-
 - name: Add the test controller DNS entry
   become: yes
   lineinfile:
@@ -108,4 +103,4 @@
     regexp: '.*controller.magma.test$'
     line: "10.0.2.2 controller.magma.test"
     state: present
-  when: full_provision
+  when: preburn

@@ -24,6 +24,7 @@
     path: '/var/cache/bazel-cache'
     state: link
     force: yes
+    follow: false
 
 - name: Symlink bazel disk repository cache configuration into the VM
   file:
