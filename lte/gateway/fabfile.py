@@ -532,7 +532,7 @@ def _start_gateway_containerized():
         run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
 
 
-def run_with_retry(command, retries=3):
+def run_with_retry(command, retries=10):
     iteration = 0
     while iteration < retries:
         iteration += 1
@@ -541,7 +541,9 @@ def run_with_retry(command, retries=3):
             break
         except:
             fastprint(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
+            sleep(3)
     else:
+        run("docker ps")  # It is _not_ docker-compose by intention to see the container ID.
         raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
 
 
