@@ -125,4 +125,3 @@ cc_library(
     name = "libsystemd",
     linkopts = ["-lsystemd"],
 )
-
