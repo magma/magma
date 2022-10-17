@@ -210,4 +210,15 @@ enum class M5GMessageType : uint8_t {
   FIVEG_SM_STATUS = 0b11010110,
 };
 
+enum class M5GGprsTimer3ValueUnit : uint8_t {
+  MULTIPLES_OF_10MIN = 0b000,
+  MULTIPLES_OF_1HOUR = 0b001,
+  MULTIPLES_OF_10HOUR = 0b010,
+  MULTIPLES_OF_2SEC = 0b011,
+  MULTIPLES_OF_30SEC = 0b100,
+  MULTIPLES_OF_1MIN = 0b101,
+  MULTIPLES_OF_320HOUR = 0b110,
+  DEACTIVATED = 0b111,
+};
+
 }  // namespace magma5g
