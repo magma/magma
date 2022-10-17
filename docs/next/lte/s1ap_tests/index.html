@@ -126,7 +126,7 @@ is installed. That is, the deployed gateway might not match your local repositor
 either individual tests or the full suite of tests. A safe, non-flaky test to
 run is <code>s1aptests/test_attach_detach.py</code>.</p>
 <ul>
-<li>Individual test(s): <code>make integ_test TESTS=&lt;test(s)_to_run&gt;</code></li>
+<li>Individual test(s): <code>make selected_tests TESTS=&quot;&lt;test(s)_to_run_space_separated&gt;&quot;</code></li>
 <li>All Sanity tests: <code>make integ_test</code></li>
 <li>All Non-Sanity tests: <code>make nonsanity</code></li>
 <li>Minimal set of tests to be executed before committing changes to magma repository: <code>make precommit</code></li>
@@ -179,10 +179,10 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 <p>On test VM:</p>
 <ol>
 <li><p>Basic attach/detach test where MME is restarted mid-way:<br>
-<code>make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py</code></p></li>
+<code>make selected_tests TESTS=s1aptests/test_attach_detach_with_mme_restart.py</code></p></li>
 <li><p>Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
 flowing:<br>
-<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py</code><br>
+<code>make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py</code><br>
 , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.</p></li>
 </ol>
@@ -206,9 +206,9 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 <li><p><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></p></li>
 <li><p><code>cd integ_tests &amp;&amp; make</code></p></li>
 <li><p>Basic attach/detach test where Mobilityd is restarted mid-way:<br>
-<code>make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py</code></p></li>
+<code>make selected_tests TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py</code></p></li>
 <li><p>Test IP blocks are maintained across service restart<br>
-<code>make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py</code></p></li>
+<code>make selected_tests TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py</code></p></li>
 </ol>
 <h4><a class="anchor" aria-hidden="true" id="stateless-pipelined"></a><a href="#stateless-pipelined" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stateless Pipelined</h4>
 <p>This section describes how to test whether Pipelined service is persisting state to Redis.</p>
@@ -231,7 +231,7 @@ the redis service with <code>sudo service magma@redis start</code> and then try 
 <li><code>cd $MAGMA_ROOT/lte/gateway/python &amp;&amp; make</code></li>
 <li><code>cd integ_tests &amp;&amp; make</code></li>
 <li>UDP traffic test where Pipelined is restarted mid-way:
-<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py</code></li>
+<code>make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py</code></li>
 </ol>
 <h3><a class="anchor" aria-hidden="true" id="testing-stateless-gateway-with-all-services"></a><a href="#testing-stateless-gateway-with-all-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing stateless gateway with all services</h3>
 <p>To test the gateway with all services being stateless,</p>
@@ -241,7 +241,7 @@ listed above</p></li>
 <li><p>On test VM, you can run any of the test cases for individual service restarts
 listed above. Further, you can test attach with uplink UDP traffic, where
 multiple services are restarted while UDP traffic is flowing:<br>
-<code>make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py</code><br>
+<code>make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py</code><br>
 , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.</p></li>
 </ol>

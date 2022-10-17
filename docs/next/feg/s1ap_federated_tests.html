@@ -211,7 +211,7 @@ vagrant ssh magma_test
 <span class="hljs-comment"># inside vagrant vm</span>
 <span class="hljs-built_in">cd</span> magma/lte/gateway/python/integ_tests
 <span class="hljs-comment">## Individual test(s), e.g.:</span>
-make federated_integ_test TESTS=s1aptests/test_attach_detach.py
+make prepare_federation selected_tests TESTS=<span class="hljs-string">"&lt;test(s)_to_run_space_separated&gt;"</span>
 
 <span class="hljs-comment">## All tests</span>
 make federated_integ_test
