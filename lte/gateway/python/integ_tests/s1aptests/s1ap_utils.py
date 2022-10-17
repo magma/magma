@@ -1119,7 +1119,7 @@ class MagmadUtil(object):
                 time.sleep(5)
 
                 if time.time() - start_time > wait_time:
-                    print("Timeout reached while waiting for docker service to restart")
+                    print("Timeout reached while waiting for services to restart")
                     return
 
     def enable_service(self, service):
