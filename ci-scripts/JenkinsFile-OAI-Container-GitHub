@@ -303,7 +303,7 @@ pipeline {
                     // Create the image to use
                     // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
                     // On the daily master build, we are doing from scratch
-                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + ' . > archives/build_magma_mme_rhel8.log 2>&1')
+                    sh('sudo podman build --no-cache --squash --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + ' . > archives/build_magma_mme_rhel8.log 2>&1')
                     sh('wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/flatten_image.py -O ci-scripts/ci-flatten_image.py')
                     sh('python3 ./ci-scripts/ci-flatten_image.py --tag magma-mme:' + rhel8_image_tag)
                     sh('sudo podman image prune --force > /dev/null 2>&1')

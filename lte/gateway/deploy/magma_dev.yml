@@ -45,6 +45,7 @@
     - role: fluent_bit
     - role: pyvenv
     - role: service_aliases
+    - role: bazel_aliases
 
   tasks:
     # Only run installation for docker
