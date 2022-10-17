@@ -78,12 +78,12 @@ module "orc8r-app" {
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   # Note that this can be any container registry provider
-  docker_registry = "shubhamtatvamasi"
+  docker_registry = "docker.artifactory.magmacore.org"
   docker_user     = ""
   docker_pass     = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo      = "https://shubhamtatvamasi.github.io/magma-charts-8-8-2022"
+  helm_repo      = "https://artifactory.magmacore.org/artifactory/helm"
   helm_user      = ""
   helm_pass      = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
@@ -95,7 +95,7 @@ module "orc8r-app" {
   elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag             = "d6ba3ee"
+  orc8r_tag             = "1.8.0"
 }
 
 output "nameservers" {
