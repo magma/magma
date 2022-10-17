@@ -132,7 +132,8 @@ static void mme_app_handle_timer_for_unregistered_ue(
 //------------------------------------------------------------------------------
 // warning: lock the UE context
 ue_mm_context_t* mme_create_new_ue_context(void) {
-  ue_mm_context_t* new_p = reinterpret_cast<ue_mm_context_t*>(calloc(1, sizeof(ue_mm_context_t)));
+  ue_mm_context_t* new_p =
+      reinterpret_cast<ue_mm_context_t*>(calloc(1, sizeof(ue_mm_context_t)));
   if (!new_p) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to allocate memory for UE context \n");
     return NULL;
@@ -1574,7 +1575,8 @@ static bool mme_app_recover_timers_for_ue(const hash_key_t keyP,
         ue_mm_context_pP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
         &ue_mm_context_pP->mobile_reachability_timer,
-        mme_app_handle_mobile_reachability_timer_expiry, (char*)"Mobile Reachability");
+        mme_app_handle_mobile_reachability_timer_expiry,
+        (char*)"Mobile Reachability");
   }
   if (ue_mm_context_pP->time_implicit_detach_timer_started) {
     mme_app_resume_timer(
@@ -1583,10 +1585,10 @@ static bool mme_app_recover_timers_for_ue(const hash_key_t keyP,
         mme_app_handle_implicit_detach_timer_expiry, (char*)"Implicit Detach");
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
-    mme_app_resume_timer(ue_mm_context_pP,
-                         ue_mm_context_pP->time_paging_response_timer_started,
-                         &ue_mm_context_pP->paging_response_timer,
-                         mme_app_handle_paging_timer_expiry, (char*)"Paging Response");
+    mme_app_resume_timer(
+        ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
+        &ue_mm_context_pP->paging_response_timer,
+        mme_app_handle_paging_timer_expiry, (char*)"Paging Response");
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
       ue_mm_context_pP->time_ics_rsp_timer_started) {

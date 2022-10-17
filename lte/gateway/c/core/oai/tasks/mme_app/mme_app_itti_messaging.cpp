@@ -362,7 +362,8 @@ status_code_e mme_app_send_s11_create_session_req(
                   selected_apn_config_p->pdn_type,
                   ue_mm_context->mme_ue_s1ap_id);
   session_request_p->pdn_type = selected_apn_config_p->pdn_type;
-  session_request_p->paa.pdn_type = (pdn_type_value_t)selected_apn_config_p->pdn_type;
+  session_request_p->paa.pdn_type =
+      (pdn_type_value_t)selected_apn_config_p->pdn_type;
 
   if (selected_apn_config_p->nb_ip_address == 0) {
     /*

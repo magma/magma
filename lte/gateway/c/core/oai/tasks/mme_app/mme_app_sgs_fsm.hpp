@@ -97,4 +97,5 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt);
 status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt);
 status_code_e sgs_handle_associated_paging_request(const sgs_fsm_t* sgs_evt);
 status_code_e sgs_handle_null_paging_request(const sgs_fsm_t* sgs_evt);
-status_code_e sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt);
+status_code_e sgs_fsm_associated_service_abort_request(
+    const sgs_fsm_t* fsm_evt);

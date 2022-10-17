@@ -604,8 +604,9 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  * \param ue_context_p The UE context to insert
  * @returns 0 in case of success, -1 otherwise
  **/
-status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
-                          const struct ue_mm_context_s* const ue_context_p);
+status_code_e mme_insert_ue_context(
+    mme_ue_context_t* const mme_ue_context,
+    const struct ue_mm_context_s* const ue_context_p);
 
 #ifdef __cplusplus
 extern "C" {
@@ -675,7 +676,6 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context,
 #endif
 
 void mme_app_recover_timers_for_all_ues(void);
-
 
 status_code_e eps_bearer_release(emm_context_t* emm_context_p, ebi_t ebi,
                                  pdn_cid_t* pid, int* bidx);

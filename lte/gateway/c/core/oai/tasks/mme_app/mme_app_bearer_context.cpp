@@ -68,7 +68,8 @@ bearer_context_t* mme_app_create_bearer_context(
     return NULL;
   }
 
-  bearer_context_t* bearer_context = reinterpret_cast<bearer_context_t*>(malloc(sizeof(*bearer_context)));
+  bearer_context_t* bearer_context =
+      reinterpret_cast<bearer_context_t*>(malloc(sizeof(*bearer_context)));
 
   if (bearer_context) {
     mme_app_bearer_context_init(bearer_context);

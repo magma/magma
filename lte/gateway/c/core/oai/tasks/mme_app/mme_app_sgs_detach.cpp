@@ -91,7 +91,8 @@ static void mme_app_send_sgs_eps_detach_indication(
   SGSAP_EPS_DETACH_IND(message_p).imsi_length =
       (uint8_t)strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
 
-  SGSAP_EPS_DETACH_IND(message_p).eps_detach_type = (SgsEpsDetachType_t) detach_type;
+  SGSAP_EPS_DETACH_IND(message_p).eps_detach_type =
+      (SgsEpsDetachType_t)detach_type;
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
 
@@ -145,9 +146,8 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop,
-                                                         int timer_id,
-                                                         void* args) {
+int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop, int timer_id,
+                                               void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -206,8 +206,8 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop,
 
 // handle the SGS Implicit EPS detach timer expiry
 int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
-                                                                  int timer_id,
-                                                                  void* args) {
+                                                        int timer_id,
+                                                        void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -287,7 +287,8 @@ void mme_app_send_sgs_imsi_detach_indication(
                    ue_context_p->emm_context._imsi.length);
   SGSAP_IMSI_DETACH_IND(message_p).imsi_length =
       (uint8_t)strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
-  SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type = (SgsNonEpsDetachType_t) detach_type;
+  SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type =
+      (SgsNonEpsDetachType_t)detach_type;
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   if (detach_type == SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
@@ -341,9 +342,8 @@ void mme_app_send_sgs_imsi_detach_indication(
 }
 
 /* handle the SGS IMSI detach timer expiry. */
-int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop,
-                                                          int timer_id,
-                                                          void* args) {
+int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop, int timer_id,
+                                                void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -424,8 +424,9 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop,
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
-int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-    zloop_t* loop, int timer_id, void* args) {
+int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(zloop_t* loop,
+                                                         int timer_id,
+                                                         void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;

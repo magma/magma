@@ -194,7 +194,6 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                                bool vlr_reliable);
 
-
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)           \
   (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) && \

@@ -44,7 +44,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 
-
 #define INVALID_BEARER_INDEX (-1)
 #define IPV6_ADDRESS_SIZE 16
 #define IPV4_ADDRESS_SIZE 4
@@ -89,7 +88,7 @@ void mme_app_handle_detach_req(mme_ue_s1ap_id_t ue_id);
 void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* nas_conn_est_cnf_pP);
 
 status_code_e mme_app_handle_nas_dl_req(mme_ue_s1ap_id_t ue_id, bstring nas_msg,
-                              nas_error_code_t transaction_status);
+                                        nas_error_code_t transaction_status);
 
 void mme_app_handle_create_dedicated_bearer_rsp(ue_mm_context_t* ue_context_p,
 
@@ -113,8 +112,8 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
     mme_app_desc_t* mme_app_desc_p, const s6a_cancel_location_req_t* clr_pP);
 
 status_code_e mme_app_handle_nas_extended_service_req(mme_ue_s1ap_id_t ue_id,
-                                            uint8_t servicetype,
-                                            uint8_t csfb_response);
+                                                      uint8_t servicetype,
+                                                      uint8_t csfb_response);
 
 status_code_e mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
@@ -224,11 +223,13 @@ int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
                                                         int timer_id,
                                                         void* args);
 
-status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result, const char* imsi,
-                                         uint8_t imsi_length, void* msg_cla_p);
+status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
+                                                   const char* imsi,
+                                                   uint8_t imsi_length,
+                                                   void* msg_cla_p);
 
-status_code_e mme_app_send_s6a_purge_ue_req(mme_app_desc_t* mme_app_desc_p,
-                                  struct ue_mm_context_s* ue_context_pP);
+status_code_e mme_app_send_s6a_purge_ue_req(
+    mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* ue_context_pP);
 
 status_code_e mme_app_handle_s6a_purge_ue_ans(const s6a_purge_ue_ans_t* pua_pP);
 
@@ -236,18 +237,18 @@ void mme_app_handle_suspend_acknowledge(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_suspend_acknowledge_t* suspend_acknowledge);
 
-status_code_e mme_app_send_s11_suspend_notification(struct ue_mm_context_s* ue_context_pP,
-                                          pdn_cid_t cid);
+status_code_e mme_app_send_s11_suspend_notification(
+    struct ue_mm_context_s* ue_context_pP, pdn_cid_t cid);
 
 status_code_e mme_app_handle_s6a_reset_req(const s6a_reset_req_t* rsr_pP);
 
 int mme_app_send_s6a_reset_ans(int rsa_result, void* msg_rsa_p);
 
-status_code_e mme_app_send_sgsap_service_request(uint8_t service_indicator,
-                                       struct ue_mm_context_s* ue_context_p);
+status_code_e mme_app_send_sgsap_service_request(
+    uint8_t service_indicator, struct ue_mm_context_s* ue_context_p);
 
 status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
-                                               uint8_t detach_type);
+                                                         uint8_t detach_type);
 status_code_e mme_app_handle_nas_cs_domain_location_update_req(
     ue_mm_context_t* ue_context_p, uint8_t msg_type);
 
@@ -277,25 +278,26 @@ status_code_e mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_alert_request_t* sgsap_alert_req_pP);
 
-status_code_e mme_app_paging_request_helper(ue_mm_context_t* ue_context_p, bool set_timer,
-                                  uint8_t paging_id_imsi,
-                                  s1ap_cn_domain_t domain_indicator);
+status_code_e mme_app_paging_request_helper(ue_mm_context_t* ue_context_p,
+                                            bool set_timer,
+                                            uint8_t paging_id_imsi,
+                                            s1ap_cn_domain_t domain_indicator);
 
 status_code_e mme_app_handle_sgsap_paging_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_paging_request_t* sgsap_paging_req_pP);
 
-status_code_e mme_app_send_sgsap_paging_reject(struct ue_mm_context_s* ue_context_p,
-                                     imsi64_t imsi, uint8_t imsi_len,
-                                     SgsCause_t sgs_cause);
+status_code_e mme_app_send_sgsap_paging_reject(
+    struct ue_mm_context_s* ue_context_p, imsi64_t imsi, uint8_t imsi_len,
+    SgsCause_t sgs_cause);
 
 void mme_app_notify_service_reject_to_nas(mme_ue_s1ap_id_t ue_id,
                                           uint8_t emm_cause,
                                           uint8_t failed_procedure);
 
 status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
-                                       char* failed_statement,
-                                       uint8_t failed_procedure);
+                                                 char* failed_statement,
+                                                 uint8_t failed_procedure);
 
 status_code_e mme_app_handle_sgsap_service_abort_request(
     mme_app_desc_t* mme_app_desc_p,
@@ -309,8 +311,8 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     mme_app_desc_t* mme_app_desc_p,
     const itti_s11_nw_init_actv_bearer_request_t* nw_init_bearer_actv_req_p);
 
-status_code_e mme_app_handle_sgs_status_message(mme_app_desc_t* mme_app_desc_p,
-                                      itti_sgsap_status_t* sgsap_status_pP);
+status_code_e mme_app_handle_sgs_status_message(
+    mme_app_desc_t* mme_app_desc_p, itti_sgsap_status_t* sgsap_status_pP);
 
 #ifdef __cplusplus
 extern "C" {

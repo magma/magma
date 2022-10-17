@@ -607,8 +607,8 @@ imsi64_t update_ue_context_and_indicate_to_nas(
   mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
   nas_proc_establish_ind(ue_context_p->mme_ue_s1ap_id, is_mm_ctx_new,
                          initial_pP->tai, initial_pP->ecgi,
-                         (as_cause_t)initial_pP->rrc_establishment_cause, s_tmsi,
-                         &initial_pP->nas);
+                         (as_cause_t)initial_pP->rrc_establishment_cause,
+                         s_tmsi, &initial_pP->nas);
 
   initial_pP->nas = NULL;
   /* In case duplicate attach handling, ue_context_p might be removed
@@ -697,8 +697,8 @@ imsi64_t mme_app_handle_initial_ue_message(
           // Store the received initial ue message and process after releasing
           // previous s1 connection
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id =
-              reinterpret_cast<itti_s1ap_initial_ue_message_t*>(calloc(
-                  1, sizeof(itti_s1ap_initial_ue_message_t)));
+              reinterpret_cast<itti_s1ap_initial_ue_message_t*>(
+                  calloc(1, sizeof(itti_s1ap_initial_ue_message_t)));
           memcpy(ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id,
                  initial_pP, sizeof(itti_s1ap_initial_ue_message_t));
           ue_context_p->initial_ue_message_for_invalid_enb_s1ap_id->nas =
@@ -1296,10 +1296,12 @@ status_code_e mme_app_handle_create_sess_resp(
           create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
               .bearer_level_qos->pl;
       current_bearer_p->preemption_vulnerability =
-          (pre_emption_vulnerability_t)create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
-              .bearer_level_qos->pvi;
+          (pre_emption_vulnerability_t)
+              create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
+                  .bearer_level_qos->pvi;
       current_bearer_p->preemption_capability =
-          (pre_emption_capability_t)create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
+          (pre_emption_capability_t)create_sess_resp_pP->bearer_contexts_created
+              .bearer_contexts[i]
               .bearer_level_qos->pci;
 
       // TODO should be set in NAS_PDN_CONNECTIVITY_RSP message
@@ -1870,8 +1872,10 @@ void mme_app_handle_s11_create_bearer_req(
 
     dedicated_bc->qci = msg_bc->bearer_level_qos.qci;
     dedicated_bc->priority_level = msg_bc->bearer_level_qos.pl;
-    dedicated_bc->preemption_vulnerability = (pre_emption_vulnerability_t) msg_bc->bearer_level_qos.pvi;
-    dedicated_bc->preemption_capability = (pre_emption_capability_t) msg_bc->bearer_level_qos.pci;
+    dedicated_bc->preemption_vulnerability =
+        (pre_emption_vulnerability_t)msg_bc->bearer_level_qos.pvi;
+    dedicated_bc->preemption_capability =
+        (pre_emption_capability_t)msg_bc->bearer_level_qos.pci;
 
     // forward request to NAS
     activate_ded_bearer_req.ue_id = ue_context_p->mme_ue_s1ap_id;
@@ -1881,12 +1885,14 @@ void mme_app_handle_s11_create_bearer_req(
         ue_context_p->pdn_contexts[cid]->default_ebi;
     activate_ded_bearer_req.bearer_qos = msg_bc->bearer_level_qos;
     if (msg_bc->tft.numberofpacketfilters) {
-      activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
+      activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(
+          calloc(1, sizeof(traffic_flow_template_t)));
       copy_traffic_flow_template(activate_ded_bearer_req.tft, &msg_bc->tft);
     }
     if (msg_bc->pco.num_protocol_or_container_id) {
       activate_ded_bearer_req.pco =
-          reinterpret_cast<protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
+          reinterpret_cast<protocol_configuration_options_t*>(
+              calloc(1, sizeof(protocol_configuration_options_t)));
       copy_protocol_configuration_options(activate_ded_bearer_req.pco,
                                           &msg_bc->pco);
     }
@@ -1975,9 +1981,8 @@ void mme_app_handle_e_rab_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
-                                                              int timer_id,
-                                                              void* args) {
+int mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop, int timer_id,
+                                                    void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -2040,9 +2045,8 @@ int mme_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 //------------------------------------------------------------------------------
-int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
-                                                          int timer_id,
-                                                          void* args) {
+int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop, int timer_id,
+                                                void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -2079,8 +2083,9 @@ int mme_app_handle_implicit_detach_timer_expiry(zloop_t* loop,
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_initial_context_setup_rsp_timer_expiry(
-    zloop_t* loop, int timer_id, void* args) {
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(zloop_t* loop,
+                                                          int timer_id,
+                                                          void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -2481,7 +2486,7 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
 }
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
-                                                 void* args) {
+                                       void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -2560,8 +2565,7 @@ int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id,
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id,
-                                              void* args) {
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -2865,8 +2869,8 @@ status_code_e mme_app_handle_nas_extended_service_req(
 
 //------------------------------------------------------------------------------
 int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
-                                                                  int timer_id,
-                                                                  void* args) {
+                                                        int timer_id,
+                                                        void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -3197,13 +3201,15 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
          &nw_init_bearer_actv_req_p->s1_u_sgw_fteid, sizeof(fteid_t));
 
   if (nw_init_bearer_actv_req_p->tft.numberofpacketfilters) {
-    activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(calloc(1, sizeof(traffic_flow_template_t)));
+    activate_ded_bearer_req.tft = reinterpret_cast<traffic_flow_template_t*>(
+        calloc(1, sizeof(traffic_flow_template_t)));
     copy_traffic_flow_template(activate_ded_bearer_req.tft,
                                &nw_init_bearer_actv_req_p->tft);
   }
   if (nw_init_bearer_actv_req_p->pco.num_protocol_or_container_id) {
     activate_ded_bearer_req.pco =
-        reinterpret_cast<protocol_configuration_options_t*>(calloc(1, sizeof(protocol_configuration_options_t)));
+        reinterpret_cast<protocol_configuration_options_t*>(
+            calloc(1, sizeof(protocol_configuration_options_t)));
     copy_protocol_configuration_options(activate_ded_bearer_req.pco,
                                         &nw_init_bearer_actv_req_p->pco);
   }
@@ -3216,7 +3222,8 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (!(ue_context_p->pending_ded_ber_req[idx])) {
         ue_context_p->pending_ded_ber_req[idx] =
-            reinterpret_cast<emm_cn_activate_dedicated_bearer_req_t*>(calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t)));
+            reinterpret_cast<emm_cn_activate_dedicated_bearer_req_t*>(
+                calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t)));
         memcpy(ue_context_p->pending_ded_ber_req[idx], &activate_ded_bearer_req,
                sizeof(emm_cn_activate_dedicated_bearer_req_t));
         is_msg_saved = true;
@@ -3279,7 +3286,8 @@ void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
   s11_deact_ded_bearer_rsp->cause.cause_value = cause;
 
   if (delete_default_bearer) {
-    s11_deact_ded_bearer_rsp->lbi = reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
+    s11_deact_ded_bearer_rsp->lbi =
+        reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
     *s11_deact_ded_bearer_rsp->lbi = ebi[0];
     s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;

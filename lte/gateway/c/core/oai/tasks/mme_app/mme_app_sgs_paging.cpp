@@ -63,7 +63,8 @@ static status_code_e sgsap_handle_paging_request_without_lai(
     ue_mm_context_t* ue_context_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
 
-static status_code_e sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt);
+static status_code_e sgs_handle_paging_request_for_mt_call(
+    const sgs_fsm_t* evt);
 
 static status_code_e sgs_handle_paging_request_for_mt_call_in_connected(
     ue_mm_context_t* ue_context_p,

@@ -228,7 +228,8 @@ static int build_sgs_status(char* imsi, uint8_t imsi_length, lai_t laicsfb,
   sgsap_status->imsi_length = imsi_length;
 
   // Encode Cause
-  sgsap_status->cause = (SgsCause_t)SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE;
+  sgsap_status->cause =
+      (SgsCause_t)SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE;
 
   // Erroneous message
   sgsap_status->error_msg.msg_type = msg_id;
@@ -919,8 +920,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
-                                                void* args) {
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -929,8 +929,8 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p =
-      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, const_cast<char*>("sgs ts6_1 timer"));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char*>("sgs ts6_1 timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -1012,7 +1012,8 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  ue_context_p->sgs_context = reinterpret_cast<sgs_context_t*>(calloc(1, sizeof(sgs_context_t)));
+  ue_context_p->sgs_context =
+      reinterpret_cast<sgs_context_t*>(calloc(1, sizeof(sgs_context_t)));
   if (!ue_context_p->sgs_context) {
     OAILOG_CRITICAL(LOG_MME_APP,
                     "Cannot create SGS Context for UE-ID " MME_UE_S1AP_ID_FMT

@@ -58,7 +58,8 @@ status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr) {
   if (cid) {
     strncpy(cid, (const char*)id->data, blength(id));
 
-    struct in_addr* data = reinterpret_cast<struct in_addr*>(malloc(sizeof(struct in_addr)));
+    struct in_addr* data =
+        reinterpret_cast<struct in_addr*>(malloc(sizeof(struct in_addr)));
     if (data) {
       data->s_addr = in_addr.s_addr;
 
@@ -81,9 +82,10 @@ status_code_e mme_app_edns_init(const mme_config_t* mme_config_p) {
                                          free_wrapper, free_wrapper, NULL);
   if (g_e_dns_entries) {
     for (int i = 0; i < mme_config_p->e_dns_emulation.nb_sgw_entries; i++) {
-      rc = (status_code_e)((int)rc | (int)mme_app_edns_add_sgw_entry(
-          mme_config_p->e_dns_emulation.sgw_id[i],
-          mme_config_p->e_dns_emulation.sgw_ip_addr[i]));
+      rc = (status_code_e)((int)rc |
+                           (int)mme_app_edns_add_sgw_entry(
+                               mme_config_p->e_dns_emulation.sgw_id[i],
+                               mme_config_p->e_dns_emulation.sgw_ip_addr[i]));
     }
     return rc;
   }

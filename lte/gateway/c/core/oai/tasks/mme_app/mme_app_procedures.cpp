@@ -72,13 +72,16 @@ void mme_app_delete_s11_procedures(ue_mm_context_t* const ue_context_p) {
 mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
     ue_mm_context_t* const ue_context_p) {
   mme_app_s11_proc_create_bearer_t* s11_proc_create_bearer =
-      reinterpret_cast<mme_app_s11_proc_create_bearer_t*>(calloc(1, sizeof(mme_app_s11_proc_create_bearer_t)));
+      reinterpret_cast<mme_app_s11_proc_create_bearer_t*>(
+          calloc(1, sizeof(mme_app_s11_proc_create_bearer_t)));
   s11_proc_create_bearer->proc.proc.type = MME_APP_BASE_PROC_TYPE_S11;
   s11_proc_create_bearer->proc.type = MME_APP_S11_PROC_TYPE_CREATE_BEARER;
   mme_app_s11_proc_t* s11_proc = (mme_app_s11_proc_t*)s11_proc_create_bearer;
 
   if (!ue_context_p->s11_procedures) {
-    ue_context_p->s11_procedures = reinterpret_cast<ue_mm_context_s::s11_procedures_s*>(calloc(1, sizeof(ue_mm_context_s::s11_procedures_s)));
+    ue_context_p->s11_procedures =
+        reinterpret_cast<ue_mm_context_s::s11_procedures_s*>(
+            calloc(1, sizeof(ue_mm_context_s::s11_procedures_s)));
     LIST_INIT(ue_context_p->s11_procedures);
   }
   LIST_INSERT_HEAD((ue_context_p->s11_procedures), s11_proc, entries);
