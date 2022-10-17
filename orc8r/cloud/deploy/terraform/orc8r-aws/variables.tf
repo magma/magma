@@ -79,7 +79,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "Kubernetes version for the EKS cluster."
   type        = string
-  default     = "1.22"
+  default     = "1.23"
 }
 
 variable "eks_worker_group_key" {
