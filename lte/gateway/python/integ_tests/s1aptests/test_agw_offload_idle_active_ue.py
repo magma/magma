@@ -17,6 +17,7 @@ import unittest
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import HaUtil
+from lte.protos.ha_service_pb2 import EnbOffloadType
 
 
 class TestAgwOffloadIdleActiveUe(unittest.TestCase):
@@ -72,16 +73,20 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         assert self._ha_util.offload_agw(
             "".join(["IMSI"] + [str(i) for i in req.imsi]),
             enb_list[0][0],
+            EnbOffloadType.ANY_CONNECTED,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
+        # wait for UE to be idle
+        time.sleep(0.1)
         print("*************************  Offloading UE at state ECM-IDLE")
         # Send offloading request
         assert self._ha_util.offload_agw(
             "".join(["IMSI"] + [str(i) for i in req.imsi]),
             enb_list[0][0],
+            EnbOffloadType.ANY_IDLE,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
