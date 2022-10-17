@@ -1,0 +1,29 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Package RPM from DEB
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  package-rpm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install fpm
+        run: |
+          sudo gem install fpm
+          fpm --version
+      - run: |
+          wget -q -O magma.deb "https://artifactory.magmacore.org:443/artifactory/debian-prod/focal-1.8.0/magma_1.8.0-1663094999-49ed2e69_amd64.deb"
+          ls -lah
+      - run: |
+          fpm -s deb -t rpm --iteration ITERATION --verbose magma.deb
