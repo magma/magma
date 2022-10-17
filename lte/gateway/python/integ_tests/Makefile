@@ -40,7 +40,13 @@ endef
 
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(BIN)/pytest $(FLAKY_CMD_ARGS) --capture=tee-sys --junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
+	timeout --foreground -k 930s 900s \
+	sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) \
+	$(BIN)/pytest \
+	$(FLAKY_CMD_ARGS) \
+	--capture=tee-sys \
+	--junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) \
+	|| (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
 	# Testcase $(1) execution completed
 endef
 
