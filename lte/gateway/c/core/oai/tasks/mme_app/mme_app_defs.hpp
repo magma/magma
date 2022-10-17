@@ -27,8 +27,7 @@
  * Use mme_app_extern.h to expose mme applicative layer procedures/data.
  */
 
-#ifndef FILE_MME_APP_DEFS_SEEN
-#define FILE_MME_APP_DEFS_SEEN
+#pragma once
 
 #include <czmq.h>
 
@@ -249,14 +248,8 @@ status_code_e mme_app_send_sgsap_service_request(uint8_t service_indicator,
 
 status_code_e mme_app_handle_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                uint8_t detach_type);
-/*#ifdef __cplusplus
-extern "C" {
-#endif*/
 status_code_e mme_app_handle_nas_cs_domain_location_update_req(
     ue_mm_context_t* ue_context_p, uint8_t msg_type);
-/*#ifdef __cplusplus
-}
-#endif*/
 
 status_code_e mme_app_handle_sgsap_location_update_acc(
     mme_app_desc_t* mme_app_desc_p,
@@ -417,5 +410,3 @@ void mme_app_send_deactivate_dedicated_bearer_request(
    (_tmsi1.tmsi[2] != _tmsi2.tmsi[2]) || (_tmsi1.tmsi[3] != _tmsi2.tmsi[3]))   \
       ? (RETURNerror)                                                          \
       : (RETURNok)
-
-#endif /* MME_APP_DEFS_H_ */

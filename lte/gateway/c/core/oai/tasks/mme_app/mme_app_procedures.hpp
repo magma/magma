@@ -14,8 +14,6 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_MME_APP_PROCEDURES_SEEN
-#define FILE_MME_APP_PROCEDURES_SEEN
 
 /*! \file mme_app_procedures.hpp
   \brief
@@ -23,6 +21,8 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#pragma once
 
 #include <stdint.h>
 
@@ -135,5 +135,3 @@ void mme_app_delete_s11_procedure_create_bearer(
 void mme_app_s11_procedure_create_bearer_send_response(
     ue_mm_context_t* const ue_context_p,
     mme_app_s11_proc_create_bearer_t* s11_proc_create);
-
-#endif

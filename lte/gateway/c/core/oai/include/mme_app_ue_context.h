@@ -647,8 +647,6 @@ void mme_app_handle_enb_deregister_ind(
 
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 
-//void mme_app_free_bearer_context(bearer_context_t** bc);
-
 void mme_app_handle_s1ap_ue_context_modification_resp(
     const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(

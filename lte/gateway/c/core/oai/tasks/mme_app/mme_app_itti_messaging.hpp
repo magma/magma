@@ -22,8 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_MME_APP_ITTI_MESSAGING_SEEN
-#define FILE_MME_APP_ITTI_MESSAGING_SEEN
+#pragma once
+
 #include <inttypes.h>
 #include <string.h>
 
@@ -140,4 +140,3 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
 
 void mme_app_itti_sgsap_ue_activity_ind(const char* imsi,
                                         const unsigned int imsi_len);
-#endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

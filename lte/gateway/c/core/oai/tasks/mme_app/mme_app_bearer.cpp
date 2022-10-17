@@ -1117,7 +1117,7 @@ status_code_e mme_app_handle_create_sess_resp(
   bearer_context_t* current_bearer_p = NULL;
   ebi_t bearer_id = 0;
   status_code_e rc = RETURNok;
-  emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
+  emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {};
   int num_successful_bearers = 0;
 
   if (create_sess_resp_pP == NULL) {
@@ -1171,7 +1171,6 @@ status_code_e mme_app_handle_create_sess_resp(
   //---------------------------------------------------------
   // Process itti_sgw_create_session_response_t.bearer_context_created
   //---------------------------------------------------------
-  //int num_successful_bearers = 0;
   for (int i = 0;
        i < create_sess_resp_pP->bearer_contexts_created.num_bearer_context;
        i++) {
@@ -1333,7 +1332,6 @@ status_code_e mme_app_handle_create_sess_resp(
     goto error_handling_csr_failure;
   }
   /* Send Create Session Response to NAS module */
-  //emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
   nas_pdn_cs_respose_success.pdn_cid = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier;  // NAS internal ref
 

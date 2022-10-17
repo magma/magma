@@ -22,7 +22,6 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
 
 void served_tai_config_init(served_tai_t* served_tai);
-
 void clear_served_tai_config(served_tai_t* served_tai);
 
 struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};

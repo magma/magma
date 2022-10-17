@@ -14,8 +14,8 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_MME_APP_SPGW_SEEN
-#define FILE_MME_APP_SPGW_SEEN
+#pragma once
+
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
@@ -32,4 +32,3 @@ status_code_e mme_config_embedded_spgw_parse_opt_line(int argc, char* argv[],
 #ifdef __cplusplus
 }
 #endif
-#endif /* ifndef FILE_MME_APP_SPGW_SEEN */

@@ -40,7 +40,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #ifdef __cplusplus
 }
 #endif
@@ -62,6 +61,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_send_s6a_update_location_req(

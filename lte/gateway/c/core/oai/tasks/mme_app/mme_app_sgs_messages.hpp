@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_MME_APP_IF_SEEN
-#define FILE_MME_APP_IF_SEEN
+#pragma once
 
 #define SGsAP_PAGING_REQUEST 0b00000001              // 1
 #define SGsAP_PAGING_REJECT 0b00000010               // 2
@@ -43,5 +42,3 @@
 #define SGsAP_RELEASE_REQUEST 0b00011011             // 27
 #define SGsAP_STATUS 0b00011101                      // 29
 #define SGsAP_UE_UNREACHABLE 0b00011111              // 31
-
-#endif /* FILE_MME_APP_IF_SEEN */

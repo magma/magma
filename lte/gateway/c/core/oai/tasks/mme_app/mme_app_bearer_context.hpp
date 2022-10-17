@@ -35,8 +35,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_MME_APP_BEARER_CONTEXT_SEEN
-#define FILE_MME_APP_BEARER_CONTEXT_SEEN
+#pragma once
 
 #include <stdbool.h>
 
@@ -72,5 +71,3 @@ void mme_app_add_bearer_context(ue_mm_context_t* const ue_context,
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 void mme_app_bearer_context_s1_release_enb_informations(
     bearer_context_t* const bc);
-
-#endif

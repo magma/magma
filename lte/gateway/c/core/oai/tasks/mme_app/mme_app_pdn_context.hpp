@@ -33,8 +33,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_MME_APP_PDN_CONTEXT_SEEN
-#define FILE_MME_APP_PDN_CONTEXT_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
@@ -50,5 +49,3 @@ pdn_context_t* mme_app_create_pdn_context(
 #endif
 void mme_app_free_pdn_context(pdn_context_t** const pdn_context,
                               imsi64_t imsi64);
-
-#endif

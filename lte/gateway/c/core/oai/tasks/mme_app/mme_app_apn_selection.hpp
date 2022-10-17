@@ -35,8 +35,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_MME_APP_APN_SELECTION_SEEN
-#define FILE_MME_APP_APN_SELECTION_SEEN
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,5 +61,4 @@ struct apn_configuration_s* mme_app_select_apn(
 bstring mme_app_process_apn_correction(imsi_t* imsi, bstring accesspointname);
 #ifdef __cplusplus
 }
-#endif
 #endif

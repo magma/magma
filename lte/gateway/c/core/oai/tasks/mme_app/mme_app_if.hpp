@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_MME_APP_IF_SEEN
-#define FILE_MME_APP_IF_SEEN
+#pragma once
 
 /*
  * IF method called by lower layers (S1AP) delivering the content of initial NAS
@@ -31,5 +30,3 @@ int itf_mme_app_nas_initial_ue_message(
     const gummei_t const* opt_gummei, const void const* opt_cell_access_mode,
     const void const* opt_cell_gw_transport_address,
     const void const* opt_relay_node_indicator);
-
-#endif /* FILE_MME_APP_IF_SEEN */
