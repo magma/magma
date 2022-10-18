@@ -33,19 +33,33 @@ acts as the gateway between *magma_test* and *magma_trfserver*.
 ### Gateway VM setup
 
 There are two options for setting up the gateway VM, with the difference being the magma installation
-method: it can either be installed via `make` or from debian packages, the latter being the
-method by which magma is usually deployed. For everyday development, the `make` installation is
-recommended, while the debian installation is useful for testing packages before release.
+method: it can either be installed by directly compiling the services or from debian packages, the
+latter being the method by which magma is usually deployed. For everyday development, directly
+compiling the services is recommended, while the debian installation is useful for testing packages
+before release.
 
 > **Warning**: These two VMs use the same network configuration, so one must only run one of them
 at a time.
 
-#### Make installation
+#### Directly compiling services
 
-Spin up and provision the gateway VM, then make and start its services:
+Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run
+`vagrant up magma && vagrant ssh magma`.
 
-1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
-1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
+Now build the services with either make or bazel.
+
+##### Building with make
+
+In the gateway VM run `cd $MAGMA_ROOT/lte/gateway && make run`.
+
+##### Building with bazel
+
+> :warning: **Bazel based builds are still experimental but can already be used for development**
+
+1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
+2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
+3. Build the services: `cd $MAGMA_ROOT && magma-build-agw` (Note: this will take some time for the initial build, but will be fast for follow-up builds.)
+4. Start the access gateway: `magma-restart`
 
 #### Debian installation
 
@@ -72,7 +86,7 @@ From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
 either individual tests or the full suite of tests. A safe, non-flaky test to
 run is `s1aptests/test_attach_detach.py`.
 
-- Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
+- Individual test(s): `make selected_tests TESTS="<test(s)_to_run_space_separated>"`
 - All Sanity tests: `make integ_test`
 - All Non-Sanity tests: `make nonsanity`
 - Minimal set of tests to be executed before committing changes to magma repository: `make precommit`
@@ -136,11 +150,11 @@ the redis service with `sudo service magma@redis start` and then try again.
 On test VM:
 
 1. Basic attach/detach test where MME is restarted mid-way:\
-  `make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py`
+  `make selected_tests TESTS=s1aptests/test_attach_detach_with_mme_restart.py`
 
 1. Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
 flowing:\
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py`\
+ `make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py`\
  , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.
 
@@ -166,10 +180,10 @@ On test VM:
 1. `cd $MAGMA_ROOT/lte/gateway/python && make`
 1. `cd integ_tests && make`
 1. Basic attach/detach test where Mobilityd is restarted mid-way:\
- `make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py`
+ `make selected_tests TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py`
 
 1. Test IP blocks are maintained across service restart\
- `make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py`
+ `make selected_tests TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py`
 
 #### Stateless Pipelined
 
@@ -195,7 +209,7 @@ On test VM:
 1. `cd $MAGMA_ROOT/lte/gateway/python && make`
 1. `cd integ_tests && make`
 1. UDP traffic test where Pipelined is restarted mid-way:
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py`
+ `make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py`
 
 ### Testing stateless gateway with all services
 
@@ -207,7 +221,7 @@ listed above
 1. On test VM, you can run any of the test cases for individual service restarts
 listed above. Further, you can test attach with uplink UDP traffic, where
 multiple services are restarted while UDP traffic is flowing:\
- `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py`\
+ `make selected_tests TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py`\
  , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.
 

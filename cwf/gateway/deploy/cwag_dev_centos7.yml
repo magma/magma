@@ -28,6 +28,7 @@
       vars:
         distribution: "centos"
         repo: "cwf-prod-redhat"
+        preburn: true
     - role: test_certs
     - role: ovs
     - role: golang

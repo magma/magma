@@ -24,6 +24,7 @@
       vars:
         distribution: "bionic"
         repo: "cwf-prod"
+        preburn: true
     - role: ovs
     - role: resolv_conf
       vars:

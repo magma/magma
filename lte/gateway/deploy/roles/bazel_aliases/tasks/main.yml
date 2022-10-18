@@ -1,4 +1,5 @@
-# Copyright 2020 The Magma Authors.
+---
+# Copyright 2022 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -8,20 +9,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
----
-- name: Set up Carrier WiFi Access Gateway for production
-  hosts: localhost
-  become: yes
-  roles:
-    - role: pkgrepo
-      tags:
-         - install
-      vars:
-        distribution: "bionic"
-        repo: "cwf-prod"
-        preburn: true
-    - role: ovs
-      tags:
-         - install
-    - role: cwag
+
+- name: Create convenient aliases for bazel builds
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "{{ item }}"
+  with_items:
+    # build all services and scripts needed to run the lte access gateway
+    - alias magma-build-agw='bazel build `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`'

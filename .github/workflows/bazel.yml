@@ -250,7 +250,7 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build lte/gateway/release:sctpd_deb_pkg \
+            bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
               --config=production \
               --profile=Bazel_build_package_profile
       - name: Publish bazel profile

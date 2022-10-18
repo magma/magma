@@ -51,6 +51,7 @@
 #define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
 #define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 #define AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP "ENABLE_IMS_VoPS_3GPP"
+#define AMF_CONFIG_STRING_NAS_T3512 "T3512"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];

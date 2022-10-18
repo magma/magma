@@ -358,4 +358,5 @@ AMF :
 
     # IMP VoPS FEATURE
     ENABLE_IMS_VoPS_3GPP = "{{ enable_IMS_VoPS_3GPP }}";
+    T3512 = 10
 };

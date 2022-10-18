@@ -921,16 +921,28 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi" IMSI_64_FMT "\n", imsi64);
 
   params->decode_status = ue_context->amf_context.decode_status;
-  /*
-   * Execute the requested new UE registration procedure
-   * This will initiate identity req in DL.
-   */
-  rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
-  if (rc == RETURNerror) {
-    OAILOG_ERROR(LOG_AMF_APP,
-                 "processing registration request failed for ue-id "
-                 ": " AMF_UE_NGAP_ID_FMT,
-                 aia->ue_id);
+  imsi_t* p_imsi = params->imsi;
+  imeisv_t* p_imeisv = NULL;
+  tmsi_t* p_tmsi = NULL;
+  imei_t* p_imei = NULL;
+  guti_m5_t* amf_ctx_guti = reinterpret_cast<guti_m5_t*>(&amf_guti);
+  nas_amf_ident_proc_t* ident_proc =
+      get_5g_nas_common_procedure_identification(amf_ctxt_p);
+  if (ident_proc != NULL) {
+    rc = amf_proc_identification_complete(aia->ue_id, p_imsi, p_imei, p_imeisv,
+                                          reinterpret_cast<uint32_t*>(p_tmsi),
+                                          amf_ctx_guti);
+    delete (params->imsi);
+    delete (params);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  } else {
+    rc = amf_proc_registration_request(aia->ue_id, is_amf_ctx_new, params);
+    if (rc == RETURNerror) {
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "processing registration request failed for ue-id "
+                   ": " AMF_UE_NGAP_ID_FMT,
+                   aia->ue_id);
+    }
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }

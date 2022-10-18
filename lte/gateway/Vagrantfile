@@ -28,7 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :magma, primary: true do |magma|
     magma.vm.box = "magmacore/magma_dev"
-    magma.vm.box_version = "1.2.20220801"
+    magma.vm.box_version = "1.2.20221012"
     magma.disksize.size = '75GB'
 
      # Enable Dynamic Swap Space to prevent Out of Memory crashes
@@ -116,9 +116,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :magma_test, autostart: false do |magma_test|
-    # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "magmacore/magma_test"
-    magma_test.vm.box_version = "1.1.20220608"
+    magma_test.vm.box_version = "1.2.20221012"
     magma_test.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
@@ -235,6 +234,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]
       ansible.verbose = 'v'
+      # The magma package to be installed is given by the env variable MAGMA_PACKAGE
+      #   MAGMA_PACKAGE not set or empty: install latest magma from artifactory
+      #   MAGMA_PACKAGE="magma=version": install specific version from artifactory
+      #   MAGMA_PACKAGE="magma.deb": install magma debian file expected at /home/vagrant/magma/magma.deb
       ansible.extra_vars = { MAGMA_PACKAGE: ENV.fetch('MAGMA_PACKAGE', 'magma') }
     end
 

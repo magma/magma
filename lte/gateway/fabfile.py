@@ -12,17 +12,17 @@ limitations under the License.
 """
 
 import sys
+from datetime import datetime
 from time import sleep
 
-from fabric.api import cd, env, execute, local, run, settings, sudo
+from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
 from fabric.contrib.files import exists
 from fabric.operations import get
-from fabric.utils import fastprint
+from fabric.utils import error, fastprint, puts
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
 import tools.fab.pkg as pkg
-from fabric.api import lcd
+from tools.fab.dev_utils import connect_gateway_to_cloud
 from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
 from tools.fab.python_utils import strtobool
 from tools.fab.vagrant import setup_env_vagrant
@@ -91,21 +91,18 @@ def package(
         vagrant_setup(vm, destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
-        print(
-            "Error: The Deploy target isn't specified. Specify one with\n\n"
+        error(
+            "Error: The Deploy target isn't specified. Specify one with\n\n" +
             "\tfab [dev|release] package",
         )
-        exit(1)
 
     hash = pkg.get_commit_hash()
     commit_count = pkg.get_commit_count()
 
     with cd('~/magma/lte/gateway'):
-        # Generate magma dependency packages
         run('mkdir -p ~/magma-deps')
-        print(
-            'Generating lte/setup.py and orc8r/setup.py '
-            'magma dependency packages',
+        puts(
+            'Generating lte/setup.py and orc8r/setup.py magma dependency packages',
         )
         run(
             './release/pydep finddep --install-from-repo -b --build-output '
@@ -115,7 +112,7 @@ def package(
             + (' %s/setup.py' % ORC8R_AGW_PYTHON_ROOT),
         )
 
-        print('Building magma package, picking up commit %s...' % hash)
+        puts('Building magma package, picking up commit %s...' % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
@@ -182,23 +179,11 @@ def copy_packages():
     pkg.copy_packages()
 
 
-def connect_gateway_to_cloud(
-    control_proxy_setting_path=None,
-    cert_path=DEFAULT_CERT,
-):
-    """
-    Set up the gateway VM to connects to the cloud
-    Path to control_proxy.yml and rootCA.pem could be specified to use
-    non-default control proxy setting and certificates
-    """
-    setup_env_vagrant()
-    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
-
-
 def s1ap_setup_cloud():
     """ Prepare VMs for s1ap tests touching the cloud. """
     # Use the local cloud for integ tests
-    connect_gateway_to_cloud()
+    setup_env_vagrant()
+    connect_gateway_to_cloud(None, DEFAULT_CERT)
 
     # Update the gateway's streamer timeout and restart services
     run("sudo mkdir -p /var/opt/magma/configs")
@@ -279,7 +264,7 @@ def federated_integ_test(
         local("fab start_all:orc8r_on_vagrant={}".format(orc8r_on_vagrant))
 
         if orc8r_on_vagrant:
-            print("Wait for orc8r to be available")
+            fastprint("Wait for orc8r to be available")
             sleep(60)
 
         local("fab configure_orc8r")
@@ -295,7 +280,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(run_integ_tests, federated_mode='True')
+    execute(_run_integ_tests, test_mode="federated_integ_test")
 
 
 def _modify_for_bazel_services():
@@ -560,34 +545,6 @@ def run_with_retry(command, retries=3):
         raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
 
 
-def run_integ_tests(tests=None, federated_mode='False'):
-    """
-    Function is required to run tests only in pre-configured Jenkins env.
-
-    In case of no tests specified with command executed like follows:
-    $ fab run_integ_tests
-
-    default tests set will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test
-
-    In case of selecting specific test like follows:
-    $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-    $ fab run_integ_tests:tests=federated_tests/s1aptests/test_attach_detach.py,federated_mode=True
-
-    The specific test will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test TESTS=s1aptests/test_attach_detach.py
-    $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
-    """
-    vagrant_setup("magma_test", destroy_vm=False)
-    gateway_ip = '192.168.60.142'
-    if tests:
-        tests = "TESTS=" + tests
-
-    execute(_run_integ_tests, gateway_ip, tests, strtobool(federated_mode))
-
-
 def get_test_summaries(
         gateway_host=None,
         test_host=None,
@@ -615,6 +572,7 @@ def get_test_summaries(
 
 def get_test_logs(
     gateway_host=None,
+    gateway_host_name='magma',
     test_host=None,
     trf_host=None,
     dst_path="/tmp/build_logs.tar.gz",
@@ -655,7 +613,7 @@ def get_test_logs(
     # Set up to enter the gateway host
     env.host_string = gateway_host
     if not gateway_host:
-        setup_env_vagrant("magma")
+        setup_env_vagrant(gateway_host_name)
         gateway_host = env.hosts[0]
     (env.user, _, _) = split_hoststring(gateway_host)
 
@@ -819,7 +777,7 @@ def _copy_out_c_execs_in_magma_vm():
         run('mkdir -p ' + dest_path)
         for exec_path in exec_paths:
             if not exists(exec_path):
-                print(exec_path + " does not exist")
+                fastprint(exec_path + " does not exist")
                 continue
             run('cp ' + exec_path + ' ' + dest_path)
 
@@ -878,24 +836,12 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=False):
+def _run_integ_tests(gateway_ip='192.168.60.142', test_mode='integ_test', tests=''):
     """ Run the integration tests
 
-    For now, just run a single basic test
-    """
-
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
-    key = env.key_filename
-    tests = tests or ''
-    test_mode = 'integ_test'
-    if federated_mode:
-        test_mode = 'fed_integ_test'
-
-    """
-    NOTE: the s1aptester produces a bunch of output which the python ssh
+    NOTE: The S1AP-tester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
-    ssh into machine and run the tests
+    ssh into machine and run the tests.
 
     ssh switch reference:
         -i: identity file
@@ -905,13 +851,22 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
+    host = env.hosts[0].split(':')[0]
+    port = env.hosts[0].split(':')[1]
+    key = env.key_filename
+
+    # We do not have a proper shell, so the `magtivate` alias is not available.
+    # We instead directly source the activate file.
     local(
-        f'ssh -i {key} -o UserKnownHostsFile=/dev/null'
-        f' -o StrictHostKeyChecking=no -tt {host} -p {port}'
-        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        f' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
+        f'ssh'
+        f' -i {key}'
+        f' -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no'
+        f' -tt {host}'
+        f' -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests;'
+        f' sudo ethtool --offload eth1 rx off tx off;'
+        f' sudo ethtool --offload eth2 rx off tx off;'
         f' source ~/build/python/bin/activate;'
         f' export GATEWAY_IP={gateway_ip};'
         f' make {test_mode} enable-flaky-retry=true {tests}\'',
@@ -935,17 +890,21 @@ def _run_load_tests(gateway_ip='192.168.60.142'):
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
 
+    # We don't have a proper shell, so the `magtivate` alias isn't
+    # available. We instead directly source the activate file
     local(
-        'ssh -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-        ' source ~/build/python/bin/activate;'
-        ' export GATEWAY_IP=%s;'
-        ' make load_test\''
-        % (key, host, port, gateway_ip),
+        f'ssh'
+        f' -i {key}'
+        f' -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no'
+        f' -tt {host}'
+        f' -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests;'
+        f' sudo ethtool --offload eth1 rx off tx off;'
+        f' sudo ethtool --offload eth2 rx off tx off;'
+        f' source ~/build/python/bin/activate;'
+        f' export GATEWAY_IP={gateway_ip};'
+        f' make load_test\'',
     )
 
 
