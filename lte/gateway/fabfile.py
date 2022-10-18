@@ -491,6 +491,8 @@ def integ_test_deb_installation(
 def integ_test_containerized(
         gateway_host=None, test_host=None, trf_host=None,
         destroy_vm='True', provision_vm='True',
+        test_mode='integ_test_containerized',
+        tests='',
 ):
     """
     Run the integration tests against the containerized AGW.
@@ -516,7 +518,7 @@ def integ_test_containerized(
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
     execute(_make_integ_tests)
-    execute(_run_integ_tests, gateway_ip, 'TESTS=s1aptests/test_attach_detach.py')
+    execute(_run_integ_tests, gateway_ip, test_mode=test_mode, tests=tests)
 
 
 def _start_gateway_containerized():
