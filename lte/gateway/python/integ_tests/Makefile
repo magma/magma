@@ -70,10 +70,31 @@ precommit: prepare_environment
 	-$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 	$(call apply_final_status)
 
-.PHONY: integ_test
-integ_test: prepare_environment
-	-$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
+.PHONY: precommit_tests_noncontainer
+precommit_tests_noncontainer: prepare_environment
+	-$(foreach test,$(PRECOMMIT_TESTS_NOT_CONTAINER) $(PRECOMMIT_TESTS_IPV6),$(call execute_test,$(test));)
 	$(call apply_final_status)
+
+.PHONY: extended_tests
+extended_tests: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS),$(call execute_test,$(test));)
+	$(call apply_final_status)
+
+.PHONY: extended_tests_noncontainer
+extended_tests_noncontainer: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS_NOT_CONTAINER),$(call execute_test,$(test));)
+	$(call apply_final_status)
+
+.PHONY: extended_tests_long
+extended_tests_long: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS_LONG),$(call execute_test,$(test));)
+	$(call apply_final_status)
+
+.PHONY: integ_test
+integ_test: precommit precommit_tests_noncontainer extended_tests extended_tests_noncontainer extended_tests_long
+
+.PHONY: integ_test_containerized
+integ_test_containerized: precommit extended_tests
 
 .PHONY: federated_integ_test
 federated_integ_test: prepare_environment prepare_federation
