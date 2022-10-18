@@ -28,6 +28,7 @@ LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 ROOT_QID = 65534
 DEFAULT_RATE = '80Kbit'
 DEFAULT_INTF_SPEED = '1000'
+GTPU_INTF_NAME = 'gtpu_sys_2152'
 
 
 class TrafficClass:
@@ -93,13 +94,15 @@ class TrafficClass:
         cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
-        fn = "/sys/class/net/{intf}/speed".format(intf=intf)
-        try:
-            with open(fn, encoding="utf-8") as f:
-                speed = f.read().strip()
-        except OSError:
-            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
-
+        if intf == GTPU_INTF_NAME:
+            LOG.info('Using default speed %s for %s.', speed, intf)
+        else:
+            fn = "/sys/class/net/{intf}/speed".format(intf=intf)
+            try:
+                with open(fn, encoding="utf-8") as f:
+                    speed = f.read().strip()
+            except OSError:
+                LOG.error('Unable to read speed from %s defaulting to %s', fn, speed)
         # qdisc does not support replace, so check it before creating the HTB qdisc.
         qdisc_type = TrafficClass._get_qdisc_type(intf)
         if qdisc_type != "htb":
@@ -239,7 +242,7 @@ class TCManager(object):
     ) -> None:
         self._datapath = datapath
         self._uplink = config['nat_iface']
-        self._downlink = 'gtpu_sys_2152'
+        self._downlink = GTPU_INTF_NAME
         self._max_rate = config["qos"]["max_rate"]
         self._gbr_rate = config["qos"].get("gbr_rate", DEFAULT_RATE)
 
