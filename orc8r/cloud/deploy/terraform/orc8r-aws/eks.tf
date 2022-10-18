@@ -46,11 +46,6 @@ module "eks" {
     "scheduler",
   ]
 
-  # cluster_timeouts = {"30m"}
-
-  # workers_group_defaults = {
-  #   key_name = var.eks_worker_group_key == null ? aws_key_pair.eks_workers[0].key_name : var.eks_worker_group_key
-  # }
   cluster_additional_security_group_ids = concat([aws_security_group.default.id], var.eks_worker_additional_sg_ids)
   iam_role_additional_policies          = var.eks_worker_additional_policy_arns
   eks_managed_node_groups               = var.thanos_enabled ? concat(local.orc8r_worker_group, var.thanos_worker_groups) : local.orc8r_worker_group
