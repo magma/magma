@@ -75,7 +75,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0)
 
 	// Check
-	reindexConnectionFailsTotal += recvChSafe(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
@@ -90,7 +90,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0a)
 
 	// Check
-	reindexConnectionFailsTotal += recvChSafe(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
@@ -112,7 +112,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx5)
 
 	// Check
-	reindexConnectionFailsTotal += recvChSafe(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx5.AssertExpectations(t)
@@ -120,7 +120,7 @@ func TestSingletonRunSuccess(t *testing.T) {
 	require.Equal(t, 3+reindexConnectionFailsTotal, reindexDoneNum)
 }
 
-func recvChSafe(t *testing.T, ch chan interface{}) int {
+func recvChAndRetryFailures(t *testing.T, ch chan interface{}) int {
 	// The remote indexer can in rare cases fail to establish a connection.
 	// In that case the connection is re-attempted during the next reindexing.
 	// We keep track of these failures with this test hook.
@@ -140,6 +140,10 @@ func recvChSafe(t *testing.T, ch chan interface{}) int {
 			reindexConnectionFailsTotal += reindexConnectionFails
 			remainingNumberOfReindexingRuns = reindexConnectionFails
 			reindexConnectionFails = 0
+		}
+		if reindexConnectionFailsTotal > 99 {
+			fmt.Println("Too many reindexing runs, aborting test")
+			break
 		}
 		if remainingNumberOfReindexingRuns == 0 {
 			break
