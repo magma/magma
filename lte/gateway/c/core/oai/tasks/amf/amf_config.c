@@ -205,7 +205,7 @@ int amf_config_parse_file(amf_config_t* config_pP,
   const char* default_dns_sec = NULL;
   const char* set_sst = NULL;
   const char* set_sd = NULL;
-
+  int aint = 0;
   config_init(&cfg);
 
   if (config_pP->config_file != NULL) {
@@ -353,6 +353,12 @@ int amf_config_parse_file(amf_config_t* config_pP,
             setting_amf, AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP,
             &astring))) {
       config_pP->nas_config.enable_IMS_VoPS_3GPP = parse_bool(astring);
+    }
+
+    // t3512
+    if ((config_setting_lookup_int(setting_amf, AMF_CONFIG_STRING_NAS_T3512,
+                                   &aint))) {
+      config_pP->nas_config.t3512_min = (uint32_t)aint;
     }
 
     // guamfi SETTING

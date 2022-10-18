@@ -12,17 +12,17 @@ limitations under the License.
 """
 
 import sys
+from datetime import datetime
 from time import sleep
 
-from fabric.api import cd, env, execute, local, run, settings, sudo
+from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
 from fabric.contrib.files import exists
 from fabric.operations import get
-from fabric.utils import fastprint
+from fabric.utils import error, fastprint, puts
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
 import tools.fab.pkg as pkg
-from fabric.api import lcd
+from tools.fab.dev_utils import connect_gateway_to_cloud
 from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
 from tools.fab.python_utils import strtobool
 from tools.fab.vagrant import setup_env_vagrant
@@ -91,21 +91,18 @@ def package(
         vagrant_setup(vm, destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
-        print(
-            "Error: The Deploy target isn't specified. Specify one with\n\n"
+        error(
+            "Error: The Deploy target isn't specified. Specify one with\n\n" +
             "\tfab [dev|release] package",
         )
-        exit(1)
 
     hash = pkg.get_commit_hash()
     commit_count = pkg.get_commit_count()
 
     with cd('~/magma/lte/gateway'):
-        # Generate magma dependency packages
         run('mkdir -p ~/magma-deps')
-        print(
-            'Generating lte/setup.py and orc8r/setup.py '
-            'magma dependency packages',
+        puts(
+            'Generating lte/setup.py and orc8r/setup.py magma dependency packages',
         )
         run(
             './release/pydep finddep --install-from-repo -b --build-output '
@@ -115,7 +112,7 @@ def package(
             + (' %s/setup.py' % ORC8R_AGW_PYTHON_ROOT),
         )
 
-        print('Building magma package, picking up commit %s...' % hash)
+        puts('Building magma package, picking up commit %s...' % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
@@ -182,23 +179,11 @@ def copy_packages():
     pkg.copy_packages()
 
 
-def connect_gateway_to_cloud(
-    control_proxy_setting_path=None,
-    cert_path=DEFAULT_CERT,
-):
-    """
-    Set up the gateway VM to connects to the cloud
-    Path to control_proxy.yml and rootCA.pem could be specified to use
-    non-default control proxy setting and certificates
-    """
-    setup_env_vagrant()
-    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
-
-
 def s1ap_setup_cloud():
     """ Prepare VMs for s1ap tests touching the cloud. """
     # Use the local cloud for integ tests
-    connect_gateway_to_cloud()
+    setup_env_vagrant()
+    connect_gateway_to_cloud(None, DEFAULT_CERT)
 
     # Update the gateway's streamer timeout and restart services
     run("sudo mkdir -p /var/opt/magma/configs")
@@ -279,7 +264,7 @@ def federated_integ_test(
         local("fab start_all:orc8r_on_vagrant={}".format(orc8r_on_vagrant))
 
         if orc8r_on_vagrant:
-            print("Wait for orc8r to be available")
+            fastprint("Wait for orc8r to be available")
             sleep(60)
 
         local("fab configure_orc8r")
@@ -792,7 +777,7 @@ def _copy_out_c_execs_in_magma_vm():
         run('mkdir -p ' + dest_path)
         for exec_path in exec_paths:
             if not exists(exec_path):
-                print(exec_path + " does not exist")
+                fastprint(exec_path + " does not exist")
                 continue
             run('cp ' + exec_path + ' ' + dest_path)
 

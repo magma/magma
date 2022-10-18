@@ -30,64 +30,57 @@ else
 endif
 # Don't remove the ending comment from function execute_test. Somehow without
 # any ending statement the failing testcases are missing status update
+
+define apply_final_status
+	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; \
+	then echo "Final status: Passed"; \
+	else echo "Final status: Failed"; exit 1; \
+	fi
+endef
+
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(BIN)/pytest $(FLAKY_CMD_ARGS) --capture=tee-sys --junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
+	timeout --foreground -k 930s 900s \
+	sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) \
+	$(BIN)/pytest \
+	$(FLAKY_CMD_ARGS) \
+	--capture=tee-sys \
+	--junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) \
+	|| (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
 	# Testcase $(1) execution completed
 endef
 
 .PHONY: prepare_environment
 prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
+	echo "pass" > $(MAGMA_ROOT)/test_status.txt
+	echo "Flaky test retries enabled? $(enable-flaky-retry)"
 
 .PHONY: prepare_federation
 prepare_federation:
 	$(eval export FEDERATED_MODE = True)
 
+.PHONY: selected_tests
+selected_tests: prepare_environment
+	-$(foreach test,$(TESTS),$(call execute_test,$(test));)
+	$(call apply_final_status)
+
 .PHONY: precommit
 precommit: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-endif
+	-$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
+	$(call apply_final_status)
 
 .PHONY: integ_test
 integ_test: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-ifndef enable-flaky-retry
-	echo "Flaky test retries are disabled"
-	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-else
-	echo "Flaky test retries are enabled"
 	-$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final integ_test status: Passed"; else echo "Final integ_test status: Failed"; exit 1; fi
-endif
-endif
+	$(call apply_final_status)
 
 .PHONY: federated_integ_test
 federated_integ_test: prepare_environment prepare_federation
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-ifndef enable-flaky-retry
-	echo "Flaky test retries are disabled"
-	$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
-else
-	echo "Flaky test retries are enabled"
 	-$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
-	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final federated_integ_test status: Passed"; else echo "Final federated_integ_test status: Failed"; exit 1; fi
-endif
-endif
+	$(call apply_final_status)
 
 .PHONY: nonsanity
 nonsanity: prepare_environment
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
-endif
+	-$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
+	$(call apply_final_status)

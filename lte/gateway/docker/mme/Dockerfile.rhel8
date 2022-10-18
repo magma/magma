@@ -3,7 +3,7 @@
 ################################################################
 FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme-base
 
-ARG FEATURES=mme_oai
+ENV FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
