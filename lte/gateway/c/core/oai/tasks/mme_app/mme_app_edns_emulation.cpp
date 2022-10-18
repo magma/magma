@@ -82,10 +82,10 @@ status_code_e mme_app_edns_init(const mme_config_t* mme_config_p) {
                                          free_wrapper, free_wrapper, NULL);
   if (g_e_dns_entries) {
     for (int i = 0; i < mme_config_p->e_dns_emulation.nb_sgw_entries; i++) {
-      rc = (status_code_e)((int)rc |
-                           (int)mme_app_edns_add_sgw_entry(
+      rc = (status_code_e)(static_cast<int>(rc) |
+                           static_cast<int>(mme_app_edns_add_sgw_entry(
                                mme_config_p->e_dns_emulation.sgw_id[i],
-                               mme_config_p->e_dns_emulation.sgw_ip_addr[i]));
+                               mme_config_p->e_dns_emulation.sgw_ip_addr[i])));
     }
     return rc;
   }

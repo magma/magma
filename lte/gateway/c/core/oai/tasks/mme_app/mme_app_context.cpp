@@ -1032,7 +1032,8 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
   }
   if (ue_context_p->sgs_context != NULL) {
     handle_csfb_s1ap_procedure_failure(
-        ue_context_p, (char*)"ue_context_modification_timer_expired",
+        ue_context_p,
+        const_cast<char*>("ue_context_modification_timer_expired"),
         UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -1576,19 +1577,21 @@ static bool mme_app_recover_timers_for_ue(const hash_key_t keyP,
         ue_mm_context_pP->time_mobile_reachability_timer_started,
         &ue_mm_context_pP->mobile_reachability_timer,
         mme_app_handle_mobile_reachability_timer_expiry,
-        (char*)"Mobile Reachability");
+        const_cast<char*>("Mobile Reachability"));
   }
   if (ue_mm_context_pP->time_implicit_detach_timer_started) {
-    mme_app_resume_timer(
-        ue_mm_context_pP, ue_mm_context_pP->time_implicit_detach_timer_started,
-        &ue_mm_context_pP->implicit_detach_timer,
-        mme_app_handle_implicit_detach_timer_expiry, (char*)"Implicit Detach");
+    mme_app_resume_timer(ue_mm_context_pP,
+                         ue_mm_context_pP->time_implicit_detach_timer_started,
+                         &ue_mm_context_pP->implicit_detach_timer,
+                         mme_app_handle_implicit_detach_timer_expiry,
+                         const_cast<char*>("Implicit Detach"));
   }
   if (ue_mm_context_pP->time_paging_response_timer_started) {
-    mme_app_resume_timer(
-        ue_mm_context_pP, ue_mm_context_pP->time_paging_response_timer_started,
-        &ue_mm_context_pP->paging_response_timer,
-        mme_app_handle_paging_timer_expiry, (char*)"Paging Response");
+    mme_app_resume_timer(ue_mm_context_pP,
+                         ue_mm_context_pP->time_paging_response_timer_started,
+                         &ue_mm_context_pP->paging_response_timer,
+                         mme_app_handle_paging_timer_expiry,
+                         const_cast<char*>("Paging Response"));
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
       ue_mm_context_pP->time_ics_rsp_timer_started) {
@@ -1596,7 +1599,7 @@ static bool mme_app_recover_timers_for_ue(const hash_key_t keyP,
                          ue_mm_context_pP->time_ics_rsp_timer_started,
                          &ue_mm_context_pP->initial_context_setup_rsp_timer,
                          mme_app_handle_initial_context_setup_rsp_timer_expiry,
-                         (char*)"Initial Context Setup Response");
+                         const_cast<char*>("Initial Context Setup Response"));
   }
   if (ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED) {
     mme_app_resume_esm_ebr_timer(ue_mm_context_pP);
