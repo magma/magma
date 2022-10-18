@@ -29,7 +29,7 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           ref: ${{ env.SHA }}
       - name: Run docker compose
@@ -71,7 +71,7 @@ jobs:
     runs-on: macos-12
     needs: docker-build
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
         with:
           ref: ${{ env.SHA }}
       - name: Cache Vagrant Boxes
@@ -88,7 +88,7 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Install pre requisites

@@ -23,25 +23,25 @@ on:
 
 jobs:
   lte-integ-test-containerized:
-    if: github.event.workflow_run.conclusion == 'success' && (github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch')
+    if: (github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'magma') || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     steps:
       - name: Cache magma-dev-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
-          key: vagrant-box-magma-dev-v1.2.20220801
+          key: vagrant-box-magma-dev-v1.2.20221012
       - name: Cache magma-test-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
-          key: vagrant-box-magma-test
+          key: vagrant-box-magma-test-v1.2.20221012
       - name: Cache magma-trfserver-box
         uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v20220722
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Install pre requisites
@@ -63,3 +63,14 @@ jobs:
         working-directory: lte/gateway
         run: |
           fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results,sudo_tests=False"
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml

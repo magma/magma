@@ -44,7 +44,7 @@ jobs:
   build_dockerfile_bazel_base:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}
@@ -56,7 +56,7 @@ jobs:
     needs: build_dockerfile_bazel_base
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}

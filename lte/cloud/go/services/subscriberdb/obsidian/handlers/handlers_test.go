@@ -1365,6 +1365,25 @@ func TestUpdateSubscriber(t *testing.T) {
 	}
 	assert.Equal(t, expected, actual)
 
+	// Test deleting all active APNs
+	payload.ActiveApns = subscriberModels.ApnList{}
+	payload.StaticIps = subscriberModels.SubscriberStaticIps{}
+	tests.RunUnitTest(t, e, tc)
+	expected = configurator.NetworkEntity{
+		NetworkID:    "n1",
+		Type:         lte.SubscriberEntityType,
+		Key:          "IMSI1234567890",
+		Name:         "Jane Doe",
+		Config:       &subscriberModels.SubscriberConfig{Lte: payload.Lte, StaticIps: nil},
+		GraphID:      "2",
+		Version:      2,
+		Associations: nil,
+	}
+	expected.Config = &subscriberModels.SubscriberConfig{Lte: payload.Lte, StaticIps: nil}
+	actual, err = configurator.LoadEntity(context.Background(), "n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria(), serdes.Entity)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
 	// No profile matching
 	payload.Lte.SubProfile = &subProfileBar
 	tc = tests.Test{

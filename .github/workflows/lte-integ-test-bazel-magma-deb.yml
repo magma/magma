@@ -1,0 +1,133 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: LTE integ test bazel magma-deb
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+      - 'v1.*'
+
+env:
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  # see GH14041
+  CACHE_KEY: bazel-base-image-sha-c4de1e5
+  REMOTE_DOWNLOAD_OPTIMIZATION: true
+
+jobs:
+  lte-integ-test-bazel-magma-deb:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+
+      - name: Cache magma-deb-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
+          key: vagrant-box-magma-deb-focal64-20220804.0.0
+      - name: Cache magma-test-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
+          key: vagrant-box-magma-test-v1.2.20221012
+      - name: Cache magma-trfserver-box
+        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
+          key: vagrant-box-magma-trfserver-v20220722
+
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
+      - name: Install docker
+        uses: docker-practice/actions-setup-docker@5d9a5f65f510c01ec5f0bd81d5c95768b1ec032a # pin@v1
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
+          echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
+
+      - name: Build .deb packages
+        run: |
+          docker run \
+            -v ${{ github.workspace }}:/workspaces/magma/ \
+            -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma \
+            -i \
+            ${{ env.BAZEL_BASE_IMAGE }} \
+            bash -c \
+              'cd /workspaces/magma && \
+              bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}" && \
+              bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
+                --config=production \
+                --profile=Bazel_build_package_profile && \
+              mv /workspaces/magma/bazel-bin/lte/gateway/release/magma*.deb /workspaces/magma/'
+      - name: Delete all docker containers
+        run: |
+          docker system prune -f -a --volumes
+
+      - name: Run the integ test
+        env:
+          MAGMA_DEV_CPUS: 3
+          MAGMA_DEV_MEMORY_MB: 9216
+          MAGMA_PACKAGE: magma_1.8.0_amd64.deb
+        run: |
+          cd lte/gateway
+          fab integ_test_deb_installation
+
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-results
+          path: lte/gateway/test-results/**/*.xml
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        with:
+          check_name: LTE Debian integration test results
+          junit_files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
+
+      - name: Get test logs
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get_test_logs:gateway_host_name=magma_deb,dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+
+      - name: Notify failure to slack
+        if: failure() && github.repository_owner == 'magma'
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_USERNAME: "Bazel Debian Integration Tests"
+          SLACK_AVATAR: ":boom:"
+        with:
+          args: "Bazel Debian LTE integration test failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
