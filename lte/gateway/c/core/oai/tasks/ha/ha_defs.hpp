@@ -10,11 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#ifndef HA_DEFS_H_
-#define HA_DEFS_H_
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
+#ifdef __cplusplus
+}
+#endif
 
 extern task_zmq_ctx_t ha_task_zmq_ctx;
 
@@ -42,5 +48,3 @@ bool sync_up_with_orc8r(void);
  * Sends a S1AP_UE_CONTEXT_RELEASE_REQ message to MME.
  */
 void handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
-
-#endif /* HA_DEFS_H_ */

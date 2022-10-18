@@ -15,11 +15,18 @@ limitations under the License.
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 
 static void ha_exit(void);
@@ -83,7 +90,7 @@ static void* ha_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e ha_init(const mme_config_t* mme_config_p) {
+extern "C" status_code_e ha_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing HA task interface\n");
 
   if (itti_create_task(TASK_HA, &ha_thread, NULL) < 0) {
