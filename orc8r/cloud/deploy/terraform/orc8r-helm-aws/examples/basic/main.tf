@@ -38,14 +38,6 @@ module "orc8r" {
   cluster_name = "orc8r"
 
   deploy_elasticsearch          = true
-  # elasticsearch_domain_name     = "orc8r-es"
-  # elasticsearch_version         = "7.7"
-  # elasticsearch_instance_type   = "t2.medium.elasticsearch"
-  # elasticsearch_instance_count  = 2
-  # elasticsearch_az_count        = 2
-  # elasticsearch_ebs_enabled     = true
-  # elasticsearch_ebs_volume_size = 32
-  # elasticsearch_ebs_volume_type = "gp2"
 
   deploy_elasticsearch_service_linked_role = false
 }
