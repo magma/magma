@@ -37,7 +37,7 @@ module "orc8r" {
   vpc_name     = "orc8r"
   cluster_name = "orc8r"
 
-  deploy_elasticsearch          = true
+  deploy_elasticsearch = true
 
   deploy_elasticsearch_service_linked_role = false
 }
