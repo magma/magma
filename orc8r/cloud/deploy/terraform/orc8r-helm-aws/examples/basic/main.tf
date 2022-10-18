@@ -44,7 +44,7 @@ module "orc8r" {
 
 module "orc8r-app" {
   # Change this to pull from GitHub with a specified ref, e.g.
-  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.6"
+  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.8"
   source = "../.."
 
   region = local.region
