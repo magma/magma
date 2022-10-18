@@ -93,13 +93,15 @@ class TrafficClass:
         cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
-        fn = "/sys/class/net/{intf}/speed".format(intf=intf)
-        try:
-            with open(fn, encoding="utf-8") as f:
-                speed = f.read().strip()
-        except OSError:
-            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
-
+        if intf != 'gtpu_sys_2152':
+            fn = "/sys/class/net/{intf}/speed".format(intf=intf)
+            try:
+                with open(fn, encoding="utf-8") as f:
+                    speed = f.read().strip()
+            except OSError:
+                LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
+        else:
+            LOG.info('using default speed 1000 for gtpu_sys_2152')
         # qdisc does not support replace, so check it before creating the HTB qdisc.
         qdisc_type = TrafficClass._get_qdisc_type(intf)
         if qdisc_type != "htb":
