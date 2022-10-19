@@ -45,7 +45,7 @@ jobs:
           docker save orc8r_controller:latest  | gzip > fed_orc8r_controller.tar.gz
           docker save orc8r_fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
           docker save orc8r_test:latest  | gzip > fed_orc8r_test.tar.gz
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: docker-build-orc8r-images
           path: images
@@ -72,7 +72,7 @@ jobs:
           cd images
           docker save feg_gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
           docker save feg_gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: docker-build-feg-images
           path: images
@@ -142,11 +142,11 @@ jobs:
           export MAGMA_DEV_MEMORY_MB=9216
           fab build_agw
       # Download to local and delete artifacts from remote
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
         with:
           name: docker-build-orc8r-images
           path: ${{ env.AGW_ROOT }}
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
         with:
           name: docker-build-feg-images
           path: ${{ env.AGW_ROOT }}
@@ -179,7 +179,7 @@ jobs:
           fab get_test_summaries:dst_path="test-results"
           ls -R
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: test-results
@@ -190,7 +190,7 @@ jobs:
           cd lte/gateway
           fab get_test_logs:dst_path=./logs.tar.gz
       - name: Upload test logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: test-logs
