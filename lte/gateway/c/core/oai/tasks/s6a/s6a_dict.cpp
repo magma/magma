@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_dict.c
+/*! \file s6a_dict.cpp
   \brief
   \author Sebastien ROUX
   \company Eurecom
@@ -27,10 +27,17 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 
 #define CHECK_FD_FCT(fCT) DevAssert(fCT == 0);
 
