@@ -11,4 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
+
 MESSAGE_DEF(AGW_OFFLOAD_REQ, ha_agw_offload_req_t, ha_agw_offload_req)
