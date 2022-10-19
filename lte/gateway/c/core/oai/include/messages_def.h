@@ -32,7 +32,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_messages_def.h"
 
 // Messages files used between tasks
-#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_def.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_def.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_def.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_def.h"

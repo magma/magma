@@ -21,7 +21,7 @@
 
 #include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

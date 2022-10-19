@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-/* File : gtp_tunnel_upf.c
+/* File : gtp_tunnel_upf.cpp
  * For sending the flow reuqests to pipeplined
  */
 
@@ -27,7 +27,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp"
 
 static const struct gtp_tunnel_ops upf_openflow_ops = {
     .init = openflow_init,

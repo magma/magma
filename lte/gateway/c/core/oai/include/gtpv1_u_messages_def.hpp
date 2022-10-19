@@ -27,12 +27,15 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file gtpv1_u_messages_def.h
+/*! \file gtpv1_u_messages_def.hpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#pragma once
+
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq,
             gtpv1uCreateTunnelReq)
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_RESP, Gtpv1uCreateTunnelResp,

@@ -13,6 +13,7 @@ limitations under the License.
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,7 +21,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #ifdef __cplusplus
 }
 #endif
@@ -35,6 +35,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
@@ -609,9 +610,9 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
              sizeof(teidString) - strlen(teidString), "%u%c", teidlist[idx],
              separator);
   }
-  char* ptr = "sgw_c_teid";
+  char* ptr = const_cast<char*>("sgw_c_teid");
   if (teid_type == UP_TEID) {
-    ptr = "sgw_u_teid";
+    ptr = const_cast<char*>("sgw_u_teid");
   }
   directoryd_update_record_field(imsi_str, ptr, teidString);
   OAILOG_DEBUG_UE(

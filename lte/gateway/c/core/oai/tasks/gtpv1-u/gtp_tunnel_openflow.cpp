@@ -21,14 +21,21 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #include "orc8r/gateway/c/common/ebpf/EbpfMapUtils.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
@@ -103,7 +110,8 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
       // all records.
       new_size = INIT_GTP_TABLE_SIZE;
     }
-    struct gtp_portno* new_arr = calloc(new_size, sizeof(struct gtp_portno));
+    struct gtp_portno* new_arr =
+        (gtp_portno*)calloc(new_size, sizeof(struct gtp_portno));
     if (!new_arr) {
       return;
     }
@@ -180,21 +188,21 @@ static uint32_t create_gtp_port(struct in_addr enb_addr,
   int rc;
 
   if (spgw_config.sgw_config.ovs_config.gtp_echo) {
-    gtp_echo = "true";
+    gtp_echo = const_cast<char*>("true");
   } else {
-    gtp_echo = "false";
+    gtp_echo = const_cast<char*>("false");
   }
 
   if (spgw_config.sgw_config.ovs_config.gtp_csum) {
-    gtp_csum = "true";
+    gtp_csum = const_cast<char*>("true");
   } else {
-    gtp_csum = "false";
+    gtp_csum = const_cast<char*>("false");
   }
 
   if (is_pgw && spgw_config.sgw_config.agw_l3_tunnel) {
-    l3_tunnel = "true";
+    l3_tunnel = const_cast<char*>("true");
   } else {
-    l3_tunnel = "false";
+    l3_tunnel = const_cast<char*>("false");
   }
   if (enb_addr.s_addr != INADDR_ANY) {
     rc =
@@ -255,7 +263,8 @@ static uint32_t find_gtp_port_no(struct in_addr enb_addr,
  * Initialize GTP port table for caching GTP tunnel port numbers.
  */
 static void openflow_multi_tunnel_init(void) {
-  char* probe_gtp_type = "sudo ovs-vsctl list Open_vSwitch | grep gtpu";
+  char* probe_gtp_type =
+      const_cast<char*>("sudo ovs-vsctl list Open_vSwitch | grep gtpu");
 
   // OVS GTP tunnel type has changed upstream, for better compatibility
   // detect it on initilization.
@@ -267,7 +276,8 @@ static void openflow_multi_tunnel_init(void) {
   }
   OAILOG_INFO(LOG_GTPV1U, "Using GTP type: %s", ovs_gtp_type);
 
-  gtp_portno_rec.arr = calloc(INIT_GTP_TABLE_SIZE, sizeof(struct gtp_portno));
+  gtp_portno_rec.arr =
+      (gtp_portno*)calloc(INIT_GTP_TABLE_SIZE, sizeof(struct gtp_portno));
   assert(gtp_portno_rec.arr != NULL);
   gtp_portno_rec.size = INIT_GTP_TABLE_SIZE;
 }

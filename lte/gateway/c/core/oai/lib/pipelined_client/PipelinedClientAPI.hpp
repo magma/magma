@@ -15,6 +15,8 @@
 
 #include "stdint.h"
 
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,7 +31,6 @@ typedef enum {
 } ue_session_states;
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
                               int vlan, struct in_addr enb, uint32_t i_tei,

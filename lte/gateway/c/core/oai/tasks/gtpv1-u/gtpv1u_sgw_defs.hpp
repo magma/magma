@@ -14,21 +14,13 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_GTPV1U_SGW_DEFS_SEEN
-#define FILE_GTPV1U_SGW_DEFS_SEEN
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
+#pragma once
+
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
-#ifdef __cplusplus
-}
-#endif
 
 int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
                 bool persist_state);
 
 void gtpv1u_exit(void);
-
-#endif /* FILE_GTPV1U_SGW_DEFS_SEEN */

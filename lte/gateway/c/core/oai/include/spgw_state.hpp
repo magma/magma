@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.

@@ -14,15 +14,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-/*! \file gtpv1u.h
+/*! \file gtpv1u.hpp
  * \brief
  * \author Sebastien ROUX, Lionel Gauthier
  * \company Eurecom
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_GTPV1_U_SEEN
-#define FILE_GTPV1_U_SEEN
+#pragma once
 
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -184,4 +183,3 @@ int gtpv1u_del_s8_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
                          uint32_t i_tei, uint32_t pgw_in_tei);
 
 void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask);
-#endif /* FILE_GTPV1_U_SEEN */

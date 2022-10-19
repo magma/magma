@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-/* File : gtp_tunnel_upf.h
+/* File : gtp_tunnel_upf.hpp
  */
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_openflow.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_openflow.hpp"
 
 const struct gtp_tunnel_ops* upf_gtp_tunnel_ops_init_openflow(void);
 
