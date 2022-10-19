@@ -35,6 +35,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 

@@ -29,6 +29,11 @@
  */
 // These messages files are mandatory and must always be placed in first
 // position
+
+// This file is included more than once in the file intertask_interface_types.h
+// and it is included not just as a header file, but included within enum and
+// structure. Hence, it is not possible to have "#pragma once" in this file.
+
 #include "lte/gateway/c/core/oai/lib/itti/intertask_messages_def.h"
 
 // Messages files used between tasks

@@ -36,6 +36,11 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
+
 MESSAGE_DEF(S6A_UPDATE_LOCATION_REQ, s6a_update_location_req_t,
             s6a_update_location_req)
 MESSAGE_DEF(S6A_UPDATE_LOCATION_ANS, s6a_update_location_ans_t,
