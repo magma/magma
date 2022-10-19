@@ -17,7 +17,15 @@
 #define SERVICE303
 
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
