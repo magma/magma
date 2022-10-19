@@ -94,7 +94,15 @@ def feg_integ_test(args):
 
 
 def cwf_integ_test(args):
-    """Prepare and publish CWF Integ Test report"""
+    prepare_and_publish('cwf_integ_test', args)
+
+
+def sudo_python_tests(args):
+    prepare_and_publish('sudo_python_tests', args)
+
+
+def prepare_and_publish(test_type: str, args):
+    """Prepare and publish test report"""
     report = url_to_html_redirect(args.run_id, args.url)
     # Possible args.verdict values are success, failure, or canceled
     verdict = 'inconclusive'
@@ -102,7 +110,7 @@ def cwf_integ_test(args):
         verdict = 'pass'
     elif args.verdict.lower() == 'failure':
         verdict = 'fail'
-    publish_report('cwf_integ_test', args.build_id, verdict, report)
+    publish_report(test_type, args.build_id, verdict, report)
 
 
 # Create the top-level parser
@@ -133,6 +141,11 @@ parser_feg.set_defaults(func=feg_integ_test)
 parser_cwf = subparsers.add_parser('cwf')
 parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
 parser_cwf.set_defaults(func=cwf_integ_test)
+
+# Create the parser for the "sudo_tests" command
+parser_cwf = subparsers.add_parser('sudo_python_tests')
+parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
+parser_cwf.set_defaults(func=sudo_python_tests)
 
 # Read arguments from the command line
 args = parser.parse_args()
