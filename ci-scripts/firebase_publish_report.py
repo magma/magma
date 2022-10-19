@@ -74,6 +74,27 @@ def lte_integ_test(args):
     publish_report('lte_integ_test', args.build_id, verdict, report)
 
 
+def make_debian_lte_integ_test(args):
+    """Prepare and publish LTE Integ Test report"""
+    report = url_to_html_redirect(args.run_id, args.url)
+    # Possible args.verdict values are success, failure, or canceled
+    verdict = 'inconclusive'
+
+    # As per the recent change, CI process runs all integ tests ignoring the
+    # failing test cases, because of which CI report always shows lte integ
+    # test as success. Here we read the CI status from file for more accurate
+    # lte integ test execution status
+    if os.path.exists("test_status.txt"):
+        with open('test_status.txt', 'r') as file:
+            status_file_content = file.read().rstrip()
+            expected_verdict_list = ["pass", "fail"]
+            if status_file_content in expected_verdict_list:
+                verdict = status_file_content
+    publish_report(
+        'make_debian_lte_integ_test', args.build_id, verdict, report,
+    )
+
+
 def feg_integ_test(args):
     """Prepare and publish FEG Integ Test report"""
     report = url_to_html_redirect(args.run_id, args.url)
@@ -146,6 +167,11 @@ parser_cwf.set_defaults(func=cwf_integ_test)
 parser_cwf = subparsers.add_parser('sudo_python_tests')
 parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
 parser_cwf.set_defaults(func=sudo_python_tests)
+
+# Create the parser for the "magma_deb" command
+parser_cwf = subparsers.add_parser('make_debian')
+parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
+parser_cwf.set_defaults(func=make_debian_lte_integ_test)
 
 # Read arguments from the command line
 args = parser.parse_args()
