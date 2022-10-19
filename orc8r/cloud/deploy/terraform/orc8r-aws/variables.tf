@@ -108,7 +108,7 @@ variable "eks_worker_groups" {
   default = {
     eks_worker_group = {
       name                = "wg-1"
-      instance_type       = "t3a.large"
+      instance_types      = ["t3a.medium"]
       desired_size        = 3
       min_size            = 1
       max_size            = 3
@@ -149,13 +149,13 @@ variable "blue_green_worker_groups" {
   type        = any
   default = {
     blue_green_worker_groups = {
-      name                 = "wg-1"
-      instance_type        = "t3a.medium"
-      asg_desired_capacity = 8
-      asg_min_size         = 1
-      asg_max_size         = 8
-      autoscaling_enabled  = false
-      kubelet_extra_args   = "" // object types must be identical (see thanos_worker_groups)
+      name                = "wg-1"
+      instance_types      = ["t3a.medium"]
+      desired_size        = 8
+      min_size            = 1
+      max_size            = 8
+      autoscaling_enabled = false
+      kubelet_extra_args  = "" // object types must be identical (see thanos_worker_groups)
     }
   }
 }
