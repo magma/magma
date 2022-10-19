@@ -31,7 +31,7 @@
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
