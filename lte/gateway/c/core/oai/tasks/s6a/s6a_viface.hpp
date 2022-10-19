@@ -15,16 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#ifndef S6A_VIFACE_H_SEEN
-#define S6A_VIFACE_H_SEEN
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#ifdef __cplusplus
-}
-#endif
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 class S6aViface {
  public:
@@ -36,5 +29,3 @@ class S6aViface {
   virtual bool purge_ue(const char* imsi) = 0;
   virtual ~S6aViface(){};
 };
-
-#endif /* S6A_VIFACE_H_SEEN */

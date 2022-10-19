@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s6a_update_loc.c
+/*! \file s6a_up_loc.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -26,29 +26,37 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 
 struct avp;
 struct msg;
 struct session;
 
-status_code_e s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
-                         struct session* sess_pP, void* opaque_pP,
-                         enum disp_action* act_pP) {
+int s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
+               struct session* sess_pP, void* opaque_pP,
+               enum disp_action* act_pP) {
   struct msg* ans_p = NULL;
   struct msg* qry_p = NULL;
   struct avp* avp_p = NULL;
@@ -89,7 +97,8 @@ status_code_e s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
   if (avp_p) {
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
     s6a_update_location_ans_p->result.present = S6A_RESULT_BASE;
-    s6a_update_location_ans_p->result.choice.base = hdr_p->avp_value->u32;
+    s6a_update_location_ans_p->result.choice.base =
+        (s6a_base_result_t)hdr_p->avp_value->u32;
 
     if (hdr_p->avp_value->u32 != ER_DIAMETER_SUCCESS) {
       OAILOG_ERROR(LOG_S6A, "Got error %u:%s\n", hdr_p->avp_value->u32,
@@ -182,7 +191,7 @@ err:
   return RETURNok;
 }
 
-status_code_e s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
+int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   struct avp* avp_p = NULL;
   struct msg* msg_p = NULL;
   struct session* sess_p = NULL;
