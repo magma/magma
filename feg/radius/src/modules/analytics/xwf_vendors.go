@@ -20,7 +20,6 @@ type Vendor int
 // Enum list of vendors supported by Express-Wifi program in its wider meaning (Wifi, Carrier Wifi, Standalone, ...).
 const (
 	Cambium Vendor = iota
-	Ruckus
 	Mojo
 	CoovaChilli
 	NonCertCambium
@@ -32,7 +31,6 @@ const (
 // Vendors are the text representation of the Vendor enums.
 var Vendors = [...]string{
 	Cambium:        "CAMBIUM",
-	Ruckus:         "RUCKUS",
 	Mojo:           "MOJO",
 	CoovaChilli:    "COOVACHILLI",
 	NonCertCambium: "NON_CERT_CAMBIUM",

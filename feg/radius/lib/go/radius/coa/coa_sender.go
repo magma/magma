@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"time"
 
-	"fbc/lib/go/radius/dictionaries/ruckus"
 	"fbc/lib/go/radius/dictionaries/xwf"
 
 	"fbc/lib/go/radius"
@@ -45,8 +44,6 @@ type Vendor int
 const (
 	// VendorXWFCertified Cambium, Mojo, SoMA, or other XWF certified
 	VendorXWFCertified Vendor = iota
-	// VendorRuckus Ruckus
-	VendorRuckus
 )
 
 // Params params needed in order to create CoA request
@@ -90,17 +87,6 @@ func trafficClassesToXWFCertified(trafficClasses []AuthorizeTrafficClasses) []xw
 	return res
 }
 
-func trafficClassesToRuckus(trafficClasses []AuthorizeTrafficClasses) []ruckus.RuckusTCAttrIdsWithQuota {
-	res := make([]ruckus.RuckusTCAttrIdsWithQuota, len(trafficClasses))
-	for i, val := range trafficClasses {
-		res[i] = ruckus.RuckusTCAttrIdsWithQuota{
-			RuckusTCNameQuota: val.AuthorizeClassName,
-			RuckusTCQuota:     val.AuthorizeBytesLeft,
-		}
-	}
-	return res
-}
-
 func updateCoARequestXWFCertified(params Params, p *radius.Packet) (Packet, error) {
 	err := xwf.XWFAuthorizeTrafficClasses_Set(p, trafficClassesToXWFCertified(params.TrafficClasses))
 	if err != nil {
@@ -114,24 +100,8 @@ func updateCoARequestXWFCertified(params Params, p *radius.Packet) (Packet, erro
 	return Packet(p), nil
 }
 
-func updateCoARequestRuckus(params Params, p *radius.Packet) (Packet, error) {
-	err := ruckus.RuckusTCAttrIdsWithQuota_Set(p, trafficClassesToRuckus(params.TrafficClasses))
-	if err != nil {
-		return nil, err
-	}
-	err = ruckus.RuckusCPToken_SetString(p, params.CaptivePortalToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return Packet(p), nil
-}
-
 func updateCoARequestByVendor(params Params, p *radius.Packet) (Packet, error) {
-	switch params.VendorName {
-	case VendorRuckus:
-		return updateCoARequestRuckus(params, p)
-	case VendorXWFCertified:
+	if params.VendorName == VendorXWFCertified {
 		return updateCoARequestXWFCertified(params, p)
 	}
 	return nil, fmt.Errorf("unknown vendor %d", params.VendorName)

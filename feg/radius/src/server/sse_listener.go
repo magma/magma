@@ -19,21 +19,20 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/monitoring"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
+
 	"fbc/lib/go/machine"
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/expresswifi"
 	"fbc/lib/go/radius/rfc2865"
 	"fbc/lib/go/radius/rfc2866"
 	"fbc/lib/go/radius/rfc2869"
-	"fbc/lib/go/radius/ruckus"
 
 	"github.com/mitchellh/mapstructure"
 	"go.opencensus.io/tag"
@@ -319,11 +318,6 @@ func getFirstAttrValue(attrs map[string][]interface{}, attr string) string {
 
 func apply(p *radius.Packet, attributes map[string][]interface{}) {
 	// Get parameters
-	cpToken := getFirstAttrValue(attributes, "XWF-Captive-Portal-Token")
-	if cpToken != "" {
-		expresswifi.XWFCaptivePortalToken_Set(p, []byte(cpToken))
-	}
-
 	acctSessionID := getFirstAttrValue(attributes, "Acct-Session-Id")
 	if acctSessionID != "" {
 		rfc2866.AcctSessionID_Set(p, []byte(acctSessionID))
@@ -362,46 +356,4 @@ func apply(p *radius.Packet, attributes map[string][]interface{}) {
 		rfc2865.NASIPAddress_Set(p, []byte(nasIPAddress))
 	}
 
-	cptoken := getFirstAttrValue(attributes, "Ruckus-CP-Token")
-	if cptoken != "" {
-		ruckus.RuckusCPToken_Set(p, []byte(cptoken))
-	}
-
-	tcs, ok := attributes["XWF-Authorize-Traffic-Classes"]
-	if ok {
-		parsedTCs := []expresswifi.XWFAuthorizeTrafficClasses{}
-		for _, tcVal := range tcs {
-			tc, ok := tcVal.(map[string]interface{})
-			if ok {
-				parsedTCs = append(parsedTCs, expresswifi.XWFAuthorizeTrafficClasses{
-					XWFAuthorizeClassName: tc["XWF-Authorize-Class-Name"].(string),
-					XWFAuthorizeBytesLeft: uint64(tc["XWF-Authorize-Bytes-Left"].(float64)),
-				})
-			}
-		}
-
-		expresswifi.XWFAuthorizeTrafficClasses_Set(
-			p,
-			parsedTCs,
-		)
-	}
-
-	tcs, ok = attributes["Ruckus-TC-Attr-Ids-With-Quota"]
-	if ok {
-		parsedTCs := []ruckus.RuckusTCAttrIdsWithQuota{}
-		for _, tcVal := range tcs {
-			tc, ok := tcVal.(map[string]interface{})
-			if ok {
-				parsedTCs = append(parsedTCs, ruckus.RuckusTCAttrIdsWithQuota{
-					RuckusTCNameQuota: tc["Ruckus-TC-Name-Quota"].(string),
-					RuckusTCQuota:     uint64(tc["Ruckus-TC-Quota"].(float64)),
-				})
-			}
-		}
-
-		ruckus.RuckusTCAttrIdsWithQuota_Set(
-			p,
-			parsedTCs,
-		)
-	}
 }
