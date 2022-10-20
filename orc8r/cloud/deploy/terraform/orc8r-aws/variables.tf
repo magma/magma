@@ -129,13 +129,13 @@ variable "thanos_worker_groups" {
   type        = any
   default = {
     thanos_worker_groups = {
-      name                 = "thanos-1"
-      instance_type        = "m5d.xlarge"
-      asg_desired_capacity = 1
-      asg_min_size         = 1
-      asg_max_size         = 1
-      autoscaling_enabled  = false
-      kubelet_extra_args   = "--node-labels=compute-type=thanos"
+      name                = "thanos-1"
+      instance_types      = ["m5d.xlarge"]
+      desired_size        = 1
+      min_size            = 1
+      max_size            = 1
+      autoscaling_enabled = false
+      kubelet_extra_args  = "--node-labels=compute-type=thanos"
     }
   }
 }
