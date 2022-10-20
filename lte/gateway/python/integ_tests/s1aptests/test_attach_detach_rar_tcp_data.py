@@ -49,8 +49,6 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
-        gtp_br_util = GTPBridgeUtils()
-        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -192,9 +190,13 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
 
             # Check if UL and DL OVS flows are created
             # UPLINK
-            print("Checking for uplink flow")
+            gtp_br_util = GTPBridgeUtils()
+            GTP_PORT = gtp_br_util.get_gtp_port_no()
+
+            print(f"Checking for uplink flow on port {GTP_PORT}")
             # try at least 5 times before failing as gateway
             # might take some time to install the flows in ovs
+
             for i in range(MAX_NUM_RETRIES):
                 print("Get uplink flows: attempt ", i)
                 uplink_flows = get_flows(
