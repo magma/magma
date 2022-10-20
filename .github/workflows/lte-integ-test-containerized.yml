@@ -62,7 +62,8 @@ jobs:
           MAGMA_DEV_MEMORY_MB: 9216
         working-directory: lte/gateway
         run: |
-          fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized
+          fab --show=debug --set DOCKER_REGISTRY=${DOCKER_REGISTRY} integ_test_containerized:test_mode="selected_tests",tests="TESTS=s1aptests/test_attach_detach.py"
+
       - name: Get test results
         if: always()
         run: |

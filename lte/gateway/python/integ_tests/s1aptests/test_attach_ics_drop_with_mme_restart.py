@@ -110,7 +110,8 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         )
 
         print("******************** Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"], wait_for_restart)
 
         print(
             "******************** Resetting flag to not drop next Initial "
@@ -122,10 +123,6 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req,
         )
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
 
         # It has been observed that despite getting the restart command on
         # time, MME sometimes restarts after a delay of 5-6 seconds. If MME

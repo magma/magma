@@ -29,7 +29,6 @@ class TestContinuousRandomAttach(unittest.TestCase):
 
     def tearDown(self):
         """Cleanup after test case execution"""
-        self._s1ap_wrapper.cleanup()
         print(
             "The test case runs for a pre-defined duration and does not "
             "guarantee complete detach of all the UEs. Delete residual flow "
@@ -37,10 +36,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
             "subsequent test cases",
         )
         self._s1ap_wrapper._s1_util.delete_ovs_flow_rules()
-        self._s1ap_wrapper.magmad_util.restart_services(
-            ['sctpd'], wait_time=30,
-        )
-        self._s1ap_wrapper.magmad_util.print_redis_state()
+        self._s1ap_wrapper.cleanup()
 
     def handle_msg(self, msg):
         """Handle messages received from TFW"""

@@ -27,14 +27,14 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file s6a_messages_types.h
+/*! \file s6a_messages_types.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_S6A_MESSAGES_TYPES_SEEN
-#define FILE_S6A_MESSAGES_TYPES_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
@@ -161,5 +161,3 @@ typedef struct s6a_reset_req_s {
   /* RESET ALL. Partial Reset TBD*/
   uint8_t unused;
 } s6a_reset_req_t;
-
-#endif /* FILE_S6A_MESSAGES_TYPES_SEEN */

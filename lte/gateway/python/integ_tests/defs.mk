@@ -112,7 +112,6 @@ s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
 s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
 s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
-s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_attach_dl_udp_data.py \
@@ -129,18 +128,21 @@ s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py
+
+PRECOMMIT_TESTS_IPV6 = \
 s1aptests/test_enable_ipv6_iface.py \
 s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
 s1aptests/test_disable_ipv6_iface.py
+
+PRECOMMIT_TESTS_NOT_CONTAINER = \
+s1aptests/test_attach_ul_udp_data.py \
+s1aptests/test_service_req_ul_udp_data_with_mme_restart.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
-s1aptests/test_attach_detach_with_he_policy.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
@@ -164,13 +166,9 @@ s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_s1_handover.py \
-s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
-s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
-s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
-s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
@@ -178,6 +176,18 @@ s1aptests/test_tau_mixed_partial_lists.py \
 s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
+s1aptests/test_restore_mme_config_after_sanity.py
+
+EXTENDED_TESTS_NOT_CONTAINER = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
+s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
+s1aptests/test_attach_detach_rar_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_he.py \
+s1aptests/test_attach_detach_with_he_policy.py \
+s1aptests/test_paging_after_mme_restart.py \
+s1aptests/test_restore_mme_config_after_sanity.py
+
+EXTENDED_TESTS_LONG = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \

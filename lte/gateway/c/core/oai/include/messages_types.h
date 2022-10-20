@@ -28,8 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef FILE_MESSAGES_TYPES_SEEN
-#define FILE_MESSAGES_TYPES_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_messages_types.h"
 #include <inttypes.h>
@@ -39,7 +38,7 @@
 #include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
@@ -51,5 +50,3 @@
 #include "lte/gateway/c/core/oai/include/ha_messages_types.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s8_messages_types.h"
-
-#endif /* FILE_MESSAGES_TYPES_SEEN */
