@@ -15,11 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SMS_ORC8R_MESSAGES_H_
-#define SMS_ORC8R_MESSAGES_H_
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
 extern task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
-
-#endif

@@ -17,6 +17,9 @@
 
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -24,11 +27,15 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_messages.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_messages.hpp"
 
 status_code_e handle_sms_orc8r_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   MessageDef* message_p = NULL;
   itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
