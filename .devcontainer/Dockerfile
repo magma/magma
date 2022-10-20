@@ -3,7 +3,6 @@
 ################################################################
 FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
 
-ARG HOME=/home/vscode
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
 # [Option] Upgrade OS packages to their latest versions
@@ -82,7 +81,11 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && rm ${GO_TARBALL}
-ENV PATH=${PATH}:/usr/local/go/bin:${HOME}/go/bin
+ENV PATH=${PATH}:/usr/local/go/bin
+
+# /home/vscode/go/bin doesn't exist initially, but for example orc8r/cloud/go/Makefile
+# populates that folder and expects those binaries to be in PATH
+ENV PATH=${PATH}:/home/vscode/go/bin
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -207,7 +210,7 @@ RUN ldconfig -v
 ##### Install Python requirements
 
 ### create virtualenv
-ARG PYTHON_VENV=${HOME}/build/python
+ARG PYTHON_VENV=/home/vscode/build/python
 ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
 # PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
 
