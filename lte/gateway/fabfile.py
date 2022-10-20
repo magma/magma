@@ -426,7 +426,6 @@ def integ_test(
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_build_magma)
-    execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
     # Set up the trfserver: use the provided trfserver if given, else default to the
@@ -792,13 +791,6 @@ def _build_magma():
     """
     with cd(AGW_ROOT):
         run('make')
-
-
-def _run_sudo_python_unit_tests():
-    """ Run the magma unit tests """
-    with cd(AGW_ROOT):
-        # Run all unit tests that are not run as pre-commit checks in CI
-        run('make test_sudo_python')
 
 
 def _start_gateway():
