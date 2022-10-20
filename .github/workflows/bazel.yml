@@ -13,6 +13,12 @@ name: "Bazel Build & Test"
 on:
   # yamllint disable-line rule:truthy
   workflow_dispatch:
+    inputs:
+      publish_bazel_profile:
+        description: 'Publish bazel profile data (default: false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     types:
       - opened
@@ -169,13 +175,13 @@ jobs:
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel build profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel build all profile ${{ matrix.bazel-config }}
           path: Bazel_build_all_profile
       - name: Publish bazel test profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
@@ -290,7 +296,7 @@ jobs:
               --profile=Bazel_build_package_profile
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel build package profile
           path: Bazel_build_package_profile
