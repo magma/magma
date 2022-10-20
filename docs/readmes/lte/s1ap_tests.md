@@ -54,7 +54,7 @@ In the gateway VM run `cd $MAGMA_ROOT/lte/gateway && make run`.
 
 ##### Building with bazel
 
-> :warning: **Bazel based builds are still experimental but can already be used for development**
+> **Warning**: Bazel based builds are still experimental but can already be used for development.
 
 1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
 2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
