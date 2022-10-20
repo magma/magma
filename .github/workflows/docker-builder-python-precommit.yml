@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Build Docker image for Python Precommit"
+name: AGW Build Docker Image Python Precommit
 on:
   push:
     branches:

@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: helm-build-on-demand
+name: Magma Build & Publish Helm Charts
 
 # Temporary on demand Job until we refactor helm build job in build-all
 on:

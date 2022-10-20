@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Golang Build & Test
+name: AGW Build & Test Experimental Go Code
 on:
   push:
     branches:
