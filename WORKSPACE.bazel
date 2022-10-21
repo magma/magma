@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("//bazel:third_party_repositories.bzl", "grpc")
 
 http_archive(
@@ -170,3 +170,11 @@ http_archive(
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
+
+http_jar(
+    name = "bazel_diff",
+    sha256 = "45761593a478d1e432e8cfa9629b9dbf08cd610bafd29b04305de77644470722",
+    urls = [
+        "https://github.com/Tinder/bazel-diff/releases/download/4.1.0/bazel-diff_deploy.jar",
+    ],
+)
