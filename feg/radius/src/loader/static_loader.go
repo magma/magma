@@ -33,7 +33,7 @@ import (
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
 	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
-	"fbc/lib/go/radius"
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )

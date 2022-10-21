@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 
 	"github.com/golang/glog"
 	"github.com/magma/milenage"

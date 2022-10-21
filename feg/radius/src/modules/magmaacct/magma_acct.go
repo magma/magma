@@ -23,10 +23,11 @@ import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2866"
-	"fbc/lib/go/radius/rfc2869"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
+	"layeh.com/radius/rfc2869"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
@@ -160,7 +161,10 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 	result := &modules.Response{
 		Code: radius.CodeAccountingResponse,
 		Attributes: radius.Attributes{
-			rfc2866.AcctSessionID_Type: []radius.Attribute{radius.Attribute(c.SessionId)},
+			rfc2866.AcctSessionID_Type: &radius.AVP{
+				Type:      rfc2866.AcctSessionID_Type,
+				Attribute: radius.Attribute(c.SessionId),
+			},
 		},
 	}
 

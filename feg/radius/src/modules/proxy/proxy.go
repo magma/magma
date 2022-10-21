@@ -18,7 +18,8 @@ import (
 	"errors"
 
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"

@@ -15,7 +15,8 @@ package testloopback
 
 import (
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )

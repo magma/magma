@@ -24,8 +24,9 @@ import (
 	"time"
 
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"

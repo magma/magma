@@ -22,7 +22,8 @@ import (
 	"context"
 
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )

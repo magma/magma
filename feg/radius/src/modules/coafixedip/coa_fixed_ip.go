@@ -22,7 +22,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )

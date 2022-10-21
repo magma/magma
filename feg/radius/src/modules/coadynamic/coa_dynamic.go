@@ -3,11 +3,13 @@ package coadynamic
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/modules/coadynamic/radiustracker"
-	"fbc/lib/go/radius"
 	"fmt"
 	"time"
+
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/modules/coadynamic/radiustracker"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 

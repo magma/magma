@@ -17,7 +17,7 @@ import (
 	"reflect"
 	"testing"
 
-	"fbc/lib/go/radius/rfc2869"
+	"layeh.com/radius/rfc2869"
 
 	"github.com/stretchr/testify/assert"
 )

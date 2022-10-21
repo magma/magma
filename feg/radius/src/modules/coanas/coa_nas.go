@@ -3,10 +3,12 @@ package coanas
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
+
+	"fbc/cwf/radius/modules"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 
 	"go.uber.org/zap"
 

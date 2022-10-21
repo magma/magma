@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"fbc/lib/go/radius"
+	"layeh.com/radius"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"

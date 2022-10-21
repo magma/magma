@@ -15,13 +15,15 @@ package lballocate
 
 import (
 	"errors"
+	"math/rand"
+	"time"
+
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"math/rand"
-	"time"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )

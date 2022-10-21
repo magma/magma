@@ -16,7 +16,8 @@ package testsessionstorage
 import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 )
