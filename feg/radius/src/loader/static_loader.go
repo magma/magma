@@ -21,7 +21,6 @@ import (
 	filtlballocate "fbc/cwf/radius/filters/lballocate"
 	filtlbcanary "fbc/cwf/radius/filters/lbcanary"
 	"fbc/cwf/radius/modules"
-	modmsisdn "fbc/cwf/radius/modules/addmsisdn"
 	modalwaysaccept "fbc/cwf/radius/modules/alwaysaccept"
 	modan "fbc/cwf/radius/modules/analytics"
 	modcoadynamic "fbc/cwf/radius/modules/coadynamic"
@@ -34,7 +33,6 @@ import (
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
 	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
-	modxwfv3 "fbc/cwf/radius/modules/xwfv3"
 	"fbc/lib/go/radius"
 
 	"go.uber.org/zap"
@@ -59,13 +57,11 @@ type StaticLoader struct {
 
 // CWFModuleMap the available CWF modules with their names, for use by the configuration file
 var CWFModuleMap = ModuleNameMap{
-	"addmsisdn":          func() modules.Module { return NewModule(modmsisdn.Init, modmsisdn.Handle) },
 	"analytics":          func() modules.Module { return NewModule(modan.Init, modan.Handle) },
 	"eap":                func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
 	"lbserve":            func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
 	"proxy":              func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
 	"ofpanalytics":       func() modules.Module { return NewModule(ofpanalytics.Init, ofpanalytics.Handle) },
-	"xwfv3":              func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
 	"testloopback":       func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
 	"coafixedip":         func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
 	"coanas":             func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
