@@ -30,9 +30,9 @@ resource "helm_release" "external_dns" {
   count = var.orc8r_is_staging_deployment == true ? 0 : 1
 
   name       = var.external_dns_deployment_name
-  repository = local.stable_helm_repo
+  repository = "https://kubernetes-sigs.github.io/external-dns/"
   chart      = "external-dns"
-  version    = "2.19.1"
+  version    = "1.11.0"
   namespace  = "kube-system"
   keyring    = ""
 

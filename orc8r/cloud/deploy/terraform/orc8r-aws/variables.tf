@@ -281,7 +281,7 @@ variable "orc8r_db_password" {
 variable "orc8r_db_engine_version" {
   description = "Postgres engine version for Orchestrator DB."
   type        = string
-  default     = "12.8"
+  default     = "12.11"
 }
 
 variable "orc8r_db_dialect" {

@@ -59,5 +59,5 @@ resource "kubernetes_persistent_volume_claim" "storage" {
     storage_class_name = var.efs_storage_class_name
   }
 
-  depends_on = [helm_release.efs_provisioner]
+  depends_on = [helm_release.kubernetes_efs_csi_driver]
 }

@@ -244,7 +244,12 @@ variable "efs_provisioner_name" {
 variable "efs_storage_class_name" {
   description = "Name of the Storage class"
   type        = string
-  default     = "efs"
+  default     = "efs-sc"
+}
+
+variable "efs_csi_driver_arn" {
+  description = "ARN of EFS CSI Driver"
+  type        = string
 }
 
 ##############################################################################

@@ -37,6 +37,11 @@ output "efs_provisioner_role_arn" {
   value       = aws_iam_role.efs_provisioner.arn
 }
 
+output "efs_csi_driver_arn" {
+  description = "ARN of the IAM role for the EFS CSI Driver."
+  value       = aws_iam_role.efs_csi_driver.arn
+}
+
 output "es_endpoint" {
   description = "Endpoint of the ES cluster if deployed."
   value       = join("", aws_elasticsearch_domain.es.*.endpoint)

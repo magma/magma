@@ -12,26 +12,31 @@
 ################################################################################
 
 # k8s requires provisioner to treat efs as a persistent volume
-resource "helm_release" "efs_provisioner" {
+resource "helm_release" "kubernetes_efs_csi_driver" {
   count = var.orc8r_is_staging_deployment == true ? 0 : 1
 
-  name       = var.efs_provisioner_name
-  repository = local.stable_helm_repo
-  chart      = "efs-provisioner"
-  version    = "0.11.0"
+  name       = "aws-efs-csi-driver"
+  repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver"
+  chart      = "aws-efs-csi-driver"
+  version    = "2.2.9"
   namespace  = "kube-system"
-  keyring    = ""
 
   values = [<<VALUES
-  efsProvisioner:
-    efsFileSystemId: ${var.efs_file_system_id}
-    awsRegion: ${var.region}
-    path: /pv-volume
-    provisionerName: aws-efs
-    storageClass:
-      name: ${var.efs_storage_class_name}
-  podAnnotations:
-    iam-assumable-role: ${var.efs_provisioner_role_arn}
+  controller:
+    serviceAccount:
+      name: "aws-efs-csi-driver"
+      annotations:
+        eks.amazonaws.com/role-arn: ${var.efs_csi_driver_arn}
+  node:
+    serviceAccount:
+      name: "aws-efs-csi-driver"
+      create: false
+  storageClasses:
+    - name: ${var.efs_storage_class_name}
+      parameters:
+        provisioningMode: efs-ap
+        fileSystemId: ${var.efs_file_system_id}
+        directoryPerms: "700"
   VALUES
   ]
 }
