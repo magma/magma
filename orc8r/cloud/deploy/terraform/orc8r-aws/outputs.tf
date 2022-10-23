@@ -32,11 +32,6 @@ output "efs_file_system_id" {
   value       = aws_efs_file_system.eks_pv.id
 }
 
-output "efs_provisioner_role_arn" {
-  description = "ARN of the IAM role for the EFS provisioner."
-  value       = aws_iam_role.efs_provisioner.arn
-}
-
 output "efs_csi_driver_arn" {
   description = "ARN of the IAM role for the EFS CSI Driver."
   value       = aws_iam_role.efs_csi_driver.arn

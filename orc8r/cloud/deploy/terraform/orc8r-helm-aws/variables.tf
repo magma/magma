@@ -230,17 +230,6 @@ variable "efs_file_system_id" {
   type        = string
 }
 
-variable "efs_provisioner_role_arn" {
-  description = "ARN of the IAM role for the EFS provisioner."
-  type        = string
-}
-
-variable "efs_provisioner_name" {
-  description = "Name of the efs provisioner helm deployment"
-  type        = string
-  default     = "efs-provisioner"
-}
-
 variable "efs_storage_class_name" {
   description = "Name of the Storage class"
   type        = string

@@ -91,7 +91,6 @@ module "orc8r-app" {
   eks_cluster_id = module.orc8r.eks_cluster_id
 
   efs_file_system_id       = module.orc8r.efs_file_system_id
-  efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
 
   elasticsearch_endpoint       = module.orc8r.es_endpoint
   elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
