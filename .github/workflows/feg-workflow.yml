@@ -69,7 +69,7 @@ jobs:
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5 # pin@v2
+        uses: nick-fields/retry@48bc5d4b1ce856c44a7766114e4da81c980a8a92 # pin@v2.8.2
         if: always()
         id: feg-lint-init
         with:
