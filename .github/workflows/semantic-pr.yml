@@ -144,7 +144,7 @@ jobs:
     steps:
       - if: needs.check-semantic-pr.result == 'failure'
         run: echo 'STATUS=:x:' >> $GITHUB_ENV
-      - uses: peter-evans/find-comment@1769778a0c5bd330272d749d12c036d65e70d39d # pin@v2.0.0
+      - uses: peter-evans/find-comment@b657a70ff16d17651703a84bee1cb9ad9d2be2ea # pin@v2.0.1
         id: fc
         with:
           issue-number: ${{ github.event.number }}
