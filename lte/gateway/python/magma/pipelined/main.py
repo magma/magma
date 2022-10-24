@@ -20,6 +20,7 @@ import logging
 import threading
 
 import aioeventlet
+import sdnotify
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import get_ip_from_if
 from magma.common.sentry import sentry_init
@@ -221,6 +222,9 @@ def main():
             service.loop,
         )
         collector.start()
+
+    notifier = sdnotify.SystemdNotifier()
+    notifier.notify("READY=1")
 
     # Run the service loop
     service.run()

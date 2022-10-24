@@ -205,7 +205,7 @@ find_package(MAGMA_SENTRY REQUIRED)
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
-  prometheus-cpp tacopie
+  prometheus-cpp tacopie systemd
   )
 
 if (CLANG_FORMAT)

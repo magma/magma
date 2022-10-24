@@ -56,6 +56,7 @@ RUN apt-get -y update && apt-get -y install \
   libboost-program-options-dev \
   libboost-filesystem-dev \
   libboost-regex-dev \
+  libsystemd-dev \
   python3-distutils
 
 ENV MAGMA_ROOT /magma
