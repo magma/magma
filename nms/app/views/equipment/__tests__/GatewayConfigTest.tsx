@@ -22,7 +22,7 @@ import {DynamicServices} from '../../../components/GatewayUtils';
 import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
@@ -53,6 +53,14 @@ const mockGw0: LteGateway = {
       nat_enabled: false,
       sgi_management_iface_static_ip: '1.1.1.1/24',
       sgi_management_iface_vlan: '100',
+    },
+    ngc: {
+      amf_default_sd: 'AFAF',
+      amf_default_sst: 2,
+      amf_name: 'amf.example.org',
+      amf_pointer: '1F',
+      amf_region_id: 'C1',
+      amf_set_id: '2A1',
     },
     ran: {
       pci: 620,
@@ -766,5 +774,27 @@ describe('<AddEditGatewayButton />', () => {
         networkId: 'test',
       });
     });
+  });
+
+  it('Verify Gateway NGC Config', async () => {
+    const {findByTestId} = render(<DetailWrapper />);
+    const ngcConfig = await findByTestId('ngc-config');
+
+    const nameCell = within(ngcConfig).getByTestId('Name');
+    within(nameCell).getByText('amf.example.org');
+    const pointerCell = within(ngcConfig).getByTestId('Pointer');
+    within(pointerCell).getByText('1F');
+    const regionCell = within(ngcConfig).getByTestId('Region ID');
+    within(regionCell).getByText('C1');
+    const setCell = within(ngcConfig).getByTestId('Set ID');
+    within(setCell).getByText('2A1');
+    const serviceTypeCell = within(ngcConfig).getByTestId(
+      'Default Slice Service Type',
+    );
+    within(serviceTypeCell).getByText('2');
+    const descriptorCell = within(ngcConfig).getByTestId(
+      'Default Slice Descriptor',
+    );
+    within(descriptorCell).getByText('AFAF');
   });
 });
