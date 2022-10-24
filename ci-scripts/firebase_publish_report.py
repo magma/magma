@@ -21,7 +21,12 @@ from typing import Optional
 from firebase_admin import credentials, db, initialize_app
 
 
-def publish_report(worker_id, build_id, verdict, report):
+def publish_report(
+    worker_id: str,
+    build_id: str,
+    verdict: str,
+    report: str,
+):
     """Publish report to Firebase realtime database"""
     # Read Firebase service account config from envirenment
     firebase_config = os.environ["FIREBASE_SERVICE_CONFIG"]
@@ -45,15 +50,17 @@ def publish_report(worker_id, build_id, verdict, report):
     reports_ref.set(report_dict)
 
 
-def url_to_html_redirect(run_id, url):
+def url_to_html_redirect(run_id: str, url: Optional[str]):
     """Convert URL into a redirecting HTML page"""
     report_url = url
-    if url is None:
-        report_url = 'https://github.com/magma/magma/actions/runs/' + run_id
+    if not url:
+        report_url = f'https://github.com/magma/magma/actions/runs/{run_id}'
 
-    return '<script>'\
-           '  window.location.href = "' + report_url + '";'\
-           '</script>'
+    return (
+        f'<script>',
+        f'  window.location.href = "{report_url}";',
+        f'</script>',
+    )
 
 
 def lte_integ_test(args):
