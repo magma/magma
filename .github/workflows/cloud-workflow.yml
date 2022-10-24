@@ -111,7 +111,7 @@ jobs:
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
         if: always()
         id: gateway_test_init
         with:
