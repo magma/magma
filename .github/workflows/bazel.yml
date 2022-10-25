@@ -193,7 +193,7 @@ jobs:
           path: lte/gateway/test_results/merged_unit_test_reports.xml
       - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: Bazel unit-test results ${{ matrix.bazel-config }}
           junit_files: lte/gateway/test_results/**/*.xml
