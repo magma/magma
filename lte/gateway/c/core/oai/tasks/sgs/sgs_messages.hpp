@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SGS_MESSAGES_H_
-#define SGS_MESSAGES_H_
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
@@ -30,5 +29,3 @@ int sgs_send_imsi_detach_indication(
 
 int sgs_send_tmsi_reallocation_complete(
     itti_sgsap_tmsi_reallocation_comp_t* sgs_tmsi_realloc_comp_p);
-
-#endif

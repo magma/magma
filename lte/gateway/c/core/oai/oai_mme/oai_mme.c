@@ -43,7 +43,7 @@
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 #include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"

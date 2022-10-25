@@ -32,12 +32,12 @@ Author
 Description Defines the SGS State Machine handling
 
 *****************************************************************************/
-#ifndef FILE_SGS_FSM_SEEN
-#define FILE_SGS_FSM_SEEN
+
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -99,4 +99,3 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt);
 int sgs_handle_associated_paging_request(const sgs_fsm_t* sgs_evt);
 int sgs_handle_null_paging_request(const sgs_fsm_t* sgs_evt);
 int sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt);
-#endif /* FILE_SGS_FSM_SEEN*/

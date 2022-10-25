@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgs_task.c
+/*! \file sgs_task.cpp
   \brief
   \author
   \company
@@ -26,13 +26,20 @@
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/sgs_client/csfb_client_api.hpp"
 
 static void sgs_exit(void);
@@ -177,8 +184,8 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
   task_zmq_ctx_t* task_zmq_ctx_p = &sgs_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_SGS);
-  init_task_context(TASK_SGS, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
-                    task_zmq_ctx_p);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP};
+  init_task_context(TASK_SGS, peer_task_ids, 1, handle_message, task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
   AssertFatal(0,
@@ -189,7 +196,7 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e sgs_init(const mme_config_t* mme_config_p) {
+extern "C" status_code_e sgs_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_SGS, "Initializing SGS task interface\n");
 
   if (itti_create_task(TASK_SGS, &sgs_thread, NULL) < 0) {
