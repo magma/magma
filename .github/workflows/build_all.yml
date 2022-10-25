@@ -22,7 +22,8 @@ on:
       - master
       - 'v1.*'
     types: [ opened, reopened, synchronize ]
-
+env:
+  LF_ARTIFACTORY_BASE_URL: "https://artifactory.magmacore.org:443/artifactory/"
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
@@ -31,6 +32,9 @@ jobs:
       HELM_CHART_MUSEUM_REPO: helm-test
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
+      LF_HELM_CHART_MUSEUM_REPO: magma-helm-test
+      LF_HELM_CHART_MUSEUM_USERNAME: "${{ secrets.LF_HELM_CHART_MUSEUM_USERNAME }}"
+      LF_HELM_CHART_MUSEUM_TOKEN: "${{ secrets.LF_HELM_CHART_MUSEUM_TOKEN }}"
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
@@ -55,6 +59,16 @@ jobs:
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
             orc8r/tools/helm/package.sh --deployment-type all
+          fi
+      - name: Launch build and publish script
+        run: |
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION  --only-package
+          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+            mkdir charts
+            orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION --only-package
+          else
+            orc8r/tools/helm/package_lf.sh --deployment-type all
           fi
       - name: Upload charts as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
@@ -166,6 +180,33 @@ jobs:
           do
             echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-test/pool"
             HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
+            echo "$HTTP_RESPONSE"
+            # extract the body and download uri
+            HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+            URI=$(echo $HTTP_BODY | jq -r '.uri')
+            if [[ "$URI" != "null" ]]; then
+              ARTIFACTS=$(echo $ARTIFACTS | jq --arg uri $URI '.packages += [$uri]')
+            else
+              PUBLISH_ERROR="true"
+            fi
+            # extract and check status
+            HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+            if [[ "$HTTP_STATUS" != "2"* ]]; then
+              PUBLISH_ERROR="true"
+            fi
+            # extract magma debian package version
+            match="magma_[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+_[a-z0-9]+.deb"
+            if [[ $i =~ $match ]]; then
+              magma_package=${i#magma_}
+              magma_package=${magma_package%_[a-z0-9]*.deb}
+              magma_package='magma='${magma_package}
+              echo "::set-output name=magma_package::${magma_package}"
+            fi
+          done
+          for i in `ls -a1 *.deb`
+          do
+            echo "Pushing package $i to JFROG artifiactory: $LF_ARTIFACTORY_BASE_URL"
+            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.LF_JFROG_CIBOT_APIKEYS }} -XPUT "$LF_ARTIFACTORY_BASE_URL/magma-packages-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
             echo "$HTTP_RESPONSE"
             # extract the body and download uri
             HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
@@ -342,6 +383,17 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+      - name: Tag and push to LF Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         if: github.event_name == 'push'
         id: commit
@@ -463,6 +515,15 @@ jobs:
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
       - name: Tag and push agw containers to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-agw-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${TAG}" --tag-latest true
+      - name: Tag and push agw containers to LF Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
@@ -599,6 +660,17 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+      - name: Tag and push to LF Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
@@ -681,7 +753,16 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
+      - name: Tag and push to LF Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: ""
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -776,11 +857,22 @@ jobs:
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
+      # - name: Tag and push to Jfrog Registry
+      #   id: publish_artifacts
+      #   if: github.event_name == 'push'
+      #   env:
+      #     DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
+      #     DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+      #     DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+      #   run: |
+      #     ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
+      #     ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
+      #     echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-feg-test/"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -865,6 +957,17 @@ jobs:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+      - name: Tag and push to LF Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
@@ -959,6 +1062,16 @@ jobs:
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
+      - name: Tag and push to LF Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+          skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
       - name: Tag and push to Jfrog Registry
         if: github.event_name == 'push'
         working-directory: "${{ github.workspace }}/dp"
