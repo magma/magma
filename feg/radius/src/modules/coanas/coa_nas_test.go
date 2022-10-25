@@ -3,15 +3,17 @@ package coanas
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"fmt"
 	"net"
 	"testing"
+	"time"
+
+	"fbc/cwf/radius/modules"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 
 	"go.uber.org/zap"
-
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/stretchr/testify/require"
 )
@@ -39,18 +41,13 @@ func TestCoaNas(t *testing.T) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listenning")
 
 	// Act
@@ -98,18 +95,13 @@ func TestCoaNasNoResponse(t *testing.T) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listenning")
 
 	// Act
@@ -153,18 +145,13 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listenning")
 
 	// Act

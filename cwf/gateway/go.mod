@@ -14,7 +14,6 @@ module magma/cwf/gateway
 replace (
 	fbc/cwf/radius => ../../feg/radius/src/
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
-	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
@@ -29,7 +28,6 @@ replace (
 
 require (
 	fbc/cwf/radius v0.0.0
-	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/docker/docker v1.13.1
 	github.com/fiorix/go-diameter/v4 v4.0.4
 	github.com/go-openapi/swag v0.19.15
@@ -45,6 +43,7 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	google.golang.org/grpc v1.48.0
+	layeh.com/radius v0.0.0-20210819152912-ad72663a72ab
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000

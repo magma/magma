@@ -28,7 +28,7 @@ import (
 
 	"go.opencensus.io/tag"
 
-	"fbc/lib/go/radius"
+	"layeh.com/radius"
 
 	"github.com/patrickmn/go-cache"
 
@@ -143,8 +143,6 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 			listener = NewUDPListener()
 		case "grpc":
 			listener = NewGRPCListener()
-		case "sse":
-			listener = NewSSEListener()
 		default:
 			logger.Error(
 				fmt.Sprintf("failed to create listener, listener type '%s'", lconfig.Type),

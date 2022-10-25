@@ -18,8 +18,8 @@ import (
 	"log"
 	"testing"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // TestManual Manually test server

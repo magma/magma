@@ -14,9 +14,11 @@ limitations under the License.
 package alwaysaccept
 
 import (
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"testing"
+
+	"fbc/cwf/radius/modules"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 

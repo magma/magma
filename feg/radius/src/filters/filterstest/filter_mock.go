@@ -17,7 +17,7 @@ import (
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 
-	"fbc/lib/go/radius"
+	"layeh.com/radius"
 
 	"github.com/stretchr/testify/mock"
 )

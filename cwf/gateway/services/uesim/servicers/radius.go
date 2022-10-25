@@ -78,10 +78,10 @@ func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, calledStationI
 
 	// Hardcode in the auth.
 	copy(radiusP.Authenticator[:], []byte(Auth)[:])
-	radiusP.Attributes[rfc2865.UserName_Type] = &radius.AVP{
-		Type:      rfc2865.UserName_Type,
-		Attribute: []byte(imsi + IdentityPostfix),
-	}
+	radiusP.Attributes.Add(
+		rfc2865.UserName_Type,
+		radius.Attribute(imsi+IdentityPostfix),
+	)
 	// TODO: Fetch UE MAC addr and use as CallingStationID
 	err := rfc2865.CallingStationID_SetString(radiusP, srv.cfg.brMac)
 	if err != nil {

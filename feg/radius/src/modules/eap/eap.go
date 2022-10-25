@@ -179,8 +179,8 @@ func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, nex
 
 	// Add the extra attributes to the radius packet
 	if eapResponse.ExtraAttributes != nil {
-		for t, attrs := range eapResponse.ExtraAttributes {
-			radiusResponse.Add(t, attrs.Attribute)
+		for _, attrs := range eapResponse.ExtraAttributes {
+			radiusResponse.Add(attrs.Type, attrs.Attribute)
 		}
 	}
 

@@ -15,7 +15,8 @@ package modulestest
 
 import (
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"

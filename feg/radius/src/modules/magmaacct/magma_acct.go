@@ -161,7 +161,7 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 	result := &modules.Response{
 		Code: radius.CodeAccountingResponse,
 		Attributes: radius.Attributes{
-			rfc2866.AcctSessionID_Type: &radius.AVP{
+			&radius.AVP{
 				Type:      rfc2866.AcctSessionID_Type,
 				Attribute: radius.Attribute(c.SessionId),
 			},

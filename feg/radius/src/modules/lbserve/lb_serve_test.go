@@ -15,13 +15,16 @@ package lbserve
 
 import (
 	"context"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
+
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/session"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 
 	"go.uber.org/zap"
 
@@ -118,14 +121,14 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 			return nil, nil
 		},
 	)
-	attr, ok := response.Attributes[rfc2865.State_Type]
+	attr, ok := response.Attributes.Lookup(rfc2865.State_Type)
 
 	// Assert
 	require.Nil(t, err)
 	require.False(t, nextInvoked)
 	require.True(t, ok)
 	require.NotNil(t, attr)
-	require.Equal(t, "server_returned_value", string(attr[0]))
+	require.Equal(t, "server_returned_value", string(attr))
 }
 
 func spawnRadiusServer() (server *radius.PacketServer, port int) {
@@ -142,13 +145,12 @@ func spawnRadiusServer() (server *radius.PacketServer, port int) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", port),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	<-server.Ready // Wait for server to get ready
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listening")
 	return
 }
@@ -182,14 +184,14 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 			return nil, nil
 		},
 	)
-	attr, ok := response.Attributes[rfc2865.State_Type]
+	attr, ok := response.Attributes.Lookup(rfc2865.State_Type)
 
 	// Assert
 	require.Nil(t, err)
 	require.False(t, nextInvoked)
 	require.True(t, ok)
 	require.NotNil(t, attr)
-	require.Equal(t, "server_returned_value", string(attr[0]))
+	require.Equal(t, "server_returned_value", string(attr))
 }
 
 func spawnFailingRadiusServer() (server *radius.PacketServer, port int) {
@@ -206,21 +208,20 @@ func spawnFailingRadiusServer() (server *radius.PacketServer, port int) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", port),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	<-server.Ready // Wait for server to get ready
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listening")
 	return
 }
 
 func createRadiusRequest() *radius.Request {
 	packet := radius.New(radius.CodeAccessRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Attributes[rfc2865.CallingStationID_Type] = []radius.Attribute{radius.Attribute("called")}
-	packet.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{radius.Attribute("calling")}
+	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute("calling"))
+	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute("called"))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())
 	req.Packet = packet

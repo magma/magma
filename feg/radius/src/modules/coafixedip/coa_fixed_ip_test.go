@@ -15,10 +15,13 @@ package coafixedip
 
 import (
 	"context"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"fmt"
 	"testing"
+	"time"
+
+	"fbc/cwf/radius/modules"
+
+	"layeh.com/radius"
 
 	"go.uber.org/zap"
 
@@ -46,17 +49,13 @@ func TestCoaFixed(t *testing.T) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-	}
+	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Server listenning")
 
 	// Act
