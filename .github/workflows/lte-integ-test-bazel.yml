@@ -13,13 +13,9 @@ name: LTE integ test bazel
 
 on:
   workflow_dispatch: null
-  workflow_run:
-    workflows:
-      - build-all
+  push:
     branches:
       - master
-    types:
-      - completed
 
 env:
   CACHE_KEY: magma-dev-vm
