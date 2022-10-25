@@ -177,7 +177,10 @@ export default function GatewayConfig() {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <CardTitleRow label="NGC AMF" />
+                  <CardTitleRow
+                    label="NGC AMF"
+                    filter={() => editFilter({editTable: 'ngc'})}
+                  />
                   <GatewayNGC gwInfo={gwInfo} />
                 </Grid>
               </Grid>
