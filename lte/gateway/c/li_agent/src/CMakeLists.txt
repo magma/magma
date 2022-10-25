@@ -22,13 +22,6 @@ find_package(MAGMA_SENTRY REQUIRED)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
-if (BUILD_TESTS)
-  message("Adding code coverage build and linker flags for BUILD_TESTS")
-  set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-  set(CMAKE_LINKER_FLAGS_DEBUG
-      "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
-endif ()
 
 # Add AddressSanitizer (asan) support for debug builds of LiAgentD
 set(CMAKE_CXX_FLAGS_DEBUG
