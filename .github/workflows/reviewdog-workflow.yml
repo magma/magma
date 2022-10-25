@@ -100,7 +100,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@1530051a4d9af7e1c94afb2ea38fe7ba13e180ee # pin@v2
+        uses: reviewdog/action-golangci-lint@53f8eabb87b40b1a2c63ec75b0d418bd0f4aa919 # pin@v2.2.2
         with:
           golangci_lint_flags: '--config=../../.golangci.yml'
           reporter: github-pr-review
