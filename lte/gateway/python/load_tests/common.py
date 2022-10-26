@@ -13,9 +13,18 @@ limitations under the License.
 import os
 import subprocess  # noqa: S404
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from lte.protos.subscriberdb_pb2 import SubscriberID
+
+parents = Path.cwd().parents
+parts = Path.cwd().parts
+home = str(Path.home())
+if 'lte' in parts and len(parents) > 3:
+    # Get relative import path for protos
+    IMPORT_PATH = str(parents[3])
+else:
+    IMPORT_PATH = str(home) + '/magma'
 
 RESULTS_PATH = '/var/tmp'
 PROTO_DIR = 'lte/protos'
@@ -75,7 +84,7 @@ def benchmark_grpc_request(
     output_file: str,
     num_reqs: int,
     address: str,
-    import_path: str,
+    import_path: Optional[str] = None,
 ):
     """Run GHZ based GRPC benchmarking
 
@@ -86,8 +95,8 @@ def benchmark_grpc_request(
         output_file (str): a path where result is written to
         num_reqs (int): number of requests to send
         address (str): address to the service being benchmarked
-        import_path (str): protobuf import path
     """
+    import_path = import_path or IMPORT_PATH
     if not Path(import_path).exists():
         print('Protobuf import path directory does not exist, exiting')
         return
