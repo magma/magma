@@ -8,12 +8,8 @@
   with_items:
     - S1AP_TESTER_ROOT={{ s1ap_tester_root }}
     - S1AP_TESTER_SRC={{ s1ap_tester_src }}
-    - GATEWAY_NAME={{ gateway_name }}
     - GATEWAY_IP={{ gateway_ip }}
     - GATEWAY_PORT={{ gateway_port }}
-    - M2_HOME={{ mvn_dir }}
-    - SWAGGER_SPEC={{ swagger_spec }}
-    - SWAGGER_CODEGEN_OUTPUT={{ swagger_codegen_output }}
     - CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
@@ -72,13 +68,6 @@
     executable: pip3
   when: full_provision
 
-- name: Install flaky
-  pip:
-    name: flaky
-    extra_args: --cache-dir $PIP_CACHE_HOME
-    executable: pip3
-  when: full_provision
-
 - name: Generate python types from C headers
   command: "/usr/bin/python3 {{ test_scripts }}/c_parser.py"
   environment:
@@ -87,14 +76,12 @@
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
-  apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - default-libmysqlclient-dev
   when: preburn
-
-- name: Check whether swagger.yml exists
-  stat:
-    path: "{{ swagger_spec }}"
-  register: swagger_yml_present
-  when: full_provision
 
 - name: Add the test controller DNS entry
   become: yes
