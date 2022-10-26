@@ -28,8 +28,6 @@ ifdef enable-flaky-retry
 else
 	FLAKY_CMD_ARGS :=
 endif
-# Don't remove the ending comment from function execute_test. Somehow without
-# any ending statement the failing testcases are missing status update
 
 define apply_final_status
 	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; \
@@ -38,6 +36,8 @@ define apply_final_status
 	fi
 endef
 
+# Don't remove the ending comment from function execute_test. Somehow without
+# any ending statement the failing testcases are missing status update
 define execute_test
 	echo "Running test: $(1)"
 	timeout --foreground -k 930s 900s \
