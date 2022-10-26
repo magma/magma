@@ -137,7 +137,7 @@ tests = {
     'make_debian_lte_integ_test': make_debian_lte_integ_test,
 }
 
-for key, value in tests:
+for key, value in tests.items():
     test_parser = subparsers.add_parser(key)
     test_parser.add_argument(
         "--url", default="none", help="Report URL", nargs='?',
