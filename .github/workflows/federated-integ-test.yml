@@ -136,11 +136,11 @@ jobs:
           export MAGMA_DEV_MEMORY_MB=9216
           fab build_agw
       # Download to local and delete artifacts from remote
-      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: docker-build-orc8r-images
           path: ${{ env.AGW_ROOT }}
-      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: docker-build-feg-images
           path: ${{ env.AGW_ROOT }}
