@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -21,5 +22,8 @@ py_library(
 py_library(
     name = "rest_api",
     srcs = ["rest_api.py"],
-    deps = [":constants"],
+    deps = [
+        ":constants",
+        requirement("requests"),
+    ],
 )
