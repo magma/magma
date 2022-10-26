@@ -50,7 +50,7 @@ jobs:
     needs: check-reverted-pr
     if: ${{ needs.check-reverted-pr.outputs.is_reverted_pr == 'false' }}
     steps:
-      - uses: amannn/action-semantic-pull-request@db6e259b93f286e3416eef27aaae88935d16cf2e # pin@v3.4.0
+      - uses: amannn/action-semantic-pull-request@01d5fd8a8ebb9aafe902c40c53f0f4744f7381eb # pin@v5.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
