@@ -55,13 +55,13 @@ jobs:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
           MAGMA_PACKAGE: ${{ github.event.client_payload.artifact }}
+        working-directory: 'lte/gateway/'
         run: |
-          cd lte/gateway
           fab integ_test_deb_installation
       - name: Get test results
         if: always()
+        working-directory: 'lte/gateway/'
         run: |
-          cd lte/gateway
           fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
           ls -R
       - name: Upload test results
@@ -77,3 +77,34 @@ jobs:
           check_name: LTE Debian integration test results
           junit_files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
+      - name: Get test logs
+        if: always()
+        working-directory: 'lte/gateway/'
+        run: |
+          fab get_test_logs:gateway_host_name=magma_deb,dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+      - name: Publish results to Firebase
+        if: always() && github.event.event_type == 'build-all-artifact'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} make_debian_lte_integ_test --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.repository_owner == 'magma'
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_USERNAME: "LTE Debian integration test"
+          SLACK_AVATAR: ":boom:"
+        with:
+          args: "LTE Debian integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ steps.commit.outputs.title}}"
