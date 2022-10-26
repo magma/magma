@@ -85,7 +85,7 @@ jobs:
           junit_files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
       - name: Publish results to Firebase
-        if: always() && github.event.workflow_run.event == 'push'
+        if: always() && github.event_name == 'push'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
           REPORT_FILENAME: "sudo_python_tests_${{ github.sha }}.html"
