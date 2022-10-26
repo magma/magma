@@ -89,7 +89,7 @@ jobs:
           name: test-logs
           path: lte/gateway/logs.tar.gz
       - name: Publish results to Firebase
-        if: always() && github.event.event_type == 'build-all-artifact'
+        if: always() && github.event_name == 'repository_dispatch'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
           REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.sha }}.html"
