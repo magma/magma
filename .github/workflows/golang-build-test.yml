@@ -160,7 +160,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Install QEMU
-        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480 # pin@v1
+        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # pin@v2.1.0
       - name: Setup gotestsum
         uses: autero1/action-gotestsum@2e48af62f5248bd3b014f598cd1aa69a01dd36e3 # pin@v1.0.0
         with:
