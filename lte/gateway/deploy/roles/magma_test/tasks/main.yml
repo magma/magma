@@ -8,12 +8,8 @@
   with_items:
     - S1AP_TESTER_ROOT={{ s1ap_tester_root }}
     - S1AP_TESTER_SRC={{ s1ap_tester_src }}
-    - GATEWAY_NAME={{ gateway_name }}
     - GATEWAY_IP={{ gateway_ip }}
     - GATEWAY_PORT={{ gateway_port }}
-    - M2_HOME={{ mvn_dir }}
-    - SWAGGER_SPEC={{ swagger_spec }}
-    - SWAGGER_CODEGEN_OUTPUT={{ swagger_codegen_output }}
     - CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
@@ -90,12 +86,6 @@
     state: present
     update_cache: yes
   when: preburn
-
-- name: Check whether swagger.yml exists
-  stat:
-    path: "{{ swagger_spec }}"
-  register: swagger_yml_present
-  when: full_provision
 
 - name: Add the test controller DNS entry
   become: yes

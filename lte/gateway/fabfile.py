@@ -280,7 +280,6 @@ def federated_integ_test(
     vagrant_setup(
         'magma_test', destroy_vm, force_provision=provision_vm,
     )
-    execute(_make_integ_tests)
     sleep(20)
     execute(_run_integ_tests, test_mode="federated_integ_test")
 
@@ -367,7 +366,6 @@ def integ_test(
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
-    execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
 
     if not gateway_host:
@@ -414,7 +412,6 @@ def integ_test_deb_installation(
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
-    execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
 
 
@@ -445,7 +442,6 @@ def integ_test_containerized(
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
-    execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip, test_mode=test_mode, tests=tests)
 
 
@@ -621,16 +617,6 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
     sudo('service magma@magmad start')
 
 
-def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = strtobool(destroy_vm)
-    provision_vm = strtobool(provision_vm)
-    if not test_host:
-        vagrant_setup('magma_test', destroy_vm, force_provision=provision_vm)
-    else:
-        ansible_setup(test_host, "test", "magma_test.yml")
-    execute(_make_integ_tests)
-
-
 def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False'):
     destroy_vm = strtobool(destroy_vm)
     provision_vm = strtobool(provision_vm)
@@ -661,7 +647,6 @@ def build_test_vms(provision_vm='False', destroy_vm='False'):
     vagrant_setup(
         'magma_test', destroy_vm, force_provision=provision_vm,
     )
-    execute(_make_integ_tests)
 
 
 def _copy_out_c_execs_in_magma_vm():
@@ -716,15 +701,6 @@ def _start_trfserver():
     _call_trfserver_ssh_command('sudo ethtool --offload eth1 rx off tx off')
     _call_trfserver_ssh_command('sudo ethtool --offload eth2 rx off tx off')
     _call_trfserver_ssh_command('nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > trfserver.log 2>&1')
-
-
-def _make_integ_tests():
-    """ Build and run the integration tests """
-
-    with cd(AGW_PYTHON_ROOT):
-        run('make')
-    with cd(AGW_INTEG_ROOT):
-        run('make')
 
 
 def _run_integ_tests(gateway_ip='192.168.60.142', test_mode='integ_test', tests=''):
