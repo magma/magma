@@ -55,7 +55,7 @@ runs:
       if: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
     - name: Build and push Docker image
       id: docker_build
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
       with:
         context: .
         file: ${{ inputs.DOCKERFILE }}
