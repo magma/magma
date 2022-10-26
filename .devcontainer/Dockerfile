@@ -52,7 +52,7 @@ RUN echo "Install general purpose packages" && \
         gdb \
         lcov \
         libclang-11-dev \
-        lldb \
+        lldb-11 \
         llvm-11-dev \
         make \
         ninja-build \
@@ -120,18 +120,18 @@ RUN echo "Install 3rd party dependencies" && \
         grpc-dev
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
-RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd
+RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
+    rm --recursive --interactive=never /root/.cache/go-build
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
-    cd grpc && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
+    mkdir -p grpc/cmake/build && \
+    cd grpc/cmake/build && \
     cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON ../.. && \
     make -j"$(nproc)" && \
     make install && \
-    cd / && \
-    rm -rf grpc
+    cd ../../.. && \
+    rm --recursive --interactive=never grpc
 
 ##### libprotobuf-mutator is used for randomized proto unit tests / property tests
 RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
@@ -140,8 +140,8 @@ RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
     cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && \
     ninja && \
     ninja install && \
-    cd / && \
-    rm -rf libprotobuf-mutator
+    cd ../.. && \
+    rm --recursive --interactive=never libprotobuf-mutator
 
 ##### Prometheus CPP
 RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
@@ -153,7 +153,8 @@ RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     cmake .. && \
     make -j"$(nproc)" && \
     make install && \
-    rm -rf /prometheus-cpp
+    cd ../.. && \
+    rm --recursive --interactive=never prometheus-cpp
 
 # install magma dependencies
 RUN apt-get install -y --no-install-recommends \
@@ -172,8 +173,8 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig && \
-    cd / && \
-    rm -rf libgtpnl
+    cd .. && \
+    rm --recursive --interactive=never libgtpnl
 
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
@@ -196,12 +197,12 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
     cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
     make && \
     make install && \
-    cd / && \
-    rm -rf include-what-you-use && \
-    rm -rf build_liwyu
+    cd .. && \
+    rm --recursive --interactive=never include-what-you-use build_iwyu
 
 ##### Go language server support for vscode
-RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3
+RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3 && \
+     rm --recursive --interactive=never /root/.cache/go-build
 
 #### Update shared library configuration
 RUN ldconfig -v
