@@ -138,6 +138,13 @@ class AMFAppProcedureTest : public ::testing::Test {
       0x5c, 0x00, 0x0d, 0x01, 0x22, 0x62, 0x54, 0xf0, 0xff,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 
+  const uint8_t identity_response_profile_a[59] = {
+      0x7e, 0x00, 0x5c, 0x00, 0x35, 0x01, 0x22, 0x62, 0x54, 0xf0, 0xff, 0x01,
+      0x01, 0xa1, 0xae, 0x7e, 0x56, 0x1b, 0x54, 0x4b, 0x7c, 0x74, 0x03, 0x09,
+      0x89, 0xa9, 0x21, 0x55, 0xd7, 0x8b, 0xbf, 0x28, 0x53, 0x5f, 0xb5, 0x94,
+      0x23, 0xb4, 0xcb, 0x64, 0x0e, 0x6c, 0x1e, 0xd4, 0x37, 0x15, 0xe8, 0x3c,
+      0x72, 0x39, 0x1f, 0x15, 0x8a, 0x9d, 0x7a, 0xcc, 0x09, 0x4b, 0x00};
+
   const uint8_t ue_auth_response_hexbuf[21] = {
       0x7e, 0x0,  0x57, 0x2d, 0x10, 0x25, 0x70, 0x6f, 0x9a, 0x5b, 0x90,
       0xb6, 0xc9, 0x57, 0x50, 0x6c, 0x88, 0x3d, 0x76, 0xcc, 0x63};
@@ -645,6 +652,82 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcGutiBased) {
 
   amf_app_handle_deregistration_req(ue_id);
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
+}
+
+TEST_F(AMFAppProcedureTest, TestRegistrationProcGutiBasedEncryption) {
+  amf_ue_ngap_id_t ue_id = 0;
+  send_initial_ue_message_no_tmsi(
+      amf_app_desc_p, 36, 1, 1, 0, plmn,
+      guti_initial_ue_reregister_message_hexbuf,
+      sizeof(guti_initial_ue_reregister_message_hexbuf));
+
+  EXPECT_TRUE(validate_identification_procedure(0, &ue_id));
+
+  int rc = RETURNok;
+  rc = send_uplink_nas_identity_response_message(
+      amf_app_desc_p, ue_id, plmn, identity_response_profile_a,
+      sizeof(identity_response_profile_a));
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_t* ue_context_p =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  rc = amf_decrypt_msin_info_answer(&decrypted_msin);
+  EXPECT_TRUE(rc == RETURNok);
+
+  ue_m5gmm_context_s* context_encrypted_imsi = amf_get_ue_context_from_imsi(
+      reinterpret_cast<char*>(const_cast<char*>(decrypted_imsi.c_str())));
+
+  // Check if UE Context is created with correct imsi
+  bool res = false;
+  res = get_ue_id_from_imsi(amf_app_desc_p,
+                            context_encrypted_imsi->amf_context.imsi64, &ue_id);
+  EXPECT_TRUE(res == true);
+
+  // Send the authentication response message from subscriberdb
+  rc = send_proc_authentication_info_answer(decrypted_imsi, ue_id, true);
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Validate if authentication procedure is initialized as expected
+  res = validate_auth_procedure(ue_id, 0);
+  EXPECT_TRUE(res == true);
+
+  // Send uplink nas message for auth response from UE
+  rc = send_uplink_nas_message_ue_auth_response(
+      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      sizeof(ue_auth_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  // Check whether security mode procedure is initiated
+  res = validate_smc_procedure(ue_id, 0);
+  EXPECT_TRUE(res == true);
+
+  // Send uplink nas message for security mode complete response from UE
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+                                               ue_smc_response_hexbuf,
+                                               sizeof(ue_smc_response_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  s6a_update_location_ans_t ula_ans = util_amf_send_s6a_ula(decrypted_imsi);
+  rc = amf_handle_s6a_update_location_ans(&ula_ans);
+  EXPECT_EQ(rc, RETURNok);
+
+  // Send uplink nas message for registration complete response from UE
+  rc = send_uplink_nas_registration_complete(
+      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      sizeof(ue_registration_complete_hexbuf));
+  EXPECT_TRUE(rc == RETURNok);
+
+  /* Send uplink nas message for deregistration complete response from UE */
+  rc = send_uplink_nas_ue_deregistration_request(
+      amf_app_desc_p, ue_id, plmn, ue_initiated_dereg_hexbuf,
+      sizeof(ue_initiated_dereg_hexbuf));
+
+  EXPECT_TRUE(rc == RETURNok);
+
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, ue_id);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  delete ue_context_p;
 }
 
 TEST_F(AMFAppProcedureTest, TestMobileUpdatingRegistrationProcGutiBased) {

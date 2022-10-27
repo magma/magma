@@ -26,7 +26,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 #include "lte/protos/subscriberdb.pb.h"
 

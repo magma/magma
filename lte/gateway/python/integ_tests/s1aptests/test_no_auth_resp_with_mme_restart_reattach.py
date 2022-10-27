@@ -74,7 +74,7 @@ class TestNoAuthRespWithMmeRestartReattach(unittest.TestCase):
         # time, MME sometimes restarts after a delay of around 6 seconds. If
         # MME restarts after T3460 timer expiry of 6 seconds, it will send
         # re-transmitted Authentication Request message
-        if response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
+        while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
             print(
                 "******************** Ignoring re-transmitted "
                 "Authentication Request message",

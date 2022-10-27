@@ -4,9 +4,6 @@
 [dev]
 magma ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
 
-[focal_dev]
-magma ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
-
 [deb]
 magma_deb ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
 
