@@ -66,6 +66,9 @@ status_code_e amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id,
   rc = amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   if (transaction_status != M5G_AS_SUCCESS) {
+    if (M5G_AS_TERMINATED_NAS == transaction_status) {
+      ue_context->ue_context_rel_cause = NGAP_IMPLICIT_CONTEXT_RELEASE;
+    }
     amf_ctx_release_ue_context(ue_context, NGAP_NAS_AUTHENTICATION_FAILURE);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);

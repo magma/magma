@@ -163,6 +163,7 @@ class M5GSMobileIdentityMsg {
   uint8_t iei;
   uint16_t len;
   uint8_t toi;
+#define M5GSMobileIdentityMsg_NO_IDENTITY 0x00
 #define M5GSMobileIdentityMsg_SUCI_IMSI 0x01
 #define M5GSMobileIdentityMsg_GUTI 0x02
 #define M5GSMobileIdentityMsg_IMEI 0x03
