@@ -175,11 +175,11 @@
 
 - name: Create the /var/www/local-cdn directory
   file: path=/var/www/local-cdn state=directory
-  when: full_provision
+  when: preburn
 
 - name: Create the /var/www/local-cdn/store directory
   file: path=/var/www/local-cdn/store state=directory
-  when: full_provision
+  when: preburn
 
 - name: Add Magma package directory
   become: no
@@ -229,6 +229,7 @@
       - prometheus-cpp-dev
       - libczmq-dev
       - libczmq-dev
+      - libsqlite3-dev
 
 - name: Install LI Agent dependencies
   retries: 5
@@ -237,6 +238,7 @@
     update_cache: yes
     pkg:
       - uuid-dev
+  when: preburn
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
   become: yes
@@ -262,8 +264,6 @@
     state: present
     update_cache: yes
     pkg:
-      # install prometheus
-      - prometheus-cpp-dev
       # install openvswitch
       - libopenvswitch
       - libopenvswitch-dev
@@ -303,7 +303,6 @@
     state: present
     update_cache: yes
     pkg:
-      - python3-openvswitch
       - nlohmann-json3-dev
       # managing gtp interface
       - ifupdown
@@ -341,12 +340,9 @@
 - name: Install gmock and gtest for C++ testing
   become: yes
   ignore_errors: yes
-  shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
+  shell: cmake . && cmake --build . --target install
   args:
-    chdir: /usr/src/{{ item }}
-  with_items:
-    - gtest
-    - gmock
+    chdir: /usr/src/googletest
   when: preburn
 
 - name: Download golang tar
@@ -462,14 +458,20 @@
     state: latest
     pkg:
       - magma-libfluid
+  when: preburn
 
 - name: Create eBPF code dir
   command: 'mkdir /var/opt/magma/ebpf/ -p'
-  when: full_provision
+  when: preburn
 
 - name: Prepare AGW for eBPF
-  command: 'apt-get -y install bcc-tools linux-headers-5.4.0-74-generic'
-  when: full_provision
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - linux-headers-5.4.0-74-generic
+  when: preburn
+
 
 - name: Copy eBPF code
   copy:
@@ -489,15 +491,6 @@
     dest: /var/opt/magma/ebpf/EbpfMap.h
     force: yes
     remote_src: yes
-  when: full_provision
-
-# TODO: preburn this and add it under MME(OAI) dependencies
-- name: Install SQLite3 C++ library
-  retries: 5
-  apt:
-    state: latest
-    pkg:
-      - libsqlite3-dev
   when: full_provision
 
 - name: Extend sda2
