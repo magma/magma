@@ -94,5 +94,8 @@ proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState* state,
                                          sctp_assoc_id_t assoc_id,
                                          oai::EnbDescription* enb);
 
+void get_s1ap_ueid_imsi_map(
+    magma::proto_map_uint32_uint64_t* ueid_imsi_map);
+
 }  // namespace lte
 }  // namespace magma

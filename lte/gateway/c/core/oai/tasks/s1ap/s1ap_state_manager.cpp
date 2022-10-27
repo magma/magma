@@ -182,8 +182,9 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 
 void S1apStateManager::create_s1ap_imsi_map() {
   proto_map_uint32_uint64_t imsi_map;
-  s1ap_imsi_map_ = new oai::S1apImsiMap();
-  if (!s1ap_imsi_map_) {
+  try {
+    s1ap_imsi_map_ = new oai::S1apImsiMap();
+  } catch (std::bad_alloc&) {
     OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for s1ap_imsi_map_");
     return;
   }

@@ -145,8 +145,7 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
   oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
-  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
-  ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
   ueid_imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
   if (*target_imsi64 != INVALID_IMSI64 && *target_imsi64 == imsi64) {
@@ -198,6 +197,10 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    return;
+  }
   oai::UeDescription* ue_ref_p = nullptr;
 
   // get each eNB in s1ap_state

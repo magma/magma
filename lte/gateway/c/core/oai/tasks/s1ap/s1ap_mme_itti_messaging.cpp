@@ -75,12 +75,7 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
   imsi64_t imsi64 = INVALID_IMSI64;
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
-  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
-  if (!imsi_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-  ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
   ueid_imsi_map.get(ue_id, &imsi64);
 
   OAILOG_INFO_UE(
@@ -124,12 +119,7 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
   }
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
-  oai::S1apImsiMap* imsi_map = get_s1ap_imsi_map();
-  if (!imsi_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-  ueid_imsi_map.map = imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
   ueid_imsi_map.get(ue_id, &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
