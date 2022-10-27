@@ -1061,7 +1061,7 @@ class MagmadUtil(object):
         for service in services:
             service_name = self.get_service_name_from_init_system(service)
             if self._init_system == InitMode.SYSTEMD:
-                self.exec_command(f"sudo systemctl restart {service_name}")
+                self.exec_command(f"sudo systemctl --no-block restart {service_name}")
             elif self._init_system == InitMode.DOCKER:
                 # TODO GH14055
                 # The docker restart part is ugly due to some technical debt:
@@ -1105,21 +1105,22 @@ class MagmadUtil(object):
         Args:
             wait_time: (int) max time to wait for services to become active
         """
-        print(
-            f"Waiting for a maximum of {wait_time} "
-            f"seconds for restart to finish",
-        )
-        if self._init_system == InitMode.DOCKER:
+        if self._init_system in (InitMode.DOCKER, InitMode.SYSTEMD):
+            print(
+                f"Waiting for a maximum of {wait_time} "
+                f"seconds for restart to finish",
+            )
             start_time = time.time()
             all_services_active = False
             while (
                 not all_services_active
-                and time.time() - start_time < wait_time
             ):
                 all_services_active = self.check_if_magma_services_are_active()
                 time.sleep(5)
-        elif self._init_system == InitMode.SYSTEMD:
-            time.sleep(wait_time)
+
+                if time.time() - start_time > wait_time:
+                    print("Timeout reached while waiting for services to restart")
+                    return
 
     def enable_service(self, service):
         """Enable a magma service on magma_dev VM and starts it

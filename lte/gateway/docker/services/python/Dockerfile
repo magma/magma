@@ -88,6 +88,8 @@ COPY ./dp/protos $MAGMA_ROOT/dp/protos
 COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
 COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 
+COPY ./lte/gateway/deploy/roles/magma/files/patches $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/patches
+
 WORKDIR /magma/lte/gateway/python
 RUN make buildenv
 
