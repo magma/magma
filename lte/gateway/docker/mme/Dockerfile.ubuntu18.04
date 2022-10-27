@@ -48,6 +48,8 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get install -y libczmq-dev=4.1.0-2 && \
     echo "Install libtins" && \
     apt-get install -y libtins-dev && \
+    echo "Install libsystemd-dev" && \
+    apt-get install -y libsystemd-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 ##### NETTLE

@@ -505,8 +505,6 @@ def integ_test_containerized(
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
-    # TODO: Remove temporary workaround after resolution of https://github.com/magma/magma/issues/13912
-    run('rm -rf /etc/snowflake; sudo touch /etc/snowflake')
     execute(_start_gateway_containerized)
 
     # Set up the trfserver: use the provided trfserver if given, else default to the
