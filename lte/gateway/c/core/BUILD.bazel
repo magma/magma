@@ -131,7 +131,6 @@ MME_SRCS = [
     "oai/tasks/ha/ha_service_handler.cpp",
     "oai/tasks/ha/ha_task.cpp",
     "oai/tasks/mme_app/mme_app_apn_selection.cpp",
-    "oai/tasks/mme_app/mme_app_authentication.cpp",
     "oai/tasks/mme_app/mme_app_bearer.cpp",
     "oai/tasks/mme_app/mme_app_bearer_context.cpp",
     "oai/tasks/mme_app/mme_app_capabilities.cpp",
