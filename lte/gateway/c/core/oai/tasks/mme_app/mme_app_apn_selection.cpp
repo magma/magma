@@ -21,6 +21,9 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -36,7 +39,6 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 //------------------------------------------------------------------------------

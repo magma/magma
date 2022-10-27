@@ -21,6 +21,9 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -40,7 +43,6 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
 static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);

@@ -14,6 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
+
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -23,14 +26,12 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 
 char* USAGE_TEXT =
     "==== EURECOM %s version: %s ====\n"  // PACKAGE_NAME, PACKAGE_VERSION

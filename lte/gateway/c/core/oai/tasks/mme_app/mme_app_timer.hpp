@@ -28,9 +28,6 @@ extern "C" {
 
 #define MME_APP_TIMER_INACTIVE_ID (-1)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int mme_app_start_timer_arg(size_t msec, timer_repeat_t repeat,
                             zloop_timer_fn handler, timer_arg_t* arg);
 
@@ -50,7 +47,3 @@ void mme_app_resume_timer(struct ue_mm_context_s* const ue_mm_context_pP,
 // These functions are supposed to be used only by expired timers.
 bool mme_pop_timer_arg(int timer_id, timer_arg_t* arg);
 bool mme_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id);
-
-#ifdef __cplusplus
-}
-#endif

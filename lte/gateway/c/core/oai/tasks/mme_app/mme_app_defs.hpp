@@ -74,9 +74,6 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     const itti_s1ap_ue_context_release_complete_t*
         s1ap_ue_context_release_complete);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 
@@ -101,9 +98,6 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
 
 void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
                                    emm_proc_sgs_detach_type_t detach_type);
-#ifdef __cplusplus
-}
-#endif
 
 status_code_e mme_app_handle_s6a_update_location_ans(
     mme_app_desc_t* mme_app_desc_p, const s6a_update_location_ans_t* ula_pP);

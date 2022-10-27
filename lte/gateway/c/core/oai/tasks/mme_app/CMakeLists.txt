@@ -20,7 +20,6 @@ add_library(TASK_MME_APP
     mme_app_if_nas_transport.cpp
     mme_app_main.cpp
     mme_app_bearer.cpp
-    mme_app_authentication.cpp
     mme_app_detach.cpp
     mme_app_location.cpp
     mme_app_transport.cpp

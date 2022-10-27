@@ -92,13 +92,8 @@ extern "C" {
 extern status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
+
 /*
    Internal data used for attach procedure
 */
