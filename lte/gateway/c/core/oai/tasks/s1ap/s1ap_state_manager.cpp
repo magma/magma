@@ -66,8 +66,10 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
 oai::S1apState* create_s1ap_state(void) {
   proto_map_uint32_enb_description_t enb_map;
 
-  oai::S1apState* state_cache_p = new oai::S1apState();
-  if (!state_cache_p) {
+  oai::S1apState* state_cache_p = nullptr;
+  try {
+    state_cache_p = new oai::S1apState();
+  } catch (std::bad_alloc&) {
     OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
     return state_cache_p;
   }
