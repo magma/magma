@@ -15,9 +15,9 @@ package coafixedip
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
-	"time"
 
 	"fbc/cwf/radius/modules"
 
@@ -31,9 +31,10 @@ import (
 func TestCoaFixed(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
 	logger, _ := zap.NewDevelopment()
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"target": fmt.Sprintf("127.0.0.1:%d", 4799),
+		"target": fmt.Sprintf("127.0.0.1:%d", port),
 	})
 	require.Nil(t, err)
 
@@ -48,15 +49,16 @@ func TestCoaFixed(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
+		Addr:         fmt.Sprintf(":%d", port),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
-	fmt.Println("Server listenning")
+	err = waitForRadiusServerToBeReady(secret, port)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	res, err := Handle(
@@ -77,6 +79,17 @@ func TestCoaFixed(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res.Code, radius.CodeDisconnectACK)
+}
+
+func waitForRadiusServerToBeReady(secret []byte, port int) error {
+	MaxRetries := 10
+	for r := 0; r < MaxRetries; r++ {
+		_, err := radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), fmt.Sprintf(":%d", port))
+		if err == nil {
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries", MaxRetries))
 }
 
 func createRadiusRequest() *radius.Request {

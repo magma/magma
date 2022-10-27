@@ -2,11 +2,11 @@ package coadynamic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"sync/atomic"
 	"testing"
-	"time"
 
 	"fbc/cwf/radius/modules"
 
@@ -21,9 +21,10 @@ import (
 func TestCoaDynamic(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
 	logger, _ := zap.NewDevelopment()
 	ctx, err := Init(logger, modules.ModuleConfig{
-		"port": 4799,
+		"port": port,
 	})
 	require.Nil(t, err)
 
@@ -38,14 +39,16 @@ func TestCoaDynamic(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
+		Addr:         fmt.Sprintf(":%d", port),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
+	err = waitForRadiusServerToBeReady(secret, port)
+	require.Nil(t, err)
+	radiusResponseCounter = 0 // reset response count for test
 	fmt.Println("Server listening")
 
 	// Act
@@ -65,6 +68,17 @@ func TestCoaDynamic(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res.Code, radius.CodeDisconnectACK)
+}
+
+func waitForRadiusServerToBeReady(secret []byte, port int) error {
+	MaxRetries := 10
+	for r := 0; r < MaxRetries; r++ {
+		_, err := radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), fmt.Sprintf(":%d", port))
+		if err == nil {
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries", MaxRetries))
 }
 
 func generateRequest(ctx modules.Context, code radius.Code, t *testing.T, sessionID string, next ...bool) (*modules.Response, error) {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"testing"
-	"time"
 
 	"fbc/cwf/radius/modules"
 
@@ -20,11 +19,12 @@ import (
 
 func TestCoaNas(t *testing.T) {
 	// Arrange
+	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
-	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": "4799",
+		"port": fmt.Sprint(port),
 	})
 	require.Nil(t, err)
 
@@ -32,7 +32,6 @@ func TestCoaNas(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -40,14 +39,15 @@ func TestCoaNas(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
+		Addr:         fmt.Sprintf(":%d", port),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
+	err = waitForRadiusServerToBeReady(secret, port)
+	require.Nil(t, err)
 	fmt.Println("Server listenning")
 
 	// Act
@@ -75,10 +75,11 @@ func TestCoaNas(t *testing.T) {
 func TestCoaNasNoResponse(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 3799
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": "3799",
+		"port": fmt.Sprint(port),
 	})
 	require.Nil(t, err)
 
@@ -86,7 +87,6 @@ func TestCoaNasNoResponse(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -101,8 +101,9 @@ func TestCoaNasNoResponse(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
-	fmt.Println("Server listenning")
+	err = waitForRadiusServerToBeReady(secret, port)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	_, err = Handle(
@@ -125,10 +126,11 @@ func TestCoaNasNoResponse(t *testing.T) {
 func TestCoaNasFieldInvalid(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": "4799",
+		"port": fmt.Sprint(port),
 	})
 	require.Nil(t, err)
 
@@ -136,7 +138,6 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -144,15 +145,16 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
+		Addr:         fmt.Sprintf(":%d", port),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
-	fmt.Println("Server listenning")
+	err = waitForRadiusServerToBeReady(secret, port)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	var s int
@@ -173,6 +175,17 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	require.Equal(t, 1, s)
 	// Assert
 	require.NotNil(t, err)
+}
+
+func waitForRadiusServerToBeReady(secret []byte, port int) error {
+	MaxRetries := 10
+	for r := 0; r < MaxRetries; r++ {
+		_, err := radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), fmt.Sprintf(":%d", port))
+		if err == nil {
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries", MaxRetries))
 }
 
 func createRadiusRequest(nasIdentifier string) *radius.Request {
