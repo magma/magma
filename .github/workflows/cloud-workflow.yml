@@ -33,9 +33,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
@@ -69,8 +69,8 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       GO111MODULE: 'on'
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: deploy-sync-checkin
@@ -91,7 +91,7 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --coverage
-      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+      - uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         if: always() && steps.cloud-lint-cov.outcome=='success'
         id: cloud-lint-codecov
         with:
@@ -111,7 +111,7 @@ jobs:
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
         if: always()
         id: gateway_test_init
         with:

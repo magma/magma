@@ -16,11 +16,8 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
-
-extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-}
 
 namespace magma {
 namespace lte {
@@ -52,10 +49,14 @@ void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
 
-  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
-  state_teid_ht_ = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**))spgw_free_s11_bearer_context_information, b);
+  state_teid_map.map = new google::protobuf::Map<
+      uint32_t, struct s_plus_p_gw_eps_bearer_context_information_s*>();
+  if (!(state_teid_map.map)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_teid_map ");
+    return;
+  }
+  state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  state_teid_map.bind_callback(spgw_free_s11_bearer_context_information);
 
   state_ue_ht =
       hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
@@ -76,8 +77,6 @@ void SpgwStateManager::create_state() {
          sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
 
   state_cache_p->gtpv1u_teid = 0;
-
-  bdestroy_wrapper(&b);
 }
 
 void SpgwStateManager::free_state() {
@@ -95,7 +94,9 @@ void SpgwStateManager::free_state() {
         "hashtable");
   }
 
-  hashtable_ts_destroy(state_teid_ht_);
+  if (state_teid_map.destroy_map() != magma::PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_teid_map");
+  }
 
   free_wrapper((void**)&state_cache_p);
 }
@@ -118,12 +119,12 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
   return RETURNok;
 }
 
-hash_table_ts_t* SpgwStateManager::get_state_teid_ht() {
+state_teid_map_t* SpgwStateManager::get_state_teid_map() {
   AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-  return state_teid_ht_;
+  return &state_teid_map;
 }
 
 }  // namespace lte

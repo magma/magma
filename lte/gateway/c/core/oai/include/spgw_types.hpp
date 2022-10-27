@@ -41,6 +41,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
@@ -79,6 +80,12 @@ typedef struct sgw_s11_teid_s {
   teid_t sgw_s11_teid;
   LIST_ENTRY(sgw_s11_teid_s) entries;
 } sgw_s11_teid_t;
+
+// Map- Key:teid (uint32_t) ,
+// Data:s_plus_p_gw_eps_bearer_context_information_s*
+typedef magma::proto_map_s<uint32_t,
+                           struct s_plus_p_gw_eps_bearer_context_information_s*>
+    state_teid_map_t;
 
 typedef struct spgw_ue_context_s {
   LIST_HEAD(teid_list_head_s, sgw_s11_teid_s) sgw_s11_teid_list;

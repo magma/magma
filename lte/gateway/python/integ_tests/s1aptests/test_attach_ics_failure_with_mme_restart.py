@@ -105,7 +105,8 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         print("******************** Received Initial Context Setup Indication")
 
         print("******************** Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"], wait_for_restart)
 
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
@@ -118,10 +119,6 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail,
         )
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
 
         # Waiting for UE Context Release indication
         response = self._s1ap_wrapper.s1_util.get_response()

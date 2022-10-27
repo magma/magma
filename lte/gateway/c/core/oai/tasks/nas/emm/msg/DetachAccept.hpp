@@ -15,13 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_DETACH_ACCEPT_SEEN
-#define FILE_DETACH_ACCEPT_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -51,5 +50,3 @@ int decode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
 
 int encode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
                          uint32_t len);
-
-#endif /* ! defined(FILE_DETACH_ACCEPT_SEEN) */

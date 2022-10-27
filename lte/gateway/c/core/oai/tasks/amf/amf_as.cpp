@@ -495,9 +495,9 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .len = 1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
-      .unit = 0;
+      .unit = static_cast<uint8_t>(M5GGprsTimer3ValueUnit::MULTIPLES_OF_10MIN);
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
-      .timervalue = 6;
+      .timervalue = (amf_config.nas_config.t3512_min) / 10;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
       .network_feature.iei = NETWORK_FEATURE;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg

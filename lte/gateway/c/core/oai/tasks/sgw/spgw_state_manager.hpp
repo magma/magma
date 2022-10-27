@@ -70,7 +70,7 @@ class SpgwStateManager
 
   status_code_e read_ue_state_from_db() override;
 
-  hash_table_ts_t* get_state_teid_ht();
+  state_teid_map_t* get_state_teid_map();
 
  private:
   SpgwStateManager();
@@ -82,7 +82,7 @@ class SpgwStateManager
    */
   void create_state() override;
 
-  hash_table_ts_t* state_teid_ht_;
+  state_teid_map_t state_teid_map;
   const spgw_config_t* config_;
 };
 

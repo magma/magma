@@ -13,6 +13,12 @@ name: "Bazel Build & Test"
 on:
   # yamllint disable-line rule:truthy
   workflow_dispatch:
+    inputs:
+      publish_bazel_profile:
+        description: 'Publish bazel profile data (default: false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     types:
       - opened
@@ -40,7 +46,7 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         if: github.event_name == 'pull_request'
         id: changes
         with:
@@ -85,7 +91,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -124,11 +130,22 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
+            TEST_FAILED="false"
             bazel test \
               ${{ matrix.bazel-target }} \
               ${{ matrix.bazel-config }} \
               --test_output=errors \
-              --profile=Bazel_test_all_profile
+              --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            # Create Bazel unit-test results
+            # Can't be a separate step, because the container's '/tmp' folder is not preserved between steps
+            mkdir bazel_unit_test_results/
+            UNIQUE_FILENAME_INDEX=0
+            TEST_REPORT_PATHS=( $(find bazel-testlogs/ -name 'test.xml') )
+            for TEST_REPORT_PATH in "${TEST_REPORT_PATHS[@]}"
+            do
+              cp "${TEST_REPORT_PATH}" "bazel_unit_test_results/test_result_${UNIQUE_FILENAME_INDEX}.xml"
+              UNIQUE_FILENAME_INDEX=$((UNIQUE_FILENAME_INDEX + 1))
+            done
 
             if [ -z "${{ matrix.bazel-config }}" ];
             then
@@ -145,18 +162,42 @@ jobs:
               printf '\r%s\r' '###############################' 1>&2
               bazel/scripts/test_python_service_imports.sh;
             fi
+
+            if [[ "${TEST_FAILED}" == "true" ]];
+            then
+              echo "ERROR: 'bazel test' failed!"
+              exit 1
+            fi
+      - name: Create merged test-result XML file
+        if: always()
+        run: |
+          mkdir -p lte/gateway/test_results/
+          python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel build profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel build all profile ${{ matrix.bazel-config }}
           path: Bazel_build_all_profile
       - name: Publish bazel test profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
+      - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: Bazel unit-test results ${{ matrix.bazel-config }}
+          path: lte/gateway/test_results/merged_unit_test_reports.xml
+      - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: Bazel unit-test results ${{ matrix.bazel-config }}
+          junit_files: lte/gateway/test_results/**/*.xml
+          check_run_annotations: all tests
       - name: Build space left after run
         shell: bash
         run: |
@@ -230,7 +271,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -250,12 +291,12 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build lte/gateway/release:sctpd_deb_pkg \
+            bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
               --config=production \
               --profile=Bazel_build_package_profile
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel build package profile
           path: Bazel_build_package_profile
@@ -281,7 +322,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Execute check
         shell: bash
         run: |
@@ -303,7 +344,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Execute check
         shell: bash
         run: |

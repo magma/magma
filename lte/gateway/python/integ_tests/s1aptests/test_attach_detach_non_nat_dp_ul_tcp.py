@@ -22,9 +22,9 @@ from s1ap_utils import MagmadUtil
 class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
     """Integration Test: TestAttachDetachNonNatDpUlTcp"""
 
-    def __init__(self, method_name: str = ...) -> None:
+    def __init__(self) -> None:
         """Initialize unittest class"""
-        super().__init__(methodName=method_name)
+        super().__init__()
         self.magma_utils = MagmadUtil(None)
 
     def setUp(self):

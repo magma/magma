@@ -61,8 +61,8 @@ s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(imsi64_t imsi,
   IMSI64_TO_STRING(imsi, (char*)(&sgw->imsi.digit), IMSI_BCD_DIGITS_MAX);
   sgw->imsi_unauthenticated_indicator = 20;
   strncpy(pgw->msisdn, msisdn, strlen(msisdn));
-  sgw->mme_teid_S11 = 300;
-  sgw->s_gw_teid_S11_S4 = 400;
+  sgw->mme_teid_S11 = 300 + teid;
+  sgw->s_gw_teid_S11_S4 = 400 + teid;
 
   std::string ip_str = "191.1.3.0";
   bstring ip_bstr;

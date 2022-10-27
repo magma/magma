@@ -38,10 +38,10 @@ Description Defines EPS Session Management messages and functions used
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.hpp"

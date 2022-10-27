@@ -23,7 +23,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -31,6 +30,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 // Status codes from gRPC

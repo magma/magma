@@ -80,7 +80,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
@@ -761,8 +761,8 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  struct ue_mm_context_s* ue_context_p =
-      mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Security T3460 Timer");
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char*>("Security T3460 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,

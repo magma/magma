@@ -57,6 +57,8 @@ def perform_flattening(tag):
     if podman_check.strip():
         cli = 'sudo podman'
         image_prefix = 'localhost/'
+        # No more need to flatten with --squash option
+        return 0
     else:
         cmd = 'which docker || true'
         docker_check = subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602

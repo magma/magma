@@ -26,10 +26,11 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
 #include "lte/gateway/c/core/oai/common/TLVEncoder.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
 
 int decode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,

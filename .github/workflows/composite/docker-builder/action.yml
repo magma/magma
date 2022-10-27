@@ -33,7 +33,7 @@ runs:
   using: composite
   steps:
     - name: Check Out Repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
     - name: Set up Docker meta
       id: meta
       uses: docker/metadata-action@v3
@@ -47,7 +47,7 @@ runs:
       id: buildx
       uses: docker/setup-buildx-action@v1
     - name: Login to GHCR
-      uses: docker/login-action@v1
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # pin v2.1.0
       with:
         registry: ${{ inputs.REGISTRY }}
         username: ${{ github.repository_owner }}
@@ -55,7 +55,7 @@ runs:
       if: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
     - name: Build and push Docker image
       id: docker_build
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
       with:
         context: .
         file: ${{ inputs.DOCKERFILE }}
