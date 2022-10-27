@@ -128,7 +128,7 @@ TEST_F(S1APStateConverterTest, S1apStateConversionExpectedEnbCount) {
   enb_map.map = init_state->mutable_enbs();
   // Inserting 1 enb association
   enb_map.insert(enb_association.sctp_assoc_id(), enb_association);
-  // Write the state info to DB and should update num_enbs to match expected eNB
+  // Write the state info to DB and update num_enbs to match expected eNB
   // count on the map
   init_state->set_num_enbs(5);
 

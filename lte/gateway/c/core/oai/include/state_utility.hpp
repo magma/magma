@@ -30,9 +30,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.hpp"
 
-namespace {
 constexpr char IMSI_STR_PREFIX[] = "IMSI";
-}  // namespace
 
 namespace magma {
 namespace lte {
