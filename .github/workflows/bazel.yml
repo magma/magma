@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Bazel Build & Test"
+name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy
   workflow_dispatch:

@@ -37,7 +37,7 @@ collect_services() {
         SERVICES=( "${SERVICE_PATH}" )
     else
         echo "Multiple services specified:"
-        mapfile -t SERVICES < <(bazel query "attr(main, main.py, kind(py_binary, //${SERVICE_PATH}...))")
+        mapfile -t SERVICES < <(bazel query "attr(tags, service, kind(py_binary, //${SERVICE_PATH}...))")
     fi
     if [[ "${#SERVICES[@]}" -eq 0 ]];
     then

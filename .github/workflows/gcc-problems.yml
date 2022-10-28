@@ -19,7 +19,7 @@
 #   - Option: by improving our build system and enabling faster build-all-targets
 #######
 
-name: "GCC Warnings & Errors"
+name: AGW Generate GCC Warnings & Errors
 on:
   push:
     branches:
