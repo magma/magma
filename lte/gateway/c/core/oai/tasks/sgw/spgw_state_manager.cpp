@@ -51,18 +51,10 @@ void SpgwStateManager::create_state() {
 
   state_teid_map.map = new google::protobuf::Map<
       uint32_t, struct s_plus_p_gw_eps_bearer_context_information_s*>();
-  if (!(state_teid_map.map)) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_teid_map ");
-    return;
-  }
   state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_teid_map.bind_callback(spgw_free_s11_bearer_context_information);
 
   state_ue_map.map = new google::protobuf::Map<uint64_t, spgw_ue_context_s*>();
-  if (!(state_ue_map.map)) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
-    return;
-  }
   state_ue_map.set_name(SPGW_STATE_UE_MAP);
   state_ue_map.bind_callback(sgw_free_ue_context);
 
@@ -115,10 +107,6 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
-    if (!ue_context_p) {
-      OAILOG_ERROR(log_task, "Failed to allocate memory for ue_context_p");
-      return RETURNok;
-    }
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

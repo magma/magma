@@ -119,14 +119,6 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
   mme_sgw_tunnel_t* new_tunnel = nullptr;
 
   new_tunnel = new mme_sgw_tunnel_t();
-  if (new_tunnel == nullptr) {
-    // failed to allocate memory, may be ENOMEM error
-    OAILOG_ERROR(LOG_SPGW_APP,
-                 "Failed to create tunnel for remote_teid " TEID_FMT "\n",
-                 remote_teid);
-    return nullptr;
-  }
-
   new_tunnel->remote_teid = remote_teid;
   new_tunnel->local_teid = local_teid;
 
@@ -140,16 +132,6 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
       nullptr;
   new_bearer_context_information =
       new s_plus_p_gw_eps_bearer_context_information_t();
-
-  if (new_bearer_context_information == nullptr) {
-    // Memory allocation failed, may be ENOMEM error
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
-        "Failed to create new bearer context information object for S11 "
-        "remote_teid " TEID_FMT "\n",
-        teid);
-    return nullptr;
-  }
 
   /*
    * Trying to insert the new tunnel into the map.
@@ -227,16 +209,6 @@ sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
   if (!sgw_pdn_connection
            ->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)]) {
     new_eps_bearer_entry = new sgw_eps_bearer_ctxt_t();
-
-    if (new_eps_bearer_entry == nullptr) {
-      /*
-       * Malloc failed, may be ENOMEM error
-       */
-      OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to create EPS bearer entry for EPS bearer id %u \n",
-                   eps_bearer_idP);
-      return nullptr;
-    }
 
     new_eps_bearer_entry->eps_bearer_id = eps_bearer_idP;
     sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)] =

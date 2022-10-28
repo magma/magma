@@ -937,11 +937,6 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
     sgw_eps_bearer_context_information_t::pending_procedures_s*
         pending_procedures) {
   pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
-  if (!s11_proc_create_bearer) {
-    OAILOG_ERROR(LOG_SPGW_APP,
-                 "Failed to allocate memory for structure, pgw_ni_cbr_proc_t");
-    OAILOG_FUNC_OUT(LOG_SPGW_APP);
-  }
   s11_proc_create_bearer->teid = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t)proto.sdf_id();
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -950,41 +945,17 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 
   s11_proc_create_bearer->pending_eps_bearers =
       new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
-  if (!(s11_proc_create_bearer->pending_eps_bearers)) {
-    OAILOG_ERROR(LOG_SPGW_APP,
-                 "Failed to allocate memory for pending_eps_bearers ");
-    delete s11_proc_create_bearer;
-    OAILOG_FUNC_OUT(LOG_SPGW_APP);
-  }
-
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
-  bool failed_to_allocate = false;
   for (auto& eps_bearer_proto : proto.pending_eps_bearers()) {
     sgw_eps_bearer_ctxt_t* eps_bearer = new sgw_eps_bearer_ctxt_t();
-    if (!eps_bearer) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to allocate memory for eps_bearer");
-      failed_to_allocate = true;
-      break;
-    }
 
     proto_to_sgw_eps_bearer(eps_bearer_proto, eps_bearer);
 
     sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_wrapper =
         new sgw_eps_bearer_entry_wrapper_t();
-    if (!sgw_eps_bearer_entry_wrapper) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP,
-          "Failed to allocate memory for sgw_eps_bearer_entry_wrapper");
-      failed_to_allocate = true;
-      break;
-    }
     sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry = eps_bearer;
     LIST_INSERT_HEAD((s11_proc_create_bearer->pending_eps_bearers),
                      sgw_eps_bearer_entry_wrapper, entries);
-  }
-  if (failed_to_allocate) {
-    pgw_free_procedure_create_bearer(
-        (pgw_ni_cbr_proc_t**)&s11_proc_create_bearer);
   }
 }
 
@@ -1043,11 +1014,6 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
         new s_plus_p_gw_eps_bearer_context_information_t();
-    if (!spgw_context_p) {
-      OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to allocate memory for SPGW context \n");
-      OAILOG_FUNC_OUT(LOG_SPGW_APP);
-    }
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
     if ((state_teid_map->insert(
