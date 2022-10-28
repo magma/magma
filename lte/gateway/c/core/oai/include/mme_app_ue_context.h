@@ -47,6 +47,11 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+/*TODO: Temporarily added mme_app_sgs_fsm.hpp under extern to
+ * resolve undefined reference. Move it out of extern after moving
+ * all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
+ */
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus
