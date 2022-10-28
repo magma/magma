@@ -338,7 +338,9 @@ status_code_e amf_handle_registration_request(
   params->m5gsregistrationtype = m5gsregistrationtype;
 
   // Save the UE Security Capability into AMF's UE Context
-  if (params->m5gsregistrationtype != AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+  if (msg->ue_sec_capability.length > 0) {
+    OAILOG_DEBUG(LOG_NAS_AMF,
+                 "Updating received Security Capabilities in context\n");
     memcpy(&(ue_context->amf_context.ue_sec_capability),
            &(msg->ue_sec_capability), sizeof(UESecurityCapabilityMsg));
   }

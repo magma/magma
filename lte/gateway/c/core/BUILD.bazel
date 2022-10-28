@@ -578,6 +578,7 @@ MME_HDRS = [
     "oai/include/spgw_types.hpp",
     "oai/include/state_converter.hpp",
     "oai/include/state_manager.hpp",
+    "oai/include/state_utility.hpp",
     "oai/include/tasks_def.h",
     "oai/include/udp_messages_def.h",
     "oai/include/udp_messages_types.h",
