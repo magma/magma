@@ -7,12 +7,10 @@ import (
 
 	"fbc/cwf/radius/modules"
 
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-
-	"go.uber.org/zap"
-
-	"github.com/mitchellh/mapstructure"
 )
 
 // Config config has only one parameter which is the port to forward the request

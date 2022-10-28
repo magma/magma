@@ -15,17 +15,14 @@ package coafixedip
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
-	"go.uber.org/zap"
-
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 func TestCoaFixed(t *testing.T) {
@@ -56,7 +53,7 @@ func TestCoaFixed(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = waitForRadiusServerToBeReady(secret, port)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 
@@ -79,17 +76,6 @@ func TestCoaFixed(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, res.Code, radius.CodeDisconnectACK)
-}
-
-func waitForRadiusServerToBeReady(secret []byte, port int) error {
-	MaxRetries := 10
-	for r := 0; r < MaxRetries; r++ {
-		_, err := radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), fmt.Sprintf(":%d", port))
-		if err == nil {
-			return nil
-		}
-	}
-	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries", MaxRetries))
 }
 
 func createRadiusRequest() *radius.Request {

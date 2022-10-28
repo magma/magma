@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"layeh.com/radius"
-
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
+	"layeh.com/radius"
 )
 
 type (

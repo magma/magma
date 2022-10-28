@@ -9,12 +9,10 @@ import (
 
 	"fbc/cwf/radius/modules"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-
-	"go.uber.org/zap"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestCoaNas(t *testing.T) {
@@ -46,7 +44,7 @@ func TestCoaNas(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = waitForRadiusServerToBeReady(secret, port)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	require.Nil(t, err)
 	fmt.Println("Server listenning")
 
@@ -101,7 +99,7 @@ func TestCoaNasNoResponse(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = waitForRadiusServerToBeReady(secret, port)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 
@@ -152,7 +150,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = waitForRadiusServerToBeReady(secret, port)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 
@@ -175,17 +173,6 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	require.Equal(t, 1, s)
 	// Assert
 	require.NotNil(t, err)
-}
-
-func waitForRadiusServerToBeReady(secret []byte, port int) error {
-	MaxRetries := 10
-	for r := 0; r < MaxRetries; r++ {
-		_, err := radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), fmt.Sprintf(":%d", port))
-		if err == nil {
-			return nil
-		}
-	}
-	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries", MaxRetries))
 }
 
 func createRadiusRequest(nasIdentifier string) *radius.Request {

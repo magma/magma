@@ -33,9 +33,9 @@ import (
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
 	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
-	"layeh.com/radius"
 
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // FilterNameMap a map from the filter-name to the API functions

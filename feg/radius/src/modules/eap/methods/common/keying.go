@@ -24,6 +24,7 @@ import (
 // MicrosoftVendor bytes depicting Microsoft vendor for RADIUS Vendor-Specific attributes
 var MicrosoftVendor = []byte{0x00, 0x00, 0x01, 0x37}
 
+// MicrosoftVendor specific key types (originally from rfc2584)
 const (
 	MSMPPESendKey_Type = radius.Type(16)
 	MSMPPERecvKey_Type = radius.Type(17)

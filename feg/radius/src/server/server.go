@@ -26,13 +26,10 @@ import (
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 
-	"go.opencensus.io/tag"
-
-	"layeh.com/radius"
-
 	"github.com/patrickmn/go-cache"
-
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 type (

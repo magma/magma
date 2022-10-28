@@ -22,7 +22,6 @@ import (
 	"fbc/cwf/radius/monitoring"
 
 	"go.opencensus.io/tag"
-
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 )

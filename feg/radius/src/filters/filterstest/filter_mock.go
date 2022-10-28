@@ -17,9 +17,8 @@ import (
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
 	"github.com/stretchr/testify/mock"
+	"layeh.com/radius"
 )
 
 // MockFilter ...

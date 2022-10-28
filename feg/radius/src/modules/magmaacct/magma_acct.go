@@ -24,14 +24,13 @@ import (
 	"fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
 
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 	"layeh.com/radius/rfc2866"
 	"layeh.com/radius/rfc2869"
-
-	"github.com/mitchellh/mapstructure"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 // Config configuration structure for proxy module

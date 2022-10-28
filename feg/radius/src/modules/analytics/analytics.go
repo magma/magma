@@ -25,13 +25,12 @@ import (
 	"fbc/cwf/radius/modules/analytics/graphql"
 	"fbc/cwf/radius/session"
 
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 	"layeh.com/radius/rfc2866"
 	"layeh.com/radius/rfc2869"
-
-	"github.com/mitchellh/mapstructure"
-	"go.uber.org/zap"
 )
 
 const InsecureVerify = true

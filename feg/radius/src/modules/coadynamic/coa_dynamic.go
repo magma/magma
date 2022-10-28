@@ -9,11 +9,9 @@ import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/coadynamic/radiustracker"
 
-	"layeh.com/radius"
-
-	"go.uber.org/zap"
-
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 var radiusTracker radiustracker.RadiusTracker

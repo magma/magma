@@ -32,15 +32,14 @@ import (
 	"fbc/cwf/radius/modules/modulestest"
 	"fbc/cwf/radius/session"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2865"
-	"layeh.com/radius/rfc2866"
-	"layeh.com/radius/rfc2869"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
+	"layeh.com/radius/rfc2869"
 )
 
 type FullRADIUSSessiontWithAnalyticsModulesTestParam struct {

@@ -21,11 +21,10 @@ import (
 	"magma/cwf/gateway/services/uesim/servicers"
 	"magma/feg/gateway/services/eap"
 
+	"github.com/stretchr/testify/assert"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
 	"layeh.com/radius/rfc2869"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // Radius packets taken from cwf_2_aps.pcap.

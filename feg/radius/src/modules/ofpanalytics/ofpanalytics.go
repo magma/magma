@@ -25,11 +25,10 @@ import (
 
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2865"
-
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 type (

@@ -24,12 +24,11 @@ import (
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 
-	"layeh.com/radius"
-
 	"github.com/mitchellh/mapstructure"
 	"github.com/patrickmn/go-cache"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // UDPListener listens to Radius udp packets

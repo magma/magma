@@ -19,10 +19,9 @@ import (
 
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // Config configuration structure for proxy module

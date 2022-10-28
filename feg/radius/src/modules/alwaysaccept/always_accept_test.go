@@ -18,11 +18,9 @@ import (
 
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
-	"go.uber.org/zap"
-
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 func TestAccessRequest(t *testing.T) {

@@ -22,12 +22,10 @@ import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/session"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-
-	"go.uber.org/zap"
-
-	"github.com/stretchr/testify/require"
 )
 
 const dummyListener = "dummyListener"

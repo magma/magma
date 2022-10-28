@@ -18,17 +18,14 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/session"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-
-	"go.uber.org/zap"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestLBServeFailsWithNoState(t *testing.T) {
@@ -101,7 +98,8 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	// Spawn a radius server
-	server, port := spawnRadiusServer()
+	server, port, err := spawnRadiusServer()
+	require.Nil(t, err)
 	defer server.Shutdown(context.Background())
 
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
@@ -131,7 +129,7 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 	require.Equal(t, "server_returned_value", string(attr))
 }
 
-func spawnRadiusServer() (server *radius.PacketServer, port int) {
+func spawnRadiusServer() (server *radius.PacketServer, port int, err error) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port = int((rand.Int63() % 0xFFF) << 4)
 	server = &radius.PacketServer{
@@ -150,7 +148,7 @@ func spawnRadiusServer() (server *radius.PacketServer, port int) {
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	time.Sleep(10 * time.Millisecond)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	fmt.Println("Server listening")
 	return
 }
@@ -164,7 +162,8 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	// Spawn a radius server
-	server, port := spawnFailingRadiusServer()
+	server, port, err := spawnFailingRadiusServer()
+	require.Nil(t, err)
 	defer server.Shutdown(context.Background())
 
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
@@ -194,7 +193,7 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 	require.Equal(t, "server_returned_value", string(attr))
 }
 
-func spawnFailingRadiusServer() (server *radius.PacketServer, port int) {
+func spawnFailingRadiusServer() (server *radius.PacketServer, port int, err error) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port = int((rand.Int63() % 0xFFF) << 4)
 	server = &radius.PacketServer{
@@ -213,15 +212,15 @@ func spawnFailingRadiusServer() (server *radius.PacketServer, port int) {
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	time.Sleep(10 * time.Millisecond)
+	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
 	fmt.Println("Server listening")
 	return
 }
 
 func createRadiusRequest() *radius.Request {
 	packet := radius.New(radius.CodeAccessRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute("calling"))
-	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute("called"))
+	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute("called"))
+	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute("calling"))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())
 	req.Packet = packet

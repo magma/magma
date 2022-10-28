@@ -18,17 +18,14 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/session"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2865"
-
-	"go.uber.org/zap"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestProxy(t *testing.T) {
@@ -60,8 +57,7 @@ func TestProxy(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	time.Sleep(10 * time.Millisecond)
-	fmt.Println("Server listenning")
+	fmt.Println("Server listening")
 
 	// Act
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
@@ -86,7 +82,7 @@ func TestProxy(t *testing.T) {
 	attr, ok := res.Attributes.Lookup(rfc2865.State_Type)
 	require.True(t, ok)
 	require.NotNil(t, attr)
-	require.Equal(t, "server_returned_value", string(attr[0]))
+	require.Equal(t, "server_returned_value", string(attr))
 }
 
 func TestInvalidConfig(t *testing.T) {

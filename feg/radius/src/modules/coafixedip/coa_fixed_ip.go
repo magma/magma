@@ -19,13 +19,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/mitchellh/mapstructure"
-
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
+	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // Config config has only one parameter which is the ip to forward the request

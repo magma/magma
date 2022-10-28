@@ -25,12 +25,11 @@ import (
 	aaa "fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2865"
-
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // EapAkaMagmaMethod Implementation ofthe EAP-AKA method impl with Magma binding

@@ -18,9 +18,8 @@ import (
 
 	"fbc/cwf/radius/modules"
 
-	"layeh.com/radius"
-
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // Init module interface implementation

@@ -21,11 +21,10 @@ import (
 
 	"fbc/cwf/radius/modules/eap/packet"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2865"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 type TestEapMethodState struct {

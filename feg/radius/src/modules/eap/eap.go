@@ -24,11 +24,10 @@ import (
 	"fbc/cwf/radius/modules/eap/methods/akatataipx"
 	"fbc/cwf/radius/modules/eap/packet"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2869"
-
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 )
 
 // Method A definition for an EAP method with its config

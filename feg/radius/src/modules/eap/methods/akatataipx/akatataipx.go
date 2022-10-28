@@ -12,11 +12,10 @@ import (
 	"fbc/cwf/radius/modules/eap/methods/common"
 	eap "fbc/cwf/radius/modules/eap/packet"
 
-	"layeh.com/radius"
-	"layeh.com/radius/rfc2865"
-
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // EapAkaTataIpxMethod Implementation ofthe EAP-AKA method impl with

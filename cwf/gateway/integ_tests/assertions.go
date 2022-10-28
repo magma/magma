@@ -21,10 +21,9 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 
+	"github.com/stretchr/testify/assert"
 	"layeh.com/radius"
 	"layeh.com/radius/rfc2869"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // Trigger a UE Authentication with the IMSI. Assert that the authentication

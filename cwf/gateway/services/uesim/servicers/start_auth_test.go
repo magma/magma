@@ -17,9 +17,8 @@ import (
 	"reflect"
 	"testing"
 
-	"layeh.com/radius/rfc2869"
-
 	"github.com/stretchr/testify/assert"
+	"layeh.com/radius/rfc2869"
 )
 
 const (
