@@ -69,6 +69,6 @@ void sgw_free_s11_bearer_context_information(void** ptr) {
     sgw_free_pdn_connection(&sgw_eps_context->pdn_connection);
     delete_pending_procedures(sgw_eps_context);
   }
-  free_wrapper((void**)ptr);
+  free_wrapper(reinterpret_cast<void**>(ptr));
   return;
 }
