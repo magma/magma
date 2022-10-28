@@ -31,7 +31,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_utility.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";

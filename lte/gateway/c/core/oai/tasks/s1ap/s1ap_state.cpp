@@ -232,10 +232,10 @@ void remove_ues_without_imsi_from_ue_id_coll() {
       }
     }
     // remove all the mme_ue_s1ap_ids
+    ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
     for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
       ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
-      ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
       ueid_imsi_map.remove(mme_ue_id_no_imsi_list[i]);
       enb_association_p.set_nb_ue_associated(
           (enb_association_p.nb_ue_associated() - 1));
