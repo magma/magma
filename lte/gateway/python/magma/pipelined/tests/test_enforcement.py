@@ -130,6 +130,7 @@ class EnforcementTableTest(unittest.TestCase):
                 'enable_nat': True,
                 'ovs_gtp_port_number': 10,
                 'setup_type': 'LTE',
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=None,
