@@ -325,8 +325,9 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
   } else if (type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) {
     decoded_rc = DecodeImsiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.imsi, buffer + decoded, ielen);
+  } else if (type_of_identity == M5GSMobileIdentityMsg_NO_IDENTITY) {
+    decoded_rc = 1;
   }
-
   if (decoded_rc < 0) {
     OAILOG_ERROR(LOG_NAS5G, "Decode Error");
     return decoded_rc;
