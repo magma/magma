@@ -227,7 +227,7 @@ jobs:
       success: ${{ steps.setoutput.outputs.success }}
     steps:
       - id: setoutput
-        run: echo "::set-output name=success::true"
+        run: echo "success=true" >> $GITHUB_OUTPUT
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
