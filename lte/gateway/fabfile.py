@@ -426,7 +426,6 @@ def integ_test(
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_build_magma)
-    execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
     # Set up the trfserver: use the provided trfserver if given, else default to the
@@ -667,42 +666,6 @@ def get_test_logs(
     local('rm -rf /tmp/build_logs')
 
 
-def load_test(gateway_host=None, destroy_vm='True'):
-    """
-    Run the load performance tests. This defaults to running on local vagrant
-    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
-    passing "address:port" as arguments.
-
-    Args:
-        gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `magma` vagrant box.
-        destroy_vm: If the vagrant VM should be destroyed and setup
-        before running load tests.
-    """
-    # Set up the gateway: use the provided gateway if given, else default to the
-    # vagrant machine
-    if gateway_host:
-        ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
-        gateway_ip = gateway_host.split('@')[1].split(':')[0]
-    else:
-        gateway_host = vagrant_setup('magma', strtobool(destroy_vm))
-        gateway_ip = '192.168.60.142'
-
-    execute(_build_magma)
-    execute(_start_gateway)
-
-    # Sleep for 10 secs to let magma services finish starting
-    sleep(10)
-
-    execute(_run_load_tests, gateway_ip)
-
-    if not gateway_host:
-        execute(setup_env_vagrant)
-    else:
-        env.hosts = [gateway_host]
-
-
 def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='False'):
     """
     Build Magma AGW and starts magma
@@ -792,13 +755,6 @@ def _build_magma():
         run('make')
 
 
-def _run_sudo_python_unit_tests():
-    """ Run the magma unit tests """
-    with cd(AGW_ROOT):
-        # Run all unit tests that are not run as pre-commit checks in CI
-        run('make test_sudo_python')
-
-
 def _start_gateway():
     """ Starts the gateway """
     run('sudo service magma@magmad start')
@@ -873,41 +829,6 @@ def _run_integ_tests(gateway_ip='192.168.60.142', test_mode='integ_test', tests=
         f' export GATEWAY_IP={gateway_ip};'
         f' make {test_mode} enable-flaky-retry=true {tests};'
         f' make evaluate_result\'',
-    )
-
-
-def _run_load_tests(gateway_ip='192.168.60.142'):
-    """
-    Run the load tests on given gateway IP.
-
-    ssh switch reference:
-    -i: identity file
-    -tt: (really) force a pseudo tty -- The tests can't initialize logging
-        without this
-    -p: the port to connect to
-    -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
-     never prompt to confirm the host fingerprints
-    """
-
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
-    key = env.key_filename
-
-    # We don't have a proper shell, so the `magtivate` alias isn't
-    # available. We instead directly source the activate file
-    local(
-        f'ssh'
-        f' -i {key}'
-        f' -o UserKnownHostsFile=/dev/null'
-        f' -o StrictHostKeyChecking=no'
-        f' -tt {host}'
-        f' -p {port}'
-        f' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests;'
-        f' sudo ethtool --offload eth1 rx off tx off;'
-        f' sudo ethtool --offload eth2 rx off tx off;'
-        f' source ~/build/python/bin/activate;'
-        f' export GATEWAY_IP={gateway_ip};'
-        f' make load_test\'',
     )
 
 
