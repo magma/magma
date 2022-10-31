@@ -18,7 +18,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_VERSION=3.2.0
 ITERATION=1
 PKGVERSION=${GIT_VERSION}.1
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libtacopie
 
 function buildrequires() {

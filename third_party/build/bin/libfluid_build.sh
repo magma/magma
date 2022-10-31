@@ -23,7 +23,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_VERSION=0.1.0
 ITERATION=1
 PKGVERSION=${GIT_VERSION}.7
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libfluid
 
 function buildrequires() {

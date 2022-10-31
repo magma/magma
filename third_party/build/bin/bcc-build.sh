@@ -19,7 +19,6 @@ PKGVERSION="0.$BCC_VER"
 ITERATION=1
 PKGNAME=bcc-tools
 WORK_DIR=/tmp/build-"$PKGNAME"
-VERSION="$PKGVERSION-$ITERATION"
 
 function buildrequires() {
     echo bison build-essential cmake flex git libedit-dev \

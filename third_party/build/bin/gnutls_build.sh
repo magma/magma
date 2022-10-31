@@ -21,7 +21,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 PKGVERSION=3.1.23
 ITERATION=1
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=oai-gnutls
 
 function buildafter() {

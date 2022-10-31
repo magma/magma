@@ -21,7 +21,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 ITERATION=0
 PKGVERSION=7.1.0
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=liblfds710
 
 if_subcommand_exec

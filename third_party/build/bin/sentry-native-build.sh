@@ -18,7 +18,6 @@ PKGVERSION=0.4.12
 ITERATION=1
 PKGNAME=sentry-native
 WORK_DIR=/tmp/build-"$PKGNAME"
-VERSION="$PKGVERSION-$ITERATION"
 
 function buildrequires() {
     if [ "$OS_RELEASE" == 'centos8' ]; then

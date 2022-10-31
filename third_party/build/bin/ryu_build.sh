@@ -20,7 +20,6 @@ source "$SCRIPT_DIR"/../lib/util.sh
 PKGVERSION=4.34
 ITERATION=1
 # shellcheck disable=SC2034 # variable is used in third_party/build/lib/util.sh
-VERSION="$PKGVERSION-$ITERATION"
 PKGNAME=python3-ryu
 REPO="https://github.com/faucetsdn/ryu.git"
 PATCHES_DIR="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files/patches"

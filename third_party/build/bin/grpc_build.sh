@@ -24,7 +24,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 GIT_VERSION=1.15.0
 ITERATION=3
-VERSION="${GIT_VERSION}"-"${ITERATION}"
 PKGNAME=grpc-dev
 
 function buildrequires() {

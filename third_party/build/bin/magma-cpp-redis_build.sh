@@ -22,7 +22,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_VERSION=4.3.1
 ITERATION=2
 PKGVERSION=${GIT_VERSION}.1
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-cpp-redis
 
 function buildrequires() {

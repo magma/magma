@@ -21,7 +21,6 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 PKGVERSION=2.5
 ITERATION=1
-VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=oai-nettle
 WORK_DIR=/tmp/build-${PKGNAME}
 
