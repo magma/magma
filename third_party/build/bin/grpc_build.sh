@@ -130,6 +130,10 @@ patch src/core/lib/iomgr/ev_epollex_linux.cc <<'EOF'
      gpr_log(GPR_INFO,
 EOF
 
+# Disable flag that treats warnings as errors
+# see https://github.com/grpc/grpc/issues/17287#issuecomment-444876748
+sed -i 's/-Werror/ /g' Makefile
+
 # IMPORTANT: update prefix in Makefile
 # change default prefix from /usr/local to /tmp/build-grpc-dev/install/usr/local
 sed -i 's/.usr.local$/\/tmp\/build-grpc-dev\/install\/usr\/local/' Makefile
