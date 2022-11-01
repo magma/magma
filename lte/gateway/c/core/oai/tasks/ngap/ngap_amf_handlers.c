@@ -1110,6 +1110,8 @@ status_code_e ngap_amf_generate_ue_context_release_command(
   ie->id = Ngap_ProtocolIE_ID_id_Cause;
   ie->criticality = Ngap_Criticality_ignore;
   ie->value.present = Ngap_UEContextReleaseCommand_IEs__value_PR_Cause;
+  OAILOG_INFO_UE(LOG_AMF_APP, imsi64, "UE Context Release Cause = (%d)\n",
+                 cause);
   switch (cause) {
     case NGAP_NAS_DEREGISTER:
       cause_type = Ngap_Cause_PR_nas;
@@ -1185,6 +1187,8 @@ status_code_e ngap_handle_ue_context_release_command(
      * to send UE context release command to gNB. Free UE context locally.
      */
 
+    OAILOG_DEBUG_UE(LOG_AMF_APP, imsi64, "UE Context Release Cause = (%d)\n",
+                    ue_context_release_command_pP->cause);
     if (ue_context_release_command_pP->cause == NGAP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == NGAP_SCTP_SHUTDOWN_OR_RESET ||
         ue_context_release_command_pP->cause ==
