@@ -103,7 +103,7 @@ jobs:
           github.repository_owner == 'magma' &&
           github.ref_name == 'master'
         with:
-          name: Bazel test C/C++ coverage profile
+          name: Bazel test C and C++ coverage profile
           path: Bazel_test_cc_coverage_profile
       - name: Build space left after run
         shell: bash
