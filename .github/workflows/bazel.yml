@@ -123,8 +123,8 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             bazel build \
               ${{ matrix.bazel-target }} \
-              ${{ matrix.bazel-config }} \
               --config=mme_unit_test \
+              ${{ matrix.bazel-config }} \
               --profile=Bazel_build_all_profile
 
             printf '\r%s\r' '###############################' 1>&2
