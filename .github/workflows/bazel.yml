@@ -291,9 +291,40 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
+            bazel run //lte/gateway/release:release_build \
               --config=production \
               --profile=Bazel_build_package_profile
+            mkdir packages
+            mv /tmp/packages/*.deb packages
+      - name: Publish magma and sctpd
+        if: github.event_name == 'push' && github.repository_owner == 'magma'
+        env:
+          ARTIFACTORY_URL: "https://artifactory.magmacore.org/artifactory/debian-test/pool"
+          DEBIAN_META_INFO: ";deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64"
+        working-directory: packages
+        run: |
+          for package in *.deb
+          do
+            echo "Pushing package ${package} to JFROG artifactory: ${ARTIFACTORY_URL}"
+            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "${ARTIFACTORY_URL}/focal-ci/${package}${DEBIAN_META_INFO}" -T $package)
+            echo "$HTTP_RESPONSE"
+            # extract the body and download uri
+            HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+            URI=$(echo $HTTP_BODY | jq -r '.uri')
+            if [[ "$URI" == "null" ]]; then
+              PUBLISH_ERROR="true"
+            fi
+            # extract and check status
+            HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+            if [[ "$HTTP_STATUS" != "2"* ]]; then
+              PUBLISH_ERROR="true"
+            fi
+          done
+          # evaluate
+          if [[ "$PUBLISH_ERROR" == "true" ]]; then
+            echo "There were errors during publishing. See logging above."
+            exit 1
+          fi
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
