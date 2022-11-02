@@ -68,11 +68,7 @@ def main():
             )
             artifacts = {"packages": [], "valid": False}
         if build == "AGW":
-            # TODO: Remove this backward compatibility code
-            for package in artifacts["packages"]:
-                if "magma_" in package:
-                    artifacts["artifacts"] = {"downloadUri": package}
-                    break
+            artifacts = _set_download_uri(artifacts)
         build_info[f"{build.lower()}"] = artifacts
 
     # Prepare workload
@@ -95,6 +91,15 @@ def main():
         db.child("workers").child(worker).child("workloads").push(
             workload, user["idToken"],
         )
+
+
+def _set_download_uri(artifacts: Dict) -> Dict:
+    # TODO: Remove this backward compatibility code
+    for package in artifacts["packages"]:
+        if "magma_" in package:
+            artifacts["artifacts"] = {"downloadUri": package}
+            break
+    return artifacts
 
 
 if __name__ == "__main__":
