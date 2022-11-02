@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
+#include <systemd/sd-daemon.h>
 
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
@@ -168,6 +169,8 @@ int main(int argc, char* argv[]) {
   }
   CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
+
+  sd_notify(0, "READY=1");
 
 #if EMBEDDED_SGW
   /*

@@ -52,7 +52,7 @@ RUN echo "Install general purpose packages" && \
         gdb \
         lcov \
         libclang-11-dev \
-        lldb \
+        lldb-11 \
         llvm-11-dev \
         make \
         ninja-build \
@@ -60,6 +60,7 @@ RUN echo "Install general purpose packages" && \
         perl \
         pkg-config \
         python3-pip \
+        python3-venv \
         redis-server \
         ruby \
         rubygems \
@@ -120,18 +121,18 @@ RUN echo "Install 3rd party dependencies" && \
         grpc-dev
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
-RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd
+RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
+    rm --recursive --interactive=never /root/.cache/go-build
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
-    cd grpc && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
+    mkdir -p grpc/cmake/build && \
+    cd grpc/cmake/build && \
     cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON ../.. && \
     make -j"$(nproc)" && \
     make install && \
-    cd / && \
-    rm -rf grpc
+    cd ../../.. && \
+    rm --recursive --interactive=never grpc
 
 ##### libprotobuf-mutator is used for randomized proto unit tests / property tests
 RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
@@ -140,8 +141,8 @@ RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
     cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && \
     ninja && \
     ninja install && \
-    cd / && \
-    rm -rf libprotobuf-mutator
+    cd ../.. && \
+    rm --recursive --interactive=never libprotobuf-mutator
 
 ##### Prometheus CPP
 RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
@@ -153,7 +154,8 @@ RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     cmake .. && \
     make -j"$(nproc)" && \
     make install && \
-    rm -rf /prometheus-cpp
+    cd ../.. && \
+    rm --recursive --interactive=never prometheus-cpp
 
 # install magma dependencies
 RUN apt-get install -y --no-install-recommends \
@@ -172,8 +174,8 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
     make -j"$(nproc)" && \
     make install && \
     ldconfig && \
-    cd / && \
-    rm -rf libgtpnl
+    cd .. && \
+    rm --recursive --interactive=never libgtpnl
 
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
@@ -196,84 +198,14 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
     cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
     make && \
     make install && \
-    cd / && \
-    rm -rf include-what-you-use && \
-    rm -rf build_liwyu
+    cd .. && \
+    rm --recursive --interactive=never include-what-you-use build_iwyu
 
 ##### Go language server support for vscode
-RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3
+RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3 && \
+     rm --recursive --interactive=never /root/.cache/go-build
 
 #### Update shared library configuration
 RUN ldconfig -v
-
-
-##### Install Python requirements
-
-### create virtualenv
-ARG PYTHON_VENV=/home/vscode/build/python
-ENV PYTHON_VENV_EXECUTABLE=${PYTHON_VENV}/bin/python${PYTHON_VERSION}
-# PYTHON_VENV must by in sync with "python.defaultInterpreterPath", "python.analysis.extraPaths" and magtivate path in "postCreateCommand" in .devcontainer/devcontainer.json
-
-RUN virtualenv --system-site-packages --python=/usr/bin/python${PYTHON_VERSION} ${PYTHON_VENV}
-RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-cache-dir "setuptools==49.6.0"
-
-### install eggs (lte, orc8r)
-COPY /lte/gateway/python/ ${MAGMA_ROOT}/lte/gateway/python/
-WORKDIR ${MAGMA_ROOT}/lte/gateway/python/
-RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
-    rm -rf lte.egg-info
-
-COPY /orc8r/gateway/python/ ${MAGMA_ROOT}/orc8r/gateway/python/
-WORKDIR ${MAGMA_ROOT}/orc8r/gateway/python/
-RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --quiet --upgrade --no-build-isolation --no-cache-dir --verbose --editable .[dev] && \
-    rm -rf orc8r.egg-info
-
-### install formatter autopep8
-RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir autopep8
-
-#### protos
-ARG GEN_DIR=lib/python${PYTHON_VERSION}/gen
-
-COPY /protos/ ${MAGMA_ROOT}/protos/
-COPY /lte/protos/ ${MAGMA_ROOT}/lte/protos/
-COPY /orc8r/protos/ ${MAGMA_ROOT}/orc8r/protos/
-COPY /feg/protos/ ${MAGMA_ROOT}/feg/protos/
-COPY /dp/protos/ ${MAGMA_ROOT}/dp/protos/
-WORKDIR ${MAGMA_ROOT}
-RUN ${PYTHON_VENV_EXECUTABLE} -m pip install --no-cache-dir "mypy-protobuf==2.4" && \
-    mkdir ${PYTHON_VENV}/${GEN_DIR} && \
-    for PROTO_SRC in orc8r lte feg dp; \
-    do \
-    ${PYTHON_VENV_EXECUTABLE} protos/gen_protos.py ${PROTO_SRC}/protos ${MAGMA_ROOT},orc8r/protos/prometheus ${MAGMA_ROOT} ${PYTHON_VENV}/${GEN_DIR} && \
-    ${PYTHON_VENV_EXECUTABLE} protos/gen_prometheus_proto.py ${MAGMA_ROOT} ${PYTHON_VENV}/${GEN_DIR}; \
-    done && \
-    echo "${PYTHON_VENV}/${GEN_DIR}" > ${PYTHON_VENV}/lib/python${PYTHON_VERSION}/site-packages/magma_gen.pth
-
-### swagger
-ENV SWAGGER_CODEGEN_DIR=/var/tmp/codegen
-ENV SWAGGER_CODEGEN_JAR=${SWAGGER_CODEGEN_DIR}/swagger-codegen-cli.jar
-ARG CODEGEN_VERSION=2.2.3
-
-RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
-
-# Copy swagger specs over to the build directory,
-# so that eventd can access them at runtime
-COPY lte/swagger/*.yml ${PYTHON_VENV}/${GEN_DIR}/lte/swagger/specs/
-COPY orc8r/swagger/*.yml ${PYTHON_VENV}/${GEN_DIR}/orc8r/swagger/specs/
-RUN for SWAGGER_SRC in lte orc8r; \
-    do \
-    # Generate the files
-    ls ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/specs/*.yml \
-    | xargs -t -I% /usr/bin/java -jar ${SWAGGER_CODEGEN_JAR} generate \
-    -i % \
-    -o ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger \
-    -l python \
-    -D models && \
-    # Flatten and clean up directory
-    mv ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client/* ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/ && \
-    rmdir ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/swagger_client && \
-    rm -r ${PYTHON_VENV}/${GEN_DIR}/${SWAGGER_SRC}/swagger/test; \
-    done
 
 WORKDIR $MAGMA_ROOT

@@ -11,7 +11,10 @@ define setup_rules
 endef
 _ := $(foreach python_src, $(PYTHON_SRCS), $(eval $(call setup_rules,$(python_src))))
 
-buildenv: setupenv protos swagger $(BUILD_LIST) py_patches
+snowflake:
+	sudo env PATH=${PYTHON_BUILD}/bin:${PATH} snowflake --make-snowflake
+
+buildenv: setupenv protos swagger $(BUILD_LIST) py_patches snowflake
 $(BUILD_LIST): %_build:
 	make -C $* install_egg
 
