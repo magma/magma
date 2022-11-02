@@ -596,11 +596,6 @@ status_code_e create_temporary_dedicated_bearer_context(
   OAILOG_FUNC_IN(module);
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = new sgw_eps_bearer_ctxt_t();
 
-  if (!eps_bearer_ctxt_p) {
-    OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
-                    "Failed to allocate memory for eps_bearer_ctxt_p\n");
-    OAILOG_FUNC_RETURN(module, RETURNerror);
-  }
   // Copy PAA from default bearer cntxt
   sgw_eps_bearer_ctxt_t* default_eps_bearer_entry_p =
       sgw_cm_get_eps_bearer_entry(&sgw_ctxt_p->pdn_connection,
@@ -658,11 +653,6 @@ status_code_e create_temporary_dedicated_bearer_context(
   }
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
       new sgw_eps_bearer_entry_wrapper_s();
-  if (!sgw_eps_bearer_entry_p) {
-    OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
-                    "Failed to allocate memory for sgw_eps_bearer_entry_p\n");
-    OAILOG_FUNC_RETURN(module, RETURNerror);
-  }
   sgw_eps_bearer_entry_p->sgw_eps_bearer_entry = eps_bearer_ctxt_p;
   LIST_INSERT_HEAD((pgw_ni_cbr_proc->pending_eps_bearers),
                    sgw_eps_bearer_entry_p, entries);

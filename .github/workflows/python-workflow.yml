@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Python Format Check
+name: AGW Build & Format Python
 on:
   push:
     branches:

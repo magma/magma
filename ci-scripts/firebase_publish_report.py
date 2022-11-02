@@ -57,9 +57,9 @@ def url_to_html_redirect(run_id: str, url: Optional[str]):
         report_url = f'https://github.com/magma/magma/actions/runs/{run_id}'
 
     return (
-        f'<script>',
-        f'  window.location.href = "{report_url}";',
-        f'</script>',
+        f'<script>'
+        f'  window.location.href = "{report_url}";'
+        f'</script>'
     )
 
 

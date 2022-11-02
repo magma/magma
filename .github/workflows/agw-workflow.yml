@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: agw-workflow
+name: AGW Lint & Test
 
 on:
   push:
@@ -28,10 +28,6 @@ concurrency:
 
 env:
   DEVCONTAINER_IMAGE: "ghcr.io/magma/magma/devcontainer:latest"
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  # see GH14041
-  CACHE_KEY: bazel-base-image-sha-c4de1e5
-  REMOTE_DOWNLOAD_OPTIMIZATION: true
 
 jobs:
   path_filter:

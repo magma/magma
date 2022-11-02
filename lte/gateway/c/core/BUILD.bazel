@@ -11,6 +11,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//bazel:asn1c.bzl", "cc_asn1_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 
@@ -578,6 +579,7 @@ MME_HDRS = [
     "oai/include/spgw_types.hpp",
     "oai/include/state_converter.hpp",
     "oai/include/state_manager.hpp",
+    "oai/include/state_utility.hpp",
     "oai/include/tasks_def.h",
     "oai/include/udp_messages_def.h",
     "oai/include/udp_messages_types.h",
@@ -1186,6 +1188,7 @@ cc_binary(
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=1"],
     linkstatic = True,
+    tags = TAG_SERVICE,
     visibility = ["//lte/gateway/release:__pkg__"],
     deps = [":lib_agw_of"],
 )
@@ -1195,6 +1198,7 @@ cc_binary(
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=0"],
     linkstatic = True,
+    tags = TAG_SERVICE,
     deps = [":lib_mme_oai"],
 )
 

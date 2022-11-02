@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test
+name: AGW Build & Test LTE Integration With Make Dev Build
 
 on:
   workflow_dispatch: null

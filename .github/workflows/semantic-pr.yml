@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Check for semantic PR title"
+name: PR Check Title Or Commit Message
 
 on:
   # Semantic PR module only works with pull_request_target
