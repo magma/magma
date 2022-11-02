@@ -60,7 +60,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -271,11 +270,11 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
 
   teid_t s1_u_sgw_fteid = spgw_get_new_s1u_teid(spgw_state);
 
-  sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* bearer_ctxt_p = nullptr;
   bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
       &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
       bearer_req_p->lbi);
-  if (bearer_ctxt_p == NULL) {
+  if (bearer_ctxt_p == nullptr) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Failed to retrieve bearer ctxt:%u\n",
                     bearer_req_p->lbi);
     *failed_cause = REQUEST_REJECTED;
@@ -595,15 +594,8 @@ status_code_e create_temporary_dedicated_bearer_context(
     struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
     uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p =
-      reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
-          calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = new sgw_eps_bearer_ctxt_t();
 
-  if (!eps_bearer_ctxt_p) {
-    OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
-                    "Failed to allocate memory for eps_bearer_ctxt_p\n");
-    OAILOG_FUNC_RETURN(module, RETURNerror);
-  }
   // Copy PAA from default bearer cntxt
   sgw_eps_bearer_ctxt_t* default_eps_bearer_entry_p =
       sgw_cm_get_eps_bearer_entry(&sgw_ctxt_p->pdn_connection,
@@ -660,13 +652,7 @@ status_code_e create_temporary_dedicated_bearer_context(
     }
   }
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p =
-      reinterpret_cast<sgw_eps_bearer_entry_wrapper_s*>(
-          calloc(1, sizeof(*sgw_eps_bearer_entry_p)));
-  if (!sgw_eps_bearer_entry_p) {
-    OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
-                    "Failed to allocate memory for sgw_eps_bearer_entry_p\n");
-    OAILOG_FUNC_RETURN(module, RETURNerror);
-  }
+      new sgw_eps_bearer_entry_wrapper_s();
   sgw_eps_bearer_entry_p->sgw_eps_bearer_entry = eps_bearer_ctxt_p;
   LIST_INSERT_HEAD((pgw_ni_cbr_proc->pending_eps_bearers),
                    sgw_eps_bearer_entry_p, entries);
@@ -679,7 +665,7 @@ static void delete_temporary_dedicated_bearer_context(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
-  struct sgw_eps_bearer_entry_wrapper_s* spgw_eps_bearer_entry_p = NULL;
+  struct sgw_eps_bearer_entry_wrapper_s* spgw_eps_bearer_entry_p = nullptr;
   pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
       &spgw_context_p->sgw_eps_bearer_context_information);
   if (!pgw_ni_cbr_proc) {
@@ -700,9 +686,10 @@ static void delete_temporary_dedicated_bearer_context(
       // Remove the temporary spgw entry
       LIST_REMOVE(spgw_eps_bearer_entry_p, entries);
       if (spgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
-        free_wrapper((void**)&spgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
+        free_cpp_wrapper(reinterpret_cast<void**>(
+            &spgw_eps_bearer_entry_p->sgw_eps_bearer_entry));
       }
-      free_wrapper((void**)&spgw_eps_bearer_entry_p);
+      free_cpp_wrapper(reinterpret_cast<void**>(&spgw_eps_bearer_entry_p));
       break;
     }
     spgw_eps_bearer_entry_p = LIST_NEXT(spgw_eps_bearer_entry_p, entries);

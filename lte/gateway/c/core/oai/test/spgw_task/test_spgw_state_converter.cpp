@@ -76,8 +76,8 @@ TEST(SPGWStateConverterTest, TestUEContextConversion) {
     auto want_teid = LIST_FIRST(&initial_ctx->sgw_s11_teid_list)->sgw_s11_teid;
 
     oai::SpgwUeContext proto_ctx;
-    spgw_ue_context_t* final_ctx =
-        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    spgw_ue_context_t* final_ctx = new spgw_ue_context_t();
+    EXPECT_NE(final_ctx, nullptr);
     SpgwStateConverter::ue_to_proto(initial_ctx, &proto_ctx);
     SpgwStateConverter::proto_to_ue(proto_ctx, final_ctx);
 
@@ -119,6 +119,7 @@ TEST(SPGWStateConverterTest, TestUEContextConversion) {
     EXPECT_TRUE(!memcmp(&want_sgw.last_known_cell_Id,
                         &got_sgw.last_known_cell_Id,
                         sizeof(want_sgw.last_known_cell_Id)));
+    sgw_free_ue_context(reinterpret_cast<void**>(&final_ctx));
   }
 }
 }  // namespace lte

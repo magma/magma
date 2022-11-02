@@ -48,8 +48,8 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
-hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
-                                                        imsi64_t imsi64);
+magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
+                                                               imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection, const ebi_t eps_bearer_idP);
 sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
