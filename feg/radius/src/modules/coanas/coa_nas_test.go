@@ -19,6 +19,7 @@ func TestCoaNas(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
@@ -37,19 +38,18 @@ func TestCoaNas(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	require.Nil(t, err)
-	fmt.Println("Server listenning")
+	fmt.Println("Server listening")
 
 	// Act
-	require.Nil(t, err)
 	res, err := Handle(
 		mCtx,
 		&modules.RequestContext{
@@ -57,7 +57,7 @@ func TestCoaNas(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest("127.0.0.1"),
+		createRadiusRequest("127.0.0.1", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			require.Fail(t, "Should never be called (coa nas module should not call next()")
 			return nil, nil
@@ -73,11 +73,11 @@ func TestCoaNas(t *testing.T) {
 func TestCoaNasNoResponse(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
-	port := 3799
+	addr := fmt.Sprintf(":4799")
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": fmt.Sprint(port),
+		"port": "3799",
 	})
 	require.Nil(t, err)
 
@@ -92,14 +92,14 @@ func TestCoaNasNoResponse(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 
@@ -111,7 +111,7 @@ func TestCoaNasNoResponse(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest("127.0.0.1"),
+		createRadiusRequest("127.0.0.1", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			return nil, errors.New("error")
 		},
@@ -125,6 +125,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
@@ -143,14 +144,14 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 
@@ -163,7 +164,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest(""),
+		createRadiusRequest("", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			s = 1
 			return nil, errors.New("error")
@@ -175,8 +176,8 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-func createRadiusRequest(nasIdentifier string) *radius.Request {
-	packet := radius.New(radius.CodeDisconnectRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
+func createRadiusRequest(nasIdentifier string, secret []byte) *radius.Request {
+	packet := radius.New(radius.CodeDisconnectRequest, secret)
 	rfc2865.NASIPAddress_Add(packet, net.ParseIP(nasIdentifier))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())

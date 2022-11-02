@@ -29,6 +29,7 @@ func TestCoaFixed(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, _ := zap.NewDevelopment()
 	mCtx, err := Init(logger, modules.ModuleConfig{
 		"target": fmt.Sprintf("127.0.0.1:%d", port),
@@ -46,14 +47,14 @@ func TestCoaFixed(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	require.Nil(t, err)
 	fmt.Println("Server listening")
 

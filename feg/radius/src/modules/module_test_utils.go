@@ -17,17 +17,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"layeh.com/radius"
 )
 
-func WaitForRadiusServerToBeReady(secret []byte, port string) (err error) {
+func WaitForRadiusServerToBeReady(secret []byte, addr string) (err error) {
+	// stop printing custom server messages until the server is up
+	temp := os.Stdout
+	os.Stdout = nil
+	defer func() {
+		os.Stdout = temp
+	}()
 	MaxRetries := 10
 	for r := 0; r < MaxRetries; r++ {
-		_, err = radius.Exchange(context.Background(), radius.New(radius.CodeStatusServer, secret), port)
+		_, err = radius.Exchange(
+			context.Background(),
+			radius.New(radius.CodeStatusServer, secret),
+			addr,
+		)
 		if err == nil {
 			return nil
 		}
 	}
-	return errors.New(fmt.Sprintf("radius server failed to be ready after %d retries: %v", MaxRetries, err))
+	return errors.New(fmt.Sprintf(
+		"radius server failed to be ready after %d retries: %v",
+		MaxRetries, err,
+	))
 }

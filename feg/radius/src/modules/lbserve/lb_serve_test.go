@@ -132,6 +132,7 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 func spawnRadiusServer() (server *radius.PacketServer, port int, err error) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port = int((rand.Int63() % 0xFFF) << 4)
+	addr := fmt.Sprintf(":%d", port)
 	server = &radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
@@ -142,13 +143,13 @@ func spawnRadiusServer() (server *radius.PacketServer, port int, err error) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	fmt.Println("Server listening")
 	return
 }
@@ -196,6 +197,7 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 func spawnFailingRadiusServer() (server *radius.PacketServer, port int, err error) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	port = int((rand.Int63() % 0xFFF) << 4)
+	addr := fmt.Sprintf(":%d", port)
 	server = &radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
@@ -206,13 +208,13 @@ func spawnFailingRadiusServer() (server *radius.PacketServer, port int, err erro
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", port),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = server.ListenAndServe()
 	}()
-	err = modules.WaitForRadiusServerToBeReady(secret, fmt.Sprint(port))
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
 	fmt.Println("Server listening")
 	return
 }
