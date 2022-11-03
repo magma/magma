@@ -54,10 +54,10 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"

@@ -27,15 +27,14 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file mme_config.h
+/*! \file mme_config.hpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_MME_CONFIG_SEEN
-#define FILE_MME_CONFIG_SEEN
+#pragma once
 
 #include <pthread.h>
 #include <stdint.h>
@@ -482,5 +481,3 @@ void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
   pthread_rwlock_wrlock(&(mMEcONFIG)->rw_lock)
 #define mme_config_unlock(mMEcONFIG) \
   pthread_rwlock_unlock(&(mMEcONFIG)->rw_lock)
-
-#endif /* FILE_MME_CONFIG_SEEN */

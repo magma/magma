@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5

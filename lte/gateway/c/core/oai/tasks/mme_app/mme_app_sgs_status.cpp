@@ -39,7 +39,7 @@ extern "C" {
 
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.018.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"

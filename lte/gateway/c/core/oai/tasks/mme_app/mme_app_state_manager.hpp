@@ -18,7 +18,7 @@
 #pragma once
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 }
 
 #include "lte/gateway/c/core/oai/include/state_manager.hpp"

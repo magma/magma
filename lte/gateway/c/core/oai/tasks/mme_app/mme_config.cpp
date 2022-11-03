@@ -57,7 +57,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/intertask_interface_conf.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
@@ -67,7 +67,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"

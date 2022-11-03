@@ -46,7 +46,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 
 struct apn_configuration_s* mme_app_get_apn_config(

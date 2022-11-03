@@ -22,7 +22,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"

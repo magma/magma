@@ -23,7 +23,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
 #include <memory>
@@ -31,6 +30,8 @@ extern "C" {
 #include <grpcpp/grpcpp.h>
 
 #include <lte/protos/sctpd.grpc.pb.h>
+
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 namespace magma {
 namespace mme {

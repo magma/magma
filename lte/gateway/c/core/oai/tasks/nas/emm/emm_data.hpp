@@ -450,8 +450,6 @@ void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
 void emm_ctx_clear_auth_vector(emm_context_t* const ctxt, ksi_t eksi)
     __attribute__((nonnull)) __attribute__((flatten));
-void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
-    __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
 
@@ -578,8 +576,9 @@ __attribute__((flatten));
 void emm_init_context(struct emm_context_s* const emm_ctx,
                       const bool init_esm_ctxt) __attribute__((nonnull));
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
-    __attribute__((nonnull));*/
-
+    __attribute__((nonnull));
+void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
+    __attribute__((nonnull)) __attribute__((flatten));*/
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)

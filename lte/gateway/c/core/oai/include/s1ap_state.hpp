@@ -17,14 +17,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#ifdef __cplusplus
-}
-#endif
-
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/protos/oai/s1ap_state.pb.h"
 

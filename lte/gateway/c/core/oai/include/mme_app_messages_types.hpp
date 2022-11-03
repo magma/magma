@@ -27,14 +27,14 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file mme_app_messages_types.h
+/*! \file mme_app_messages_types.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_MME_APP_MESSAGES_TYPES_SEEN
-#define FILE_MME_APP_MESSAGES_TYPES_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
@@ -190,5 +190,3 @@ typedef struct itti_mme_app_handover_command_s {
   uint32_t source_enb_id;
   uint32_t target_enb_id;
 } itti_mme_app_handover_command_t;
-
-#endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

@@ -32,8 +32,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"

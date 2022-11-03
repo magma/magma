@@ -53,7 +53,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #ifdef __cplusplus
 }
 #endif

@@ -33,7 +33,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"

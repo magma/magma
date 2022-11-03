@@ -216,4 +216,6 @@ bool is_nas_common_procedure_authentication_running(
     const struct emm_context_s* const ctxt);
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
+void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
+    __attribute__((nonnull)) __attribute__((flatten));
 #endif /* FILE_EMM_HEADERS_SEEN*/

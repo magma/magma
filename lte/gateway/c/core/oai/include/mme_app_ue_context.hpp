@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file mme_app_ue_context.h
+/*! \file mme_app_ue_context.hpp
  *  \brief MME applicative layer
  *  \author Sebastien ROUX, Lionel Gauthier
  *  \date 2013
