@@ -757,5 +757,6 @@ bstring paa_to_bstring(const paa_t* paa);
 // Return the hex representation of a char array
 char* bytes_to_hex(char* byte_array, int length, char* hex_array);
 
-void convert_guti_to_string(guti_t* guti_p, char (*guti_str)[GUTI_STRING_LEN]);
+void convert_guti_to_string(const guti_t* guti_p,
+                            char (*guti_str)[GUTI_STRING_LEN]);
 #endif /* FILE_CONVERSIONS_SEEN */

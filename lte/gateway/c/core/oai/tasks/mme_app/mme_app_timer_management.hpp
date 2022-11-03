@@ -10,13 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#ifndef FILE_MME_UE_CONTEXT_H_SEEN
-#define FILE_MME_UE_CONTEXT_H_SEEN
+#pragma once
 // C includes --------------------------------------------------------------
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
 }
 // C++ includes ------------------------------------------------------------
 #include <czmq.h>
@@ -25,6 +22,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 // Other includes ----------------------------------------------------------
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 
 namespace magma {
 namespace lte {
@@ -61,4 +60,3 @@ class MmeUeContext {
 
 }  // namespace lte
 }  // namespace magma
-#endif /* FILE_MME_UE_CONTEXT_H_SEEN */

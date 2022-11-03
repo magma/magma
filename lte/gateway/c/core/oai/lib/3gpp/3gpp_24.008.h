@@ -1392,11 +1392,11 @@ int decode_traffic_flow_template(traffic_flow_template_t* trafficflowtemplate,
 int decode_traffic_flow_template_ie(
     traffic_flow_template_t* trafficflowtemplate, const bool iei_present,
     const uint8_t* const buffer, const uint32_t len);
-void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
-                                const traffic_flow_template_t* const tft_src);
 #ifdef __cplusplus
 extern "C" {
 #endif
+void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
+                                const traffic_flow_template_t* const tft_src);
 void free_traffic_flow_template(traffic_flow_template_t** tft);
 #ifdef __cplusplus
 }

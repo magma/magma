@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test bazel
+name: AGW Build & Test LTE Integration With Bazel Dev Build
 
 on:
   workflow_dispatch: null
@@ -74,7 +74,9 @@ jobs:
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
-          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query "kind(.*_binary, //orc8r/... union //lte/... union //feg/...)"`;' magma
+          REGEX='"service|util_script"'
+          QUERY="'attr(tags, "${REGEX}", kind(.*_binary, //orc8r/... union //lte/... union //feg/... except //lte/gateway/c/core:mme_oai))'"
+          vagrant ssh -c 'cd ~/magma; bazel build --profile=bazel_profile_lte_integ_tests `bazel query '"${QUERY}"'`;' magma
       - name: Linking bazel-built script executables to '/usr/local/bin/'
         run: |
           cd lte/gateway
@@ -125,7 +127,7 @@ jobs:
         if: failure() && github.repository_owner == 'magma'
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "LTE integ tests bazel"
           SLACK_AVATAR: ":boom:"
         with:
