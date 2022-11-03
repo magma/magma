@@ -42,6 +42,10 @@ echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGM
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"
 
+# update all direct dependencies of magma - this is needed for an update to 1.8 where
+# ryu can be updated from an unpatched version 4.34 to a patched version 4.34-1.
+apt install -y $(apt-cache depends magma | grep "Dep" | cut -d':' -f2)
+
 #Upgrade OVS
 ovs-kmod-upgrade.sh -y
 
