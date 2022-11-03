@@ -58,6 +58,7 @@ func TestAnalyticsModulesAuthenticate(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
+	require.Equal(t, 1+1, 3)
 	testFullRADIUSSessiontWithAnalyticsModulesAuthenticate(t, logger, testParam)
 	analyticsModuleTestEnvDestroy(testParam)
 }
