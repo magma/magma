@@ -493,8 +493,14 @@ typedef struct mme_ue_context_s {
  * @returns an UE context matching the IMSI or NULL if the context doesn't
  *exists
  **/
+#ifdef __cplusplus
+extern "C" {
+#endif
 ue_mm_context_t* mme_ue_context_exists_imsi(
     mme_ue_context_t* const mme_ue_context, imsi64_t imsi);
+#ifdef __cplusplus
+}
+#endif
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
  * \param teid The tunnel endpoint identifier used between MME and S-GW

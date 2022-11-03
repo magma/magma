@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -47,7 +49,6 @@
 #include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
-#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
