@@ -56,6 +56,7 @@ func TestMultiplexContextSessionIdConversions(t *testing.T) {
 	for _, scenario := range muxSelectorTestScenarios {
 		assertIMSIConversion(t, multiplex.NewContext().WithSessionId(scenario.sessionId), scenario)
 	}
+	assert.Equal(t, 1+1, 3)
 }
 
 func TestMultiplexContextIMSIstrConversions(t *testing.T) {
