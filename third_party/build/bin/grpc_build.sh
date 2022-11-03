@@ -28,7 +28,10 @@ VERSION="${GIT_VERSION}"-"${ITERATION}"
 PKGNAME=grpc-dev
 
 function buildrequires() {
-    echo build-essential autoconf libtool
+    echo \
+        build-essential \
+        autoconf \
+        libtool
 }
 
 if_subcommand_exec
@@ -59,6 +62,77 @@ git clone https://github.com/grpc/grpc
 cd grpc
 git checkout -b v"${GIT_VERSION}" tags/v"${GIT_VERSION}"
 git submodule update --init
+
+# Patches to avoid ambiguous declaration of `getid()` in grpc and glibc, see
+# https://sourceware.org/git/?p=glibc.git;a=commit;h=1d0fc213824eaa2a8f8c4385daaa698ee8fb7c92
+# and the respective commit to the grpc repository
+# https://github.com/grpc/grpc/commit/57586a1ca7f17b1916aed3dea4ff8de872dbf853
+patch src/core/lib/gpr/log_linux.cc <<'EOF'
+@@ -40,7 +40,7 @@
+ #include <time.h>
+ #include <unistd.h>
+
+-static long gettid(void) { return syscall(__NR_gettid); }
++static long sys_gettid(void) { return syscall(__NR_gettid); }
+
+ void gpr_log(const char* file, int line, gpr_log_severity severity,
+              const char* format, ...) {
+@@ -70,7 +70,7 @@ void gpr_default_log(gpr_log_func_args* args) {
+   gpr_timespec now = gpr_now(GPR_CLOCK_REALTIME);
+   struct tm tm;
+   static __thread long tid = 0;
+-  if (tid == 0) tid = gettid();
++  if (tid == 0) tid = sys_gettid();
+
+   timer = static_cast<time_t>(now.tv_sec);
+   final_slash = strrchr(args->file, '/');
+EOF
+
+patch src/core/lib/gpr/log_posix.cc <<'EOF'
+@@ -30,7 +30,7 @@
+ #include <string.h>
+ #include <time.h>
+
+-static intptr_t gettid(void) { return (intptr_t)pthread_self(); }
++static intptr_t sys_gettid(void) { return (intptr_t)pthread_self(); }
+
+ void gpr_log(const char* file, int line, gpr_log_severity severity,
+              const char* format, ...) {
+@@ -86,7 +86,7 @@ void gpr_default_log(gpr_log_func_args* args) {
+   char* prefix;
+   gpr_asprintf(&prefix, "%s%s.%09d %7" PRIdPTR " %s:%d]",
+                gpr_log_severity_string(args->severity), time_buffer,
+-               (int)(now.tv_nsec), gettid(), display_file, args->line);
++               (int)(now.tv_nsec), sys_gettid(), display_file, args->line);
+
+   fprintf(stderr, "%-70s %s\n", prefix, args->message);
+   gpr_free(prefix);
+EOF
+
+patch src/core/lib/iomgr/ev_epollex_linux.cc <<'EOF'
+@@ -1146,7 +1146,7 @@
+ }
+
+ #ifndef NDEBUG
+-static long gettid(void) { return syscall(__NR_gettid); }
++static long sys_gettid(void) { return syscall(__NR_gettid); }
+ #endif
+
+ /* pollset->mu lock must be held by the caller before calling this.
+@@ -1166,7 +1166,7 @@
+ #define WORKER_PTR (&worker)
+ #endif
+ #ifndef NDEBUG
+-  WORKER_PTR->originator = gettid();
++  WORKER_PTR->originator = sys_gettid();
+ #endif
+   if (GRPC_TRACE_FLAG_ENABLED(grpc_polling_trace)) {
+     gpr_log(GPR_INFO,
+EOF
+
+# Disable flag that treats warnings as errors
+# see https://github.com/grpc/grpc/issues/17287#issuecomment-444876748
+sed -i 's/-Werror/ /g' Makefile
 
 # IMPORTANT: update prefix in Makefile
 # change default prefix from /usr/local to /tmp/build-grpc-dev/install/usr/local
