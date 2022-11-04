@@ -22,7 +22,7 @@ import {DynamicServices} from '../../../components/GatewayUtils';
 import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
 import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
@@ -53,6 +53,14 @@ const mockGw0: LteGateway = {
       nat_enabled: false,
       sgi_management_iface_static_ip: '1.1.1.1/24',
       sgi_management_iface_vlan: '100',
+    },
+    ngc: {
+      amf_default_sd: 'AFAF',
+      amf_default_sst: 2,
+      amf_name: 'amf.example.org',
+      amf_pointer: '1F',
+      amf_region_id: 'C1',
+      amf_set_id: '2A1',
     },
     ran: {
       pci: 620,
@@ -288,45 +296,20 @@ describe('<AddEditGatewayButton />', () => {
     expect(queryByTestId('epcEdit')).toBeNull();
     expect(queryByTestId('apnResourcesEdit')).toBeNull();
 
-    const gatewayID = getByTestId('id').firstChild;
-    const gatewayName = getByTestId('name').firstChild;
-    const hwId = getByTestId('hardwareId').firstChild;
-    const version = getByTestId('version').firstChild;
-    const description = getByTestId('description').firstChild;
-    const challengeKey = getByTestId('challengeKey').firstChild;
-
     // test adding an existing gateway
-    if (gatewayID instanceof HTMLInputElement) {
-      fireEvent.change(gatewayID, {target: {value: 'testGatewayId0'}});
-    } else {
-      throw 'invalid type';
-    }
+    changeInput('id', 'testGatewayId0', getByTestId);
 
     fireEvent.click(getByText('Save And Continue'));
-
     expect(await findByTestId('configEditError')).toHaveTextContent(
       'Gateway testGatewayId0 already exists',
     );
 
-    if (
-      gatewayID instanceof HTMLInputElement &&
-      gatewayName instanceof HTMLInputElement &&
-      hwId instanceof HTMLInputElement &&
-      version instanceof HTMLInputElement &&
-      challengeKey instanceof HTMLInputElement &&
-      description instanceof HTMLInputElement
-    ) {
-      fireEvent.change(gatewayID, {target: {value: 'testGatewayID1'}});
-      fireEvent.change(gatewayName, {target: {value: 'testGatewayName'}});
-      fireEvent.change(description, {
-        target: {value: 'Test Gateway Description'},
-      });
-      fireEvent.change(challengeKey, {target: {value: 'testChallenge'}});
-      fireEvent.change(hwId, {target: {value: 'testHwId'}});
-      fireEvent.change(version, {target: {value: '1.0'}});
-    } else {
-      throw 'invalid type';
-    }
+    changeInput('id', 'testGatewayID1', getByTestId);
+    changeInput('name', 'testGatewayName', getByTestId);
+    changeInput('hardwareId', 'testHwId', getByTestId);
+    changeInput('challengeKey', 'testChallenge', getByTestId);
+    changeInput('description', 'Test Gateway Description', getByTestId);
+    changeInput('version', '1.0', getByTestId);
 
     fireEvent.click(getByText('Save And Continue'));
     await waitFor(() => {
@@ -443,28 +426,14 @@ describe('<AddEditGatewayButton />', () => {
 
     // Verify EPC Edit
     const natEnabled = getByTestId('natEnabled').firstChild;
-    const gwSgiIpv6 = getByTestId('gwSgiIpv6').firstChild;
-    const sgiStaticIpv6 = getByTestId('sgiStaticIpv6').firstChild;
-    const ipv6Block = getByTestId('ipv6Block').firstChild;
-    if (
-      natEnabled instanceof HTMLInputElement &&
-      gwSgiIpv6 instanceof HTMLInputElement &&
-      sgiStaticIpv6 instanceof HTMLInputElement &&
-      ipv6Block instanceof HTMLInputElement
-    ) {
+    if (natEnabled instanceof HTMLInputElement) {
       fireEvent.click(natEnabled);
-      fireEvent.change(gwSgiIpv6, {
-        target: {value: '2001:4860:4860:0:0:0:0:1'},
-      });
-      fireEvent.change(sgiStaticIpv6, {
-        target: {value: '2001:4860:4860:0:0:0:0:8888'},
-      });
-      fireEvent.change(ipv6Block, {
-        target: {value: 'fdee:5:6c::/48'},
-      });
     } else {
       throw 'invalid type';
     }
+    changeInput('gwSgiIpv6', '2001:4860:4860:0:0:0:0:1', getByTestId);
+    changeInput('sgiStaticIpv6', '2001:4860:4860:0:0:0:0:8888', getByTestId);
+    changeInput('ipv6Block', 'fdee:5:6c::/48', getByTestId);
     fireEvent.click(getByText('Save And Continue'));
 
     await waitFor(() => {
@@ -554,20 +523,8 @@ describe('<AddEditGatewayButton />', () => {
       throw new Error('apn resources add button unexpected null');
     }
     fireEvent.click(apnResourcesAdd);
-    const apnID = getByTestId('apnID').firstChild;
-    const vlanID = getByTestId('vlanID').firstChild;
-
-    if (apnID instanceof HTMLInputElement) {
-      fireEvent.change(apnID, {target: {value: '1'}});
-    } else {
-      throw 'invalid type';
-    }
-
-    if (vlanID instanceof HTMLInputElement) {
-      fireEvent.change(vlanID, {target: {value: '1'}});
-    } else {
-      throw 'invalid type';
-    }
+    changeInput('apnID', '1', getByTestId);
+    changeInput('vlanID', '1', getByTestId);
 
     fireEvent.click(getByText('Save And Continue'));
 
@@ -666,6 +623,56 @@ describe('<AddEditGatewayButton />', () => {
     // Encryption fields are visible if encryption is enabled
     expect(await findByTestId('encryptionEdit')).not.toBeNull();
 
+    fireEvent.click(getByText('Save And Continue'));
+
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          dns: {
+            dhcp_server_enabled: false,
+            enable_caching: false,
+            local_ttl: 0,
+            records: [],
+          },
+          epc: {
+            ip_block: '192.168.128.0/24',
+            ipv6_block: 'fdee:5:6c::/48',
+            nat_enabled: false,
+            dns_primary: '',
+            dns_secondary: '',
+            sgi_management_iface_gw: '',
+            sgi_management_iface_static_ip: '',
+            sgi_management_iface_vlan: '',
+            sgi_management_iface_ipv6_gw: '2001:4860:4860:0:0:0:0:1',
+            sgi_management_iface_ipv6_addr: '2001:4860:4860:0:0:0:0:8888',
+          },
+          ran: {
+            pci: 260,
+            transmit_enabled: true,
+          },
+          he_config: {
+            enable_encryption: true,
+            enable_header_enrichment: true,
+            he_encoding_type: 'BASE64',
+            he_encryption_algorithm: 'RC4',
+            he_hash_function: 'MD5',
+            encryption_key: '',
+          },
+        },
+        gatewayId: 'testGatewayID1',
+        networkId: 'test',
+      });
+    });
+
+    changeInput('amfName', 'myamf.test', getByTestId);
+    changeInput('amfPointer', '2C', getByTestId);
+    changeInput('amfRegionID', 'D5', getByTestId);
+    changeInput('amfSetID', '1CA', getByTestId);
+    changeInput('amfDefaultSliceServiceType', '42', getByTestId);
+    changeInput('amfDefaultSliceDescriptor', 'ABCD', getByTestId);
+
     fireEvent.click(getByText('Save And Close'));
 
     await waitFor(() => {
@@ -702,6 +709,14 @@ describe('<AddEditGatewayButton />', () => {
             he_encryption_algorithm: 'RC4',
             he_hash_function: 'MD5',
             encryption_key: '',
+          },
+          ngc: {
+            amf_name: 'myamf.test',
+            amf_pointer: '2C',
+            amf_region_id: 'D5',
+            amf_set_id: '1CA',
+            amf_default_sst: 42,
+            amf_default_sd: 'ABCD',
           },
         },
         gatewayId: 'testGatewayID1',
@@ -767,4 +782,75 @@ describe('<AddEditGatewayButton />', () => {
       });
     });
   });
+
+  it('Verify Gateway NGC Config', async () => {
+    jest
+      .spyOn(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdCellularPut')
+      .mockImplementation();
+
+    const {findByTestId, getByTestId, getByText} = render(<DetailWrapper />);
+    const ngcConfig = await findByTestId('ngc-config');
+
+    const nameCell = within(ngcConfig).getByTestId('Name');
+    within(nameCell).getByText('amf.example.org');
+    const pointerCell = within(ngcConfig).getByTestId('Pointer');
+    within(pointerCell).getByText('1F');
+    const regionCell = within(ngcConfig).getByTestId('Region ID');
+    within(regionCell).getByText('C1');
+    const setCell = within(ngcConfig).getByTestId('Set ID');
+    within(setCell).getByText('2A1');
+    const serviceTypeCell = within(ngcConfig).getByTestId(
+      'Default Slice Service Type',
+    );
+    within(serviceTypeCell).getByText('2');
+    const descriptorCell = within(ngcConfig).getByTestId(
+      'Default Slice Descriptor',
+    );
+    within(descriptorCell).getByText('AFAF');
+
+    fireEvent.click(await findByTestId('ngcEditButton'));
+
+    changeInput('amfName', 'test.com', getByTestId);
+    changeInput('amfPointer', '', getByTestId);
+    changeInput('amfRegionID', '', getByTestId);
+    changeInput('amfSetID', '', getByTestId);
+    changeInput('amfDefaultSliceServiceType', '12', getByTestId);
+    changeInput('amfDefaultSliceDescriptor', '', getByTestId);
+
+    fireEvent.click(getByText('Save'));
+
+    await waitFor(() => {
+      expect(
+        MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdCellularPut,
+      ).toHaveBeenCalledWith({
+        config: {
+          ...mockGw0.cellular,
+          ngc: {
+            amf_name: 'test.com',
+            amf_pointer: undefined,
+            amf_region_id: undefined,
+            amf_set_id: undefined,
+            amf_default_sst: 12,
+            amf_default_sd: undefined,
+          },
+        },
+        gatewayId: mockGw0.id,
+        networkId: 'test',
+      });
+    });
+  });
 });
+
+function changeInput(
+  testID: string,
+  newValue: string,
+  getByTestId: (testID: string) => HTMLElement,
+) {
+  const input = getByTestId(testID).firstChild;
+
+  if (input instanceof HTMLInputElement) {
+    fireEvent.change(input, {target: {value: newValue}});
+  } else {
+    throw 'invalid type';
+  }
+}

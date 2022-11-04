@@ -260,26 +260,9 @@
       }
     ],
     "Contribute": [
-      {
-        "type": "subcategory",
-        "label": "Contribute",
-        "ids": [
-          "contributing/contribute_onboarding",
-          "contributing/contribute_workflow",
-          "contributing/contribute_vscode",
-          "contributing/contribute_conventions",
-          "contributing/contribute_id_mappings",
-          "contributing/contribute_ci_checks"
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Maintain",
-        "ids": [
-          "contributing/contribute_codeowners",
-          "contributing/contribute_tsc_norms"
-        ]
-      }
+      "contributing/contribute_github",
+      "contributing/contribute_codeowners",
+      "contributing/contribute_tsc_norms"
     ],
     "Technical Reference": [
       {
@@ -288,8 +271,7 @@
         "ids": [
           "resources/ref_pcap",
           "resources/ref_useful_links",
-          "resources/ref_magma_metrics",
-          "docs/docs_overview"
+          "resources/ref_magma_metrics"
         ]
       },
       {

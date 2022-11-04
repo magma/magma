@@ -41,6 +41,12 @@ MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
     ver = VERSION,
 )
 
+### META INFO
+
+URL = "https://github.com/magma/magma/"
+
+MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
+
 ### SCTPD BUILD
 
 genrule(
@@ -76,7 +82,8 @@ pkg_deb(
     name = "sctpd_deb_pkg",
     data = ":sctpd_content",
     description = "Magma SCTPD",
-    maintainer = "Copyright (c) 2022 The Magma Authors",
+    homepage = URL,
+    maintainer = MAINTAINER,
     package = SCTPD_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
     version = VERSION,
@@ -106,7 +113,6 @@ pkg_filegroup(
 pkg_filegroup(
     name = "magma_python_scripts",
     srcs = [
-        "//lte/gateway/python/load_tests:magma_lte_loadtest_scripts",
         "//lte/gateway/python/scripts:magma_lte_scripts",
         "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
     ],
@@ -172,7 +178,8 @@ pkg_deb(
     data = ":magma_content",
     depends = MAGMA_DEPS + OAI_DEPS + OVS_DEPS,
     description = "Magma Access Gateway",
-    maintainer = "Copyright (c) 2022 The Magma Authors",
+    homepage = URL,
+    maintainer = MAINTAINER,
     package = MAGMA_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
     postinst = ":magma-postinst-bazel",

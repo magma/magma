@@ -15,18 +15,18 @@ package lballocate
 
 import (
 	"context"
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
 	"math"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/session"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 const upstreamRadiusHost1 = "192.168.100.101"
@@ -620,8 +620,8 @@ func TestLBAllocateMaintainsStickiness(t *testing.T) {
 
 func createRadiusRequest() *radius.Request {
 	packet := radius.New(radius.CodeAccessRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Attributes[rfc2865.CallingStationID_Type] = []radius.Attribute{radius.Attribute("calling")}
-	packet.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{radius.Attribute("called")}
+	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute("calling"))
+	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute("called"))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())
 	req.Packet = packet

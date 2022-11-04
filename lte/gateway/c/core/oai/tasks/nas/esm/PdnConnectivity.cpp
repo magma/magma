@@ -39,7 +39,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
@@ -73,14 +73,9 @@ static status_code_e pdn_connectivity_create(
     protocol_configuration_options_t* const pco, const bool is_emergency,
     esm_cause_t* esm_cause);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 proc_tid_t pdn_connectivity_delete(emm_context_t* emm_context,
                                    pdn_cid_t pdn_cid);
-#ifdef __cplusplus
-}
-#endif
+
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/

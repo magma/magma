@@ -153,14 +153,23 @@
     - agwc
     - base
 
-- name: Installing magma.
+- name: Set magma package variable
+  set_fact:
+    magma_package: "{{ MAGMA_PACKAGE | default('magma', true) }}"
+
+- name: Installing magma from local debian package
   become: true
   apt:
-    name: "{{ packages }}"
+    deb: "/home/vagrant/magma/{{ magma_package }}"
     dpkg_options: 'force-confold,force-confdef,force-overwrite'
-  vars:
-    packages:
-      - "{{ MAGMA_PACKAGE | default('magma', true) }}"
+  when: magma_package is match(".*\.deb")
+
+- name: Installing magma from artifactory
+  become: true
+  apt:
+    name: "{{ magma_package }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+  when: magma_package is not match(".*\.deb")
 
 # Install openvswitch in containerized agw only
 - name: Install prebuilt openvswitch packages

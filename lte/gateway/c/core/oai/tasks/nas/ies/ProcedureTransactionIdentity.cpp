@@ -16,6 +16,7 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ProcedureTransactionIdentity.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -29,6 +30,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 
 int decode_procedure_transaction_identity(
     ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,
