@@ -10,10 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import binascii
 import ipaddress
 import logging
+import socket
 
+import dpkt
+import netifaces
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.app.packet_parser import ParseSocketPacket
 from magma.pipelined.ifaces import get_mac_address_from_iface
 from scapy.arch import get_if_addr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
@@ -40,57 +45,36 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
             "sending arp via egress: %s",
             non_nat_arp_egress_port,
         )
-        eth_mac_src = get_mac_address_from_iface(non_nat_arp_egress_port)
-        psrc = "0.0.0.0"
-        egress_port_ip = get_if_addr(non_nat_arp_egress_port)
-        if egress_port_ip:
-            psrc = egress_port_ip
+        eth_mac_src, psrc = _get_addresses(non_nat_arp_egress_port)
+        pkt = _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan)
+        logging.debug("ARP Req pkt:\n%s", pkt.pprint())
 
-        pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
-        if vlan.isdigit():
-            pkt /= Dot1Q(vlan=int(vlan))
-        pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
-        logging.debug("ARP Req pkt %s", pkt.show(dump=True))
-
-        res = srp1(
-            pkt,
-            type=ETH_P_ALL,
-            iface=non_nat_arp_egress_port,
-            timeout=1,
-            verbose=0,
-            nofilter=1,
-            promisc=0,
-        )
-
+        res = _send_packet_and_receive_response(pkt, non_nat_arp_egress_port)
         if res is None:
             logging.debug("Got Null response")
             return ""
 
-        logging.debug("ARP Res pkt %s", res.show(dump=True))
-        if str(res[ARP].psrc) != gw_ip:
+        parsed = ParseSocketPacket(res)
+        logging.debug("ARP Res pkt %s", str(parsed))
+        if str(parsed.arp.psrc) != str(gw_ip):
             logging.warning(
-                "Unexpected IP in ARP response. expected: %s pkt: %s",
-                gw_ip,
-                res.show(dump=True),
+                f"Unexpected IP in ARP response. expected: {str(gw_ip)} pkt: {str(parsed)}",
             )
             return ""
         if vlan.isdigit():
-            if Dot1Q in res and str(res[Dot1Q].vlan) == vlan:
-                mac = res[ARP].hwsrc
+            if parsed.dot1q is not None and str(parsed.dot1q.vlan) == vlan:
+                mac = parsed.arp.hwsrc
             else:
                 logging.warning(
                     "Unexpected vlan in ARP response. expected: %s pkt: %s",
                     vlan,
-                    res.show(dump=True),
+                    str(parsed),
                 )
                 return ""
         else:
-            mac = res[ARP].hwsrc
-        return mac
+            mac = parsed.arp.hwsrc
+        return mac.mac_address
 
-    except Scapy_Exception as ex:
-        logging.warning("Error in probing Mac address: err %s", ex)
-        return ""
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s] or vlan %s",
@@ -99,7 +83,56 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
         return ""
 
 
-def _get_gw_mac_address_v6(gw_ip: str) -> str:
+def _get_addresses(non_nat_arp_egress_port):
+    eth_mac_src = get_mac_address_from_iface(non_nat_arp_egress_port)
+    eth_mac_src = binascii.unhexlify(eth_mac_src.replace(':', ''))
+    psrc = "0.0.0.0"
+    egress_port_ip = netifaces.ifaddresses(non_nat_arp_egress_port)
+    if netifaces.AF_INET in egress_port_ip:
+        psrc = egress_port_ip[netifaces.AF_INET][0]['addr']
+    return eth_mac_src, psrc
+
+
+def _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan):
+    pkt = dpkt.arp.ARP(
+        sha=eth_mac_src,
+        spa=socket.inet_aton(psrc),
+        tha=b'\x00' * 6,
+        tpa=socket.inet_aton(str(gw_ip)),
+        op=dpkt.arp.ARP_OP_REQUEST,
+    )
+    if vlan.isdigit():
+        pkt = dpkt.ethernet.VLANtag8021Q(
+            id=int(vlan), data=bytes(pkt), type=dpkt.ethernet.ETH_TYPE_ARP,
+        )
+        t = dpkt.ethernet.ETH_TYPE_8021Q
+    else:
+        t = dpkt.ethernet.ETH_TYPE_ARP
+    pkt = dpkt.ethernet.Ethernet(
+        dst=b'\xff' * 6, src=eth_mac_src, data=bytes(pkt), type=t,
+    )
+    return pkt
+
+
+def _send_packet_and_receive_response(pkt, non_nat_arp_egress_port):
+    buffsize = 2 ** 16
+    sol_packet = 263
+    packet_aux_data = 8
+    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x0003)) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, buffsize)
+        s.setsockopt(sol_packet, packet_aux_data, 1)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_MARK, 1)
+        s.bind((non_nat_arp_egress_port, 0x0003))
+        s.send(bytes(pkt))
+        res, aux, _, _ = s.recvmsg(0xffff, socket.CMSG_LEN(4096))
+        for cmsg_level, cmsg_type, cmsg_data in aux:
+            if cmsg_level == sol_packet and cmsg_type == packet_aux_data:
+                # add VLAN tag after ethernet header
+                res = res[:12] + cmsg_data[-1:-5:-1] + res[12:]
+    return res
+
+
+def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
     try:
         mac = getmacbyip6(gw_ip)
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
