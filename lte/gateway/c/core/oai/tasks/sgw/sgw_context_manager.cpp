@@ -116,9 +116,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid)
 //-----------------------------------------------------------------------------
 {
-  mme_sgw_tunnel_t* new_tunnel = nullptr;
-
-  new_tunnel = new mme_sgw_tunnel_t();
+  mme_sgw_tunnel_t* new_tunnel = new mme_sgw_tunnel_t();
   new_tunnel->remote_teid = remote_teid;
   new_tunnel->local_teid = local_teid;
 
@@ -324,13 +322,6 @@ status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
   }
 
   sgw_s11_teid_t* sgw_s11_teid_p = new sgw_s11_teid_t();
-  if (!sgw_s11_teid_p) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n",
-                    teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-
   sgw_s11_teid_p->sgw_s11_teid = teid;
   LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
   OAILOG_DEBUG(LOG_SPGW_APP,

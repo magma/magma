@@ -98,7 +98,7 @@ status_code_e sgw_handle_s11_create_session_request(
   mme_sgw_tunnel_t* new_endpoint_p = nullptr;
   s_plus_p_gw_eps_bearer_context_information_t*
       s_plus_p_gw_eps_bearer_ctxt_info_p = nullptr;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   increment_counter("spgw_create_session", 1, NO_LABELS);
@@ -232,7 +232,7 @@ status_code_e sgw_handle_s11_create_session_request(
         LOG_SPGW_APP, &s_plus_p_gw_eps_bearer_ctxt_info_p
                            ->sgw_eps_bearer_context_information);
 
-    if (eps_bearer_ctxt_p == NULL) {
+    if (eps_bearer_ctxt_p == nullptr) {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to create new EPS bearer entry\n");
       increment_counter("spgw_create_session", 1, 2, "result", "failure",
