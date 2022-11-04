@@ -17,10 +17,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
 
@@ -58,7 +54,3 @@ void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);
 // Deletes entry for UE MME state on db
 void delete_mme_ue_state(imsi64_t imsi64);
-
-#ifdef __cplusplus
-}
-#endif

@@ -30,7 +30,14 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include <inttypes.h>
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
