@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Markdown lint check
+name: Docs Lint & Check Generated Files In Sync
 
 on:
   push:

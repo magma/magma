@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Bazel Build & Test"
+name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy
   workflow_dispatch:
@@ -123,8 +123,8 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             bazel build \
               ${{ matrix.bazel-target }} \
-              ${{ matrix.bazel-config }} \
               --config=mme_unit_test \
+              ${{ matrix.bazel-config }} \
               --profile=Bazel_build_all_profile
 
             printf '\r%s\r' '###############################' 1>&2
@@ -207,7 +207,7 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...` ${{ matrix.bazel-config }}"
           SLACK_USERNAME: "Bazel Build & Test"
           SLACK_ICON_EMOJI: ":boom:"
@@ -227,7 +227,7 @@ jobs:
       success: ${{ steps.setoutput.outputs.success }}
     steps:
       - id: setoutput
-        run: echo "::set-output name=success::true"
+        run: echo "success=true" >> $GITHUB_OUTPUT
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
@@ -309,7 +309,7 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Package Job"
           SLACK_USERNAME: "Bazel Build & Test"
           SLACK_ICON_EMOJI: ":boom:"
@@ -331,7 +331,7 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
           SLACK_USERNAME: "Bazel Build & Test"
           SLACK_ICON_EMOJI: ":boom:"
@@ -353,7 +353,7 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
           SLACK_USERNAME: "Bazel Build & Test"
           SLACK_ICON_EMOJI: ":boom:"

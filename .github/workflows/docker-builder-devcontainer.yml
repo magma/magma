@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Build Docker image for Bazel Base and DevContainer"
+name: Magma Build Docker Image Bazel Base & DevContainer
 on:
   push:
     branches:

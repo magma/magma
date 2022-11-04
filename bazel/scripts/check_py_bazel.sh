@@ -94,7 +94,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
   "./lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
   # TODO: GH9878 needs to be further analyzed
-  "./lte/gateway/python/load_tests"
   "./lte/gateway/python/scripts"
   "./orc8r/gateway/python/scripts"
 )

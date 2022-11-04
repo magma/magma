@@ -48,7 +48,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
@@ -411,6 +411,11 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
 
 //------------------------------------------------------------------------------
 /* Clear UE network capability IE   */
+
+/*TODO: Temporarily added under extern to
+ * resolve undefined reference. Remove extern after moving all the files to c++
+ * GH issue: https://github.com/magma/magma/issues/13096
+ */
 
 #ifdef __cplusplus
 extern "C" {

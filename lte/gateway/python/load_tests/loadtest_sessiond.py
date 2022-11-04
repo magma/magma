@@ -155,15 +155,12 @@ def main():
         parser.print_usage()
         exit(1)
 
-    print('Preparing %s load test...' % args.cmd)
     subs = generate_subs(int(args.num))
     if args.cmd == 'create':
         _handle_create_session_benchmarking(subs, args.import_path)
 
     elif args.cmd == 'end':
         _handle_end_session_benchmarking(subs, args.import_path)
-
-    print('Done')
 
 
 if __name__ == "__main__":

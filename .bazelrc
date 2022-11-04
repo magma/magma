@@ -65,7 +65,7 @@ build --test_env=MAGMA_ROOT
 build --test_env=S1AP_TESTER_ROOT
 
 # Needed for go tests to generate the test result XML in the correct format  
-test --test_env=GO_TEST_WRAP_TESTV=1
+build --test_env=GO_TEST_WRAP_TESTV=1
 
 # MME specific compile time defines
 # Compile mme libraries with unit test flag
