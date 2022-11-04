@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import ipaddress
 import logging
 
@@ -19,32 +18,30 @@ from magma.pipelined.ifaces import get_mac_address
 from scapy.arch import get_if_addr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
-from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import ARP, Dot1Q, Ether
 from scapy.sendrecv import srp1
 
 
 def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
+    gw_ip = ipaddress.ip_address(ip.address)
     if ip.version == IPAddress.IPV4:
-        return _get_gw_mac_address_v4(ip, vlan, non_nat_arp_egress_port)
-    if ip.version == IPAddress.IPV6:
+        return _get_gw_mac_address_v4(gw_ip, vlan, non_nat_arp_egress_port)
+    elif ip.version == IPAddress.IPV6:
         if vlan == "NO_VLAN":
-            return _get_gw_mac_address_v6(ip)
+            return _get_gw_mac_address_v6(gw_ip)
         else:
-            gw_ip = ipaddress.ip_address(ip.address)
             logging.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
             return ""
     return ""
 
 
-def _get_gw_mac_address_v4(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
+def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
     try:
-        gw_ip = ipaddress.ip_address(ip.address)
         logging.debug(
             "sending arp via egress: %s",
             non_nat_arp_egress_port,
         )
-        eth_mac_src = get_mac_address(non_nat_arp_egress_port)
+        eth_mac_src = get_mac_address(interface=non_nat_arp_egress_port)
         psrc = "0.0.0.0"
         egress_port_ip = get_if_addr(non_nat_arp_egress_port)
         if egress_port_ip:
@@ -98,24 +95,19 @@ def _get_gw_mac_address_v4(ip: IPAddress, vlan: str, non_nat_arp_egress_port: st
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s] or vlan %s",
-            str(ip), vlan,
+            str(gw_ip), vlan,
         )
         return ""
 
 
-def _get_gw_mac_address_v6(ip: IPAddress) -> str:
+def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
     try:
-        gw_ip = ipaddress.ip_address(ip.address)
-        mac = getmacbyip6(str(gw_ip))
+        mac = get_mac_address(ip6=str(gw_ip))
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
-
-    except Scapy_Exception as ex:
-        logging.warning("Error in probing Mac address: err %s", ex)
-        return ""
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s]",
-            str(ip),
+            str(gw_ip),
         )
         return ""

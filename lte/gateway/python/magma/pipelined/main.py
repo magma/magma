@@ -120,9 +120,9 @@ def main():
     if 'virtual_mac' not in service.config:
         if service.config['dp_router_enabled']:
             up_iface_name = service.config.get('nat_iface', None)
-            mac_addr = get_mac_address(up_iface_name)
+            mac_addr = get_mac_address(interface=up_iface_name)
         else:
-            mac_addr = get_mac_address(service.config.get('bridge_name'))
+            mac_addr = get_mac_address(interface=service.config.get('bridge_name'))
 
         service.config['virtual_mac'] = mac_addr
 

@@ -12,6 +12,7 @@ limitations under the License.
 """
 import asyncio
 
+import getmac
 import netifaces
 from magma.pipelined.metrics import NETWORK_IFACE_STATUS
 
@@ -31,8 +32,13 @@ def monitor_ifaces(iface_names):
         yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
-def get_mac_address(interface_name: str) -> str:
-    if_addresses = netifaces.ifaddresses(interface_name)[netifaces.AF_LINK]
-    if not if_addresses or not if_addresses[0].get('addr'):
-        raise ValueError(f"No mac address found for interface {interface_name}")
-    return if_addresses[0]['addr']
+def get_mac_address(network_request=True, **kwargs) -> str:
+    if len(kwargs) != 1:
+        raise ValueError('Must specify exactly one keyword argument for get_mac_address')
+    mac_address = getmac.get_mac_address(
+        interface=kwargs.get('interface'), ip=kwargs.get('ip'), ip6=kwargs.get('ip6'),
+        hostname=kwargs.get('hostname'), network_request=network_request,
+    )
+    if mac_address is None:
+        raise ValueError(f"No mac address found for {list(kwargs.keys())[0]} {list(kwargs.values())[0]}")
+    return mac_address
