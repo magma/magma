@@ -20,6 +20,7 @@ from setuptools import setup
 # version this represents. 'None' defaults to 0.0.0.
 VERSION = os.environ.get('PKG_VERSION', '0.0.0')
 
+
 setup(
     name='lte',
     version=VERSION,
@@ -105,6 +106,7 @@ setup(
         'lxml==4.9.1',
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
+        'getmac>=0.8.2',
         'scapy==2.4.5',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',

@@ -16,6 +16,7 @@ redis-collections
 python-redis-lock
 jsonpickle
 netifaces
+getmac
 scapy
 wsgiserver
 # flask>=2.1.0 causes version conflicts with "click" when we build the requirements.txt from scratch
