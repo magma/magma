@@ -129,6 +129,9 @@ void ngap_config_init(ngap_config_t* ngap_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 void amf_config_init(amf_config_t* config) {
   memset(config, 0, sizeof(*config));
 
@@ -146,7 +149,9 @@ void amf_config_init(amf_config_t* config) {
   plmn_support_list_config_init(&config->plmn_support_list);
   served_tai_config_init(&config->served_tai);
 }
-
+#ifdef __cplusplus
+}
+#endif
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -180,6 +185,9 @@ static bool parse_bool(const char* str) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 int amf_config_parse_file(amf_config_t* config_pP,
                           const mme_config_t* mme_config_p) {
   config_t cfg = {0};
@@ -425,6 +433,9 @@ int amf_config_parse_file(amf_config_t* config_pP,
   config_destroy(&cfg);
   return 0;
 }
+#ifdef __cplusplus
+}
+#endif
 
 /***************************************************************************
 **                                                                        **

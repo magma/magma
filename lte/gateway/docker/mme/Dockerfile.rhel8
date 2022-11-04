@@ -109,6 +109,7 @@ RUN yum install -y \
     valgrind \
     tcpdump \
     openssh-server \
+    systemd-devel \
     tree
 
 RUN yum install -y \

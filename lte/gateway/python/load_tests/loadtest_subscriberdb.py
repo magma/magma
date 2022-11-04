@@ -203,7 +203,6 @@ def main():
         parser.print_usage()
         exit(1)
 
-    print('Preparing %s load test...' % args.cmd)
     if args.cmd == 'add':
         _cleanup_subs()
         input_file = 'add_subs.json'
@@ -246,8 +245,6 @@ def main():
         import_path=args.import_path,
     )
     _cleanup_subs()
-
-    print('Done')
 
 
 if __name__ == "__main__":

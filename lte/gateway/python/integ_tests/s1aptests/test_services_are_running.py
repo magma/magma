@@ -48,7 +48,7 @@ class TestServicesAreRunning(unittest.TestCase):
         Initialize service status dictionary.
         The dict holds for each service status results that are collected each time the status
         is queried. Also for each service a result list holds reporting about issues with the
-        queried status results. 
+        queried status results.
         """
         service_status = {
             service: {
@@ -69,6 +69,7 @@ class TestServicesAreRunning(unittest.TestCase):
 
         for service, state in failed_services.items():
             print(f'{service} failed with reason(s) "{state[SERVICE_RESULT]}"')
+            print(self.get_failed_service_info(service))
 
         assert not failed_services, "Services are not running correctly. See logging above."
 
@@ -104,6 +105,11 @@ class TestServicesAreRunning(unittest.TestCase):
             print(f'checking {service} ...')
             print(f'  {active_state}')
             print(f'  {start_time}')
+
+    def get_failed_service_info(self, failed_service):
+        return self._s1ap_wrapper.magmad_util.exec_command_capture_output(
+            f'sudo systemctl status {failed_service}',
+        ).stdout.decode("utf-8", errors='ignore')
 
     def _get_failed_services(self, service_status):
         for service, status in service_status.items():

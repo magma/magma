@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: dp-workflow
+name: DP Lint & Test
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
       helm: ${{ steps.filter.outputs.helm }}
       integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
       - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: filter
@@ -98,7 +98,7 @@ jobs:
       run:
         working-directory: dp/cloud/python/magma/configuration_controller
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -124,7 +124,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
@@ -147,7 +147,7 @@ jobs:
         working-directory: dp/cloud/python/magma/radio_controller
 
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -200,7 +200,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
@@ -229,7 +229,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -265,7 +265,7 @@ jobs:
         working-directory: dp/cloud/python/magma/db_service
 
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -291,7 +291,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,db-service
           name: codecov-db-service
@@ -304,7 +304,7 @@ jobs:
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run DP integration test (with orc8r)
         uses: ./.github/workflows/composite/dp-integ-tests
         with:
@@ -319,7 +319,7 @@ jobs:
       run:
         working-directory: dp
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV

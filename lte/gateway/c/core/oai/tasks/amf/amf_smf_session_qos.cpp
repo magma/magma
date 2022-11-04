@@ -204,9 +204,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_dl);
         flow_des.numOfParams++;
       }
 
@@ -215,9 +214,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_ul);
         flow_des.numOfParams++;
       }
 
@@ -226,9 +224,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_dl);
         flow_des.numOfParams++;
       }
 
@@ -237,9 +234,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_ul);
         flow_des.numOfParams++;
       }
 

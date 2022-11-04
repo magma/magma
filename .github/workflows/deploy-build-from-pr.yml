@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Deploy PR build
+name: Magma Publish Artifacts
 on:
   workflow_run:
     workflows:
@@ -26,10 +26,9 @@ jobs:
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
     steps:
-      - uses: hmarr/debug-action@1201a20fc9d278ddddd5f0f46922d06513892491 # pin@v2
       # Could be improved, only need the tag push docker and helm rotation script here
       - name: checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       # Retrieve Generated artifacts and delete them to keep cache usage low
       - name: Download builds
         uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0

@@ -113,7 +113,6 @@ pkg_filegroup(
 pkg_filegroup(
     name = "magma_python_scripts",
     srcs = [
-        "//lte/gateway/python/load_tests:magma_lte_loadtest_scripts",
         "//lte/gateway/python/scripts:magma_lte_scripts",
         "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
     ],

@@ -344,8 +344,7 @@ extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   // Initialize global stats timer
   epc_stats_timer_sec = (size_t)mme_config_p->stats_timer_sec;
 
-  if (s1ap_state_init(mme_config_p->max_ues, mme_config_p->max_enbs,
-                      mme_config_p->use_stateless) < 0) {
+  if (s1ap_state_init(mme_config_p->use_stateless) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
     return RETURNerror;
   }
@@ -495,11 +494,11 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
     if (enb_ref.s1_enb_state() == oai::S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref.set_s1_state(oai::S1AP_INIT);
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name().c_str());
       state->set_num_enbs(state->num_enbs() - 1);
     } else if (enb_ref.s1_enb_state() == oai::S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name().c_str());
       s1ap_remove_enb(state, &enb_ref);
     }
   }

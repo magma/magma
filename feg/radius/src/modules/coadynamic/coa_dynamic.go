@@ -3,15 +3,15 @@ package coadynamic
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/modules/coadynamic/radiustracker"
-	"fbc/lib/go/radius"
 	"fmt"
 	"time"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/modules/coadynamic/radiustracker"
 
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 var radiusTracker radiustracker.RadiusTracker

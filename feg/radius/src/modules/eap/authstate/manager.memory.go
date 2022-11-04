@@ -15,15 +15,15 @@ package authstate
 
 import (
 	"errors"
-	"fbc/cwf/radius/modules/eap/packet"
-	"fbc/cwf/radius/monitoring"
 	"fmt"
 	"sync"
 
-	"go.opencensus.io/tag"
+	"fbc/cwf/radius/modules/eap/packet"
+	"fbc/cwf/radius/monitoring"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
+	"go.opencensus.io/tag"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // Manager an interface for EAP state management storage
