@@ -260,6 +260,7 @@ py_library(
     srcs = ["ifaces.py"],
     deps = [
         requirement("netifaces"),
+        requirement("getmac"),
         ":metrics",
     ],
 )

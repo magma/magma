@@ -22,17 +22,14 @@ sys.modules["magma.pipelined.metrics"] = MagicMock()
 from magma.pipelined.ifaces import get_mac_address
 
 
-@patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address(netifaces_mock):
-    netifaces_mock.AF_LINK = 13
-    netifaces_mock.ifaddresses.return_value = {netifaces_mock.AF_LINK: [{"addr": "00:11:22:33:44:55"}]}
-
-    assert get_mac_address("eth0") == "00:11:22:33:44:55"
+@patch("magma.pipelined.ifaces.get_mac_address")
+def test_get_mac_address(get_mac_address_mock):
+    get_mac_address_mock.return_value = "00:11:22:33:44:55"
+    assert get_mac_address(interface="eth0") == "00:11:22:33:44:55"
 
 
-@patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address_invalid(netifaces_mock):
-    netifaces_mock.AF_LINK = 13
-    netifaces_mock.ifaddresses.return_value = {netifaces_mock.AF_LINK: []}
+@patch("magma.pipelined.ifaces.get_mac_address")
+def test_get_mac_address_invalid(get_mac_address_mock):
+    get_mac_address_mock.return_value = None
     with pytest.raises(ValueError):
-        get_mac_address("eth0")
+        get_mac_address(interface="eth0")
