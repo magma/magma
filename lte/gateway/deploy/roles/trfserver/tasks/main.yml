@@ -76,7 +76,6 @@
       - git+https://github.com/thiezn/iperf3-python#egg=iperf3-python
   when: preburn
 
-
 - name: remove preinstalled iperf3 and libiperf0
   apt:
     name: ['iperf3', 'libiperf0']
@@ -97,6 +96,31 @@
     - libiperf0_3.9-1_amd64.deb
     - iperf3_3.9-1_amd64.deb
   when: preburn
+
+- name: configure dhcpd
+  become: yes
+  copy: src=udhcpd.conf dest=/etc/
+  when: full_provision
+
+- name: install udhcpd
+  apt:
+    name: udhcpd
+  when: full_provision
+
+- name: configure udhcpd
+  become: yes
+  replace:
+    path: /etc/default/udhcpd
+    regexp: 'DHCPD_ENABLED="no"'
+    replace: 'DHCPD_ENABLED="yes"'
+  when: full_provision
+
+- name: Restart service udhcpd
+  become: yes
+  service:
+    name: udhcpd
+    state: restarted
+  when: full_provision
 
 - name: configure sshd_config
   become: yes
