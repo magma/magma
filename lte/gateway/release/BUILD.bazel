@@ -81,6 +81,7 @@ pkg_tar(
 
 pkg_deb(
     name = "sctpd_deb_pkg",
+    architecture = ARCH,
     data = ":sctpd_content",
     description = "Magma SCTPD",
     homepage = URL,
@@ -176,6 +177,7 @@ pkg_tar(
 
 pkg_deb(
     name = "magma_deb_pkg",
+    architecture = ARCH,
     data = ":magma_content",
     depends = MAGMA_DEPS + OAI_DEPS + OVS_DEPS,
     description = "Magma Access Gateway",
