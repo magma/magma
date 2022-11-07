@@ -92,9 +92,6 @@ extern "C" {
 extern status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
 
-extern bool is_mme_ue_context_network_access_mode_packet_only(
-    ue_mm_context_t* ue_context_p);
-
 status_code_e esm_sap_send(esm_sap_t* msg);
 
 /*

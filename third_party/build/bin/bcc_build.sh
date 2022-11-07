@@ -22,13 +22,24 @@ WORK_DIR=/tmp/build-"$PKGNAME"
 VERSION="$PKGVERSION-$ITERATION"
 
 function buildrequires() {
-    echo bison build-essential cmake flex git libedit-dev \
-  libllvm7 llvm-7-dev libclang-7-dev python zlib1g-dev libelf-dev libfl-dev python3-distutils luajit luajit-5.1-dev
+    echo \
+      bison \
+      build-essential \
+      cmake \
+      flex \
+      git \
+      libedit-dev \
+      libllvm7 \
+      llvm-7-dev \
+      libclang-7-dev \
+      python3 \
+      zlib1g-dev \
+      libelf-dev \
+      libfl-dev \
+      python3-distutils \
+      luajit \
+      libluajit-5.1-dev
 }
-
-sudo apt install -y bison build-essential cmake flex git libedit-dev \
-  libllvm7 llvm-7-dev libclang-7-dev python zlib1g-dev libelf-dev libfl-dev python3-distutils
-sudo apt-get -y install luajit luajit-5.1-dev
 
 if_subcommand_exec
 
