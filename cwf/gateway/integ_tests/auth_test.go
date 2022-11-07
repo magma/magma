@@ -54,7 +54,7 @@ func TestAuthenticateMultipleUEs(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-//   - Initialize 2 UEs and initiate Authentication using diffrent APs.
+//   - Initialize 2 UEs and initiate Authentication using different APs.
 //     Assert that it is successful.
 //   - Disconnect all UEs.
 func TestAuthenticateWithDifferentAPs(t *testing.T) {
