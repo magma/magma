@@ -1248,7 +1248,8 @@ type MobilityD struct {
 	LogLevel protos.LogLevel `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3,enum=magma.orc8r.LogLevel" json:"log_level,omitempty"`
 	// An IP block is a range of IP addresses specified by a network address and
 	// a prefix-length of the netmask. For example,
-	//    IPv4 IP block:      "192.168.0.0/24"
+	//
+	//	IPv4 IP block:      "192.168.0.0/24"
 	IpBlock string `protobuf:"bytes,2,opt,name=ip_block,json=ipBlock,proto3" json:"ip_block,omitempty"`
 	// ip allocation type, either dhcp or ip_pool
 	// default is ip_pool
