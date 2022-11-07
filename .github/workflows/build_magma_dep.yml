@@ -69,7 +69,7 @@ jobs:
           name: nettle
           path: ${{ env.MAGMA_PACKAGE_DIR }}
       - name: Setup JFROG CLI
-        uses: jfrog/setup-jfrog-cli@v2
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
           JF_ENV_1: ${{ secrets.JFROG_TOKEN }}
       - name: Set dry run environment variable

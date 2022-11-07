@@ -6,6 +6,7 @@ build --announce_rc
 build --color=yes
 
 build:production --config=lsan --copt=-O3
+build:production --define=production=1
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
