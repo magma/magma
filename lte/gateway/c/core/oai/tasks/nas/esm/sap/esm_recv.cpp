@@ -39,9 +39,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
@@ -54,13 +54,7 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
-#ifdef __cplusplus
-}
-#endif
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/

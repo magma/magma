@@ -16,9 +16,9 @@ package server
 import (
 	"fmt"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2866"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
 )
 
 const MinAccSessionIdLen = 7

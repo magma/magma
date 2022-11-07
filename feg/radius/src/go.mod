@@ -2,17 +2,13 @@ module fbc/cwf/radius
 
 replace (
 	fbc/lib/go/machine => ../lib/go/machine
-	fbc/lib/go/radius => ../lib/go/radius
 	magma/orc8r/lib/go => ../../../orc8r/lib/go
 	magma/orc8r/lib/go/protos => ../../../orc8r/lib/go/protos
 )
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	fbc/lib/go/machine v0.0.0-00010101000000-000000000000
-	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/alicebob/miniredis v2.5.0+incompatible
-	github.com/donovanhide/eventsource v0.0.0-20171031113327-3ed64d21fb0b
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/google/uuid v1.1.2
 	github.com/mitchellh/mapstructure v1.1.2
@@ -22,9 +18,9 @@ require (
 	go.opencensus.io v0.21.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.18.1
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.26.0
+	layeh.com/radius v0.0.0-20210819152912-ad72663a72ab
 	magma/orc8r/lib/go v0.0.0
 )
 
@@ -45,8 +41,9 @@ require (
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20190514113301-1cd887cd7036 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
-	golang.org/x/text v0.3.0 // indirect
+	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

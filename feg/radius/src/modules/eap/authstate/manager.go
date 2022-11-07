@@ -16,7 +16,7 @@ package authstate
 import (
 	"fbc/cwf/radius/modules/eap/packet"
 
-	"fbc/lib/go/radius"
+	"layeh.com/radius"
 )
 
 // Container A storable container for protocol state

@@ -62,8 +62,8 @@ oai::S1apState* create_s1ap_state(void) {
 
   oai::S1apState* state_cache_p = new oai::S1apState();
   if (!state_cache_p) {
-      OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
-      return state_cache_p;
+    OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
+    return state_cache_p;
   }
   enb_map.map = state_cache_p->mutable_enbs();
   enb_map.set_name(S1AP_ENB_COLL);
@@ -74,7 +74,7 @@ oai::S1apState* create_s1ap_state(void) {
   mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
   return state_cache_p;
-  }
+}
 
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state();
