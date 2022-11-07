@@ -38,9 +38,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-///////////////////
+// /////////////////
 // LocalSessionManager service
-///////////////////
+// /////////////////
 type RATType int32
 
 const (

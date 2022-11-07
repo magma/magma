@@ -60,15 +60,15 @@ type indexerServicer struct{}
 // NewIndexerServicer returns the state indexer for directoryd.
 //
 // The directoryd indexer performs the following indexing functions:
-//	- sidToIMSI: map session ID to IMSI
+//   - sidToIMSI: map session ID to IMSI
 //
 // sidToIMSI
 //
 // Directoryd records are reported as {IMSI -> {records...}}. The sidToIMSI
 // function is an online generation of the derived reverse map, producing {session ID -> IMSI}.
 // NOTE: the indexer provides a best-effort generation of the session ID -> IMSI mapping, meaning
-//	- a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
-//	- a {session ID -> IMSI} mapping may be stale
+//   - a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
+//   - a {session ID -> IMSI} mapping may be stale
 func NewIndexerServicer() protos.IndexerServer {
 	return &indexerServicer{}
 }
