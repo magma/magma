@@ -19,6 +19,8 @@
 
 set -euo pipefail
 
+bazelversion="$1"  # We need a semantic version including patchlevel. This is usually read from .bazelversion
+
 function log() {
   echo "$@" >&2
 }
@@ -28,8 +30,10 @@ function generate_completion() {
   #
   # inspired by https://github.com/bazelbuild/bazel/blob/5f3f59ba367158b6c2e811f68cc946537b9b74d6/scripts/BUILD#L6-L26
   # which is referenced in https://bazel.build/install/completion
-  curl https://raw.githubusercontent.com/bazelbuild/bazel/release-5.3.0/scripts/bazel-complete-header.bash
-  curl https://raw.githubusercontent.com/bazelbuild/bazel/release-5.3.0/scripts/bazel-complete-template.bash
+  version="$1"
+  log "Downloading completions for Bazel version ${version}"
+  curl https://raw.githubusercontent.com/bazelbuild/bazel/release-"$version"/scripts/bazel-complete-header.bash
+  curl https://raw.githubusercontent.com/bazelbuild/bazel/release-"$version"/scripts/bazel-complete-template.bash
   bazel help completion
 }
 
@@ -37,7 +41,7 @@ if ! [ -f ~/.bash_completion.d/bazel-complete.bash ]
 then
   log "Creating completion script"
   mkdir -p ~/.bash_completion.d
-  generate_completion > ~/.bash_completion.d/bazel-complete.bash
+  generate_completion "$bazelversion" > ~/.bash_completion.d/bazel-complete.bash
 else
   log "Completion script already exists"
 fi
