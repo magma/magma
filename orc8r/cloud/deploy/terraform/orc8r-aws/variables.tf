@@ -108,7 +108,7 @@ variable "eks_worker_groups" {
   default = {
     eks_worker_group = {
       name                = "wg-1"
-      instance_types      = ["t3a.medium"]
+      instance_types      = ["t3a.large"]
       desired_size        = 3
       min_size            = 1
       max_size            = 3
@@ -150,7 +150,7 @@ variable "blue_green_worker_groups" {
   default = {
     blue_green_worker_groups = {
       name                = "wg-1"
-      instance_types      = ["t3a.medium"]
+      instance_types      = ["t3a.large"]
       desired_size        = 8
       min_size            = 1
       max_size            = 8

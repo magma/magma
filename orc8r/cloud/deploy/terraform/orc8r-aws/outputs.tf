@@ -21,21 +21,47 @@ output "eks_cluster_id" {
   value       = module.eks.cluster_id
 }
 
+output "cluster_name" {
+  description = "Cluster Name for the EKS cluster"
+  value       = var.cluster_name
+}
+
+output "oidc_provider_arn" {
+  description = "OIDC ARN"
+  value       = module.eks.oidc_provider_arn
+}
+
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
+
+output "subnets" {
+  value = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+}
+
+output "node_security_group_id" {
+  value = module.eks.node_security_group_id
+}
+
+output "cluster_oidc_issuer_url" {
+  value = module.eks.cluster_oidc_issuer_url
+}
+
 output "eks_aws_auth_configmap_yaml" {
   description = "A K8s ConfigMap to allow authentication to the EKS cluster."
   value       = module.eks.aws_auth_configmap_yaml
   sensitive   = true
 }
 
-output "efs_file_system_id" {
-  description = "ID of the EFS file system created for K8s persistent volumes."
-  value       = aws_efs_file_system.eks_pv.id
-}
+# output "efs_file_system_id" {
+#   description = "ID of the EFS file system created for K8s persistent volumes."
+#   value       = aws_efs_file_system.eks_pv.id
+# }
 
-output "efs_csi_driver_arn" {
-  description = "ARN of the IAM role for the EFS CSI Driver."
-  value       = aws_iam_role.efs_csi_driver.arn
-}
+# output "efs_csi_driver_arn" {
+#   description = "ARN of the IAM role for the EFS CSI Driver."
+#   value       = aws_iam_role.efs_csi_driver.arn
+# }
 
 output "es_endpoint" {
   description = "Endpoint of the ES cluster if deployed."

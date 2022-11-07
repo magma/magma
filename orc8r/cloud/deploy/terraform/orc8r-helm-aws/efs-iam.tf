@@ -1,5 +1,4 @@
 data "aws_iam_policy_document" "efs_csi_driver" {
-
   statement {
     actions = [
       "elasticfilesystem:DescribeAccessPoints",
@@ -46,23 +45,21 @@ resource "aws_iam_policy" "efs_csi_driver" {
   policy = data.aws_iam_policy_document.efs_csi_driver.json
 }
 
-# Role
 data "aws_iam_policy_document" "efs_csi_driver_assume" {
-
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
       type        = "Federated"
-      identifiers = [module.eks.oidc_provider_arn]
+      identifiers = [var.oidc_provider_arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub"
+      variable = "${replace(var.cluster_oidc_issuer_url, "https://", "")}:sub"
 
       values = [
-        "system:serviceaccount:kube-system:aws-efs-csi-driver",
+        "system:serviceaccount:${var.efs_namespace}:${var.efs_service_account}",
       ]
     }
 

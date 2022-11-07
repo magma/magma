@@ -58,6 +58,32 @@ variable "external_dns_role_arn" {
 # Kubernetes configuration
 ##############################################################################
 
+variable "cluster_name" {
+  description = "Name for the Orchestrator EKS cluster."
+  type        = string
+}
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "subnets" {
+  type = list(string)
+}
+
+variable "node_security_group_id" {
+  type = string
+}
+
+variable "cluster_oidc_issuer_url" {
+  type = string
+}
+
+variable "oidc_provider_arn" {
+  description = "OIDC ARN"
+  type        = string
+}
+
 variable "eks_cluster_id" {
   description = "EKS cluster ID for the K8s cluster."
   type        = string
@@ -225,20 +251,25 @@ variable "magma_uuid" {
 # EFS configuration
 ##############################################################################
 
-variable "efs_file_system_id" {
-  description = "ID of the EFS file system to use for K8s persistent volumes."
-  type        = string
-}
-
 variable "efs_storage_class_name" {
   description = "Name of the Storage class"
   type        = string
   default     = "efs-sc"
 }
 
-variable "efs_csi_driver_arn" {
-  description = "ARN of EFS CSI Driver"
-  type        = string
+# variable "efs_csi_driver_arn" {
+#   description = "ARN of EFS CSI Driver"
+#   type        = string
+# }
+
+variable "efs_service_account" {
+  type    = string
+  default = "aws-efs-csi-driver"
+}
+
+variable "efs_namespace" {
+  type    = string
+  default = "aws-efs-csi-driver"
 }
 
 ##############################################################################
