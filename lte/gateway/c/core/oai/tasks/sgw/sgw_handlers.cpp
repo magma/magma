@@ -42,6 +42,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #ifdef __cplusplus
 }
 #endif
@@ -61,9 +63,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
@@ -95,10 +95,10 @@ status_code_e sgw_handle_s11_create_session_request(
     spgw_state_t* state,
     const itti_s11_create_session_request_t* const session_req_pP,
     imsi64_t imsi64) {
-  mme_sgw_tunnel_t* new_endpoint_p = NULL;
+  mme_sgw_tunnel_t* new_endpoint_p = nullptr;
   s_plus_p_gw_eps_bearer_context_information_t*
-      s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+      s_plus_p_gw_eps_bearer_ctxt_info_p = nullptr;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   increment_counter("spgw_create_session", 1, NO_LABELS);
@@ -138,7 +138,7 @@ status_code_e sgw_handle_s11_create_session_request(
   new_endpoint_p = sgw_cm_create_s11_tunnel(
       session_req_pP->sender_fteid_for_cp.teid, sgw_generate_new_s11_cp_teid());
 
-  if (new_endpoint_p == NULL) {
+  if (new_endpoint_p == nullptr) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                     "Could not create new tunnel endpoint between S-GW and MME "
                     "for S11 abstraction\n");
@@ -232,7 +232,7 @@ status_code_e sgw_handle_s11_create_session_request(
         LOG_SPGW_APP, &s_plus_p_gw_eps_bearer_ctxt_info_p
                            ->sgw_eps_bearer_context_information);
 
-    if (eps_bearer_ctxt_p == NULL) {
+    if (eps_bearer_ctxt_p == nullptr) {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to create new EPS bearer entry\n");
       increment_counter("spgw_create_session", 1, 2, "result", "failure",
@@ -274,12 +274,12 @@ status_code_e sgw_handle_s11_create_session_request(
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Could not create new transaction for SESSION_CREATE message\n");
-    free_wrapper((void**)&new_endpoint_p);
+    free_cpp_wrapper(reinterpret_cast<void**>(&new_endpoint_p));
     increment_counter("spgw_create_session", 1, 2, "result", "failure", "cause",
                       "internal_software_error");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  free_wrapper((void**)&new_endpoint_p);
+  free_cpp_wrapper(reinterpret_cast<void**>(&new_endpoint_p));
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 
@@ -1237,15 +1237,19 @@ void sgw_handle_release_access_bearers_request(
   OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
                   "Release Access Bearer Request Received in SGW\n");
 
-  spgw_ue_context_t* ue_context_p = NULL;
+  spgw_ue_context_t* ue_context_p = nullptr;
   gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
-  s_plus_p_gw_eps_bearer_context_information_t* ctx_p = NULL;
-  hashtable_ts_get(state_ue_ht, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  s_plus_p_gw_eps_bearer_context_information_t* ctx_p = nullptr;
+
+  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get spgw_ue_state");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+  state_ue_map->get(imsi64, &ue_context_p);
 
   if (ue_context_p) {
-    sgw_s11_teid_t* s11_teid_p = NULL;
+    sgw_s11_teid_t* s11_teid_p = nullptr;
     LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
       if (s11_teid_p) {
         ctx_p = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
@@ -1524,9 +1528,9 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t msg_bearer_index = 0;
   status_code_e rc = RETURNerror;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p = NULL;
-  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p = nullptr;
+  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = nullptr;
   gtpv2c_cause_value_t cause = REQUEST_REJECTED;
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
   bearer_context_within_create_bearer_response_t bearer_context = {0};
@@ -1626,7 +1630,7 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
       }
       // Remove the temporary spgw entry
       LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
-      free_wrapper((void**)&sgw_eps_bearer_entry_p);
+      free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
       break;
     }
     sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1637,7 +1641,8 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     LIST_REMOVE(base_proc1, entries);
     free_cpp_wrapper(reinterpret_cast<void**>(
         &spgw_context->sgw_eps_bearer_context_information.pending_procedures));
-    free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
@@ -1971,9 +1976,10 @@ void handle_failed_create_bearer_response(
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
             free_wrapper((void**)&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                              ->pgw_cp_ip_port);
-            free_wrapper((void**)&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
+            free_cpp_wrapper(reinterpret_cast<void**>(
+                &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry));
           }
-          free_wrapper((void**)&sgw_eps_bearer_entry_p);
+          free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
           break;
         }
         sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1985,7 +1991,8 @@ void handle_failed_create_bearer_response(
         LIST_REMOVE(base_proc1, entries);
         free_cpp_wrapper(
             reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
-        free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+        free_cpp_wrapper(
+            reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
         pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
       }
     }
