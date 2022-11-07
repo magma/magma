@@ -61,7 +61,7 @@ var (
 	initialRequestedUnits = &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
 )
 
-//  ---- MockMultiplexor ----
+// ---- MockMultiplexor ----
 type MockMultiplexor struct {
 	imsiToIndex map[uint64]int
 }
