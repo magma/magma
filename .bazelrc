@@ -23,9 +23,6 @@ build --per_file_copt=^lte/gateway/c/.*$@-g
 # Please read the GH issue #13073 before adding "test" options.
 test --test_output=errors
 
-# Use dynamically linked folly library
-build --define=folly_so=1
-
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
 build:vm --config=specify_vm_cc
