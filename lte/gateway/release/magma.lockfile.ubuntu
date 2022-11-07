@@ -599,14 +599,14 @@
           "version": "5.17.0"
         },
         "certifi": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-certifi",
           "version": "2022.6.15"
         },
         "charset-normalizer": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-charset-normalizer",
           "version": "2.0.0"
         },
@@ -707,8 +707,8 @@
           "version": "5.2.0"
         },
         "idna": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-idna",
           "version": "3.3"
         },
@@ -725,7 +725,7 @@
           "version": "5.7.0"
         },
         "itsdangerous": {
-          "root": false,
+          "root": true,
           "source": "apt",
           "sysdep": "python3-itsdangerous",
           "version": "1.1.0"
@@ -836,7 +836,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-protobuf",
-          "version": "3.19.0"
+          "version": "3.20.3"
         },
         "psutil": {
           "root": true,
@@ -977,8 +977,8 @@
           "version": "0.7"
         },
         "requests": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-requests",
           "version": "2.28.1"
         },
@@ -1019,8 +1019,8 @@
           "version": "3.16.0"
         },
         "six": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-six",
           "version": "1.16.0"
         },
@@ -1073,8 +1073,8 @@
           "version": "3.7.4.3"
         },
         "urllib3": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-urllib3",
           "version": "1.26.11"
         },
@@ -1198,7 +1198,7 @@
           "version": "0.3.1"
         },
         "protobuf": {
-          "version": "3.19.0"
+          "version": "3.20.3"
         },
         "psutil": {
           "version": "5.9.1"
