@@ -33,8 +33,8 @@ jobs:
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
       LF_HELM_CHART_MUSEUM_REPO: magma-helm-test
-      LF_HELM_CHART_MUSEUM_USERNAME: "${{ secrets.LF_HELM_CHART_MUSEUM_USERNAME }}"
-      LF_HELM_CHART_MUSEUM_TOKEN: "${{ secrets.LF_HELM_CHART_MUSEUM_TOKEN }}"
+      LF_HELM_CHART_MUSEUM_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+      LF_HELM_CHART_MUSEUM_TOKEN: "${{ secrets.LF_JFROG_PASSWORD }}"
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
