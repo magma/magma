@@ -54,9 +54,7 @@ void delete_pending_procedures(
 //------------------------------------------------------------------------------
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* ctx_p) {
-  pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      reinterpret_cast<pgw_ni_cbr_proc_t*>(
-          calloc(1, sizeof(pgw_ni_cbr_proc_t)));
+  pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
   s11_proc_create_bearer->proc.type =
       PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST;
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -64,16 +62,12 @@ pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
   if (!ctx_p->pending_procedures) {
     ctx_p->pending_procedures =
         new sgw_eps_bearer_context_information_s::pending_procedures_s();
-    if (!(ctx_p->pending_procedures)) {
-      return nullptr;
-    }
     LIST_INIT(ctx_p->pending_procedures);
   }
   LIST_INSERT_HEAD((ctx_p->pending_procedures), base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      (pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
-          1, sizeof(s11_proc_create_bearer->pending_eps_bearers));
+      new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
 
   return s11_proc_create_bearer;
@@ -124,14 +118,16 @@ void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
           free_wrapper((void**)&eps_bearer_entry_wrapper->sgw_eps_bearer_entry
                            ->pgw_cp_ip_port);
         }
-        free_wrapper((void**)&eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
-        free_wrapper((void**)&eps_bearer_entry_wrapper);
+        free_cpp_wrapper(reinterpret_cast<void**>(
+            &eps_bearer_entry_wrapper->sgw_eps_bearer_entry));
+        free_cpp_wrapper(reinterpret_cast<void**>(&eps_bearer_entry_wrapper));
         if (LIST_EMPTY((*ni_cbr_proc)->pending_eps_bearers)) {
-          free_wrapper((void**)&(*ni_cbr_proc)->pending_eps_bearers);
+          free_cpp_wrapper(
+              reinterpret_cast<void**>(&(*ni_cbr_proc)->pending_eps_bearers));
           break;
         }
       }
     }
   }
-  free_wrapper((void**)ni_cbr_proc);
+  free_cpp_wrapper(reinterpret_cast<void**>(ni_cbr_proc));
 }
