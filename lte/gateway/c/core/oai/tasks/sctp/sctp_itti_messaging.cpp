@@ -22,6 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
+
 #include <string.h>
 #include <stdbool.h>
 
@@ -36,7 +38,6 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 
 //------------------------------------------------------------------------------
