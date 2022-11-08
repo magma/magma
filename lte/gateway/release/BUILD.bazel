@@ -28,6 +28,8 @@ VERSION_DEB = "{ver}-VERSION-SUFFIX".format(ver = VERSION)
 
 ARCH = "amd64"
 
+TAR_EXTENSION = "tar.gz"
+
 SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = SCTPD_PKGNAME,
     arch = ARCH,
@@ -76,7 +78,11 @@ pkg_tar(
         ":sctpd_version",
         "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
     ],
-    package_file_name = "{fname}.tar".format(fname = SCTPD_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = SCTPD_FILE_NAME,
+    ),
 )
 
 pkg_deb(
@@ -185,7 +191,11 @@ pkg_tar(
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
         "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
     ],
-    package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = MAGMA_FILE_NAME,
+    ),
 )
 
 pkg_deb(
