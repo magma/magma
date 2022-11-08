@@ -24,6 +24,7 @@ from magma.pipelined.mobilityd_client import (
     get_mobilityd_gw_info,
     set_mobilityd_gw_info,
 )
+from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel

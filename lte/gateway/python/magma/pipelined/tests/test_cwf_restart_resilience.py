@@ -49,7 +49,6 @@ class CWFRestartResilienceTest(unittest.TestCase):
         'netifaces.ifaddresses',
         return_value={0: [{'addr': '00:11:22:33:44:55'}]},
     )
-    @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps
