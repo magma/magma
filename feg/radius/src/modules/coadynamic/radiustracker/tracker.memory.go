@@ -2,11 +2,12 @@ package radiustracker
 
 import (
 	"errors"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2866"
 	"fmt"
 	"net"
 	"sync"
+
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2866"
 )
 
 type memoryRadiusTracker struct {

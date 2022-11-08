@@ -155,11 +155,8 @@ def main():
         parser.print_usage()
         exit(1)
 
-    print('Preparing %s load test...' % args.cmd)
     # Execute the subcommand function
     args.func(args)
-
-    print('Done')
 
 
 if __name__ == "__main__":

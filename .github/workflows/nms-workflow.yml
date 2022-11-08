@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: nms-workflow
+name: NMS Lint & Test
 
 on:
   push:
@@ -36,9 +36,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
@@ -63,8 +63,8 @@ jobs:
       run:
         working-directory: "${{ github.workspace }}/nms"
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # pin@v3.5.1
         with:
           node-version: 16
       - name: install yarn
@@ -100,8 +100,8 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
-      - uses: actions/setup-node@1f8c6b94b26d0feae1e387ca63ccbdc44d27b561 # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # pin@v3.5.1
         with:
           node-version: 16
       - name: apt install yarn
@@ -147,7 +147,7 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: borales/actions-yarn@d8ce577a6f5d99a459fc7fdf2a86844617e353e4 # pin@v3.0.0
         with:
           cmd: install # will run `yarn install` command
@@ -186,7 +186,7 @@ jobs:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
       PUPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: apt install yarn
         run: |
           cd ${MAGMA_ROOT}/nms

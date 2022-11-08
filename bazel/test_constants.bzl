@@ -34,6 +34,9 @@ TAG_MANUAL = ["manual"]
 # Note: for now a sudo test is also tagged as "manual".
 TAG_SUDO_TEST = ["sudo_test"] + TAG_MANUAL
 
+# Used for integration tests. These tests need to be executed manually
+# by a user with sudo privileges. These tags represent test categories,
+# which are used to determine the appropriate environment for them.
 TAG_PRECOMMIT_TEST = ["precommit_test"] + TAG_MANUAL
 TAG_EXTENDED_TEST = ["extended_test"] + TAG_MANUAL
 TAG_EXTENDED_TEST_SETUP = ["extended_setup"] + TAG_MANUAL
@@ -42,3 +45,9 @@ TAG_NON_SANITY_TEST = ["nonsanity_test"] + TAG_MANUAL
 TAG_NON_SANITY_TEST_SETUP = ["nonsanity_setup"] + TAG_MANUAL
 TAG_NON_SANITY_TEST_TEARDOWN = ["nonsanity_teardown"] + TAG_MANUAL
 TAG_TRAFFIC_SERVER_TEST = ["traffic_server_test"]
+
+# Tag for utility scripts that are used in the Magma VM.
+TAG_UTIL_SCRIPT = ["util_script"]
+
+# Tag for Magma services.
+TAG_SERVICE = ["service"]

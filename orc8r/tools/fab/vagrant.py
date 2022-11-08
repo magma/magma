@@ -36,8 +36,10 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
     Sets the environment to point at the local vagrant machine. Used
     whenever we need to run commands on the vagrant machine.
     """
-
     __ensure_in_vagrant_dir()
+
+    # An empty local ssh config file stops warnings from being printed.
+    local('touch ~/.ssh/config')
 
     # Ensure that VM is running
     isUp = local('vagrant status %s' % machine, capture=True) \

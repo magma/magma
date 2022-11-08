@@ -9,6 +9,7 @@
    limitations under the License.
  */
 #include <sstream>
+#include <cstdint>
 
 #ifdef __cplusplus
 extern "C" {
@@ -249,6 +250,27 @@ int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
   }
 
   return decoded;
+}
+
+// Convert mfbr and gfbr values in proper format
+void M5GQosFlowParam::mfbr_gbr_convert(
+    magma5g::M5GQosFlowParam* flow_des_paramList, uint64_t element) {
+  int count = 0;
+  while (element > UINT16_MAX) {
+    element /= 1024;
+    if (count == 0) {
+      count = M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_KBPS;
+    } else {
+      count += M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_COUNT;
+    }
+  }
+  if (count == 0) {
+    flow_des_paramList->element = (uint16_t)element / 1024;
+    flow_des_paramList->units = M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_KBPS;
+  } else {
+    flow_des_paramList->element = (uint16_t)element;
+    flow_des_paramList->units = count;
+  }
 }
 
 }  // namespace magma5g

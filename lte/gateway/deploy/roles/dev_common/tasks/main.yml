@@ -54,6 +54,7 @@
   become_user: "{{ ansible_user }}"
   command: ansible-galaxy collection install community.general
   ignore_errors: yes
+  when: preburn
 
 - name: Set build environment variables
   lineinfile:
@@ -90,6 +91,7 @@
     line: "{{ item }}"
   with_items:
     - export PATH=$PATH:"/usr/local/go/bin"
+  when: preburn
 
 - name: Create the ccache directory
   file:
@@ -97,7 +99,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-  when: full_provision
+  when: preburn
 
 #################################
 # Add common convenience aliases
@@ -108,7 +110,7 @@
     dest: /home/{{ ansible_user }}/.bashrc
     state: present
     line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
-  when: full_provision
+  when: preburn
 
 ##############################
 # Install dependency packages
@@ -179,13 +181,11 @@
     pkg:
       - autogen
       - autoconf
-      - build-essential
       - ccache
       - ninja-build
       - git
       - libtool
       - python3-apt
-      - python3-setuptools
       - python3-requests
       - python3-pip
       - python3-debian
@@ -194,6 +194,16 @@
       - curl
   retries: 5
   when: preburn
+
+- name: Install python3-venv for creating dev venvs (used by rules_pyvenv)
+  # TODO: move to preburn
+  tags: dev
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - python3-venv
+  retries: 5
 
 - name: Install build requirements for Ubuntu systems
   # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
@@ -214,7 +224,7 @@
   file:
     path: /etc/profile.d/env.sh
     state: touch
-  when: full_provision
+  when: preburn
 
 - name: Override the default compiler with cache
   lineinfile:
@@ -235,6 +245,7 @@
     url: "https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64"
     dest: /usr/sbin/bazelisk-linux-amd64
     mode: ugo+x
+  when: preburn
 
 - name: Create a symlink for /usr/sbin/bazel
   # yamllint disable rule:truthy
@@ -244,6 +255,7 @@
     path: /usr/sbin/bazel
     state: link
     force: yes
+  when: preburn
 
 ########################################
 # Install common Magma dev dependencies
@@ -287,36 +299,6 @@
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
-
-###############################################
-# Download and build libprotobuf-mutator
-###############################################
-
-- name: Clone libprotobuf-mutator repo
-  become: yes
-  git:
-    repo: 'https://github.com/google/libprotobuf-mutator'
-    dest: "{{ tmp_libprotobuf_mutator_dir }}"
-    version: v1.0
-    force: yes
-  when: preburn
-
-- name: Create a build directory for libprotobuf-mutator
-  file:
-    path: "{{ tmp_libprotobuf_mutator_dir }}/build"
-    state: directory
-  when: preburn
-
-# Fails build unless we add -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON
-#  to download and build updated proto lib.
-- name: Build libprotobuf-mutator
-  become: yes
-  shell: |
-    cd {{ tmp_libprotobuf_mutator_dir }}/build && \
-    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON && \
-    ninja && \
-    ninja install
-  when: preburn
 
 ###############################################
 # Download and build sentry-native
@@ -396,6 +378,16 @@
     path: /var/tmp/test_results
     state: directory
     mode: 0777
+  when: preburn
+
+- name: Install multipath-tools
+  become: yes
+  apt:
+    pkg: multipath-tools
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
 
 - name: Patch multipath conf
   when: preburn
@@ -423,27 +415,6 @@
   copy:
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
-
-- name: Wait for APT Lock
-  shell: |
-    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
-      while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1 ; do
-        sleep 1
-      done
-    fi
-
-- name: Remove unattended upgrades
-  apt:
-    state: absent
-    purge: yes
-    pkg:
-      - unattended-upgrades
 
 - name: Install LLDB debugger
   apt:

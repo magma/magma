@@ -201,10 +201,10 @@ vagrant ssh magma_test
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests
 ## Individual test(s), e.g.:
-make fed_integ_test TESTS=s1aptests/test_attach_detach.py
+make prepare_federation selected_tests TESTS="<test(s)_to_run_space_separated>"
 
 ## All tests
-make fed_integ_test
+make federated_integ_test
 
 # once the tests are done, you can exit the vagrant vm
 exit

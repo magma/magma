@@ -1,1 +1,1 @@
-../../../../../docs/readmes/feg/s1ap_federated_test.md
+../../../../../docs/readmes/feg/s1ap_federated_tests.md

@@ -65,10 +65,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
@@ -92,13 +92,8 @@ extern "C" {
 extern status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
+
 /*
    Internal data used for attach procedure
 */

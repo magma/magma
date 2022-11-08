@@ -38,7 +38,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #ifdef __cplusplus
 }
 #endif
@@ -94,6 +93,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_encoder.hpp"
@@ -702,7 +702,8 @@ status_code_e s1ap_mme_handle_s1_setup_request(oai::S1apState* state,
   rc = s1ap_generate_s1_setup_response(state, &enb_association);
   if (rc == RETURNok) {
     state->set_num_enbs(state->num_enbs() + 1);
-    set_gauge("s1_connection", 1, 1, "enb_name", enb_association.enb_name());
+    set_gauge("s1_connection", 1, 1, "enb_name",
+              enb_association.enb_name().c_str());
     increment_counter("s1_setup", 1, 1, "result", "success");
     s1_setup_success_event(enb_name, enb_id);
   }

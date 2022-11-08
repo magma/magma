@@ -102,7 +102,8 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
                 ue_id,
             )
             # Wait for UE_CTX_REL_IND
-            response = self._s1ap_wrapper.s1_util.get_response()
+            while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
+                response = self._s1ap_wrapper.s1_util.get_response()
         assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Perform end-end attach

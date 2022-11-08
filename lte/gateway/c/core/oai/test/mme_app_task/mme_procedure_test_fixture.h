@@ -24,9 +24,9 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
 }
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 
 extern bool mme_hss_associated;

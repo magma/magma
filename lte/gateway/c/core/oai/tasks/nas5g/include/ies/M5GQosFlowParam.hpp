@@ -31,6 +31,12 @@ class M5GQosFlowParam {
 
 #define M5G_QOS_FLOW_PARAM_BIT_RATE_LEN 3
 #define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_KBPS 1
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_MBPS 6
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_GBPS 11
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_TBPS 16
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_PBPS 21
+#define M5G_QOS_FLOW_PARAM_BIT_RATE_UNITS_COUNT \
+  5  // Considering only 1KBPS,1MBPS,1GBPS,1TBPS,1PBPS as per the specs.
   uint8_t length;
   uint8_t units;
   uint16_t element;
@@ -38,6 +44,8 @@ class M5GQosFlowParam {
   M5GQosFlowParam();
   ~M5GQosFlowParam();
 
+  void mfbr_gbr_convert(magma5g::M5GQosFlowParam* flow_des_paramList,
+                        uint64_t element);
   int EncodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,
                             uint32_t len);
   int DecodeM5GQosFlowParam(M5GQosFlowParam* param, uint8_t* buffer,

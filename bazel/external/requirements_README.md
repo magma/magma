@@ -10,7 +10,7 @@ Requirements.txt holds all Python dependencies which are required by Python-base
     
        `cd $MAGMA/bazel/external`
 
-       `pip-compile --generate-hashes --output-file=requirements.txt requirements.in`
+       `pip-compile --upgrade-package --generate-hashes --output-file=requirements.txt requirements.in`
 
  The changes are then automatically included in the next Bazel build process.
 

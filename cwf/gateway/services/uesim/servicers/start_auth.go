@@ -14,8 +14,9 @@
 package servicers
 
 import (
-	"fbc/lib/go/radius"
 	"magma/feg/gateway/services/eap"
+
+	"layeh.com/radius"
 )
 
 // todo use a config to assign this value
