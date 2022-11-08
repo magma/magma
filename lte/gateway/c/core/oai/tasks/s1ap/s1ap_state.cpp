@@ -118,7 +118,7 @@ void put_s1ap_imsi_map() {
   S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
-s1ap_imsi_map_t* get_s1ap_imsi_map() {
+oai::S1apImsiMap* get_s1ap_imsi_map() {
   return S1apStateManager::getInstance().get_s1ap_imsi_map();
 }
 
@@ -144,8 +144,9 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
   imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
   oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
   if (*target_imsi64 != INVALID_IMSI64 && *target_imsi64 == imsi64) {
     *resultP = elementP;
@@ -192,8 +193,14 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   if ((enb_map.isEmpty())) {
     return;
   }
+
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
-  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  if (!s1ap_imsi_map) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
+    return;
+  }
   oai::UeDescription* ue_ref_p = nullptr;
 
   // get each eNB in s1ap_state
@@ -225,10 +232,11 @@ void remove_ues_without_imsi_from_ue_id_coll() {
       }
     }
     // remove all the mme_ue_s1ap_ids
+    ueid_imsi_map.map = s1ap_imsi_map->mutable_mme_ue_s1ap_id_imsi_map();
     for (uint32_t i = 0; i < mme_ue_id_no_imsi_list.size(); i++) {
       ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
-      s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_id_no_imsi_list[i]);
+      ueid_imsi_map.remove(mme_ue_id_no_imsi_list[i]);
       enb_association_p.set_nb_ue_associated(
           (enb_association_p.nb_ue_associated() - 1));
 

@@ -82,7 +82,6 @@ add_library(TASK_S1AP
     ${S1AP_DIR}/s1ap_mme_ta.cpp
     ${S1AP_DIR}/s1ap_state.cpp
     ${S1AP_DIR}/s1ap_state_manager.cpp
-    ${S1AP_DIR}/s1ap_state_converter.cpp
     ${S1AP_DIR}/s1ap_timer_management.cpp
     )
 target_link_libraries(TASK_S1AP
