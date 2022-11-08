@@ -783,7 +783,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         ue_context_p->m5_mobile_reachability_timer.id ==
             AMF_APP_TIMER_INACTIVE_ID) {
       ue_context_p->m5_mobile_reachability_timer.sec =
-          (amf_config.nas_config.t3512_min + (4 * 60));
+          (amf_config.nas_config.t3512_min + 4) * 60;
       ue_context_p->m5_implicit_deregistration_timer.sec =
           ue_context_p->m5_mobile_reachability_timer.sec;
 

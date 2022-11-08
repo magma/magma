@@ -75,7 +75,6 @@ RUN apt-get install -y --no-install-recommends \
 # setup magma artifactories and install magma dependencies
 RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add - && \
     add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.7.0 main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \
