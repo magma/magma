@@ -1095,7 +1095,7 @@ jobs:
     needs: agw-build
     steps:
       - name: Trigger debian integ test workflow
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
