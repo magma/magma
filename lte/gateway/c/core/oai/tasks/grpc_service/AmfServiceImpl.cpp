@@ -67,36 +67,60 @@ Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
   // ToDo processing ITTI,ZMQ
 
   itti_n11_received_notification_t itti_msg;
+  memset(&itti_msg, 0, sizeof(itti_n11_received_notification_t));
+
+  SetAmfNotification_itti(notif, &itti_msg);
+
+  send_n11_notification_received_itti(&itti_msg);
+  return Status::OK;
+}
+
+Status AmfServiceImpl::SetAmfNotification_itti(
+    const SetSmNotificationContext* notif,
+    itti_n11_received_notification_t* itti_msg) {
   auto& notify_common = notif->common_context();
   auto& req_m5g = notif->rat_specific_notification();
 
   // CommonSessionContext
-  get_subscriber_id(notify_common.sid().id(), itti_msg.imsi);
+  get_subscriber_id(notify_common.sid().id(), itti_msg->imsi);
 
-  itti_msg.sm_session_fsm_state =
+  itti_msg->sm_session_fsm_state =
       (SMSessionFSMState_response)notify_common.sm_session_state();
-  itti_msg.sm_session_version = notify_common.sm_session_version();
+  itti_msg->sm_session_version = notify_common.sm_session_version();
 
-  // RatSpecificContextAccess
-  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
-  itti_msg.request_type = (RequestType_received)req_m5g.request_type();
-  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
-  itti_msg.m5g_sm_capability.reflective_qos =
+  // RatSpecificContextAccessS
+  itti_msg->pdu_session_id = req_m5g.pdu_session_id();
+  itti_msg->request_type = (RequestType_received)req_m5g.request_type();
+  itti_msg->pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
+  itti_msg->m5g_sm_capability.reflective_qos =
       req_m5g.m5g_sm_capability().reflective_qos();
-  itti_msg.m5g_sm_capability.multi_homed_ipv6_pdu_session =
+  itti_msg->m5g_sm_capability.multi_homed_ipv6_pdu_session =
       req_m5g.m5g_sm_capability().multi_homed_ipv6_pdu_session();
-  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
+  itti_msg->m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
   // pdu_change
-  itti_msg.notify_ue_evnt = (notify_ue_event)req_m5g.notify_ue_event();
-
-  send_n11_notification_received_itti(&itti_msg);
+  itti_msg->notify_ue_evnt = (notify_ue_event)req_m5g.notify_ue_event();
   return Status::OK;
 }
 // Set message from SessionD received
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
+  itti_n11_create_pdu_session_response_t itti_msg;
+  memset(&itti_msg, 0, sizeof(itti_n11_create_pdu_session_response_t));
+
+  if (SetSmfSessionContext_itti(request, &itti_msg) == false) {
+    return Status::CANCELLED;
+  }
+
+  send_n11_create_pdu_session_resp_itti(&itti_msg);
+  OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request \n");
+  return Status::OK;
+}
+
+bool AmfServiceImpl::SetSmfSessionContext_itti(
+    const SetSMSessionContextAccess* request,
+    itti_n11_create_pdu_session_response_t* itti_msg_p) {
   struct in_addr ip_addr = {0};
   char ip_str[INET_ADDRSTRLEN] = {0};
   uint32_t ip_int = 0;
@@ -110,60 +134,60 @@ Status AmfServiceImpl::SetSmfSessionContext(
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 
-  itti_n11_create_pdu_session_response_t itti_msg;
-  memset(&itti_msg, 0, sizeof(itti_n11_create_pdu_session_response_t));
   auto& req_common = request->common_context();
   auto& req_m5g = request->rat_specific_context().m5g_session_context_rsp();
 
   // CommonSessionContext
-  get_subscriber_id(req_common.sid().id(), itti_msg.imsi);
+  get_subscriber_id(req_common.sid().id(), itti_msg_p->imsi);
 
-  itti_msg.sm_session_fsm_state =
+  itti_msg_p->sm_session_fsm_state =
       (sm_session_fsm_state_t)req_common.sm_session_state();
-  itti_msg.sm_session_version = req_common.sm_session_version();
+  itti_msg_p->sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
-  itti_msg.pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
-  itti_msg.selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
-  itti_msg.m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
+  itti_msg_p->pdu_session_id = req_m5g.pdu_session_id();
+  itti_msg_p->pdu_session_type = (pdu_session_type_t)req_m5g.pdu_session_type();
+  itti_msg_p->selected_ssc_mode = (ssc_mode_t)req_m5g.selected_ssc_mode();
+  itti_msg_p->m5gsm_cause = (m5g_sm_cause_t)req_m5g.m5gsm_cause();
 
   if (!(req_m5g.qos_policy_size()) && req_m5g.has_subscribed_qos()) {
-    itti_msg.session_ambr.uplink_unit_type = req_m5g.subscribed_qos().br_unit();
-    itti_msg.session_ambr.uplink_units = req_m5g.subscribed_qos().apn_ambr_ul();
-
-    itti_msg.session_ambr.downlink_unit_type =
+    itti_msg_p->session_ambr.uplink_unit_type =
         req_m5g.subscribed_qos().br_unit();
-    itti_msg.session_ambr.downlink_units =
+    itti_msg_p->session_ambr.uplink_units =
+        req_m5g.subscribed_qos().apn_ambr_ul();
+
+    itti_msg_p->session_ambr.downlink_unit_type =
+        req_m5g.subscribed_qos().br_unit();
+    itti_msg_p->session_ambr.downlink_units =
         req_m5g.subscribed_qos().apn_ambr_dl();
 
     // authorized qos profile
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
+    itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         req_m5g.subscribed_qos().qos_class_id();
 
     // default flow descriptors
     if (req_m5g.subscribed_qos().qos_class_id()) {
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
           req_m5g.subscribed_qos().qos_class_id();
 
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.fiveQi =
           req_m5g.subscribed_qos().qos_class_id();
     }
 
-    itti_msg.qos_flow_list.item[i]
+    itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
         .non_dynamic_5QI_desc.fiveQI =
         req_m5g.subscribed_qos().qos_class_id();  // enum
-    itti_msg.qos_flow_list.item[i]
+    itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
         .priority_level = req_m5g.subscribed_qos().priority_level();  // uint32
-    itti_msg.qos_flow_list.item[i]
+    itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
         .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
                                .preemption_capability();  // enum
-    itti_msg.qos_flow_list.item[i]
+    itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
         .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
                                .preemption_vulnerability();  // enum
@@ -171,84 +195,86 @@ Status AmfServiceImpl::SetSmfSessionContext(
   }
 
   for (; i < req_m5g.qos_policy_size(); i++) {
-    ul_tft = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
+    ul_tft = &itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.ul_tft;
     memset(ul_tft, 0, sizeof(traffic_flow_template_t));
     auto& qos_rule = req_m5g.qos_policy(i);
     // Session ambr is policy ambr if policy attached
-    itti_msg.session_ambr.uplink_units = qos_rule.qos().qos().max_req_bw_ul();
+    itti_msg_p->session_ambr.uplink_units =
+        qos_rule.qos().qos().max_req_bw_ul();
 
-    itti_msg.session_ambr.downlink_units = qos_rule.qos().qos().max_req_bw_dl();
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
+    itti_msg_p->session_ambr.downlink_units =
+        qos_rule.qos().qos().max_req_bw_dl();
+    itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         qos_rule.qos().qos().qci();
 
-    itti_msg.qos_flow_list.item[i]
+    itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
         .non_dynamic_5QI_desc.fiveQI = qos_rule.qos().qos().qci();  // enum
     if (qos_rule.qos().qos().arp().priority_level()) {
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .priority_level =
           qos_rule.qos().qos().arp().priority_level();  // uint32
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_cap = (pre_emption_capability)qos_rule.qos()
                                  .qos()
                                  .arp()
                                  .pre_capability();  // enum
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_vul = (pre_emption_vulnerability)qos_rule.qos()
                                  .qos()
                                  .arp()
                                  .pre_vulnerability();  // enum
     } else {
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .priority_level =
           req_m5g.subscribed_qos().priority_level();  // uint32
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
                                  .preemption_capability();  // enum
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
                                  .preemption_vulnerability();  // enum
     }
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
+    itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
         (qos_flow_action_t)qos_rule.policy_action();  // enum
-    itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
+    itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
         qos_rule.version();  // uint32
     strncpy(reinterpret_cast<char*>(
-                itti_msg.qos_flow_list.item[i].qos_flow_req_item.rule_id),
+                itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.rule_id),
             qos_rule.qos().id().c_str(), strlen(qos_rule.qos().id().c_str()));
 
     // flow descriptor
     if (qos_rule.qos().has_qos()) {
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.qos_flow_identifier =
           qos_rule.qos().qos().qci();
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.fiveQi =
           qos_rule.qos().qos().qci();
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.mbr_dl =
           qos_rule.qos().qos().max_req_bw_dl();
-      itti_msg.qos_flow_list.item[i]
+      itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_descriptor.mbr_ul =
           qos_rule.qos().qos().max_req_bw_ul();
       if (qos_rule.qos().qos().gbr_dl()) {
-        itti_msg.qos_flow_list.item[i]
+        itti_msg_p->qos_flow_list.item[i]
             .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
             qos_rule.qos().qos().gbr_dl();
-        itti_msg.qos_flow_list.item[i]
+        itti_msg_p->qos_flow_list.item[i]
             .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
             qos_rule.qos().qos().gbr_ul();
       } else {
-        itti_msg.qos_flow_list.item[i]
+        itti_msg_p->qos_flow_list.item[i]
             .qos_flow_req_item.qos_flow_descriptor.gbr_dl =
             qos_rule.qos().qos().max_req_bw_dl();
-        itti_msg.qos_flow_list.item[i]
+        itti_msg_p->qos_flow_list.item[i]
             .qos_flow_req_item.qos_flow_descriptor.gbr_ul =
             qos_rule.qos().qos().max_req_bw_ul();
       }
@@ -276,7 +302,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
                 LOG_UTIL,
                 "The uplink packet filter contents are not formatted correctly."
                 "Canceling qos flow creation request. \n");
-            return Status::CANCELLED;
+            return false;
           }
           ++ul_count_packetfilters;
           ul_tft->numberofpacketfilters++;
@@ -287,25 +313,25 @@ Status AmfServiceImpl::SetSmfSessionContext(
       }
     }
   }
-  itti_msg.qos_flow_list.maxNumOfQosFlows = i;
+  itti_msg_p->qos_flow_list.maxNumOfQosFlows = i;
 
   // get the 4 byte UPF TEID and UPF IP message
   uint32_t nteid = req_m5g.upf_endpoint().teid();
-  itti_msg.upf_endpoint.teid[0] = (nteid >> 24) & 0xFF;
-  itti_msg.upf_endpoint.teid[1] = (nteid >> 16) & 0xFF;
-  itti_msg.upf_endpoint.teid[2] = (nteid >> 8) & 0xFF;
-  itti_msg.upf_endpoint.teid[3] = nteid & 0xFF;
+  itti_msg_p->upf_endpoint.teid[0] = (nteid >> 24) & 0xFF;
+  itti_msg_p->upf_endpoint.teid[1] = (nteid >> 16) & 0xFF;
+  itti_msg_p->upf_endpoint.teid[2] = (nteid >> 8) & 0xFF;
+  itti_msg_p->upf_endpoint.teid[3] = nteid & 0xFF;
 
   if (req_m5g.upf_endpoint().end_ipv4_addr().size() > 0) {
     inet_pton(AF_INET, req_m5g.upf_endpoint().end_ipv4_addr().c_str(),
-              itti_msg.upf_endpoint.end_ipv4_addr);
+              itti_msg_p->upf_endpoint.end_ipv4_addr);
   }
 
-  itti_msg.procedure_trans_identity = req_m5g.procedure_trans_identity();
-  itti_msg.always_on_pdu_session_indication =
+  itti_msg_p->procedure_trans_identity = req_m5g.procedure_trans_identity();
+  itti_msg_p->always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
-  itti_msg.allowed_ssc_mode = (ssc_mode_t)req_m5g.allowed_ssc_mode();
-  itti_msg.m5gsm_congetion_re_attempt_indicator =
+  itti_msg_p->allowed_ssc_mode = (ssc_mode_t)req_m5g.allowed_ssc_mode();
+  itti_msg_p->m5gsm_congetion_re_attempt_indicator =
       req_m5g.m5g_sm_congestion_reattempt_indicator();
 
   // PDU IP address coming from SMF in human-readable format has to be packed
@@ -313,26 +339,25 @@ Status AmfServiceImpl::SetSmfSessionContext(
 
   if (req_common.ue_ipv4().size() > 0) {
     inet_pton(AF_INET, req_common.ue_ipv4().c_str(),
-              &(itti_msg.pdu_address.ipv4_address));
-    itti_msg.pdu_address.pdn_type = IPv4;
+              &(itti_msg_p->pdu_address.ipv4_address));
+    itti_msg_p->pdu_address.pdn_type = IPv4;
   }
 
   if (req_common.ue_ipv6().size() > 0) {
     inet_pton(AF_INET6, req_common.ue_ipv6().c_str(),
-              &(itti_msg.pdu_address.ipv6_address));
+              &(itti_msg_p->pdu_address.ipv6_address));
 
     if (req_common.ue_ipv4().size() == 0) {
-      itti_msg.pdu_address.pdn_type = IPv6;
+      itti_msg_p->pdu_address.pdn_type = IPv6;
     } else {
-      itti_msg.pdu_address.pdn_type = IPv4_AND_v6;
+      itti_msg_p->pdu_address.pdn_type = IPv4_AND_v6;
     }
 
-    itti_msg.pdu_address.ipv6_prefix_length = IPV6_PREFIX_LEN;
+    itti_msg_p->pdu_address.ipv6_prefix_length = IPV6_PREFIX_LEN;
   }
 
-  send_n11_create_pdu_session_resp_itti(&itti_msg);
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request \n");
-  return Status::OK;
+  return true;
 }
 
 bool AmfServiceImpl::fillUpPacketFilterContents(
@@ -493,10 +518,11 @@ bool AmfServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
 }
 
 bool AmfServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
-                              const std::string ipv6addr) {
+                              const std::string ipv6network_str) {
   struct in6_addr in6addr;
-  if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
-    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv6addr.c_str());
+  if (inet_pton(AF_INET6, ipv6network_str.c_str(), &in6addr) != 1) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n",
+                 ipv6network_str.c_str());
     return false;
   }
   for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
