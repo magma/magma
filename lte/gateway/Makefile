@@ -59,8 +59,6 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
-test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
-
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
 
@@ -122,24 +120,9 @@ build_connection_tracker:
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
-# Catch all for c services that don't have custom flags
-# This works with build_dpi
-build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
-
 test_python: ## Run all Python-specific tests
 	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
-
-test_sudo_python: ## Run Python tests that require sudo (datapath, etc.)
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
-
-test_python_service: ## Run all Python-specific tests for a given service
-ifdef UT_PATH
-	$(eval ut_path?=$(shell realpath $(UT_PATH)))
-endif
-	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
 
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
@@ -157,13 +140,6 @@ test_oai_runtime: ## Run all OAI-specific tests with report about the running ti
 
 test_sctpd: ## Run all tests for sctpd
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
-
-test_common: ## Run all tests in magma_common
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
-	# Run the common lib tests that exist
-	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
 
 test_li_agent:
 	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )

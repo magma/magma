@@ -33,7 +33,8 @@ typedef enum proto_map_return_code_e {
   PROTO_MAP_BAD_PARAMETER_VALUE,
   PROTO_MAP_EMPTY,
   PROTO_MAP_NOT_CREATED,
-  PROTO_MAP_DUMP_FAIL
+  PROTO_MAP_DUMP_FAIL,
+  PROTO_MAP_REMOVE_KEY_FAILED
 } proto_map_rc_t;
 
 /***************************************************************************
