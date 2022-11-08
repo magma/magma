@@ -400,6 +400,7 @@ jobs:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ env.DOCKER_IMAGE }}
           DOCKERCONTEXT: ${{ env.DOCKERCONTEXT }}
+          PUSH: ${{ github.event_name == 'push' }}
 
   agw-container-build-python-ghz:
     runs-on: ubuntu-latest
@@ -427,6 +428,7 @@ jobs:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ env.DOCKER_IMAGE }}
           DOCKERCONTEXT: ${{ env.DOCKERCONTEXT }}
+          PUSH: ${{ github.event_name == 'push' }}
 
   agw-container-build-c:
     if: github.repository_owner == 'magma'
@@ -453,6 +455,7 @@ jobs:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ env.DOCKER_IMAGE }}
           DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
 
   agw-container-build-python:
     if: github.repository_owner == 'magma'
@@ -479,6 +482,7 @@ jobs:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ env.DOCKER_IMAGE }}
           DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
 
   agw-container-build-go:
     if: github.repository_owner == 'magma'
@@ -505,6 +509,7 @@ jobs:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ env.DOCKER_IMAGE }}
           DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
 
   agw-container-build-is-successful:
     runs-on: ubuntu-latest
