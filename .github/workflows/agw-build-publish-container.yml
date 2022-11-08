@@ -1,0 +1,213 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: AGW Build & Publish Container
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request_target:
+    types: [ opened, reopened, synchronize ]
+    branches:
+      - master
+      - 'v1.*'
+
+jobs:
+
+  build-c-ghz:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'magma'
+    needs: build-c
+    env:
+      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
+      DOCKER_IMAGE: ghz_gateway_c
+      DOCKERCONTEXT: lte/gateway/docker/ghz
+    outputs:
+      digest: ${{ steps.agw-build-docker.outputs.digest }}
+    steps:
+      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+
+      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
+
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: agw-build-docker
+        with:
+          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY: ${{ env.DOCKER_REGISTRY }}
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKERCONTEXT: ${{ env.DOCKERCONTEXT }}
+          PUSH: ${{ github.event_name == 'push' }}
+
+  build-python-ghz:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'magma'
+    needs: build-python
+    env:
+      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
+      DOCKER_IMAGE: ghz_gateway_python
+      DOCKERCONTEXT: lte/gateway/docker/ghz
+    outputs:
+      digest: ${{ steps.agw-build-docker.outputs.digest }}
+    steps:
+      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+
+      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
+
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: agw-build-docker
+        with:
+          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY: ${{ env.DOCKER_REGISTRY }}
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKERCONTEXT: ${{ env.DOCKERCONTEXT }}
+          PUSH: ${{ github.event_name == 'push' }}
+
+  build-c:
+    if: github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
+      DOCKER_IMAGE: agw_gateway_c
+      DOCKER_FILE: lte/gateway/docker/services/c/Dockerfile
+    outputs:
+      digest: ${{ steps.agw-build-docker.outputs.digest }}
+    steps:
+      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+
+      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
+
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: agw-build-docker
+        with:
+          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY: ${{ env.DOCKER_REGISTRY }}
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
+
+  build-python:
+    if: github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
+      DOCKER_IMAGE: agw_gateway_python
+      DOCKER_FILE: lte/gateway/docker/services/python/Dockerfile
+    outputs:
+      digest: ${{ steps.agw-build-docker.outputs.digest }}
+    steps:
+      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+
+      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
+
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: agw-build-docker
+        with:
+          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY: ${{ env.DOCKER_REGISTRY }}
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
+
+  build-go:
+    if: github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
+      DOCKER_IMAGE: gateway_go
+      DOCKER_FILE: feg/gateway/docker/go/Dockerfile
+    outputs:
+      digest: ${{ steps.agw-build-docker.outputs.digest }}
+    steps:
+      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+
+      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
+
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: agw-build-docker
+        with:
+          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY: ${{ env.DOCKER_REGISTRY }}
+          IMAGE: ${{ env.DOCKER_IMAGE }}
+          DOCKERFILE: ${{ env.DOCKER_FILE }}
+          PUSH: ${{ github.event_name == 'push' }}
+
+  collect-is-successful:
+    runs-on: ubuntu-latest
+    if: success()
+    needs:
+      - build-c
+      - build-python
+      - build-go
+    outputs:
+      digest-c: ${{ needs.build-c.outputs.digest }}
+      digest-python: ${{ needs.build-python.outputs.digest }}
+      digest-go: ${{ needs.build-go.outputs.digest }}
+    steps:
+      - run: echo "Successfully built AGW containers."
+
+  check-is-successful:
+    name: agw container build
+    runs-on: ubuntu-latest
+    if: always() && github.repository_owner == 'magma'
+    needs:
+      - collect-is-successful
+    permissions:
+      actions: write
+    steps:
+      - name: Check completion of all build steps
+        run: |
+          if [ "${{ needs.collect-is-successful.result }}" = "success" ];
+          then
+            exit 0
+          else
+            echo "Exit status of some previous job(s) was ${{ needs.collect-is-successful.result }}"
+            exit 1
+          fi
+
+      - name: Show docker image digests
+        run: |
+          echo "digest-c:      ${{ needs.collect-is-successful.outputs.digest-c }}"
+          echo "digest-python: ${{ needs.collect-is-successful.outputs.digest-python }}"
+          echo "digest-go:     ${{ needs.collect-is-successful.outputs.digest-go }}"
+
+      - name: Trigger integration test workflow
+        uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@2.1.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: magma/magma
+          event-type: agw-build-docker
+          client-payload: '{
+            "digest-c":      "${{ needs.collect-is-successful.outputs.digest-c }}",
+            "digest-python": "${{ needs.collect-is-successful.outputs.digest-python }}",
+            "digest-go":     "${{ needs.collect-is-successful.outputs.digest-go }}"
+            }'
