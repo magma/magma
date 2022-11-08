@@ -14,6 +14,7 @@ limitations under the License.
 import json
 import os
 import time
+from typing import Dict
 
 import pyrebase
 
