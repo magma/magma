@@ -69,6 +69,7 @@ pkg_files(
     srcs = ["//lte/gateway/c/sctpd/src:sctpd"],
     attributes = pkg_attributes(mode = "0755"),
     prefix = "/usr/local/sbin",
+    tags = ["no-cache"],
 )
 
 pkg_tar(
@@ -83,6 +84,7 @@ pkg_tar(
         ext = TAR_EXTENSION,
         fname = SCTPD_FILE_NAME,
     ),
+    tags = ["no-cache"],
 )
 
 pkg_deb(
@@ -94,6 +96,7 @@ pkg_deb(
     maintainer = MAINTAINER,
     package = SCTPD_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
+    tags = ["no-cache"],
     version = VERSION_DEB,
 )
 
@@ -124,6 +127,7 @@ pkg_filegroup(
         "//lte/gateway/python/scripts:magma_lte_scripts",
         "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
     ],
+    tags = ["no-cache"],
 )
 
 pkg_files(
@@ -131,6 +135,7 @@ pkg_files(
     srcs = ["//feg/gateway/services/envoy_controller"],
     attributes = pkg_attributes(mode = "0755"),
     prefix = "/usr/local/bin",
+    tags = ["no-cache"],
 )
 
 pkg_files(
@@ -144,6 +149,7 @@ pkg_files(
     attributes = pkg_attributes(mode = "0755"),
     prefix = "/usr/local/bin",
     renames = {"//lte/gateway/c/core:agw_of": "mme"},
+    tags = ["no-cache"],
 )
 
 pkg_filegroup(
@@ -153,6 +159,7 @@ pkg_filegroup(
         "//orc8r/gateway/python:magma_python_orc8r_services",
     ],
     prefix = PY_DEST,
+    tags = ["no-cache"],
 )
 
 pkg_filegroup(
@@ -196,6 +203,7 @@ pkg_tar(
         ext = TAR_EXTENSION,
         fname = MAGMA_FILE_NAME,
     ),
+    tags = ["no-cache"],
 )
 
 pkg_deb(
@@ -211,6 +219,7 @@ pkg_deb(
     postinst = ":magma-postinst-bazel",
     provides = [MAGMA_PKGNAME],
     replaces = [MAGMA_PKGNAME],
+    tags = ["no-cache"],
     version = VERSION_DEB,
 )
 
@@ -252,5 +261,8 @@ sh_binary(
         ":magma_deb_pkg",
         ":sctpd_deb_pkg",
     ],
-    tags = ["manual"],
+    tags = [
+        "manual",
+        "no-cache",
+    ],
 )
