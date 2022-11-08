@@ -257,6 +257,11 @@
     force: yes
   when: preburn
 
+- name: Setup Bazel Bash completion
+  ansible.builtin.command: "{{ magma_root }}/bazel/scripts/setup_bazel_bash_completion.sh $(cat {{ magma_root }}/.bazelversion)"
+  become: yes
+  become_user: "{{ ansible_user }}"
+
 ########################################
 # Install common Magma dev dependencies
 ########################################
