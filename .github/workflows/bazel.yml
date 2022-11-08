@@ -260,11 +260,10 @@ jobs:
 
   bazel_package:
     needs: path_filter
-    # Only run workflow if this is a push to the magma repository,
-    # if the workflow has been triggered manually or if it is a pull_request.
+    # Only run workflow if this is a push to the magma repository
+    # or if the workflow has been triggered manually.
     if: |
-      (github.event_name == 'push' && github.repository_owner == 'magma') ||
-      needs.path_filter.outputs.files_changed == 'true' ||
+      (github.event_name == 'push' && github.repository_owner == 'magma' && needs.path_filter.outputs.files_changed == 'true') ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
     runs-on: ubuntu-latest
