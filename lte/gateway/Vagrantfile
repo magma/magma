@@ -47,8 +47,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # For IPv6 network,
     # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
     # - `netmask` specified to enforce correct mask when using internal network
-    magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: true
-    magma.vm.network "private_network", type: "static6", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: true, netmask: "64"
+    magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv4"
+    magma.vm.network "private_network", type: "static6", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv6", netmask: "64"
 
 
     magma.vm.provider "virtualbox" do |vb|
@@ -82,8 +82,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # For IPv6 network,
     # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
     # - `netmask` specified to enforce correct mask when using internal network
-    magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM", virtualbox__intnet: true
-    magma_trfserver.vm.network "private_network", type: "static6", ip: "3001::2", nic_type: "82540EM", virtualbox__intnet: true, netmask: "64"
+    magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv4"
+    magma_trfserver.vm.network "private_network", type: "static6", ip: "3001::2", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv6", netmask: "64"
 
     magma_trfserver.vm.provider "virtualbox" do |vb|
       vb.name = "magma-trfserver"
@@ -136,8 +136,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # For IPv6 network,
     # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
     # - `netmask` specified to enforce correct mask when using internal network
-    magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM", virtualbox__intnet: true
-    magma_test.vm.network "private_network", type: "static6", ip: "3001::3", nic_type: "82540EM", virtualbox__intnet: true, netmask: "64"
+    magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv4"
+    magma_test.vm.network "private_network", type: "static6", ip: "3001::3", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv6", netmask: "64"
     config.ssh.forward_agent = true
 
     magma_test.vm.provider "virtualbox" do |vb|
@@ -230,8 +230,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # For IPv6 network,
     # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
     # - `netmask` specified to enforce correct mask when using internal network
-    magma_deb.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: true
-    magma_deb.vm.network "private_network", type: "static6", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: true, netmask: "64"
+    magma_deb.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv4"
+    magma_deb.vm.network "private_network", type: "static6", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: "sgi_ipv6", netmask: "64"
 
     magma_deb.vm.provider "virtualbox" do |vb|
       vb.name = "magma_deb"
