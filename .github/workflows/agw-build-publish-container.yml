@@ -16,7 +16,7 @@ on:
     branches:
       - master
       - 'v1.*'
-  pull_request_target:
+  pull_request:
     types: [ opened, reopened, synchronize ]
     branches:
       - master
