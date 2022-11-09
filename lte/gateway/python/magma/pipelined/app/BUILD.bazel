@@ -230,3 +230,12 @@ py_library(
         "@ryu_repo//:ryu_patched",
     ],
 )
+
+py_library(
+    name = "packet_parser",
+    srcs = ["packet_parser.py"],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mac",
+        requirement("dpkt"),
+    ],
+)

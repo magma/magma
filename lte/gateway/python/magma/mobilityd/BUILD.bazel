@@ -109,3 +109,9 @@ py_library(
     visibility = ["//visibility:public"],
     deps = ["//lte/protos:keyval_python_proto"],
 )
+
+py_library(
+    name = "mac",
+    srcs = ["mac.py"],
+    visibility = ["//visibility:public"],
+)
