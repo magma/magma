@@ -13,10 +13,10 @@ limitations under the License.
 
 from collections import namedtuple
 
+import getmac
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
-from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
@@ -67,7 +67,7 @@ class MiddleController(RestartMixin, MagmaController):
             self._mtr_service_enabled = True
             mtr_ip = config_dict['mtr_ip']
             mtr_port = config_dict['ovs_mtr_port_number']
-            mtr_mac = get_mac_address(interface=config_dict['mtr_interface'])
+            mtr_mac = getmac.get_mac_address(interface=config_dict['mtr_interface'])
         else:
             mtr_ip = None
             mtr_mac = None

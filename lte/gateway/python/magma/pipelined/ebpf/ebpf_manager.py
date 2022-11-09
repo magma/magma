@@ -19,10 +19,10 @@ import socket
 import struct
 import subprocess
 
+import getmac
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPRoute, NetlinkError
 
@@ -305,7 +305,7 @@ class EbpfManager:
         return None
 
     def _get_mac_address(self, if_name: str):
-        addr_str = get_mac_address(interface=if_name)
+        addr_str = getmac.get_mac_address(interface=if_name)
         LOG.debug("if-name: %s, mac: %s" % (if_name, addr_str))
         return self._pack_mac_addr(addr_str)
 
@@ -314,10 +314,10 @@ class EbpfManager:
         try:
             if ip_addr.version == IPAddress.IPV4:
                 ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
-                addr_str = get_mac_address(ip=ip_str)
+                addr_str = getmac.get_mac_address(ip=ip_str)
             else:
                 ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
-                addr_str = get_mac_address(ip6=ip_str)
+                addr_str = getmac.get_mac_address(ip6=ip_str)
         except ValueError:
             LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % ip_str)
             return None
