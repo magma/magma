@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import getmac
 import threading
 from collections import namedtuple
 
@@ -23,7 +24,6 @@ from magma.pipelined.mobilityd_client import (
     get_mobilityd_gw_info,
     set_mobilityd_gw_info,
 )
-from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
@@ -102,7 +102,7 @@ class EgressController(RestartMixin, MagmaController):
         setup_type = config_dict.get('setup_type', None)
         if enable_nat is True or setup_type != 'LTE':
             if virtual_iface is not None:
-                virtual_mac = get_mac_address(interface=virtual_iface)
+                virtual_mac = getmac.get_mac_address(virtual_iface)
             else:
                 virtual_mac = ""
         else:

@@ -15,7 +15,7 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.app import egress, ingress, middle
+from magma.pipelined.app import arp, egress
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
@@ -46,13 +46,18 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
+_mock_called_once = False
 
-def mocked_get_mac_address(**kwargs) -> str:
-    if kwargs.get('interface') == 'test_mtr1':
-        return 'ae:fa:b2:76:37:5d'
-    if kwargs.get('interface') == 'testing_br':
+
+def mocked_get_mac_address(**_) -> str:
+    global _mock_called_once
+    if not _mock_called_once:
+        # On the first call in egress.py, use this return value.
+        _mock_called_once = True
         return 'bb:bb:b2:76:37:5d'
-    raise ValueError(f"No mac address found for {list(kwargs.keys())[0]} {list(kwargs.values())[0]}")
+    else:
+        # On second and third call in arp.py, use this return value.
+        return '00:aa:bb:cc:dd:ee'
 
 
 class UEMacAddressTest(unittest.TestCase):
@@ -65,10 +70,6 @@ class UEMacAddressTest(unittest.TestCase):
     DPI_IP = '1.1.1.1'
 
     @classmethod
-    @unittest.mock.patch(
-        'getmac.get_mac_address',
-        return_value='00:aa:bb:cc:dd:ee',
-    )
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps
@@ -78,9 +79,8 @@ class UEMacAddressTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(UEMacAddressTest, cls).setUpClass()
-        ingress.get_mac_address = mocked_get_mac_address
-        middle.get_mac_address = mocked_get_mac_address
-        egress.get_mac_address = mocked_get_mac_address
+        arp.getmac.get_mac_address = mocked_get_mac_address
+        egress.getmac.get_mac_address = mocked_get_mac_address
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(

@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import getmac
 import logging
 import subprocess
 import unittest
@@ -18,7 +19,6 @@ from concurrent.futures import Future
 from typing import Optional
 
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
     TestSetup,
@@ -852,7 +852,7 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         cls.service_manager = create_service_manager([])
 
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
-        br_mac = get_mac_address(interface=cls.UPLINK_BRIDGE)
+        br_mac = getmac.get_mac_address(interface=cls.UPLINK_BRIDGE)
 
         cls._setup_vlan_network("0", br_mac)
 

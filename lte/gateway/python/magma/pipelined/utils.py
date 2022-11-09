@@ -12,7 +12,6 @@ limitations under the License.
 """
 import logging
 
-import netifaces
 from magma.pipelined.openflow import flows
 from ryu import cfg
 from ryu.lib.ovs import bridge
