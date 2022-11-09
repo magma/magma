@@ -31,7 +31,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_utility.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
@@ -93,7 +92,7 @@ class S1apStateManager : public StateUtility {
   /**
    * Returns a pointer to s1ap_imsi_map
    */
-  s1ap_imsi_map_t* get_s1ap_imsi_map();
+  oai::S1apImsiMap* get_s1ap_imsi_map();
   map_uint64_ue_description_t* get_s1ap_ue_state();
   oai::S1apState* get_state(bool read_from_db);
   void write_s1ap_state_to_db();
@@ -114,7 +113,7 @@ class S1apStateManager : public StateUtility {
   void clear_s1ap_imsi_map();
 
   std::size_t s1ap_imsi_map_hash_;
-  s1ap_imsi_map_t* s1ap_imsi_map_;
+  oai::S1apImsiMap* s1ap_imsi_map_;
   map_uint64_ue_description_t state_ue_map;
   oai::S1apState* state_cache_p;
   // State version counters for task and ue context

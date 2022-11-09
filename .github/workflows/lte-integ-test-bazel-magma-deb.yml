@@ -85,7 +85,7 @@ jobs:
         env:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
-          MAGMA_PACKAGE: magma_1.8.0_amd64.deb
+          MAGMA_PACKAGE: magma_1.9.0-VERSION-SUFFIX_amd64.deb
         run: |
           cd lte/gateway
           fab integ_test_deb_installation

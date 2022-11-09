@@ -49,7 +49,6 @@ COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CP
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 
-FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
@@ -58,8 +57,6 @@ OAI_TESTS ?= ".*"
 all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
-
-test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
 
 clean: clean_python clean_envoy_controller ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -122,52 +119,8 @@ build_connection_tracker:
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
-# Catch all for c services that don't have custom flags
-# This works with build_dpi
-build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
-
-test_python: ## Run all Python-specific tests
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
-
-test_sudo_python: ## Run Python tests that require sudo (datapath, etc.)
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
-
-test_python_service: ## Run all Python-specific tests for a given service
-ifdef UT_PATH
-	$(eval ut_path?=$(shell realpath $(UT_PATH)))
-endif
-	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
-
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-
-test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
-test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
-test_oai_runtime: export MERGED_REPORT_FOLDER=${REPORT_FOLDER}/merged_report/
-test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
-test_oai_runtime: ## Run all OAI-specific tests with report about the running time
-	mkdir -p ${UNITTEST_REPORT_FOLDER}
-	mkdir -p ${MERGED_REPORT_FOLDER}
-	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
-	rm ${UNITTEST_REPORT_FOLDER}/*.xml
-
-test_sctpd: ## Run all tests for sctpd
-	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
-
-test_common: ## Run all tests in magma_common
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
-	# Run the common lib tests that exist
-	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
-
-test_li_agent:
-	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
-
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager

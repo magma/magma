@@ -146,8 +146,7 @@ RUN bazel build  \
   //lte/gateway/c/sctpd/src:sctpd \
   //lte/gateway/c/connection_tracker/src:connectiond \
   //lte/gateway/c/li_agent/src:liagentd \
-  //lte/gateway/c/session_manager:sessiond \
-  --define=folly_so=1
+  //lte/gateway/c/session_manager:sessiond
 
 RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
 

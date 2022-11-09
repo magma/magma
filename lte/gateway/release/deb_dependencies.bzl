@@ -13,7 +13,7 @@
 External dependencies of the magma debian build.
 """
 
-SCTPD_MIN_VERSION = "1.8.0"  # earliest version of sctpd with which this magma version is compatible
+SCTPD_MIN_VERSION = "1.9.0"  # earliest version of sctpd with which this magma version is compatible
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
