@@ -20,7 +20,6 @@ from setuptools import setup
 # version this represents. 'None' defaults to 0.0.0.
 VERSION = os.environ.get('PKG_VERSION', '0.0.0')
 
-
 setup(
     name='lte',
     version=VERSION,

@@ -13,7 +13,6 @@ limitations under the License.
 import asyncio
 from typing import Optional
 
-import getmac
 import netifaces
 from magma.pipelined.metrics import NETWORK_IFACE_STATUS
 
