@@ -169,7 +169,7 @@ struct proto_map_s {
   **                                                                        **
   ** Description: Takes key parameter.Looks up the corresponding entry from **
   **              the map.                                                  **
-  **              By default the argument, free_an_entry is set to true.    **
+  **              By default, the argument free_an_entry is set to true.    **
   **              If it's true, memory allocated for an entry will be       **
   **              freed else memory allocated for an entry will not be      **
   **              freed but in both cases an entry is removed from the map  **

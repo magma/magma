@@ -89,13 +89,6 @@ void SgwStateManager::create_state() {
   state_cache_p->temporary_create_session_procedure_id_map.map =
       new google::protobuf::Map<unsigned int,
                                 struct sgw_eps_bearer_context_information_s*>();
-  if (!(state_cache_p->temporary_create_session_procedure_id_map.map)) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8,
-        "Failed to create temporary_create_session_procedure_id_map for "
-        "SGW_S8 task \n");
-    return;
-  }
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
       SGW_S8_CSR_PROC_ID_MAP);
   state_cache_p->temporary_create_session_procedure_id_map.bind_callback(
