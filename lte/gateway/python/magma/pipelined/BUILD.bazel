@@ -196,6 +196,7 @@ py_library(
     deps = [
         "//lte/gateway/python/magma/redirectd:redirect_store",
         requirement("aiodns"),
+        requirement("getmac"),
         requirement("pymemoize"),
     ],
 )
