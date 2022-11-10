@@ -26,12 +26,12 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"

@@ -33,6 +33,6 @@ const task_info_t tasks_info[] = {
 /* Map message id to message information */
 const message_info_t messages_info[] = {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) {iD, sizeof(sTRUCT), #iD},
-#include "lte/gateway/c/core/oai/include/messages_def.h"
+#include "lte/gateway/c/core/oai/include/messages_def.hpp"
 #undef MESSAGE_DEF
 };

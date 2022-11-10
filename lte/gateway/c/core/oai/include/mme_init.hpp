@@ -29,4 +29,10 @@
 /** \brief S1AP layer top init
  * @returns -1 in case of failure
  **/
+#ifdef __cplusplus
+extern "C" {
+#endif
 status_code_e s1ap_mme_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
+}
+#endif
