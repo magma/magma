@@ -187,6 +187,7 @@ sgw_create_bearer_context_information_in_collection(
   sgw_state->temporary_create_session_procedure_id_map.insert(
       *temporary_create_session_procedure_id_p,
       new_sgw_bearer_context_information);
+
   OAILOG_DEBUG(LOG_SGW_S8,
                "Inserted new sgw eps bearer context into map, "
                "temporary_create_session_procedure_id_map with "

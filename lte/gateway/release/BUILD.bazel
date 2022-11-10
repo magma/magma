@@ -18,7 +18,7 @@ load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//bazel:deb_build.bzl", "PY_DEST")
-load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS")
+load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS", "SCTPD_MIN_VERSION")
 
 SCTPD_PKGNAME = "magma-sctpd"
 
@@ -27,6 +27,8 @@ VERSION = "1.9.0"
 VERSION_DEB = "{ver}-VERSION-SUFFIX".format(ver = VERSION)
 
 ARCH = "amd64"
+
+TAR_EXTENSION = "tar.gz"
 
 SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = SCTPD_PKGNAME,
@@ -76,7 +78,11 @@ pkg_tar(
         ":sctpd_version",
         "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
     ],
-    package_file_name = "{fname}.tar".format(fname = SCTPD_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = SCTPD_FILE_NAME,
+    ),
 )
 
 pkg_deb(
@@ -159,6 +165,18 @@ pkg_filegroup(
     prefix = "/etc/magma",
 )
 
+genrule(
+    name = "gen_magma_sctpd_min_version",
+    outs = ["sctpd_min_version"],
+    cmd = "echo \"{ver}\" > \"$@\"".format(ver = SCTPD_MIN_VERSION),
+)
+
+pkg_files(
+    name = "magma_sctpd_min_version",
+    srcs = [":gen_magma_sctpd_min_version"],
+    prefix = "/usr/local/share/magma/",
+)
+
 pkg_tar(
     name = "magma_content",
     srcs = [
@@ -168,11 +186,16 @@ pkg_tar(
         ":magma_go_binaries",
         ":magma_python_scripts",
         ":magma_python_services",
+        ":magma_sctpd_min_version",
         ":magma_service_definitions",
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
         "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
     ],
-    package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = MAGMA_FILE_NAME,
+    ),
 )
 
 pkg_deb(

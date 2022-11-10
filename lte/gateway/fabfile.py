@@ -98,6 +98,8 @@ def package(
 
     hash = pkg.get_commit_hash()
     commit_count = pkg.get_commit_count()
+    puts('Uninstalling dev dependencies of the VM')
+    run('sudo pip uninstall --yes mypy-protobuf grpcio-tools grpcio protobuf')
 
     with cd('~/magma/lte/gateway'):
         run('mkdir -p ~/magma-deps')

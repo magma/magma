@@ -13,7 +13,12 @@
 ################################################################################
 
 - name: Enable IP forwarding
-  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
 
 - name: Set a convenience function for disabling TCP checksumming for traffic test
   lineinfile:
@@ -51,7 +56,9 @@
     force: yes
 
 - name: Copy preferences file for backports
-  copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
+  copy:
+    src: magma-preferences
+    dest: /etc/apt/preferences.d/magma-preferences
 
 - name: Change network settings
   ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_network_ubuntu.sh
@@ -92,7 +99,9 @@
     force: yes
 
 - name: Create test certificates directory
-  file: path='/home/vagrant/magma/.cache/test_certs' state=directory
+  file:
+    path: /home/vagrant/magma/.cache/test_certs
+    state: directory
 
 - name: Generate the cloud VM's certs if they are not already generated
   command: '/home/vagrant/magma/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca /home/vagrant/magma/.cache/test_certs'

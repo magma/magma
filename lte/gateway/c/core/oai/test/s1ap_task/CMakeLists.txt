@@ -24,8 +24,7 @@ add_executable(s1ap_test
         test_s1ap_mme_handlers.cpp
         test_s1ap_mme_handlers_with_injected_state.cpp
         test_s1ap_handle_new_association.cpp
-        test_s1ap_state_manager.cpp
-        test_s1ap_state_converter.cpp)
+        test_s1ap_state_manager.cpp)
 
 target_link_libraries(s1ap_test
         TASK_S1AP MOCK_TASKS TASK_AMF_APP
