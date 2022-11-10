@@ -167,11 +167,16 @@ struct proto_map_s {
   **                                                                        **
   ** Name:    remove()                                                      **
   **                                                                        **
-  ** Description: Takes key parameter.Removes the corresponding entry from  **
-  **              the map. If key does not exists returns error             **
+  ** Description: Takes key parameter.Looks up the corresponding entry from **
+  **              the map.                                                  **
+  **              By default, the argument free_an_entry is set to true.    **
+  **              If it's true, memory allocated for an entry will be       **
+  **              freed else memory allocated for an entry will not be      **
+  **              freed but in both cases an entry is removed from the map  **
+  **              If key does not exists returns error                      **
   **                                                                        **
   ***************************************************************************/
-  proto_map_rc_t remove(const keyT key) {
+  proto_map_rc_t remove(const keyT key, bool free_an_entry = true) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -179,7 +184,7 @@ struct proto_map_s {
       return PROTO_MAP_EMPTY;
     }
 
-    if (free_callback_func) {
+    if (free_callback_func && free_an_entry) {
       valueT value;
       if (get(key, &value) == PROTO_MAP_OK) {
         free_callback_func(reinterpret_cast<void**>(&value));

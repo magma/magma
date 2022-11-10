@@ -101,6 +101,12 @@ typedef struct mme_sgw_tunnel_s {
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
+// Map with Key: csr_proc_id of uint32_t
+// Data: sgw_eps_bearer_context_information_s*
+typedef magma::proto_map_s<uint32_t,
+                           struct sgw_eps_bearer_context_information_s*>
+    map_uint32_sgw_eps_bearer_context_t;
+
 // AGW-wide state for SGW task
 typedef struct sgw_state_s {
   teid_t s1u_teid;
@@ -109,7 +115,7 @@ typedef struct sgw_state_s {
   struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
   struct in_addr sgw_ip_address_S5S8_up;
   hash_table_ts_t* imsi_ue_context_htbl;
-  hash_table_ts_t* temporary_create_session_procedure_id_htbl;
+  map_uint32_sgw_eps_bearer_context_t temporary_create_session_procedure_id_map;
 } sgw_state_t;
 
 // AGW-wide state for SPGW task

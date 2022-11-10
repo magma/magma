@@ -12,13 +12,14 @@ limitations under the License.
 */
 
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/common/backtrace.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 }
+
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 namespace magma {
 namespace lte {
@@ -46,7 +47,7 @@ void SgwStateManager::init(bool persist_state, const sgw_config_t* config) {
 }
 
 void SgwStateManager::create_state() {
-  state_cache_p = (sgw_state_t*)calloc(1, sizeof(sgw_state_t));
+  state_cache_p = new sgw_state_t();
   if (!state_cache_p) {
     OAILOG_CRITICAL(LOG_SGW_S8,
                     "Failed to allocate memory for sgw_state_t structure \n ");
@@ -84,17 +85,14 @@ void SgwStateManager::create_state() {
                     "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
     return;
   }
-  state_cache_p->temporary_create_session_procedure_id_htbl =
-      hashtable_ts_create(
-          SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-          (void (*)(void**))sgw_free_s11_bearer_context_information, nullptr);
-  if (!(state_cache_p->temporary_create_session_procedure_id_htbl)) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8,
-        "Failed to create temporary_create_session_procedure_id_htbl for "
-        "SGW_S8 task \n");
-    return;
-  }
+
+  state_cache_p->temporary_create_session_procedure_id_map.map =
+      new google::protobuf::Map<unsigned int,
+                                struct sgw_eps_bearer_context_information_s*>();
+  state_cache_p->temporary_create_session_procedure_id_map.set_name(
+      SGW_S8_CSR_PROC_ID_MAP);
+  state_cache_p->temporary_create_session_procedure_id_map.bind_callback(
+      sgw_free_s11_bearer_context_information);
 
   state_cache_p->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
   state_cache_p->s5s8u_teid = 0;
@@ -109,17 +107,27 @@ void SgwStateManager::free_state() {
   if (state_cache_p == nullptr) {
     return;
   }
-
+  if (state_ue_ht == nullptr) {
+    return;
+  }
   if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR(
         "An error occurred while destroying SGW s11_bearer_context_information "
         "hashtable");
   }
-  hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
-  hashtable_ts_destroy(
-      state_cache_p->temporary_create_session_procedure_id_htbl);
+  state_ue_ht = nullptr;
 
-  free_wrapper((void**)&state_cache_p);
+  hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
+  if (state_cache_p->temporary_create_session_procedure_id_map.map) {
+    if (state_cache_p->temporary_create_session_procedure_id_map
+            .destroy_map() != PROTO_MAP_OK) {
+      OAILOG_ERROR(LOG_SGW_S8,
+                   "An error occurred while destroying "
+                   "temporary_create_session_procedure_id_map ");
+    }
+  }
+  state_cache_p->temporary_create_session_procedure_id_map.map = nullptr;
+  free_cpp_wrapper(reinterpret_cast<void**>(&state_cache_p));
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {

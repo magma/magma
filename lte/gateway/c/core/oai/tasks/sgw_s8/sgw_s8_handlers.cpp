@@ -13,6 +13,7 @@ limitations under the License.
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -177,14 +178,13 @@ sgw_create_bearer_context_information_in_collection(
   sgw_eps_bearer_context_information_t* new_sgw_bearer_context_information =
       new sgw_eps_bearer_context_information_t();
 
-  hashtable_ts_insert(
-      sgw_state->temporary_create_session_procedure_id_htbl,
-      (const hash_key_t)*temporary_create_session_procedure_id_p,
-      (void*)new_sgw_bearer_context_information);
+  sgw_state->temporary_create_session_procedure_id_map.insert(
+      *temporary_create_session_procedure_id_p,
+      new_sgw_bearer_context_information);
 
   OAILOG_DEBUG(LOG_SGW_S8,
-               "Inserted new sgw eps bearer context into hash "
-               "list,temporary_create_session_procedure_id_htbl with "
+               "Inserted new sgw eps bearer context into map, "
+               "temporary_create_session_procedure_id_map with "
                "key as temporary_create_session_procedure_id_p :%u \n",
                *temporary_create_session_procedure_id_p);
   return new_sgw_bearer_context_information;
@@ -1812,17 +1812,26 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
   /* Once sgw_s8_teid is obtained from orc8r, move sgw_eps_bearer_context
    * from temporary_create_session_procedure_id hashlist  to sgw_teid hashlist
    */
-  sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
-  hashtable_ts_remove(
-      sgw_state->temporary_create_session_procedure_id_htbl,
-      (const hash_key_t)session_rsp_p->temporary_create_session_procedure_id,
-      (void**)&sgw_context_p);
+  sgw_eps_bearer_context_information_t* sgw_context_p = nullptr;
+  sgw_state->temporary_create_session_procedure_id_map.get(
+      session_rsp_p->temporary_create_session_procedure_id, &sgw_context_p);
   if (!sgw_context_p) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                     "Failed to fetch sgw_eps_bearer_context_info from "
                     "temporary_create_session_procedure_id:%u \n",
                     session_rsp_p->temporary_create_session_procedure_id);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p);
+  }
+
+  if (sgw_state->temporary_create_session_procedure_id_map.remove(
+          session_rsp_p->temporary_create_session_procedure_id, false) !=
+      magma::PROTO_MAP_OK) {
+    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
+                    "Failed to remove sgw_eps_bearer_context_info from map "
+                    "with temporary procedure id"
+                    "temporary_create_session_procedure_id:%u \n",
+                    session_rsp_p->temporary_create_session_procedure_id);
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, nullptr);
   }
 
   /* Teid shall remain same for both sgw's s11 interface and s8 interface as
