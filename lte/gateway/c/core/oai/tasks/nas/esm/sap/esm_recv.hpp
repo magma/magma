@@ -51,7 +51,7 @@ Description Defines functions executed at the ESM Service Access
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 
 /****************************************************************************/

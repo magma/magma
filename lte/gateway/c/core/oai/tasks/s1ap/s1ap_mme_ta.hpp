@@ -39,7 +39,7 @@ enum {
 };
 
 int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list);
-int s1ap_paging_compare_ta_lists(supported_ta_list_t* enb_ta_list,
+int s1ap_paging_compare_ta_lists(magma::lte::oai::SupportedTaList& enb_ta_list,
                                  const paging_tai_list_t* p_tai_list,
                                  uint8_t p_tai_list_count);
 

@@ -18,3 +18,6 @@ fi
 
 echo "Generating compile_commands.json for C/C++ code navigation"
 "$1"/dev_tools/gen_compilation_database.py
+
+echo "Setting up Bazel Bash completion"
+"$1"/bazel/scripts/setup_bazel_bash_completion.sh $(cat "$1"/.bazelversion)

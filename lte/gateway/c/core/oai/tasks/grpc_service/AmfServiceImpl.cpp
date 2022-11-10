@@ -174,6 +174,10 @@ Status AmfServiceImpl::SetSmfSessionContext(
     ul_tft = &itti_msg.qos_flow_list.item[i].qos_flow_req_item.ul_tft;
     memset(ul_tft, 0, sizeof(traffic_flow_template_t));
     auto& qos_rule = req_m5g.qos_policy(i);
+    // Session ambr is policy ambr if policy attached
+    itti_msg.session_ambr.uplink_units = qos_rule.qos().qos().max_req_bw_ul();
+
+    itti_msg.session_ambr.downlink_units = qos_rule.qos().qos().max_req_bw_dl();
     itti_msg.qos_flow_list.item[i].qos_flow_req_item.qos_flow_identifier =
         qos_rule.qos().qos().qci();
 

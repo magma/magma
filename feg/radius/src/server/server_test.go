@@ -31,15 +31,15 @@ import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/modulestest"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2866"
-	"fbc/lib/go/radius/rfc2869"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
+	"layeh.com/radius/rfc2869"
 )
 
 type FullRADIUSSessiontWithAnalyticsModulesTestParam struct {
@@ -149,8 +149,11 @@ func TestRequestWithModules(t *testing.T) {
 
 	mModule1 := createMockHandlerWithReturn(&modules.Response{
 		Code: radius.CodeAccessAccept,
-		Attributes: map[radius.Type][]radius.Attribute{
-			10: {[]byte("hello")},
+		Attributes: radius.Attributes{
+			&radius.AVP{
+				Type:      radius.Type(10),
+				Attribute: radius.Attribute("hello"),
+			},
 		},
 	}, nil)
 	mModule2 := createMockHandlerWithReturn(&modules.Response{}, nil)
@@ -681,14 +684,9 @@ func analyticsModuleTestEnvDestroy(testParam *FullRADIUSSessiontWithAnalyticsMod
 }
 
 func getSessionIDStrings(server *Server, calling string, called string, acctSessionId string) string {
-	r := radius.Request{
-		Packet: &radius.Packet{
-			Attributes: radius.Attributes{
-				rfc2865.CallingStationID_Type: []radius.Attribute{radius.Attribute(calling)},
-				rfc2865.CalledStationID_Type:  []radius.Attribute{radius.Attribute(called)},
-				rfc2866.AcctSessionID_Type:    []radius.Attribute{radius.Attribute(acctSessionId)},
-			},
-		},
-	}
-	return server.GetSessionID(&r)
+	p := &radius.Packet{}
+	p.Attributes.Add(rfc2865.CallingStationID_Type, radius.Attribute(calling))
+	p.Attributes.Add(rfc2865.CalledStationID_Type, radius.Attribute(called))
+	p.Attributes.Add(rfc2866.AcctSessionID_Type, radius.Attribute(acctSessionId))
+	return server.GetSessionID(&radius.Request{Packet: p})
 }

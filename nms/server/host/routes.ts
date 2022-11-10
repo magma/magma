@@ -173,7 +173,7 @@ router.post(
         ),
       });
       if (organization) {
-        return res.status(409).send({error: 'Organization exists already'});
+        return res.status(409).send({message: 'Organization exists already'});
       }
       organization = await Organization.create({
         name: req.body.name,
@@ -200,7 +200,7 @@ router.put(
       ),
     });
     if (!organization) {
-      return res.status(404).send({error: 'Organization does not exist'});
+      return res.status(404).send({message: 'Organization does not exist'});
     }
     const updated = await organization.update(req.body);
     await syncOrganizationWithOrc8rTenant(updated);
@@ -227,7 +227,7 @@ router.post(
         ),
       });
       if (!organization) {
-        return res.status(404).send({error: 'Organization does not exist'});
+        return res.status(404).send({message: 'Organization does not exist'});
       }
 
       try {
@@ -261,7 +261,7 @@ router.post(
         const user = await User.create(props);
         res.status(200).send({user});
       } catch (error) {
-        res.status(400).send({error: (error as Error).toString()});
+        res.status(400).send({message: (error as Error).toString()});
       }
     },
   ),

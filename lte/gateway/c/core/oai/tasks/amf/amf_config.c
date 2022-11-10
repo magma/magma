@@ -129,6 +129,9 @@ void ngap_config_init(ngap_config_t* ngap_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 void amf_config_init(amf_config_t* config) {
   memset(config, 0, sizeof(*config));
 
@@ -146,7 +149,9 @@ void amf_config_init(amf_config_t* config) {
   plmn_support_list_config_init(&config->plmn_support_list);
   served_tai_config_init(&config->served_tai);
 }
-
+#ifdef __cplusplus
+}
+#endif
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -161,6 +166,16 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
   return 0;
 }
 
+static bool parse_bool(const char* str) {
+  if (strcasecmp(str, "yes") == 0) return true;
+  if (strcasecmp(str, "true") == 0) return true;
+  if (strcasecmp(str, "no") == 0) return false;
+  if (strcasecmp(str, "false") == 0) return false;
+  if (strcasecmp(str, "") == 0) return false;
+
+  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -170,6 +185,9 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 int amf_config_parse_file(amf_config_t* config_pP,
                           const mme_config_t* mme_config_p) {
   config_t cfg = {0};
@@ -187,7 +205,7 @@ int amf_config_parse_file(amf_config_t* config_pP,
   const char* default_dns_sec = NULL;
   const char* set_sst = NULL;
   const char* set_sd = NULL;
-
+  int aint = 0;
   config_init(&cfg);
 
   if (config_pP->config_file != NULL) {
@@ -330,6 +348,19 @@ int amf_config_parse_file(amf_config_t* config_pP,
       }    // For the number of entries in the list for PLMN SUPPORT
     }      // PLMN_SUPPORT LIST is present
 
+    // enable VoNR support
+    if ((config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP,
+            &astring))) {
+      config_pP->nas_config.enable_IMS_VoPS_3GPP = parse_bool(astring);
+    }
+
+    // t3512
+    if ((config_setting_lookup_int(setting_amf, AMF_CONFIG_STRING_NAS_T3512,
+                                   &aint))) {
+      config_pP->nas_config.t3512_min = (uint32_t)aint;
+    }
+
     // guamfi SETTING
     setting =
         config_setting_get_member(setting_amf, AMF_CONFIG_STRING_GUAMFI_LIST);
@@ -402,6 +433,9 @@ int amf_config_parse_file(amf_config_t* config_pP,
   config_destroy(&cfg);
   return 0;
 }
+#ifdef __cplusplus
+}
+#endif
 
 /***************************************************************************
 **                                                                        **

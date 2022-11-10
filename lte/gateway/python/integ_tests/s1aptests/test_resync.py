@@ -54,10 +54,7 @@ class TestResync(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqn_recvd = s1ap_types.ueSqnRcvd_t()
@@ -77,10 +74,7 @@ class TestResync(unittest.TestCase):
         response = self._s1ap_wrapper.s1_util.get_response()
 
         # Verify that EPC re-sends Authentication Request
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("************************* Retrying authentication")
         # Use SQN received from EPC as is
         sqn_recvd.pres = False
@@ -90,10 +84,7 @@ class TestResync(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security mode complete message
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -138,10 +129,7 @@ class TestResync(unittest.TestCase):
             detach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

@@ -31,8 +31,8 @@ Author      Frederic Maurel, Lionel GAUTHIER
 Description NAS procedure call manager
 
 *****************************************************************************/
-#ifndef FILE_NAS_PROC_SEEN
-#define FILE_NAS_PROC_SEEN
+
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -44,12 +44,12 @@ Description NAS procedure call manager
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 
 /****************************************************************************/
@@ -143,4 +143,3 @@ status_code_e nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id,
                                        nas_cause_t cause);
 int nas_proc_signalling_connection_rel_ind(mme_ue_s1ap_id_t ue_id);
 int nas_proc_smc_fail(emm_cn_smc_fail_t* emm_cn_smc_fail);
-#endif /* FILE_NAS_PROC_SEEN*/

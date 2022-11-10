@@ -53,7 +53,7 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
         curr_blocks = self._s1ap_wrapper.mobility_util.list_ip_blocks()
         # Check if old_blocks and curr_blocks contain same ip blocks after
         # restart
-        self.assertListEqual(old_blocks, curr_blocks)
+        assert old_blocks == curr_blocks
 
         req = self._s1ap_wrapper.ue_req
         print(

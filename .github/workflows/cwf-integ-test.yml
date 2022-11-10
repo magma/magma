@@ -9,29 +9,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: CWF integ test
+name: CWAG Build & Test Integration
 
 on:
   workflow_dispatch: null
-  workflow_run:
-    workflows:
-      - build-all
+  push:
     branches:
       - master
       - 'v1.*'
-    types:
-      - completed
-env:
-  SHA: ${{ github.event.workflow_run.head_commit.id || github.sha }}
 
 jobs:
   docker-build:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-        with:
-          ref: ${{ env.SHA }}
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
@@ -58,24 +50,24 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
-        if: failure() && github.event.workflow_run.event == 'push'
+        if: failure() && github.event_name == 'push'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "CWF integ test"
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
-          args: 'CWF integration test: docker build step failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ env.SHA }}): ${{ steps.commit.outputs.title}}'
+          args: 'CWF integration test: docker build step failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ github.sha }}): ${{ steps.commit.outputs.title}}'
   cwf-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     needs: docker-build
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
-          ref: ${{ env.SHA }}
+          ref: ${{ github.sha }}
       - name: Cache Vagrant Boxes
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes
           key: vagrant-boxes-cwf-v20220722
@@ -88,7 +80,7 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Install pre requisites
@@ -96,10 +88,10 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-reload vagrant-disksize
-      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: docker-images
-      - uses: geekyeggo/delete-artifact@b73cb986740e466292a536d0e32e2666c56fdeb3 # pin@v1
+      - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
         with:
           name: docker-images
       - name: Copy docker images into /tmp/cwf-images
@@ -128,10 +120,11 @@ jobs:
           path: cwf/gateway/tests.xml
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
+          check_name: CWF integration test results
+          junit_files: cwf/gateway/tests.xml
           check_run_annotations: all tests
-          files: cwf/gateway/tests.xml
       - name: Fetch logs
         if: always()
         run: |
@@ -146,22 +139,22 @@ jobs:
           name: test-logs
           path: cwf/gateway/logs
       - name: Publish results to Firebase
-        if: always() && github.event.workflow_run.event == 'push'
+        if: always() && github.event_name == 'push'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
-          REPORT_FILENAME: "cwf_integ_test_${{ env.SHA }}.html"
+          REPORT_FILENAME: "cwf_integ_test_${{ github.sha }}.html"
         run: |
           npm install -g xunit-viewer
           [ -f "cwf/gateway/tests.xml" ] && { xunit-viewer -r cwf/gateway/tests.xml -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
-          python ci-scripts/firebase_publish_report.py -id ${{ env.SHA }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL
       - name: Notify failure to slack
-        if: failure() && github.event.workflow_run.event == 'push'
+        if: failure() && github.event_name == 'push'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: "CWF integ test"
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
-          args: 'CWF integration test: tests failed on [${{ env.SHA }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ env.SHA }}): ${{ steps.commit.outputs.title}}'
+          args: 'CWF integration test: tests failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commits/${{ github.sha }}): ${{ steps.commit.outputs.title}}'

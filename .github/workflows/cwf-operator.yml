@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: cwf-operator
+name: CWAG Lint & Test Operator
 
 on:
   push:
@@ -33,9 +33,9 @@ jobs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
@@ -50,14 +50,14 @@ jobs:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
         with:
           go-version: '1.18.3'
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5 # pin@v2
+        uses: nick-fields/retry@48bc5d4b1ce856c44a7766114e4da81c980a8a92 # pin@v2.8.2
         with:
           command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
           timeout_minutes: 10

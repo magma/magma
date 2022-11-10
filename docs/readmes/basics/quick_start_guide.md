@@ -198,7 +198,7 @@ then you can verify that things are working:
 HOST [magma/lte/gateway]$ vagrant ssh magma
 
 MAGMA-VM$ sudo service magma@* stop
-MAGMA-VM$ sudo service magma@magmad restart
+MAGMA-VM$ sudo service magma@magmad start
 MAGMA-VM$ sudo tail -f /var/log/syslog
 
 # After a minute or 2 you should see these messages:

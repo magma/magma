@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
+#include <systemd/sd-daemon.h>
 
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
@@ -40,9 +41,9 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 /* FreeDiameter headers for support of S6A interface */
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
@@ -53,7 +54,7 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #if EMBEDDED_SGW
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
@@ -168,6 +169,8 @@ int main(int argc, char* argv[]) {
   }
   CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
+
+  sd_notify(0, "READY=1");
 
 #if EMBEDDED_SGW
   /*

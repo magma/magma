@@ -44,9 +44,7 @@ class TestAttachMissingImsi(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         ue_id = 2
         print("************************* Adding IMSI entry for UE id ", ue_id)

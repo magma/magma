@@ -10,27 +10,30 @@
 # limitations under the License.
 
 """
-Artifacts in this package should be build with the production
-configuration:
-bazel build lte/gateway/release:sctpd_deb_pkg --config=production
+Definitions of the magma and sctpd debian artifacts. Look at the the comment in the
+":release_build" target for information on how to build the magma and sctpd debian artifacts.
 """
 
 load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//bazel:deb_build.bzl", "PY_DEST")
-load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS")
+load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS", "SCTPD_MIN_VERSION")
 
 SCTPD_PKGNAME = "magma-sctpd"
 
-VERSION = "1.8.0"
+VERSION = "1.9.0"
+
+VERSION_DEB = "{ver}-VERSION-SUFFIX".format(ver = VERSION)
 
 ARCH = "amd64"
+
+TAR_EXTENSION = "tar.gz"
 
 SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = SCTPD_PKGNAME,
     arch = ARCH,
-    ver = VERSION,
+    ver = VERSION_DEB,
 )
 
 MAGMA_PKGNAME = "magma"
@@ -38,8 +41,14 @@ MAGMA_PKGNAME = "magma"
 MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = MAGMA_PKGNAME,
     arch = ARCH,
-    ver = VERSION,
+    ver = VERSION_DEB,
 )
+
+### META INFO
+
+URL = "https://github.com/magma/magma/"
+
+MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
 
 ### SCTPD BUILD
 
@@ -69,17 +78,23 @@ pkg_tar(
         ":sctpd_version",
         "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
     ],
-    package_file_name = "{fname}.tar".format(fname = SCTPD_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = SCTPD_FILE_NAME,
+    ),
 )
 
 pkg_deb(
     name = "sctpd_deb_pkg",
+    architecture = ARCH,
     data = ":sctpd_content",
     description = "Magma SCTPD",
-    maintainer = "Copyright (c) 2022 The Magma Authors",
+    homepage = URL,
+    maintainer = MAINTAINER,
     package = SCTPD_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
-    version = VERSION,
+    version = VERSION_DEB,
 )
 
 ### MAGMA BUILD
@@ -106,7 +121,6 @@ pkg_filegroup(
 pkg_filegroup(
     name = "magma_python_scripts",
     srcs = [
-        "//lte/gateway/python/load_tests:magma_lte_loadtest_scripts",
         "//lte/gateway/python/scripts:magma_lte_scripts",
         "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
     ],
@@ -151,39 +165,92 @@ pkg_filegroup(
     prefix = "/etc/magma",
 )
 
+genrule(
+    name = "gen_magma_sctpd_min_version",
+    outs = ["sctpd_min_version"],
+    cmd = "echo \"{ver}\" > \"$@\"".format(ver = SCTPD_MIN_VERSION),
+)
+
 pkg_files(
-    name = "magma_config_stretch_snapshot",
-    srcs = [":stretch_snapshot"],
-    prefix = "/usr/local/share/magma",
+    name = "magma_sctpd_min_version",
+    srcs = [":gen_magma_sctpd_min_version"],
+    prefix = "/usr/local/share/magma/",
 )
 
 pkg_tar(
     name = "magma_content",
     srcs = [
         ":magma_c_binaries",
-        ":magma_config_stretch_snapshot",
         ":magma_configs",
         ":magma_ebpf",
         ":magma_go_binaries",
         ":magma_python_scripts",
         ":magma_python_services",
+        ":magma_sctpd_min_version",
         ":magma_service_definitions",
         "//lte/gateway/deploy/roles/magma/files:ansible_configs",
         "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
     ],
-    package_file_name = "{fname}.tar".format(fname = MAGMA_FILE_NAME),
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = MAGMA_FILE_NAME,
+    ),
 )
 
 pkg_deb(
     name = "magma_deb_pkg",
+    architecture = ARCH,
     data = ":magma_content",
     depends = MAGMA_DEPS + OAI_DEPS + OVS_DEPS,
     description = "Magma Access Gateway",
-    maintainer = "Copyright (c) 2022 The Magma Authors",
+    homepage = URL,
+    maintainer = MAINTAINER,
     package = MAGMA_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
     postinst = ":magma-postinst-bazel",
     provides = [MAGMA_PKGNAME],
     replaces = [MAGMA_PKGNAME],
-    version = VERSION,
+    version = VERSION_DEB,
+)
+
+### CI BUILDS
+
+config_setting(
+    name = "is_production",
+    values = {"define": "production=1"},
+)
+
+genrule(
+    name = "update_deb_meta_info",
+    srcs = ["update_deb_meta_info.sh.template"],
+    outs = ["update_deb_meta_info.sh"],
+    cmd =
+        " && ".join([
+            "cp $(location update_deb_meta_info.sh.template) $@",
+            "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
+            "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
+            "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
+        ]) + select({
+            ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
+            "//conditions:default": "",
+        }),
+    tags = ["manual"],
+)
+
+sh_binary(
+    # Wrapper target for creating magma and sctpd debian artifacts with proper versions.
+    # Creating the debian packages with rules_pkg must be reproducible. A version like
+    # "1.9.0-1667381719-ebd3bb56" (<version>_<timestamp>_<hash>) would produce artifacts
+    # that are not reproducible. This target builds the artifacts and changes the
+    # version afterwards (also the description in case of "dev builds").
+    # Use --config=production in order to create artifacts for production usage and CI, e.g.,
+    # bazel run //lte/gateway/release:release_build --config=production
+    name = "release_build",
+    srcs = [":update_deb_meta_info"],
+    data = [
+        ":magma_deb_pkg",
+        ":sctpd_deb_pkg",
+    ],
+    tags = ["manual"],
 )

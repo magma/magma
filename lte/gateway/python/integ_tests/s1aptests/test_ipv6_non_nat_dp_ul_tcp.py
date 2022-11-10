@@ -88,9 +88,7 @@ class TestIpv6NonNatDpUlTcp(unittest.TestCase):
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
         router_adv = response.cast(s1ap_types.ueRouterAdv_t)
         print(
             "********** Received Router Advertisement for APN-%s"

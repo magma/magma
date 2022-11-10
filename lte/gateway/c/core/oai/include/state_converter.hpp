@@ -44,8 +44,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-#define ASCII_ZERO 0x30
-#define PLMN_BYTES 7
 #define BSTRING_TO_STRING(bstr, str_ptr)                \
   do {                                                  \
     *str_ptr = std::string(bdata(bstr), blength(bstr)); \

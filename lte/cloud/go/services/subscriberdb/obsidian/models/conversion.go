@@ -180,7 +180,7 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfil
 }
 
 func (m *MutableSubscriber) GetAssocs() storage.TKs {
-	var assocs storage.TKs
+	assocs := storage.TKs{}
 	assocs = append(assocs, m.ActivePoliciesByApn.ToTKs(string(m.ID))...)
 	assocs = append(assocs, m.ActiveApns.ToTKs()...)
 	assocs = append(assocs, m.ActivePolicies.ToTKs()...)

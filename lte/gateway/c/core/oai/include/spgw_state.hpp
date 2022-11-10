@@ -40,13 +40,10 @@ spgw_state_t* get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
 
-/**
- * Returns pointer to SPGW UE state
- * @return hashtable_ts_t struct with SPGW UE context structs as data
- */
-hash_table_ts_t* get_spgw_ue_state(void);
+// retunrs pointer to proto map, map_uint64_spgw_ue_context_t
+map_uint64_spgw_ue_context_t* get_spgw_ue_state(void);
 
-hash_table_ts_t* get_spgw_teid_state(void);
+state_teid_map_t* get_spgw_teid_state(void);
 
 /**
  * Populates SPGW UE hashtable from db
@@ -69,10 +66,9 @@ void delete_spgw_ue_state(imsi64_t imsi64);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc
- * @param context_p spgw eps bearer context entry on hashtable
+ * @param context_p spgw eps bearer context entry on map
  */
-void spgw_free_s11_bearer_context_information(
-    s_plus_p_gw_eps_bearer_context_information_t** context_p);
+void spgw_free_s11_bearer_context_information(void**);
 /**
  * Frees pdn connection and its contained objects
  * @param pdn_connection_p
@@ -87,4 +83,4 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
  * Callback function for imsi_ue_context hashtable's freefunc
  * @param spgw_ue_context_t
  */
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
+void sgw_free_ue_context(void** ptr);

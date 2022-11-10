@@ -299,10 +299,11 @@ run_test() {
 }
 
 create_xml_report() {
-    rm -f "${MERGED_REPORT_FOLDER}/"*.xml
-    mkdir -p "${MERGED_REPORT_FOLDER}"
-    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/integtests_report.xml" 
-    rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
+    local MERGED_REPORT_XML="integtests_report.xml"
+    rm -f "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}"
+    mkdir -p "${INTEGTEST_REPORT_FOLDER}"
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}" 
+    sudo rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
 }
 
 print_summary() {
@@ -345,8 +346,8 @@ RETRY_ATTEMPTS=2
 RERUN_PREVIOUSLY_FAILED="false"
 FAILED_LIST=()
 FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
-INTEGTEST_REPORT_FOLDER="/var/tmp/test_results"
-MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/integtest_merged_report"
+MERGED_REPORT_FOLDER="/var/tmp/test_results"
+INTEGTEST_REPORT_FOLDER="${MERGED_REPORT_FOLDER}/integtest_reports"
 
 BOLD='\033[1m'
 RED='\033[0;31m'

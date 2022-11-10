@@ -1,6 +1,6 @@
 package radiustracker
 
-import "fbc/lib/go/radius"
+import "layeh.com/radius"
 
 // RadiusTracker an interface for radius packet tracking
 type RadiusTracker interface {

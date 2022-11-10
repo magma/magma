@@ -324,6 +324,18 @@ echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
 echo "COMMIT_HASH=\"${COMMIT_HASH_WITH_VERSION}\"" > "${COMMIT_HASH_FILE}"
 
+# meta info
+DESCRIPTION_SCTPD="Magma SCTPD"
+DESCRIPTION_AGW="Magma Access Gateway"
+if [ "${BUILD_TYPE}" != "RelWithDebInfo" ]; then
+    DESCRIPTION_SCTPD="${DESCRIPTION_SCTPD} - dev build"
+    DESCRIPTION_AGW="${DESCRIPTION_AGW} - dev build"
+fi
+URL="https://github.com/magma/magma/"
+VENDOR="magma"
+LICENSE="BSD-3-Clause"
+MAINTAINER="The Magma Authors <main@lists.magmacore.org>"
+
 BUILDCMD="fpm \
 -s dir \
 -t ${PKGFMT} \
@@ -333,7 +345,11 @@ BUILDCMD="fpm \
 --provides ${SCTPD_PKGNAME} \
 --replaces ${SCTPD_PKGNAME} \
 --package ${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
---description 'Magma SCTPD' \
+--description '${DESCRIPTION_SCTPD}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE}' \
+--maintainer '${MAINTAINER}' \
 --exclude '*/.ignoreme' \
 ${SCTPD_BUILD}/sctpd=/usr/local/sbin/ \
 ${SCTPD_VERSION_FILE}=/usr/local/share/sctpd/version \
@@ -350,7 +366,11 @@ BUILDCMD="fpm \
 --provides ${PKGNAME} \
 --replaces ${PKGNAME} \
 --package ${BUILD_PATH} \
---description 'Magma Access Gateway' \
+--description '${DESCRIPTION_AGW}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE}' \
+--maintainer '${MAINTAINER}' \
 --after-install ${POSTINST} \
 --exclude '*/.ignoreme' \
 --config-files /etc/sysctl.d/99-magma.conf \
@@ -397,7 +417,6 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
-${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
 ${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \

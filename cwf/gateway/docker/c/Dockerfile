@@ -17,7 +17,6 @@
 
 ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 
-# Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG OS_DIST OS_RELEASE EXTRA_REPO
 

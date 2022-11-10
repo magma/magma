@@ -118,10 +118,7 @@ class TestS1HandoverCancel(unittest.TestCase):
         # Handover Request to Target ENB.
         # Wait for S1 Handover Request Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value
         s1ho_req_ind = response.cast(s1ap_types.FwNbS1HoReqInd_t)
         print(
             "************************* Received S1 Handover Request "
@@ -152,10 +149,7 @@ class TestS1HandoverCancel(unittest.TestCase):
         # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value
         s1ho_cmd_ind = response.cast(s1ap_types.FwNbS1HoCmdInd_t)
         print(
             "************************* Received S1 Handover Command "
@@ -186,10 +180,7 @@ class TestS1HandoverCancel(unittest.TestCase):
         # Handover Cancel Ack to Source ENB.
         # Wait for S1 Handover Cancel Ack Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CANCEL_ACK_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CANCEL_ACK_IND.value
         s1ho_cancl_ack_ind = response.cast(s1ap_types.FwNbS1HoCancelAckInd_t)
         print(
             "************************* Received S1 Handover Cancel Ack "

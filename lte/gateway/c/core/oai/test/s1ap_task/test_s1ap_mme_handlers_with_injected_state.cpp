@@ -114,7 +114,7 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  s1ap_state_t* state;
+  oai::S1apState* state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
   std::vector<std::string> name_of_ue_samples;
@@ -137,7 +137,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Invalid S1 Cause returns error
@@ -153,7 +153,7 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, GenerateUEContextReleaseCommand) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -164,16 +164,16 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
 
   // State validation
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), number_attached_ue);
+  ASSERT_EQ(state->mmeid2associd_size(), number_attached_ue);
 
   // Send S1AP_PATH_SWITCH_REQUEST_ACK mimicing MME_APP
   ASSERT_EQ(send_s1ap_path_switch_req(assoc_id, 1, 7), RETURNok);
 
   // verify number of ues after sending S1AP_PATH_SWITCH_REQUEST_ACK
   ASSERT_TRUE(
-      is_enb_state_valid(state, assoc_id, S1AP_READY, number_attached_ue));
+      is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 }
 
 }  // namespace lte

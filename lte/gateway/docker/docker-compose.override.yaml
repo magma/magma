@@ -16,3 +16,4 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/go/Dockerfile
+    image: gateway_go

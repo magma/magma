@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Build Nettle and Upload to Artifactory"
+name: Magma Build & Publish Nettle
 on:
   workflow_dispatch:
     inputs:
@@ -29,14 +29,13 @@ on:
 env:
   MAGMA_PACKAGE_DIR: /home/runner/magma-packages
   LIBNETTLE_PATH: /usr/lib/libnettle.so
-  ARTIFACTORY_URL: https://artifactory.magmacore.org:443/artifactory/
 
 jobs:
   build_deps:
     runs-on: ubuntu-20.04
     if: contains('["maxhbr", "nstng", "Neudrino", "tmdzk", "alexzurbonsen", "MoritzThomasHuebner"]', github.actor)
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Install fpm
         shell: bash
         run: |
@@ -69,9 +68,11 @@ jobs:
           name: nettle
           path: ${{ env.MAGMA_PACKAGE_DIR }}
       - name: Setup JFROG CLI
-        uses: jfrog/setup-jfrog-cli@v2
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
-          JF_ENV_1: ${{ secrets.JFROG_TOKEN }}
+          JF_URL: https://artifactory.magmacore.org
+          JF_USER: ${{ secrets.JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
       - name: Set dry run environment variable
         id: is_dry
         if: ${{ inputs.dry_run == 'true' }}
@@ -81,7 +82,6 @@ jobs:
         run: |
           jf rt u \
             --recursive=false \
-            --url=${ARTIFACTORY_URL} \
             --detailed-summary \
             ${{ env.IS_DRY }} \
             --target-props="deb.distribution=${{ inputs.distribution }};deb.component=main;deb.architecture=amd64" \

@@ -26,6 +26,7 @@ from lte.protos.subscriberdb_pb2 import (
     CheckInSyncResponse,
     ListSubscribersRequest,
     ListSubscribersResponse,
+    LTESubscription,
     SubscriberData,
     SubscriberID,
     SuciProfile,
@@ -417,18 +418,25 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         self.subscriberdb_cloud_client._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @ unittest.mock.patch(
+    @unittest.mock.patch('magma.subscriberdb.client.S6aServiceStub')
+    @unittest.mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
     )
-    def test_sync_subscribers(self, get_grpc_mock):
+    def test_sync_subscribers(self, get_grpc_mock, s6a_service_mock_stub):
         """
         Test Sync RPC success
 
         Args:
             get_grpc_mock: mock for service registry
         """
+
         async def test():  # noqa: WPS430
             get_grpc_mock.return_value = self.channel
+
+            mock = unittest.mock.Mock()
+            mock.DeleteSubscriber.future.side_effect = [unittest.mock.Mock()]
+            s6a_service_mock_stub.side_effect = [mock]
+
             # resync is True if the changeset is too big
             resync = (
                 await self.subscriberdb_cloud_client._sync_subscribers()
@@ -451,6 +459,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             self.subscriberdb_cloud_client._store.add_subscriber(
                 subscriber_data_by_id('IMSI11111'),
             )
+            mock.DeleteSubscriber.future.assert_not_called()
 
             # the client subscriber db and leaf digests db are updated
             # when resync is False
@@ -485,12 +494,24 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 self.subscriberdb_cloud_client._store.get_current_leaf_digests(),
             )
 
+            # Deleted (IMSI00000) and inactive (IMSI22222) subs are detached
+            mock.DeleteSubscriber.future.assert_called_once_with(
+                DeleteSubscriberRequest(imsi_list=["00000", "22222"]),
+            )
+
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
+
         self.loop.run_until_complete(test())
 
 
 def subscriber_data_by_id(sid_str):
     sid = SIDUtils.to_pb(sid_str)
-    data = SubscriberData(sid=sid)
+    data = SubscriberData(
+        sid=sid, lte=LTESubscription(
+            state=LTESubscription.ACTIVE
+            if sid_str != "IMSI22222"
+            else LTESubscription.INACTIVE,
+        ),
+    )
     return data

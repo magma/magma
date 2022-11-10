@@ -83,8 +83,12 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
   OAILOG_FUNC_IN(LOG_SGW_S8);
   int rc = 0;
 
-  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
-  if (state_teid_ht->remove(teid) != magma::PROTO_MAP_OK) {
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Failed to get state_teid_map");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                     "Failed to free teid from state_teid_map \n");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
@@ -96,7 +100,7 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_wrapper((void**)&p1);
+        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
         break;
       }
       p1 = LIST_NEXT(p1, entries);
@@ -119,9 +123,13 @@ sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
     teid_t teid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   sgw_eps_bearer_context_information_t* sgw_bearer_context_info = nullptr;
-  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SGW_S8, "Failed to get state_teid_map");
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, nullptr);
+  }
 
-  state_teid_ht->get(teid, &sgw_bearer_context_info);
+  state_teid_map->get(teid, &sgw_bearer_context_info);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_bearer_context_info);
 }
 
@@ -131,16 +139,12 @@ spgw_ue_context_t* sgw_create_or_get_ue_context(sgw_state_t* sgw_state,
                                                 imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   spgw_ue_context_t* ue_context_p = nullptr;
-
   sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
   if (!ue_context_p) {
     ue_context_p = new spgw_ue_context_t();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
       sgw_state->imsi_ue_context_map.insert(imsi64, ue_context_p);
-    } else {
-      OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                      "Failed to allocate memory for UE context\n");
     }
   }
   OAILOG_FUNC_RETURN(LOG_SGW_S8, ue_context_p);
@@ -158,15 +162,7 @@ status_code_e sgw_update_teid_in_ue_context(sgw_state_t* sgw_state,
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
 
-  sgw_s11_teid_t* sgw_s11_teid_p =
-      (sgw_s11_teid_t*)calloc(1, sizeof(sgw_s11_teid_t));
-  if (!sgw_s11_teid_p) {
-    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                    "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n",
-                    teid);
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
-  }
-
+  sgw_s11_teid_t* sgw_s11_teid_p = new sgw_s11_teid_t();
   sgw_s11_teid_p->sgw_s11_teid = teid;
   LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
   OAILOG_DEBUG(LOG_SGW_S8,
@@ -183,17 +179,8 @@ sgw_create_bearer_context_information_in_collection(
 
   *temporary_create_session_procedure_id_p = (uint32_t)rand();
   sgw_eps_bearer_context_information_t* new_sgw_bearer_context_information =
-      reinterpret_cast<sgw_eps_bearer_context_information_t*>(
-          calloc(1, sizeof(sgw_eps_bearer_context_information_t)));
+      new sgw_eps_bearer_context_information_t();
 
-  if (new_sgw_bearer_context_information == NULL) {
-    OAILOG_ERROR(
-        LOG_SGW_S8,
-        "Failed to create new sgw bearer context information object for "
-        "temporary_create_session_procedure_id_p:%u\n",
-        *temporary_create_session_procedure_id_p);
-    return NULL;
-  }
   sgw_state->temporary_create_session_procedure_id_map.insert(
       *temporary_create_session_procedure_id_p,
       new_sgw_bearer_context_information);
@@ -222,7 +209,7 @@ int sgw_update_bearer_context_information_on_csreq(
     sgw_eps_bearer_context_information_t* new_sgw_eps_context,
     itti_s11_create_session_request_t* session_req_pP, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
   memcpy(new_sgw_eps_context->imsi.digit, session_req_pP->imsi.digit,
          IMSI_BCD_DIGITS_MAX);
   new_sgw_eps_context->imsi.length = session_req_pP->imsi.length;
@@ -247,7 +234,7 @@ int sgw_update_bearer_context_information_on_csreq(
 
   eps_bearer_ctxt_p = sgw_cm_create_eps_bearer_ctxt_in_collection(
       &new_sgw_eps_context->pdn_connection, csr_bearer_context->eps_bearer_id);
-  if (eps_bearer_ctxt_p == NULL) {
+  if (eps_bearer_ctxt_p == nullptr) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
                     "Failed to create new EPS bearer entry\n");
     increment_counter("sgw_s8_create_session", 1, 2, "result", "failure",
@@ -1460,7 +1447,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
       }
       // Remove the temporary spgw entry
       LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
-      free_wrapper((void**)&sgw_eps_bearer_entry_p);
+      free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
       break;
     }
     sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1468,8 +1455,10 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   if (pgw_ni_cbr_proc && (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
     pgw_base_proc_t* base_proc1 = LIST_FIRST(sgw_context_p->pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_wrapper((void**)&sgw_context_p->pending_procedures);
-    free_wrapper((void**)&pgw_ni_cbr_proc->pending_eps_bearers);
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
+    free_cpp_wrapper(
+        reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
@@ -1853,8 +1842,12 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
   sgw_context_p->pdn_connection.s_gw_teid_S5_S8_cp =
       session_rsp_p->context_teid;
   // Insert the new tunnel with sgw_s11_teid into the hash list.
-  map_uint32_sgw_eps_bearer_context_t* state_teid_ht = get_s8_state_teid_map();
-  state_teid_ht->insert(session_rsp_p->context_teid, sgw_context_p);
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SGW_S8, "Failed to get state_teid_map");
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, nullptr);
+  }
+  state_teid_map->insert(session_rsp_p->context_teid, sgw_context_p);
 
   OAILOG_DEBUG(
       LOG_SGW_S8,

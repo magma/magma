@@ -22,13 +22,9 @@ from s1ap_utils import MagmadUtil
 class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
     """Integration Test: TestAttachDetachNonNatDpUlTcp"""
 
-    def __init__(self, method_name: str = ...) -> None:
-        """Initialize unittest class"""
-        super().__init__(methodName=method_name)
-        self.magma_utils = MagmadUtil(None)
-
     def setUp(self):
         """Initialize before test case execution"""
+        self.magma_utils = MagmadUtil(None)
         self.magma_utils.disable_nat()
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -70,7 +66,7 @@ class TestAttachDetachNonNatDpUlTcp(unittest.TestCase):
             # Validate assigned IP address.
             addr = attach.esmInfo.pAddr.addrInfo
             ue_ipv4 = ipaddress.ip_address(bytes(addr[:4]))
-            self.assertEqual(ue_ipv4, ipaddress.IPv4Address(ue_ips[i]))
+            assert ue_ipv4 == ipaddress.IPv4Address(ue_ips[i])
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()

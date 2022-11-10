@@ -51,10 +51,7 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("************************* Received UE_AUTH_REQ_IND")
 
         # Try consecutive mme restarts
@@ -76,10 +73,7 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("************************* Received UE_SEC_MOD_CMD_IND")
 
         self._s1ap_wrapper.magmad_util.restart_services(['mme'])

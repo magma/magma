@@ -31,11 +31,12 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -115,21 +116,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid)
 //-----------------------------------------------------------------------------
 {
-  mme_sgw_tunnel_t* new_tunnel = NULL;
-
-  new_tunnel =
-      reinterpret_cast<mme_sgw_tunnel_t*>(calloc(1, sizeof(mme_sgw_tunnel_t)));
-
-  if (new_tunnel == NULL) {
-    /*
-     * Malloc failed, may be ENOMEM error
-     */
-    OAILOG_ERROR(LOG_SPGW_APP,
-                 "Failed to create tunnel for remote_teid " TEID_FMT "\n",
-                 remote_teid);
-    return NULL;
-  }
-
+  mme_sgw_tunnel_t* new_tunnel = new mme_sgw_tunnel_t();
   new_tunnel->remote_teid = remote_teid;
   new_tunnel->local_teid = local_teid;
 
@@ -140,52 +127,20 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
 s_plus_p_gw_eps_bearer_context_information_t*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
-      NULL;
+      nullptr;
   new_bearer_context_information =
-      reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(
-          calloc(1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
-
-  if (new_bearer_context_information == NULL) {
-    /*
-     * Malloc failed, may be ENOMEM error
-     */
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
-        "Failed to create new bearer context information object for S11 "
-        "remote_teid " TEID_FMT "\n",
-        teid);
-    return NULL;
-  }
-
-  OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "sgw_cm_create_bearer_context_information_in_collection " TEID_FMT "\n",
-      teid);
-
-  bstring b = bfromcstr("pgw_eps_bearer_ctxt_info_apns");
-  new_bearer_context_information->pgw_eps_bearer_context_information.apns =
-      obj_hashtable_ts_create(32, NULL, NULL,
-                              (void (*)(void**))pgw_lite_cm_free_apn, b);
-  bdestroy_wrapper(&b);
-
-  if (new_bearer_context_information->pgw_eps_bearer_context_information.apns ==
-      NULL) {
-    OAILOG_ERROR(
-        LOG_SPGW_APP,
-        "Failed to create APN collection object entry for EPS bearer S11 "
-        "teid " TEID_FMT "\n",
-        teid);
-    spgw_free_s11_bearer_context_information(&new_bearer_context_information);
-    return NULL;
-  }
+      new s_plus_p_gw_eps_bearer_context_information_t();
 
   /*
-   * Trying to insert the new tunnel into the tree.
+   * Trying to insert the new tunnel into the map.
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
-  hashtable_ts_insert(state_teid_ht, (const hash_key_t)teid,
-                      new_bearer_context_information);
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return nullptr;
+  }
+  state_teid_map->insert(teid, new_bearer_context_information);
 
   OAILOG_DEBUG(LOG_SPGW_APP,
                "Added new s_plus_p_gw_eps_bearer_context_information_t in "
@@ -196,42 +151,45 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 }
 
 //-----------------------------------------------------------------------------
-hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
-                                                        imsi64_t imsi64) {
-  hashtable_rc_t temp = HASH_TABLE_OK;
-
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
-  temp = hashtable_ts_free(state_teid_ht, teid);
-  if (temp != HASH_TABLE_OK) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "Failed to free teid from state_teid_ht \n");
-    return temp;
+magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
+    teid_t teid, imsi64_t imsi64) {
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return magma::PROTO_MAP_KEY_NOT_EXISTS;
   }
-  spgw_ue_context_t* ue_context_p = NULL;
-  hash_table_ts_t* spgw_ue_state = get_spgw_ue_state();
-  hashtable_ts_get(spgw_ue_state, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Failed to free teid from state_teid_map \n");
+    return magma::PROTO_MAP_REMOVE_KEY_FAILED;
+  }
+  spgw_ue_context_t* ue_context_p = nullptr;
+  map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
+  if (!spgw_ue_state) {
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Failed to find spgw_ue_state");
+    return magma::PROTO_MAP_SEARCH_NO_RESULT;
+  }
+  spgw_ue_state->get(imsi64, &ue_context_p);
   if (ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_wrapper((void**)&p1);
+        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
         break;
       }
       p1 = LIST_NEXT(p1, entries);
     }
     if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
-      temp = hashtable_ts_free(spgw_ue_state, (const hash_key_t)imsi64);
-      if (temp != HASH_TABLE_OK) {
+      if (spgw_ue_state->remove(imsi64) != magma::PROTO_MAP_OK) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                        "Failed to free imsi64 from imsi_ue_context_htbl \n");
-        return temp;
+                        "Failed to free imsi64 from imsi_ue_context_map \n");
+        return magma::PROTO_MAP_REMOVE_KEY_FAILED;
       }
       delete_spgw_ue_state(imsi64);
     }
   }
-  return temp;
+  return magma::PROTO_MAP_OK;
 }
 
 //--- EPS Bearer Entry
@@ -239,7 +197,7 @@ hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection,
     const ebi_t eps_bearer_idP) {
-  sgw_eps_bearer_ctxt_t* new_eps_bearer_entry = NULL;
+  sgw_eps_bearer_ctxt_t* new_eps_bearer_entry = nullptr;
 
   AssertFatal(sgw_pdn_connection, "Bad parameter sgw_pdn_connection");
   AssertFatal((eps_bearer_idP >= EPS_BEARER_IDENTITY_FIRST) &&
@@ -248,18 +206,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
 
   if (!sgw_pdn_connection
            ->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)]) {
-    new_eps_bearer_entry = reinterpret_cast<sgw_eps_bearer_ctxt_t*>(
-        calloc(1, sizeof(sgw_eps_bearer_ctxt_t)));
-
-    if (new_eps_bearer_entry == NULL) {
-      /*
-       * Malloc failed, may be ENOMEM error
-       */
-      OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to create EPS bearer entry for EPS bearer id %u \n",
-                   eps_bearer_idP);
-      return NULL;
-    }
+    new_eps_bearer_entry = new sgw_eps_bearer_ctxt_t();
 
     new_eps_bearer_entry->eps_bearer_id = eps_bearer_idP;
     sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_idP)] =
@@ -285,8 +232,8 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
     sgw_eps_bearer_ctxt_t* const sgw_eps_bearer_ctxt) {
   if (!sgw_eps_bearer_ctxt) {
     OAILOG_ERROR(LOG_SPGW_APP,
-                 "Failed to insert EPS bearer context : NULL context\n");
-    return NULL;
+                 "Failed to insert EPS bearer context : nullptr context\n");
+    return nullptr;
   }
 
   if (!sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(
@@ -310,7 +257,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
 sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
     sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi) {
   if ((ebi < EPS_BEARER_IDENTITY_FIRST) || (ebi > EPS_BEARER_IDENTITY_LAST)) {
-    return NULL;
+    return nullptr;
   }
 
   return sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(ebi)];
@@ -318,35 +265,44 @@ sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
 
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid) {
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info = NULL;
-  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
+  s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info =
+      nullptr;
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return nullptr;
+  }
 
-  hashtable_ts_get(state_teid_ht, (const hash_key_t)teid,
-                   (void**)&spgw_bearer_context_info);
+  state_teid_map->get(teid, &spgw_bearer_context_info);
   return spgw_bearer_context_info;
 }
 
 spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p = NULL;
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
-  hashtable_ts_get(state_ue_ht, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  spgw_ue_context_t* ue_context_p = nullptr;
+  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
+  }
+  state_ue_map->get(imsi64, &ue_context_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p = NULL;
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
-  hashtable_ts_get(state_ue_ht, (const hash_key_t)imsi64,
-                   (void**)&ue_context_p);
+  spgw_ue_context_t* ue_context_p = nullptr;
+  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
+  }
+  state_ue_map->get(imsi64, &ue_context_p);
   if (!ue_context_p) {
-    ue_context_p = (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    ue_context_p = new spgw_ue_context_t();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
-      hashtable_ts_insert(state_ue_ht, (const hash_key_t)imsi64,
-                          (void*)ue_context_p);
+      state_ue_map->insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to allocate memory for UE context \n");
@@ -365,15 +321,7 @@ status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  sgw_s11_teid_t* sgw_s11_teid_p =
-      (sgw_s11_teid_t*)calloc(1, sizeof(sgw_s11_teid_t));
-  if (!sgw_s11_teid_p) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n",
-                    teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-
+  sgw_s11_teid_t* sgw_s11_teid_p = new sgw_s11_teid_t();
   sgw_s11_teid_p->sgw_s11_teid = teid;
   LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
   OAILOG_DEBUG(LOG_SPGW_APP,

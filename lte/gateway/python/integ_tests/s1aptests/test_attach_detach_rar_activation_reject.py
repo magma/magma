@@ -97,10 +97,7 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_ctxt_req = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -113,10 +110,7 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
         # Dedicated Bearer Activation Request message.
         # Handling re-transmitted Dedicated Bearer Activation Request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         print(
             "********************** Ignoring re-transmitted Dedicated Bearer "
             "Activation Request",

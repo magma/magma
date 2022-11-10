@@ -53,7 +53,6 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-
         # APN of the secondary PDN
         ims = {
             'apn_name': 'ims',  # APN-name
@@ -126,11 +125,10 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_DROP_ACTV_DEFAULT_EPS_BEARER_CTXT_REQ,
             drop_acctv_dflt_bearer_req,
         )
-
         retransmitted_response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            retransmitted_response.msg_type,
-            s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
+        assert (
+            retransmitted_response.msg_type
+            == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_def_bearer_req = retransmitted_response.cast(
             s1ap_types.uePdnConRsp_t,

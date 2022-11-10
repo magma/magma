@@ -22,14 +22,13 @@ import (
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
-	"fbc/lib/go/radius"
-
 	"fbc/cwf/radius/session"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/patrickmn/go-cache"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // UDPListener listens to Radius udp packets
@@ -72,8 +71,6 @@ func (l *UDPListener) Init(
 		),
 		SecretSource: radius.StaticSecretSource([]byte(serverConfig.Secret)),
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
-		Ready:        make(chan bool),
-		Logger:       server.logger,
 	}
 	return nil
 }
@@ -86,15 +83,10 @@ func (l *UDPListener) ListenAndServe() error {
 		serverError <- err
 	}()
 
-	// Wait to see if initialization was successful
-	select {
-	case _ = <-l.Server.Ready:
-		l.ready <- true
-		return nil
-	case err := <-serverError:
-		l.ready <- false
-		return err // might be nil if no error
+	if err := <-serverError; err != nil {
+		return err
 	}
+	return nil
 }
 
 // GetHandleRequest override
@@ -204,10 +196,8 @@ func generatePacketHandler(
 			correlationField,
 		)
 		radiusResponse := r.Response(response.Code)
-		for key, values := range response.Attributes {
-			for _, value := range values {
-				radiusResponse.Add(key, value)
-			}
+		for _, attr := range response.Attributes {
+			radiusResponse.Add(attr.Type, attr.Attribute)
 		}
 		w.Write(radiusResponse)
 	}

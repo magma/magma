@@ -35,6 +35,7 @@
       vars:
         distribution: "bionic"
         repo: "cwf-prod"
+        preburn: true
     - role: test_certs
     - role: ovs
     - role: golang

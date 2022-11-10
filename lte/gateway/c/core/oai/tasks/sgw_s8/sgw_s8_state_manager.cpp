@@ -82,24 +82,12 @@ void SgwStateManager::create_state() {
 
   state_cache_p->imsi_ue_context_map.map =
       new google::protobuf::Map<unsigned long int, struct spgw_ue_context_s*>();
-  if (!(state_cache_p->imsi_ue_context_map.map)) {
-    OAILOG_CRITICAL(LOG_SGW_S8,
-                    "Failed to create imsi_ue_context_map for SGW_S8 task \n");
-    return;
-  }
   state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP);
   state_cache_p->imsi_ue_context_map.bind_callback(sgw_free_ue_context);
 
   state_cache_p->temporary_create_session_procedure_id_map.map =
       new google::protobuf::Map<unsigned int,
                                 struct sgw_eps_bearer_context_information_s*>();
-  if (!(state_cache_p->temporary_create_session_procedure_id_map.map)) {
-    OAILOG_CRITICAL(
-        LOG_SGW_S8,
-        "Failed to create temporary_create_session_procedure_id_map for "
-        "SGW_S8 task \n");
-    return;
-  }
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
       SGW_S8_CSR_PROC_ID_MAP);
   state_cache_p->temporary_create_session_procedure_id_map.bind_callback(
@@ -125,7 +113,6 @@ void SgwStateManager::free_state() {
                    "temporary_create_session_procedure_id_map ");
     }
   }
-  s8_state_teid_map.map = nullptr;
 
   if (state_cache_p->imsi_ue_context_map.map) {
     if (state_cache_p->imsi_ue_context_map.destroy_map() != PROTO_MAP_OK) {
@@ -143,8 +130,7 @@ void SgwStateManager::free_state() {
                    "temporary_create_session_procedure_id_map ");
     }
   }
-  state_cache_p->temporary_create_session_procedure_id_map.map = nullptr;
-  free_cpp_wrapper((void**)&state_cache_p);
+  free_cpp_wrapper(reinterpret_cast<void**>(&state_cache_p));
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {

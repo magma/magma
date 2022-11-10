@@ -61,7 +61,7 @@
     "passport-http": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "passport-local": "^1.0.0",
-    "passport-saml": "^3.1.0",
+    "passport-saml": "^3.2.2",
     "path-to-regexp": "^6.2.1",
     "pg": "^8.6.0",
     "pug": "^3.0.2",
@@ -178,6 +178,7 @@
   "resolutions": {
     "@babel/runtime": "^7.3.4",
     "node-forge": "^1.0.0",
+    "node-fetch": "^2.6.7",
     "refractor/prismjs": "^1.27.0",
     "jspdf": "^2.3.1",
     "cacache/ssri": "6.0.2",

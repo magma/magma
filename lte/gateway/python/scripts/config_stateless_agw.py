@@ -103,6 +103,7 @@ def clear_redis_state():
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
+        redis_client.save()
 
 
 def flushall_redis():
