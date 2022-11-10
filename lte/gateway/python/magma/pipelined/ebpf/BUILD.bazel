@@ -25,7 +25,6 @@ py_library(
         requirement("getmac"),
         requirement("netifaces"),
         requirement("pyroute2"),
-        requirement("scapy"),
     ],
 )
 
