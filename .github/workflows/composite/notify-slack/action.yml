@@ -1,0 +1,57 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Notify Slack
+description: Send a notification to slack about build status
+
+inputs:
+  webhook:
+    description: Slack incoming webhook specifying the channel to send to.
+  status:
+    description: Success status with valid input 'success' and 'failure'.
+  message:
+    description: Message to be displayed in notification.
+
+runs:
+  using: composite
+  # env is not allowed in composite actions
+  steps:
+    - name: Set layout for default
+      run: |
+        echo "icon=':information_source:'" >> $GITHUB_ENV
+        echo "color='#0000FF'" >> $GITHUB_ENV
+      shell: bash
+
+    - if: inputs.status == 'success'
+      name: Set layout for success
+      run: |
+        echo "icon=':heavy_check_mark:'" >> $GITHUB_ENV
+        echo "color='#00FF00'" >> $GITHUB_ENV
+      shell: bash
+
+    - if: inputs.status == 'failure'
+      name: Set layout for failure
+      run: |
+        echo "icon=':boom:'" >> $GITHUB_ENV
+        echo "color='#FF0000'" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Notify Slack
+      if: inputs.webhook != ''
+      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+      env:
+        SLACK_WEBHOOK: ${{ inputs.webhook }}
+        SLACK_USERNAME: ${{ github.workflow }}
+        SLACK_TITLE: ${{ github.job }}
+        SLACK_ICON_EMOJI: ${{ env.icon }}
+        SLACK_COLOR: ${{ job.status }}
+        SLACK_MESSAGE: ${{ inputs.message }}
+        MSG_MINIMAL: actions url,commit
