@@ -50,6 +50,10 @@ module "eks" {
   iam_role_additional_policies          = var.eks_worker_additional_policy_arns
   eks_managed_node_groups               = var.thanos_enabled ? concat(local.orc8r_worker_group, var.thanos_worker_groups) : local.orc8r_worker_group
 
+  eks_managed_node_group_defaults = {
+    iam_role_attach_cni_policy = true
+  }
+
   aws_auth_roles = var.eks_map_roles
   aws_auth_users = var.eks_map_users
 
