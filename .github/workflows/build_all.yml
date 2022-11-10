@@ -97,7 +97,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Helm charts have been published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -227,7 +226,6 @@ jobs:
         if: success() && github.event_name == 'push'
         env:
           SLACK_TITLE: "Github action agw build got published"
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_USERNAME: ${{ github.workflow }}
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
@@ -367,7 +365,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -599,7 +596,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*SwaggerHub Updated*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -715,7 +711,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*CWAG Artifact Has Been Published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -802,7 +797,6 @@ jobs:
         if: success() && github.ref == 'refs/heads/master'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
           SLACK_TITLE: "*CWF Artifact Has Been Published*"
@@ -903,7 +897,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*FeG Artifact Has Been Published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -985,7 +978,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "NMS Artifact Has Been Published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
@@ -1083,7 +1075,6 @@ jobs:
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Domain proxy images have been published*"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
