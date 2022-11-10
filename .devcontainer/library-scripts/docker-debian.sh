@@ -58,7 +58,7 @@ if ! dpkg -s apt-transport-https curl ca-certificates lsb-release > /dev/null 2>
     apt-get -y install --no-install-recommends apt-transport-https curl ca-certificates lsb-release gnupg2 
 fi
 
-# Install Docker / Moby CLI if not already installed
+# Install Docker/Docker Compose / Moby CLI if not already installed
 if type docker > /dev/null 2>&1; then
     echo "Docker / Moby CLI already installed."
 else
@@ -73,17 +73,8 @@ else
         curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | (OUT=$(apt-key add - 2>&1) || echo $OUT)
         echo "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list
         apt-get update
-        apt-get -y install --no-install-recommends docker-ce-cli
+        apt-get -y install --no-install-recommends docker-ce-cli docker-compose-plugin
     fi
-fi
-
-# Install Docker Compose if not already installed 
-if type docker-compose > /dev/null 2>&1; then
-    echo "Docker Compose already installed."
-else
-    LATEST_COMPOSE_VERSION=$(curl -sSL "https://api.github.com/repos/docker/compose/releases/latest" | grep -o -P '(?<="tag_name": ").+(?=")')
-    curl -sSL "https://github.com/docker/compose/releases/download/${LATEST_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
 fi
 
 # If init file already exists, exit
