@@ -47,6 +47,7 @@
       - curl
       - python3-pip
       - python3-setuptools
+      - yum-utils
 
 - name: Add Docker’s official GPG key
   rpm_key:
@@ -58,6 +59,12 @@
 
 - name: Install the latest version of Docker CE
   yum:
-    name: docker-ce
+    name: "{{ packages }}"
     state: present
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
 

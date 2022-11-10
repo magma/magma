@@ -71,6 +71,7 @@
       - gnupg-agent
       - software-properties-common
       - python3-pip
+      - lsb-release
 
 - name: Copy docker gpg key from codebase
   copy:
@@ -94,6 +95,21 @@
 
 - name: Install the latest version of Docker CE
   apt:
-    name: docker-ce
+    name: "{{ packages }}"
     state: present
     update_cache: true
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+
+- name: Add environment variable for Docker's BuildKit
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - DOCKER_BUILDKIT=0
+    - COMPOSE_DOCKER_CLI_BUILD=0

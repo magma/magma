@@ -20,13 +20,6 @@
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
   include_tasks: install_redhat.yml
 
-- name: Download the lastest version of Docker Compose
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
-    dest: /usr/local/bin/docker-compose
-    mode: +x
-  when: preburn
-
 - name: Add the user to the docker group
   user:
     name: "{{ user }}"
