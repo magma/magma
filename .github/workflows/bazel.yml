@@ -209,7 +209,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...` ${{ matrix.bazel-config }}"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -359,7 +359,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Package Job"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -381,7 +381,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -403,7 +403,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

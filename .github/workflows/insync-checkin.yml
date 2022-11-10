@@ -58,7 +58,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: "Cloud workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_MESSAGE: "COMMIT TITLE:
 
             \ ${{steps.commit.outputs.title}}
