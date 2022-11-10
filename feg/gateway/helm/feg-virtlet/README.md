@@ -53,7 +53,7 @@ This chart installs the Magma Federated Gateway.
 
    source .env
 
-   docker-compose -f docker-compose.yml build
+   docker compose -f docker-compose.yml build
 
    ./magma/orc8r/tools/docker/publish.sh -r REGISTRY -i gateway_go -u USERNAME -p passwordfile
 

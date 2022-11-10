@@ -214,8 +214,8 @@ the NMS to talk to your local Orchestrator:
 
 ```bash
 HOST [magma]$ cd nms
-HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
-HOST [magma/nms] $ docker-compose up -d
+HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
+HOST [magma/nms] $ docker compose up -d
 HOST [magma/nms] $ ./scripts/dev_setup.sh
 ```
 
