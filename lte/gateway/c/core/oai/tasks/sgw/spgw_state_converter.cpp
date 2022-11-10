@@ -233,8 +233,7 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
 
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
-      auto* eps_bearer_entry =
-          (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      auto* eps_bearer_entry = new sgw_eps_bearer_ctxt_t();
       proto_to_sgw_eps_bearer(proto.eps_bearer_list(i), eps_bearer_entry);
       state_pdn->sgw_eps_bearers_array[i] = eps_bearer_entry;
     }
@@ -937,8 +936,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
     const oai::PgwCbrProcedure& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s*
         pending_procedures) {
-  pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      (pgw_ni_cbr_proc_t*)calloc(1, sizeof(pgw_ni_cbr_proc_t));
+  pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
   s11_proc_create_bearer->teid = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t)proto.sdf_id();
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -946,17 +944,15 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      (struct pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
-          1, sizeof(*s11_proc_create_bearer->pending_eps_bearers));
+      new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
   for (auto& eps_bearer_proto : proto.pending_eps_bearers()) {
-    sgw_eps_bearer_ctxt_t* eps_bearer =
-        (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    sgw_eps_bearer_ctxt_t* eps_bearer = new sgw_eps_bearer_ctxt_t();
+
     proto_to_sgw_eps_bearer(eps_bearer_proto, eps_bearer);
 
     sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_wrapper =
-        (sgw_eps_bearer_entry_wrapper_t*)calloc(
-            1, sizeof(*sgw_eps_bearer_entry_wrapper));
+        new sgw_eps_bearer_entry_wrapper_t();
     sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry = eps_bearer;
     LIST_INSERT_HEAD((s11_proc_create_bearer->pending_eps_bearers),
                      sgw_eps_bearer_entry_wrapper, entries);
@@ -982,7 +978,7 @@ void SpgwStateConverter::ue_to_proto(const spgw_ue_context_t* ue_state,
 void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
                                      spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  hash_table_ts_t* state_ue_ht = nullptr;
+  map_uint64_spgw_ue_context_t* state_ue_map = nullptr;
   state_teid_map_t* state_teid_map = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
     state_teid_map = get_spgw_teid_state();
@@ -991,10 +987,10 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
-    state_ue_ht = get_spgw_ue_state();
-    if (!state_ue_ht) {
+    state_ue_map = get_spgw_ue_state();
+    if (!state_ue_map) {
       OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+                   "Failed to get state_ue_map from get_spgw_ue_state() \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
@@ -1003,8 +999,7 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
         ue_proto.s11_bearer_context(0).sgw_eps_bearer_context().imsi64();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
-      hashtable_ts_insert(state_ue_ht, (const hash_key_t)imsi64,
-                          (void*)ue_context_p);
+      state_ue_map->insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to allocate memory for UE context \n");
@@ -1019,11 +1014,6 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
         new s_plus_p_gw_eps_bearer_context_information_t();
-    if (!spgw_context_p) {
-      OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to allocate memory for SPGW context \n");
-      OAILOG_FUNC_OUT(LOG_SPGW_APP);
-    }
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
     if ((state_teid_map->insert(

@@ -24,6 +24,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
@@ -45,8 +46,8 @@ spgw_state_t* get_spgw_state(bool read_from_db) {
   return SpgwStateManager::getInstance().get_state(read_from_db);
 }
 
-hash_table_ts_t* get_spgw_ue_state() {
-  return SpgwStateManager::getInstance().get_ue_state_ht();
+map_uint64_spgw_ue_context_t* get_spgw_ue_state() {
+  return SpgwStateManager::getInstance().get_spgw_ue_state_map();
 }
 
 state_teid_map_t* get_spgw_teid_state() {
@@ -64,9 +65,12 @@ void put_spgw_state() { SpgwStateManager::getInstance().write_state_to_db(); }
 void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
     spgw_ue_context_t* ue_context_p = nullptr;
-    hash_table_ts_t* spgw_ue_state = get_spgw_ue_state();
-    hashtable_ts_get(spgw_ue_state, (const hash_key_t)imsi64,
-                     (void**)&ue_context_p);
+    map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
+    if (!spgw_ue_state) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+    spgw_ue_state->get(imsi64, &ue_context_p);
     if (ue_context_p) {
       auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
       SpgwStateManager::getInstance().write_ue_state_to_db(ue_context_p,
@@ -116,20 +120,26 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
       free_wrapper(
           reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
     }
-    free_wrapper((void**)sgw_eps_bearer_ctxt);
+    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
   }
 }
 
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
-  if (*ue_context_p) {
-    sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
+void sgw_free_ue_context(void** ptr) {
+  if (!ptr) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "sgw_free_ue_context received invalid pointer for deletion");
+    return;
+  }
+  spgw_ue_context_t* ue_context_p = reinterpret_cast<spgw_ue_context_t*>(*ptr);
+  if (ue_context_p) {
+    sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p)->sgw_s11_teid_list);
     sgw_s11_teid_t* p2 = nullptr;
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       LIST_REMOVE(p1, entries);
-      free_wrapper((void**)&p1);
+      free_cpp_wrapper(reinterpret_cast<void**>(&p1));
       p1 = p2;
     }
-    free_wrapper((void**)ue_context_p);
+    free_cpp_wrapper(ptr);
   }
 }

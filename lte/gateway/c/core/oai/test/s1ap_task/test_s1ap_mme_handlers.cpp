@@ -29,6 +29,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/include/state_converter.hpp"
 
 extern bool hss_associated;
 extern task_zmq_ctx_t task_zmq_ctx_mme;
