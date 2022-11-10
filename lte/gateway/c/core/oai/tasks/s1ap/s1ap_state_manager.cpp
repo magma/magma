@@ -178,17 +178,14 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 }
 
 void S1apStateManager::create_s1ap_imsi_map() {
-  s1ap_imsi_map_ = new s1ap_imsi_map_t();
+  proto_map_uint32_uint64_t imsi_map;
+  s1ap_imsi_map_ = new oai::S1apImsiMap();
 
-  s1ap_imsi_map_->mme_ueid2imsi_map.map =
-      new google::protobuf::Map<uint32_t, uint64_t>();
-  s1ap_imsi_map_->mme_ueid2imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
+  imsi_map.map = s1ap_imsi_map_->mutable_mme_ue_s1ap_id_imsi_map();
+  imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
 
   if (persist_state_enabled) {
-    oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
-    redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
-
-    S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
+    redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, *s1ap_imsi_map_);
   }
 }
 
@@ -196,11 +193,11 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   if (!s1ap_imsi_map_) {
     return;
   }
-  s1ap_imsi_map_->mme_ueid2imsi_map.destroy_map();
+  s1ap_imsi_map_->Clear();
   delete s1ap_imsi_map_;
 }
 
-s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
+oai::S1apImsiMap* S1apStateManager::get_s1ap_imsi_map() {
   return s1ap_imsi_map_;
 }
 
@@ -208,10 +205,8 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   if (!persist_state_enabled) {
     return;
   }
-  oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
-  S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
   std::string proto_msg;
-  redis_client->serialize(imsi_proto, proto_msg);
+  redis_client->serialize(*s1ap_imsi_map_, proto_msg);
   std::size_t new_hash = std::hash<std::string>{}(proto_msg);
 
   // s1ap_imsi_map is not state service synced, so version will not be updated

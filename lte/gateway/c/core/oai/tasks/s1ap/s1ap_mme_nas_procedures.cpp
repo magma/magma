@@ -262,8 +262,9 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
 
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;
-    s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-    s1ap_imsi_map->mme_ueid2imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
+    magma::proto_map_uint32_uint64_t ueid_imsi_map;
+    get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+    ueid_imsi_map.get(ue_ref->mme_ue_s1ap_id(), &imsi64);
 
     OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
@@ -335,8 +336,10 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
           "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT "\n",
           mme_ue_s1ap_id);
       imsi64_t imsi64 = INVALID_IMSI64;
-      s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-      s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
+
+      magma::proto_map_uint32_uint64_t ueid_imsi_map;
+      get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+      ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
       s1ap_mme_generate_ue_context_release_command(
           state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
@@ -455,8 +458,9 @@ status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
 
   if (ue_ref->s1ap_ue_state() != oai::S1AP_UE_CONNECTED) {
     OAILOG_DEBUG_UE(
@@ -520,8 +524,10 @@ status_code_e s1ap_generate_downlink_nas_transport(
      * We have found the UE in the list.
      * * * * Create new IE list message and encode it.
      */
-    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    if ((imsi_map->mme_ueid2imsi_map.insert(ue_id, imsi64) ==
+
+    magma::proto_map_uint32_uint64_t ueid_imsi_map;
+    get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+    if ((ueid_imsi_map.insert(ue_id, imsi64) ==
          magma::PROTO_MAP_KEY_ALREADY_EXISTS)) {
       *is_state_same = true;
     }
@@ -879,8 +885,9 @@ void s1ap_handle_conn_est_cnf(
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.insert(conn_est_cnf_pP->ue_id, imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.insert(conn_est_cnf_pP->ue_id, imsi64);
 
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
