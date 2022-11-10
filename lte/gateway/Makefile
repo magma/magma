@@ -49,7 +49,6 @@ COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CP
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 
-FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
@@ -120,30 +119,8 @@ build_connection_tracker:
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
-test_python: ## Run all Python-specific tests
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
-
 test_oai: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-
-test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
-test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
-test_oai_runtime: export MERGED_REPORT_FOLDER=${REPORT_FOLDER}/merged_report/
-test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
-test_oai_runtime: ## Run all OAI-specific tests with report about the running time
-	mkdir -p ${UNITTEST_REPORT_FOLDER}
-	mkdir -p ${MERGED_REPORT_FOLDER}
-	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
-	rm ${UNITTEST_REPORT_FOLDER}/*.xml
-
-test_sctpd: ## Run all tests for sctpd
-	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
-
-test_li_agent:
-	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
-
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
