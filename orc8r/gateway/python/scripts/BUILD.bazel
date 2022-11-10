@@ -36,6 +36,7 @@ SCRIPTS = [
 
 expand_runfiles(
     name = "scripts_expanded",
+    tags = ["no-cache"],
     targets = [":{script}".format(script = script) for script in SCRIPTS],
 )
 
@@ -43,6 +44,7 @@ expand_runfiles(
     pkg_mklink(
         name = "{script}_symlink".format(script = script),
         link_name = "/usr/local/bin/{script}.py".format(script = script),
+        tags = ["no-cache"],
         target = "{dest}/scripts/{script}.py".format(
             dest = PY_DEST,
             script = script,
@@ -56,6 +58,7 @@ pkg_filegroup(
     srcs = [":scripts_expanded"] +
            ["{script}_symlink".format(script = script) for script in SCRIPTS],
     prefix = PY_DEST,
+    tags = ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
 )
 
