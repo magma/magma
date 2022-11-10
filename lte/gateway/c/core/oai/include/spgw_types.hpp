@@ -101,7 +101,7 @@ typedef struct mme_sgw_tunnel_s {
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
-// Map- Key: imsi of uint64_t , Data: spgw_ue_context_t*
+// Map with Key: imsi of uint64_t, Data: spgw_ue_context_t*
 typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
     map_uint64_sgw_ue_context_t;
 

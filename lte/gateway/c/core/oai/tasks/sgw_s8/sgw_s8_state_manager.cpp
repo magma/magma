@@ -62,12 +62,6 @@ void SgwStateManager::create_state() {
   s8_state_teid_map.map =
       new google::protobuf::Map<unsigned int,
                                 struct sgw_eps_bearer_context_information_s*>();
-  if (!(s8_state_teid_map.map)) {
-    OAILOG_CRITICAL(LOG_SGW_S8,
-                    "Failed to create s8_state_teid_map for "
-                    "SGW_S8 task \n");
-    return;
-  }
   s8_state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_MAP_NAME);
   s8_state_teid_map.bind_callback(sgw_free_s11_bearer_context_information);
 
