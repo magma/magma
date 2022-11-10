@@ -13,70 +13,86 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPostLTENetworkIDSubscribersParams creates a new PostLTENetworkIDSubscribersParams object
-// with the default values initialized.
+// NewPostLTENetworkIDSubscribersParams creates a new PostLTENetworkIDSubscribersParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPostLTENetworkIDSubscribersParams() *PostLTENetworkIDSubscribersParams {
-	var ()
 	return &PostLTENetworkIDSubscribersParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPostLTENetworkIDSubscribersParamsWithTimeout creates a new PostLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPostLTENetworkIDSubscribersParamsWithTimeout(timeout time.Duration) *PostLTENetworkIDSubscribersParams {
-	var ()
 	return &PostLTENetworkIDSubscribersParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPostLTENetworkIDSubscribersParamsWithContext creates a new PostLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPostLTENetworkIDSubscribersParamsWithContext(ctx context.Context) *PostLTENetworkIDSubscribersParams {
-	var ()
 	return &PostLTENetworkIDSubscribersParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPostLTENetworkIDSubscribersParamsWithHTTPClient creates a new PostLTENetworkIDSubscribersParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPostLTENetworkIDSubscribersParamsWithHTTPClient(client *http.Client) *PostLTENetworkIDSubscribersParams {
-	var ()
 	return &PostLTENetworkIDSubscribersParams{
 		HTTPClient: client,
 	}
 }
 
-/*PostLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
-for the post LTE network ID subscribers operation typically these are written to a http.Request
+/*
+PostLTENetworkIDSubscribersParams contains all the parameters to send to the API endpoint
+
+	for the post LTE network ID subscribers operation.
+
+	Typically these are written to a http.Request.
 */
 type PostLTENetworkIDSubscribersParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Subscriber
-	  Subscriber that needs to be added
 
+	/* Subscribers.
+
+	   Subscribers to add
 	*/
-	Subscriber *models.MutableSubscriber
+	Subscribers models.MutableSubscribers
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the post LTE network ID subscribers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDSubscribersParams) WithDefaults() *PostLTENetworkIDSubscribersParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the post LTE network ID subscribers params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PostLTENetworkIDSubscribersParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post LTE network ID subscribers params
@@ -123,15 +139,15 @@ func (o *PostLTENetworkIDSubscribersParams) SetNetworkID(networkID string) {
 	o.NetworkID = networkID
 }
 
-// WithSubscriber adds the subscriber to the post LTE network ID subscribers params
-func (o *PostLTENetworkIDSubscribersParams) WithSubscriber(subscriber *models.MutableSubscriber) *PostLTENetworkIDSubscribersParams {
-	o.SetSubscriber(subscriber)
+// WithSubscribers adds the subscribers to the post LTE network ID subscribers params
+func (o *PostLTENetworkIDSubscribersParams) WithSubscribers(subscribers models.MutableSubscribers) *PostLTENetworkIDSubscribersParams {
+	o.SetSubscribers(subscribers)
 	return o
 }
 
-// SetSubscriber adds the subscriber to the post LTE network ID subscribers params
-func (o *PostLTENetworkIDSubscribersParams) SetSubscriber(subscriber *models.MutableSubscriber) {
-	o.Subscriber = subscriber
+// SetSubscribers adds the subscribers to the post LTE network ID subscribers params
+func (o *PostLTENetworkIDSubscribersParams) SetSubscribers(subscribers models.MutableSubscribers) {
+	o.Subscribers = subscribers
 }
 
 // WriteToRequest writes these params to a swagger request
@@ -146,9 +162,8 @@ func (o *PostLTENetworkIDSubscribersParams) WriteToRequest(r runtime.ClientReque
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
-	if o.Subscriber != nil {
-		if err := r.SetBodyParam(o.Subscriber); err != nil {
+	if o.Subscribers != nil {
+		if err := r.SetBodyParam(o.Subscribers); err != nil {
 			return err
 		}
 	}

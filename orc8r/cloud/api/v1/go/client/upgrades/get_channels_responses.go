@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetChannelsReader is a Reader for the GetChannels structure.
@@ -47,7 +46,8 @@ func NewGetChannelsOK() *GetChannelsOK {
 	return &GetChannelsOK{}
 }
 
-/*GetChannelsOK handles this case with default header values.
+/*
+GetChannelsOK describes a response with status code 200, with default header values.
 
 List of release channel IDs
 */
@@ -58,7 +58,6 @@ type GetChannelsOK struct {
 func (o *GetChannelsOK) Error() string {
 	return fmt.Sprintf("[GET /channels][%d] getChannelsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetChannelsOK) GetPayload() []models.ChannelID {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetChannelsDefault(code int) *GetChannelsDefault {
 	}
 }
 
-/*GetChannelsDefault handles this case with default header values.
+/*
+GetChannelsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetChannelsDefault) Code() int {
 func (o *GetChannelsDefault) Error() string {
 	return fmt.Sprintf("[GET /channels][%d] GetChannels default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetChannelsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

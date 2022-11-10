@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfNetworkIDLiUesReader is a Reader for the GetCwfNetworkIDLiUes structure.
@@ -47,7 +46,8 @@ func NewGetCwfNetworkIDLiUesOK() *GetCwfNetworkIDLiUesOK {
 	return &GetCwfNetworkIDLiUesOK{}
 }
 
-/*GetCwfNetworkIDLiUesOK handles this case with default header values.
+/*
+GetCwfNetworkIDLiUesOK describes a response with status code 200, with default header values.
 
 Monitored LI UEs
 */
@@ -58,7 +58,6 @@ type GetCwfNetworkIDLiUesOK struct {
 func (o *GetCwfNetworkIDLiUesOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/li_ues][%d] getCwfNetworkIdLiUesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDLiUesOK) GetPayload() *models.LiUes {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetCwfNetworkIDLiUesDefault(code int) *GetCwfNetworkIDLiUesDefault {
 	}
 }
 
-/*GetCwfNetworkIDLiUesDefault handles this case with default header values.
+/*
+GetCwfNetworkIDLiUesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetCwfNetworkIDLiUesDefault) Code() int {
 func (o *GetCwfNetworkIDLiUesDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/li_ues][%d] GetCwfNetworkIDLiUes default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDLiUesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

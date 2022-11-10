@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDNameReader is a Reader for the PutLTENetworkIDName structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDNameNoContent() *PutLTENetworkIDNameNoContent {
 	return &PutLTENetworkIDNameNoContent{}
 }
 
-/*PutLTENetworkIDNameNoContent handles this case with default header values.
+/*
+PutLTENetworkIDNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDNameDefault(code int) *PutLTENetworkIDNameDefault {
 	}
 }
 
-/*PutLTENetworkIDNameDefault handles this case with default header values.
+/*
+PutLTENetworkIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDNameDefault) Code() int {
 func (o *PutLTENetworkIDNameDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/name][%d] PutLTENetworkIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

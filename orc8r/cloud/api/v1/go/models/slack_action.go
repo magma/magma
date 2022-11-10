@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SlackAction slack action
+//
 // swagger:model slack_action
 type SlackAction struct {
 
@@ -69,7 +71,6 @@ func (m *SlackAction) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SlackAction) validateConfirm(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Confirm) { // not required
 		return nil
 	}
@@ -78,6 +79,8 @@ func (m *SlackAction) validateConfirm(formats strfmt.Registry) error {
 		if err := m.Confirm.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("confirm")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("confirm")
 			}
 			return err
 		}
@@ -108,6 +111,36 @@ func (m *SlackAction) validateURL(formats strfmt.Registry) error {
 
 	if err := validate.Required("url", "body", m.URL); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this slack action based on the context it is used
+func (m *SlackAction) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateConfirm(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SlackAction) contextValidateConfirm(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Confirm != nil {
+		if err := m.Confirm.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("confirm")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("confirm")
+			}
+			return err
+		}
 	}
 
 	return nil

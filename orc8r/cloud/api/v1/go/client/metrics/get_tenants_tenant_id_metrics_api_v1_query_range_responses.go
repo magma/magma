@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetTenantsTenantIDMetricsAPIV1QueryRangeReader is a Reader for the GetTenantsTenantIDMetricsAPIV1QueryRange structure.
@@ -47,7 +46,8 @@ func NewGetTenantsTenantIDMetricsAPIV1QueryRangeOK() *GetTenantsTenantIDMetricsA
 	return &GetTenantsTenantIDMetricsAPIV1QueryRangeOK{}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1QueryRangeOK handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsAPIV1QueryRangeOK describes a response with status code 200, with default header values.
 
 List of PromQL metrics results
 */
@@ -58,7 +58,6 @@ type GetTenantsTenantIDMetricsAPIV1QueryRangeOK struct {
 func (o *GetTenantsTenantIDMetricsAPIV1QueryRangeOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/query_range][%d] getTenantsTenantIdMetricsApiV1QueryRangeOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1QueryRangeOK) GetPayload() *models.PromqlReturnObject {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetTenantsTenantIDMetricsAPIV1QueryRangeDefault(code int) *GetTenantsTen
 	}
 }
 
-/*GetTenantsTenantIDMetricsAPIV1QueryRangeDefault handles this case with default header values.
+/*
+GetTenantsTenantIDMetricsAPIV1QueryRangeDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetTenantsTenantIDMetricsAPIV1QueryRangeDefault) Code() int {
 func (o *GetTenantsTenantIDMetricsAPIV1QueryRangeDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/{tenant_id}/metrics/api/v1/query_range][%d] GetTenantsTenantIDMetricsAPIV1QueryRange default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTenantIDMetricsAPIV1QueryRangeDefault) GetPayload() *models.Error {
 	return o.Payload
 }

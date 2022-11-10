@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // FlowDescription flow description
+//
 // swagger:model flow_description
 type FlowDescription struct {
 
@@ -70,7 +71,7 @@ const (
 
 // prop value enum
 func (m *FlowDescription) validateActionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, flowDescriptionTypeActionPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, flowDescriptionTypeActionPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -100,6 +101,38 @@ func (m *FlowDescription) validateMatch(formats strfmt.Registry) error {
 		if err := m.Match.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("match")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this flow description based on the context it is used
+func (m *FlowDescription) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateMatch(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *FlowDescription) contextValidateMatch(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Match != nil {
+		if err := m.Match.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("match")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("match")
 			}
 			return err
 		}

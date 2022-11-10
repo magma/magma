@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDGatewaysGatewayIDCellularRanReader is a Reader for the PutLTENetworkIDGatewaysGatewayIDCellularRan structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularRanNoContent() *PutLTENetworkIDG
 	return &PutLTENetworkIDGatewaysGatewayIDCellularRanNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularRanNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularRanNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularRanDefault(code int) *PutLTENetw
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularRanDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularRanDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularRanDefault) Code() int {
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularRanDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/gateways/{gateway_id}/cellular/ran][%d] PutLTENetworkIDGatewaysGatewayIDCellularRan default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularRanDefault) GetPayload() *models.Error {
 	return o.Payload
 }

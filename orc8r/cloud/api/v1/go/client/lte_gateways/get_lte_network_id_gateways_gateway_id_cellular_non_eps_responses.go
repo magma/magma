@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDGatewaysGatewayIDCellularNonEpsReader is a Reader for the GetLTENetworkIDGatewaysGatewayIDCellularNonEps structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent() *GetLTENetwork
 	return &GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent describes a response with status code 204, with default header values.
 
 Non-EPS configuration
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps][%d] getLteNetworkIdGatewaysGatewayIdCellularNonEpsNoContent  %+v", 204, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent) GetPayload() *models.GatewayNonEpsConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault(code int) *GetLTEN
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) Code() int {
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps][%d] GetLTENetworkIDGatewaysGatewayIDCellularNonEps default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) GetPayload() *models.Error {
 	return o.Payload
 }
