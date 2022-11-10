@@ -394,7 +394,7 @@ def _stop_gateway():
     """ Stop the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
@@ -406,7 +406,7 @@ def _build_gateway():
     """ Builds the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.nginx.yml'
@@ -419,7 +419,7 @@ def _run_gateway():
     """ Runs the gateway's docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'

@@ -438,7 +438,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
       - name: Retry docker compose on failure
         id: retry-cwag-docker-compose
         continue-on-error: true
@@ -447,7 +447,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
       - name: Set the job status
         if: always()
         run: |
@@ -549,7 +549,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
-          DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+          DOCKER_REGISTRY=cwf_ docker compose build --parallel
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
@@ -740,7 +740,7 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           cd ${MAGMA_ROOT}/nms
-          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+          COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |

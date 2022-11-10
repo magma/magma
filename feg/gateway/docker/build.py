@@ -68,8 +68,8 @@ def main() -> None:
 
 
 def _run(cmd: List[str]) -> None:
-    """ Run the required docker-compose command """
-    cmd = ['docker-compose'] + cmd
+    """ Run the required docker compose command """
+    cmd = ['docker compose'] + cmd
     print("Running '%s'..." % ' '.join(cmd))
     try:
         subprocess.run(cmd, check=True)  # noqa: S603

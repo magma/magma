@@ -16,6 +16,6 @@
 
 
 - name: primary build to generate NMS artifacts
-  command: "chdir={{ magmaNmsDir }} COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte"
+  command: "chdir={{ magmaNmsDir }} COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte"
 
 

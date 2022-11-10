@@ -57,12 +57,12 @@ function test {
 function e2e {
     pushd ../integration/lb/sim || exit
     echo Building E2E test containers for LB with simulator
-    docker-compose build
+    docker compose build
     echo Starting E2E test containers for LB with simulator
     echo Automatically terminating after 60 secs...
-    docker-compose up &
+    docker compose up &
     sleep 60s
-    docker-compose down
+    docker compose down
     popd || exit
 }
 

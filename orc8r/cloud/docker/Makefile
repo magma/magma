@@ -3,4 +3,4 @@ build:
 run:
 	./build.py --all --parallel && ./run.py
 dev:
-	docker-compose down ; ./build.py --all --parallel && ./run.py ; docker-compose logs --follow controller
+	docker compose down ; ./build.py --all --parallel && ./run.py ; docker compose logs --follow controller

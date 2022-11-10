@@ -156,13 +156,13 @@ echo "Logging into docker registry at $DOCKER_REGISTRY"
 docker login "$DOCKER_REGISTRY" --username "$DOCKER_USERNAME" --password "$DOCKER_PASSWORD"
 fi
 docker-compose pull
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d
 
 # Pull and Run DPI container
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
   cd /var/opt/magma/docker
-  docker-compose -f docker-compose-dpi.override.yml pull
-  docker-compose -f docker-compose-dpi.override.yml up -d
+  docker compose -f docker-compose-dpi.override.yml pull
+  docker compose -f docker-compose-dpi.override.yml up -d
 fi
 
 echo "Installed successfully!!"
