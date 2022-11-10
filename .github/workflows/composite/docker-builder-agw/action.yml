@@ -28,11 +28,11 @@ inputs:
   TAG:
     description: Docker image stream tag
     default: latest
-  DOCKERFILE:
+  FILE:
     description: Docker file
     required: false
     default: Dockerfile
-  DOCKERCONTEXT:
+  CONTEXT:
     description: Docker context
     default: .
   PUSH:
@@ -69,8 +69,8 @@ runs:
       id: build-docker
       uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
       with:
-        context: ${{ inputs.DOCKERCONTEXT }}
-        file: ${{ inputs.DOCKERCONTEXT }}/${{ inputs.DOCKERFILE }}
+        context: ${{ inputs.CONTEXT }}
+        file: ${{ inputs.CONTEXT }}/${{ inputs.FILE }}
         tags: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE }}:${{ inputs.TAG }}
         push: ${{ steps.docker-login.conclusion == 'success' }}
 

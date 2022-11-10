@@ -75,7 +75,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ matrix.DOCKER_IMAGE }}
-          DOCKERFILE: ${{ matrix.DOCKER_FILE }}
+          FILE: ${{ matrix.DOCKER_FILE }}
 
   build-containers-ghz:
     runs-on: ubuntu-latest
@@ -105,4 +105,4 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
           IMAGE: ${{ matrix.DOCKER_IMAGE }}
-          DOCKERCONTEXT: ${{ matrix.DOCKER_CONTEXT }}
+          CONTEXT: ${{ matrix.DOCKER_CONTEXT }}
