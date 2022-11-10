@@ -20,10 +20,6 @@ FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
 cd /opt/magma/
 
-# TODO: Update docker-compose to stable version
-
-DOCKER_COMPOSE_VERSION=1.29.1
-
 DIR="."
 echo "Setting working directory as: $DIR"
 cd "$DIR"
@@ -98,25 +94,22 @@ cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 
-# Install Docker
+# Install Docker Engine (incl. Docker Compose)
 sudo apt-get update
 sudo apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
-    gnupg-agent \
-    software-properties-common
+    gnupg \
+    lsb-release \
+    software-properties-commo
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Install Docker-Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # Create snowflake to be mounted into containers
 touch /etc/snowflake
