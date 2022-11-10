@@ -90,7 +90,8 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
   }
   if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                    "Failed to free teid from state_teid_map \n");
+                    "Failed to free teid :" TEID_FMT "from state_teid_map",
+                    teid);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   spgw_ue_context_t* ue_context_p = nullptr;

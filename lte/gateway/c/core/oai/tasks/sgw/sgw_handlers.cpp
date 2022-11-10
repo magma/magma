@@ -41,7 +41,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #ifdef __cplusplus
@@ -1681,9 +1680,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
   if (!spgw_ctxt) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "hashtable_ts_get failed for teid %u\n",
-                    s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "failed to get s_plus_p_gw_eps_bearer_context for teid" TEID_FMT,
+        s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
@@ -2369,10 +2369,11 @@ void sgw_handle_delete_bearer_cmd(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_delete_bearer_command->teid);
   if (!spgw_ctxt) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "hashtable_ts_get failed for teid " TEID_FMT
-                    " while processing s11_delete_bearer_command\n",
-                    s11_delete_bearer_command->teid);
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "failed to get s_plus_p_gw_eps_bearer_context for teid " TEID_FMT
+        " while processing s11_delete_bearer_command\n",
+        s11_delete_bearer_command->teid);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
 

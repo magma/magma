@@ -26,7 +26,7 @@ constexpr char S11_BEARER_CONTEXT_INFO_MAP_NAME[] =
 constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
 constexpr char SGW_TASK_NAME[] = "SGW";
 constexpr char SGW_S8_CSR_PROC_ID_MAP[] = "sgw_s8_csr_proc_id_map";
-constexpr char SGW_S8_STATE_UE_MAP[] = "sgw_s8_state_ue_map";
+constexpr char SGW_S8_STATE_UE_MAP_NAME[] = "sgw_s8_state_ue_map";
 }  // namespace
 
 namespace magma {
@@ -76,7 +76,7 @@ class SgwStateManager
   ~SgwStateManager();
 
   /**
-   * Allocates a new sgw_state_t struct, and inits hashtables and state
+   * Allocates a new sgw_state_t struct, and inits protobuf maps and state
    * structs to default values.
    */
   void create_state() override;

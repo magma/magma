@@ -125,7 +125,6 @@ typedef struct sgw_state_s {
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
-  hash_table_ts_t* deactivated_predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;

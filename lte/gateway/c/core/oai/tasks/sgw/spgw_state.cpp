@@ -145,5 +145,6 @@ void sgw_free_ue_context(void** ptr) {
     free_cpp_wrapper(reinterpret_cast<void**>(&p1));
     p1 = p2;
   }
-  free_cpp_wrapper((void**)ptr);
+  free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+  return;
 }

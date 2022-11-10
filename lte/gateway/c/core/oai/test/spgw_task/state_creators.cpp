@@ -40,7 +40,7 @@ spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u) {
 // make_bearer_context creates a test bearer context with default values.
 s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(imsi64_t imsi,
                                                                   teid_t teid) {
-  // Insert into hashtable
+  // Insert ue into map
   spgw_create_or_get_ue_context(imsi);
   spgw_update_teid_in_ue_context(imsi, teid);
 

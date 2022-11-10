@@ -75,12 +75,12 @@ void SgwStateManager::create_state() {
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
   state_cache_p->imsi_ue_context_map.map =
-      new google::protobuf::Map<unsigned long int, struct spgw_ue_context_s*>();
-  state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP);
+      new google::protobuf::Map<uint64_t, struct spgw_ue_context_s*>();
+  state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP_NAME);
   state_cache_p->imsi_ue_context_map.bind_callback(sgw_free_ue_context);
 
   state_cache_p->temporary_create_session_procedure_id_map.map =
-      new google::protobuf::Map<unsigned int,
+      new google::protobuf::Map<uint32_t,
                                 struct sgw_eps_bearer_context_information_s*>();
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
       SGW_S8_CSR_PROC_ID_MAP);
