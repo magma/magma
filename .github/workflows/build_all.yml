@@ -79,31 +79,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action Push helm charts to artifactory failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*Helm charts have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
       - name: Only keep the last 20 uploaded versions
         if: github.event_name == 'push'
         run: |
@@ -211,26 +200,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        env:
-          SLACK_TITLE: "Github action agw build failed"
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
         with:
-          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        env:
-          SLACK_TITLE: "Github action agw build got published"
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_USERNAME: ${{ github.workflow }}
-        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
-        with:
-          args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   sentry_release:
     if: always() && github.event_name == 'push'
     needs: [ agw-build ]
@@ -348,30 +331,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        # yamllint enable
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action orc8r-build failed"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*Orchestrator images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
 
   agw-container-build-c-ghz:
     runs-on: ubuntu-latest
@@ -580,29 +553,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-upload failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*SwaggerHub Updated*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   cwag-deploy:
     if: github.repository_owner == 'magma'
     name: cwag deploy job
@@ -695,29 +659,20 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "CWAG-deploy failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   cwf-operator-build:
     if: github.repository_owner == 'magma'
     name: cwf operator build job
@@ -781,29 +736,20 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "CWF-operator-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ''
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_TITLE: "*CWF Artifact Has Been Published*"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ''
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   feg-build:
     if: github.repository_owner == 'magma'
     name: feg-build
@@ -878,32 +824,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*FeG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   nms-build:
     if: github.repository_owner == 'magma'
     name: nms-build job
@@ -959,32 +893,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      # Notify ci channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      # yamllint enable
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action nms-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "NMS Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   Publish_to_firebase:
     name: Publish to firebase
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
@@ -1058,30 +980,20 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        # yamllint enable
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action domain-proxy-build failed"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*Domain proxy images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
   trigger-debian-integ-test:
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
