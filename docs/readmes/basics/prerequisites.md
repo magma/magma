@@ -58,7 +58,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 ### Ubuntu
 
 1. Install the following tools
-   1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
+   1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and Docker Compose
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
    3. [Vagrant](https://www.vagrantup.com/downloads)
 2. Install golang version 19.
