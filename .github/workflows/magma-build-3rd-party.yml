@@ -99,9 +99,10 @@ jobs:
             contains('["maxhbr", "nstng", "jheidbrink", "lkreutzer", "Neudrino", "MoritzThomasHuebner", "tmdzk", "wolfseb"]', github.actor)
           )
 
-      - name: Setup JFrof CLI
+      - name: Setup JFrog CLI
         id: jfrog-setup
-        if: secrets.JFROG_USERNAME != '' && secrets.JFROG_PASSWORD != ''
+        # Workaround because secrets are available in `env` but not in `if`
+        if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
           JF_URL: https://artifactory.magmacore.org
