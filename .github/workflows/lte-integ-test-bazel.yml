@@ -128,7 +128,7 @@ jobs:
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "LTE integ tests bazel"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
           args: "Bazel LTE integration test failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
