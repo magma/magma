@@ -42,7 +42,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
-//#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 

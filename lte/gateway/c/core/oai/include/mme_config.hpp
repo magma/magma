@@ -463,11 +463,11 @@ int mme_config_parse_file(mme_config_t*);
 void mme_config_display(mme_config_t*);
 void clear_served_tai_config(served_tai_t* served_tai);
 void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 #ifdef __cplusplus
 }
 #endif
 
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);

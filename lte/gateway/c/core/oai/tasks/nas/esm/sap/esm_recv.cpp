@@ -55,10 +55,6 @@ extern "C" {
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
-
-extern void mme_app_send_delete_session_request(
-    struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
-    const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

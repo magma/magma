@@ -19,11 +19,10 @@
 #include <condition_variable>
 #include <stdio.h>
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.hpp"
-
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 namespace magma {
 namespace lte {

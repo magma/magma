@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-# pragma once
+#pragma once
 
 /*********************************** Utility Functions to update
  * Statistics**************************************/

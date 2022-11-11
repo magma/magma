@@ -28,8 +28,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
-extern ue_mm_context_t* mme_create_new_ue_context(void);
-
 namespace magma {
 namespace lte {
 

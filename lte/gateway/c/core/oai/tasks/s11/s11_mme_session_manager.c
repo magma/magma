@@ -45,7 +45,7 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
 
