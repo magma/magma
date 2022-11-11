@@ -177,15 +177,9 @@ typedef struct emm_tau_request_ies_s {
  *              EMM status procedure
  *---------------------------------------------------------------------------
  */
-/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
-/*status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
+status_code_e emm_proc_status_ind(mme_ue_s1ap_id_t ue_id,
                                   emm_cause_t emm_cause);
-status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);*/
+status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);
 
 /*
  *---------------------------------------------------------------------------
@@ -204,14 +198,7 @@ status_code_e emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause);*/
  *              Attach procedure
  * --------------------------------------------------------------------------
  */
-
-/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
-/*void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
+void free_emm_attach_request_ies(emm_attach_request_ies_t** const params);
 void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc);
 void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
 void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
@@ -219,7 +206,7 @@ void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies);
 status_code_e emm_proc_emm_information(ue_mm_context_t* emm_ctx);
 void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
-void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);*/
+void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 
 status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool ctx_is_new,
@@ -305,14 +292,8 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
                                                int emm_cause,
                                                const_bstring const res);
 
-/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
-/*void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
-void clear_emm_ctxt(emm_context_t* emm_ctx);*/
+void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
+void clear_emm_ctxt(emm_context_t* emm_ctx);
 
 /*
  * --------------------------------------------------------------------------

@@ -51,7 +51,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
@@ -417,9 +416,6 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
  * GH issue: https://github.com/magma/magma/issues/13096
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
   memset(&ctxt->_ue_network_capability, 0,
          sizeof(ctxt->_ue_network_capability));
@@ -431,9 +427,6 @@ void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
                (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
                    ->mme_ue_s1ap_id);
 }
-#ifdef __cplusplus
-}
-#endif
 
 /* Set UE network capability IE */
 inline void emm_ctx_set_ue_nw_cap(
@@ -449,9 +442,6 @@ inline void emm_ctx_set_ue_nw_cap(
 }
 
 /* Set UE network capability IE, mark it as valid */
-#ifdef __cplusplus
-extern "C" {
-#endif
 void emm_ctx_set_valid_ue_nw_cap(
     emm_context_t* const ctxt,
     const ue_network_capability_t* const ue_nw_cap_ie) {
@@ -463,9 +453,6 @@ void emm_ctx_set_valid_ue_nw_cap(
                (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
                    ->mme_ue_s1ap_id);
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 /* Clear MS network capability IE   */
@@ -630,9 +617,6 @@ void emm_ctx_set_mobile_station_clsMark2(
 
 //------------------------------------------------------------------------------
 /* Free dynamically allocated memory */
-#ifdef __cplusplus
-extern "C" {
-#endif
 void free_emm_ctx_memory(emm_context_t* const ctxt,
                          const mme_ue_s1ap_id_t ue_id) {
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -646,9 +630,6 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 struct emm_context_s* emm_context_get(emm_data_t* emm_data,  // TODO REMOVE
@@ -844,9 +825,6 @@ void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
   }
 }
 //------------------------------------------------------------------------------
-#ifdef __cplusplus
-extern "C" {
-#endif
 void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
                     struct nas_timer_s* const T3450) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
@@ -856,9 +834,6 @@ void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
                  ue_id);
   }
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,

@@ -49,7 +49,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
@@ -249,9 +248,6 @@ nas_sr_proc_t* get_nas_con_mngt_procedure_service_request(
 }
 
 //-----------------------------------------------------------------------------
-#ifdef __cplusplus
-extern "C" {
-#endif
 bool is_nas_attach_accept_sent(const nas_emm_attach_proc_t* const attach_proc) {
   if (attach_proc->attach_accept_sent) {
     return true;
@@ -259,9 +255,6 @@ bool is_nas_attach_accept_sent(const nas_emm_attach_proc_t* const attach_proc) {
     return false;
   }
 }
-#ifdef __cplusplus
-}
-#endif
 //-----------------------------------------------------------------------------
 bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc) {
   return attach_proc->attach_reject_sent;

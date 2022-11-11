@@ -23,7 +23,6 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"

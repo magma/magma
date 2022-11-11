@@ -469,15 +469,6 @@ void emm_ctx_set_ue_nw_cap(emm_context_t* const ctxt,
                            const ue_network_capability_t* const ue_nw_cap_ie)
     __attribute__((nonnull));
 
-/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
-/*#ifdef __cplusplus
-extern "C" {
-#endif
 void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv)
@@ -496,9 +487,9 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
                                        int vector_index)
-    __attribute__((nonnull)) __attribute__((flatten));*/
+    __attribute__((nonnull)) __attribute__((flatten));
 
-/*void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
+void emm_ctx_clear_imsi(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
                                    const int attribute_bit_pos)
@@ -506,15 +497,12 @@ void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
 void emm_ctx_set_valid_ue_nw_cap(
     emm_context_t* const ctxt,
     const ue_network_capability_t* const ue_nw_cap_ie) __attribute__((nonnull));
-#ifdef __cplusplus
-}
 void emm_ctx_set_valid_ms_nw_cap(
     emm_context_t* const ctxt,
     const ms_network_capability_t* const ms_nw_cap_ie);
 void emm_ctx_set_mobile_station_clsMark2(
     emm_context_t* const ctxt, MobileStationClassmark2* mob_st_clsMark2)
     __attribute__((nonnull));
-#endif
 void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
@@ -584,7 +572,7 @@ void emm_init_context(struct emm_context_s* const emm_ctx,
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
-    __attribute__((nonnull)) __attribute__((flatten));*/
+    __attribute__((nonnull)) __attribute__((flatten));
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)
