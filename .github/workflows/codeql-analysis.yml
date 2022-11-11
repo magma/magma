@@ -90,16 +90,17 @@ jobs:
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
 
-      # Notify ci-info channel when failing
-      # Plugin info: https://github.com/marketplace/actions/slack-notify
-      - name: Notify failure to slack
-        if: failure() && github.ref == 'refs/heads/master'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }} ${{ matrix.language }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}

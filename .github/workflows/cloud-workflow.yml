@@ -135,47 +135,17 @@ jobs:
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
           echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to Slack for deploy-sync-checkin
-        if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for cloud-test
-        if: steps.cloud-test.outcome=='failure' && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for cloud-lint
-        if: ( steps.cloud-lint.outcome=='failure' || steps.cloud-lint-codecov.outcome=='failure' || steps.cloud-lint-cov.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action cloud-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      - name: Notify failure to Slack for orc8r-gateway-test
-        if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_TITLE: "Github action orc8r-gateway-test failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
+      - name: "Set Slack channel #ci as default"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK }}" >> $GITHUB_ENV
+      - name: "Set Slack channel #ci-info for failures"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_CI }}" >> $GITHUB_ENV
+        if: failure()
+      - name: "Set Slack channel #ci-artifacts for successes"
+        run: echo "webhook=${{ secrets.SLACK_WEBHOOK_OSS }}" >> $GITHUB_ENV
+        if: success()
+      - name: Notify Slack of job status
+        uses: ./.github/workflows/composite/notify-slack
+        with:
+          webhook: ${{ env.webhook }}
+          status: ${{ job.status }}
+          message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
