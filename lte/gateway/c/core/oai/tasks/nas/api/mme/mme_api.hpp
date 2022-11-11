@@ -159,12 +159,7 @@ status_code_e mme_api_unsubscribe(bstring apn);
 status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
                                       guti_t* const guti);
 
-/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-/*status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
+status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
                                   const imsi64_t imsi64);
 status_code_e mme_api_new_guti(const imsi_t* const imsi,
                                const guti_t* const old_guti, guti_t* const guti,
@@ -173,7 +168,7 @@ status_code_e mme_api_new_guti(const imsi_t* const imsi,
 bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                       bool neaf);*/
+                                       bool neaf);
 
 status_code_e mme_api_subscribe(bstring* apn,
                                 mme_api_ip_version_t mme_pdn_index,

@@ -89,10 +89,6 @@ void emm_ctx_set_mobile_station_clsMark2(
 void emm_ctx_set_ue_additional_security_capability(
     emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
     __attribute__((nonnull));
-status_code_e mme_api_new_guti(const imsi_t* const imsi,
-                               const guti_t* const old_guti, guti_t* const guti,
-                               const tai_t* const originating_tai,
-                               tai_list_t* const tai_list);
 void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
@@ -141,8 +137,6 @@ void emm_ctx_clear_security(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
 void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
-status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
-                                  const imsi64_t imsi64);
 nas_emm_ident_proc_t* nas_new_identification_procedure(
     struct emm_context_s* const emm_context);
 void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
@@ -190,10 +184,7 @@ void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
-bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
-void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                       bool neaf);
 #ifdef __cplusplus
 extern "C" {
 #endif
