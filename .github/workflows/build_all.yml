@@ -954,17 +954,17 @@ jobs:
             GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
-      # - name: Tag and push to Jfrog Registry
-      #   id: publish_artifacts
-      #   if: github.event_name == 'push'
-      #   env:
-      #     DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
-      #     DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
-      #     DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
-      #   run: |
-      #     ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
-      #     ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
-      #     echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
+          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
