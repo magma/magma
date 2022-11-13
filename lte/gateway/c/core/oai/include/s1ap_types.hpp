@@ -40,10 +40,6 @@ extern "C" {
 typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription>
     proto_map_uint32_enb_description_t;
 
-typedef struct s1ap_imsi_map_s {
-  magma::proto_map_uint32_uint64_t mme_ueid2imsi_map;
-} s1ap_imsi_map_t;
-
 // Map- Key:comp_s1ap_id (uint64_t), Data: pointer to protobuf object,
 // UeDescription
 typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>

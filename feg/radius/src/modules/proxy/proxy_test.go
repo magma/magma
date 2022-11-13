@@ -15,17 +15,17 @@ package proxy
 
 import (
 	"context"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
 	"math/rand"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/session"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 func TestProxy(t *testing.T) {
@@ -51,18 +51,13 @@ func TestProxy(t *testing.T) {
 		),
 		SecretSource: radius.StaticSecretSource(secret),
 		Addr:         fmt.Sprintf(":%d", randomPort),
-		Ready:        make(chan bool, 1),
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		return
-	}
-	fmt.Println("Server listenning")
+	fmt.Println("Server listening")
 
 	// Act
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
@@ -84,10 +79,10 @@ func TestProxy(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	require.NotNil(t, res.Attributes)
-	attr, ok := res.Attributes[rfc2865.State_Type]
+	attr, ok := res.Attributes.Lookup(rfc2865.State_Type)
 	require.True(t, ok)
 	require.NotNil(t, attr)
-	require.Equal(t, "server_returned_value", string(attr[0]))
+	require.Equal(t, "server_returned_value", string(attr))
 }
 
 func TestInvalidConfig(t *testing.T) {
@@ -106,8 +101,8 @@ func TestInvalidConfig(t *testing.T) {
 
 func createRadiusRequest(calledStationID string, callingStationID string) *radius.Request {
 	packet := radius.New(radius.CodeAccessRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Attributes[rfc2865.CallingStationID_Type] = []radius.Attribute{radius.Attribute(callingStationID)}
-	packet.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{radius.Attribute(calledStationID)}
+	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute(callingStationID))
+	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute(calledStationID))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())
 	req.Packet = packet

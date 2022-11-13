@@ -105,21 +105,13 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         # part of configuraton file mme.conf.template. If MME restarts after
         # expiry of identity response timer, it will send the re-transmitted
         # identity request message
-        resp_count = 0
-        while True:
+        response = self._s1ap_wrapper.s1_util.get_response()
+        while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
+            print(
+                "******************** Ignoring re-transmitted "
+                "Identity request indication",
+            )
             response = self._s1ap_wrapper.s1_util.get_response()
-            if (
-                response.msg_type
-                == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
-            ):
-                resp_count += 1
-                print(
-                    "******************** Ignoring re-transmitted (",
-                    resp_count,
-                    ") Identity request indication",
-                )
-            else:
-                break
 
         # Context release
         assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value

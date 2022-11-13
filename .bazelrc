@@ -6,6 +6,7 @@ build --announce_rc
 build --color=yes
 
 build:production --config=lsan --copt=-O3
+build:production --define=production=1
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
@@ -21,9 +22,6 @@ build --per_file_copt=^lte/gateway/c/.*$@-g
 # DEFAULT TEST CONFIGURATION
 # Please read the GH issue #13073 before adding "test" options.
 test --test_output=errors
-
-# Use dynamically linked folly library
-build --define=folly_so=1
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -65,7 +63,7 @@ build --test_env=MAGMA_ROOT
 build --test_env=S1AP_TESTER_ROOT
 
 # Needed for go tests to generate the test result XML in the correct format  
-test --test_env=GO_TEST_WRAP_TESTV=1
+build --test_env=GO_TEST_WRAP_TESTV=1
 
 # MME specific compile time defines
 # Compile mme libraries with unit test flag

@@ -22,9 +22,9 @@ import (
 	"context"
 
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
 
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 type (

@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: LTE integ test magma-deb
+name: AGW Test LTE Integration With Make Debian Build
 
 on:
   workflow_dispatch: null
@@ -21,19 +21,19 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: macos-12
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Cache magma-deb-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
           key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
           key: vagrant-box-magma-test-v1.2.20221012
       - name: Cache magma-trfserver-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v20220722
@@ -43,7 +43,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -55,13 +55,13 @@ jobs:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
           MAGMA_PACKAGE: ${{ github.event.client_payload.artifact }}
+        working-directory: 'lte/gateway/'
         run: |
-          cd lte/gateway
           fab integ_test_deb_installation
       - name: Get test results
         if: always()
+        working-directory: 'lte/gateway/'
         run: |
-          cd lte/gateway
           fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
           ls -R
       - name: Upload test results
@@ -72,8 +72,39 @@ jobs:
           path: lte/gateway/test-results/**/*.xml
       - name: Publish Unit Test Results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: LTE Debian integration test results
           junit_files: lte/gateway/test-results/**/*.xml
           check_run_annotations: all tests
+      - name: Get test logs
+        if: always()
+        working-directory: 'lte/gateway/'
+        run: |
+          fab get_test_logs:gateway_host_name=magma_deb,dst_path=./logs.tar.gz
+      - name: Upload test logs
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-logs
+          path: lte/gateway/logs.tar.gz
+      - name: Publish results to Firebase
+        if: always() && github.event_name == 'repository_dispatch'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} make_debian_lte_integ_test --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.repository_owner == 'magma'
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_AVATAR: ":boom:"
+        with:
+          args: "LTE Debian integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ steps.commit.outputs.title}}"

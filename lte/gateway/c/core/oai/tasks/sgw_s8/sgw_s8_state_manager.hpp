@@ -25,6 +25,7 @@ constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
 constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
 constexpr char SGW_TASK_NAME[] = "SGW";
+constexpr char SGW_S8_CSR_PROC_ID_MAP[] = "sgw_s8_csr_proc_id_map";
 }  // namespace
 
 namespace magma {
