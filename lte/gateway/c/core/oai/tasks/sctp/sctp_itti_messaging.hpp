@@ -15,23 +15,29 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_itti_messaging.h
+/*! \file sctp_itti_messaging.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_SCTP_ITTI_MESSAGING_SEEN
-#define FILE_SCTP_ITTI_MESSAGING_SEEN
+#pragma once
+
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define S1AP 18
 #define NGAP 60
@@ -55,5 +61,3 @@ status_code_e sctp_itti_send_new_message_ind(STOLEN_REF bstring* payload,
 
 status_code_e sctp_itti_send_com_down_ind(sctp_ppid_t ppid,
                                           sctp_assoc_id_t assoc_id, bool reset);
-
-#endif /* FILE_SCTP_ITTI_MESSAGING_SEEN */
