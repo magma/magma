@@ -49,7 +49,7 @@ from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 _mock_called_once = False
 
 
-def mocked_get_mac_address(**_) -> str:
+def mocked_get_mac_address_from_iface(_: str) -> str:
     global _mock_called_once
     if not _mock_called_once:
         # On the first call in egress.py, use this return value.
@@ -84,8 +84,8 @@ class UEMacAddressTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(UEMacAddressTest, cls).setUpClass()
-        arp.get_mac_address = mocked_get_mac_address
-        egress.get_mac_address = mocked_get_mac_address
+        arp.get_mac_address_from_iface = mocked_get_mac_address_from_iface
+        egress.get_mac_address_from_iface = mocked_get_mac_address_from_iface
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(

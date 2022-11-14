@@ -32,21 +32,19 @@ def monitor_ifaces(iface_names):
         yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
-def get_mac_address(
-        interface: Optional[str] = None,
-        ip4: Optional[str] = None,
-        ip6: Optional[str] = None,
-) -> str:
-    if interface:
-        ifaddress = netifaces.ifaddresses(interface)
-        if netifaces.AF_LINK in ifaddress:
-            return ifaddress[netifaces.AF_LINK][0]['addr']
-        raise ValueError(f"No mac address found for interface {interface}")
-    elif ip4:
-        return _get_mac_from_ip(ip4, "ip4")
-    elif ip6:
-        return _get_mac_from_ip(ip6, "ip6")
-    raise ValueError("Must specify either interface or ip4 or ip6")
+def get_mac_address_from_iface(iface: str) -> str:
+    ifaddress = netifaces.ifaddresses(iface)
+    if netifaces.AF_LINK in ifaddress:
+        return ifaddress[netifaces.AF_LINK][0]['addr']
+    raise ValueError(f"No mac address found for interface {iface}")
+
+
+def get_mac_address_from_ip4(ip4: str) -> str:
+    return _get_mac_from_ip(ip4, "ip4")
+
+
+def get_mac_address_from_ip6(ip6: str) -> str:
+    return _get_mac_from_ip(ip6, "ip6")
 
 
 def _get_mac_from_ip(ip: str, ipv: str) -> str:

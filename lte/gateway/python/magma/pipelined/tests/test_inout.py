@@ -31,7 +31,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
-def mocked_get_mac_address(interface, **_) -> str:
+def mocked_get_mac_address_from_iface(interface: str) -> str:
     if interface == 'test_mtr1':
         return 'ae:fa:b2:76:37:5d'
     if interface == 'testing_br':
@@ -56,8 +56,8 @@ class InOutTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(InOutTest, cls).setUpClass()
-        middle.get_mac_address = mocked_get_mac_address
-        egress.get_mac_address = mocked_get_mac_address
+        middle.get_mac_address_from_iface = mocked_get_mac_address_from_iface
+        egress.get_mac_address_from_iface = mocked_get_mac_address_from_iface
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
