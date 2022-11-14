@@ -92,6 +92,8 @@ jobs:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 10
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -112,6 +114,7 @@ jobs:
           run: |
             cd /workspaces/magma
             set -euo pipefail
+            git config --global --add safe.directory /workspaces/magma
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
@@ -125,7 +128,7 @@ jobs:
             # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
             then
               printf '\r%s\r' 'Determining targets via bazel-diff.' 1>&2
-              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh cf35d1fdf469214012347f9a734411c809e63468 "${{ github.sha }}")
+              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh b7228d17395de53da6b4f08b212a33c2cb8fdb1e  cf35d1fdf469214012347f9a734411c809e63468)
               bazel build \
                 $IMPACTED_TARGETS \
                 --config=mme_unit_test \
