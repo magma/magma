@@ -32,8 +32,8 @@ Description Implements the API used by the NAS layer running in the MME
         to interact with a Mobility Management Entity
 
 *****************************************************************************/
-#ifndef FILE_MME_API_SEEN
-#define FILE_MME_API_SEEN
+
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -191,15 +191,6 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 }
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                               bool vlr_reliable);
-#ifdef __cplusplus
-}
-#endif
-
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)           \
   (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) && \
@@ -274,5 +265,3 @@ void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
         gUTI_p->gummei.plmn.mnc_digit2, gUTI_p->gummei.plmn.mnc_digit3,   \
         gUTI_p->gummei.mme_gid, gUTI_p->gummei.mme_code, gUTI_p->m_tmsi); \
   } while (0)
-
-#endif /* FILE_MME_API_SEEN*/

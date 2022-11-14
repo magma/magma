@@ -24,9 +24,16 @@
 #define SGG
 #define SGS_NAS_C
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.hpp"
 
 int sgs_send_uplink_unitdata(
