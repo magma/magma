@@ -59,12 +59,16 @@ void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) { return; }
 
 void delete_sgw_ue_state(imsi64_t imsi64) { return; }
 
-void sgw_free_s11_bearer_context_information(
-    sgw_eps_bearer_context_information_t** sgw_eps_context) {
-  if (*sgw_eps_context) {
-    sgw_free_pdn_connection(&(*sgw_eps_context)->pdn_connection);
-    delete_pending_procedures((*sgw_eps_context));
+void sgw_free_s11_bearer_context_information(void** ptr) {
+  if (!ptr) {
+    return;
   }
-  free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_context));
+  sgw_eps_bearer_context_information_t* sgw_eps_context =
+      reinterpret_cast<sgw_eps_bearer_context_information_t*>(*ptr);
+  if (sgw_eps_context) {
+    sgw_free_pdn_connection(&sgw_eps_context->pdn_connection);
+    delete_pending_procedures(sgw_eps_context);
+    free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+  }
   return;
 }

@@ -49,7 +49,7 @@ fi
 if ! grep --quiet bazel-complete.bash ~/.bashrc
 then
   log "Adapting ~/.bashrc to source completion script"
-  echo "source ~/.bash_completion.d/bazel-complete.bash" > ~/.bashrc
+  echo "source ~/.bash_completion.d/bazel-complete.bash" >> ~/.bashrc
 else
   log ".bashrc already sources the completion script"
 fi

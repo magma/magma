@@ -3,7 +3,7 @@ setuptools==49.6.0
 grpcio-tools<1.49.0
 grpcio<1.49.0
 redis>=3.5
-protobuf
+protobuf>=3.20.3
 six
 pyyaml
 urllib3

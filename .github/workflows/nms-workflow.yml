@@ -88,7 +88,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS typescript failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -135,7 +135,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS eslint tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -171,7 +171,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS yarn tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -237,7 +237,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "NMS e2e tests failed"
           SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "NMS workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
