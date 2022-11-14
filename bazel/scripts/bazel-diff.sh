@@ -60,4 +60,4 @@ echo "Determining the impacted targets" 1>&2
 $BAZEL_DIFF get-impacted-targets -sh $HASHES_PRE_JSON -fh $HASHES_POST_JSON -o $IMPACTED_TARGETS_FILE
 
 echo "The list of affected targets of the changes between commit $GIT_SHA_PRE and $GIT_SHA_POST:" 1>&2
-cat $IMPACTED_TARGETS_FILE
+cat $IMPACTED_TARGETS_FILE | grep -v "\."
