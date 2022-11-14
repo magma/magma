@@ -1,4 +1,4 @@
-startup --output_base=/var/tmp/bazel
+startup --output_base=/tmp/bazel
 startup --host_jvm_args="-Xmx8g"
 
 # STYLE CONFIGS
