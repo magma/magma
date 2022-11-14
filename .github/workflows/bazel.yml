@@ -121,21 +121,43 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel build ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
-            bazel build \
-              ${{ matrix.bazel-target }} \
-              --config=mme_unit_test \
-              ${{ matrix.bazel-config }} \
-              --profile=Bazel_build_all_profile
+            if [ -z "${{ matrix.bazel-config }}" ];
+            # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
+            then
+              printf '\r%s\r' 'Determining targets via bazel-diff.' 1>&2
+              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")
+              bazel build \
+                $IMPACTED_TARGETS \
+                --config=mme_unit_test \
+                --profile=Bazel_build_all_profile
+            else
+              bazel build \
+                ${{ matrix.bazel-target }} \
+                --config=mme_unit_test \
+                ${{ matrix.bazel-config }} \
+                --profile=Bazel_build_all_profile
+            fi
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
             TEST_FAILED="false"
-            bazel test \
-              ${{ matrix.bazel-target }} \
-              ${{ matrix.bazel-config }} \
-              --test_output=errors \
-              --profile=Bazel_test_all_profile || TEST_FAILED="true"
+
+            if [ -z "${{ matrix.bazel-config }}" ];
+            # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
+            then
+              bazel test \
+                $IMPACTED_TARGETS \
+                --test_output=errors \
+                --profile=Bazel_build_all_profile
+                --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            else
+              bazel test \
+                ${{ matrix.bazel-target }} \
+                ${{ matrix.bazel-config }} \
+                --test_output=errors \
+                --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            fi
             # Create Bazel unit-test results
             # Can't be a separate step, because the container's '/tmp' folder is not preserved between steps
             mkdir bazel_unit_test_results/
