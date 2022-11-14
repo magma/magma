@@ -13,8 +13,8 @@ limitations under the License.
 import ipaddress
 import logging
 
-import getmac
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.ifaces import get_mac_address
 from scapy.arch import get_if_addr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
@@ -41,7 +41,7 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
             "sending arp via egress: %s",
             non_nat_arp_egress_port,
         )
-        eth_mac_src = getmac.get_mac_address(interface=non_nat_arp_egress_port)
+        eth_mac_src = get_mac_address(interface=non_nat_arp_egress_port)
         psrc = "0.0.0.0"
         egress_port_ip = get_if_addr(non_nat_arp_egress_port)
         if egress_port_ip:
@@ -102,7 +102,7 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
 
 def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
     try:
-        mac = getmac.get_mac_address(ip6=str(gw_ip))
+        mac = get_mac_address(ip6=str(gw_ip))
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
     except ValueError:

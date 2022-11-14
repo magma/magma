@@ -14,12 +14,12 @@ limitations under the License.
 import threading
 from collections import namedtuple
 
-import getmac
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.gw_mac_address import get_gw_mac_address
+from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.mobilityd_client import (
     get_mobilityd_gw_info,
     set_mobilityd_gw_info,
@@ -102,7 +102,7 @@ class EgressController(RestartMixin, MagmaController):
         setup_type = config_dict.get('setup_type', None)
         if enable_nat is True or setup_type != 'LTE':
             if virtual_iface is not None:
-                virtual_mac = getmac.get_mac_address(interface=virtual_iface)
+                virtual_mac = get_mac_address(interface=virtual_iface)
             else:
                 virtual_mac = ""
         else:

@@ -13,12 +13,12 @@ limitations under the License.
 import ipaddress
 from typing import Dict, List, NamedTuple
 
-import getmac
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SubscriberQuotaUpdate
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -79,7 +79,7 @@ class CheckQuotaController(MagmaController):
             quota_check_ip=config_dict['quota_check_ip'],
             has_quota_port=config_dict['has_quota_port'],
             no_quota_port=config_dict['no_quota_port'],
-            cwf_bridge_mac=getmac.get_mac_address(
+            cwf_bridge_mac=get_mac_address(
                 interface=config_dict['bridge_name'],
             ),
         )
