@@ -72,7 +72,7 @@ var (
 //   - indexer_id 			-- ID of indexer needing a reindex
 //   - status 				-- available, in_progress, complete, or error
 //   - last_status_change	-- Unix time since last update to status
-//   - attempts 				-- number of attempts at completing the reindex
+//   - attempts 			-- number of attempts at completing the reindex
 //   - error 				-- non-empty string if the reindex job was completed with err
 //
 // Indexer versions columns:
@@ -104,14 +104,14 @@ type sqlJobQueue struct {
 //
 // Populating the job queue is an exactly-once operation. We handle this in two parts
 //   - Populate <= 1 time
-//   - The job queue jobs are written as part of a tx that checks the "stored"
+//     -- The job queue jobs are written as part of a tx that checks the "stored"
 //     indexer versions, and these stored versions are updated the "desired" versions during the same tx,
 //     ensuring no more than one controller instance will write to the job queue per code push.
-//   - There is a small race condition where multiple callers may both log that they successfully updated the job queue,
+//     -- There is a small race condition where multiple callers may both log that they successfully updated the job queue,
 //     but this is inconsequential since the condition (a) requires near-simultaneous calls and (b) actually results in the
 //     exact same jobs being written.
 //   - Populate >= 1 time
-//   - This work is best suited for a future where we have a message broker in the orc8r,
+//     -- This work is best suited for a future where we have a message broker in the orc8r,
 //     so for now each controller warning-logs either success or failure to write to the job queue, and manual
 //     inspection of the logs would be required (thankfully, we also have tests to ensure this doesn't happen in the expected case).
 //

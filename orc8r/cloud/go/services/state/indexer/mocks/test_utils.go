@@ -26,10 +26,10 @@ import (
 // NewMockIndexer returns a do-nothing test indexer with specified elements.
 //   - id		-- GetID return
 //   - version	-- GetVersion return
-//   - types		-- GetTypes return
+//   - types	-- GetTypes return
 //   - prepare	-- write PrepareReindex args to chan when called
 //   - complete	-- write CompleteReindex args to chan when called
-//   - index		-- write Index args to chan when called
+//   - index	-- write Index args to chan when called
 func NewMockIndexer(
 	t *testing.T,
 	id string,

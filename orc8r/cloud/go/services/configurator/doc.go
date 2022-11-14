@@ -20,14 +20,14 @@ generation by manipulating a graph of network entities.
 Configurator manages a directed acyclic graph (DAG) of network-partitioned
 entities. Callers can define their graph via the following three types
   - Network
-  - Network-level configs
-  - Network-level metadata
-  - Network entity (vertices)
+    -- Network-level configs
+    -- Network-level metadata
+    -- Network entity (vertices)
   - Type
-  - Key (ID)
-  - Config (serialized)
+    -- Key (ID)
+    -- Config (serialized)
   - Edge (directed edge)
-  - Connect two network entities
+    -- Connect two network entities
 
 Each network provides an isolated graph, with network-level configs and
 metadata. Network entities represent logical entities within a network
