@@ -73,15 +73,13 @@ func AppendMac(p eap.Packet, K_aut []byte) (eap.Packet, error) {
 // using recommended SRES Derivation Function #1
 //
 // Inputs:
-//
-//	ik   - 128-bit integrity key
-//	ck   - 128-bit confidentiality key
-//	xres - 64-bit signed response
+//   - ik   - 128-bit integrity key
+//   - ck   - 128-bit confidentiality key
+//   - xres - 64-bit signed response
 //
 // Outputs:
-//
-//	kc   - 64-bit Kc
-//	sres - 32-bit SRES
+//   - kc   - 64-bit Kc
+//   - sres - 32-bit SRES
 func GsmFromUmts1(ck, ik, xres []byte) (kc, sres []byte) {
 	kc, sres = make([]byte, 8), make([]byte, 4)
 	for i, i8 := 0, 8; i < 8; i, i8 = i+1, i8+1 {
@@ -97,15 +95,13 @@ func GsmFromUmts1(ck, ik, xres []byte) (kc, sres []byte) {
 // using recommended SRES Derivation Function #2
 //
 // Inputs:
-//
-//	ik   - 128-bit integrity key
-//	ck   - 128-bit confidentiality key
-//	xres - 64-bit signed response
+//   - ik   - 128-bit integrity key
+//   - ck   - 128-bit confidentiality key
+//   - xres - 64-bit signed response
 //
 // Outputs:
-//
-//	kc   - 64-bit Kc
-//	sres - 32-bit SRES
+//   - kc   - 64-bit Kc
+//   - sres - 32-bit SRES
 func GsmFromUmts2(ck, ik, xres []byte) (kc, sres []byte) {
 	kc, sres = make([]byte, 8), make([]byte, 4)
 	for i, i8 := 0, 8; i < 8; i, i8 = i+1, i8+1 {
