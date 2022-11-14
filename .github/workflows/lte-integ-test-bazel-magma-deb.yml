@@ -13,16 +13,8 @@ name: AGW Build & Test LTE Integration With Bazel Debian Build
 
 on:
   workflow_dispatch: null
-  push:
-    branches:
-      - master
-      - 'v1.*'
-
-env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  # see GH14041
-  CACHE_KEY: bazel-base-image-sha-c4de1e5
-  REMOTE_DOWNLOAD_OPTIMIZATION: true
+  repository_dispatch:
+    types: [magma-debian-artifact]
 
 jobs:
   lte-integ-test-bazel-magma-deb:
@@ -55,38 +47,23 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric3 jsonpickle requests PyYAML
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
-      - name: Install docker
-        uses: docker-practice/actions-setup-docker@5d9a5f65f510c01ec5f0bd81d5c95768b1ec032a # pin@v1
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
           echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
           echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
 
-      - name: Build .deb packages
-        run: |
-          docker run \
-            -v ${{ github.workspace }}:/workspaces/magma/ \
-            -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma \
-            -i \
-            ${{ env.BAZEL_BASE_IMAGE }} \
-            bash -c \
-              'cd /workspaces/magma && \
-              bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}" && \
-              bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
-                --config=production \
-                --profile=Bazel_build_package_profile && \
-              mv /workspaces/magma/bazel-bin/lte/gateway/release/magma*.deb /workspaces/magma/'
-      - name: Delete all docker containers
-        run: |
-          docker system prune -f -a --volumes
-
       - name: Run the integ test
         env:
           MAGMA_DEV_CPUS: 3
           MAGMA_DEV_MEMORY_MB: 9216
-          MAGMA_PACKAGE: magma_1.8.0_amd64.deb
         run: |
+          if [[ -z "${{ github.event.client_payload.magma_version }}" ]]; then
+            export MAGMA_PACKAGE=magma
+          else
+            export MAGMA_PACKAGE=magma=${{ github.event.client_payload.magma_version }}
+          fi
+          echo "Starting integration tests using magma artifact \"${MAGMA_PACKAGE}\"."
           cd lte/gateway
           fab integ_test_deb_installation
 
@@ -127,7 +104,7 @@ jobs:
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "Bazel Debian Integration Tests"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
           args: "Bazel Debian LTE integration test failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"

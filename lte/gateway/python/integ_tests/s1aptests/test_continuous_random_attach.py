@@ -225,9 +225,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
         end_timer = threading.Timer(test_duration, self.hadle_end_timer)
         end_timer.start()
 
-        while True:
-            if self.test_ended:
-                break
+        while not self.test_ended:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.handle_msg(response)
 

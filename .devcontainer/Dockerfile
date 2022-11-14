@@ -79,9 +79,9 @@ RUN echo "Install general purpose packages" && \
 WORKDIR /usr/local
 ARG GOLANG_VERSION="1.18.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
- && tar -xzf ${GO_TARBALL} \
- && rm ${GO_TARBALL}
+    && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+    && tar -xzf ${GO_TARBALL} \
+    && rm ${GO_TARBALL}
 ENV PATH=${PATH}:/usr/local/go/bin
 
 # /home/vscode/go/bin doesn't exist initially, but for example orc8r/cloud/go/Makefile
@@ -118,44 +118,15 @@ RUN echo "Install 3rd party dependencies" && \
         nlohmann-json3-dev && \
     echo "GRPC and it's dependencies" && \
     apt-get -y install --no-install-recommends \
-        grpc-dev
+        grpc-dev \
+        libprotobuf-dev \
+        libprotoc-dev \
+        protobuf-compiler \
+        prometheus-cpp-dev
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
 RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
     rm --recursive --interactive=never /root/.cache/go-build
-
-##### GRPC and it's dependencies
-RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
-    mkdir -p grpc/cmake/build && \
-    cd grpc/cmake/build && \
-    cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON ../.. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd ../../.. && \
-    rm --recursive --interactive=never grpc
-
-##### libprotobuf-mutator is used for randomized proto unit tests / property tests
-RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
-    mkdir -p libprotobuf-mutator/build && \
-    cd libprotobuf-mutator/build && \
-    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && \
-    ninja && \
-    ninja install && \
-    cd ../.. && \
-    rm --recursive --interactive=never libprotobuf-mutator
-
-##### Prometheus CPP
-RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
-    cd prometheus-cpp && \
-    git checkout d8326b2bba945a435f299e7526c403d7a1f68c1f && \
-    git submodule init && git submodule update && \
-    mkdir _build && \
-    cd _build/ && \
-    cmake .. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd ../.. && \
-    rm --recursive --interactive=never prometheus-cpp
 
 # install magma dependencies
 RUN apt-get install -y --no-install-recommends \
@@ -203,7 +174,7 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
 
 ##### Go language server support for vscode
 RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3 && \
-     rm --recursive --interactive=never /root/.cache/go-build
+    rm --recursive --interactive=never /root/.cache/go-build
 
 #### Update shared library configuration
 RUN ldconfig -v

@@ -14,17 +14,17 @@ limitations under the License.
 package authstate
 
 import (
-	"fbc/cwf/radius/modules/eap/packet"
 	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
+	"fbc/cwf/radius/modules/eap/packet"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 type TestEapMethodState struct {
@@ -100,10 +100,8 @@ func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
 }
 
 func createRadiusPacket(called string, calling string) radius.Packet {
-	return radius.Packet{
-		Attributes: radius.Attributes{
-			rfc2865.CallingStationID_Type: []radius.Attribute{radius.Attribute(calling)},
-			rfc2865.CalledStationID_Type:  []radius.Attribute{radius.Attribute(called)},
-		},
-	}
+	p := radius.Packet{}
+	p.Attributes.Add(rfc2865.CallingStationID_Type, radius.Attribute(calling))
+	p.Attributes.Add(rfc2865.CalledStationID_Type, radius.Attribute(called))
+	return p
 }

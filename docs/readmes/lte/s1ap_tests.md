@@ -46,15 +46,7 @@ at a time.
 Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run
 `vagrant up magma && vagrant ssh magma`.
 
-Now build the services with either make or bazel.
-
-##### Building with make
-
-In the gateway VM run `cd $MAGMA_ROOT/lte/gateway && make run`.
-
-##### Building with bazel
-
-> **Warning**: Bazel based builds are still experimental but can already be used for development.
+Now build the services with bazel.
 
 1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
 2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
@@ -73,12 +65,7 @@ is installed. That is, the deployed gateway might not match your local repositor
 
 ### Test VM setup
 
-Spin up and provision the s1ap tester's VM, make, then make in the integ_tests directory.
-
-1. From `magma/lte/gateway` on the host machine: `vagrant up magma_test && vagrant ssh magma_test`
-1. Now in the *magma_test* VM:
-    1. `cd $MAGMA_ROOT/lte/gateway/python && make`
-    1. `cd integ_tests && make`
+Spin up and provision the s1ap tester's VM. From `magma/lte/gateway` on the host machine: `vagrant up magma_test`
 
 ### Run tests
 
@@ -95,8 +82,20 @@ run is `s1aptests/test_attach_detach.py`.
 - Set *enable-flaky-retry=true* to re-run the failing test(s) to identify flaky behavior:\
 `make precommit enable-flaky-retry=true` or `make integ_test enable-flaky-retry=true`
 
-**Note**: The traffic tests will fail as traffic server is not running in this
+> **Note**: The traffic tests will fail as the traffic server is not running in this
 setup. Look at the section below on running traffic tests.
+
+#### Run tests with Bazel
+
+Alternatively, the integration tests can be run with Bazel.
+
+> **Note**: Running the integration tests with the `run_integ_tests.sh` script results in slightly longer test runtimes. Many features of the script may nonetheless be convenient for local development.
+
+From inside the repository on the *magma_test* VM, execute `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh` to run all Sanity tests.
+
+It is also possible to run individual tests, run the Non-Sanity tests, list tests by classification, re-run failed tests and to run the set-up and tear-down individually for all test classifications.
+
+To see the full list of features available, please use the help flag: `$MAGMA_ROOT/bazel/scripts/run_integ_tests.sh --help`.
 
 ### Running uplink/downlink traffic tests
 

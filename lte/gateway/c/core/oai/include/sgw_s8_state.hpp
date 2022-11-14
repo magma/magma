@@ -65,10 +65,9 @@ void delete_sgw_ue_state(imsi64_t imsi64);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc
- * @param context_p sgw eps bearer context entry on hashtable
+ * @param context_p sgw eps bearer context entry on map
  */
-void sgw_free_s11_bearer_context_information(
-    sgw_eps_bearer_context_information_t** context_p);
+void sgw_free_s11_bearer_context_information(void** ptr);
 
 /**
  * Callback function for imsi_ue_context hashtable's freefunc
