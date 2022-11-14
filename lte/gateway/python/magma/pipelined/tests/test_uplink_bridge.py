@@ -17,7 +17,6 @@ import warnings
 from concurrent.futures import Future
 from typing import Optional
 
-import getmac
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
@@ -34,6 +33,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
+from magma.pipelined.ifaces import get_mac_address
 from ryu.lib import hub
 
 
@@ -852,7 +852,7 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         cls.service_manager = create_service_manager([])
 
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
-        br_mac = getmac.get_mac_address(interface=cls.UPLINK_BRIDGE)
+        br_mac = get_mac_address(interface=cls.UPLINK_BRIDGE)
 
         cls._setup_vlan_network("0", br_mac)
 
