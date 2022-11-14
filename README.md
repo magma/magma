@@ -1,17 +1,13 @@
-<h1 align="center">
-    <a href="https://www.magmacore.org/"><img src="https://raw.githubusercontent.com/magma/magma/master/docs/docusaurus/static/img/magma-logo-purple.svg" alt="Magma" width="550"></a>
-</h1>
+# [![Magma](https://raw.githubusercontent.com/magma/magma/master/docs/docusaurus/static/img/magma-logo-purple.svg)](https://www.magmacore.org/)
 
-<p align="center">
-    <a href="https://github.com/magma/magma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-BSD3clause-blue.svg" alt="License"></a>
-    <a href="https://github.com/magma/magma/releases"><img src="https://img.shields.io/github/release/magma/magma" alt="GitHub Release"></a>
-    <a href="https://github.com/magma/magma/wiki/Contributing-Code"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
-    <a href="https://github.com/magma/magma/graphs/contributors"><img src="https://img.shields.io/github/contributors/magma/magma" alt="GitHub contributors"></a>
-    <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/last-commit/magma/magma" alt="GitHub last commit"></a>
-    <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/commit-activity/y/magma/magma" alt="GitHub commit activity the past week"></a>
-    <a href="https://codecov.io/gh/magma/magma"><img src="https://codecov.io/gh/magma/magma/branch/master/graph/badge.svg" alt="CodeCov"></a>
-    <a href="docs/readmes/lte/hil_tests.md"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL AGW tests"></a>
-</p>
+[![License](https://img.shields.io/badge/license-BSD3clause-blue.svg)](https://github.com/magma/magma/blob/master/LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/magma/magma)](https://github.com/magma/magma/releases)
+[![PR's Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/magma/magma/wiki/Contributing-Code)
+[![GitHub contributors](https://img.shields.io/github/contributors/magma/magma)](https://github.com/magma/magma/graphs/contributors)
+[![GitHub last commit](https://img.shields.io/github/last-commit/magma/magma)](https://github.com/magma/magma/commits/master)
+[![GitHub commit activity the past week](https://img.shields.io/github/commit-activity/y/magma/magma)](https://github.com/magma/magma/commits/master)
+[![CodeCov](https://codecov.io/gh/magma/magma/branch/master/graph/badge.svg)](https://codecov.io/gh/magma/magma)
+[![HIL AGW tests](http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg)](docs/readmes/lte/hil_tests.md)
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
 
