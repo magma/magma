@@ -25,7 +25,7 @@ from s1ap_utils import MagmadUtil
 
 class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
     def setUp(self):
-        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
             mock_pcrf=self.mock_pcrf,

@@ -19,7 +19,7 @@ import time
 from typing import List
 
 import s1ap_types
-from integ_tests.common.gx_gy_client import PCRFGrpc
+from integ_tests.common.gx_client import PCRFGrpc
 from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil

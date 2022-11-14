@@ -22,7 +22,7 @@ class TestAttachDetachSecurityAlgoEea0Eia0(unittest.TestCase):
     """Integration Test: TestAttachDetachSecurityAlgoEea0Eia0"""
 
     def setUp(self):
-        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
         """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
 

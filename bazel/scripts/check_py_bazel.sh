@@ -21,7 +21,7 @@ set -euo pipefail
 
 # Folders and files that should not be relevant for bazel.
 DENY_LIST_NOT_RELEVANT=(
-  "./lte/gateway/python/integ_tests/common/gx_gy_client.py"
+  "./lte/gateway/python/integ_tests/common/gx_client.py"
   "./ci-scripts"
   "./cn/deploy/scripts"
   "./cwf/gateway/deploy"

@@ -22,7 +22,7 @@ class TestAttachDetachSecurityAlgoEea2Eia2(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
-        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
 
     def tearDown(self):

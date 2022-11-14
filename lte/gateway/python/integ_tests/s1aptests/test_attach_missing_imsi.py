@@ -21,7 +21,7 @@ import s1ap_wrapper
 class TestAttachMissingImsi(unittest.TestCase):
 
     def setUp(self):
-        self.mock_pcrf = {True if (os.environ.get("FEDERATED_MODE") == "True") else False}
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
 
     def tearDown(self):

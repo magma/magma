@@ -41,29 +41,3 @@ class PCRFGrpc(PCRFGrpcClient):
     def __init__(self):
         """ Init the gRPC stub to connect to mock PCRF. """
         super().__init__(MockPCRFStub(get_pcrf_rpc_channel()))
-
-
-class OCSGrpcClient(Exception):
-    def __init__(self, ocs_grpc_stub):
-        """ Init the gRPC stub.  """
-        self._mock_ocs_stub = ocs_grpc_stub
-
-    def clear_subscribers(self):
-        """ Clearing account in OCS """
-        self._mock_ocs_stub.ClearSubscribers(Void())
-
-    def add_subscriber(self, imsi):
-        imsi = imsi.replace("IMSI", "")
-        """ Creating account in OCS """
-        self._mock_ocs_stub.CreateAccount(SubscriberID(id=imsi))
-
-
-class OCSGrpc(OCSGrpcClient):
-    """
-    Handle mock OCS actions by making calls over gRPC directly to the
-    ocs service on the feg.
-    """
-
-    def __init__(self):
-        """ Init the gRPC stub to connect to mock OCS. """
-        super().__init__(MockOCSStub(get_ocs_rpc_channel()))
