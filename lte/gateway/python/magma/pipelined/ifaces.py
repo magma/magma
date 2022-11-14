@@ -37,20 +37,26 @@ def get_mac_address(
         ip4: Optional[str] = None,
         ip6: Optional[str] = None,
 ) -> str:
-    if interface is not None:
-        ifaddress = netifaces.ifaddresses(interface)[netifaces.AF_LINK]
-        if not ifaddress or not ifaddress[0].get('addr'):
-            raise ValueError(f"No mac address found for interface {interface}")
-        return ifaddress[0]['addr']
-    elif ip4 is not None:
-        for iface in netifaces.interfaces():
+    if interface:
+        ifaddress = netifaces.ifaddresses(interface)
+        if netifaces.AF_LINK in ifaddress:
+            return ifaddress[netifaces.AF_LINK][0]['addr']
+        raise ValueError(f"No mac address found for interface {interface}")
+    elif ip4:
+        return _get_mac_from_ip(ip4, "ip4")
+    elif ip6:
+        return _get_mac_from_ip(ip6, "ip6")
+
+
+def _get_mac_from_ip(ip: str, ipv: str) -> str:
+    af_type = {
+        "ip4": netifaces.AF_INET,
+        "ip6": netifaces.AF_INET6,
+    }[ipv]
+    for iface in netifaces.interfaces():
+        try:
             ifaddress = netifaces.ifaddresses(iface)
-            if ifaddress.get(netifaces.AF_INET, [{}])[0].get('addr', 'None') == ip4:
-                return ifaddress.get(netifaces.AF_LINK)[0].get('addr')
-        raise ValueError(f"No mac address found for ip4 {ip4}")
-    elif ip6 is not None:
-        for iface in netifaces.interfaces():
-            ifaddress = netifaces.ifaddresses(iface)
-            if ifaddress.get(netifaces.AF_INET6, [{}])[0].get('addr', 'None').split("%")[0] == ip6:
-                return ifaddress.get(netifaces.AF_LINK)[0].get('addr')
-        raise ValueError(f"No mac address found for ip6 {ip6}")
+            if ifaddress[af_type][0]['addr'].split("%")[0] == ip:
+                return ifaddress[netifaces.AF_LINK][0]['addr']
+        except (KeyError, IndexError, ValueError):
+            raise ValueError(f"No mac address found for {ipv} {ip}")
