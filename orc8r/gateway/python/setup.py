@@ -70,7 +70,7 @@ setup(
         'python-redis-lock>=3.7.0',
         'aiohttp>=3.8.1',
         'grpcio>=1.46.3,<1.49.0',
-        'protobuf==3.20.1',
+        'protobuf==3.20.3',
         'Jinja2==2.11.3',
         'markupsafe==1.1.1',
         'netifaces>=0.11.0',

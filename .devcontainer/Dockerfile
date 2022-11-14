@@ -79,9 +79,9 @@ RUN echo "Install general purpose packages" && \
 WORKDIR /usr/local
 ARG GOLANG_VERSION="1.18.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
- && tar -xzf ${GO_TARBALL} \
- && rm ${GO_TARBALL}
+    && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+    && tar -xzf ${GO_TARBALL} \
+    && rm ${GO_TARBALL}
 ENV PATH=${PATH}:/usr/local/go/bin
 
 # /home/vscode/go/bin doesn't exist initially, but for example orc8r/cloud/go/Makefile
@@ -174,7 +174,7 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
 
 ##### Go language server support for vscode
 RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3 && \
-     rm --recursive --interactive=never /root/.cache/go-build
+    rm --recursive --interactive=never /root/.cache/go-build
 
 #### Update shared library configuration
 RUN ldconfig -v
