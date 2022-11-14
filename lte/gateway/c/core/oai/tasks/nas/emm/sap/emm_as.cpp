@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -56,7 +58,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msg.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_as.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_CONNECTIVITY_REQUEST_H_
-#define PDN_CONNECTIVITY_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -93,5 +92,3 @@ int decode_pdn_connectivity_request(
 int encode_pdn_connectivity_request(
     pdn_connectivity_request_msg* pdnconnectivityrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(PDN_CONNECTIVITY_REQUEST_H_) */

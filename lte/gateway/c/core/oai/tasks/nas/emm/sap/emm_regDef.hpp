@@ -34,8 +34,7 @@ Description Defines the EMMREG Service Access Point that provides
         procedures.
 
 *****************************************************************************/
-#ifndef FILE_EMM_REGDEF_SEEN
-#define FILE_EMM_REGDEF_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
@@ -188,5 +187,3 @@ typedef struct emm_reg_s {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
-#endif /* FILE_EMM_REGDEF_SEEN*/

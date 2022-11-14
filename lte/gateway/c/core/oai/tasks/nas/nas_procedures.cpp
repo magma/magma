@@ -22,6 +22,8 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
+
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -51,7 +53,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 // TODO: Add unit tests for common procedure functions

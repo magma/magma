@@ -33,12 +33,12 @@
 
 *****************************************************************************/
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +52,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
@@ -72,7 +73,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"

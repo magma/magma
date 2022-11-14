@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,7 +40,6 @@ extern "C" {
 }
 #endif
 
-#include <inttypes.h>
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"

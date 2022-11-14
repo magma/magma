@@ -34,8 +34,7 @@ Description Defines functions executed at the EMMAS Service Access
         Access Stratum sublayer.
 
 *****************************************************************************/
-#ifndef FILE_EMM_SEND_SEEN
-#define FILE_EMM_SEND_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -119,4 +118,3 @@ int emm_send_cs_service_notification(const emm_as_data_t* msg,
                                      cs_service_notification_msg* emm_msg);
 void emm_free_send_cs_service_notification(
     cs_service_notification_msg* emm_msg);
-#endif /* FILE_EMM_SEND_SEEN*/

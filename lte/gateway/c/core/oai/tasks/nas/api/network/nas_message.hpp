@@ -33,8 +33,8 @@ Description Defines the layer 3 messages supported by the NAS sublayer
         protocol and functions used to encode and decode
 
 *****************************************************************************/
-#ifndef FILE_NAS_MESSAGE_SEEN
-#define FILE_NAS_MESSAGE_SEEN
+
+#pragma once
 
 #include <linux/byteorder/little_endian.h>
 #include <stdbool.h>
@@ -133,5 +133,3 @@ int nas_message_encode(unsigned char* buffer, const nas_message_t* const msg,
 int nas_message_encrypt(const unsigned char* inbuf, unsigned char* outbuf,
                         const nas_message_security_header_t* header,
                         size_t length, void* security);*/
-
-#endif /* FILE_NAS_MESSAGE_SEEN*/

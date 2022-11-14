@@ -15,7 +15,11 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
+
+#include <memory>
 #include <vector>
+
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -24,8 +28,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 }
 
-#include <memory>
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
 namespace magma {

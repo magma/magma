@@ -30,8 +30,7 @@ Author    Frederic Maurel, Sebastien Roux
 Description Defines identifiers of the EPS Session Management messages
 
 *****************************************************************************/
-#ifndef __ESM_MSGDEF_H__
-#define __ESM_MSGDEF_H__
+#pragma once
 
 #include <asm/byteorder.h>
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
@@ -80,5 +79,3 @@ typedef struct {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
-#endif /* __ESM_MSGDEF_H__ */

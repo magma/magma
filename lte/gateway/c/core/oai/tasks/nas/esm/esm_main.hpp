@@ -33,8 +33,7 @@ Description Defines the EPS Session Management procedure call manager,
 
 *****************************************************************************/
 
-#ifndef __ESM_MAIN_H__
-#define __ESM_MAIN_H__
+#pragma once
 
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
@@ -60,5 +59,3 @@ void esm_main_cleanup(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ESM_MAIN_H__*/

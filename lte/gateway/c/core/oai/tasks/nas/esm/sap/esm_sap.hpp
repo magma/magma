@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_sap.h
+Source      esm_sap.hpp
 
 Version     0.1
 
@@ -33,8 +33,7 @@ Description Defines the ESM Service Access Points at which the EPS
         EPS bearer context handling and resources allocation.
 
 *****************************************************************************/
-#ifndef __ESM_SAP_H__
-#define __ESM_SAP_H__
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
@@ -64,5 +63,3 @@ status_code_e esm_sap_send(esm_sap_t* msg);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ESM_SAP_H__*/
