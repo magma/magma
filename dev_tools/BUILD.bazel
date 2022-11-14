@@ -110,10 +110,10 @@ genrule(
     name = "external_deps_pth",
     outs = ["external_deps.pth"],
     cmd = "\n".join([
-        "echo /tmp/bazel/external/ryu_repo >> $@",
-        "echo /tmp/bazel/external/aioh2_repo >> $@",
-        "echo /tmp/bazel/external/aioeventlet_repo >> $@",
-        "echo /tmp/bazel/external/bcc_repo >> $@",
+        "echo /var/tmp/bazel/external/ryu_repo >> $@",
+        "echo /var/tmp/bazel/external/aioh2_repo >> $@",
+        "echo /var/tmp/bazel/external/aioeventlet_repo >> $@",
+        "echo /var/tmp/bazel/external/bcc_repo >> $@",
     ]),
 )
 
