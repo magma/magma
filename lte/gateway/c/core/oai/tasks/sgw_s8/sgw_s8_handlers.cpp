@@ -588,9 +588,9 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
              sizeof(teidString) - strlen(teidString), "%u%c", teidlist[idx],
              separator);
   }
-  char* ptr = const_cast<char*>("sgw_c_teid");
+  const char* ptr = "sgw_c_teid";
   if (teid_type == UP_TEID) {
-    ptr = const_cast<char*>("sgw_u_teid");
+    ptr = "sgw_u_teid";
   }
   directoryd_update_record_field(imsi_str, ptr, teidString);
   OAILOG_DEBUG_UE(

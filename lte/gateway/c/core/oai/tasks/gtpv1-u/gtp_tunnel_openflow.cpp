@@ -181,9 +181,9 @@ static uint32_t create_gtp_port(struct in_addr enb_addr,
                                 struct in6_addr* enb_addr_ipv6,
                                 char port_name[], bool is_pgw) {
   char gtp_port_create[512];
-  char* gtp_echo;
-  char* gtp_csum;
-  char* l3_tunnel;
+  const char* gtp_echo;
+  const char* gtp_csum;
+  const char* l3_tunnel;
   char buf[INET6_ADDRSTRLEN];
   int rc;
 
