@@ -723,6 +723,14 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_ifaces",
+    size = "small",
+    srcs = ["test_ifaces.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/pipelined:ifaces"],
+)
+
+pytest_test(
     name = "test_tunnel_id_mapper",
     size = "small",
     srcs = ["test_tunnel_id_mapper.py"],
