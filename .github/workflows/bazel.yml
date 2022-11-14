@@ -125,7 +125,7 @@ jobs:
             # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
             then
               printf '\r%s\r' 'Determining targets via bazel-diff.' 1>&2
-              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")
+              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh cf35d1fdf469214012347f9a734411c809e63468 "${{ github.sha }}")
               bazel build \
                 $IMPACTED_TARGETS \
                 --config=mme_unit_test \
