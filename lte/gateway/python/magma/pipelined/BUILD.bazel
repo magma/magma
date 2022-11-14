@@ -44,7 +44,6 @@ py_binary(
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/configuration:environment",
         "@aioeventlet_repo//:aioeventlet",
-        requirement("getmac"),
     ],
 )
 
@@ -195,7 +194,6 @@ py_library(
     deps = [
         "//lte/gateway/python/magma/redirectd:redirect_store",
         requirement("aiodns"),
-        requirement("getmac"),
         requirement("pymemoize"),
     ],
 )
