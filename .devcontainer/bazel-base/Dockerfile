@@ -42,7 +42,7 @@ RUN echo "Install general purpose packages" && \
         libsctp-dev `# dependency of sctpd` \
         libssl-dev \
         libsystemd-dev `# dependency of pip systemd` \
-        lld \
+        lld-12 \
         net-tools `# dependency of python services (e.g. magmad)` \
         netbase `# dependency of python services (e.g. pipelined)` \
         python${PYTHON_VERSION} \
