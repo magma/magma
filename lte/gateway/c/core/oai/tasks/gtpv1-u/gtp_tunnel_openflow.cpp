@@ -263,8 +263,7 @@ static uint32_t find_gtp_port_no(struct in_addr enb_addr,
  * Initialize GTP port table for caching GTP tunnel port numbers.
  */
 static void openflow_multi_tunnel_init(void) {
-  char* probe_gtp_type =
-      const_cast<char*>("sudo ovs-vsctl list Open_vSwitch | grep gtpu");
+  const char* probe_gtp_type = "sudo ovs-vsctl list Open_vSwitch | grep gtpu";
 
   // OVS GTP tunnel type has changed upstream, for better compatibility
   // detect it on initilization.
