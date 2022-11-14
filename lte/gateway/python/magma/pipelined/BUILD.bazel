@@ -44,7 +44,6 @@ py_binary(
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/configuration:environment",
         "@aioeventlet_repo//:aioeventlet",
-        requirement("getmac"),
     ],
 )
 
@@ -187,7 +186,6 @@ py_library(
 py_library(
     name = "utils",
     srcs = ["utils.py"],
-    deps = [requirement("getmac")],
 )
 
 py_library(
@@ -196,7 +194,6 @@ py_library(
     deps = [
         "//lte/gateway/python/magma/redirectd:redirect_store",
         requirement("aiodns"),
-        requirement("getmac"),
         requirement("pymemoize"),
     ],
 )
@@ -251,7 +248,6 @@ py_library(
     srcs = ["gw_mac_address.py"],
     deps = [
         ":ifaces",
-        requirement("getmac"),
         requirement("scapy"),
     ],
 )

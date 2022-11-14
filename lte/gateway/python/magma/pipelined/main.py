@@ -39,7 +39,7 @@ from magma.pipelined.gtp_stats_collector import (
     MIN_OVSDB_DUMP_POLLING_INTERVAL,
     GTPStatsCollector,
 )
-from magma.pipelined.ifaces import monitor_ifaces, get_mac_address
+from magma.pipelined.ifaces import get_mac_address, monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
 from magma.pipelined.service_manager import ServiceManager
 from ryu import cfg

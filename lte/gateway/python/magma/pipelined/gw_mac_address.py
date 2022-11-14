@@ -29,9 +29,7 @@ def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -
     elif ip.version == IPAddress.IPV6:
         if vlan == "NO_VLAN":
             return _get_gw_mac_address_v6(gw_ip)
-        else:
-            logging.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
-            return ""
+        logging.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
     return ""
 
 

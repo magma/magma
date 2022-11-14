@@ -56,8 +56,8 @@ class InOutTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(InOutTest, cls).setUpClass()
-        middle.getmac.get_mac_address = mocked_get_mac_address
-        egress.getmac.get_mac_address = mocked_get_mac_address
+        middle.get_mac_address = mocked_get_mac_address
+        egress.get_mac_address = mocked_get_mac_address
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 

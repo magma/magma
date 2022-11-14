@@ -79,8 +79,8 @@ class UEMacAddressTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(UEMacAddressTest, cls).setUpClass()
-        arp.getmac.get_mac_address = mocked_get_mac_address
-        egress.getmac.get_mac_address = mocked_get_mac_address
+        arp.get_mac_address = mocked_get_mac_address
+        egress.get_mac_address = mocked_get_mac_address
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(

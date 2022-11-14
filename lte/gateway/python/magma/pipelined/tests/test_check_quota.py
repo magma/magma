@@ -42,13 +42,9 @@ class UEMacAddressTest(unittest.TestCase):
     @classmethod
     @unittest.mock.patch(
         'netifaces.ifaddresses',
-        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+        return_value={0: [{'addr': '00:11:22:33:44:55'}]},
     )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
-    @unittest.mock.patch(
-        'getmac.get_mac_address',
-        return_value='00:11:22:33:44:55',
-    )
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps

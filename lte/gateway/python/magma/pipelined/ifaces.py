@@ -46,6 +46,7 @@ def get_mac_address(
         return _get_mac_from_ip(ip4, "ip4")
     elif ip6:
         return _get_mac_from_ip(ip6, "ip6")
+    raise ValueError("Must specify either interface or ip4 or ip6")
 
 
 def _get_mac_from_ip(ip: str, ipv: str) -> str:
@@ -59,4 +60,5 @@ def _get_mac_from_ip(ip: str, ipv: str) -> str:
             if ifaddress[af_type][0]['addr'].split("%")[0] == ip:
                 return ifaddress[netifaces.AF_LINK][0]['addr']
         except (KeyError, IndexError, ValueError):
-            raise ValueError(f"No mac address found for {ipv} {ip}")
+            continue
+    raise ValueError(f"No mac address found for {ipv} {ip}")

@@ -18,6 +18,7 @@ from concurrent.futures import Future
 from typing import Optional
 
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.ifaces import get_mac_address
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
     TestSetup,
@@ -33,7 +34,6 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
-from magma.pipelined.ifaces import get_mac_address
 from ryu.lib import hub
 
 

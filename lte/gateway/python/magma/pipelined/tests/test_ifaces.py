@@ -15,7 +15,6 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from magma.pipelined.ifaces import get_mac_address
 
 # Prevent flakiness due to prometheus library import
@@ -71,6 +70,28 @@ def test_get_mac_address_from_ip4_no_mac(netifaces_mock):
     }
     with pytest.raises(ValueError):
         get_mac_address(ip4="10.0.2.15")
+
+
+def mocked_ifaddresses(iface):
+    if iface == "eth0":
+        return {
+            13: [{"addr": "00:11:22:33:44:66"}],
+        }
+    if iface == "eth1":
+        return {
+            13: [{"addr": "00:11:22:33:44:55"}],
+            3: [{"addr": "10.0.2.15"}],
+        }
+
+
+@patch("magma.pipelined.ifaces.netifaces")
+def test_get_mac_address_from_ip4_multiple_if(netifaces_mock):
+    netifaces_mock.AF_LINK = 13
+    netifaces_mock.AF_INET = 3
+    netifaces_mock.interfaces.return_value = ["eth0", "eth1"]
+    netifaces_mock.ifaddresses = mocked_ifaddresses
+
+    assert get_mac_address(ip4="10.0.2.15") == "00:11:22:33:44:55"
 
 
 @patch("magma.pipelined.ifaces.netifaces")

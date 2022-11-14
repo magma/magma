@@ -314,7 +314,7 @@ class EbpfManager:
         try:
             if ip_addr.version == IPAddress.IPV4:
                 ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
-                addr_str = get_mac_address(ip=ip_str)
+                addr_str = get_mac_address(ip4=ip_str)
             else:
                 ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
                 addr_str = get_mac_address(ip6=ip_str)

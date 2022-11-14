@@ -70,7 +70,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined/app:base",
         "//lte/gateway/python/magma/pipelined/openflow:flows",
         "//lte/protos:pipelined_python_proto",
-        requirement("getmac"),
     ],
 )
 
@@ -147,10 +146,7 @@ py_library(
 py_library(
     name = "check_quota",
     srcs = ["check_quota.py"],
-    deps = [
-        ":ue_mac",
-        requirement("getmac"),
-    ],
+    deps = [":ue_mac"],
 )
 
 py_library(
@@ -196,7 +192,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined:vlan_utils",
         "//lte/gateway/python/magma/pipelined/openflow:flows",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
-        requirement("getmac"),
     ],
 )
 
