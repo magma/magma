@@ -60,7 +60,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 1. Install the following tools
    1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
-   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL. See also [this discussion](https://github.com/hashicorp/vagrant/issues/12751).)
+   3. [Vagrant](https://www.vagrantup.com/downloads)
 2. Install golang version 18.
 
    1. Download the tar file.

@@ -55,10 +55,9 @@ class TestSctpShutdownWhileMmeIsStopped(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print("Stopping MME, mobilityd, pipelined, and sessiond service")
-        self._s1ap_wrapper.magmad_util.disable_service('mme')
-        self._s1ap_wrapper.magmad_util.disable_service('mobilityd')
-        self._s1ap_wrapper.magmad_util.disable_service('pipelined')
-        self._s1ap_wrapper.magmad_util.disable_service('sessiond')
+        self._s1ap_wrapper.magmad_util.disable_services(
+            ['mme', 'mobilityd', 'pipelined', 'sessiond'],
+        )
 
         print("send SCTP SHUTDOWN")
         self._s1ap_wrapper._s1_util.issue_cmd(
@@ -69,10 +68,9 @@ class TestSctpShutdownWhileMmeIsStopped(unittest.TestCase):
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
         print("Starting the stopped services and waiting for 30 seconds")
-        self._s1ap_wrapper.magmad_util.enable_service('mobilityd')
-        self._s1ap_wrapper.magmad_util.enable_service('pipelined')
-        self._s1ap_wrapper.magmad_util.enable_service('sessiond')
-        self._s1ap_wrapper.magmad_util.enable_service('mme')
+        self._s1ap_wrapper.magmad_util.enable_services(
+            ['mobilityd', 'pipelined', 'sessiond', 'mme'],
+        )
         time.sleep(30)
 
         print("Re-establish S1 connection between eNB and MME")

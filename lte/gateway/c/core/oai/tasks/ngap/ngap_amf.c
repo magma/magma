@@ -35,7 +35,7 @@
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "asn_internal.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"

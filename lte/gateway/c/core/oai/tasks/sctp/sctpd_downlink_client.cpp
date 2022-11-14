@@ -15,13 +15,12 @@
  *      contact@openairinterface.org
  */
 
-extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.hpp"
 
+extern "C" {
 #include <arpa/inet.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
@@ -33,6 +32,7 @@ extern "C" {
 #include <lte/protos/sctpd.grpc.pb.h>
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 namespace magma {
 namespace lte {

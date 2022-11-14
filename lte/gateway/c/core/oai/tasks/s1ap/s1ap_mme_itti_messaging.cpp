@@ -21,6 +21,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,7 +39,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 
 namespace magma {
 namespace lte {

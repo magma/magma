@@ -115,7 +115,7 @@ MAGMA_DEPS=(
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.20.1"
+    "python3-protobuf >= 3.20.3"
     "redis-server >= 3.2.0"
     "sudo"
     "dnsmasq >= 2.7"
