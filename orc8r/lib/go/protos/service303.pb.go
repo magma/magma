@@ -1080,10 +1080,8 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type Service303Client interface {
 	// Returns the service level info like name, version, state, status, etc.
-	//
 	GetServiceInfo(ctx context.Context, in *Void, opts ...grpc.CallOption) (*ServiceInfo, error)
 	// Request to stop the service gracefully.
-	//
 	StopService(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Void, error)
 	// Collects metrics from the service
 	GetMetrics(ctx context.Context, in *Void, opts ...grpc.CallOption) (*MetricsContainer, error)
@@ -1171,10 +1169,8 @@ func (c *service303Client) GetOperationalStates(ctx context.Context, in *Void, o
 // Service303Server is the server API for Service303 service.
 type Service303Server interface {
 	// Returns the service level info like name, version, state, status, etc.
-	//
 	GetServiceInfo(context.Context, *Void) (*ServiceInfo, error)
 	// Request to stop the service gracefully.
-	//
 	StopService(context.Context, *Void) (*Void, error)
 	// Collects metrics from the service
 	GetMetrics(context.Context, *Void) (*MetricsContainer, error)

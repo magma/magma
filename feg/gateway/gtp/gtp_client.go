@@ -45,9 +45,10 @@ type Client struct {
 
 // NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incoming calls
 // localIpAndPort is in form ip:port  (127.0.0.1:1)
-// 	- In case localIpAndPort is empty it uses any IP and a random port
-// 	- In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
-// 	- In case port is set to 0 it uses a random port ( 0.0.0.0:0, or 10.0.0.1:0)
+//   - In case localIpAndPort is empty it uses any IP and a random port
+//   - In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
+//   - In case port is set to 0 it uses a random port ( 0.0.0.0:0, or 10.0.0.1:0)
+//
 // If you need to check server availability before any connection, use NewConnectedClient
 func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8, gtpTimeout time.Duration) (*Client, error) {
 	if localIpAndPort == "" {

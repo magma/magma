@@ -67,8 +67,9 @@ func MustIndex(networkID string, states state_types.SerializedStatesByID) {
 }
 
 // Index makes index calls via worker goroutines.
-//	- each indexer gets up to maxRetry attempts
-//	- returns after all goroutines have completed
+//   - each indexer gets up to maxRetry attempts
+//   - returns after all goroutines have completed
+//
 // Prefer MustIndex except where receiving the returned errors is relevant.
 func Index(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
 	return runIndexersAction(networkID, states, indexAddAction)
@@ -92,8 +93,9 @@ func MustDeIndex(networkID string, states state_types.SerializedStatesByID) {
 }
 
 // DeIndex makes deIndex calls via worker goroutines.
-//	- each indexer gets up to maxRetry attempts
-//	- returns after all goroutines have completed
+//   - each indexer gets up to maxRetry attempts
+//   - returns after all goroutines have completed
+//
 // Prefer MustIndexRemove except where receiving the returned errors is relevant.
 func DeIndex(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
 	return runIndexersAction(networkID, states, indexRemoveAction)

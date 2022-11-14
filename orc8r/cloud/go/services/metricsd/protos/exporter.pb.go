@@ -185,6 +185,7 @@ type Context struct {
 
 	MetricName string `protobuf:"bytes,1,opt,name=metric_name,json=metricName,proto3" json:"metric_name,omitempty"`
 	// Types that are assignable to OriginContext:
+	//
 	//	*Context_CloudMetric
 	//	*Context_GatewayMetric
 	//	*Context_PushedMetric

@@ -38,9 +38,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-///////////////////
+// /////////////////
 // LocalSessionManager service
-///////////////////
+// /////////////////
 type RATType int32
 
 const (
@@ -2030,7 +2030,7 @@ type RuleRecord struct {
 	RuleVersion uint64 `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
 	// Uplink TEID
 	Teid uint32 `protobuf:"varint,10,opt,name=teid,proto3" json:"teid,omitempty"`
-	//Indicates that the report is final and the flow will be deleted
+	// Indicates that the report is final and the flow will be deleted
 	FinalRecord bool `protobuf:"varint,11,opt,name=final_record,json=finalRecord,proto3" json:"final_record,omitempty"`
 }
 
@@ -2437,6 +2437,7 @@ type RatSpecificContext struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Context:
+	//
 	//	*RatSpecificContext_LteContext
 	//	*RatSpecificContext_WlanContext
 	//	*RatSpecificContext_M5GsmSessionContext
@@ -2608,7 +2609,7 @@ type RatSpecificNotification struct {
 	PduSessionType  PduSessionType   `protobuf:"varint,4,opt,name=pdu_session_type,json=pduSessionType,proto3,enum=magma.lte.PduSessionType" json:"pdu_session_type,omitempty"`
 	M5GSmCapability *M5GSMCapability `protobuf:"bytes,5,opt,name=m5g_sm_capability,json=m5gSmCapability,proto3" json:"m5g_sm_capability,omitempty"`
 	M5GsmCause      M5GSMCause       `protobuf:"varint,6,opt,name=m5gsm_cause,json=m5gsmCause,proto3,enum=magma.lte.M5GSMCause" json:"m5gsm_cause,omitempty"`
-	//Idle/paging/periodic_reg events and UE state notification
+	// Idle/paging/periodic_reg events and UE state notification
 	NotifyUeEvent NotifyUeEvents `protobuf:"varint,7,opt,name=notify_ue_event,json=notifyUeEvent,proto3,enum=magma.lte.NotifyUeEvents" json:"notify_ue_event,omitempty"`
 }
 
@@ -7173,6 +7174,7 @@ type UPFNodeState struct {
 
 	UpfId string `protobuf:"bytes,1,opt,name=upf_id,json=upfId,proto3" json:"upf_id,omitempty"`
 	// Types that are assignable to UpfNodeMessages:
+	//
 	//	*UPFNodeState_AssociatonState
 	//	*UPFNodeState_NodeReport
 	UpfNodeMessages isUPFNodeState_UpfNodeMessages `protobuf_oneof:"upf_node_messages"`

@@ -12,7 +12,6 @@ limitations under the License.
 */
 
 // Package client (eap.client) provides interface to supported & registered EAP Authenticator Providers
-//
 package client
 
 import (
