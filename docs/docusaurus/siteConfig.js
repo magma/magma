@@ -13,7 +13,7 @@
 
 // Ref: https://v1.docusaurus.io/docs/en/site-config
 
-const url = process.env.DOCUSAURUS_URL || 'https://magmacore.org'
+const url = process.env.DOCUSAURUS_URL || 'https://magma.github.io'
 const baseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
 const mermaid = require('remark-mermaid')
@@ -35,7 +35,7 @@ const siteConfig = {
     {label: ' | '},
     {href: 'https://github.com/magma', label: 'Code'},
     {label: ' | '},
-    {href: 'https://github.com/magma/magma/wiki/Contributor-Guide', label: 'Contributing'},
+    {href: 'https://github.com/magma/magma/wiki', label: 'Contributing'},
     {label: ' | '},
     {href: 'https://wiki.magmacore.org/', label: 'Wiki'},
   ],

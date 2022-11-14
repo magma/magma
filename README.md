@@ -2,12 +2,10 @@
     <a href="https://www.magmacore.org/"><img src="https://raw.githubusercontent.com/magma/magma/master/docs/docusaurus/static/img/magma-logo-purple.svg" alt="Magma" width="550"></a>
 </h1>
 
-<h3 align="center">Connecting the Next Billion People</h3>
-
 <p align="center">
     <a href="https://github.com/magma/magma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-BSD3clause-blue.svg" alt="License"></a>
     <a href="https://github.com/magma/magma/releases"><img src="https://img.shields.io/github/release/magma/magma" alt="GitHub Release"></a>
-    <a href="https://docs.magmacore.org/docs/next/contributing/contribute_workflow"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
+    <a href="https://github.com/magma/magma/wiki/Contributing-Code"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
     <a href="https://github.com/magma/magma/graphs/contributors"><img src="https://img.shields.io/github/contributors/magma/magma" alt="GitHub contributors"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/last-commit/magma/magma" alt="GitHub last commit"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/commit-activity/y/magma/magma" alt="GitHub commit activity the past week"></a>
@@ -40,7 +38,7 @@ Magma has three major components
 ## Documentation
 
 - [Magma Website](https://magmacore.org/): Project landing page
-- [Docs](https://docs.magmacore.org/): Deployment, configuration and usage information
+- [Docs](https://magma.github.io/): Deployment, configuration and usage information
 - [Code](https://github.com/magma): Source code
 - [Contributing](https://github.com/magma/magma/wiki/Contributor-Guide): Contributor Guide
 - [Wiki](https://wiki.magmacore.org/): Meeting notes and project team resources

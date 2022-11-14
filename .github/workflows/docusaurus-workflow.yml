@@ -18,12 +18,11 @@ on:
 jobs:
   docusaurus-build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      DOCUSAURUS_URL: https://magma.github.io
+      DOCUSAURUS_BASE_URL: /
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - name: Export vars
-        run: |
-          echo "DOCUSAURUS_URL=https://magma.github.io" >> $GITHUB_ENV
-          echo "DOCUSAURUS_BASE_URL=/magma/" >> $GITHUB_ENV
       - name: Setup docusaurus expected directory structure
         run: |
           mv docs/docusaurus website/
