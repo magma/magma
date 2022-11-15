@@ -46,7 +46,6 @@ RUN echo "Install general purpose packages" && \
         clang-11 \
         clang-format-11 \
         clang-tidy-11 \
-        clangd-12 \
         g++-9 \
         gcc-9 \
         gdb \
@@ -68,12 +67,7 @@ RUN echo "Install general purpose packages" && \
         software-properties-common \
         tzdata \
         virtualenv=20.0.17-1ubuntu0.4 && \
-    gem install fpm && \
-    update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
-    update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
-    update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-    update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
+    gem install fpm
 
 # Install golang
 WORKDIR /usr/local
