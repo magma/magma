@@ -48,7 +48,7 @@ on:
 jobs:
   build_dependencies:
     runs-on: ubuntu-latest
-    container: ghcr.io/magma/magma/devcontainer:latest
+    container: ghcr.io/magma/magma/devcontainer:sha-385c134
     env:
       repository: ${{ inputs.repository || 'debian-ci' }}
       distribution: ${{ inputs.distribution || 'focal-ci' }}
