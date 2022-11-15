@@ -70,11 +70,6 @@ class UEMacAddressTest(unittest.TestCase):
     DPI_IP = '1.1.1.1'
 
     @classmethod
-    @unittest.mock.patch(
-        'netifaces.ifaddresses',
-        return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]],
-    )
-    @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps

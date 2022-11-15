@@ -118,18 +118,6 @@ def test_get_mac_address_from_ip6_invalid(netifaces_mock):
     netifaces_mock.interfaces.return_value = ["eth0"]
     netifaces_mock.ifaddresses.return_value = {}
     with pytest.raises(ValueError):
-        get_mac_address_from_ip6(ip6="fe80::64ba:b0ff:fe23:87f0")
-
-
-@patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address_from_ip6_no_mac(netifaces_mock):
-    netifaces_mock.AF_LINK = 13
-    netifaces_mock.AF_INET6 = 7
-    netifaces_mock.interfaces.return_value = ["eth0"]
-    netifaces_mock.ifaddresses.return_value = {
-        netifaces_mock.AF_INET6: [{"addr": "fe80::5054:ff:fe12:3456%eth0"}],
-    }
-    with pytest.raises(ValueError):
         get_mac_address_from_ip6("fe80::64ba:b0ff:fe23:87f0")
 
 
