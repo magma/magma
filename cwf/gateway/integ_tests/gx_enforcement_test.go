@@ -332,7 +332,8 @@ func TestGxRuleInstallTime(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// TestGxAbortSessionRequest
+// # TestGxAbortSessionRequest
+//
 // This test verifies the abort session request
 // Here we initially setup a session and install a pass all rule
 // We then invoke abort session request from pcrf and expect the
