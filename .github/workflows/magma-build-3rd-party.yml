@@ -117,5 +117,5 @@ jobs:
           jf rt upload \
             --recursive=false \
             --detailed-summary \
-            --target-props="deb.component=main;deb.distribution=${{ matrix.distribution }};deb.architecture=${architecture}" \
-            "(*${{ matrix.dependency }}*).deb" ${{ env.repository }}/${{ matrix.distribution }}/{1}.deb
+            --target-props="deb.component=main;deb.distribution=${{ env.distribution }};deb.architecture=${architecture}" \
+            "(*${{ matrix.dependency }}*).deb" ${{ env.repository }}/${{ env.distribution }}/{1}.deb
