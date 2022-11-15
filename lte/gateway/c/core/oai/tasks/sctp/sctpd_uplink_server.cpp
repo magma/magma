@@ -15,14 +15,12 @@
  *      contact@openairinterface.org
  */
 
-extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.hpp"
 
+extern "C" {
 // #include "assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
 #include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
@@ -31,6 +29,8 @@ extern "C" {
 #include <grpcpp/grpcpp.h>
 
 #include <lte/protos/sctpd.grpc.pb.h>
+
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
 
 namespace magma {
 namespace mme {

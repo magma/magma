@@ -90,7 +90,7 @@ func AddToACL(acl *AccessControl_List, entities []*AccessControl_Entity) error {
 // Aggregated permissions are calculated by ORing permissions for a wildcard
 // of the entity type (if present in the ACL) with permissions for the entity's
 // exact Identity match (if present):
-//     perm = permissions[Id Type Wildcard] | permissions[Id Of Entity]
+//   - perm = permissions[Id Type Wildcard] | permissions[Id Of Entity]
 //
 // getEntityPermissions will return AccessControl_NONE if the entity's identity
 // is not in the list and the list doesn't have a corresponding to the entity

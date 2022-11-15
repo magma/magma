@@ -1029,10 +1029,10 @@ class MagmadUtil(object):
             self._wait_for_pipelined_to_initialize()
 
             print(
-                f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} "
+                f"Waiting {self.EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} "
                 f"seconds to ensure all services restarted ...",
             )
-            time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
+            time.sleep(self.EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
                 "cd /home/vagrant/magma/lte/gateway/docker "
@@ -1051,8 +1051,8 @@ class MagmadUtil(object):
         wait_time_seconds = 0
 
         print(
-            f"  check every {WAIT_INTERVAL_SECONDS} seconds "
-            f"(max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...",
+            f"  check every {self.WAIT_INTERVAL_SECONDS} seconds "
+            f"(max {self.MAX_WAIT_SECONDS} seconds) if pipelined is started ...",
         )
         datapath_is_initialized = False
         while not datapath_is_initialized:
@@ -1076,15 +1076,15 @@ class MagmadUtil(object):
                 break
 
             if (
-                wait_time_seconds >= MAX_WAIT_SECONDS
+                wait_time_seconds >= self.MAX_WAIT_SECONDS
                 and not datapath_is_initialized
             ):
                 raise RuntimeError(
                     f"Pipelined failed to initialize after "
-                    f"{MAX_WAIT_SECONDS} seconds.",
+                    f"{self.MAX_WAIT_SECONDS} seconds.",
                 )
-            time.sleep(WAIT_INTERVAL_SECONDS)
-            wait_time_seconds += WAIT_INTERVAL_SECONDS
+            time.sleep(self.WAIT_INTERVAL_SECONDS)
+            wait_time_seconds += self.WAIT_INTERVAL_SECONDS
 
     def restart_services(self, services: str, wait_time: int = 0):
         """

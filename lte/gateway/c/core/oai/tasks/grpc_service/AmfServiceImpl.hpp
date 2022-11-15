@@ -57,12 +57,18 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
   grpc::Status SetSmfSessionContext(ServerContext* context,
                                     const SetSMSessionContextAccess* request,
                                     SmContextVoid* response) override;
+  bool SetSmfSessionContext_itti(
+      const SetSMSessionContextAccess* request,
+      itti_n11_create_pdu_session_response_t* itti_msg_p);
+  grpc::Status SetAmfNotification_itti(
+      const SetSmNotificationContext* notif,
+      itti_n11_received_notification_t* itti_msg);
   bool fillUpPacketFilterContents(packet_filter_contents_t* pf_content,
                                   const FlowMatch* flow_match_rule);
   bool fillIpv6(packet_filter_contents_t* pf_content,
-                const std::string ipv6addr);
+                const std::string ipv6network_str);
   bool fillIpv4(packet_filter_contents_t* pf_content,
-                const std::string& ipv4addr);
+                const std::string& ipv4network_str);
   ipv4_networks_t parseIpv4Network(const std::string& ipv4network_str);
 };
 

@@ -43,7 +43,7 @@
 #include "lte/gateway/c/core/oai/include/s1ap_messages_def.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_def.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_def.hpp"
-#include "lte/gateway/c/core/oai/include/sctp_messages_def.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/gx_messages_def.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_def.h"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_def.h"

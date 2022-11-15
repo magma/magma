@@ -452,6 +452,7 @@ type WriteEntityRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Request:
+	//
 	//	*WriteEntityRequest_Create
 	//	*WriteEntityRequest_Update
 	Request isWriteEntityRequest_Request `protobuf_oneof:"request"`

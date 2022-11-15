@@ -27,7 +27,7 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file sctp_messages_def.h
+/*! \file sctp_messages_def.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -36,6 +36,11 @@
 
 // WARNING: Do not include this header directly. Use intertask_interface.h
 // instead.
+
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
 
 MESSAGE_DEF(SCTP_INIT_MSG, sctp_init_t, sctpInit)
 MESSAGE_DEF(SCTP_DATA_REQ, sctp_data_req_t, sctp_data_req)

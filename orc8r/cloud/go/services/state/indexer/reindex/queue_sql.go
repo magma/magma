@@ -69,26 +69,27 @@ var (
 // their denoted version, but, if so, a relevant reindex job will be present in the reindex job queue.
 //
 // Job queue columns:
-//	- indexer_id 			-- ID of indexer needing a reindex
-//	- status 				-- available, in_progress, complete, or error
-//	- last_status_change	-- Unix time since last update to status
-//	- attempts 				-- number of attempts at completing the reindex
-//	- error 				-- non-empty string if the reindex job was completed with err
+//   - indexer_id 			-- ID of indexer needing a reindex
+//   - status 				-- available, in_progress, complete, or error
+//   - last_status_change	-- Unix time since last update to status
+//   - attempts 			-- number of attempts at completing the reindex
+//   - error 				-- non-empty string if the reindex job was completed with err
+//
 // Indexer versions columns:
-//	- indexer_id			-- ID of an indexer
-//	- version_desired		-- most-recently-updated desired indexer version
-//	- version_actual		-- actual version of the indexer
+//   - indexer_id			-- ID of an indexer
+//   - version_desired		-- most-recently-updated desired indexer version
+//   - version_actual		-- actual version of the indexer
 //
 // Notes:
-//	- Reindex jobs are assumed to take less than 5 minutes (defaultJobTimeout) to complete. For jobs that
-//	  happen to take longer, multiple controller instances may try to complete the job concurrently,
-//	  under the assumption that previous jobs failed. Individual indexers should handle this gracefully.
-//	  Last writer wins for storing error strings.
-//	- As with other SQL usages in magma, multiple concurrent calls to Initialize can cause a race condition in Postgres's
-//	  DDL table creation, which will return an error.
-//	- Indexer versions (uint32) are stored in Postgres default integer types (int32). While this isn't expected to
-//	  be an issue, future updates to this type should consider the possibility of a sufficiently-large version being misinterpreted
-//	  by a SQL WHERE clause.
+//   - Reindex jobs are assumed to take less than 5 minutes (defaultJobTimeout) to complete. For jobs that
+//     happen to take longer, multiple controller instances may try to complete the job concurrently,
+//     under the assumption that previous jobs failed. Individual indexers should handle this gracefully.
+//     Last writer wins for storing error strings.
+//   - As with other SQL usages in magma, multiple concurrent calls to Initialize can cause a race condition in Postgres's
+//     DDL table creation, which will return an error.
+//   - Indexer versions (uint32) are stored in Postgres default integer types (int32). While this isn't expected to
+//     be an issue, future updates to this type should consider the possibility of a sufficiently-large version being misinterpreted
+//     by a SQL WHERE clause.
 type sqlJobQueue struct {
 	Versioner
 	maxAttempts uint
@@ -102,17 +103,17 @@ type sqlJobQueue struct {
 // maxAttempts is the max number of times to attempt reindexing the indexer.
 //
 // Populating the job queue is an exactly-once operation. We handle this in two parts
-//	- Populate <= 1 time
-//		- The job queue jobs are written as part of a tx that checks the "stored"
-//		  indexer versions, and these stored versions are updated the "desired" versions during the same tx,
-//		  ensuring no more than one controller instance will write to the job queue per code push.
-//		- There is a small race condition where multiple callers may both log that they successfully updated the job queue,
-//		  but this is inconsequential since the condition (a) requires near-simultaneous calls and (b) actually results in the
-//		  exact same jobs being written.
-//	- Populate >= 1 time
-//		- This work is best suited for a future where we have a message broker in the orc8r,
-//		  so for now each controller warning-logs either success or failure to write to the job queue, and manual
-//		  inspection of the logs would be required (thankfully, we also have tests to ensure this doesn't happen in the expected case).
+//   - Populate <= 1 time
+//     -- The job queue jobs are written as part of a tx that checks the "stored"
+//     indexer versions, and these stored versions are updated the "desired" versions during the same tx,
+//     ensuring no more than one controller instance will write to the job queue per code push.
+//     -- There is a small race condition where multiple callers may both log that they successfully updated the job queue,
+//     but this is inconsequential since the condition (a) requires near-simultaneous calls and (b) actually results in the
+//     exact same jobs being written.
+//   - Populate >= 1 time
+//     -- This work is best suited for a future where we have a message broker in the orc8r,
+//     so for now each controller warning-logs either success or failure to write to the job queue, and manual
+//     inspection of the logs would be required (thankfully, we also have tests to ensure this doesn't happen in the expected case).
 //
 // Only provides Postgres support due to use of the non-standard "FOR UPDATE SKIP LOCKED" clause.
 func NewSQLJobQueue(maxAttempts uint, db *sql.DB, builder sqorc.StatementBuilder) JobQueue {
@@ -328,9 +329,10 @@ func (s *sqlJobQueue) getNewJobs(tx *sql.Tx) ([]*reindexJob, error) {
 }
 
 // Venn diagram of indexer IDs in old and new jobs
-//	- old_only:	indexer ID only present in old jobs -- existing job incomplete, but no new job needed
-//	- new_only:	indexer ID only present in new jobs -- existing job not found, and new job needed
-//	- both:		indexer ID present in both old and new jobs -- existing job incomplete, and new job also needed
+//   - old_only:	indexer ID only present in old jobs -- existing job incomplete, but no new job needed
+//   - new_only:	indexer ID only present in new jobs -- existing job not found, and new job needed
+//   - both:		indexer ID present in both old and new jobs -- existing job incomplete, and new job also needed
+//
 // {    old_only    [    both    }    new_only    ]
 func (s *sqlJobQueue) getComposedJobs(tx *sql.Tx, newJobs []*reindexJob) ([]*reindexJob, error) {
 	oldJobs, err := s.getExistingIncompleteJobs(tx)

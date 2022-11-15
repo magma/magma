@@ -405,8 +405,10 @@ func (x *IPLookupRequest) GetVersion() IPLookupRequest_IPVersion {
 //
 // An IP block is a range of IP addresses specified by a network address and
 // a prefix-length of the netmask. For example,
-//    IPv4 IP block:      192.168.0.0/24
-//    IPv6 IP block:      2401:db00:1116:301b::/64
+//
+//	IPv4 IP block:      192.168.0.0/24
+//	IPv6 IP block:      2401:db00:1116:301b::/64
+//
 // --------------------------------------------------------------------------
 type IPBlock struct {
 	state         protoimpl.MessageState
@@ -1500,27 +1502,21 @@ type MobilityServiceClient interface {
 	// Add a range of IP addresses into the free IP pool
 	// Throws INVALID_ARGUMENT if IPBlock is invalid
 	// Throws FAILED_PRECONDITION if IPBlock overlaps with existing ones
-	//
 	AddIPBlock(ctx context.Context, in *IPBlock, opts ...grpc.CallOption) (*protos.Void, error)
 	// Return a list of assigned IP blocks
-	//
 	ListAddedIPv4Blocks(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*ListAddedIPBlocksResponse, error)
 	// Return a list of assigned IPv6 blocks
-	//
 	ListAddedIPv6Blocks(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*ListAddedIPBlocksResponse, error)
 	// Return a list of allocated IPs inside a IP block
 	// Throws INVALID_ARGUMENT if IPBlock is invalid
 	// Throws FAILED_PRECONDITION if IPBlock is not previously assigned
-	//
 	ListAllocatedIPs(ctx context.Context, in *IPBlock, opts ...grpc.CallOption) (*ListAllocatedIPsResponse, error)
 	// Allocate an IP address from the free IP pool
 	// Throws RESOURCE_EXHAUSTED if no free IP available
 	// Throws ALREADY_EXISTS if an IP has been allocated for the subscriber
-	//
 	AllocateIPAddress(ctx context.Context, in *AllocateIPRequest, opts ...grpc.CallOption) (*AllocateIPAddressResponse, error)
 	// Release and recycle an allocated IP address
 	// Throws NOT_FOUND if the requested (SID, IP) pair is not found
-	//
 	ReleaseIPAddress(ctx context.Context, in *ReleaseIPRequest, opts ...grpc.CallOption) (*protos.Void, error)
 	// Gets subscriber's IP address. Throws NOT_FOUND if it doesn't exist
 	GetIPForSubscriber(ctx context.Context, in *IPLookupRequest, opts ...grpc.CallOption) (*IPAddress, error)
@@ -1661,27 +1657,21 @@ type MobilityServiceServer interface {
 	// Add a range of IP addresses into the free IP pool
 	// Throws INVALID_ARGUMENT if IPBlock is invalid
 	// Throws FAILED_PRECONDITION if IPBlock overlaps with existing ones
-	//
 	AddIPBlock(context.Context, *IPBlock) (*protos.Void, error)
 	// Return a list of assigned IP blocks
-	//
 	ListAddedIPv4Blocks(context.Context, *protos.Void) (*ListAddedIPBlocksResponse, error)
 	// Return a list of assigned IPv6 blocks
-	//
 	ListAddedIPv6Blocks(context.Context, *protos.Void) (*ListAddedIPBlocksResponse, error)
 	// Return a list of allocated IPs inside a IP block
 	// Throws INVALID_ARGUMENT if IPBlock is invalid
 	// Throws FAILED_PRECONDITION if IPBlock is not previously assigned
-	//
 	ListAllocatedIPs(context.Context, *IPBlock) (*ListAllocatedIPsResponse, error)
 	// Allocate an IP address from the free IP pool
 	// Throws RESOURCE_EXHAUSTED if no free IP available
 	// Throws ALREADY_EXISTS if an IP has been allocated for the subscriber
-	//
 	AllocateIPAddress(context.Context, *AllocateIPRequest) (*AllocateIPAddressResponse, error)
 	// Release and recycle an allocated IP address
 	// Throws NOT_FOUND if the requested (SID, IP) pair is not found
-	//
 	ReleaseIPAddress(context.Context, *ReleaseIPRequest) (*protos.Void, error)
 	// Gets subscriber's IP address. Throws NOT_FOUND if it doesn't exist
 	GetIPForSubscriber(context.Context, *IPLookupRequest) (*IPAddress, error)
