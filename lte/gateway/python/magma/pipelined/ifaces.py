@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-from typing import Optional
 
 import netifaces
 from magma.pipelined.metrics import NETWORK_IFACE_STATUS
@@ -32,11 +31,11 @@ def monitor_ifaces(iface_names):
         yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
-def get_mac_address_from_iface(iface: str) -> str:
-    ifaddress = netifaces.ifaddresses(iface)
-    if netifaces.AF_LINK in ifaddress:
-        return ifaddress[netifaces.AF_LINK][0]['addr']
-    raise ValueError(f"No mac address found for interface {iface}")
+def get_mac_address_from_iface(interface_name: str) -> str:
+    if_addresses = netifaces.ifaddresses(interface_name)[netifaces.AF_LINK]
+    if not if_addresses or not if_addresses[0].get('addr'):
+        raise ValueError(f"No mac address found for interface {interface_name}")
+    return if_addresses[0]['addr']
 
 
 def get_mac_address_from_ip4(ip4: str) -> str:
