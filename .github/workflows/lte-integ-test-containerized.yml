@@ -14,16 +14,12 @@ name: AGW Test LTE Integration With Make Containerized Build
 on:
   workflow_dispatch: null
   workflow_run:
-    workflows:
-      - build-all
-    branches:
-      - master
-    types:
-      - completed
+    workflows: [ agw-build-publish-container ]
+    types: [ completed ]
 
 jobs:
   lte-integ-test-containerized:
-    if: (github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'magma') || github.event_name == 'workflow_dispatch'
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: macos-12
     strategy:
       fail-fast: false
@@ -59,6 +55,28 @@ jobs:
           echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
           echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Get docker image hashes from builder workflow
+        uses: dawidd6/action-download-artifact@e6e25ac3a2b93187502a8be1ef9e9603afc34925 # pin@2.24.2
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+      - name: Save docker image hashes to environment variables
+        run: |
+          echo "digest-c=$(cat artifact/agw_gateway_c.digest)" >> $GITHUB_ENV
+          echo "digest-python=$(cat artifact/agw_gateway_python.digest)" >> $GITHUB_ENV
+          echo "digest-go=$(cat artifact/gateway_go.digest)" >> $GITHUB_ENV
+      - name: Show docker images to be used
+        run: |
+          echo Docker image digest C      ${{ env.digest-c }}
+          echo Docker image digest Python ${{ env.digest-python }}
+          echo Docker image digest Go     ${{ env.digest-go }}
+      - name: Write image digest to docker-compose.yaml
+        working-directory: lte/gateway/docker
+        run: |
+          sed -i s/agw_gateway_c\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_c:${{ env.digest-c }}/g docker-compose.yaml
+          sed -i s/agw_gateway_python\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_python:${{ env.digest-python }}/g docker-compose.yaml
+          sed -i s/gateway_go\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/gateway_go:${{ env.digest-go }}/g docker-compose.yaml
+      - name: Show docker-compose yaml to verify correct docker images hashes
+        run: cat lte/gateway/docker/docker-compose.yaml
       - name: Run the integration test
         env:
           DOCKER_REGISTRY: docker-ci.artifactory.magmacore.org/
