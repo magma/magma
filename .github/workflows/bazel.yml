@@ -128,7 +128,8 @@ jobs:
             # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
             then
               printf '\r%s\r' 'Determining targets via bazel-diff.' 1>&2
-              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh b7228d17395de53da6b4f08b212a33c2cb8fdb1e  cf35d1fdf469214012347f9a734411c809e63468)
+              IMPACTED_TARGETS=$(bazel/scripts/bazel-diff.sh 9a1a0f13bfec7e1e6636169f71e0b63843f6d486~1  9a1a0f13bfec7e1e6636169f71e0b63843f6d486)
+              echo "$IMPACTED_TARGETS"
               bazel build \
                 $IMPACTED_TARGETS \
                 --config=mme_unit_test \
@@ -149,10 +150,10 @@ jobs:
             if [ -z "${{ matrix.bazel-config }}" ];
             # if [ -z "${{ matrix.bazel-config }}" && github.event_name != 'workflow_dispatch' ];
             then
+              echo "$IMPACTED_TARGETS"
               bazel test \
                 $IMPACTED_TARGETS \
                 --test_output=errors \
-                --profile=Bazel_build_all_profile
                 --profile=Bazel_test_all_profile || TEST_FAILED="true"
             else
               bazel test \
