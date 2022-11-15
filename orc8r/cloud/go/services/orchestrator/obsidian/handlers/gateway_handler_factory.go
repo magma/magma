@@ -52,9 +52,9 @@ type PartialGatewayModel interface {
 
 // GetPartialGatewayHandlers returns both GET and PUT handlers for modifying the portion of a
 // network entity specified by the model.
-// - path : the url at which the handler will be registered.
-// - model: the input and output of the handler and it also provides FromBackendModels
-//   and ToUpdateCriteria to go between the configurator model.
+//   - path : the url at which the handler will be registered.
+//   - model: the input and output of the handler and it also provides FromBackendModels
+//     and ToUpdateCriteria to go between the configurator model.
 func GetPartialGatewayHandlers(path string, model PartialGatewayModel, serdes serde.Registry) []obsidian.Handler {
 	return []obsidian.Handler{
 		GetPartialReadGatewayHandler(path, model, serdes),
@@ -65,12 +65,13 @@ func GetPartialGatewayHandlers(path string, model PartialGatewayModel, serdes se
 // GetPartialReadGatewayHandler returns a GET obsidian handler at the specified path.
 // This function loads a portion of the gateway specified by the model's FromBackendModels function.
 // Example:
-//      (m *MagmadGatewayConfigs) FromBackendModels(networkID, gatewayID) (PartialGatewayModel, error) {
-// 			return configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
-// 		}
-// 		getMagmadConfigsHandler := handlers.GetPartialReadGatewayHandler(URL, &models.MagmadGatewayConfigs{})
 //
-//      would return a GET handler that can read the magmad gateway config of a gw with the specified ID.
+//	     (m *MagmadGatewayConfigs) FromBackendModels(networkID, gatewayID) (PartialGatewayModel, error) {
+//				return configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
+//			}
+//			getMagmadConfigsHandler := handlers.GetPartialReadGatewayHandler(URL, &models.MagmadGatewayConfigs{})
+//
+//	     would return a GET handler that can read the magmad gateway config of a gw with the specified ID.
 func GetPartialReadGatewayHandler(path string, model PartialGatewayModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
@@ -95,18 +96,19 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel, serdes
 // GetPartialUpdateGatewayHandler returns a PUT obsidian handler at the specified path.
 // This function updates a portion of the network entity specified by the model's ToUpdateCriteria function.
 // Example:
-//      (m *MagmadGatewayConfigs) ToUpdateCriteria(networkID, gatewayID) ([]configurator.EntityUpdateCriteria, error) {
-// 			return []configurator.EntityUpdateCriteria{
-//				{
-// 					Key: gatewayID,
-//					Type: orc8r.MagmadGatewayType,
-//					NewConfig: m,
-//				}
-//          }
-// 		}
-// 		updateMagmadConfigsHandler := handlers.GetPartialUpdateGatewayHandler(URL, &models.MagmadGatewayConfigs{})
 //
-//      would return a PUT handler that updates the magmad gateway config of a gw with the specified ID.
+//	     (m *MagmadGatewayConfigs) ToUpdateCriteria(networkID, gatewayID) ([]configurator.EntityUpdateCriteria, error) {
+//				return []configurator.EntityUpdateCriteria{
+//					{
+//						Key: gatewayID,
+//						Type: orc8r.MagmadGatewayType,
+//						NewConfig: m,
+//					}
+//	         }
+//			}
+//			updateMagmadConfigsHandler := handlers.GetPartialUpdateGatewayHandler(URL, &models.MagmadGatewayConfigs{})
+//
+//	     would return a PUT handler that updates the magmad gateway config of a gw with the specified ID.
 func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,

@@ -66,7 +66,8 @@ var (
 // Input: service - name of cloud service to connect to
 //
 // Output: *grpc.ClientConn with connection to cloud service
-//         error if it exists
+//
+//	error if it exists
 func (r *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	cpc, ok := controlProxyConfig.Load().(*config.Map)
 	if (!ok) || cpc == nil {
@@ -85,12 +86,14 @@ func (r *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, 
 // using a specific control_proxy service config map. This map must contain the cloud_address
 // and local_port params
 // Input: serviceConfig - ConfigMap containing cloud_address and local_port
-//        and optional proxy_cloud_connections, cloud_port, rootca_cert, gateway_cert/key fields if direct
-//        cloud connection is needed
-//        service - name of cloud service to connect to
+//
+//	and optional proxy_cloud_connections, cloud_port, rootca_cert, gateway_cert/key fields if direct
+//	cloud connection is needed
+//	service - name of cloud service to connect to
 //
 // Output: *grpc.ClientConn with connection to cloud service
-//         error if it exists
+//
+//	error if it exists
 func (r *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	controlProxyConfig *config.Map, service string) (*grpc.ClientConn, error) {
 

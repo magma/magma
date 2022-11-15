@@ -46,6 +46,7 @@ type AcctSession struct {
 	// a union to enable future extension
 	//
 	// Types that are assignable to User:
+	//
 	//	*AcctSession_IMSI
 	//	*AcctSession_CertificateSerialNumber
 	//	*AcctSession_HardwareAddr

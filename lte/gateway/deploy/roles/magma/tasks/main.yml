@@ -345,19 +345,28 @@
     chdir: /usr/src/googletest
   when: preburn
 
+# TODO: remove this step for next base image
+- name: Remove Old Golang
+  file:
+    path: "/usr/local/go/"
+    state: absent
+  when: full_provision
+
+# TODO: for the next base image it should be done in the preburn step
 - name: Download golang tar
   get_url:
     url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
-  when: preburn
+  when: full_provision
 
+# TODO: for the next base image it should be done in the preburn step
 - name: Extract Go tarball
   unarchive:
     src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: /usr/local
     copy: no
-  when: preburn
+  when: full_provision
 
 - name: Set Go environment vars in profile
   lineinfile:
@@ -367,7 +376,7 @@
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
     - export PATH=$PATH:$(go env GOPATH)/bin/
-  when: preburn
+  when: full_provision
 
 - name: Install dnsmasq
   apt: pkg=dnsmasq state=present update_cache=yes

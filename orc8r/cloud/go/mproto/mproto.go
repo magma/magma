@@ -68,8 +68,8 @@ func HashDeterministic(proto proto.Message) (string, error) {
 // NOTE: deterministic != canonical, so do not expect this encoding to be
 // equal across languages or even versions of golang/protobuf/proto.
 // For further reading, see below.
-// 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
-//	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
+//   - https://developers.google.com/protocol-buffers/docs/encoding#implications
+//   - https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
 func MarshalDeterministic(pb proto.Message) ([]byte, error) {
 	buf := &proto.Buffer{}
 	buf.SetDeterministic(true)

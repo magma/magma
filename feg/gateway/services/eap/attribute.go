@@ -22,7 +22,6 @@ type AttrType uint8
 
 // attribute EAP Method's attribute implementation
 // attribute provides the following interface:
-//
 type Attribute interface {
 	Type() AttrType
 	Value() []byte

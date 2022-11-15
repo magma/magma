@@ -148,8 +148,8 @@ func mapSubscribersForVerbosity(subs map[string]*subscribermodels.Subscriber, ve
 // listSubscribersHandler handles the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
 // parameters
-//	- msisdn
-//	- ip
+//   - msisdn
+//   - ip
 //
 // The MSISDN parameter is config-based, and is enforced to be a unique
 // identifier.
@@ -160,8 +160,8 @@ func mapSubscribersForVerbosity(subs map[string]*subscribermodels.Subscriber, ve
 // requested IP.
 //
 // The returned subscribers can be paginated using the following parameters
-//  - page_size
-//  - page_token
+//   - page_size
+//   - page_token
 //
 // The page size parameter specifies the maximum number of subscribers to
 // return.
