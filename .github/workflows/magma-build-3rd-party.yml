@@ -113,7 +113,10 @@ jobs:
         if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
         working-directory: third_party/build
         run: |
-          name=$(ls *${{ matrix.dependency }}*.deb) && architecture=${${name%%.deb}##*_}
+          file=$(ls *${{ matrix.dependency }}*.deb)
+          name=${file%%.deb}
+          architecture=${name##*_}
+          echo Architecture is ${architecture}
           jf rt upload \
             --recursive=false \
             --detailed-summary \
