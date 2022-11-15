@@ -13,8 +13,8 @@
 
 // Package clock provides a simple abstraction around the standard time package.
 //   - Set and "freeze" the wall clock in test code, with provided wrappers for
-//   - time.Now
-//   - time.Since
+//     -- time.Now
+//     -- time.Since
 //   - Skip sleeps in test code, with provided wrappers for
-//   - time.Sleep
+//     -- time.Sleep
 package clock
