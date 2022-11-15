@@ -45,16 +45,16 @@ jobs:
       # Or is branch name when on release branch
       - name: Set Helm chart version
         run: |
-          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          elif [ "${EVENT_NAME}" = "pull_request" ]; then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
           fi
       - name: Launch build and publish script
         run: |
-          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
@@ -62,9 +62,9 @@ jobs:
           fi
       - name: Launch build and publish script
         run: |
-          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
             orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION --only-package
           else
@@ -92,7 +92,7 @@ jobs:
         if: failure() && github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -200,7 +200,7 @@ jobs:
               magma_package=${i#magma_}
               magma_package=${magma_package%_[a-z0-9]*.deb}
               magma_package='magma='${magma_package}
-              echo "::set-output name=magma_package::${magma_package}"
+              echo "magma_package=${magma_package}" >> $GITHUB_OUTPUT
             fi
           done
           for i in `ls -a1 *.deb`
@@ -227,14 +227,14 @@ jobs:
               magma_package=${i#magma_}
               magma_package=${magma_package%_[a-z0-9]*.deb}
               magma_package='magma='${magma_package}
-              echo "::set-output name=magma_package::${magma_package}"
+              echo "magma_package=${magma_package}" >> $GITHUB_OUTPUT
             fi
           done
           # set output
           if [[ "$PUBLISH_ERROR" != "true" ]]; then
             ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
           fi
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
         with:
@@ -252,7 +252,7 @@ jobs:
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:
@@ -384,7 +384,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -395,13 +395,13 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Extract commit title
         if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -448,7 +448,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -555,7 +555,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -566,13 +566,13 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -658,7 +658,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: ""
+          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -668,7 +668,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -763,7 +763,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -774,13 +774,13 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Extract commit title
         if: github.event_name == 'push'
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -856,7 +856,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
         id: publish_artifacts
         if: github.event_name == 'push'
@@ -867,13 +867,13 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Extract commit title
         id: commit
         if: github.event_name == 'push'
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -983,7 +983,7 @@ jobs:
         id: commit
         run: |
           str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
