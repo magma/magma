@@ -16,7 +16,9 @@ package diameter
 import "github.com/fiorix/go-diameter/v4/diam/datatype"
 
 //https://tools.ietf.org/html/rfc4005#page-16
-/*  Abort-Session Request (ASR)
+/*
+Abort-Session Request (ASR)
+
 < Session-Id >
 { Origin-Host }
 { Origin-Realm }
@@ -41,7 +43,7 @@ type ASR struct {
 }
 
 /*
-	Abort-Session Answer (ASA)
+Abort-Session Answer (ASA)
 
 < Session-Id >
 { Origin-Host }

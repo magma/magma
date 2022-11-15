@@ -51,9 +51,9 @@ const (
 //
 // where
 //
-//			notifyRoot = http://magma-feg.magma.com/sm-policy-control/v1
-//	     encodedSessionId = MTIzNDU2Nzg5MDsxMjM0NQo= (Session-Id is urlencoded)
-//	     operation = update
+//	notifyRoot = http://magma-feg.magma.com/sm-policy-control/v1
+//	encodedSessionId = MTIzNDU2Nzg5MDsxMjM0NQo= (Session-Id is urlencoded)
+//	operation = update
 //
 // This notification url is send to PCF in the SmPolicyCreate request
 func (c *N7Client) registerHandlers() error {
