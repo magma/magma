@@ -37,8 +37,8 @@ func FindRequestedIdentities(c echo.Context) []*protos.Identity {
 }
 
 // SupervisorWildcards returns a newly created list of "supervisor's wildcards":
-// 	a list all known entity type wildcards which would correspond to an ACL
-//  typical to a supervisor/admin "can do all" operators
+//   - a list all known entity type wildcards which would correspond to an ACL
+//   - typical to a supervisor/admin "can do all" operators
 func SupervisorWildcards() []*protos.Identity {
 	return []*protos.Identity{
 		identity.NewNetworkWildcard(),

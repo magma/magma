@@ -49,7 +49,7 @@ type indexerServicer struct {
 // NewIndexerServicer returns the state indexer for subscriberdb.
 //
 // The directoryd indexer performs the following indexing functions:
-//	- ipToIMSI: map IP address to IMSI
+//   - ipToIMSI: map IP address to IMSI
 //
 // ipToIMSI
 //
@@ -58,11 +58,11 @@ type indexerServicer struct {
 // which we extract to form the reverse map.
 // NOTE: the indexer provides a best-effort generation of the IP -> IMSI map,
 // meaning
-//	- an {IP -> IMSI} mapping only makes sense under non-NAT deployments and/or
-//	  for non-private IP addresses
-//	- an {IP -> IMSI} mapping may be missing even though the IMSI is assigned
-//	  that IP
-//	- an {IP -> IMSI} mapping may be stale (caller should check for staleness)
+//   - an {IP -> IMSI} mapping only makes sense under non-NAT deployments and/or
+//     for non-private IP addresses
+//   - an {IP -> IMSI} mapping may be missing even though the IMSI is assigned
+//     that IP
+//   - an {IP -> IMSI} mapping may be stale (caller should check for staleness)
 //
 // Gateway Subscriber State is reported as a map IMSI to arbitrary JSON (reported
 // state for that IMSI).

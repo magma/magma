@@ -99,9 +99,10 @@ jobs:
             contains('["maxhbr", "nstng", "jheidbrink", "lkreutzer", "Neudrino", "MoritzThomasHuebner", "tmdzk", "wolfseb"]', github.actor)
           )
 
-      - name: Setup JFrof CLI
+      - name: Setup JFrog CLI
         id: jfrog-setup
-        if: secrets.JFROG_USERNAME != '' && secrets.JFROG_PASSWORD != ''
+        # Workaround because secrets are available in `env` but not in `if`
+        if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
           JF_URL: https://artifactory.magmacore.org
@@ -112,9 +113,12 @@ jobs:
         if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
         working-directory: third_party/build
         run: |
-          name=$(ls *${{ matrix.dependency }}*.deb) && architecture=${${name%%.deb}##*_}
+          file=$(ls *${{ matrix.dependency }}*.deb)
+          name=${file%%.deb}
+          architecture=${name##*_}
+          echo Architecture is ${architecture}
           jf rt upload \
             --recursive=false \
             --detailed-summary \
-            --target-props="deb.component=main;deb.distribution=${{ matrix.distribution }};deb.architecture=${architecture}" \
-            "(*${{ matrix.dependency }}*).deb" ${{ env.repository }}/${{ matrix.distribution }}/{1}.deb
+            --target-props="deb.component=main;deb.distribution=${{ env.distribution }};deb.architecture=${architecture}" \
+            "(*${{ matrix.dependency }}*).deb" ${{ env.repository }}/${{ env.distribution }}/{1}.deb

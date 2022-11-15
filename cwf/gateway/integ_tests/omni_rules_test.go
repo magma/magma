@@ -31,18 +31,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// - Insert two static rules into the DB. (static-block-all and omni-pass-all)
-// - The omnipresent rule, with higher priority than the block all, will be set
-//   as omnipresent/network-wide.
-// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-block-all).
-// - Set an expectation for a CCR-I to be sent up to OCS, wo which it will responde
-// 	 with some credit installed
-// - Generate traffic and assert the CCR-I is received.
-// - Assert that the traffic goes through. This means the network wide rules
-//   gets installed properly.
-// - Trigger a Gx RAR with a rule removal for the block all rule. Assert the
-//   answer is successful.
+//   - Insert two static rules into the DB. (static-block-all and omni-pass-all)
+//   - The omnipresent rule, with higher priority than the block all, will be set
+//     as omnipresent/network-wide.
+//   - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-block-all).
+//   - Set an expectation for a CCR-I to be sent up to OCS, wo which it will responde
+//     with some credit installed
+//   - Generate traffic and assert the CCR-I is received.
+//   - Assert that the traffic goes through. This means the network wide rules
+//     gets installed properly.
+//   - Trigger a Gx RAR with a rule removal for the block all rule. Assert the
+//     answer is successful.
 func TestOmnipresentRules(t *testing.T) {
 	fmt.Println("\nRunning TestOmnipresentRules...")
 	tr := NewTestRunner(t)

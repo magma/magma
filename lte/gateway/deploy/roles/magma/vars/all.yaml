@@ -1,2 +1,2 @@
 WORK_DIR: "~/"
-GO_VERSION: "1.18.3"
+GO_VERSION: "1.19.3"
