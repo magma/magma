@@ -18,12 +18,12 @@ import (
 	"reflect"
 	"time"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 
 	"github.com/stretchr/testify/assert"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 )
 
 // Trigger a UE Authentication with the IMSI. Assert that the authentication

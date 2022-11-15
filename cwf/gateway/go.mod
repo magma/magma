@@ -14,7 +14,6 @@ module magma/cwf/gateway
 replace (
 	fbc/cwf/radius => ../../feg/radius/src/
 	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
-	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
@@ -29,7 +28,6 @@ replace (
 
 require (
 	fbc/cwf/radius v0.0.0
-	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/docker/docker v1.13.1
 	github.com/fiorix/go-diameter/v4 v4.0.4
 	github.com/go-openapi/swag v0.19.15
@@ -45,6 +43,7 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	google.golang.org/grpc v1.48.0
+	layeh.com/radius v0.0.0-20210819152912-ad72663a72ab
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
@@ -122,9 +121,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	go.mongodb.org/mongo-driver v1.8.2 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.18.1 // indirect
 	golang.org/x/net v0.0.0-20220728030405-41545e8bf201 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -136,4 +132,4 @@ require (
 	magma/feg/cloud/go v0.0.0 // indirect
 )
 
-go 1.18
+go 1.19

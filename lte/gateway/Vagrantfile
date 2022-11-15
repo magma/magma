@@ -126,7 +126,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # UE trfgen network
     magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM"
     magma_test.vm.network "private_network", ip: "3001::3", nic_type: "82540EM"
-    #config.ssh.private_key_path = "~/.ssh/vagrant.key"
     config.ssh.forward_agent = true
 
     magma_test.vm.provider "virtualbox" do |vb|

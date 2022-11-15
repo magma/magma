@@ -110,9 +110,7 @@ func getIncomingContextWithCertificate(t *testing.T, hwID string) context.Contex
 	return metadata.NewIncomingContext(context.Background(), metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
 }
 
-//
 // Mock ANSC Remote Service
-//
 type contractKey struct {
 	consumer, provider string
 }

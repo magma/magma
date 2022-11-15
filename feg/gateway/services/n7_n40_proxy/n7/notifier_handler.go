@@ -42,13 +42,19 @@ const (
 
 // RegisterHandlers registers the UpdateNotification and TerminateNotification handlers.
 // The notification url is of the form
-//		{notifyRoot}/{encodedSessionId}/{operation}
+//
+//	{notifyRoot}/{encodedSessionId}/{operation}
+//
 // Example:
-//		http://magma-feg.magma.com/sm-policy-control/v1/MTIzNDU2Nzg5MDsxMjM0NQo=/update
+//
+//	http://magma-feg.magma.com/sm-policy-control/v1/MTIzNDU2Nzg5MDsxMjM0NQo=/update
+//
 // where
-// 		notifyRoot = http://magma-feg.magma.com/sm-policy-control/v1
-//      encodedSessionId = MTIzNDU2Nzg5MDsxMjM0NQo= (Session-Id is urlencoded)
-//      operation = update
+//
+//	notifyRoot = http://magma-feg.magma.com/sm-policy-control/v1
+//	encodedSessionId = MTIzNDU2Nzg5MDsxMjM0NQo= (Session-Id is urlencoded)
+//	operation = update
+//
 // This notification url is send to PCF in the SmPolicyCreate request
 func (c *N7Client) registerHandlers() error {
 	urlDef, err := url.ParseRequestURI(c.NotifyServer.NotifierCfg.NotifyApiRoot)
