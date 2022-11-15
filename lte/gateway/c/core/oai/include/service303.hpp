@@ -17,10 +17,16 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/service303_messages_types.hpp"
-
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/service303_messages_types.hpp"
 
 #define SERVICE303_MME_PACKAGE_NAME "mme"
 #define SERVICE303_MME_PACKAGE_VERSION "1.0"
