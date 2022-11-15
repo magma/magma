@@ -34,15 +34,15 @@ jobs:
   agw-check-matrix-success:
     runs-on: ubuntu-latest
     if: always()
-    needs: collect-is-successful
+    needs: agw-collect-matrix-success
     steps:
       - name: Check completion of all build steps
         run: |
-          if [ "${{ needs.collect-is-successful.result }}" = "success" ];
+          if [ "${{ needs.agw-collect-matrix-success.result }}" = "success" ];
           then
             exit 0
           else
-            echo "Exit status of some previous job(s) was ${{ needs.collect-is-successful.result }}"
+            echo "Exit status of some previous job(s) was ${{ needs.agw-collect-matrix-success.result }}"
             exit 1
           fi
 
