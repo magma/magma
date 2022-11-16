@@ -50,7 +50,6 @@ status_code_e s11_mme_handle_modify_bearer_response(
 
 /* @brief Create a new Delete Bearer Command and send it to provided S-GW. */
 status_code_e s11_mme_delete_bearer_command(
-    // nw_rc_t s11_mme_delete_bearer_command(
     nw_gtpv2c_stack_handle_t* stack_p, itti_s11_delete_bearer_command_t* cmd_p);
 
 /* @brief Handle a Create Bearer Request received from S-GW. */
@@ -59,7 +58,6 @@ status_code_e s11_mme_handle_create_bearer_request(
 
 /* @brief Create a new Create Bearer Response and send it to provided S-GW. */
 status_code_e s11_mme_create_bearer_response(
-    // nw_rc_t s11_mme_create_bearer_response(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_bearer_response_t* rsp_p);
 
