@@ -411,11 +411,6 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
 //------------------------------------------------------------------------------
 /* Clear UE network capability IE   */
 
-/*TODO: Temporarily added under extern to
- * resolve undefined reference. Remove extern after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
   memset(&ctxt->_ue_network_capability, 0,
          sizeof(ctxt->_ue_network_capability));

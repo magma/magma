@@ -120,14 +120,8 @@ typedef union {
 int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
                           uint32_t len);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
 
 int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ESM_MSG_H__ */

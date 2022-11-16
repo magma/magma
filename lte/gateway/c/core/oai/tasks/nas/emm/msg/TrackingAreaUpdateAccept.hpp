@@ -118,9 +118,6 @@ typedef struct tracking_area_update_accept_msg_tag {
   additional_update_result_t additionalupdateresult;
 } tracking_area_update_accept_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_tracking_area_update_accept(
     tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
     uint32_t len);
@@ -128,6 +125,3 @@ int decode_tracking_area_update_accept(
 int encode_tracking_area_update_accept(
     tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
     uint32_t len);
-#ifdef __cplusplus
-}
-#endif

@@ -98,9 +98,6 @@ typedef struct esm_proc_data_s {
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_proc_status_ind(emm_context_t* emm_context,
                                   const proc_tid_t pti, ebi_t ebi,
                                   esm_cause_t* esm_cause);
@@ -160,9 +157,6 @@ status_code_e esm_proc_esm_information_response(
     emm_context_t* emm_context_p, pti_t pti, const_bstring const apn,
     const protocol_configuration_options_t* const pco,
     esm_cause_t* const esm_cause);
-#ifdef __cplusplus
-}
-#endif
 
 /*
  * --------------------------------------------------------------------------
@@ -170,9 +164,6 @@ status_code_e esm_proc_esm_information_response(
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_proc_default_eps_bearer_context_request(
     bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
     STOLEN_REF bstring* msg, const bool ue_triggered);
@@ -223,7 +214,4 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* __ESM_PROC_H__*/

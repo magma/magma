@@ -57,12 +57,6 @@ Description Defines the ESM Service Access Points at which the EPS
 
 void esm_sap_initialize(void);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ESM_SAP_H__*/

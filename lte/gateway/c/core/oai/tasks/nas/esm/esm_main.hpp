@@ -52,13 +52,7 @@ Description Defines the EPS Session Management procedure call manager,
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void esm_main_initialize(void);
 void esm_main_cleanup(void);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ESM_MAIN_H__*/

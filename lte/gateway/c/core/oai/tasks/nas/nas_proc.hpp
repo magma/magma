@@ -84,9 +84,6 @@ void nas_proc_cleanup(void);
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e nas_proc_establish_ind(
     const mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
     const tai_t originating_tai, const ecgi_t ecgi, const as_cause_t as_cause,
@@ -133,9 +130,6 @@ status_code_e nas_proc_cs_domain_location_updt_fail(
     SgsRejectCause_t cause, lai_t* lai, mme_ue_s1ap_id_t mme_ue_s1ap_id);
 status_code_e nas_proc_cs_service_notification(mme_ue_s1ap_id_t ue_id,
                                                uint8_t paging_id, bstring cli);
-#ifdef __cplusplus
-}
-#endif
 status_code_e nas_proc_auth_param_res(mme_ue_s1ap_id_t ue_id,
                                       uint8_t nb_vectors,
                                       eutran_vector_t* vectors);
