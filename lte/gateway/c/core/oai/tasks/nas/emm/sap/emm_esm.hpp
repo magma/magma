@@ -34,8 +34,7 @@ Description Defines the EMMESM Service Access Point that provides
         for service registration and activate/deactivate PDP context.
 
 *****************************************************************************/
-#ifndef FILE_EMM_ESM_SEEN
-#define FILE_EMM_ESM_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_esmDef.hpp"
@@ -59,5 +58,3 @@ Description Defines the EMMESM Service Access Point that provides
 void emm_esm_initialize(void);
 
 status_code_e emm_esm_send(const emm_esm_t* msg);
-
-#endif /* FILE_EMM_ESM_SEEN*/

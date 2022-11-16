@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MODIFY_EPS_BEARER_CONTEXT_REJECT_H_
-#define MODIFY_EPS_BEARER_CONTEXT_REJECT_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -78,5 +78,3 @@ int decode_modify_eps_bearer_context_reject(
 int encode_modify_eps_bearer_context_reject(
     modify_eps_bearer_context_reject_msg* modifyepsbearercontextreject,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(MODIFY_EPS_BEARER_CONTEXT_REJECT_H_) */

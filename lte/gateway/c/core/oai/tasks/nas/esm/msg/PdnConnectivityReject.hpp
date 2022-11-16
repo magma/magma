@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_CONNECTIVITY_REJECT_H_
-#define PDN_CONNECTIVITY_REJECT_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -75,5 +75,3 @@ int decode_pdn_connectivity_reject(
 int encode_pdn_connectivity_reject(
     pdn_connectivity_reject_msg* pdnconnectivityreject, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(PDN_CONNECTIVITY_REJECT_H_) */

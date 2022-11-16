@@ -41,8 +41,8 @@ Description Defines callback functions executed within EMM common procedures
         EMM information
 
 *****************************************************************************/
-#ifndef FILE_EMM_COMMON_SEEN
-#define FILE_EMM_COMMON_SEEN
+#pragma once
+
 #include <pthread.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -152,4 +152,3 @@ status_code_e update_tai_list_to_emm_context(
 #ifdef __cplusplus
 }
 #endif
-#endif /* FILE_EMM_COMMON_SEEN*/

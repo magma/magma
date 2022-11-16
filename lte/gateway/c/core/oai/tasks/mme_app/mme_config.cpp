@@ -34,9 +34,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,8 +55,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/intertask_interface_conf.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -67,7 +65,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -2210,6 +2208,9 @@ static bool parse_bool(const char* str) {
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 void clear_served_tai_config(served_tai_t* served_tai) {
   if (served_tai->plmn_mcc) {
     free(served_tai->plmn_mcc);
@@ -2229,3 +2230,6 @@ void clear_served_tai_config(served_tai_t* served_tai) {
   }
   served_tai->nb_tai = 0;
 }
+#ifdef __cplusplus
+}
+#endif

@@ -10,6 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+
 #include <libconfig.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
@@ -17,8 +20,7 @@
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
 
 void served_tai_config_init(served_tai_t* served_tai);

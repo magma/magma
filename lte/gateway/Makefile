@@ -50,9 +50,7 @@ COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CP
 $(info OAI_FLAGS $(OAI_FLAGS))
 
 TEST_FLAG = -DBUILD_TESTS=1
-OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
-OAI_TESTS ?= ".*"
 
 all: build
 
@@ -119,25 +117,7 @@ build_connection_tracker:
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
-test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
-
-coverage_oai: test_oai
-	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw
-	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_oai.info
-	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
-
-## Generate complete code structural information prior to any test execution
-base_coverage: build_oai
-	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info.raw
-	lcov -r /tmp/coverage_initialize.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_initialize.info
-	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
-
-# Combine results of sub-coverages
-coverage: base_coverage coverage_oai
-	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -o $(C_BUILD)/coverage.info

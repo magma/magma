@@ -14,14 +14,16 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-// WARNING: Do not include this header directly. Use intertask_interface.h
-// instead.
 
-MESSAGE_DEF(APPLICATION_HEALTHY_MSG, application_healthy_msg_t,
-            application_healthy_msg)
-MESSAGE_DEF(APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
-            application_unhealthy_msg)
-MESSAGE_DEF(APPLICATION_MME_APP_STATS_MSG, application_mme_app_stats_msg_t,
-            application_mme_app_stats_msg)
-MESSAGE_DEF(APPLICATION_S1AP_STATS_MSG, application_s1ap_stats_msg_t,
-            application_s1ap_stats_msg)
+#pragma once
+
+/*********************************** Utility Functions to update
+ * Statistics**************************************/
+void update_mme_app_stats_connected_ue_add(void);
+void update_mme_app_stats_s1u_bearer_add(void);
+void update_mme_app_stats_connected_ue_sub(void);
+void update_mme_app_stats_s1u_bearer_sub(void);
+void update_mme_app_stats_default_bearer_add(void);
+void update_mme_app_stats_default_bearer_sub(void);
+void update_mme_app_stats_attached_ue_add(void);
+void update_mme_app_stats_attached_ue_sub(void);
