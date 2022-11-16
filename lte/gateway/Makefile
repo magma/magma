@@ -50,9 +50,7 @@ COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CP
 $(info OAI_FLAGS $(OAI_FLAGS))
 
 TEST_FLAG = -DBUILD_TESTS=1
-OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
-OAI_TESTS ?= ".*"
 
 all: build
 
@@ -118,9 +116,6 @@ build_connection_tracker:
 
 build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
-
-test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
