@@ -30,9 +30,9 @@ import (
 //   - There is an unlikely but existent race condition during a reindex
 //     operation, where Index could be called with an outdated version of a state.
 //     If indexers care about preventing this race condition:
-//   - add a Reindex method to indexer interface, called in-place of Index
+//     -- add a Reindex method to indexer interface, called in-place of Index
 //     during reindex operations
-//   - individual indexers should track received state IDs per version and
+//     -- individual indexers should track received state IDs per version and
 //     drop Reindex-ed states with stale versions.
 type Indexer interface {
 	// GetID returns the unique identifier for the indexer.

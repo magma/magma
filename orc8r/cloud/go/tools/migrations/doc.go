@@ -38,7 +38,7 @@ Migrations are expected to conform to the following descriptions
   - MODULE/cloud/go/tools/migrations/m042_short_description
   - MODULE should be orc8r, lte, cwf, etc
   - Package name must be unique across the codebase
-  - Use unique migration number
+    -- Use unique migration number
 
 - Emulate recent data migrations
   - Full migration should run in a single, sql.LevelSerializable tx
@@ -58,7 +58,7 @@ of the prod DB, for visibility into the expected changes.
   - Temporarily comment-out the ip.IsLoopback check in
     unary/identity_decorator.go, then rebuild containers
   - Point editor/shell to prod DB via the DATABASE_SOURCE env variable
-  - DATABASE_SOURCE='host=localhost dbname=prod-1595044229-july-17 user=magma_dev password=magma_dev sslmode=disable'
+    -- DATABASE_SOURCE='host=localhost dbname=prod-1595044229-july-17 user=magma_dev password=magma_dev sslmode=disable'
   - (optional) Update cloud docker-compose to expose the port of the
     relevant controller service
 
@@ -73,8 +73,8 @@ newly-built migration executable from within the controller container.
 
 - Run the migration from the controller container
   - Perform 2x to ensure idempotence
-  - Run migration
-  - Check relevant tables
-  - Check relevant endpoints and logs
+    -- Run migration
+    -- Check relevant tables
+    -- Check relevant endpoints and logs
 */
 package migrations

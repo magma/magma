@@ -47,11 +47,10 @@ func (d *DefaultSMSSerde) DecodeDelivery(input []byte) (SMSDeliveryReport, error
 // then RP-DATA headers, and finally CP-DATA headers, resulting in a set of
 // byte arrays that can be directly delivered to a UE (MS).
 // Inputs:
-//
-//	message: A UTF-8 string representing the SMS.
-//	from_num: A E.164 encoded source number.
-//	timestamp: The sender timestamp for the SMS (generally, use current server time)
-//	references: An array of references for the messages we'll generate. Must match number of PDUs generated.
+//   - message: A UTF-8 string representing the SMS.
+//   - from_num: A E.164 encoded source number.
+//   - timestamp: The sender timestamp for the SMS (generally, use current server time)
+//   - references: An array of references for the messages we'll generate. Must match number of PDUs generated.
 //
 // Outputs:
 //   - Array of byte array representing the set of fully-encoded CP-DATA(RP-DATA(TPDU)) messages generated
@@ -92,8 +91,7 @@ func GenerateSmsDelivers(message string, fromNum string, timestamp time.Time, re
 // Return the number of SMS PDUs that will be generated for a given string,
 // after taking TPDU encoding into account.
 // Inputs:
-//
-//	message: A UTF-8 string representing the SMS
+// - message: A UTF-8 string representing the SMS
 //
 // Outputs:
 //   - An integer representing the number of SMS messages the input will
@@ -116,8 +114,7 @@ type SMSDeliveryReport struct {
 
 // Decodes an SMS-DELIVERY-REPORT message.
 // Inputs:
-//
-//	input: A byte array representing a fully encoded SMS delivered from a UE
+//   - input: A byte array representing a fully encoded SMS delivered from a UE
 //
 // Outputs:
 //   - uint8: Reference number representing the SMS
