@@ -22,7 +22,7 @@ The configuration how a DevContainer environment should be started can be found 
 Amongst others you have two options to start a DevContainer,
 * either from a prebuilt docker image, e.g. pulled from a container registry with the following configuration node,
 ```json
-	"image": "ghcr.io/magma/magma/devcontainer:latest",
+	"image": "ghcr.io/magma/magma/devcontainer:pr-14456",
 ```
   where you will need to have read access to the respective Docker registry, or
 * you can build the docker image anew, when starting the container using the following configuration node instead,

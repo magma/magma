@@ -24,14 +24,14 @@ To start the devcontainer, run
 
 ```bash
 [HOST] cd $MAGMA_ROOT
-[HOST] docker run -v ${MAGMA_ROOT}:/workspaces/magma/ -v ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma/ -it ghcr.io/magma/magma/devcontainer:latest /bin/bash
+[HOST] docker run -v ${MAGMA_ROOT}:/workspaces/magma/ -v ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma/ -it ghcr.io/magma/magma/devcontainer:pr-14456 /bin/bash
 ```
 
 To start the bazel-base container, run
 
 ```bash
 [HOST] cd $MAGMA_ROOT
-[HOST] docker run -v ${MAGMA_ROOT}:/workspaces/magma/ -v ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma/ -it ghcr.io/magma/magma/bazel-base:latest /bin/bash
+[HOST] docker run -v ${MAGMA_ROOT}:/workspaces/magma/ -v ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma/ -it ghcr.io/magma/magma/bazel-base:pr-14456 /bin/bash
 ```
 
 To run all existing unit tests, run the following command from inside the repository

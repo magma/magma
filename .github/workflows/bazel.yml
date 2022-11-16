@@ -29,7 +29,7 @@ on:
       - master
 
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:pr-14456"
   # see GH14041
   CACHE_KEY: bazel-base-image-sha-c4de1e5
   REMOTE_DOWNLOAD_OPTIMIZATION: true

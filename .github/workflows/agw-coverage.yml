@@ -27,7 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:pr-14456"
   # Regarding the CACHE_KEY see https://github.com/magma/magma/pull/14041
   CACHE_KEY: bazel-base-image-sha-c4de1e5
   REMOTE_DOWNLOAD_OPTIMIZATION_C_CPP: true
