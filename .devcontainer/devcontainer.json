@@ -29,8 +29,8 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug"
 	],
-	"initializeCommand": "docker pull ghcr.io/magma/magma/devcontainer:latest",
-	"image": "ghcr.io/magma/magma/devcontainer:latest",
+	"initializeCommand": "docker pull ghcr.io/magma/magma/devcontainer:pr-14456",
+	"image": "ghcr.io/magma/magma/devcontainer:pr-14456",
 	"settings": {
 		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {
