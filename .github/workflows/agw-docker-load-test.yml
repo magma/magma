@@ -14,7 +14,7 @@ name: AGW Test Load Docker AMI
 on:
   workflow_run:
     workflows:
-      - build-all
+      - Magma Build & Publish
     branches:
       - master
       - 'v1.*'
