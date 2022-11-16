@@ -34,7 +34,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_TAGS: type=sha
+  IMAGE_TAGS: type=ref,event=pr
   IMAGE_STREAM_BAZEL_BASE: ${{ github.repository }}/bazel-base
   DOCKERFILE_BAZEL_BASE: .devcontainer/bazel-base/Dockerfile
   IMAGE_STREAM_DEVCONTAINER: ${{ github.repository }}/devcontainer
