@@ -34,8 +34,7 @@ Description Defines the EMMREG Service Access Point that provides
         procedures.
 
 *****************************************************************************/
-#ifndef FILE_EMM_REG_SEEN
-#define FILE_EMM_REG_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
@@ -59,5 +58,3 @@ Description Defines the EMMREG Service Access Point that provides
 void emm_reg_initialize(void);
 
 status_code_e emm_reg_send(emm_reg_t* const msg);
-
-#endif /* FILE_EMM_REG_SEEN*/

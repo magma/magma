@@ -33,11 +33,8 @@ Description
 
 *****************************************************************************/
 
-#ifndef FILE_EMM_CN_SEEN
-#define FILE_EMM_CN_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 status_code_e emm_cn_send(const emm_cn_t* msg);
-
-#endif /* FILE_EMM_CN_SEEN */

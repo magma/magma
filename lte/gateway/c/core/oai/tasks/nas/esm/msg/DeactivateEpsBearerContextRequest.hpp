@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_H_
-#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -80,5 +79,3 @@ int encode_deactivate_eps_bearer_context_request(
     deactivate_eps_bearer_context_request_msg*
         deactivateepsbearercontextrequest,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_H_) */

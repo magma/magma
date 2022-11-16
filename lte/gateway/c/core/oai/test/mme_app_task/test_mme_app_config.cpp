@@ -11,12 +11,17 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
+
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+
+extern "C" void copy_amf_config_from_mme_config(amf_config_t* dest,
+                                                const mme_config_t* src);
+extern "C" void clear_amf_config(amf_config_t*);
 
 namespace magma {
 namespace lte {

@@ -15,8 +15,16 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/include/mme_app_statistics.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_app_statistics.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 /*********************************** Utility Functions to update

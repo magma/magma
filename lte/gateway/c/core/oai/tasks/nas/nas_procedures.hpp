@@ -22,21 +22,28 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_NAS_PROCEDURES_SEEN
-#define FILE_NAS_PROCEDURES_SEEN
+#pragma once
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
@@ -486,5 +493,3 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
 void nas_digest_msg(const unsigned char* const msg, const size_t msg_len,
                     char* const digest,
                     /*INOUT*/ size_t* const digest_length);
-
-#endif
