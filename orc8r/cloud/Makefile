@@ -175,7 +175,7 @@ else ifeq ($(OS_NAME),Darwin)
 endif
 
 nms_prereqs_ubuntu:
-	curl -sL https://deb.nodesource.com/setup_17.x | bash -
+	curl -sL https://deb.nodesource.com/setup_18.x | bash -
 	apt install -y nodejs
 	npm install --global yarn
 	yarn
