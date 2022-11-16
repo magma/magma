@@ -15,6 +15,49 @@
 # Install Docker based on instructions in:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 
+# TODO: Remove with next base image release
+- name: Remove Docker install from base image
+  apt:
+    name: "{{ packages }}"
+    state: absent
+    update_cache: true
+    purge: true
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - docker-ce-rootless-extra
+      - containerd.io
+      - docker-scan-plugin
+
+# TODO: Remove with next base image release
+- name: Remove Docker Compose V1 install from base image
+  file:
+    name: /usr/local/bin/docker-compose
+    state: absent
+
+# TODO: Remove with next base image release
+- name: Purge docker libs
+  file:
+    name: /var/lib/docker
+    state: absent
+
+# TODO: Remove with next base image release
+- name: Purge docker
+  file:
+    name: /etc/docker
+    state: absent
+
+# TODO: Remove with next base image release
+- name: Purge containerd libs
+  file:
+    name: /var/lib/containerd
+    state: absent
+
+# TODO: Remove with next base image release
+- name: Stop running docker.socket
+  shell: sudo systemctl stop docker.socket
+
 - name: Install packages to allow apt to use a repository over HTTPS
   apt:
     name: "{{ packages }}"
@@ -39,7 +82,12 @@
     file: /tmp/docker.key
     state: present
 
-- name: Add the stable repository for Docker
+- name: Remove the xenial repository for Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: absent
+
+- name: Add the focal repository for Docker
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ docker_host_distribution }} stable
     state: present

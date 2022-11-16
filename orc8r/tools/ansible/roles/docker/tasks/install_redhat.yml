@@ -12,6 +12,28 @@
 # limitations under the License.
 ################################################################################
 
+# TODO: Remove with next base image release
+- name: Remove Docker install from base image
+  yum:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+
+# TODO: Remove with next base image release
+- name: Remove Docker Compose V1 install from base image
+  file:
+    name: /usr/local/bin/docker-compose
+    state: absent
+
 # Install Docker based on instructions in:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 
