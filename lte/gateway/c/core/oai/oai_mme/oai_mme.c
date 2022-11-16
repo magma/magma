@@ -22,15 +22,15 @@
 #include <string.h>
 #include <systemd/sd-daemon.h>
 
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
