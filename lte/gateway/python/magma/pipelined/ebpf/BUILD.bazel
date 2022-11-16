@@ -24,6 +24,7 @@ py_library(
         "//lte/gateway/python/magma/pipelined:mobilityd_client",
         "@bcc_repo//:bcc",
         requirement("pyroute2"),
+        requirement("scapy"),
     ],
 )
 

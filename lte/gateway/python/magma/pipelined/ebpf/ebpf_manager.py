@@ -312,16 +312,14 @@ class EbpfManager:
         return self._pack_mac_addr(addr_str)
 
     def _get_mac_address_of_ip(self, ip_addr: IPAddress):
-        ip_str = ""
-        try:
-            if ip_addr.version == IPAddress.IPV4:
-                ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
-                addr_str = getmacbyip(ip_str)
-            else:
-                ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
-                addr_str = getmacbyip6(ip_str)
-        except ValueError:
-            LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % ip_str)
+        if ip_addr.version == IPAddress.IPV4:
+            ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
+            addr_str = getmacbyip(ip_str)
+        else:
+            ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
+            addr_str = getmacbyip6(ip_str)
+        if not addr_str:
+            LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % (ip_str))
             return None
         LOG.debug("IP: %s, mac: %s" % (ip_str, addr_str))
         return self._pack_mac_addr(addr_str)

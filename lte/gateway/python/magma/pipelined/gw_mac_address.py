@@ -24,17 +24,17 @@ from scapy.sendrecv import srp1
 
 
 def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
-    gw_ip = ipaddress.ip_address(ip.address)
+    gw_ip = str(ipaddress.ip_address(ip.address))
     if ip.version == IPAddress.IPV4:
         return _get_gw_mac_address_v4(gw_ip, vlan, non_nat_arp_egress_port)
     elif ip.version == IPAddress.IPV6:
         if vlan == "NO_VLAN":
             return _get_gw_mac_address_v6(gw_ip)
-        logging.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
+        logging.error("Not supported: GW IPv6: %s over vlan %d", gw_ip, vlan)
     return ""
 
 
-def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
+def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) -> str:
     try:
         logging.debug(
             "sending arp via egress: %s",
@@ -67,10 +67,10 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
             return ""
 
         logging.debug("ARP Res pkt %s", res.show(dump=True))
-        if str(res[ARP].psrc) != str(gw_ip):
+        if str(res[ARP].psrc) != gw_ip:
             logging.warning(
                 "Unexpected IP in ARP response. expected: %s pkt: %s",
-                str(gw_ip),
+                gw_ip,
                 res.show(dump=True),
             )
             return ""
@@ -94,19 +94,22 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s] or vlan %s",
-            str(gw_ip), vlan,
+            gw_ip, vlan,
         )
         return ""
 
 
-def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
+def _get_gw_mac_address_v6(gw_ip: str) -> str:
     try:
-        mac = getmacbyip6(str(gw_ip))
+        mac = getmacbyip6(gw_ip)
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
+    except Scapy_Exception as ex:
+        logging.warning("Error in probing Mac address: err %s", ex)
+        return ""
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s]",
-            str(gw_ip),
+            gw_ip,
         )
         return ""
