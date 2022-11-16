@@ -19,11 +19,11 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 #define MME_APP_TIMER_INACTIVE_ID (-1)

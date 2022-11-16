@@ -119,11 +119,13 @@ func NewGxClient(
 
 // SendCreditControlRequest sends a Gx Credit Control Requests to the
 // given connection
-// Input: DiameterServerConfig containing info about where to send messages
-//				chan<- *CreditControlAnswer to send answers to
-//			  CreditControlRequest with the request to send
+// Input:
+//   - DiameterServerConfig containing info about where to send messages
+//   - chan<- *CreditControlAnswer to send answers to
+//   - CreditControlRequest with the request to send
 //
-// Output: error if server connection failed
+// Output:
+//   - error if server connection failed
 func (gxClient *GxClient) SendCreditControlRequest(
 	server *diameter.DiameterServerConfig,
 	done chan interface{},
@@ -214,10 +216,13 @@ func createReAuthAnswerMessage(
 // createCreditControlMessage creates a base message to be used for any Credit
 // Control Request message. Init will just use this, and update and terminate
 // pass in extra AVPs through additionalAVPs
-// Input: context.Context which has information on where to send to,
-//				CreditControlRequest with relevant request info
-//			  ...*diam.AVP with any AVPs to add on
-// Output: *diam.Message with all AVPs filled in, error if there was an issue
+// Input:
+//   - context.Context which has information on where to send to
+//   - CreditControlRequest with relevant request info
+//   - ...*diam.AVP with any AVPs to add on
+//
+// Output:
+//   - *diam.Message with all AVPs filled in, error if there was an issue
 func (gxClient *GxClient) createCreditControlMessage(
 	request *CreditControlRequest,
 	globalConfig *GxGlobalConfig,

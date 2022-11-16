@@ -18,7 +18,14 @@
 #pragma once
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define P_TMSI_SIGNATURE_MINIMUM_LENGTH 4
 #define P_TMSI_SIGNATURE_MAXIMUM_LENGTH 4

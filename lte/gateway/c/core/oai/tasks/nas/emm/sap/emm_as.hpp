@@ -33,8 +33,7 @@ Description Defines the EMMAS Service Access Point that provides
         transfer to/from the Access Stratum sublayer.
 
 *****************************************************************************/
-#ifndef FILE_EMM_AS_SEEN
-#define FILE_EMM_AS_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -60,5 +59,3 @@ Description Defines the EMMAS Service Access Point that provides
 void emm_as_initialize(void);
 
 status_code_e emm_as_send(emm_as_t* msg);
-
-#endif /* FILE_EMM_AS_SEEN*/

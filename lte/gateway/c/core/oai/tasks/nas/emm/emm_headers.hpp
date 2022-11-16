@@ -22,12 +22,18 @@ limitations under the License.
 #include <sys/types.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
@@ -83,10 +89,6 @@ void emm_ctx_set_mobile_station_clsMark2(
 void emm_ctx_set_ue_additional_security_capability(
     emm_context_t* const ctxt, ue_additional_security_capability_t* drx)
     __attribute__((nonnull));
-status_code_e mme_api_new_guti(const imsi_t* const imsi,
-                               const guti_t* const old_guti, guti_t* const guti,
-                               const tai_t* const originating_tai,
-                               tai_list_t* const tai_list);
 void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti)
     __attribute__((nonnull)) __attribute__((flatten));
 void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
@@ -135,8 +137,6 @@ void emm_ctx_clear_security(emm_context_t* const ctxt) __attribute__((nonnull))
 __attribute__((flatten));
 void emm_ctx_clear_non_current_security(emm_context_t* const ctxt)
     __attribute__((nonnull)) __attribute__((flatten));
-status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
-                                  const imsi64_t imsi64);
 nas_emm_ident_proc_t* nas_new_identification_procedure(
     struct emm_context_s* const emm_context);
 void emm_ctx_clear_guti(emm_context_t* const ctxt) __attribute__((nonnull))
@@ -184,10 +184,7 @@ void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc);
 void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc);
 void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
 void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc);
-bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
-void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                       bool neaf);
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -216,4 +213,6 @@ bool is_nas_common_procedure_authentication_running(
     const struct emm_context_s* const ctxt);
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
+void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
+    __attribute__((nonnull)) __attribute__((flatten));
 #endif /* FILE_EMM_HEADERS_SEEN*/

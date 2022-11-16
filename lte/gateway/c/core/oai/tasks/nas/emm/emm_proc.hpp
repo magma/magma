@@ -32,10 +32,7 @@ Description Defines the EPS Mobility Management procedures executed at
         the EMM Service Access Points.
 
 *****************************************************************************/
-#ifndef FILE_EMM_PROC_SEEN
-#define FILE_EMM_PROC_SEEN
-
-#include "lte/gateway/c/core/common/common_defs.h"
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +43,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"  // nas_message_decode_status_t
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.hpp"
@@ -342,5 +340,3 @@ status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
  *             Network indication handlers
  *---------------------------------------------------------------------------
  */
-
-#endif /* FILE_EMM_PROC_SEEN*/

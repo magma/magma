@@ -39,7 +39,7 @@ extern "C" {
 #include "S1ap_SupportedTAs-Item.h"
 #include "S1ap_TAC.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"

@@ -14,9 +14,19 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#define SERVICE303
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
 
-void service303_statistics_read(void) {
-  // TODO Read SPGW stats here whenever SPGW implements stats
-  return;
-}
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
+
+MESSAGE_DEF(APPLICATION_HEALTHY_MSG, application_healthy_msg_t,
+            application_healthy_msg)
+MESSAGE_DEF(APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
+            application_unhealthy_msg)
+MESSAGE_DEF(APPLICATION_MME_APP_STATS_MSG, application_mme_app_stats_msg_t,
+            application_mme_app_stats_msg)
+MESSAGE_DEF(APPLICATION_S1AP_STATS_MSG, application_s1ap_stats_msg_t,
+            application_s1ap_stats_msg)

@@ -32,8 +32,7 @@ Description Defines the EPS Session Management procedures executed at
         the ESM Service Access Points.
 
 *****************************************************************************/
-#ifndef __ESM_PROC_H__
-#define __ESM_PROC_H__
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
@@ -226,4 +225,3 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 #ifdef __cplusplus
 }
 #endif
-#endif /* __ESM_PROC_H__*/

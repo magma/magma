@@ -63,13 +63,14 @@ const (
 	nonCleanRestartYaml = "clean_restart: false"
 )
 
-//testQosEnforcementRestart
+// # testQosEnforcementRestart
+//
 // This test verifies the QOS configuration(uplink) present in the rules
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-ULQos) with QOS config setting with
-//   maximum uplink bitrate.
-// - Generate traffic and verify if the traffic observed bitrate matches the configured
-// bitrate, restart pipelined and verify if Qos remains enforced
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-ULQos) with QOS config setting with
+//     maximum uplink bitrate.
+//   - Generate traffic and verify if the traffic observed bitrate matches the configured
+//     bitrate, restart pipelined and verify if Qos remains enforced
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
 	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	tr := NewTestRunner(t)

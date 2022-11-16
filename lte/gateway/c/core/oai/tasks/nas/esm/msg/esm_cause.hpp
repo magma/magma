@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source    esm_cause.h
+Source    esm_cause.hpp
 
 Version   0.1
 
@@ -33,9 +33,7 @@ Description Defines error cause code returned upon receiving unknown,
     data.
 
 *****************************************************************************/
-#ifndef FILE_ESM_CAUSE_SEEN
-#define FILE_ESM_CAUSE_SEEN
-
+#pragma once
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -45,5 +43,3 @@ Description Defines error cause code returned upon receiving unknown,
  * has been successfully processed
  */
 #define ESM_CAUSE_SUCCESS (esm_cause_t)(-1)
-
-#endif /* FILE_ESM_CAUSE_SEEN*/

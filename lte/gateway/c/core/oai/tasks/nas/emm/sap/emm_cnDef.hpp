@@ -33,8 +33,7 @@ Description
 
 *****************************************************************************/
 
-#ifndef FILE_EMM_CNDEF_SEEN
-#define FILE_EMM_CNDEF_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
@@ -201,5 +200,3 @@ typedef struct emm_mme_ul_s {
     emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp;
   } u;
 } emm_cn_t;
-
-#endif /* FILE_EMM_CNDEF_SEEN */

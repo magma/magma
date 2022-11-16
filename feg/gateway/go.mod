@@ -155,4 +155,4 @@ require (
 
 replace golang.org/x/tools => golang.org/x/tools v0.1.12
 
-go 1.18
+go 1.19

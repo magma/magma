@@ -15,24 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_MME_APP_STATISTICS_SEEN
-#define FILE_MME_APP_STATISTICS_SEEN
+#define SERVICE303
 
-/*********************************** Utility Functions to update
- * Statistics**************************************/
-void update_mme_app_stats_connected_ue_add(void);
-void update_mme_app_stats_s1u_bearer_add(void);
-#ifdef __cplusplus
-extern "C" {
-#endif
-void update_mme_app_stats_connected_ue_sub(void);
-void update_mme_app_stats_s1u_bearer_sub(void);
-#ifdef __cplusplus
+void service303_statistics_read(void) {
+  // TODO Read SPGW stats here whenever SPGW implements stats
+  return;
 }
-#endif
-void update_mme_app_stats_default_bearer_add(void);
-void update_mme_app_stats_default_bearer_sub(void);
-void update_mme_app_stats_attached_ue_add(void);
-void update_mme_app_stats_attached_ue_sub(void);
-
-#endif /* FILE_MME_APP_STATISTICS_SEEN */

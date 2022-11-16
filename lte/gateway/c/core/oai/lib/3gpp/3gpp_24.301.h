@@ -28,8 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef FILE_3GPP_24_301_SEEN
-#define FILE_3GPP_24_301_SEEN
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -507,5 +506,10 @@ typedef struct nr_ue_security_capability_s {
 #define ESM_CAUSE_MESSAGE_NOT_COMPATIBLE 101
 #define ESM_CAUSE_PROTOCOL_ERROR 111
 
-extern const char* emm_cause_str(uint32_t);
-#endif /* FILE_3GPP_24_301_SEEN */
+#ifdef __cplusplus
+extern "C" {
+#endif
+const char* emm_cause_str(uint32_t);
+#ifdef __cplusplus
+}
+#endif

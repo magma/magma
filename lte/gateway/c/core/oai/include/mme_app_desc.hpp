@@ -15,34 +15,34 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_primitives_server.c
- *  \brief Main server primitives
- *  \author Sebastien ROUX, Lionel GAUTHIER
- *  \date 2013
- *  \version 1.0
- *  @ingroup _sctp
- *  @{
- */
+/*! \file mme_app_desc.hpp */
+
+#pragma once
 
 #include <stdint.h>
+#include <pthread.h>
 
-#ifndef FILE_SCTP_PRIMITIVES_SERVER_SEEN
-#define FILE_SCTP_PRIMITIVES_SERVER_SEEN
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-#include <netinet/in.h>
-#include <netinet/sctp.h>
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+typedef struct mme_app_desc_s {
+  /* UE contexts */
+  mme_ue_context_t mme_ue_contexts;
 
-/** \brief SCTP Init function. Initialize SCTP layer
- \param mme_config The global MME configuration structure
- @returns -1 on error, 0 otherwise.
- **/
-int sctp_init(const mme_config_t* mme_config_p);
+  long statistic_timer_id;
+  uint32_t statistic_timer_period;
+  mme_ue_s1ap_id_t mme_app_ue_s1ap_id_generator;
 
-#endif /* FILE_SCTP_PRIMITIVES_SERVER_SEEN */
+  /* ***************Statistics*************
+   * number of attached UE,number of connected UE,
+   * number of idle UE,number of default bearers,
+   * number of S1_U bearers,number of PDN sessions
+   */
 
-/* @} */
+  uint32_t nb_ue_attached;
+  uint32_t nb_ue_connected;
+  uint32_t nb_default_eps_bearers;
+  uint32_t nb_s1u_bearers;
+  uint32_t nb_ue_managed;
+  uint32_t nb_ue_idle;
+  uint32_t nb_bearers_managed;
+} mme_app_desc_t;

@@ -213,12 +213,12 @@ func getNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) ([]string, error) {
 // it if necessary.
 // Returns default APN.
 // Inserted values:
-//	- pk			-- new UUID
-//	- network_id	-- passed network
-//	- type			-- "apn"
-//	- key			-- "oai.ipv4"
-//	- graph_id		-- new UUID (different from pk)
-//	- config		-- defaultAPNVal
+//   - pk			-- new UUID
+//   - network_id	-- passed network
+//   - type			-- "apn"
+//   - key			-- "oai.ipv4"
+//   - graph_id		-- new UUID (different from pk)
+//   - config		-- defaultAPNVal
 func createDefaultAPN(tx *sql.Tx, builder sqorc.StatementBuilder, network string) (ent, error) {
 	apn, err := getDefaultAPN(tx, builder, network)
 	if err != nil {
@@ -401,8 +401,8 @@ func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, gids []string) erro
 }
 
 // verifyMigration checks invariants reported by the configurator service.
-//	- Ensures all subscribers have an APN assoc
-//	- Ensure default APN and its subscribers have same graph ID
+//   - Ensures all subscribers have an APN assoc
+//   - Ensure default APN and its subscribers have same graph ID
 func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 	registry.MustPopulateServices()
 

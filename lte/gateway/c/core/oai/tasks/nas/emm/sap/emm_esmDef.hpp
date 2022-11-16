@@ -34,11 +34,17 @@ Description Defines the EMMESM Service Access Point that provides
         connections.
 
 *****************************************************************************/
-#ifndef FILE_EMM_ESMDEF_SEEN
-#define FILE_EMM_ESMDEF_SEEN
+#pragma once
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -126,5 +132,3 @@ typedef struct {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
-#endif /* FILE_EMM_ESMDEF_SEEN*/
