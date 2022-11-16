@@ -78,7 +78,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
