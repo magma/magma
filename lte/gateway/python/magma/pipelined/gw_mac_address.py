@@ -14,13 +14,11 @@ import ipaddress
 import logging
 
 from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.ifaces import (
-    get_mac_address_from_iface,
-    get_mac_address_from_ip6,
-)
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from scapy.arch import get_if_addr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
+from scapy.layers.inet6 import getmacbyip6
 from scapy.layers.l2 import ARP, Dot1Q, Ether
 from scapy.sendrecv import srp1
 
@@ -103,7 +101,7 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
 
 def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
     try:
-        mac = get_mac_address_from_ip6(str(gw_ip))
+        mac = getmacbyip6(str(gw_ip))
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
     except ValueError:

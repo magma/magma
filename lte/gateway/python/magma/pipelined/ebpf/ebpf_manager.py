@@ -22,13 +22,11 @@ import subprocess
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.ifaces import (
-    get_mac_address_from_iface,
-    get_mac_address_from_ip4,
-    get_mac_address_from_ip6,
-)
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPRoute, NetlinkError
+from scapy.layers.inet6 import getmacbyip6
+from scapy.layers.l2 import getmacbyip
 
 LOG = logging.getLogger("pipelined.ebpf")
 
@@ -318,10 +316,10 @@ class EbpfManager:
         try:
             if ip_addr.version == IPAddress.IPV4:
                 ip_str = socket.inet_ntop(socket.AF_INET, ip_addr.address)
-                addr_str = get_mac_address_from_ip4(ip_str)
+                addr_str = getmacbyip(ip_str)
             else:
                 ip_str = socket.inet_ntop(socket.AF_INET6, ip_addr.address)
-                addr_str = get_mac_address_from_ip6(ip_str)
+                addr_str = getmacbyip6(ip_str)
         except ValueError:
             LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % ip_str)
             return None
