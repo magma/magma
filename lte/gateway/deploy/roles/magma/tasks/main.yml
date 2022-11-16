@@ -332,11 +332,6 @@
   retries: 5
   when: preburn
 
-- name: Install C code coverage analysis dependencies
-  apt: pkg=lcov state=present update_cache=yes
-  retries: 5
-  when: preburn
-
 - name: Install gmock and gtest for C++ testing
   become: yes
   ignore_errors: yes
