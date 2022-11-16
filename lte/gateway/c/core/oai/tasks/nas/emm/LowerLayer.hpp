@@ -35,15 +35,21 @@ Description Defines EMM procedures executed by the Non-Access Stratum
         and to request ESM unit data transfer to under layer.
 
 *****************************************************************************/
-#ifndef __LOWERLAYER_H__
-#define __LOWERLAYER_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -77,5 +83,3 @@ status_code_e lowerlayer_activate_bearer_req(
     bstring data);
 status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
                                                const ebi_t ebi, bstring data);
-
-#endif /* __LOWERLAYER_H__*/

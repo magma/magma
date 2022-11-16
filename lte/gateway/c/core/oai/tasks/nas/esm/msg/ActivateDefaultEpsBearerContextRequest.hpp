@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -126,5 +125,3 @@ int encode_activate_default_eps_bearer_context_request(
     activate_default_eps_bearer_context_request_msg*
         activatedefaultepsbearercontextrequest,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_) */

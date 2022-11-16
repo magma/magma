@@ -24,12 +24,12 @@
 #include <thread>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 }
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"

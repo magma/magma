@@ -21,6 +21,9 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.hpp"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -37,12 +40,11 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.hpp"
 
 static void mme_app_pdn_context_init(ue_mm_context_t* const ue_context,
                                      pdn_context_t* const pdn_context);

@@ -27,15 +27,14 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file mme_config.h
+/*! \file mme_config.hpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_MME_CONFIG_SEEN
-#define FILE_MME_CONFIG_SEEN
+#pragma once
 
 #include <pthread.h>
 #include <stdint.h>
@@ -50,13 +49,13 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
@@ -462,19 +461,18 @@ extern "C" {
 void mme_config_init(mme_config_t*);
 int mme_config_parse_file(mme_config_t*);
 void mme_config_display(mme_config_t*);
+void clear_served_tai_config(served_tai_t* served_tai);
+void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 #ifdef __cplusplus
 }
 #endif
 
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
 int mme_config_parse_string(const char* config_string, mme_config_t* config_pP);
 void create_partial_lists(mme_config_t* config_pP);
 void mme_config_exit(void);
 
 void free_mme_config(mme_config_t* mme_config);
-void clear_served_tai_config(served_tai_t* served_tai);
-
-void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
 
 #define mme_config_read_lock(mMEcONFIG) \
   pthread_rwlock_rdlock(&(mMEcONFIG)->rw_lock)
@@ -482,5 +480,3 @@ void free_partial_lists(partial_list_t* partialList, uint8_t num_par_lists);
   pthread_rwlock_wrlock(&(mMEcONFIG)->rw_lock)
 #define mme_config_unlock(mMEcONFIG) \
   pthread_rwlock_unlock(&(mMEcONFIG)->rw_lock)
-
-#endif /* FILE_MME_CONFIG_SEEN */

@@ -19,7 +19,7 @@ cc_library(
         "mme_app_test_util.cpp",
     ],
     hdrs = [
-        "mme_app_test_util.h",
+        "mme_app_test_util.hpp",
     ],
     deps = [
         "//lte/gateway/c/core:lib_agw_of",
@@ -117,7 +117,7 @@ cc_test(
 cc_library(
     name = "mme_procedure_test_fixture",
     srcs = ["mme_procedure_test_fixture.cpp"],
-    hdrs = ["mme_procedure_test_fixture.h"],
+    hdrs = ["mme_procedure_test_fixture.hpp"],
     deps = [
         ":mme_app_test_core",
         "//lte/gateway/c/core/oai/test/mock_tasks",

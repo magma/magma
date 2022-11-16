@@ -34,8 +34,7 @@ Description Defines functions executed at the EMMAS Service Access
         from the Access Stratum sublayer.
 
 *****************************************************************************/
-#ifndef FILE_EMM_RECV_SEEN
-#define FILE_EMM_RECV_SEEN
+#pragma once
 
 #include <stdbool.h>
 
@@ -153,4 +152,3 @@ status_code_e emm_recv_tau_complete(
 status_code_e emm_recv_uplink_nas_transport(
     mme_ue_s1ap_id_t ueid, uplink_nas_transport_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status);
-#endif /* FILE_EMM_RECV_SEEN*/

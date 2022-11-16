@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_DISCONNECT_REJECT_H_
-#define PDN_DISCONNECT_REJECT_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -73,5 +73,3 @@ int decode_pdn_disconnect_reject(pdn_disconnect_reject_msg* pdndisconnectreject,
 
 int encode_pdn_disconnect_reject(pdn_disconnect_reject_msg* pdndisconnectreject,
                                  uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(PDN_DISCONNECT_REJECT_H_) */
