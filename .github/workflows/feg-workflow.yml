@@ -99,12 +99,6 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack

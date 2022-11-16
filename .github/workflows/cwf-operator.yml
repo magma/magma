@@ -65,11 +65,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
           make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-      - name: Extract commit title
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack

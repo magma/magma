@@ -42,13 +42,6 @@ jobs:
         with:
           name: docker-images
           path: images
-      - name: Extract commit title
-        # yamllint enable
-        if: failure()
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:

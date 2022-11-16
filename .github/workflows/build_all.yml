@@ -72,12 +72,6 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -215,13 +209,6 @@ jobs:
         with:
           name: sentry-exec
           path: lte/gateway/magma-packages
-      - name: Extract commit title
-        # yamllint enable
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:
@@ -354,12 +341,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -401,12 +382,6 @@ jobs:
         run: |
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -514,12 +489,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -601,12 +570,6 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -702,12 +665,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -784,12 +741,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -885,12 +836,6 @@ jobs:
         run: |
           docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
           skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
