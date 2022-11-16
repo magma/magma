@@ -41,6 +41,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
 #ifdef __cplusplus
 }
 #endif
@@ -48,9 +51,6 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s11_mme.hpp"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.hpp"
 

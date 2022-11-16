@@ -27,12 +27,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
-
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 
 extern task_zmq_ctx_t s11_task_zmq_ctx;
 

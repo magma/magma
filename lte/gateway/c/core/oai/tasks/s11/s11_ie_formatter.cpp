@@ -34,14 +34,17 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #ifdef __cplusplus
 }
 #endif
@@ -54,11 +57,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
-#include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
 
@@ -712,7 +710,7 @@ nw_rc_t gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get(
       case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
         DevAssert(!bearer_context->bearer_level_qos);
         bearer_context->bearer_level_qos =
-            (bearer_qos_t*)calloc(1, sizeof(bearer_qos_t));
+            reinterpret_cast<bearer_qos_t*>(calloc(1, sizeof(bearer_qos_t)));
         rc = gtpv2c_bearer_qos_ie_get(
             ie_p->t, ntohs(ie_p->l), ie_p->i,
             &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
@@ -721,8 +719,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get(
 
       case NW_GTPV2C_IE_BEARER_TFT:
         if (!bearer_context->tft)
-          bearer_context->tft = (traffic_flow_template_t*)calloc(
-              1, sizeof(traffic_flow_template_t));
+          bearer_context->tft = reinterpret_cast<traffic_flow_template_t*>(
+              calloc(1, sizeof(traffic_flow_template_t)));
         rc = gtpv2c_tft_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
                                &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
                                bearer_context->tft);
@@ -1515,7 +1513,7 @@ status_code_e gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn) {
   DevAssert(apn);
   DevAssert(msg);
   apn_length = strlen(apn);
-  value = (uint8_t*)calloc(apn_length + 1, sizeof(uint8_t));
+  value = reinterpret_cast<uint8_t*>(calloc(apn_length + 1, sizeof(uint8_t)));
   last_size = &value[0];
 
   while (apn[offset]) {
@@ -1552,9 +1550,9 @@ status_code_e gtpv2c_apn_plmn_ie_set(nw_gtpv2c_msg_handle_t* msg,
   DevAssert(apn);
   DevAssert(msg);
   apn_length = strlen(apn);
-  value = (uint8_t*)calloc(
-      apn_length + 20,
-      sizeof(uint8_t));  //"default" + neu: ".mncXXX.mccXXX.gprs"
+  value = reinterpret_cast<uint8_t*>(
+      calloc(apn_length + 20,
+             sizeof(uint8_t)));  // "default" + neu: ".mncXXX.mccXXX.gprs"
   last_size = &value[0];
 
   memcpy(&value[1], apn, apn_length);

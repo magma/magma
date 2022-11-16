@@ -29,11 +29,10 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 #ifdef __cplusplus
 }
 #endif
-
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 
 //-----------------
 typedef struct ebis_to_be_deleted_s {
