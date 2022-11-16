@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 ARG PLATFORM=linux/amd64
 
-FROM --platform=$PLATFORM ubuntu:xenial as base
+FROM --platform=$PLATFORM ubuntu:bionic as base
 
 ENV GO111MODULE on
 ENV GOPATH ${USER}/go
@@ -86,7 +86,7 @@ RUN . /etc/profile.d/env.sh && make build
 # ------------------------------------------------------------------------------
 # Production
 # ------------------------------------------------------------------------------
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 
 # Apt runtime deps
 RUN apt-get update && apt-get install -y \
