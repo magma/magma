@@ -282,6 +282,7 @@ jobs:
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
             echo "Pulled the bazel base image!"
+
       - name: Build .deb Packages
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
@@ -312,23 +313,39 @@ jobs:
               echo "Exporting magma version \"${magma_version}\""
               echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
           fi
-      - name: Setup JFROG CLI
-        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
-        env:
-          JF_URL: https://artifactory.magmacore.org
-          JF_USER: ${{ secrets.JFROG_USERNAME }}
-          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+
       - name: Set dry run environment variable
         if: ${{ ! ( github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master' ) }}
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
-      - name: Publish debian packages
+
+      - name: Setup JFROG CLI - linuxfoundation
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+        env:
+          JF_URL: https://linuxfoundation.jfrog.io
+          JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+      - name: Publish debian packages - linuxfoundation
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
           jf rt upload \
             --recursive=false \
             --detailed-summary \
+            ${{ env.IS_DRY }} \
+            --target-props="${DEBIAN_META_INFO}" \
+            "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
+
+      - name: Publish debian packages - magmacore
+        env:
+          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
+        run: |
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            --url https://artifactory.magmacore.org:443/artifactory/ \
+            --user ${{ secrets.JFROG_USERNAME }} \
+            --password ${{ secrets.JFROG_PASSWORD }} \
             ${{ env.IS_DRY }} \
             --target-props="${DEBIAN_META_INFO}" \
             "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
