@@ -14,8 +14,10 @@ name: AGW Test LTE Integration With Make Containerized Build
 on:
   workflow_dispatch: null
   workflow_run:
-    workflows: [ agw-build-publish-container ]
-    types: [ completed ]
+    workflows:
+      - AGW Build & Publish Container
+    types:
+      - completed
 
 jobs:
   lte-integ-test-containerized:
