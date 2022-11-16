@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/include/messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/messages_types.h"
 
 /*
  * Sends N11_CREATE_PDU_SESSION_RESPONSE message to AMF.
