@@ -15,21 +15,26 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_common.c
+/*! \file s11_common.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
+
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 nw_rc_t s11_ie_indication_generic(uint8_t ieType, uint16_t ieLength,
                                   uint8_t ieInstance, uint8_t* ieValue,

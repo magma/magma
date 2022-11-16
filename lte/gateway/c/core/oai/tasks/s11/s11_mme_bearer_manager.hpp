@@ -15,17 +15,25 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_bearer_manager.h
+/*! \file s11_mme_bearer_manager.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_MME_BEARER_MANAGER_SEEN
-#define FILE_S11_MME_BEARER_MANAGER_SEEN
+#pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 
 /* @brief Create a new Release Access Bearers Request and send it to provided
  * S-GW. */
@@ -43,6 +51,7 @@ status_code_e s11_mme_handle_modify_bearer_response(
 
 /* @brief Create a new Delete Bearer Command and send it to provided S-GW. */
 status_code_e s11_mme_delete_bearer_command(
+    // nw_rc_t s11_mme_delete_bearer_command(
     nw_gtpv2c_stack_handle_t* stack_p, itti_s11_delete_bearer_command_t* cmd_p);
 
 /* @brief Handle a Create Bearer Request received from S-GW. */
@@ -51,6 +60,7 @@ status_code_e s11_mme_handle_create_bearer_request(
 
 /* @brief Create a new Create Bearer Response and send it to provided S-GW. */
 status_code_e s11_mme_create_bearer_response(
+    // nw_rc_t s11_mme_create_bearer_response(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_bearer_response_t* rsp_p);
 
@@ -66,5 +76,3 @@ int s11_mme_handle_downlink_data_notification(nw_gtpv2c_stack_handle_t* stack_p,
 status_code_e s11_mme_downlink_data_notification_acknowledge(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_downlink_data_notification_acknowledge_t* ack_p);
-
-#endif /* FILE_S11_MME_BEARER_MANAGER_SEEN */

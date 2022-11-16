@@ -27,16 +27,22 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file s11_messages_types.h
+/*! \file s11_messages_types.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_S11_MESSAGES_TYPES_SEEN
-#define FILE_S11_MESSAGES_TYPES_SEEN
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define S11_CREATE_SESSION_REQUEST(mSGpTR) \
   (mSGpTR)->ittiMsg.s11_create_session_request
@@ -1382,5 +1388,3 @@ typedef struct itti_s11_modify_ue_ambr_request_s {
   teid_t teid;     ///< Tunnel Endpoint Identifier
   ambr_t ue_ambr;  ///< Aggregate Maximum Bit Rate (UE-AMBR)
 } itti_s11_modify_ue_ambr_request_t;
-
-#endif /* FILE_S11_MESSAGES_TYPES_SEEN */

@@ -15,12 +15,14 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_bearer_manager.c
+/*! \file s11_mme_bearer_manager.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,23 +30,24 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
-
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.hpp"
 
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
@@ -237,20 +240,16 @@ status_code_e s11_mme_modify_bearer_request(
 
   for (int i = 0; i < req_p->bearer_contexts_to_be_modified.num_bearer_context;
        i++) {
-    rc =
-        gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
-            &(ulp_req.hMsg),
-            &req_p->bearer_contexts_to_be_modified.bearer_contexts[i]);
-    DevAssert(NW_OK == rc);
+    gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
+        &(ulp_req.hMsg),
+        &req_p->bearer_contexts_to_be_modified.bearer_contexts[i]);
   }
 
   for (int i = 0; i < req_p->bearer_contexts_to_be_removed.num_bearer_context;
        i++) {
-    rc =
-        gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
-            &(ulp_req.hMsg),
-            &req_p->bearer_contexts_to_be_removed.bearer_contexts[i]);
-    DevAssert(NW_OK == rc);
+    gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
+        &(ulp_req.hMsg),
+        &req_p->bearer_contexts_to_be_removed.bearer_contexts[i]);
   }
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
@@ -351,7 +350,8 @@ status_code_e s11_mme_delete_bearer_command(
   DevAssert(cmd_p);
   memset(&ulp_req, 0, sizeof(nw_gtpv2c_ulp_api_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
-  ulp_req.apiType |= NW_GTPV2C_ULP_API_FLAG_IS_COMMAND_MESSAGE;
+  ulp_req.apiType = (nw_gtpv2c_ulp_api_type_t)(
+      ulp_req.apiType | NW_GTPV2C_ULP_API_FLAG_IS_COMMAND_MESSAGE);
 
   // Prepare a new Delete Session Request msg
   rc = nwGtpv2cMsgNew(*stack_p, true, NW_GTP_DELETE_BEARER_CMD, cmd_p->teid, 0,
@@ -374,10 +374,9 @@ status_code_e s11_mme_delete_bearer_command(
   }
 
   // Add bearer contexts to be removed.
-  for (int num_ebi = 0; num_ebi < cmd_p->ebi_list.num_ebi; num_ebi++) {
-    rc = gtpv2c_bearer_context_ebi_only_ie_set(&(ulp_req.hMsg),
-                                               cmd_p->ebi_list.ebis[num_ebi]);
-    DevAssert(NW_OK == rc);
+  for (uint32_t num_ebi = 0; num_ebi < cmd_p->ebi_list.num_ebi; num_ebi++) {
+    gtpv2c_bearer_context_ebi_only_ie_set(&(ulp_req.hMsg),
+                                          cmd_p->ebi_list.ebis[num_ebi]);
   }
 
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
@@ -508,9 +507,8 @@ status_code_e s11_mme_create_bearer_response(
                  NwGtpv2c.h etc.. */
 
   for (int i = 0; i < response_p->bearer_contexts.num_bearer_context; i++) {
-    rc = gtpv2c_bearer_context_within_create_bearer_response_ie_set(
+    gtpv2c_bearer_context_within_create_bearer_response_ie_set(
         &(ulp_req.hMsg), &response_p->bearer_contexts.bearer_contexts[i]);
-    DevAssert(NW_OK == rc);
   }
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);

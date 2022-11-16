@@ -15,16 +15,19 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme.h
+/*! \file s11_mme.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_MME_SEEN
-#define FILE_S11_MME_SEEN
+#pragma once
 
-int s11_mme_init(mme_config_t* mme_config);
-
-#endif /* FILE_S11_MME_SEEN */
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e s11_mme_init(mme_config_t* mme_config);
+#ifdef __cplusplus
+}
+#endif

@@ -15,12 +15,14 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_session_manager.c
+/*! \file s11_mme_session_manager.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,29 +31,30 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
-
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.hpp"
 
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
@@ -59,13 +62,13 @@ extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 status_code_e s11_mme_create_session_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_session_request_t* req_p) {
-  nw_gtpv2c_ulp_api_t ulp_req = {0};
+  nw_gtpv2c_ulp_api_t ulp_req = {};
   nw_rc_t rc;
   uint8_t restart_counter = 0;
 
   OAILOG_FUNC_IN(LOG_S11);
 
-  if (!stack_p) return RETURNerror;
+  DevAssert(stack_p);
   DevAssert(req_p);
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
 
@@ -84,7 +87,7 @@ status_code_e s11_mme_create_session_request(
   // Add recovery if contacting the peer for the first time
   rc = nwGtpv2cMsgAddIe((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0,
                         (uint8_t*)&restart_counter);
-  if (rc != NW_OK) return rc;
+  if (rc != NW_OK) return RETURNerror;
 
   // Putting the information Elements
   imsi_t imsi;
@@ -120,7 +123,7 @@ status_code_e s11_mme_create_session_request(
    * * * * In case of an initial attach it should be set to 0...
    */
   int num_dots = 0;
-  for (int i = 0; i < strlen(req_p->apn); i++) {
+  for (size_t i = 0; i < strlen(req_p->apn); i++) {
     if (req_p->apn[i] == '.') {
       num_dots++;
     }
@@ -436,6 +439,7 @@ status_code_e s11_mme_handle_ulp_error_indicatior(
   /** Get the failed transaction. */
   /** Check the message type. */
   OAILOG_FUNC_IN(LOG_S11);
+  status_code_e rc = RETURNok;
 
   nw_gtpv2c_msg_type_t msgType = pUlpApi->u_api_info.rspFailureInfo.msgType;
   MessageDef* message_p = NULL;
@@ -528,7 +532,7 @@ status_code_e s11_mme_handle_ulp_error_indicatior(
 
       /** Send this one directly to the ESM. */
 
-      int rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
+      rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_S11, rc);
 
     default:
@@ -544,6 +548,6 @@ status_code_e s11_mme_handle_ulp_error_indicatior(
                  " and message type %d. \n",
                  pUlpApi->u_api_info.rspFailureInfo.teidLocal,
                  pUlpApi->u_api_info.rspFailureInfo.msgType);
-  int rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
+  rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S11, rc);
 }

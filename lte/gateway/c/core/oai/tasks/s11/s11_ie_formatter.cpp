@@ -15,12 +15,14 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_ie_formatter.c
+/*! \file s11_ie_formatter.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.hpp"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -28,33 +30,37 @@
 #include <inttypes.h>
 #include <pthread.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_msisdn_ie_get(uint8_t ieType, uint16_t ieLength,
@@ -322,7 +328,7 @@ nw_rc_t gtpv2c_pti_ie_set(nw_gtpv2c_msg_handle_t* msg, const pti_t pti,
   rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_PROCEDURE_TRANSACTION_ID, 1,
                         instance, (pti_t*)(&pti));
   DevAssert(NW_OK == rc);
-  return RETURNok;
+  return NW_OK;
 }
 
 //------------------------------------------------------------------------------
@@ -705,7 +711,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get(
 
       case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
         DevAssert(!bearer_context->bearer_level_qos);
-        bearer_context->bearer_level_qos = calloc(1, sizeof(bearer_qos_t));
+        bearer_context->bearer_level_qos =
+            (bearer_qos_t*)calloc(1, sizeof(bearer_qos_t));
         rc = gtpv2c_bearer_qos_ie_get(
             ie_p->t, ntohs(ie_p->l), ie_p->i,
             &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
@@ -714,7 +721,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_updated_within_update_bearer_request_ie_get(
 
       case NW_GTPV2C_IE_BEARER_TFT:
         if (!bearer_context->tft)
-          bearer_context->tft = calloc(1, sizeof(traffic_flow_template_t));
+          bearer_context->tft = (traffic_flow_template_t*)calloc(
+              1, sizeof(traffic_flow_template_t));
         rc = gtpv2c_tft_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
                                &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
                                bearer_context->tft);
@@ -948,7 +956,7 @@ status_code_e gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
 //------------------------------------------------------------------------------
 status_code_e gtpv2c_ebis_within_delete_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const ebis_to_be_deleted_t* ebis_tbd) {
-  int rc = RETURNok;
+  nw_rc_t rc = NW_OK;
   DevAssert(ebis_tbd);
   for (int num_ebi = 0; num_ebi < ebis_tbd->num_ebis; num_ebi++) {
     /** Add EBIs. */
@@ -956,7 +964,7 @@ status_code_e gtpv2c_ebis_within_delete_bearer_request_ie_set(
     rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_EBI, 1, 1, &ebi);
     DevAssert(NW_OK == rc);
   }
-  return NW_OK;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
@@ -1332,7 +1340,7 @@ status_code_e gtpv2c_bearer_context_marked_for_removal_ie_set(
                                  NW_GTPV2C_IE_INSTANCE_ONE);
   DevAssert(NW_OK == rc);
   gtpv2c_ebi_ie_set(msg, bearer->eps_bearer_id, NW_GTPV2C_IE_INSTANCE_ONE);
-  rc = gtpv2c_cause_ie_set(msg, &bearer->cause);
+  rc = (nw_rc_t)gtpv2c_cause_ie_set(msg, &bearer->cause);
   DevAssert(NW_OK == rc);
 
   // End section for grouped IE: bearer context marked for removal
@@ -1507,7 +1515,7 @@ status_code_e gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn) {
   DevAssert(apn);
   DevAssert(msg);
   apn_length = strlen(apn);
-  value = calloc(apn_length + 1, sizeof(uint8_t));
+  value = (uint8_t*)calloc(apn_length + 1, sizeof(uint8_t));
   last_size = &value[0];
 
   while (apn[offset]) {
@@ -1544,8 +1552,9 @@ status_code_e gtpv2c_apn_plmn_ie_set(nw_gtpv2c_msg_handle_t* msg,
   DevAssert(apn);
   DevAssert(msg);
   apn_length = strlen(apn);
-  value = calloc(apn_length + 20,
-                 sizeof(uint8_t));  //"default" + neu: ".mncXXX.mccXXX.gprs"
+  value = (uint8_t*)calloc(
+      apn_length + 20,
+      sizeof(uint8_t));  //"default" + neu: ".mncXXX.mccXXX.gprs"
   last_size = &value[0];
 
   memcpy(&value[1], apn, apn_length);
@@ -1850,7 +1859,7 @@ nw_rc_t gtpv2c_fqcsid_ie_get(uint8_t ieType, uint16_t ieLength,
   FQ_CSID_t* fq_csid = (FQ_CSID_t*)arg;
 
   DevAssert(fq_csid);
-  fq_csid->node_id_type = (ieValue[0] & 0xF0) >> 4;
+  fq_csid->node_id_type = (node_id_type_t)((ieValue[0] & 0xF0) >> 4);
   OAILOG_DEBUG(LOG_S11, "\t- FQ-CSID type %u\n", fq_csid->node_id_type);
 
   /*
