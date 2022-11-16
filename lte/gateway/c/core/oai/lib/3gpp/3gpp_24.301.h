@@ -28,8 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef FILE_3GPP_24_301_SEEN
-#define FILE_3GPP_24_301_SEEN
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -514,4 +513,3 @@ const char* emm_cause_str(uint32_t);
 #ifdef __cplusplus
 }
 #endif
-#endif /* FILE_3GPP_24_301_SEEN */

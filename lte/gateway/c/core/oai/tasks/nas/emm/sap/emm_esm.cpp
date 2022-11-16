@@ -25,6 +25,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 
 /****************************************************************************/

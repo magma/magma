@@ -34,9 +34,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +65,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
