@@ -74,9 +74,9 @@ jobs:
       - name: Write image digest to docker-compose.yaml
         working-directory: lte/gateway/docker
         run: |
-          sed -i s/agw_gateway_c\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_c:${{ env.digest-c }}/g docker-compose.yaml
-          sed -i s/agw_gateway_python\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_python:${{ env.digest-python }}/g docker-compose.yaml
-          sed -i s/gateway_go\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/gateway_go:${{ env.digest-go }}/g docker-compose.yaml
+          sed -i '' s/agw_gateway_c\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_c@${{ env.digest-c }}/g docker-compose.yaml
+          sed -i '' s/agw_gateway_python\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/agw_gateway_python@${{ env.digest-python }}/g docker-compose.yaml
+          sed -i '' s/gateway_go\${OPTIONAL_ARCH_POSTFIX}:\${IMAGE_VERSION}/gateway_go@${{ env.digest-go }}/g docker-compose.yaml
       - name: Show docker-compose yaml to verify correct docker images hashes
         run: cat lte/gateway/docker/docker-compose.yaml
       - name: Run the integration test
