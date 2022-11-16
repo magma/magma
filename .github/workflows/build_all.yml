@@ -158,7 +158,7 @@ jobs:
         run: |
           # Default firebase output before anything can fail
           ARTIFACTS='{"packages":[],"valid":false}'
-          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+          echo "artifacts=${ARTIFACTS}" >> $GITHUB_OUTPUT
 
           set -euo pipefail
 
@@ -197,7 +197,7 @@ jobs:
           echo "Output (for firebase):"
           ARTIFACTS=$(echo $RESPONSE | jq '{"valid": (.status=="success"), "packages": [.files[] | .target]}')
           echo $ARTIFACTS | jq
-          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+          echo "artifacts=${ARTIFACTS}" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
         with:
@@ -340,7 +340,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
-          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+          echo "artifacts=${ARTIFACTS}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -488,7 +488,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
-          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+          echo "artifacts=${ARTIFACTS}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -740,7 +740,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
-          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+          echo "artifacts=${ARTIFACTS}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
