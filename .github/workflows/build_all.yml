@@ -24,7 +24,7 @@ on:
       - 'v1.*'
     types: [ opened, reopened, synchronize ]
 env:
-  LF_ARTIFACTORY_BASE_URL: "https://artifactory.magmacore.org:443/artifactory/"
+  LF_ARTIFACTORY_BASE_URL: "https://linuxfoundation.jfrog.io/artifactory/"
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
