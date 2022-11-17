@@ -14,18 +14,15 @@ import binascii
 import ipaddress
 import logging
 import socket
+from typing import Optional
 
 import dpkt
 import netifaces
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.app.packet_parser import ParseSocketPacket
 from magma.pipelined.ifaces import get_mac_address_from_iface
-from scapy.arch import get_if_addr
-from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
 from scapy.layers.inet6 import getmacbyip6
-from scapy.layers.l2 import ARP, Dot1Q, Ether
-from scapy.sendrecv import srp1
 
 
 def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
@@ -39,7 +36,7 @@ def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -
     return ""
 
 
-def get_iface_by_ip4(target_ip4):
+def get_iface_by_ip4(target_ip4: str) -> Optional[str]:
     for iface in netifaces.interfaces():
         iface_ip4 = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['addr']
         netmask = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['netmask']
@@ -50,7 +47,7 @@ def get_iface_by_ip4(target_ip4):
     return None
 
 
-def get_mac_by_ip4(target_ip4):
+def get_mac_by_ip4(target_ip4: str) -> Optional[str]:
     iface = get_iface_by_ip4(target_ip4)
     if iface:
         return _get_gw_mac_address_v4(
@@ -58,6 +55,7 @@ def get_mac_by_ip4(target_ip4):
             vlan="NO_VLAN",
             non_nat_arp_egress_port=iface,
         )
+    return None
 
 
 def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
@@ -67,10 +65,10 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
             non_nat_arp_egress_port,
         )
         eth_mac_src, psrc = _get_addresses(non_nat_arp_egress_port)
-        pkt = _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan)
+        pkt = _create_arp_packet(eth_mac_src, psrc, gw_ip, vlan)
         logging.debug("ARP Req pkt:\n%s", pkt.pprint())
 
-        res = _send_packet_and_receive_response(pkt, non_nat_arp_egress_port, vlan)
+        res = _send_packet_and_receive_response(pkt, vlan, non_nat_arp_egress_port)
         if res is None:
             logging.debug("Got Null response")
             return ""
@@ -114,7 +112,7 @@ def _get_addresses(non_nat_arp_egress_port):
     return eth_mac_src, psrc
 
 
-def _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan):
+def _create_arp_packet(eth_mac_src: bytes, psrc: str, gw_ip: IPAddress, vlan: str) -> dpkt.arp.ARP:
     pkt = dpkt.arp.ARP(
         sha=eth_mac_src,
         spa=socket.inet_aton(psrc),
@@ -135,7 +133,7 @@ def _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan):
     return pkt
 
 
-def _send_packet_and_receive_response(pkt, non_nat_arp_egress_port, vlan):
+def _send_packet_and_receive_response(pkt: dpkt.arp.ARP, vlan: str, non_nat_arp_egress_port: str) -> Optional[bytes]:
     buffsize = 2 ** 16
     sol_packet = 263
     packet_aux_data = 8
