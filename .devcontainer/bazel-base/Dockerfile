@@ -7,6 +7,9 @@ ARG DEB_PORT=amd64
 
 ARG PYTHON_VERSION=3.8
 
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
 ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
