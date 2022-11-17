@@ -27,8 +27,8 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-#ifndef FILE_SGS_MESSAGES_TYPES_SEEN
-#define FILE_SGS_MESSAGES_TYPES_SEEN
+
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -400,5 +400,3 @@ typedef struct itti_sgsap_vlr_reset_ack_s {
   uint8_t length;
   char mme_name[MAX_MME_NAME_LENGTH];
 } itti_sgsap_vlr_reset_ack_t;
-
-#endif /* FILE_SGS_MESSAGES_TYPES_SEEN */
