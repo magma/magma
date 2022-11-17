@@ -14,6 +14,8 @@ ENV PATH ${PATH}:${GOBIN}:${GOPATH}/bin
 ENV MAGMA_ROOT /src/magma
 
 # Apt runtime deps
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TZ=UTC
 RUN apt-get update && apt-get install -y \
   bzr \
   curl \
