@@ -36,7 +36,7 @@ runs:
       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
     - name: Set up Docker meta
       id: meta
-      uses: docker/metadata-action@v3
+      uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # pin@v4.1.1
       with:
         # defines the image stream the image is pushed to
         images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
