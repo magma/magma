@@ -11,69 +11,36 @@
 
 name: PR Check DCO
 on:
-  pull_request:
-    types: [ opened, reopened, synchronize ]
+  pull_request_target: null
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  reverted-pr-check:
-    name: Reverted PR Check Job
-    runs-on: ubuntu-20.04
-    env:
-      PR_TITLE: "${{ github.event.pull_request.title }}"
-    # Map a step output to a job output
-    outputs:
-      is_reverted_pr: ${{ steps.reverted_pr_check.outputs.is_reverted_pr }}
-    steps:
-      - name: Check if PR is a Reverted PR
-        id: reverted_pr_check
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
-        with:
-          script: |
-            if( process.env.PR_TITLE.startsWith('Revert') ) {
-              core.setOutput('is_reverted_pr', 'true');
-            }
-            else  {
-              core.setOutput('is_reverted_pr', 'false');
-            }
-      - name: Save Reverted PR output
-        if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
-          echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
-        with:
-          name: pr
-          path: pr/
-
   dco_check_job:
-    needs: reverted-pr-check
-    if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
     name: DCO Check
     runs-on: ubuntu-20.04
     steps:
       - name: Get PR Commits
-        id: 'get-pr-commits'
+        id: get-pr-commits
         uses: tim-actions/get-pr-commits@c64db31d359214d244884dd68f971a110b29ab83 # pin@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: DCO Check
+        id: dco-check
+        if: ${{ ! startsWith(github.event.pull_request.title, 'Revert ') }}
         uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # pin@master
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      - name: Save PR number
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: always()
-        run: |
-          mkdir -p ./pr
-          echo -n ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: ./.github/workflows/composite/comment-on-pr
         if: always()
+        env:
+          check-type: Developer Certificate of Origin (DCO)
+          check-documentation: See [instructions on Developer Certificate of Origin (DCO) and sign-off](https://github.com/magma/magma/wiki/Contributing-Code#signed-off-commits).
         with:
-          name: pr
-          path: pr/
+          check-type: ${{ env.check-type }}
+          check-documentation: ${{ env.check-documentation }}
+          job-status: ${{ steps.dco-check.outcome }}
