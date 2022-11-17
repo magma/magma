@@ -39,7 +39,28 @@ def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -
     return ""
 
 
-def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) -> str:
+def get_iface_by_ip4(target_ip4):
+    for iface in netifaces.interfaces():
+        iface_ip4 = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['addr']
+        netmask = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]['netmask']
+        res_iface = ipaddress.ip_network(f'{iface_ip4}/{netmask}', strict=False)
+        res_target_ip4 = ipaddress.ip_network(f'{target_ip4}/{netmask}', strict=False)
+        if res_iface == res_target_ip4:
+            return iface
+    return None
+
+
+def get_mac_by_ip4(target_ip4):
+    iface = get_iface_by_ip4(target_ip4)
+    if iface:
+        return _get_gw_mac_address_v4(
+            gw_ip=target_ip4,
+            vlan="NO_VLAN",
+            non_nat_arp_egress_port=iface,
+        )
+
+
+def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
     try:
         logging.debug(
             "sending arp via egress: %s",
@@ -49,7 +70,7 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
         pkt = _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan)
         logging.debug("ARP Req pkt:\n%s", pkt.pprint())
 
-        res = _send_packet_and_receive_response(pkt, non_nat_arp_egress_port)
+        res = _send_packet_and_receive_response(pkt, non_nat_arp_egress_port, vlan)
         if res is None:
             logging.debug("Got Null response")
             return ""
@@ -114,21 +135,25 @@ def _make_arp_packet(eth_mac_src, psrc, gw_ip, vlan):
     return pkt
 
 
-def _send_packet_and_receive_response(pkt, non_nat_arp_egress_port):
+def _send_packet_and_receive_response(pkt, non_nat_arp_egress_port, vlan):
     buffsize = 2 ** 16
     sol_packet = 263
     packet_aux_data = 8
     with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x0003)) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, buffsize)
-        s.setsockopt(sol_packet, packet_aux_data, 1)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_MARK, 1)
+        if vlan.isdigit():
+            s.setsockopt(sol_packet, packet_aux_data, 1)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_MARK, 1)
         s.bind((non_nat_arp_egress_port, 0x0003))
         s.send(bytes(pkt))
-        res, aux, _, _ = s.recvmsg(0xffff, socket.CMSG_LEN(4096))
-        for cmsg_level, cmsg_type, cmsg_data in aux:
-            if cmsg_level == sol_packet and cmsg_type == packet_aux_data:
-                # add VLAN tag after ethernet header
-                res = res[:12] + cmsg_data[-1:-5:-1] + res[12:]
+        if vlan.isdigit():
+            res, aux, _, _ = s.recvmsg(0xffff, socket.CMSG_LEN(4096))
+            for cmsg_level, cmsg_type, cmsg_data in aux:
+                if cmsg_level == sol_packet and cmsg_type == packet_aux_data:
+                    # add VLAN tag after ethernet header
+                    res = res[:12] + cmsg_data[-1:-5:-1] + res[12:]
+        else:
+            res = s.recv(0xffff)
     return res
 
 
