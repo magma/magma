@@ -36,7 +36,7 @@ update_and_send_to_artifactory () {
     MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
     SHA1_CHECKSUM="$(shasum -a 1 "$ARTIFACT_PATH" | awk '{ print $1 }')"
     SHA256_CHECKSUM="$(shasum -a 256 "$ARTIFACT_PATH" | awk '{ print $1 }')"
-    curl --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
+    curl --user "$LF_HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
                 --header "X-Checksum-MD5:${MD5_CHECKSUM}" \
                 --header "X-Checksum-Sha1:${SHA1_CHECKSUM}" \
                 --header "X-Checksum-Sha256:${SHA256_CHECKSUM}" \
@@ -184,11 +184,11 @@ else
     fi
 
     if [[ -z $HELM_CHART_MUSEUM_TOKEN ]]; then
-      exitmsg "Environment variable HELM_CHART_MUSEUM_TOKEN must be set"
+      exitmsg "Environment variable LF_HELM_CHART_MUSEUM_TOKEN must be set"
     fi
     # Trim last backslash if exists
     # shellcheck disable=SC2001
-    HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
+    LF_HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
     # Verify existence of the helm repo
     RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO/" || :)"
     if [ $ONLY_PACKAGE != "True" ] && [ "$RESPONSE_CODE_REPO" != "200" ]; then
