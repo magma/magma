@@ -33,12 +33,9 @@ def test_get_mac_address_from_iface(netifaces_mock):
     assert get_mac_address_from_iface("eth0") == "00:11:22:33:44:55"
 
 
-@patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address_from_iface_invalid(netifaces_mock):
-    netifaces_mock.AF_LINK = 13
-    netifaces_mock.ifaddresses.return_value = {}
+def test_get_mac_address_from_iface_invalid():
     with pytest.raises(ValueError):
-        get_mac_address_from_iface("eth0")
+        get_mac_address_from_iface("some_invalid_interface")
 
 
 @patch("magma.pipelined.ifaces.netifaces")
