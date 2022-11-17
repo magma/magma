@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source    esm_msg.h
+Source    esm_msg.hpp
 
 Version   0.1
 
@@ -32,8 +32,7 @@ Description Defines EPS Session Management messages and functions used
     to encode and decode
 
 *****************************************************************************/
-#ifndef __ESM_MSG_H__
-#define __ESM_MSG_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -123,5 +122,3 @@ int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
 int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
 
 int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
-
-#endif /* __ESM_MSG_H__ */

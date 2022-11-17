@@ -17,6 +17,11 @@
 // WARNING: Do not include this header directly. Use intertask_interface.h
 // instead.
 
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
+
 MESSAGE_DEF(APPLICATION_HEALTHY_MSG, application_healthy_msg_t,
             application_healthy_msg)
 MESSAGE_DEF(APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,

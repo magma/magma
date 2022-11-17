@@ -15,22 +15,30 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_itti_messaging.c
+/*! \file sctp_itti_messaging.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
+
 #include <string.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 
 //------------------------------------------------------------------------------
 status_code_e sctp_itti_send_lower_layer_conf(

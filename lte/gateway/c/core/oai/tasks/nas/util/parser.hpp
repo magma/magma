@@ -31,8 +31,7 @@ Author    Frederic Maurel
 Description Usefull command line parser
 
 *****************************************************************************/
-#ifndef FILE_PARSER_SEEN
-#define FILE_PARSER_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 
@@ -83,5 +82,3 @@ typedef struct {
 void parser_print_usage(const parser_command_line_t* commamd_line);
 status_code_e parser_get_options(int argc, const char** argv,
                                  parser_command_line_t* commamd_line);
-
-#endif /* FILE_PARSER_SEEN*/

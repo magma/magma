@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef BEARER_RESOURCE_ALLOCATION_REJECT_H_
-#define BEARER_RESOURCE_ALLOCATION_REJECT_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -78,5 +77,3 @@ int decode_bearer_resource_allocation_reject(
 int encode_bearer_resource_allocation_reject(
     bearer_resource_allocation_reject_msg* bearerresourceallocationreject,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(BEARER_RESOURCE_ALLOCATION_REJECT_H_) */

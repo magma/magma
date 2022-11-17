@@ -32,8 +32,7 @@ Description Defines the EPS Session Management procedures executed at
         the ESM Service Access Points.
 
 *****************************************************************************/
-#ifndef __ESM_PROC_H__
-#define __ESM_PROC_H__
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
@@ -213,5 +212,3 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
     STOLEN_REF bstring* msg, const bool ue_triggered);
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
-
-#endif /* __ESM_PROC_H__*/

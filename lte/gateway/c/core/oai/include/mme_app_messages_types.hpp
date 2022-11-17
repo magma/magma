@@ -38,12 +38,18 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 

@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_primitives_server.c
+/*! \file sctp_primitives_server.hpp
  *  \brief Main server primitives
  *  \author Sebastien ROUX, Lionel GAUTHIER
  *  \date 2013
@@ -24,10 +24,10 @@
  *  @{
  */
 
+#pragma once
+
 #include <stdint.h>
 
-#ifndef FILE_SCTP_PRIMITIVES_SERVER_SEEN
-#define FILE_SCTP_PRIMITIVES_SERVER_SEEN
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -41,8 +41,12 @@
  \param mme_config The global MME configuration structure
  @returns -1 on error, 0 otherwise.
  **/
+#ifdef __cplusplus
+extern "C" {
+#endif
 int sctp_init(const mme_config_t* mme_config_p);
-
-#endif /* FILE_SCTP_PRIMITIVES_SERVER_SEEN */
+#ifdef __cplusplus
+}
+#endif
 
 /* @} */

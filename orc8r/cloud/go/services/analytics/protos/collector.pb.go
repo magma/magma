@@ -122,7 +122,7 @@ func (x *CollectResponse) GetResults() []*CalculationResult {
 	return nil
 }
 
-//CalculationResult contains the metrics calculation from a single metric
+// CalculationResult contains the metrics calculation from a single metric
 type CalculationResult struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

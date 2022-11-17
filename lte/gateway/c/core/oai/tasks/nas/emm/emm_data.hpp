@@ -32,15 +32,10 @@ Description Defines internal private data handled by EPS Mobility
         Management sublayer.
 
 *****************************************************************************/
-#ifndef FILE_EMM_DATA_SEEN
-#define FILE_EMM_DATA_SEEN
+#pragma once
 
 #include <sys/types.h>
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +44,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
@@ -572,7 +573,11 @@ void emm_init_context(struct emm_context_s* const emm_ctx,
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt)
     __attribute__((nonnull));
 void emm_ctx_set_security_type(emm_context_t* const ctxt, emm_sc_type_t sc_type)
+<<<<<<< HEAD
     __attribute__((nonnull)) __attribute__((flatten));
+=======
+    __attribute__((nonnull)) __attribute__((flatten));*/
+>>>>>>> upstream/master
 void emm_context_free(struct emm_context_s* const emm_ctx)
     __attribute__((nonnull));
 void emm_context_free_content(struct emm_context_s* const emm_ctx)
@@ -594,5 +599,3 @@ extern emm_data_t _emm_data;
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
-#endif /* FILE_EMM_DATA_SEEN*/

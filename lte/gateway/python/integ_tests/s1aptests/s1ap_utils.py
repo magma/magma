@@ -26,6 +26,7 @@ from typing import List, Optional, Tuple
 
 import grpc
 import s1ap_types
+import yaml
 from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.gateway.rpc import get_rpc_channel
 from integ_tests.s1aptests.ovs.rest_api import (
@@ -1029,10 +1030,10 @@ class MagmadUtil(object):
             self._wait_for_pipelined_to_initialize()
 
             print(
-                f"Waiting {EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} "
+                f"Waiting {self.EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS} "
                 f"seconds to ensure all services restarted ...",
             )
-            time.sleep(EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
+            time.sleep(self.EXTRA_WAIT_TIME_FOR_OTHER_SERVICES_SECONDS)
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
                 "cd /home/vagrant/magma/lte/gateway/docker "
@@ -1051,8 +1052,8 @@ class MagmadUtil(object):
         wait_time_seconds = 0
 
         print(
-            f"  check every {WAIT_INTERVAL_SECONDS} seconds "
-            f"(max {MAX_WAIT_SECONDS} seconds) if pipelined is started ...",
+            f"  check every {self.WAIT_INTERVAL_SECONDS} seconds "
+            f"(max {self.MAX_WAIT_SECONDS} seconds) if pipelined is started ...",
         )
         datapath_is_initialized = False
         while not datapath_is_initialized:
@@ -1076,15 +1077,15 @@ class MagmadUtil(object):
                 break
 
             if (
-                wait_time_seconds >= MAX_WAIT_SECONDS
+                wait_time_seconds >= self.MAX_WAIT_SECONDS
                 and not datapath_is_initialized
             ):
                 raise RuntimeError(
                     f"Pipelined failed to initialize after "
-                    f"{MAX_WAIT_SECONDS} seconds.",
+                    f"{self.MAX_WAIT_SECONDS} seconds.",
                 )
-            time.sleep(WAIT_INTERVAL_SECONDS)
-            wait_time_seconds += WAIT_INTERVAL_SECONDS
+            time.sleep(self.WAIT_INTERVAL_SECONDS)
+            wait_time_seconds += self.WAIT_INTERVAL_SECONDS
 
     def restart_services(self, services: str, wait_time: int = 0):
         """
@@ -1099,7 +1100,7 @@ class MagmadUtil(object):
             wait_time: (int) max wait time for restart of the services
         """
         for service in services:
-            service_name = self.get_service_name_from_init_system(service)
+            service_name = self.map_service_to_init_system_service_name(service)
             if self._init_system == InitMode.SYSTEMD:
                 self.exec_command(f"sudo systemctl --no-block restart {service_name}")
             elif self._init_system == InitMode.DOCKER:
@@ -1169,7 +1170,7 @@ class MagmadUtil(object):
             service: (str) service to enable
         """
         for service in services:
-            service_name = self.get_service_name_from_init_system(service)
+            service_name = self.map_service_to_init_system_service_name(service)
             if self._init_system == InitMode.SYSTEMD:
                 self.exec_command(f"sudo systemctl unmask {service_name}")
                 self.exec_command(f"sudo systemctl start {service_name}")
@@ -1184,7 +1185,7 @@ class MagmadUtil(object):
             service: (str) service to disable
         """
         for service in services:
-            service_name = self.get_service_name_from_init_system(service)
+            service_name = self.map_service_to_init_system_service_name(service)
             if self._init_system == InitMode.SYSTEMD:
                 self.exec_command(f"sudo systemctl mask {service_name}")
                 self.exec_command(f"sudo systemctl stop {service_name}")
@@ -1214,13 +1215,7 @@ class MagmadUtil(object):
         Returns:
             (bool) True if all services are active, False otherwise
         """
-        magma_services = {
-            "mme", "magmad", "sctpd", "sessiond", "policydb", "state",
-            "directoryd", "connectiond", "td-agent-bit", "redis",
-            "subscriberdb", "eventd", "mobilityd", "pipelined", "monitord",
-            "envoy_controller", "smsd", "enodebd", "redirectd", "ctraced",
-            "control_proxy",
-        }
+        magma_services = self.get_magma_services()
         for service in magma_services:
             if not self.is_service_active(service):
                 print(f"************* {service} is not running")
@@ -1236,7 +1231,7 @@ class MagmadUtil(object):
         Returns:
             service active status
         """
-        service_name = self.get_service_name_from_init_system(service)
+        service_name = self.map_service_to_init_system_service_name(service)
         if self._init_system == InitMode.SYSTEMD:
             is_active_service_cmd = f"systemctl is-active {service_name}"
             return (
@@ -1265,7 +1260,7 @@ class MagmadUtil(object):
             result_str = e.output
         return result_str
 
-    def get_service_name_from_init_system(self, service: str) -> str:
+    def map_service_to_init_system_service_name(self, service):
         """Get the correct service name depending on the init system
 
         Args:
@@ -1275,8 +1270,12 @@ class MagmadUtil(object):
             (str) service name
         """
         if self._init_system == InitMode.SYSTEMD:
-            if service == "sctpd":
-                return "sctpd"
+            if (
+                service == "sctpd"
+                or service == "openvswitch-switch"
+                or service == "magma_dp@envoy"
+            ):
+                return service
             else:
                 return f"magma@{service}"
         elif self._init_system == InitMode.DOCKER:
@@ -1287,7 +1286,42 @@ class MagmadUtil(object):
         else:
             return service
 
-    def update_mme_config_for_sanity(self, cmd: config_update_cmds):
+    def get_magma_services(self) -> List[str]:
+        """
+        Returns a list of all services managed by magmad and additionally
+        (depending on the init system) services that are not managed by magmad
+        """
+        non_magmad_services = [
+            'magmad',
+            'sctpd',
+        ]
+
+        systemd_only_magma_services = [
+            'openvswitch-switch',
+            'magma_dp@envoy',
+        ]
+
+        docker_only_magma_services = [
+            'connectiond',
+            'monitord',
+            'redirectd',
+            'td-agent-bit',
+        ]
+
+        raw_magmad_yml = self.exec_command_output('cat /etc/magma/magmad.yml')
+        magmad_yml = yaml.load(raw_magmad_yml, Loader=yaml.loader.SafeLoader)
+        magma_services = magmad_yml['magma_services'] + non_magmad_services
+        magma_services.remove('health')
+
+        if self._init_system == InitMode.SYSTEMD:
+            return magma_services + systemd_only_magma_services
+        elif self._init_system == InitMode.DOCKER:
+            magma_services.remove('dnsd')
+            return magma_services + docker_only_magma_services
+        else:
+            return magma_services
+
+    def update_mme_config_for_sanity(self, cmd):
         """Update MME configuration for all sanity test cases"""
         mme_config_update_script = (
             "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"

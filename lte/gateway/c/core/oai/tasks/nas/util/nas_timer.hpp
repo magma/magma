@@ -31,8 +31,7 @@ Author      Frederic Maurel
 Description Timer utilities
 
 *****************************************************************************/
-#ifndef FILE_NAS_TIMER_SEEN
-#define FILE_NAS_TIMER_SEEN
+#pragma once
 
 #include <czmq.h>
 
@@ -87,4 +86,3 @@ void nas_timer_cleanup(void);
 void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
                      timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
-#endif /* FILE_NAS_TIMER_SEEN */

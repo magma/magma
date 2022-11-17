@@ -41,7 +41,7 @@ type Action int32
 const (
 	Action_DROP Action = 0
 	Action_FORW Action = 1
-	//Below will be required in future use case
+	// Below will be required in future use case
 	Action_BUFF Action = 2
 	Action_NOCP Action = 3
 	Action_DUPL Action = 4

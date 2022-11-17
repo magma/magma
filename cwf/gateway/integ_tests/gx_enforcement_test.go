@@ -34,16 +34,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 1MB of
-//   quota.
-//   Generate traffic and assert the CCR-I is received.
-// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
-// 	 PCRF, to which it will response with more quota.
-//   Generate traffic and assert the CCR-U is received.
-// - Generate traffic to put traffic through the newly installed rule.
-//   Assert that there's > 0 data usage in the rule.
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (usage-enforcement-static-pass-all), 1MB of
+//     quota.
+//     Generate traffic and assert the CCR-I is received.
+//   - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+//     PCRF, to which it will response with more quota.
+//     Generate traffic and assert the CCR-U is received.
+//   - Generate traffic to put traffic through the newly installed rule.
+//     Assert that there's > 0 data usage in the rule.
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestGxUsageReportEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUsageReportEnforcement...")
 	tr := NewTestRunner(t)
@@ -119,14 +119,14 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 }
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-pass-all-1).
-//   Generate traffic and assert the CCR-I is received.
-// - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
-//   respond with a rule removal (static-pass-all-1) and rule install (static-pass-all-2).
-//   Generate traffic and assert the CCR-U is received.
-// - Generate traffic to put traffic through the newly installed rule.
-//   Assert that there's > 0 data usage in the rule.
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-pass-all-1).
+//     Generate traffic and assert the CCR-I is received.
+//   - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
+//     respond with a rule removal (static-pass-all-1) and rule install (static-pass-all-2).
+//     Generate traffic and assert the CCR-U is received.
+//   - Generate traffic to put traffic through the newly installed rule.
+//     Assert that there's > 0 data usage in the rule.
 func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	fmt.Println("\nRunning TestGxMidSessionRuleRemovalWithCCA_U...")
 
@@ -233,17 +233,18 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-pass-all-1).
-// - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
-//   respond with a rule install (static-pass-all-2), with activation (now + X sec)
-//   and deactivation time (activation + Y sec) specified.
-// - Generate traffic to trigger a CCR-U. Check policy usage and assert
-//   static-pass-all-2 is not installed.
-// - Sleep for X seconds and check policy usage again. Assert that
-//   static-pass-all-2 is installed.
-// - Sleep for Y seconds and check policy usage again. Assert that
-//   static-pass-all-2 is uninstalled.
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-pass-all-1).
+//   - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
+//     respond with a rule install (static-pass-all-2), with activation (now + X sec)
+//     and deactivation time (activation + Y sec) specified.
+//   - Generate traffic to trigger a CCR-U. Check policy usage and assert
+//     static-pass-all-2 is not installed.
+//   - Sleep for X seconds and check policy usage again. Assert that
+//     static-pass-all-2 is installed.
+//   - Sleep for Y seconds and check policy usage again. Assert that
+//     static-pass-all-2 is uninstalled.
+//
 // Note: things might get weird if there are clock skews
 func TestGxRuleInstallTime(t *testing.T) {
 	t.Skip()
@@ -331,7 +332,8 @@ func TestGxRuleInstallTime(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-//TestGxAbortSessionRequest
+// # TestGxAbortSessionRequest
+//
 // This test verifies the abort session request
 // Here we initially setup a session and install a pass all rule
 // We then invoke abort session request from pcrf and expect the
@@ -389,13 +391,14 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (revalidation-time-static-pass-all) with
-//   a revalidation time set to now + 10s and an event trigger REVALIDATION_TIMEOUT.
-// - Set an expectation for a CCR-U to be sent up to PCRF, upon revalidation
-//   timer expiration
-// - Check policy usage and assert revalidation-time-static-pass-all is installed and
-//   no traffic passed
+//   - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (revalidation-time-static-pass-all) with
+//     a revalidation time set to now + 10s and an event trigger REVALIDATION_TIMEOUT.
+//   - Set an expectation for a CCR-U to be sent up to PCRF, upon revalidation
+//     timer expiration
+//   - Check policy usage and assert revalidation-time-static-pass-all is installed and
+//     no traffic passed
+//
 // Note: things might get weird if there are clock skews
 func TestGxRevalidationTime(t *testing.T) {
 	t.Skip("Skipping due to current test flakiness, investigating...")

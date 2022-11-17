@@ -137,9 +137,9 @@ const (
 	MetricName_network_iface_status                MetricName = 354
 	MetricName_enforcement_rule_install_fail       MetricName = 355
 	MetricName_enforcement_stats_rule_install_fail MetricName = 356
-	///////////////////////////////
+	// /////////////////////////////
 	// GATEWAY FAILURES & ALERTS //
-	///////////////////////////////
+	// /////////////////////////////
 	MetricName_mme_restarted     MetricName = 400
 	MetricName_s1_reset_from_enb MetricName = 401
 	// SCTP
@@ -174,9 +174,9 @@ const (
 	MetricName_nas_non_delivery_indication_received MetricName = 482
 	MetricName_emm_status_received                  MetricName = 483
 	MetricName_emm_status_sent                      MetricName = 484
-	////////////////////////
+	// //////////////////////
 	// GATEWAY PROCEDURES //
-	////////////////////////
+	// //////////////////////
 	MetricName_mme_new_association MetricName = 500
 	MetricName_ue_attach           MetricName = 501 // result=failure,accept,complete
 	MetricName_service_request     MetricName = 502

@@ -59,8 +59,9 @@ int match_fed_mode_map(const char* imsi, log_proto_t module) {
 }
 
 // Verify that tac is included in registered subscription areas
-int verify_service_area_restriction(
-    tac_t tac, const regional_subscription_t* reg_sub, uint8_t num_reg_sub) {
+int verify_service_area_restriction(tac_t tac,
+                                    const regional_subscription_t* reg_sub,
+                                    uint8_t num_reg_sub) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   tac_list_per_sac_t* tac_list = NULL;
   for (uint8_t itr = 0; itr < num_reg_sub; itr++) {

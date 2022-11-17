@@ -11,7 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/* Package ha provides the LTE HA orc8r service.
+/*
+	Package ha provides the LTE HA orc8r service.
 
 This service has a single RPC endpoint. The RPC endpoint will be used by
 secondary gateways' MME to know when to offload its users for a given ENB

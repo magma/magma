@@ -30,6 +30,8 @@
 
 #pragma once
 
+//#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,7 +40,6 @@ extern "C" {
 }
 #endif
 
-#include <inttypes.h>
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
@@ -46,11 +47,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/include/service303_messages_types.h"
+#include "lte/gateway/c/core/oai/include/service303_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
 #include "lte/gateway/c/core/oai/include/udp_messages_types.h"

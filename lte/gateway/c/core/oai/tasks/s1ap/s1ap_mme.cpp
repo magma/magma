@@ -39,6 +39,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
@@ -50,7 +52,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"

@@ -12,16 +12,17 @@
  */
 
 /*
-	Package main holds the swaggergen executable.
+Package main holds the swaggergen executable.
 
-	swaggergen is a custom tool to generate Go code from Swagger 2.0 spec files
-	in a way that allows Magma to keep Swagger files modular.
-	Because one Swagger file can reference definitions from any number of other
-	Swagger files across modules, we have extended the Swagger spec with some
-	extra metadata
+swaggergen is a custom tool to generate Go code from Swagger 2.0 spec files
+in a way that allows Magma to keep Swagger files modular.
+Because one Swagger file can reference definitions from any number of other
+Swagger files across modules, we have extended the Swagger spec with some
+extra metadata
 
-	```
-	magma-gen-meta:
+```
+magma-gen-meta:
+
 	  go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/importer2/models
 	  dependencies:
 	    - 'orc8r/cloud/go/tools/swaggergen/testdata/base.yml'
@@ -31,38 +32,39 @@
 	  types:
 	    - go-struct-name: ImportingChainDef
 		  filename: importing_chain_def_swaggergen.go
-	```
 
-	Think of `dependencies` as an import statement. These filepaths should be
-	relative to the --root command line flag (defaults to $MAGMA_ROOT).
+```
 
-	`tmp-gen-filename` is what you want this file to be named when its contents
-	are copied into the working directory when a dependent Swagger spec is
-	being codegened from. All dependent files should reference definitions
-	inside this file using this filename, as if the file was in the same
-	directory, e.g.
+Think of `dependencies` as an import statement. These filepaths should be
+relative to the --root command line flag (defaults to $MAGMA_ROOT).
 
-	```
-	$ref: './importer2-swagger.yml#/definitions/foo'
-	```
+`tmp-gen-filename` is what you want this file to be named when its contents
+are copied into the working directory when a dependent Swagger spec is
+being codegened from. All dependent files should reference definitions
+inside this file using this filename, as if the file was in the same
+directory, e.g.
 
-	`output-dir` specifies where you want to generate the models to, relative
-	to --root.
+```
+$ref: './importer2-swagger.yml#/definitions/foo'
+```
 
-	During the code generation step, swaggergen will read the entire dependency
-	tree for the target Swagger spec and copy all files in that tree to the
-	working directory as whatever is specified in each file's
-	`tmp-gen-filename`. Swaggergen will clean up these temporary files before
-	exiting.
+`output-dir` specifies where you want to generate the models to, relative
+to --root.
 
-	The code generation step is configurable via a go-swagger config file.
-	Ref: https://goswagger.io/use/template_layout.html
+During the code generation step, swaggergen will read the entire dependency
+tree for the target Swagger spec and copy all files in that tree to the
+working directory as whatever is specified in each file's
+`tmp-gen-filename`. Swaggergen will clean up these temporary files before
+exiting.
 
-	During the code modification step, swaggergen will rewrite references in
-	the generated code to structs owned by different Swagger spec files to the
-	implementations in go-package specified by the Swagger spec file which
-	owns the type. The struct type ownership is defined by the types key of
-	the meta map.
+The code generation step is configurable via a go-swagger config file.
+Ref: https://goswagger.io/use/template_layout.html
+
+During the code modification step, swaggergen will rewrite references in
+the generated code to structs owned by different Swagger spec files to the
+implementations in go-package specified by the Swagger spec file which
+owns the type. The struct type ownership is defined by the types key of
+the meta map.
 */
 package swaggergen
 

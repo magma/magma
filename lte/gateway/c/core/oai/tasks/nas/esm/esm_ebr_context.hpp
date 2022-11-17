@@ -31,8 +31,7 @@ Author      Frederic Maurel
 Description Defines functions used to handle EPS bearer contexts.
 
 *****************************************************************************/
-#ifndef ESM_EBR_CONTEXT_SEEN
-#define ESM_EBR_CONTEXT_SEEN
+#pragma once
 
 #include <stdbool.h>
 
@@ -87,4 +86,3 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
 
 status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
                                                   void* args);
-#endif /* ESM_EBR_CONTEXT_SEEN */

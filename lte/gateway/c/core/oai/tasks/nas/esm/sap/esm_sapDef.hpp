@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_sapDef.h
+Source      esm_sapDef.hpp
 
 Version     0.1
 
@@ -33,10 +33,16 @@ Description Defines the ESM Service Access Point that provides EPS
 
 *****************************************************************************/
 
-#ifndef __ESM_SAPDEF_H__
-#define __ESM_SAPDEF_H__
+#pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 
@@ -188,5 +194,3 @@ typedef struct esm_sap_s {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-
-#endif /* __ESM_SAPDEF_H__*/

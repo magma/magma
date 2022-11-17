@@ -15,21 +15,21 @@
  *      contact@openairinterface.org
  */
 
-#ifndef DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_
-#define DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_
+#pragma once
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_MINIMUM_LENGTH (0)
@@ -75,5 +75,3 @@ int decode_deactivate_eps_bearer_context_accept(
 int encode_deactivate_eps_bearer_context_accept(
     deactivate_eps_bearer_context_accept_msg* deactivateepsbearercontextaccept,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_) */

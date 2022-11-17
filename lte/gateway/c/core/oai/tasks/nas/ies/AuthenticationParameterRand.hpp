@@ -18,7 +18,14 @@
 #pragma once
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define AUTHENTICATION_PARAMETER_RAND_MINIMUM_LENGTH 16
 #define AUTHENTICATION_PARAMETER_RAND_MAXIMUM_LENGTH 16

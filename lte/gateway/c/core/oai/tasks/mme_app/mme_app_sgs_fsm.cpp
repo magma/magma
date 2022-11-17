@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
+
 #include <stddef.h>
 
 /*****************************************************************************
@@ -45,7 +47,6 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -43,12 +43,6 @@ if (NOT BUILD_TESTS)
 else() # BUILD_TESTS
 endif ()
 
-message("Adding code coverage build and linker flags for BUILD_TESTS")
-set (CMAKE_CXX_FLAGS_DEBUG
-  "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-set(CMAKE_LINKER_FLAGS_DEBUG
-  "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
-
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)

@@ -32,8 +32,7 @@ Description Defines the EPS Mobility Management procedure call manager,
         the main entry point for elementary EMM processing.
 
 *****************************************************************************/
-#ifndef FILE_EMM_MAIN_SEEN
-#define FILE_EMM_MAIN_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
@@ -54,5 +53,3 @@ Description Defines the EPS Mobility Management procedure call manager,
 
 void emm_main_initialize(const mme_config_t* mme_config_p);
 void emm_main_cleanup(void);
-
-#endif /* __EMM_MAIN_H__*/

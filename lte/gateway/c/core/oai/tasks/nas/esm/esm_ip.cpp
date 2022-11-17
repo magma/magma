@@ -16,7 +16,13 @@
  */
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 char ip_addr_str[100];
 

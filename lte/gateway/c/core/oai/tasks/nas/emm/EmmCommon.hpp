@@ -41,8 +41,8 @@ Description Defines callback functions executed within EMM common procedures
         EMM information
 
 *****************************************************************************/
-#ifndef FILE_EMM_COMMON_SEEN
-#define FILE_EMM_COMMON_SEEN
+#pragma once
+
 #include <pthread.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -145,4 +145,3 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai);
 status_code_e update_tai_list_to_emm_context(
     uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
     tai_list_t* tai_list);
-#endif /* FILE_EMM_COMMON_SEEN*/

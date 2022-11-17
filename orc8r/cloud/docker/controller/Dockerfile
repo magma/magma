@@ -24,13 +24,14 @@ RUN apt-get update && apt-get install -y \
   unzip \
   vim
 
-# Golang 1.18
+# Golang 
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18.3"
+ARG GOLANG_VERSION="1.19.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
  && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+ && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt \
  && rm ${GO_TARBALL}
 
 # Install goimports

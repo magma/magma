@@ -21,6 +21,9 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,7 +47,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.hpp"
 
 static void mme_app_free_s11_procedure_create_bearer(
     mme_app_s11_proc_t** s11_proc);
