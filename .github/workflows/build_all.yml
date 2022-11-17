@@ -380,7 +380,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
@@ -391,7 +391,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
@@ -551,7 +551,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
@@ -562,7 +562,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
@@ -651,7 +651,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
@@ -660,7 +660,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
@@ -759,7 +759,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
@@ -770,7 +770,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-feg-test/"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
@@ -852,7 +852,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
@@ -863,7 +863,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
@@ -964,20 +964,20 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
-          DOCKER_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
           skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
       - name: Tag and push to Jfrog Registry
         if: github.event_name == 'push'
         working-directory: "${{ github.workspace }}/dp"
         env:
           DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
           skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
       - name: Extract commit title
         if: github.event_name == 'push'
