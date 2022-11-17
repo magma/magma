@@ -271,6 +271,7 @@ struct proto_map_s {
     }
     map->clear();
     delete map;
+    map = nullptr;
     return PROTO_MAP_OK;
   }
 
