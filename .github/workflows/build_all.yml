@@ -16,6 +16,7 @@ on:
   push:
     branches:
       - master
+      - test_double_push
       - 'v1.*'
   pull_request:
     branches:
