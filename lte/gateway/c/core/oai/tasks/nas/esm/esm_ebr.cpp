@@ -358,8 +358,7 @@ status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_ebr_stop_timer(emm_context_t* emm_context,
-                                            ebi_t ebi) {
+status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
   esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
 

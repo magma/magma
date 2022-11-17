@@ -40,7 +40,7 @@
 #include <time.h>
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
-#include "lte/gateway/c/core/oai/include/messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/messages_types.h"
 
 /* Defines to handle bit fields on unsigned long values */
 #define UL_BIT_MASK(lENGTH) ((1UL << (lENGTH)) - 1UL)
@@ -70,7 +70,7 @@
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,
-#include "lte/gateway/c/core/oai/include/messages_def.hpp"
+#include "lte/gateway/c/core/oai/include/messages_def.h"
 #undef MESSAGE_DEF
 
   MESSAGES_ID_MAX,
@@ -109,7 +109,7 @@ typedef enum {
 
 typedef union msg_s {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
-#include "lte/gateway/c/core/oai/include/messages_def.hpp"
+#include "lte/gateway/c/core/oai/include/messages_def.h"
 #undef MESSAGE_DEF
 } msg_t;
 

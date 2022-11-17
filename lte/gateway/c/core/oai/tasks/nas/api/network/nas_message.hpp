@@ -128,4 +128,3 @@ int nas_message_encode(unsigned char* buffer, const nas_message_t* const msg,
 int nas_message_encrypt(const unsigned char* inbuf, unsigned char* outbuf,
                         const nas_message_security_header_t* header,
                         size_t length, void* security);
-
