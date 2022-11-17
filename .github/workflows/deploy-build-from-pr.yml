@@ -31,10 +31,10 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       # Retrieve Generated artifacts and delete them to keep cache usage low
       - name: Download builds
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
                run_id: ${{github.event.workflow_run.id }},
@@ -46,7 +46,7 @@ jobs:
                 console.log(String(matchMetadataArtifact));
                 continue;
               }
-              var download = await github.actions.downloadArtifact({
+              var download = await github.rest.actions.downloadArtifact({
                             owner: context.repo.owner,
                             repo: context.repo.repo,
                             artifact_id: matchMetadataArtifact.id,
@@ -54,7 +54,7 @@ jobs:
                          });
               fs.writeFileSync('${{github.workspace}}/artifact' + i + '.zip', Buffer.from(download.data));
               console.log('Downloaded ' + matchMetadataArtifact.name + ' and placed it there ${{github.workspace}}/artifact' + i + '.zip');
-              github.actions.deleteArtifact({
+              github.rest.actions.deleteArtifact({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 artifact_id: matchMetadataArtifact.id
@@ -71,7 +71,7 @@ jobs:
           done
       - name: Save metadata
         id: save_metadata
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
             var fs = require('fs');
