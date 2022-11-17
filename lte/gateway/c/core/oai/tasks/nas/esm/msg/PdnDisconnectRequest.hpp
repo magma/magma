@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_DISCONNECT_REQUEST_H_
-#define PDN_DISCONNECT_REQUEST_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -76,5 +76,3 @@ int decode_pdn_disconnect_request(
 int encode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdndisconnectrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(PDN_DISCONNECT_REQUEST_H_) */

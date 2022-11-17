@@ -16,10 +16,9 @@
  */
 
 #pragma once
-extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-}
+
+#include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
 #include <sstream>
 #include "lte/protos/oai/mme_nas_state.pb.h"

@@ -8,16 +8,16 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
- apt-utils software-properties-common apt-transport-https git openjdk-8-jdk ant
+    apt-utils software-properties-common apt-transport-https git openjdk-8-jdk ant
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
-  unzip protoc3.zip -d protoc3 && \
-  mv protoc3/bin/protoc /usr/bin/protoc && \
-  chmod a+rx /usr/bin/protoc && \
-  cp -r protoc3/include/google /usr/include/ && \
-  chmod -R a+Xr /usr/include/google && \
-  rm -rf protoc3.zip protoc3
+    unzip protoc3.zip -d protoc3 && \
+    mv protoc3/bin/protoc /usr/bin/protoc && \
+    chmod a+rx /usr/bin/protoc && \
+    cp -r protoc3/include/google /usr/include/ && \
+    chmod -R a+Xr /usr/include/google && \
+    rm -rf protoc3.zip protoc3
 
 RUN apt-get -y update && apt-get -y install python3.8
 
@@ -75,27 +75,27 @@ RUN apt-key add /tmp/fluentbit.key && \
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
-  iproute2 \
-  libc-ares2 \
-  libev4 \
-  libffi-dev \
-  libjansson4 \
-  libjemalloc2 \
-  libssl-dev \
-  libsystemd-dev \
-  magma-nghttpx=1.31.1-1 \
-  net-tools \
-  openssl \
-  iputils-ping \
-  pkg-config \
-  python-cffi \
-  python3-pip \
-  python3.8 \
-  python3.8-dev \
-  redis-server \
-  git \
-  netcat \
-  td-agent-bit
+    iproute2 \
+    libc-ares2 \
+    libev4 \
+    libffi-dev \
+    libjansson4 \
+    libjemalloc2 \
+    libssl-dev \
+    libsystemd-dev \
+    magma-nghttpx=1.31.1-1 \
+    net-tools \
+    openssl \
+    iputils-ping \
+    pkg-config \
+    python-cffi \
+    python3-pip \
+    python3.8 \
+    python3.8-dev \
+    redis-server \
+    git \
+    netcat \
+    td-agent-bit
 
 # Install docker.
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \

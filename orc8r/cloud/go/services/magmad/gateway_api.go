@@ -28,7 +28,7 @@ import (
 )
 
 // getGWMagmadClient gets a GRPC client to the magmad service running on the gateway specified by (network ID, gateway ID).
-//  If gateway not found by configurator, returns ErrNotFound from magma/orc8r/lib/go/merrors.
+// If gateway not found by configurator, returns ErrNotFound from magma/orc8r/lib/go/merrors.
 func getGWMagmadClient(ctx context.Context, networkID string, gatewayID string) (protos.MagmadClient, context.Context, error) {
 	hwID, err := configurator.GetPhysicalIDOfEntity(ctx, networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef BEARER_RESOURCE_MODIFICATION_REQUEST_H_
-#define BEARER_RESOURCE_MODIFICATION_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -93,5 +92,3 @@ int decode_bearer_resource_modification_request(
 int encode_bearer_resource_modification_request(
     bearer_resource_modification_request_msg* bearerresourcemodificationrequest,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(BEARER_RESOURCE_MODIFICATION_REQUEST_H_) */

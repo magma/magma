@@ -28,7 +28,7 @@
 
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
 // typedef int (*mme_app_pdu_in_resp_t)(void *arg);
 // typedef int (*mme_app_pdu_in_rej_t)(void *arg);

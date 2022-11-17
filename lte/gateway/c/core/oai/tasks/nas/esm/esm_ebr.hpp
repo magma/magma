@@ -32,14 +32,20 @@ Description Defines functions used to handle state of EPS bearer contexts
         and manage ESM messages re-transmission.
 
 *****************************************************************************/
-#ifndef ESM_EBR_SEEN
-#define ESM_EBR_SEEN
+#pragma once
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
@@ -90,5 +96,3 @@ ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,
                                  esm_ebr_state status, bool ue_requested);
 esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi);
-
-#endif /* ESM_EBR_SEEN*/

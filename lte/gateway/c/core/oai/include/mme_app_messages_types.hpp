@@ -27,23 +27,29 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file mme_app_messages_types.h
+/*! \file mme_app_messages_types.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_MME_APP_MESSAGES_TYPES_SEEN
-#define FILE_MME_APP_MESSAGES_TYPES_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
@@ -190,5 +196,3 @@ typedef struct itti_mme_app_handover_command_s {
   uint32_t source_enb_id;
   uint32_t target_enb_id;
 } itti_mme_app_handover_command_t;
-
-#endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

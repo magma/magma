@@ -27,15 +27,14 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file sctp_messages_types.h
+/*! \file sctp_messages_types.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_SCTP_MESSAGES_TYPES_SEEN
-#define FILE_SCTP_MESSAGES_TYPES_SEEN
+#pragma once
 
 #include <arpa/inet.h>
 #include <stdint.h>
@@ -123,4 +122,3 @@ typedef struct sctp_mme_server_initialized_s {
 typedef struct sctp_amf_server_initialized_s {
   bool successful;
 } sctp_amf_server_initialized_t;
-#endif /* FILE_SCTP_MESSAGES_TYPES_SEEN */

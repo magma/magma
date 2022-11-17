@@ -128,7 +128,7 @@ message EapAkaConfig {
 
 // EapProviderTimeouts is a generic EAP provider timeout config for all new providers
 // TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
-//       of the switch farther planning is required
+// of the switch farther planning is required
 message EapProviderTimeouts {
     uint32 ChallengeMs = 1;
     uint32 ErrorNotificationMs = 2;

@@ -52,12 +52,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_c_iface.hpp"

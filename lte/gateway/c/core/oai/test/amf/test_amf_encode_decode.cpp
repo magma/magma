@@ -29,7 +29,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
 #include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"

@@ -27,7 +27,7 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file mme_app_messages_def.h
+/*! \file mme_app_messages_def.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom

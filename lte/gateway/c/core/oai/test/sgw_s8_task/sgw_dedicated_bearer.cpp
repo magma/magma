@@ -15,9 +15,9 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 
 extern task_zmq_ctx_t task_zmq_ctx_main_s8;

@@ -13,6 +13,7 @@
 
 set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+PATCHES_DIR="${SCRIPT_DIR}/../../../lte/gateway/c/core/oai/patches"
 source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_URL=https://github.com/lionelgo/opencord.org.freeDiameter.git
 GIT_COMMIT=13b0e7de0d66906d50e074a339f890d6e59813ad
@@ -59,8 +60,8 @@ git clone "${GIT_URL}" freediameter
 cd freediameter
 git checkout "${GIT_COMMIT}"
 
-patch -p1 < "$MAGMA_ROOT/lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch"
-patch -p1 < "$MAGMA_ROOT/lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch"
+patch -p1 < "$PATCHES_DIR/0001-opencoord.org.freeDiameter.patch"
+patch -p1 < "$PATCHES_DIR/0002-opencoord.org.freeDiameter.patch"
 
 awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt
 

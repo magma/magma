@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
@@ -202,9 +202,15 @@ void amf_config_init(amf_config_t*);
 int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
 int amf_config_parse_file(amf_config_t*, const mme_config_t*);
 void amf_config_display(amf_config_t*);
-void clear_amf_config(amf_config_t*);
+#ifdef __cplusplus
+extern "C" {
+#endif
 void copy_amf_config_from_mme_config(amf_config_t* dest,
                                      const mme_config_t* src);
+void clear_amf_config(amf_config_t*);
+#ifdef __cplusplus
+}
+#endif
 void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);

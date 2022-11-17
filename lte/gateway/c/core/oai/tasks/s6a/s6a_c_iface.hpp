@@ -17,14 +17,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#ifdef __cplusplus
-}
-#endif
-
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 bool s6a_viface_open(const s6a_config_t* config);

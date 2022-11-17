@@ -5,8 +5,8 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_library(TASK_SERVICE303
     service303.cpp
-    service303_task.c
-    service303_mme_stats.c
+    service303_task.cpp
+    service303_mme_stats.cpp
     )
 
 target_link_libraries(TASK_SERVICE303

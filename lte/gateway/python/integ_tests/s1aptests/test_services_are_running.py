@@ -13,11 +13,10 @@ limitations under the License.
 
 import time
 import unittest
+from typing import Dict, List, Optional
 
-import yaml
 from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import InitMode, MagmadUtil
-from yaml.loader import SafeLoader
 
 SERVICE_START_TIME = 'start_time'
 SERVICE_ACTIVE = 'active_status'
@@ -27,8 +26,9 @@ SERVICE_RESULT = 'result'
 class TestServicesAreRunning(unittest.TestCase):
     """
     A simple smoke test that checks if all relevant magma services are running.
-    This test was introduced because of GH14007 where a service that is not used
-    in the integration tests was damaged in the magma debian package artifact.
+    This test was introduced because of GH14007 where a service
+    that is not used in the integration tests was damaged in the
+    magma debian package artifact.
     """
 
     def setUp(self):
@@ -39,16 +39,17 @@ class TestServicesAreRunning(unittest.TestCase):
 
     def test_services_are_running(self):
 
-        if self._s1ap_wrapper.magmad_util.init_system.value != InitMode.SYSTEMD.value:
+        if self._s1ap_wrapper.magmad_util.init_system.value \
+                != InitMode.SYSTEMD.value:
             self.skipTest("Systemd only test.")
 
-        services = self._get_services()
+        services = self._s1ap_wrapper.magmad_util.get_magma_services()
 
         """
         Initialize service status dictionary.
-        The dict holds for each service status results that are collected each time the status
-        is queried. Also for each service a result list holds reporting about issues with the
-        queried status results.
+        The dict holds for each service status results that are collected
+        each time the status is queried. Also for each service a result
+        list holds reporting about issues with the queried status results.
         """
         service_status = {
             service: {
@@ -60,7 +61,10 @@ class TestServicesAreRunning(unittest.TestCase):
 
         self._query_state_of_services(service_status)
 
-        print('Waiting 10 seconds for second check to identify services in a restart-loop.')
+        print(
+            'Waiting 10 seconds for second check to identify '
+            'services in a restart-loop.',
+        )
         time.sleep(10)
 
         self._query_state_of_services(service_status)
@@ -71,32 +75,24 @@ class TestServicesAreRunning(unittest.TestCase):
             print(f'{service} failed with reason(s) "{state[SERVICE_RESULT]}"')
             print(self.get_failed_service_info(service))
 
-        assert not failed_services, "Services are not running correctly. See logging above."
+        assert not failed_services, \
+            "Services are not running correctly. See logging above."
 
-    def _get_services(self):
-        """
-        Returns a list of all services managed by magmad and additionally magmad itself,
-        openvswitch-switch and sctpd.
-        """
-        non_magmad_services = [
-            'magma@magmad',
-            'openvswitch-switch',
-            'sctpd',
-        ]
-
-        raw_magmad_yml = self._s1ap_wrapper.magmad_util.exec_command_output('cat /etc/magma/magmad.yml')
-        magmad_yml = yaml.load(raw_magmad_yml, Loader=SafeLoader)
-        magmad_services = magmad_yml['magma_services']
-
-        return non_magmad_services + [f'magma@{service}' for service in magmad_services]
-
-    def _query_state_of_services(self, service_status):
+    def _query_state_of_services(
+        self,
+        service_status: Dict[str, Dict[str, List[str]]],
+    ):
         for service, status in service_status.items():
-            active_state = self._s1ap_wrapper.magmad_util.check_service_activity(
-                f'systemctl is-active {service}',
-            ).strip()
+            active_state = "not active"
+            if self._s1ap_wrapper.magmad_util.is_service_active(service):
+                active_state = "active"
+            service_name = (
+                self._s1ap_wrapper.magmad_util.
+                map_service_to_init_system_service_name(service)
+            )
             start_time = self._s1ap_wrapper.magmad_util.exec_command_output(
-                f'systemctl show {service} --property=ActiveEnterTimestamp',
+                f'systemctl show {service_name} '
+                f'--property=ActiveEnterTimestamp',
             ).strip()
 
             status[SERVICE_START_TIME].append(start_time)
@@ -106,17 +102,23 @@ class TestServicesAreRunning(unittest.TestCase):
             print(f'  {active_state}')
             print(f'  {start_time}')
 
-    def get_failed_service_info(self, failed_service):
+    def get_failed_service_info(self, failed_service: str):
         return self._s1ap_wrapper.magmad_util.exec_command_capture_output(
             f'sudo systemctl status {failed_service}',
         ).stdout.decode("utf-8", errors='ignore')
 
-    def _get_failed_services(self, service_status):
+    def _get_failed_services(
+        self,
+        service_status: Dict[str, Dict[str, List[str]]],
+    ) -> Optional[Dict[str, Dict[str, List[str]]]]:
         for service, status in service_status.items():
             # was the service not active?
             active_status_first_check = status[SERVICE_ACTIVE][0]
             active_status_second_check = status[SERVICE_ACTIVE][1]
-            not_active = active_status_first_check != 'active' or active_status_second_check != 'active'
+            not_active = (
+                active_status_first_check != 'active'
+                or active_status_second_check != 'active'
+            )
             if not_active:
                 status[SERVICE_RESULT].append('not active')
 
@@ -127,4 +129,7 @@ class TestServicesAreRunning(unittest.TestCase):
             if restarted:
                 status[SERVICE_RESULT].append('restarted')
 
-        return {service: status for service, status in service_status.items() if len(status[SERVICE_RESULT]) > 0}
+        return {
+            service: status for service, status in service_status.items()
+            if len(status[SERVICE_RESULT]) > 0
+        }

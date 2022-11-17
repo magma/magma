@@ -119,15 +119,6 @@ jobs:
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Executing bazel build ${{ matrix.bazel-config }}' 1>&2
-            printf '\r%s\r' '###############################' 1>&2
-            bazel build \
-              ${{ matrix.bazel-target }} \
-              --config=mme_unit_test \
-              ${{ matrix.bazel-config }} \
-              --profile=Bazel_build_all_profile
-
-            printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
             printf '\r%s\r' '###############################' 1>&2
             TEST_FAILED="false"
@@ -173,12 +164,6 @@ jobs:
         run: |
           mkdir -p lte/gateway/test_results/
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
-      - name: Publish bazel build profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
-        with:
-          name: Bazel build all profile ${{ matrix.bazel-config }}
-          path: Bazel_build_all_profile
       - name: Publish bazel test profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
@@ -208,8 +193,8 @@ jobs:
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...` ${{ matrix.bazel-config }}"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_TITLE: "Bazel Build & Test Job `bazel test //...` ${{ matrix.bazel-config }}"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -359,7 +344,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Package Job"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -381,7 +366,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -403,7 +388,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
