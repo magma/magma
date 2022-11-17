@@ -340,7 +340,7 @@ jobs:
     name: orc8r build job
     runs-on: ubuntu-latest
     outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+      artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -387,7 +387,7 @@ jobs:
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
-        id: publish_artifacts
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
@@ -479,7 +479,7 @@ jobs:
     name: cwag deploy job
     runs-on: ubuntu-latest
     outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+      artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -558,7 +558,7 @@ jobs:
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
-        id: publish_artifacts
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
@@ -656,7 +656,7 @@ jobs:
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
       - name: Tag and push to LF Jfrog Registry
-        id: publish_artifacts
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
@@ -702,7 +702,7 @@ jobs:
     name: feg-build
     runs-on: ubuntu-latest
     outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+      artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -765,8 +765,8 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Tag and push to Jfrog Registry
-        id: publish_artifacts
+      - name: Tag and push to Jfrog LF Registry
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-feg-test/"
@@ -814,7 +814,7 @@ jobs:
     name: nms-build job
     runs-on: ubuntu-latest
     outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+      artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms"
@@ -859,7 +859,7 @@ jobs:
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to LF Jfrog Registry
-        id: publish_artifacts
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
@@ -941,7 +941,7 @@ jobs:
     name: domain proxy build job
     runs-on: ubuntu-latest
     outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+      artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -960,7 +960,7 @@ jobs:
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
       - name: Tag and push to LF Jfrog Registry
-        id: publish_artifacts
+        id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
