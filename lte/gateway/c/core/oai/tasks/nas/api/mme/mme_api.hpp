@@ -32,6 +32,7 @@ Description Implements the API used by the NAS layer running in the MME
         to interact with a Mobility Management Entity
 
 *****************************************************************************/
+
 #pragma once
 
 #include <stdbool.h>
@@ -179,9 +180,6 @@ void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                         mm_state_t new_emm_state);
 
 bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
-
-void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                                               bool vlr_reliable);
 
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)           \

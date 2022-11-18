@@ -36,7 +36,7 @@ Description Defines the SGS State Machine handling
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

@@ -15,28 +15,29 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgs_nas.c
-  \brief
-  \author
-  \company
-  \email:
-*/
-#define SGG
-#define SGS_NAS_C
+/*! \file sgs_defs.hpp
+ * \brief
+ * \author
+ * \company
+ * \email:
+ */
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#pragma once
 
-int sgs_send_uplink_unitdata(
-    itti_sgsap_uplink_unitdata_t* sgs_uplink_unitdata_p) {
-  DevAssert(sgs_uplink_unitdata_p);
+#include <stdint.h>
+#include <netinet/in.h>
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-  OAILOG_DEBUG(LOG_SGS,
-               "Received SGS_UPLINK_UNITDATA from task NAS for IMSI : %s \n",
-               sgs_uplink_unitdata_p->imsi);
-  /* TODO: Add the code for sending this message to sgs service*/
-
-  return 0;
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e sgs_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
 }
+#endif

@@ -57,7 +57,7 @@ jobs:
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-fields/retry@48bc5d4b1ce856c44a7766114e4da81c980a8a92 # pin@v2.8.2
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2.8.2
         with:
           command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
           timeout_minutes: 10

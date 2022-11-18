@@ -83,11 +83,14 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
   OAILOG_FUNC_IN(LOG_SGW_S8);
   int rc = 0;
 
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
-  rc = hashtable_ts_free(state_imsi_ht, teid);
-  if (rc != HASH_TABLE_OK) {
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64, "Failed to get state_teid_map");
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  }
+  if (state_teid_map->remove(teid) != magma::PROTO_MAP_OK) {
     OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
-                    "Failed to free teid from state_imsi_ht\n");
+                    "Failed to free teid from state_teid_map \n");
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   spgw_ue_context_t* ue_context_p = NULL;
@@ -121,11 +124,14 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
 sgw_eps_bearer_context_information_t* sgw_get_sgw_eps_bearer_context(
     teid_t teid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  sgw_eps_bearer_context_information_t* sgw_bearer_context_info = NULL;
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
+  sgw_eps_bearer_context_information_t* sgw_bearer_context_info = nullptr;
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SGW_S8, "Failed to get state_teid_map");
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, nullptr);
+  }
 
-  hashtable_ts_get(state_imsi_ht, (const hash_key_t)teid,
-                   (void**)&sgw_bearer_context_info);
+  state_teid_map->get(teid, &sgw_bearer_context_info);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_bearer_context_info);
 }
 
@@ -478,11 +484,11 @@ status_code_e sgw_s8_handle_create_session_response(
   sgw_eps_bearer_context_information_t* sgw_context_p =
       update_sgw_context_to_s11_teid_map(sgw_state, session_rsp_p, imsi64);
   if (!sgw_context_p) {
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64,
-        "Failed to fetch sgw_eps_bearer_context_info from hash list for "
-        "temporary_create_session_procedure_id:%u \n",
-        session_rsp_p->temporary_create_session_procedure_id);
+    OAILOG_ERROR_UE(LOG_SGW_S8, imsi64,
+                    "Failed to fetch sgw_eps_bearer_context_info from map of "
+                    "temporary_create_session_procedure_id_map for "
+                    "temporary_create_session_procedure_id:%u \n",
+                    session_rsp_p->temporary_create_session_procedure_id);
     OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
   }
   if (sgw_update_teid_in_ue_context(
@@ -1810,7 +1816,7 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
     sgw_state_t* sgw_state, s8_create_session_response_t* session_rsp_p,
     imsi64_t imsi64) {
   /* Once sgw_s8_teid is obtained from orc8r, move sgw_eps_bearer_context
-   * from temporary_create_session_procedure_id hashlist  to sgw_teid hashlist
+   * from temporary_create_session_procedure_id_map to state_teid_map
    */
   sgw_eps_bearer_context_information_t* sgw_context_p = nullptr;
   sgw_state->temporary_create_session_procedure_id_map.get(
@@ -1840,16 +1846,17 @@ sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
   sgw_context_p->s_gw_teid_S11_S4 = session_rsp_p->context_teid;
   sgw_context_p->pdn_connection.s_gw_teid_S5_S8_cp =
       session_rsp_p->context_teid;
-  // Insert the new tunnel with sgw_s11_teid into the hash list.
-  hash_table_ts_t* state_imsi_ht = get_sgw_ue_state();
-  hashtable_ts_insert(state_imsi_ht,
-                      (const hash_key_t)session_rsp_p->context_teid,
-                      sgw_context_p);
+  // Insert the new tunnel with sgw_s11_teid into the state_teid_map
+  map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SGW_S8, "Failed to get state_teid_map");
+    OAILOG_FUNC_RETURN(LOG_SGW_S8, nullptr);
+  }
+  state_teid_map->insert(session_rsp_p->context_teid, sgw_context_p);
 
-  OAILOG_DEBUG(
-      LOG_SGW_S8,
-      "Inserted new sgw eps bearer context into hash list, state_imsi_ht with "
-      "key as sgw_s11_teid " TEID_FMT "\n ",
-      session_rsp_p->context_teid);
+  OAILOG_DEBUG(LOG_SGW_S8,
+               "Inserted new sgw eps bearer context into state_teid_map with "
+               "key as sgw_s11_teid " TEID_FMT "\n ",
+               session_rsp_p->context_teid);
   OAILOG_FUNC_RETURN(LOG_SGW_S8, sgw_context_p);
 }

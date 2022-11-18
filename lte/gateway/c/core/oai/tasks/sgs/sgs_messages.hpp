@@ -15,25 +15,23 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgs.h
- * \brief
- * \author
- * \company
- * \email:
- */
+#pragma once
 
-#ifndef FILE_SGS_SEEN
-#define FILE_SGS_SEEN
-#include <stdint.h>
-#include <netinet/in.h>
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
-status_code_e sgs_init(const mme_config_t* mme_config);
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+extern task_zmq_ctx_t sgs_task_zmq_ctx;
+
+int sgs_send_eps_detach_indication(
+    itti_sgsap_eps_detach_ind_t* sgs_eps_detach_ind_p);
+
+int sgs_send_imsi_detach_indication(
+    itti_sgsap_imsi_detach_ind_t* sgs_imsi_detach_ind_p);
+
+int sgs_send_tmsi_reallocation_complete(
+    itti_sgsap_tmsi_reallocation_comp_t* sgs_tmsi_realloc_comp_p);
