@@ -206,8 +206,8 @@ jobs:
           done
           for i in `ls -a1 *.deb`
           do
-            echo "Pushing package $i to JFROG artifiactory: $LF_ARTIFACTORY_BASE_URL"
-            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.LF_JFROG_CIBOT_APIKEYS }} -XPUT "$LF_ARTIFACTORY_BASE_URL/magma-packages-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
+            echo "Pushing package $i to JFROG artifiactory: https://linuxfoundation.jfrog.io/artifactory"
+            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.LF_JFROG_CIBOT_APIKEYS }} -XPUT "https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
             echo "$HTTP_RESPONSE"
             # extract the body and download uri
             HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
@@ -390,7 +390,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -561,7 +561,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-cwag-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -650,7 +650,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-cwag-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-cwag-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -769,7 +769,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-feg-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-feg-test/"
           DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -862,7 +862,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -948,7 +948,7 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Test env is there
         run: |
-          echo $LF_ARTIFACTORY_BASE_URL
+          echo https://linuxfoundation.jfrog.io/artifactory
       - name: Prepare tools
         working-directory: "${{ github.workspace }}/dp"
         run: |
@@ -966,7 +966,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "$LF_ARTIFACTORY_BASE_URL/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
