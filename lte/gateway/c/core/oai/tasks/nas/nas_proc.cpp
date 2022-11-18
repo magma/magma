@@ -31,6 +31,8 @@
   Description NAS procedure call manager
 
 *****************************************************************************/
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -62,7 +64,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"

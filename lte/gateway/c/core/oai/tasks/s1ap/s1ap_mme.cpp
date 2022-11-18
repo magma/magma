@@ -22,27 +22,24 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_TimeToWait.h"
 #include "asn_internal.h"

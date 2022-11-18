@@ -24,6 +24,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 /*********************************** Utility Functions to update

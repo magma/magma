@@ -26,6 +26,11 @@
 #define FILE_S11_MME_SESSION_MANAGER_SEEN
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"
 
 /* @brief Create a new Create Session Request and send it to provided S-GW. */
 status_code_e s11_mme_create_session_request(
