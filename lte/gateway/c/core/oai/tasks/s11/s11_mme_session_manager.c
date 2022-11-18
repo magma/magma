@@ -39,21 +39,12 @@
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-
-/*#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
-#include
-"lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsgParser.h"*/
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
-
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.h"
-//#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
