@@ -14,15 +14,14 @@ import binascii
 import ipaddress
 import logging
 import socket
-from typing import Optional
+import subprocess
+from typing import List, Optional , Tuple
 
 import dpkt
 import netifaces
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.app.packet_parser import ParseSocketPacket
 from magma.pipelined.ifaces import get_mac_address_from_iface
-from scapy.error import Scapy_Exception
-from scapy.layers.inet6 import getmacbyip6
 
 
 def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
@@ -58,7 +57,7 @@ def get_mac_by_ip4(target_ip4: str) -> Optional[str]:
     return None
 
 
-def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -> str:
+def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) -> str:
     try:
         logging.debug(
             "sending arp via egress: %s",
@@ -75,9 +74,9 @@ def _get_gw_mac_address_v4(gw_ip: IPAddress, vlan: str, non_nat_arp_egress_port:
 
         parsed = ParseSocketPacket(res)
         logging.debug("ARP Res pkt %s", str(parsed))
-        if str(parsed.arp.psrc) != str(gw_ip):
+        if str(parsed.arp.psrc) != gw_ip:
             logging.warning(
-                f"Unexpected IP in ARP response. expected: {str(gw_ip)} pkt: {str(parsed)}",
+                f"Unexpected IP in ARP response. expected: {gw_ip} pkt: {str(parsed)}",
             )
             return ""
         if vlan.isdigit():
@@ -112,12 +111,12 @@ def _get_addresses(non_nat_arp_egress_port):
     return eth_mac_src, psrc
 
 
-def _create_arp_packet(eth_mac_src: bytes, psrc: str, gw_ip: IPAddress, vlan: str) -> dpkt.arp.ARP:
+def _create_arp_packet(eth_mac_src: bytes, psrc: str, gw_ip: str, vlan: str) -> dpkt.arp.ARP:
     pkt = dpkt.arp.ARP(
         sha=eth_mac_src,
         spa=socket.inet_aton(psrc),
         tha=b'\x00' * 6,
-        tpa=socket.inet_aton(str(gw_ip)),
+        tpa=socket.inet_aton(gw_ip),
         op=dpkt.arp.ARP_OP_REQUEST,
     )
     if vlan.isdigit():
@@ -155,14 +154,41 @@ def _send_packet_and_receive_response(pkt: dpkt.arp.ARP, vlan: str, non_nat_arp_
     return res
 
 
-def _get_gw_mac_address_v6(gw_ip: IPAddress) -> str:
+def get_ifaces_by_ip6(target_ip6: str) -> Tuple[List[str], List[str]]:
+    ifaces = []
+    ifaces_ip6 = []
+    for iface in netifaces.interfaces():
+        try:
+            for i in range(len(netifaces.ifaddresses(iface)[netifaces.AF_INET6])):
+                iface_ip6 = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['addr']
+                netmask = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['netmask']
+                res_prefix = ipaddress.IPv6Network(iface_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
+                target_prefix = ipaddress.IPv6Network(target_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
+                if res_prefix == target_prefix:
+                    ifaces.append(iface)
+                    ifaces_ip6.append(iface_ip6.split('%')[0])
+        except KeyError:
+            continue
+    return ifaces, ifaces_ip6
+
+
+def get_mac_by_ip6(gw_ip: str) -> str:
+    for iface, ip6 in get_ifaces_by_ip6(gw_ip):
+        res = subprocess.run(
+            ["ip", "neigh", "get", gw_ip, "dev", iface],
+            capture_output=True,
+        ).stdout.decode("utf-8")
+        if "lladdr" in res:
+            res = res.split("lladdr ")[1].split(" ")[0]
+            return res
+    raise ValueError(f"No mac address found for ip6 {gw_ip}")
+
+
+def _get_gw_mac_address_v6(gw_ip: str) -> str:
     try:
-        mac = getmacbyip6(gw_ip)
+        mac = get_mac_by_ip6(gw_ip)
         logging.debug("Got mac %s for IP: %s", mac, gw_ip)
         return mac
-    except Scapy_Exception as ex:
-        logging.warning("Error in probing Mac address: err %s", ex)
-        return ""
     except ValueError:
         logging.warning(
             "Invalid GW Ip address: [%s]",
