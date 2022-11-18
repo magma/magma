@@ -192,7 +192,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined:vlan_utils",
         "//lte/gateway/python/magma/pipelined/openflow:flows",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
-        requirement("scapy"),
     ],
 )
 
