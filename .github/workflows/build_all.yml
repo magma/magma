@@ -24,12 +24,12 @@ on:
       - 'v1.*'
     types: [ opened, reopened, synchronize ]
 env:
-  LF_ARTIFACTORY_BASE_URL: "https://linuxfoundation.jfrog.io/artifactory/"
+  LF_ARTIFACTORY_BASE_URL: "https://linuxfoundation.jfrog.io/"
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
     env:
-      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/"
       HELM_CHART_MUSEUM_REPO: helm-test
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
@@ -170,6 +170,8 @@ jobs:
           fab release package:destroy_vm=True
           mkdir magma-packages
           vagrant ssh -c "cp -r magma-packages /vagrant"
+      - name: Setup JFROG CLI
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
       - name: Publish debian packages
         id: publish_packages
         if: github.event_name == 'push'
@@ -204,33 +206,17 @@ jobs:
               echo "magma_package=${magma_package}" >> $GITHUB_OUTPUT
             fi
           done
-          for i in `ls -a1 *.deb`
-          do
-            echo "Pushing package $i to JFROG artifiactory: https://linuxfoundation.jfrog.io/artifactory"
-            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.LF_JFROG_CIBOT_APIKEYS }} -XPUT "https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
-            echo "$HTTP_RESPONSE"
-            # extract the body and download uri
-            HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
-            URI=$(echo $HTTP_BODY | jq -r '.uri')
-            if [[ "$URI" != "null" ]]; then
-              ARTIFACTS=$(echo $ARTIFACTS | jq --arg uri $URI '.packages += [$uri]')
-            else
-              PUBLISH_ERROR="true"
-            fi
-            # extract and check status
-            HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-            if [[ "$HTTP_STATUS" != "2"* ]]; then
-              PUBLISH_ERROR="true"
-            fi
-            # extract magma debian package version
-            match="magma_[0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+_[a-z0-9]+.deb"
-            if [[ $i =~ $match ]]; then
-              magma_package=${i#magma_}
-              magma_package=${magma_package%_[a-z0-9]*.deb}
-              magma_package='magma='${magma_package}
-              echo "magma_package=${magma_package}" >> $GITHUB_OUTPUT
-            fi
-          done
+
+          #Uploading it to the Linux foundation Registry
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            --url https://linuxfoundation.jfrog.io/artifactory/ \
+            --user ${{ secrets.LF_JFROG_USERNAME }} \
+            --password ${{ secrets.LF_JFROG_PASSWORD }} \
+            ${{ env.IS_DRY }} \
+            --target-props="${DEBIAN_META_INFO}" \
+            "(*).deb" magma-packages-test/pool/focal-ci/{1}.deb
           # set output
           if [[ "$PUBLISH_ERROR" != "true" ]]; then
             ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
@@ -390,7 +376,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -561,7 +547,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-cwag-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-cwag-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -650,7 +636,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-cwag-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-cwag-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -769,7 +755,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-feg-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-feg-test/"
           DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -862,7 +848,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -946,9 +932,6 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - name: Test env is there
-        run: |
-          echo https://linuxfoundation.jfrog.io/artifactory
       - name: Prepare tools
         working-directory: "${{ github.workspace }}/dp"
         run: |
@@ -966,7 +949,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test/"
+          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test/"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
