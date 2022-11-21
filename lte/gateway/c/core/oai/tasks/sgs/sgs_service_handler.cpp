@@ -17,14 +17,21 @@
 
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.hpp"
 
 static void sgs_send_sgsap_vlr_reset_ack(void);
 
@@ -34,7 +41,7 @@ status_code_e handle_sgs_location_update_accept(
    *send it to MME App for further processing
    */
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_SGS,
                                                      SGSAP_LOCATION_UPDATE_ACC);
   memset((void*)&message_p->ittiMsg.sgsap_location_update_acc, 0,
@@ -55,7 +62,7 @@ status_code_e handle_sgs_location_update_accept(
 status_code_e handle_sgs_location_update_reject(
     const itti_sgsap_location_update_rej_t* itti_sgsap_loc_updt_rej_p) {
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   /* Received SGS Location Update Reject from FedGW
    *send it to MME App for further processing
@@ -78,7 +85,7 @@ status_code_e handle_sgs_location_update_reject(
 status_code_e handle_sgs_eps_detach_ack(
     const itti_sgsap_eps_detach_ack_t* sgsap_eps_detach_ack_p) {
   // send it to MME module for further processing
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   MessageDef* message_p = NULL;
   itti_sgsap_eps_detach_ack_t* sgs_eps_detach_ack_p = NULL;
 
@@ -97,7 +104,7 @@ status_code_e handle_sgs_eps_detach_ack(
 status_code_e handle_sgs_imsi_detach_ack(
     const itti_sgsap_imsi_detach_ack_t* sgsap_imsi_detach_ack_p) {
   // send it to MME module for further processing
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   MessageDef* message_p = NULL;
   itti_sgsap_imsi_detach_ack_t* sgs_imsi_detach_ack_p = NULL;
 
@@ -115,7 +122,7 @@ status_code_e handle_sgs_imsi_detach_ack(
 
 status_code_e handle_sgs_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   MessageDef* message_p = NULL;
   itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
@@ -134,7 +141,7 @@ status_code_e handle_sgs_downlink_unitdata(
 
 status_code_e handle_sgs_release_req(
     const itti_sgsap_release_req_t* sgs_release_req_p) {
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   MessageDef* message_p = NULL;
   itti_sgsap_release_req_t* sgs_rel_req_p = NULL;
@@ -159,7 +166,7 @@ status_code_e handle_sgs_mm_information_request(
    *send it to NAS task for further processing
    */
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_SGS,
@@ -188,7 +195,7 @@ status_code_e handle_sgs_service_abort_req(
    *send it to MME App for further processing
    */
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_SGS);
   message_p =
@@ -215,7 +222,7 @@ status_code_e handle_sgs_service_abort_req(
 status_code_e handle_sgs_paging_request(
     const itti_sgsap_paging_request_t* const sgs_paging_req_pP) {
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
 
   /* Received SGS Paging Request from FedGW
@@ -250,7 +257,7 @@ status_code_e handle_sgs_paging_request(
 status_code_e handle_sgs_vlr_reset_indication(
     const itti_sgsap_vlr_reset_indication_t* const sgs_vlr_reset_ind_pP) {
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
 
   /* Received SGS VLR Reset Indication from FedGW
@@ -292,7 +299,7 @@ status_code_e handle_sgs_vlr_reset_indication(
 status_code_e handle_sgs_status_message(
     const itti_sgsap_status_t* sgs_status_pP) {
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
 
   /* Received SGS status message from FedGW
@@ -343,7 +350,7 @@ static void sgs_send_sgsap_vlr_reset_ack(void) {
 status_code_e handle_sgsap_alert_request(
     const itti_sgsap_alert_request_t* const sgsap_alert_request) {
   MessageDef* message_p = NULL;
-  int rc = RETURNok;
+  status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
 
   /* Received SGS Alert Req from FedGW
