@@ -17,6 +17,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 extern task_zmq_ctx_t sms_orc8r_task_zmq_ctx;

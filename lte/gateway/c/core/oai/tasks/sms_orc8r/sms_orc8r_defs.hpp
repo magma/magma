@@ -26,6 +26,10 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
@@ -33,9 +37,6 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e sms_orc8r_init(const mme_config_t* mme_config);
 #ifdef __cplusplus
 }
