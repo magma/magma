@@ -14,12 +14,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
 /*! \file gtpv1u_task.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
 #include <stdio.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -41,8 +43,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 
 const struct gtp_tunnel_ops* gtp_tunnel_ops;
 static struct in_addr current_ue_net;

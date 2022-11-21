@@ -24,8 +24,15 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 void handle_s5_create_session_request(
@@ -55,13 +62,7 @@ status_code_e spgw_send_nw_init_activate_bearer_rsp(
     bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module);
-#ifdef __cplusplus
-}
-#endif

@@ -15,19 +15,27 @@
  * For sending the flow reuqests to pipeplined
  */
 
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp"
 
 static const struct gtp_tunnel_ops upf_openflow_ops = {
     .init = openflow_init,

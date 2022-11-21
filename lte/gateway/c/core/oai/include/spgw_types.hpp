@@ -30,11 +30,18 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-#include "lte/gateway/c/core/oai/include/proto_map.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier

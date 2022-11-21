@@ -22,8 +22,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif

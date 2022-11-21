@@ -18,11 +18,11 @@
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {

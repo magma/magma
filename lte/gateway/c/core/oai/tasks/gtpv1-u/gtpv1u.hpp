@@ -14,6 +14,7 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
 /*! \file gtpv1u.hpp
  * \brief
  * \author Sebastien ROUX, Lionel Gauthier
@@ -25,7 +26,14 @@
 
 #include <arpa/inet.h>
 #include <net/if.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define GTPU_HEADER_OVERHEAD_MAX 64
 
