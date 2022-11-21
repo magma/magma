@@ -9,16 +9,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Cloud Unit Test Results
+name: PR Generate Unit Test Results
 on:
   workflow_run:
     workflows:
-      - cloud-workflow
-      - feg-workflow
-      - agw-workflow
-      - golang-build-test
-      - nms-workflow
-      - dp-workflow
+      - Orc8r Lint & Test
+      - FeG Lint & Test
+      - AGW Build & Test Experimental Go Code
+      - NMS Lint & Test
+      - DP Lint & Test
     types:
       - completed
 

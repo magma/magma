@@ -39,10 +39,11 @@ sgw_state_t* get_sgw_state(bool read_from_db);
 void put_sgw_state(void);
 
 /**
- * Returns pointer to SGW UE state
- * @return hashtable_ts_t struct with SGW UE context structs as data
+ * Returns pointer to map, map_uint32_sgw_eps_bearer_context_t
+ * @return map_uint32_sgw_eps_bearer_context_t map with SGW context structs as
+ * data
  */
-hash_table_ts_t* get_sgw_ue_state(void);
+map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map(void);
 
 /**
  * Populates SGW UE hashtable from db
@@ -65,10 +66,9 @@ void delete_sgw_ue_state(imsi64_t imsi64);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc
- * @param context_p sgw eps bearer context entry on hashtable
+ * @param context_p sgw eps bearer context entry on map
  */
-void sgw_free_s11_bearer_context_information(
-    sgw_eps_bearer_context_information_t** context_p);
+void sgw_free_s11_bearer_context_information(void** ptr);
 
 /**
  * Callback function for imsi_ue_context hashtable's freefunc

@@ -15,7 +15,8 @@ import ipaddress
 import logging
 
 from lte.protos.mobilityd_pb2 import IPAddress
-from scapy.arch import get_if_addr, get_if_hwaddr
+from magma.pipelined.ifaces import get_mac_address
+from scapy.arch import get_if_addr
 from scapy.data import ETH_P_ALL, ETHER_BROADCAST
 from scapy.error import Scapy_Exception
 from scapy.layers.inet6 import getmacbyip6
@@ -43,7 +44,7 @@ def _get_gw_mac_address_v4(ip: IPAddress, vlan: str, non_nat_arp_egress_port: st
             "sending arp via egress: %s",
             non_nat_arp_egress_port,
         )
-        eth_mac_src = get_if_hwaddr(non_nat_arp_egress_port)
+        eth_mac_src = get_mac_address(non_nat_arp_egress_port)
         psrc = "0.0.0.0"
         egress_port_ip = get_if_addr(non_nat_arp_egress_port)
         if egress_port_ip:

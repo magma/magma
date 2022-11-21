@@ -117,15 +117,19 @@ func NewGyClient(
 // given connection. Multiple requests can be sent in a row without waiting for
 // the answer
 // Example use:
-// 	client := NewGyClient()
-//  done :=  make(chan *CreditControlAnswer, 1)
-// 	client.SendCreditControlRequest(server, done, requests)
-// 	answer := <- done
-// Input: DiameterServerConfig containing info about where to send messages
-//				chan<- *CreditControlAnswer to send answers to
-//			  CreditControlRequest containing the request to send
 //
-// Output: error if server connection failed
+//		client := NewGyClient()
+//	    done :=  make(chan *CreditControlAnswer, 1)
+//		client.SendCreditControlRequest(server, done, requests)
+//		answer := <- done
+//
+// Input:
+//   - DiameterServerConfig containing info about where to send messages
+//   - chan<- *CreditControlAnswer to send answers to
+//   - CreditControlRequest containing the request to send
+//
+// Output:
+//   - error if server connection failed
 func (gyClient *GyClient) SendCreditControlRequest(
 	server *diameter.DiameterServerConfig,
 	done chan interface{},
@@ -230,10 +234,13 @@ func getAdditionalAvps(request *CreditControlRequest, globalConfig *GyGlobalConf
 // createCreditControlMessage creates a base message to be used for any Credit
 // Control Request message. Init will just use this, and update and terminate
 // pass in extra AVPs through additionalAVPs
-// Input: context.Context which has information on where to send to,
-//				CreditControlRequest with relevant request info
-//			  ...*diam.AVP with any AVPs to add on
-// Output: *diam.Message with all AVPs filled in, error if there was an issue
+// Input:
+//   - context.Context which has information on where to send to,
+//   - CreditControlRequest with relevant request info
+//   - ...*diam.AVP with any AVPs to add on
+//
+// Output:
+//   - *diam.Message with all AVPs filled in, error if there was an issue
 func (gyClient *GyClient) createCreditControlMessage(
 	server *diameter.DiameterServerConfig,
 	request *CreditControlRequest,
@@ -461,9 +468,12 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 
 // getCCAHandler returns a callback function to use when an answer is received
 // over Gy. Parses the message for relevant information.
-// Input: requestTracker *diameter.RequestTracker to get channel to send answers out
-//				when one is received
-// Output: diam.HandlerFunc
+// Input:
+//   - requestTracker *diameter.RequestTracker to get channel to send answers out
+//     when one is received
+//
+// Output:
+//   - diam.HandlerFunc
 func getCCAHandler() diameter.AnswerHandler {
 	return func(message *diam.Message) diameter.KeyAndAnswer {
 		glog.V(3).Infof("Received Gy CCA message:\n%s\n", message)

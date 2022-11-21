@@ -9,12 +9,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: AGW docker load test
+name: AGW Test Load Docker AMI
 
 on:
   workflow_run:
     workflows:
-      - build-all
+      - Magma Build & Publish
     branches:
       - master
       - 'v1.*'
@@ -35,7 +35,7 @@ jobs:
       WORK_DIR: "${{ github.workspace }}/experimental/cloudstrapper/playbooks"
       AGW_DOCKER_AMI: "ami-0150e153a94c122b5"
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run apt
         run: sudo apt-get update && sudo apt -y upgrade
       - name: setup pyenv

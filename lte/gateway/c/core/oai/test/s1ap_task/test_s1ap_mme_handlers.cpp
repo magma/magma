@@ -18,17 +18,18 @@
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 }
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/include/state_converter.hpp"
 
 extern bool hss_associated;
 extern task_zmq_ctx_t task_zmq_ctx_mme;

@@ -143,22 +143,17 @@ const _ = grpc.SupportPackageIsVersion6
 type HSSConfiguratorClient interface {
 	// Adds a new subscriber to the store.
 	// Throws ALREADY_EXISTS if the subscriber already exists.
-	//
 	AddSubscriber(ctx context.Context, in *protos.SubscriberData, opts ...grpc.CallOption) (*protos1.Void, error)
 	// Deletes an existing subscriber.
 	// If the subscriber is not already present, this request is ignored.
-	//
 	DeleteSubscriber(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos1.Void, error)
 	// Updates an existing subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	UpdateSubscriber(ctx context.Context, in *protos.SubscriberUpdate, opts ...grpc.CallOption) (*protos1.Void, error)
 	// Returns the SubscriberData for a subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	GetSubscriberData(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos.SubscriberData, error)
 	// List the subscribers in the store.
-	//
 	ListSubscribers(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*protos.SubscriberIDSet, error)
 	// De-register an authenticated subscriber
 	DeregisterSubscriber(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos1.Void, error)
@@ -230,22 +225,17 @@ func (c *hSSConfiguratorClient) DeregisterSubscriber(ctx context.Context, in *pr
 type HSSConfiguratorServer interface {
 	// Adds a new subscriber to the store.
 	// Throws ALREADY_EXISTS if the subscriber already exists.
-	//
 	AddSubscriber(context.Context, *protos.SubscriberData) (*protos1.Void, error)
 	// Deletes an existing subscriber.
 	// If the subscriber is not already present, this request is ignored.
-	//
 	DeleteSubscriber(context.Context, *protos.SubscriberID) (*protos1.Void, error)
 	// Updates an existing subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	UpdateSubscriber(context.Context, *protos.SubscriberUpdate) (*protos1.Void, error)
 	// Returns the SubscriberData for a subscriber.
 	// Throws NOT_FOUND if the subscriber is missing.
-	//
 	GetSubscriberData(context.Context, *protos.SubscriberID) (*protos.SubscriberData, error)
 	// List the subscribers in the store.
-	//
 	ListSubscribers(context.Context, *protos1.Void) (*protos.SubscriberIDSet, error)
 	// De-register an authenticated subscriber
 	DeregisterSubscriber(context.Context, *protos.SubscriberID) (*protos1.Void, error)

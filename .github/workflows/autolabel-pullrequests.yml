@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: AutoLabel PR
+name: PR Generate Labels
 on:
   # Use pull_request_target to gain write permissions.
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/

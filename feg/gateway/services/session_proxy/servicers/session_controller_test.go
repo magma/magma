@@ -61,7 +61,7 @@ var (
 	initialRequestedUnits = &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
 )
 
-//  ---- MockMultiplexor ----
+// ---- MockMultiplexor ----
 type MockMultiplexor struct {
 	imsiToIndex map[uint64]int
 }
@@ -600,7 +600,7 @@ func TestSessionControllerTimeouts(t *testing.T) {
 	).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gy.CreditControlRequest)
-		if request.RequestNumber%1 == 0 {
+		if request.RequestNumber%2 == 1 {
 			return
 		} else {
 			done <- &gy.CreditControlAnswer{

@@ -9,10 +9,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Bazel Build & Test"
+name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy
   workflow_dispatch:
+    inputs:
+      publish_bazel_profile:
+        description: 'Publish bazel profile data (default: false)'
+        required: false
+        default: false
+        type: boolean
   pull_request:
     types:
       - opened
@@ -85,7 +91,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -111,15 +117,6 @@ jobs:
             printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
             printf '\r%s\r\r' '###############################' 1>&2
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-
-            printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Executing bazel build ${{ matrix.bazel-config }}' 1>&2
-            printf '\r%s\r' '###############################' 1>&2
-            bazel build \
-              ${{ matrix.bazel-target }} \
-              ${{ matrix.bazel-config }} \
-              --config=mme_unit_test \
-              --profile=Bazel_build_all_profile
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
@@ -167,15 +164,9 @@ jobs:
         run: |
           mkdir -p lte/gateway/test_results/
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
-      - name: Publish bazel build profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
-        with:
-          name: Bazel build all profile ${{ matrix.bazel-config }}
-          path: Bazel_build_all_profile
       - name: Publish bazel test profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
@@ -187,7 +178,7 @@ jobs:
           path: lte/gateway/test_results/merged_unit_test_reports.xml
       - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/composite@2a60c5d47eb29cd5cc922f51bbea18e148f56203 # pin@v2
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: Bazel unit-test results ${{ matrix.bazel-config }}
           junit_files: lte/gateway/test_results/**/*.xml
@@ -201,9 +192,9 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
-          SLACK_TITLE: "Bazel Build & Test Job `bazel build //...; bazel test //...` ${{ matrix.bazel-config }}"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Build & Test Job `bazel test //...` ${{ matrix.bazel-config }}"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -221,7 +212,7 @@ jobs:
       success: ${{ steps.setoutput.outputs.success }}
     steps:
       - id: setoutput
-        run: echo "::set-output name=success::true"
+        run: echo "success=true" >> $GITHUB_OUTPUT
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
@@ -265,7 +256,7 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -285,12 +276,60 @@ jobs:
           run: |
             cd /workspaces/magma
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
-            bazel build lte/gateway/release:sctpd_deb_pkg lte/gateway/release:magma_deb_pkg \
+            bazel run //lte/gateway/release:release_build \
               --config=production \
               --profile=Bazel_build_package_profile
+            mkdir packages
+            mv /tmp/packages/*.deb packages
+      - name: Get magma version
+        run: |
+          version_pattern="magma_([0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+)_amd64.deb"
+          for i in packages/*.deb; do
+              if [[ $i =~ $version_pattern ]]; then
+                  magma_version=${BASH_REMATCH[1]}
+              fi
+          done
+          if [[ -z "$magma_version" ]]; then
+              echo "No file found with a matching version pattern \"${version_pattern}\". Files in folder:"
+              ls -la packages/*.deb
+              exit 1
+          else
+              echo "Exporting magma version \"${magma_version}\""
+              echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
+          fi
+      - name: Setup JFROG CLI
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+        env:
+          JF_URL: https://artifactory.magmacore.org
+          JF_USER: ${{ secrets.JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+      - name: Set dry run environment variable
+        if: ${{ ! ( github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master' ) }}
+        run: |
+          echo "IS_DRY=--dry-run" >> $GITHUB_ENV
+      - name: Publish debian packages
+        env:
+          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
+        run: |
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            ${{ env.IS_DRY }} \
+            --target-props="${DEBIAN_META_INFO}" \
+            "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
+
+      - name: Trigger debian integ test workflow
+        uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
+        if: github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: magma/magma
+          event-type: magma-debian-artifact
+          client-payload: '{ "magma_version": "${{ env.MAGMA_VERSION }}" }'
+
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel build package profile
           path: Bazel_build_package_profile
@@ -303,9 +342,9 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Package Job"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -316,7 +355,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Execute check
         shell: bash
         run: |
@@ -325,9 +364,9 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -338,7 +377,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Execute check
         shell: bash
         run: |
@@ -347,9 +386,9 @@ jobs:
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
-          SLACK_USERNAME: "Bazel Build & Test"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

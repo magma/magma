@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_STATUS_H_
-#define ESM_STATUS_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -58,5 +57,3 @@ typedef struct esm_status_msg_tag {
 int decode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
 
 int encode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(ESM_STATUS_H_) */

@@ -46,6 +46,7 @@ extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
@@ -53,11 +54,10 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"

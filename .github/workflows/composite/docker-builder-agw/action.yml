@@ -1,0 +1,91 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Build Docker Image For AGW
+description: Build a docker image and push it to a registry
+
+inputs:
+  REGISTRY_USERNAME:
+    description: Registry login username
+    required: true
+  REGISTRY_PASSWORD:
+    description: Registry login password
+    required: true
+  REGISTRY:
+    description: Docker registry
+    required: true
+  IMAGE:
+    description: Docker image stream name
+    required: true
+  TAG:
+    description: Docker image stream tag
+    default: latest
+  FILE:
+    description: Docker file
+    required: false
+    default: Dockerfile
+  CONTEXT:
+    description: Docker context
+    default: .
+  PUSH:
+    description: Push to registry?
+    default: true
+    type: boolean
+
+outputs:
+  digest:
+    description: Docker image digest
+    value: ${{ steps.build-docker.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - run: echo "Publishing images to ${{ inputs.REGISTRY }}"
+      shell: bash
+
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+    - uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # pin@v2.2.1
+
+    - name: Login to Docker Hub
+      id: docker-login
+      # See unresolved bug https://github.com/actions/runner/issues/1483
+      if: ${{ inputs.PUSH == 'true' && inputs.REGISTRY_USERNAME != '' && inputs.REGISTRY_PASSWORD != '' }}
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # pin@v2.1.0
+      with:
+        registry: ${{ inputs.REGISTRY }}
+        username: ${{ inputs.REGISTRY_USERNAME }}
+        password: ${{ inputs.REGISTRY_PASSWORD }}
+
+    - name: Build and push docker image ${{ inputs.IMAGE }}
+      id: build-docker
+      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
+      with:
+        context: ${{ inputs.CONTEXT }}
+        file: ${{ inputs.CONTEXT }}/${{ inputs.FILE }}
+        tags: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE }}:${{ inputs.TAG }}
+        push: ${{ steps.docker-login.conclusion == 'success' }}
+
+    # The workaround with uploaded files is necessary, because the repository_dispatch cannot be issued from forked PRs,
+    # as those will never acquire write permissions.
+    # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+    # The workaround is suggested in the documentation.
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+    - run: echo ${{ steps.build-docker.outputs.digest }} > ./${{ inputs.IMAGE }}.digest
+      shell: bash
+    - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3.1.1
+      with:
+        path: ./${{ inputs.IMAGE }}.digest
+      if: steps.docker-login.conclusion == 'success'
+
+    - run: echo "Image digest for \`${{ inputs.IMAGE }}\` is \`${{ steps.build-docker.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
+      if: steps.docker-login.conclusion == 'success'

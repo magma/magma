@@ -18,7 +18,7 @@ limitations under the License.
 
 // Extract MCC and MNC from the imsi received and match with
 // configuration
-extern "C" int match_fed_mode_map(const char* imsi, log_proto_t module) {
+int match_fed_mode_map(const char* imsi, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(imsi, &imsi64);
@@ -59,8 +59,9 @@ extern "C" int match_fed_mode_map(const char* imsi, log_proto_t module) {
 }
 
 // Verify that tac is included in registered subscription areas
-extern "C" int verify_service_area_restriction(
-    tac_t tac, const regional_subscription_t* reg_sub, uint8_t num_reg_sub) {
+int verify_service_area_restriction(tac_t tac,
+                                    const regional_subscription_t* reg_sub,
+                                    uint8_t num_reg_sub) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   tac_list_per_sac_t* tac_list = NULL;
   for (uint8_t itr = 0; itr < num_reg_sub; itr++) {

@@ -20,6 +20,7 @@
 #include <grpcpp/security/server_credentials.h>
 #include <memory>
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
@@ -31,7 +32,6 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 }
 
 using grpc::InsecureServerCredentials;

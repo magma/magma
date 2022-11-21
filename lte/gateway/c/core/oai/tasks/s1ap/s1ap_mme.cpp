@@ -36,10 +36,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
@@ -47,10 +48,11 @@ extern "C" {
 #include "asn_internal.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
-#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
@@ -343,8 +345,7 @@ extern "C" status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   // Initialize global stats timer
   epc_stats_timer_sec = (size_t)mme_config_p->stats_timer_sec;
 
-  if (s1ap_state_init(mme_config_p->max_ues, mme_config_p->max_enbs,
-                      mme_config_p->use_stateless) < 0) {
+  if (s1ap_state_init(mme_config_p->use_stateless) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
     return RETURNerror;
   }
@@ -471,7 +472,7 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
   if (s1ap_ue_state == nullptr) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
-    return;
+    OAILOG_FUNC_OUT(LOG_S1AP);
   }
   s1ap_ue_state->remove(ue_ref->comp_s1ap_id());
   proto_map_uint32_uint32_t mmeid2associd_map;
@@ -483,10 +484,11 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
   ue_id_coll.remove(mme_ue_s1ap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
-  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
-  s1ap_imsi_map->mme_ueid2imsi_map.get(mme_ue_s1ap_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.get(mme_ue_s1ap_id, &imsi64);
   delete_s1ap_ue_state(imsi64);
-  s1ap_imsi_map->mme_ueid2imsi_map.remove(mme_ue_s1ap_id);
+  ueid_imsi_map.remove(mme_ue_s1ap_id);
 
   OAILOG_DEBUG(LOG_S1AP, "Num UEs associated %u num elements in ue_id_coll %lu",
                enb_ref.nb_ue_associated(), ue_id_coll.size());
@@ -494,11 +496,11 @@ void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref) {
     if (enb_ref.s1_enb_state() == oai::S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref.set_s1_state(oai::S1AP_INIT);
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name().c_str());
       state->set_num_enbs(state->num_enbs() - 1);
     } else if (enb_ref.s1_enb_state() == oai::S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
-      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name());
+      set_gauge("s1_connection", 0, 1, "enb_name", enb_ref.enb_name().c_str());
       s1ap_remove_enb(state, &enb_ref);
     }
   }

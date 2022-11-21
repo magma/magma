@@ -15,13 +15,13 @@ RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
 COPY ./ $MAGMA_ROOT
 
 # Build MME executables
-RUN cd $MAGMA_ROOT/lte/gateway && \
+RUN cd $MAGMA_ROOT && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    bazel build //lte/gateway/c/core:mme_oai --define=disable_sentry_native=1 && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd --define=disable_sentry_native=1 && \
+    mv $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd
 
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
@@ -101,9 +101,9 @@ COPY --from=magma-mme-builder \
     /usr/local/lib/libgflags.so.2.2 \
     /usr/local/lib/libcares.so.2 \
     /usr/local/lib/libaddress_sorting.so \
-    /usr/local/lib/libnettle.so.4 \
-    /usr/local/lib/libgnutls.so.28 \
-    /usr/local/lib/libhogweed.so.2 \
+    /usr/lib/libnettle.so.4 \
+    /usr/lib/libgnutls.so.28 \
+    /usr/lib/libhogweed.so.2 \
     /usr/local/lib/
 
 # Copy all fdx files from freeDiameter installation
@@ -116,8 +116,8 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
     ./
 
 # For the moment, we are not putting any etc/*.conf files

@@ -52,8 +52,6 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
-        gtp_br_util = GTPBridgeUtils()
-        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -233,6 +231,9 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req2.bearerId,
             )
+
+            gtp_br_util = GTPBridgeUtils()
+            GTP_PORT = gtp_br_util.get_gtp_port_no()
 
             # Check if UL and DL OVS flows are created
             # UPLINK

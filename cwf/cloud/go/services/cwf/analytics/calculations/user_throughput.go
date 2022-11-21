@@ -33,7 +33,7 @@ type UserThroughputCalculation struct {
 	Direction     calculations.ConsumptionDirection
 }
 
-//Calculate method calculations average user throughput across the specified direction
+// Calculate method calculations average user throughput across the specified direction
 func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.V(1).Infof("Calculating User Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
 	// Get datapoints for throughput when the value is not 0 segmented

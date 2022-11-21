@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <sstream>
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace magma {
@@ -71,7 +70,7 @@ status_code_e mock_read_s1ap_ue_state_db(
       std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
       return RETURNerror;
     }
-    S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
+    ue_context_p->MergeFrom(ue_proto);
 
     proto_map_rc_t rc = state_ue_map->insert(
         ue_context_p->comp_s1ap_id(),
@@ -102,7 +101,8 @@ status_code_e mock_read_s1ap_state_db(
               << file_name_state_sample << std::endl;
     return RETURNerror;
   }
-  S1apStateConverter::proto_to_state(state_proto, state_cache_p);
+  state_cache_p->Clear();
+  state_cache_p->MergeFrom(state_proto);
   return RETURNok;
 }
 

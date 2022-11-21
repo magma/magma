@@ -54,22 +54,22 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/3gpp_requirements_24.301.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"

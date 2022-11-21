@@ -14,13 +14,13 @@ limitations under the License.
 package alwaysaccept
 
 import (
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 func TestAccessRequest(t *testing.T) {

@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_INFORMATION_RESPONSE_H_
-#define ESM_INFORMATION_RESPONSE_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -78,5 +77,3 @@ int decode_esm_information_response(
 int encode_esm_information_response(
     esm_information_response_msg* esminformationresponse, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(ESM_INFORMATION_RESPONSE_H_) */

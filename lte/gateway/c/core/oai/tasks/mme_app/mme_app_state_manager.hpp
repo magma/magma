@@ -17,10 +17,7 @@
 
 #pragma once
 
-extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-}
-
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"

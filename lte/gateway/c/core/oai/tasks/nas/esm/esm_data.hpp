@@ -33,8 +33,7 @@ Description Defines internal private data handled by EPS Session
 
 *****************************************************************************/
 
-#ifndef __ESMDATA_H__
-#define __ESMDATA_H__
+#pragma once
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
@@ -246,5 +245,3 @@ extern char* esm_data_get_ipv4_addr(const_bstring ip_addr);
 extern char* esm_data_get_ipv6_addr(const_bstring ip_addr);
 
 extern char* esm_data_get_ipv4v6_addr(const_bstring ip_addr);
-
-#endif /* __ESMDATA_H__*/

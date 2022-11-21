@@ -34,7 +34,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -47,6 +46,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"

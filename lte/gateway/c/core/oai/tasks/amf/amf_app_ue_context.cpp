@@ -783,7 +783,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         ue_context_p->m5_mobile_reachability_timer.id ==
             AMF_APP_TIMER_INACTIVE_ID) {
       ue_context_p->m5_mobile_reachability_timer.sec =
-          (amf_config.nas_config.t3512_min + (4 * 60));
+          (amf_config.nas_config.t3512_min + 4) * 60;
       ue_context_p->m5_implicit_deregistration_timer.sec =
           ue_context_p->m5_mobile_reachability_timer.sec;
 
@@ -897,7 +897,8 @@ void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
-  amf_app_itti_ue_context_release(ue_context_p, n2_cause);
+  amf_app_itti_ue_context_release(ue_context_p,
+                                  ue_context_p->ue_context_rel_cause);
 
   if (ue_context_p->m5_implicit_deregistration_timer.id !=
       NAS5G_TIMER_INACTIVE_ID) {

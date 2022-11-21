@@ -32,8 +32,8 @@ extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus

@@ -24,9 +24,9 @@ type S1ApEnbState int32
 
 const (
 	S1ApEnbState_S1AP_INIT S1ApEnbState = 0 /// The sctp association has been established but s1 hasn't been
-	/// setup.
+	// / setup.
 	S1ApEnbState_S1AP_RESETING S1ApEnbState = 1 /// The s1state is resetting due to an SCTP reset on the bound
-	/// association.
+	// / association.
 	S1ApEnbState_S1AP_READY    S1ApEnbState = 2 ///< MME and eNB are S1 associated, UE contexts can be added
 	S1ApEnbState_S1AP_SHUTDOWN S1ApEnbState = 3 /// The S1 state is being torn down due to sctp shutdown.
 )

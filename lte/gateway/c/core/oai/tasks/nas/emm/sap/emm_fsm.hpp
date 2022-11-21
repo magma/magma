@@ -33,8 +33,7 @@ Description Defines the EPS Mobility Management procedures executed at
         the EMMREG Service Access Point.
 
 *****************************************************************************/
-#ifndef FILE_EMM_FSM_SEEN
-#define FILE_EMM_FSM_SEEN
+#pragma once
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -93,4 +92,3 @@ status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ueid,
 const char* emm_fsm_get_state_str(
     const struct emm_context_s* const emm_context);
 status_code_e emm_fsm_process(struct emm_reg_s* const evt);
-#endif /* FILE_EMM_FSM_SEEN*/

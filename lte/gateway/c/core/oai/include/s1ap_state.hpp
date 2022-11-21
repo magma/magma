@@ -17,21 +17,14 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#ifdef __cplusplus
-}
-#endif
-
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/protos/oai/s1ap_state.pb.h"
 
 namespace magma {
 namespace lte {
 
-int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
+int s1ap_state_init(bool use_stateless);
 
 void s1ap_state_exit(void);
 
@@ -65,9 +58,9 @@ oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64);
 void put_s1ap_imsi_map(void);
 
 /**
- * @return s1ap_imsi_map_t pointer
+ * @return pointer to oai::S1apImsiMap
  */
-s1ap_imsi_map_t* get_s1ap_imsi_map(void);
+oai::S1apImsiMap* get_s1ap_imsi_map(void);
 
 map_uint64_ue_description_t* get_s1ap_ue_state(void);
 
@@ -93,6 +86,8 @@ void clean_stale_enb_state(oai::S1apState* state,
 proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState* state,
                                          sctp_assoc_id_t assoc_id,
                                          oai::EnbDescription* enb);
+
+void get_s1ap_ueid_imsi_map(magma::proto_map_uint32_uint64_t* ueid_imsi_map);
 
 }  // namespace lte
 }  // namespace magma
