@@ -11,8 +11,10 @@
  * limitations under the License.
  */
 
-#include <memory>
 #include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.hpp"
+
+#include <memory>
+
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_main_s8;
@@ -216,14 +218,14 @@ void fill_modify_bearer_request(itti_s11_modify_bearer_request_t* mb_req_p,
 
 bool is_num_s1_bearers_valid(sgw_state_t* sgw_state, imsi64_t imsi64,
                              int expected_num_active_bearers) {
-  spgw_ue_context_t* ue_context_p = NULL;
+  spgw_ue_context_t* ue_context_p = nullptr;
 
   sgw_state->imsi_ue_context_map.get(imsi64, &ue_context_p);
 
   if (!ue_context_p) {
     return false;
   }
-  sgw_s11_teid_t* s11_teid_p = NULL;
+  sgw_s11_teid_t* s11_teid_p = nullptr;
   int num_active_bearers = 0;
   int idx = 0;
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
