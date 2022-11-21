@@ -374,7 +374,7 @@ status_code_e s11_mme_delete_bearer_command(
   }
 
   // Add bearer contexts to be removed.
-  for (uint32_t num_ebi = 0; num_ebi < cmd_p->ebi_list.num_ebi; num_ebi++) {
+  for (uint8_t num_ebi = 0; num_ebi < cmd_p->ebi_list.num_ebi; num_ebi++) {
     gtpv2c_bearer_context_ebi_only_ie_set(&(ulp_req.hMsg),
                                           cmd_p->ebi_list.ebis[num_ebi]);
   }
