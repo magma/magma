@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#pragma once
+
 /*
  * Sends a SGS_LOCATION_UPDATE_ACCEPT message to MME.
  */

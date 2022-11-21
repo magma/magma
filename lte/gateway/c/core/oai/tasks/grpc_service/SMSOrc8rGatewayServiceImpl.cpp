@@ -14,12 +14,13 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/sms_orc8r_service_handler.h"
