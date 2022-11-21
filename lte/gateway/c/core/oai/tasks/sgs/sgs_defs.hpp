@@ -15,34 +15,29 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_primitives_server.c
- *  \brief Main server primitives
- *  \author Sebastien ROUX, Lionel GAUTHIER
- *  \date 2013
- *  \version 1.0
- *  @ingroup _sctp
- *  @{
+/*! \file sgs_defs.hpp
+ * \brief
+ * \author
+ * \company
+ * \email:
  */
 
+#pragma once
+
 #include <stdint.h>
-
-#ifndef FILE_SCTP_PRIMITIVES_SERVER_SEEN
-#define FILE_SCTP_PRIMITIVES_SERVER_SEEN
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include <netinet/in.h>
-#include <netinet/sctp.h>
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
-
-/** \brief SCTP Init function. Initialize SCTP layer
- \param mme_config The global MME configuration structure
- @returns -1 on error, 0 otherwise.
- **/
-int sctp_init(const mme_config_t* mme_config_p);
-
-#endif /* FILE_SCTP_PRIMITIVES_SERVER_SEEN */
-
-/* @} */
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e sgs_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
+}
+#endif

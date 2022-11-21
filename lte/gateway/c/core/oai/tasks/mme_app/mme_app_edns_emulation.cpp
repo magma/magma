@@ -22,6 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -39,8 +41,7 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 static obj_hash_table_t* g_e_dns_entries = NULL;
 

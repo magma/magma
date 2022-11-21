@@ -14,35 +14,19 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
 
-/*! \file mme_app_desc.h */
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
 
-#pragma once
-
-#include <stdint.h>
-#include <pthread.h>
-
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-
-typedef struct mme_app_desc_s {
-  /* UE contexts */
-  mme_ue_context_t mme_ue_contexts;
-
-  long statistic_timer_id;
-  uint32_t statistic_timer_period;
-  mme_ue_s1ap_id_t mme_app_ue_s1ap_id_generator;
-
-  /* ***************Statistics*************
-   * number of attached UE,number of connected UE,
-   * number of idle UE,number of default bearers,
-   * number of S1_U bearers,number of PDN sessions
-   */
-
-  uint32_t nb_ue_attached;
-  uint32_t nb_ue_connected;
-  uint32_t nb_default_eps_bearers;
-  uint32_t nb_s1u_bearers;
-  uint32_t nb_ue_managed;
-  uint32_t nb_ue_idle;
-  uint32_t nb_bearers_managed;
-} mme_app_desc_t;
+MESSAGE_DEF(APPLICATION_HEALTHY_MSG, application_healthy_msg_t,
+            application_healthy_msg)
+MESSAGE_DEF(APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
+            application_unhealthy_msg)
+MESSAGE_DEF(APPLICATION_MME_APP_STATS_MSG, application_mme_app_stats_msg_t,
+            application_mme_app_stats_msg)
+MESSAGE_DEF(APPLICATION_S1AP_STATS_MSG, application_s1ap_stats_msg_t,
+            application_s1ap_stats_msg)

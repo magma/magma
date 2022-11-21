@@ -24,7 +24,8 @@ import (
 
 // GetAndValidatePayload can be used by any model that implements ValidateModel
 // Example:
-// 	payload, nerr := GetAndValidatePayload(c, &models.DNSConfigRecord{})
+//
+//	payload, nerr := GetAndValidatePayload(c, &models.DNSConfigRecord{})
 //	if nerr != nil {
 //		return nil, nerr
 //	}

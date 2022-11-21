@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.hpp"
+
 #include <assert.h>
 
 #ifdef __cplusplus
@@ -26,7 +28,6 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_reg.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

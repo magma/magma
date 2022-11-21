@@ -168,9 +168,9 @@ func overwriteAllVersions(builder sqorc.StatementBuilder, tx *sql.Tx, versions [
 
 // getComposedVersions writes the composition of tracked (old) and local (new) indexers to store.
 // Determining whether an indexer needs to be reindexed depends on three recorded version infos per indexer:
-//	- new_desired	-- desired version from indexer registry
-//	- old_desired	-- desired version from existing reindex jobs
-//	- actual		-- actual version updated upon successful reindex job completion
+//   - new_desired	-- desired version from indexer registry
+//   - old_desired	-- desired version from existing reindex jobs
+//   - actual		-- actual version updated upon successful reindex job completion
 func getComposedVersions(old []*indexer.Versions) ([]*indexer.Versions, error) {
 	newv, err := getIndexerVersionsByID()
 	if err != nil {

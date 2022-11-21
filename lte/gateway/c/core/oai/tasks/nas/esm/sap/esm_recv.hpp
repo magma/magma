@@ -33,8 +33,7 @@ Description Defines functions executed at the ESM Service Access
         from the EPS Mobility Management sublayer.
 
 *****************************************************************************/
-#ifndef __ESM_RECV_H__
-#define __ESM_RECV_H__
+#pragma once
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
@@ -131,4 +130,3 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
 #ifdef __cplusplus
 }
 #endif
-#endif /* __ESM_RECV_H__*/

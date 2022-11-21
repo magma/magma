@@ -14,8 +14,8 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_SERVICE303_MESSAGES_TYPES_SEEN
-#define FILE_SERVICE303_MESSAGES_TYPES_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
@@ -46,5 +46,3 @@ typedef struct application_s1ap_stats_msg {
   uint32_t nb_enb_connected;
   uint32_t nb_s1ap_last_msg_latency;
 } application_s1ap_stats_msg_t;
-
-#endif /* FILE_SERVICE303_MESSAGES_TYPES_SEEN */

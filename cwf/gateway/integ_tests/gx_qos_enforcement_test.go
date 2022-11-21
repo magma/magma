@@ -57,13 +57,14 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfProtos.GenTrafficReq
 	}
 }
 
-//TestGxUplinkTrafficQosEnforcement
+// # TestGxUplinkTrafficQosEnforcement
+//
 // This test verifies the QOS configuration(uplink) present in the rules
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-ULQos) with QOS config setting with
-//   maximum uplink bitrate.
-// - Generate traffic and verify if the traffic observed bitrate matches the configured
-// bitrate
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-ULQos) with QOS config setting with
+//     maximum uplink bitrate.
+//   - Generate traffic and verify if the traffic observed bitrate matches the configured
+//     bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
@@ -140,13 +141,14 @@ func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
 	return strings.Contains(cmdOutputList[0].output, ruleName)
 }
 
-//TestGxDownlinkTrafficQosEnforcement
+// # TestGxDownlinkTrafficQosEnforcement
+//
 // This test verifies the QOS configuration(downlink) present in the rules
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-DLQos) with QOS config setting with
-//   maximum downlink bitrate.
-// - Generate traffic from server to client and verify if the traffic observed bitrate
-//   matches the configured bitrate
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-DLQos) with QOS config setting with
+//     maximum downlink bitrate.
+//   - Generate traffic from server to client and verify if the traffic observed bitrate
+//     matches the configured bitrate
 func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxDownlinkTrafficQosEnforcement")
@@ -206,19 +208,20 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-//TestGxQosDowngradeWithCCAUpdate
+// # TestGxQosDowngradeWithCCAUpdate
+//
 // This test verifies QOS downgrade which can be caused due to CCA-update
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-qos-CCAI) with QOS config setting with
-//   maximum uplink bitrate.
-// - Generate traffic and verify if the traffic observed bitrate matches the initially
-// configured bitrate
-// - Set an expectation for a  CCR-U to be sent up to PCRF, which will respond with a
-// rule install static-qos-CCAU which will downgrade the QOS setting for the uplink
-// - Generate traffic and verify if the traffic observed bitrate matches the newly
-// downgraded bitrate
-// - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
-// that the observed bitrate maches the newly configured bitrate
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-qos-CCAI) with QOS config setting with
+//     maximum uplink bitrate.
+//   - Generate traffic and verify if the traffic observed bitrate matches the initially
+//     configured bitrate
+//   - Set an expectation for a  CCR-U to be sent up to PCRF, which will respond with a
+//     rule install static-qos-CCAU which will downgrade the QOS setting for the uplink
+//   - Generate traffic and verify if the traffic observed bitrate matches the newly
+//     downgraded bitrate
+//   - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
+//     that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
@@ -328,17 +331,18 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 }
 
-//TestGxQosDowngradeWithReAuth
+// # TestGxQosDowngradeWithReAuth
+//
 // This test verifies QOS downgrade which can be caused due to ReAuth Request
-// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (static-qos-CCAI) with QOS config setting with
-//   maximum uplink bitrate.
-// - Generate traffic and verify if the traffic observed bitrate matches the initially
-// configured bitrate
-// - Set an expectation for a  CCR-U to be sent up to PCRF, which will respond with a
-// rule install static-qos-CCAU which will downgrade the QOS setting for the uplink
-// - Generate traffic and verify if the traffic observed bitrate matches the newly
-// downgraded bitrate
+//   - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install (static-qos-CCAI) with QOS config setting with
+//     maximum uplink bitrate.
+//   - Generate traffic and verify if the traffic observed bitrate matches the initially
+//     configured bitrate
+//   - Set an expectation for a  CCR-U to be sent up to PCRF, which will respond with a
+//     rule install static-qos-CCAU which will downgrade the QOS setting for the uplink
+//   - Generate traffic and verify if the traffic observed bitrate matches the newly
+//     downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")

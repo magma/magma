@@ -39,8 +39,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 
@@ -308,16 +308,10 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
 status_code_e mme_app_handle_sgs_status_message(
     mme_app_desc_t* mme_app_desc_p, itti_sgsap_status_t* sgsap_status_pP);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void mme_app_handle_erab_rel_cmd(mme_ue_s1ap_id_t ue_id, ebi_t ebi,
                                  bstring nas_msg);
 
 void mme_app_handle_e_rab_rel_rsp(itti_s1ap_e_rab_rel_rsp_t* e_rab_rel_rsp);
-#ifdef __cplusplus
-}
-#endif
 
 void mme_app_handle_nw_init_bearer_deactv_req(
     mme_app_desc_t* mme_app_desc_p,
@@ -355,9 +349,6 @@ void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
                                     partial_tai_list_t* tai_list,
                                     uint8_t num_of_tac);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e emm_send_cs_domain_attach_or_tau_accept(
     struct ue_mm_context_s* ue_context_p);
 
@@ -370,9 +361,6 @@ void send_delete_dedicated_bearer_rsp(struct ue_mm_context_s* ue_context_p,
                                       bool mme_initiated_local_deact);
 
 int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
-#ifdef __cplusplus
-}
-#endif
 
 status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
 

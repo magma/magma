@@ -23,7 +23,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"

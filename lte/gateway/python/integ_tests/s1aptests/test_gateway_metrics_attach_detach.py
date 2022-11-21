@@ -39,11 +39,10 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
         """ Basic gateway metrics with attach/detach for a single UE """
 
         label_values_success = {"result": "success"}
-        mme_new_association = self._getMetricValueGivenLabel(
+        mme_new_association_before = self._getMetricValueGivenLabel(
             "mme_new_association",
             label_values_success,
         )
-        assert mme_new_association > 0
 
         num_ues = 2
         detach_type = [
@@ -137,6 +136,12 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
                 label_values_success,
             )
             assert (val == v_spgw_delete_session + 1)
+
+        mme_new_association = self._getMetricValueGivenLabel(
+            "mme_new_association",
+            label_values_success,
+        )
+        assert (mme_new_association == mme_new_association_before + 1)
 
 
 if __name__ == "__main__":

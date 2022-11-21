@@ -22,6 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <netinet/in.h>
@@ -38,9 +40,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
 
 //------------------------------------------------------------------------------
 void mme_app_select_sgw(const tai_t* const tai,

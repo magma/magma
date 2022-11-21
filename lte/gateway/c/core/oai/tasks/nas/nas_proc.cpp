@@ -31,6 +31,8 @@
   Description NAS procedure call manager
 
 *****************************************************************************/
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -42,15 +44,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
@@ -63,7 +63,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_main.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"

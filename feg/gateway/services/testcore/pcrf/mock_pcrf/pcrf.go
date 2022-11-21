@@ -68,10 +68,12 @@ type PCRFServer struct {
 }
 
 // NewPCRFServer initializes an PCRF with an empty rule map
-// Input: *sm.Settings containing the diameter related parameters
-//				*TestPCRFConfig containing the server address
+// Input:
+//   - *sm.Settings containing the diameter related parameters
+//   - *TestPCRFConfig containing the server address
 //
-// Output: a new PCRFServer
+// Output:
+//   - a new PCRFServer
 func NewPCRFServer(clientConfig *diameter.DiameterClientConfig, serverConfig *diameter.DiameterServerConfig) *PCRFServer {
 	return &PCRFServer{
 		diameterClientConfig: clientConfig,
@@ -167,11 +169,14 @@ func (srv *PCRFServer) CreateAccount(
 }
 
 // SetRules sets or overrides the rules applicable to the subscriber
-// Input: imsi string IMSI for the subscriber
-//			  ruleNames []string containing all rule names to apply
-//			  ruleBaseNames []string containing all rule base names to apply
-//			  ruleDefinitions []*RuleDefinition containing all dynamic rules to apply
-// Output: error if subscriber could not be found
+// Input:
+//   - imsi string IMSI for the subscriber
+//   - ruleNames []string containing all rule names to apply
+//   - ruleBaseNames []string containing all rule base names to apply
+//   - ruleDefinitions []*RuleDefinition containing all dynamic rules to apply
+//
+// Output:
+//   - error if subscriber could not be found
 func (srv *PCRFServer) SetRules(
 	_ context.Context,
 	accountRules *protos.AccountRules,
@@ -202,9 +207,12 @@ func (srv *PCRFServer) SetUsageMonitors(
 }
 
 // GetRuleNames returns all the rules set for a subscriber
-// Input: string IMSI for the subscriber
-// Output: []string containing all applicable rules
-//			   error if subscriber could not be found
+// Input:
+//   - string IMSI for the subscriber
+//
+// Output:
+//   - []string containing all applicable rules
+//     error if subscriber could not be found
 func (srv *PCRFServer) GetRuleNames(imsi string) ([]string, error) {
 	account, ok := srv.subscribers[imsi]
 	if !ok {
@@ -214,9 +222,12 @@ func (srv *PCRFServer) GetRuleNames(imsi string) ([]string, error) {
 }
 
 // GetRuleBaseNames returns all the rule base names set for a subscriber
-// Input: string IMSI for the subscriber
-// Output: []string containing all applicable rule base names
-//			   error if subscriber could not be found
+// Input:
+//   - string IMSI for the subscriber
+//
+// Output:
+//   - []string containing all applicable rule base names
+//     error if subscriber could not be found
 func (srv *PCRFServer) GetRuleBaseNames(imsi string) ([]string, error) {
 	account, ok := srv.subscribers[imsi]
 	if !ok {
@@ -226,9 +237,12 @@ func (srv *PCRFServer) GetRuleBaseNames(imsi string) ([]string, error) {
 }
 
 // GetRuleDefinitions returns all the dynamic rule definitions set for a subscriber
-// Input: string IMSI for the subscriber
-// Output: []*RuleDefinition containing all applicable rules
-//			   error if subscriber could not be found
+// Input:
+//   - string IMSI for the subscriber
+//
+// Output:
+//   - []*RuleDefinition containing all applicable rules
+//     error if subscriber could not be found
 func (srv *PCRFServer) GetRuleDefinitions(
 	imsi string,
 ) ([]*protos.RuleDefinition, error) {

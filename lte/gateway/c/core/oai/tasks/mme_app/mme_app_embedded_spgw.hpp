@@ -24,7 +24,7 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 

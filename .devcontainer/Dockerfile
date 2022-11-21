@@ -15,8 +15,6 @@ ARG USE_MOBY="true"
 # Install needed packages and setup non-root user. Use a separate RUN statement to add your
 # own dependencies. A user of "automatic" attempts to reuse an user ID if one already exists.
 ARG USERNAME=automatic
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
 COPY .devcontainer/library-scripts/*.sh /tmp/library-scripts/
 RUN apt-get update \
     && /bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" \
@@ -43,17 +41,17 @@ RUN echo "Install general purpose packages" && \
     apt-get install -y --no-install-recommends \
         autoconf \
         automake \
-        clang-11 \
-        clang-format-11 \
-        clang-tidy-11 \
+        clang-12 \
+        clang-format-12 \
+        clang-tidy-12 \
         clangd-12 \
         g++-9 \
         gcc-9 \
         gdb \
         lcov \
-        libclang-11-dev \
-        lldb-11 \
-        llvm-11-dev \
+        libclang-12-dev \
+        lldb-12 \
+        llvm-12-dev \
         make \
         ninja-build \
         openjdk-8-jdk \
@@ -68,20 +66,15 @@ RUN echo "Install general purpose packages" && \
         software-properties-common \
         tzdata \
         virtualenv=20.0.17-1ubuntu0.4 && \
-    gem install fpm && \
-    update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
-    update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-11/bin/clang-format 10 && \
-    update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-    update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
+    gem install fpm
 
-# Install golang 1.18
+# Install golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18.3"
+ARG GOLANG_VERSION="1.19.3"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
- && tar -xzf ${GO_TARBALL} \
- && rm ${GO_TARBALL}
+    && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+    && tar -xzf ${GO_TARBALL} \
+    && rm ${GO_TARBALL}
 ENV PATH=${PATH}:/usr/local/go/bin
 
 # /home/vscode/go/bin doesn't exist initially, but for example orc8r/cloud/go/Makefile
@@ -160,13 +153,13 @@ RUN cd /usr/src/googletest && \
     ldconfig -v
 
 ###### Install Include What You Use for c/cpp header include fixup tooling
-# Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags
+# Tag 0.15 tracks Clang 12.0 per https://github.com/include-what-you-use/include-what-you-use/tags
 RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
     cd include-what-you-use && \
     git checkout 0.15 && \
     cd .. && \
     mkdir build_iwyu && cd build_iwyu && \
-    cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
+    cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-12 ../include-what-you-use/ && \
     make && \
     make install && \
     cd .. && \
@@ -174,7 +167,7 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
 
 ##### Go language server support for vscode
 RUN GOBIN="/usr/bin/" go install -v golang.org/x/tools/gopls@v0.8.3 && \
-     rm --recursive --interactive=never /root/.cache/go-build
+    rm --recursive --interactive=never /root/.cache/go-build
 
 #### Update shared library configuration
 RUN ldconfig -v

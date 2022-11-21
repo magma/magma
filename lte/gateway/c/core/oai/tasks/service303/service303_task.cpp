@@ -14,20 +14,28 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
 #define SERVICE303
 #define SERVICE303_TASK_C
 
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 
 static void service303_server_exit(void);
 static void service303_message_exit(void);
@@ -66,7 +74,8 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
   start_service303_server(service303_data->name, service303_data->version);
 
   itti_mark_task_ready(TASK_SERVICE303_SERVER);
-  init_task_context(TASK_SERVICE303_SERVER, (task_id_t[]){}, 0,
+  const task_id_t peer_task_ids[] = {};
+  init_task_context(TASK_SERVICE303_SERVER, peer_task_ids, 0,
                     handle_service303_server_message,
                     &service303_server_task_zmq_ctx);
 
@@ -114,7 +123,8 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* service303_thread(void* args) {
   service303_data_t* service303_data = (service303_data_t*)args;
   itti_mark_task_ready(TASK_SERVICE303);
-  init_task_context(TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
+  const task_id_t peer_task_ids[] = {};
+  init_task_context(TASK_SERVICE303, peer_task_ids, 0, handle_service_message,
                     &service303_message_task_zmq_ctx);
   start_display_stats_timer((size_t)service303_data->stats_display_timer_sec);
   zloop_start(service303_message_task_zmq_ctx.event_loop);

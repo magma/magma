@@ -90,6 +90,7 @@ type Identity struct {
 	// identityTypeNameTable in magma/protos/identity_helper.go
 	//
 	// Types that are assignable to Value:
+	//
 	//	*Identity_Gateway_
 	//	*Identity_Operator
 	//	*Identity_Network

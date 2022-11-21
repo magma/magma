@@ -15,21 +15,21 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_INFORMATION_REQUEST_H_
-#define ESM_INFORMATION_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_INFORMATION_REQUEST_MINIMUM_LENGTH (0)
@@ -59,5 +59,3 @@ int decode_esm_information_request(
 int encode_esm_information_request(
     esm_information_request_msg* esminformationrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(ESM_INFORMATION_REQUEST_H_) */

@@ -15,28 +15,23 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgs_nas.c
-  \brief
-  \author
-  \company
-  \email:
-*/
-#define SGG
-#define SGS_NAS_C
+#pragma once
 
-#include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.h"
-
-int sgs_send_uplink_unitdata(
-    itti_sgsap_uplink_unitdata_t* sgs_uplink_unitdata_p) {
-  DevAssert(sgs_uplink_unitdata_p);
-
-  OAILOG_DEBUG(LOG_SGS,
-               "Received SGS_UPLINK_UNITDATA from task NAS for IMSI : %s \n",
-               sgs_uplink_unitdata_p->imsi);
-  /* TODO: Add the code for sending this message to sgs service*/
-
-  return 0;
+#ifdef __cplusplus
 }
+#endif
+
+extern task_zmq_ctx_t sgs_task_zmq_ctx;
+
+int sgs_send_eps_detach_indication(
+    itti_sgsap_eps_detach_ind_t* sgs_eps_detach_ind_p);
+
+int sgs_send_imsi_detach_indication(
+    itti_sgsap_imsi_detach_ind_t* sgs_imsi_detach_ind_p);
+
+int sgs_send_tmsi_reallocation_complete(
+    itti_sgsap_tmsi_reallocation_comp_t* sgs_tmsi_realloc_comp_p);

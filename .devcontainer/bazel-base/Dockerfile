@@ -7,6 +7,9 @@ ARG DEB_PORT=amd64
 
 ARG PYTHON_VERSION=3.8
 
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
 ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -42,7 +45,7 @@ RUN echo "Install general purpose packages" && \
         libsctp-dev `# dependency of sctpd` \
         libssl-dev \
         libsystemd-dev `# dependency of pip systemd` \
-        lld \
+        lld-12 \
         net-tools `# dependency of python services (e.g. magmad)` \
         netbase `# dependency of python services (e.g. pipelined)` \
         python${PYTHON_VERSION} \

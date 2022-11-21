@@ -39,7 +39,7 @@ const (
 // one AG service config
 // --------------------------------------------------------------------------
 // NOTE: a service config field name (control_proxy, enodebd, etc.) must match
-//       the corresponding gateway service's name exactly
+// the corresponding gateway service's name exactly
 type GatewayConfigs struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

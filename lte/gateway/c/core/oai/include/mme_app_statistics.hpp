@@ -15,25 +15,15 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgs.h
- * \brief
- * \author
- * \company
- * \email:
- */
+#pragma once
 
-#ifndef FILE_SGS_SEEN
-#define FILE_SGS_SEEN
-#include <stdint.h>
-#include <netinet/in.h>
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
-status_code_e sgs_init(const mme_config_t* mme_config);
-
-#endif
+/*********************************** Utility Functions to update
+ * Statistics**************************************/
+void update_mme_app_stats_connected_ue_add(void);
+void update_mme_app_stats_s1u_bearer_add(void);
+void update_mme_app_stats_connected_ue_sub(void);
+void update_mme_app_stats_s1u_bearer_sub(void);
+void update_mme_app_stats_default_bearer_add(void);
+void update_mme_app_stats_default_bearer_sub(void);
+void update_mme_app_stats_attached_ue_add(void);
+void update_mme_app_stats_attached_ue_sub(void);

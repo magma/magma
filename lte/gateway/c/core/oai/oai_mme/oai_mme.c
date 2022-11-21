@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -22,32 +24,26 @@
 #include <string.h>
 #include <systemd/sd-daemon.h>
 
-#include "lte/gateway/c/core/oai/include/mme_events.hpp"
-
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 /* FreeDiameter headers for support of S6A interface */
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
-#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"

@@ -19,10 +19,7 @@
 #include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 
-extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-}
-
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 
 using grpc::ServerContext;

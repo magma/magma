@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sctp_primitives_server.c
+/*! \file sctp_primitives_server.cpp
     \brief Main server primitives
     \author Sebastien ROUX, Lionel GAUTHIER
     \date 2013
@@ -23,13 +23,17 @@
     @ingroup _sctp
 */
 
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -38,15 +42,18 @@
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/mme_default_values.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctpd_downlink_client.hpp"
 #include "lte/gateway/c/core/oai/tasks/sctp/sctpd_uplink_server.hpp"
 
@@ -131,10 +138,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* sctp_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SCTP);
-  init_task_context(
-      TASK_SCTP,
-      (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_NGAP, TASK_AMF_APP}, 4,
-      handle_message, &sctp_task_zmq_ctx);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP, TASK_S1AP, TASK_NGAP,
+                                     TASK_AMF_APP};
+  init_task_context(TASK_SCTP, peer_task_ids, 4, handle_message,
+                    &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
   AssertFatal(0, "Asserting as sctp_thread should not be exiting on its own!");

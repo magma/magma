@@ -106,48 +106,48 @@ type AIA struct {
 
 // Definitions for ULA, see sample below:
 //
-//Update-Location-Answer (ULA)
-//{Code:316,Flags:0x40,Version:0x1,Length:516,ApplicationId:16777251,HopByHopId:0x22910d0a,EndToEndId:0x8d330652}
+// Update-Location-Answer (ULA)
+// {Code:316,Flags:0x40,Version:0x1,Length:516,ApplicationId:16777251,HopByHopId:0x22910d0a,EndToEndId:0x8d330652}
+//
 //	Session-Id {Code:263,Flags:0x40,Length:24,VendorId:0,Value:UTF8String{session;89988919},Padding:0}
 //	ULA-Flags {Code:1406,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{1}}
 //	Subscription-Data {Code:1400,Flags:0xc0,Length:380,VendorId:10415,Value:Grouped{
-//		MSISDN {Code:701,Flags:0xc0,Length:20,VendorId:10415,Value:OctetString{0x33638060010f},Padding:2},
-//		Access-Restriction-Data {Code:1426,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{47}},
-//		Subscriber-Status {Code:1424,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
-//		Network-Access-Mode {Code:1417,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{2}},
-//		AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
-//			Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
-//			Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
-//		}}
-//		APN-Configuration-Profile {Code:1429,Flags:0xc0,Length:240,VendorId:10415,Value:Grouped{
-//			Context-Identifier {Code:1423,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{0}},
-//			All-APN-Configurations-Included-Indicator {Code:1428,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
-//			APN-Configuration {Code:1430,Flags:0xc0,Length:196,VendorId:10415,Value:Grouped{
-//				Context-Identifier {Code:1423,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{0}},
-//				PDN-Type {Code:1456,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
-//				Service-Selection {Code:493,Flags:0xc0,Length:20,VendorId:10415,Value:UTF8String{oai.ipv4},Padding:0},
-//				EPS-Subscribed-QoS-Profile {Code:1431,Flags:0xc0,Length:88,VendorId:10415,Value:Grouped{
-//					QoS-Class-Identifier {Code:1028,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{9}},
-//					Allocation-Retention-Priority {Code:1034,Flags:0x80,Length:60,VendorId:10415,Value:Grouped{
-//						Priority-Level {Code:1046,Flags:0x80,Length:16,VendorId:10415,Value:Unsigned32{15}},
-//						Pre-emption-Capability {Code:1047,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{1}},
-//						Pre-emption-Vulnerability {Code:1048,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{0}},
-//					}}
-//				}},
-//              TGPP-Charging-Characteristics {Code: 13,Flags:0x80,VendorId:10415,Value:UTF8String{12}},
-//				AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
-//					Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
-//					Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
-//				}}
-//			}}
-//		}}
-//		Subscribed-Periodic-RAU-TAU-Timer {Code:1619,Flags:0x80,Length:16,VendorId:10415,Value:Unsigned32{120}},
+//	   MSISDN {Code:701,Flags:0xc0,Length:20,VendorId:10415,Value:OctetString{0x33638060010f},Padding:2},
+//	   Access-Restriction-Data {Code:1426,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{47}},
+//	   Subscriber-Status {Code:1424,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
+//	   Network-Access-Mode {Code:1417,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{2}},
+//	   AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
+//	   	Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
+//	   	Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
+//	   }}
+//	   APN-Configuration-Profile {Code:1429,Flags:0xc0,Length:240,VendorId:10415,Value:Grouped{
+//	   	   Context-Identifier {Code:1423,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{0}},
+//	   	   All-APN-Configurations-Included-Indicator {Code:1428,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
+//	   	   APN-Configuration {Code:1430,Flags:0xc0,Length:196,VendorId:10415,Value:Grouped{
+//	   	   	  Context-Identifier {Code:1423,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{0}},
+//	   	   	  PDN-Type {Code:1456,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{0}},
+//	   	   	  Service-Selection {Code:493,Flags:0xc0,Length:20,VendorId:10415,Value:UTF8String{oai.ipv4},Padding:0},
+//	   	   	  EPS-Subscribed-QoS-Profile {Code:1431,Flags:0xc0,Length:88,VendorId:10415,Value:Grouped{
+//	   	   		  QoS-Class-Identifier {Code:1028,Flags:0xc0,Length:16,VendorId:10415,Value:Enumerated{9}},
+//	   	   		  Allocation-Retention-Priority {Code:1034,Flags:0x80,Length:60,VendorId:10415,Value:Grouped{
+//	   	   			  Priority-Level {Code:1046,Flags:0x80,Length:16,VendorId:10415,Value:Unsigned32{15}},
+//	   	   			  Pre-emption-Capability {Code:1047,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{1}},
+//	   	   			  Pre-emption-Vulnerability {Code:1048,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{0}},
+//	   	   		  }}
+//	   	   	  }},
+//	          TGPP-Charging-Characteristics {Code: 13,Flags:0x80,VendorId:10415,Value:UTF8String{12}},
+//	   	   	  AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
+//	   	   	      Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
+//	   	   		  Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
+//	   	   	  }}
+//	      }}
+//	  }}
+//	  Subscribed-Periodic-RAU-TAU-Timer {Code:1619,Flags:0x80,Length:16,VendorId:10415,Value:Unsigned32{120}},
 //	}}
 //	Auth-Session-State {Code:277,Flags:0x40,Length:12,VendorId:0,Value:Enumerated{0}}
 //	Origin-Host {Code:264,Flags:0x40,Length:28,VendorId:0,Value:DiameterIdentity{hss.openair4G.eur},Padding:3}
 //	Origin-Realm {Code:296,Flags:0x40,Length:24,VendorId:0,Value:DiameterIdentity{openair4G.eur},Padding:3}
 //	Result-Code {Code:268,Flags:0x40,Length:12,VendorId:0,Value:Unsigned32{2001}}
-//
 type AMBR struct {
 	MaxRequestedBandwidthUL uint32 `avp:"Max-Requested-Bandwidth-UL"`
 	MaxRequestedBandwidthDL uint32 `avp:"Max-Requested-Bandwidth-DL"`
@@ -272,7 +272,6 @@ type PUR struct {
 //	[ Failed-AVP ]
 //	*[ Proxy-Info ]
 //	*[ Route-Record ]
-//
 type PUA struct {
 	SessionID                   string                      `avp:"Session-Id"`
 	DRMP                        uint32                      `avp:"DRMP"`

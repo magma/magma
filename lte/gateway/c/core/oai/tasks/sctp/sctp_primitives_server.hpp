@@ -14,14 +14,39 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-// WARNING: Do not include this header directly. Use intertask_interface.h
-// instead.
 
-MESSAGE_DEF(APPLICATION_HEALTHY_MSG, application_healthy_msg_t,
-            application_healthy_msg)
-MESSAGE_DEF(APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
-            application_unhealthy_msg)
-MESSAGE_DEF(APPLICATION_MME_APP_STATS_MSG, application_mme_app_stats_msg_t,
-            application_mme_app_stats_msg)
-MESSAGE_DEF(APPLICATION_S1AP_STATS_MSG, application_s1ap_stats_msg_t,
-            application_s1ap_stats_msg)
+/*! \file sctp_primitives_server.hpp
+ *  \brief Main server primitives
+ *  \author Sebastien ROUX, Lionel GAUTHIER
+ *  \date 2013
+ *  \version 1.0
+ *  @ingroup _sctp
+ *  @{
+ */
+
+#pragma once
+
+#include <stdint.h>
+
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include <netinet/in.h>
+#include <netinet/sctp.h>
+
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+
+/** \brief SCTP Init function. Initialize SCTP layer
+ \param mme_config The global MME configuration structure
+ @returns -1 on error, 0 otherwise.
+ **/
+#ifdef __cplusplus
+extern "C" {
+#endif
+int sctp_init(const mme_config_t* mme_config_p);
+#ifdef __cplusplus
+}
+#endif
+
+/* @} */

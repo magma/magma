@@ -112,6 +112,7 @@ cc_test(
         "test_spgw_procedures_with_injected_state.cpp",
     ],
     data = ["//lte/gateway/c/core/oai/test/spgw_task/data"],
+    flaky = True,
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core:lib_agw_of",

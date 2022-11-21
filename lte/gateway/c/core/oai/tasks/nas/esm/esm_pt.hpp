@@ -31,8 +31,7 @@ Author      Frederic Maurel
 Description Defines functions used to handle ESM procedure transactions.
 
 *****************************************************************************/
-#ifndef __ESM_PT_H__
-#define __ESM_PT_H__
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 /****************************************************************************/
@@ -60,5 +59,3 @@ int esm_pt_is_reserved(int pti);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ESM_PT_H__*/
