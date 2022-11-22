@@ -376,7 +376,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -547,7 +547,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -636,7 +636,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -744,7 +744,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-feg-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
           DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -837,7 +837,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
@@ -938,7 +938,7 @@ jobs:
         id: publish_artifacts_lf
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "https://linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
