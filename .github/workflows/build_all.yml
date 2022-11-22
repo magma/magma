@@ -52,19 +52,19 @@ jobs:
           fi
       - name: Launch build and publish script
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
+          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
             orc8r/tools/helm/package.sh --deployment-type all
           fi
-      - name: Launch build and publish script
+      - name: Launch build and publish script - LF
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
-            orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
+          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION --only-package
           else
