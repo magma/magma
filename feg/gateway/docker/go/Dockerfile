@@ -6,10 +6,9 @@ FROM ${baseImage} as base
 
 # Add the magma apt repo
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main"
+    apt-get install -y apt-utils software-properties-common apt-transport-https wget
+RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
+    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
