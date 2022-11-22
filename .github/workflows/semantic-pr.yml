@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
