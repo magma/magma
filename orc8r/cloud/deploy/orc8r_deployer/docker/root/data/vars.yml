@@ -369,7 +369,7 @@ service:
     ConfigApps:
       - tf
   docker_registry:
-    Default: "docker.artifactory.magmacore.org"
+    Default: "linuxfoundation.jfrog.io/magma-docker"
     Description: Docker registry to pull Orchestrator containers from.
     Type: string
     Required: false
