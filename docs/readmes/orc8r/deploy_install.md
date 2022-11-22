@@ -261,11 +261,11 @@ also need to add a new admin user with the updated `admin_operator` cert.
 
 ### Create an NMS Admin User
 
-Create an admin user for the `master` organization on the NMS
+Create an admin user for the `host` organization on the NMS
 
 ```bash
 kubectl --namespace orc8r exec -it deploy/nms-magmalte -- \
-  yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+  yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 ## DNS Resolution
@@ -315,8 +315,8 @@ the form
 ## Verify the Deployment
 
 After a few minutes the NS records should propagate. Confirm successful
-deployment by visiting the master NMS organization at e.g.
-`https://master.nms.yoursubdomain.yourdomain.com` and logging in with the
+deployment by visiting the host NMS organization at e.g.
+`https://host.nms.yoursubdomain.yourdomain.com` and logging in with the
 `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` provided above.
 
 NOTE: the `https://` is required. If you self-signed certs above, the browser
