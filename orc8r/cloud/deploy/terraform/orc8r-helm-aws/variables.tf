@@ -316,7 +316,7 @@ variable "orc8r_db_pass" {
 variable "docker_registry" {
   description = "Docker registry to pull Orchestrator containers from."
   type        = string
-  default     = "docker.artifactory.magmacore.org"
+  default     = "linuxfoundation.jfrog.io/magma-docker"
 }
 
 variable "docker_user" {
