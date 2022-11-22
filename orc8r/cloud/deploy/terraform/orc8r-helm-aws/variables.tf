@@ -339,7 +339,7 @@ variable "seed_certs_dir" {
 variable "helm_repo" {
   description = "Helm repository URL for Orchestrator charts."
   type        = string
-  default     = "https://artifactory.magmacore.org/artifactory/helm/"
+  default     = "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
 }
 
 variable "helm_user" {
