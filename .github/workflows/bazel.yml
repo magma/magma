@@ -81,11 +81,11 @@ jobs:
       matrix:
         include:
           - bazel-config: ""
-            bazel-target: "//..."
+            bazel-target: ".*_test"
           - bazel-config: "--config=asan"
-            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
+            bazel-target: "cc_test"
           - bazel-config: "--config=production"
-            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
+            bazel-target: "cc_test"
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
@@ -123,7 +123,7 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             TEST_FAILED="false"
             bazel test \
-              ${{ matrix.bazel-target }} \
+              `bazel query 'kind(${{ matrix.bazel-target }}, //...) except attr("tags", "manual", //...)'` \
               ${{ matrix.bazel-config }} \
               --test_output=errors \
               --profile=Bazel_test_all_profile || TEST_FAILED="true"
