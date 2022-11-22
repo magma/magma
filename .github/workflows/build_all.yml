@@ -745,8 +745,8 @@ jobs:
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
-          DOCKER_USER: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
@@ -937,6 +937,7 @@ jobs:
       - name: Tag and push to LF Jfrog Registry
         id: publish_artifacts_lf
         if: github.event_name == 'push'
+        working-directory: "${{ github.workspace }}/dp"
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
