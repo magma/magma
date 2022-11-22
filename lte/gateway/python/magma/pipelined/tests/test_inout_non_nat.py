@@ -633,7 +633,9 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         time.sleep(1)
         clear_gw_info_map()
 
-    @unittest.mock.patch('magma.pipelined.gw_mac_address.getmacbyip6', mocked_getmacbyip6)
+    @unittest.mock.patch(
+        'magma.pipelined.gw_mac_address.getmacbyip6', mocked_getmacbyip6,
+    )
     def testFlowSnapshotMatch(self):
         ipv6_addr1 = "2002::22"
         mac_addr1 = "11:22:33:44:55:88"
