@@ -29,7 +29,6 @@ jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
     env:
-
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
       HELM_CHART_MUSEUM_REPO: magma-helm-test/
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
