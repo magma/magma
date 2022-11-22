@@ -28,7 +28,7 @@ jobs:
     if: github.repository_owner == 'magma'
     env:
       HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
-      HELM_CHART_MUSEUM_REPO: magma-helm-test/
+      HELM_CHART_MUSEUM_REPO: helm-test
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
       LF_HELM_CHART_ARTIFACTORY_URL: "https://linuxfoundation.jfrog.io/artifactory/"
