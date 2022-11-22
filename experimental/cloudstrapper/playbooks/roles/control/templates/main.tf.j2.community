@@ -67,7 +67,7 @@ module "orc8r-app" {
   # Note that this can be any Helm chart repo provider -- the example below
   # provides the URL format for using a raw GitHub repo, where the user and
   # pass are your GitHub username and access token, respectively
-  helm_repo = "https://artifactory.magmacore.org/artifactory/helm/"
+  helm_repo = "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
   helm_user = ""
   helm_pass = ""
 

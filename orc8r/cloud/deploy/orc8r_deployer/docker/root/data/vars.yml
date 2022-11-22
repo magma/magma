@@ -451,7 +451,7 @@ service:
     ConfigApps:
       - tf
   helm_repo:
-    Default: "https://artifactory.magmacore.org/artifactory/helm/"
+    Default: "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
     Description: Helm repository URL for Orchestrator charts.
     Type: string
     Required: false
