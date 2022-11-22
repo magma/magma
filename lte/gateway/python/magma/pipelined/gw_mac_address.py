@@ -15,7 +15,7 @@ import ipaddress
 import logging
 import socket
 import subprocess
-from typing import List, Optional , Tuple
+from typing import List, Optional, Tuple
 
 import dpkt
 import netifaces
@@ -30,9 +30,29 @@ def get_gw_mac_address(ip: IPAddress, vlan: str, non_nat_arp_egress_port: str) -
         return _get_gw_mac_address_v4(gw_ip, vlan, non_nat_arp_egress_port)
     elif ip.version == IPAddress.IPV6:
         if vlan == "NO_VLAN":
-            return _get_gw_mac_address_v6(gw_ip)
-        logging.error("Not supported: GW IPv6: %s over vlan %d", gw_ip, vlan)
+            try:
+                mac = get_mac_by_ip6(gw_ip)
+                logging.debug("Got mac %s for IP: %s", mac, gw_ip)
+                return mac
+            except ValueError:
+                logging.warning(
+                    "Invalid GW Ip address: [%s]",
+                    gw_ip,
+                )
+        else:
+            logging.error("Not supported: GW IPv6: %s over vlan %d", gw_ip, vlan)
     return ""
+
+
+def get_mac_by_ip4(target_ip4: str) -> Optional[str]:
+    iface = get_iface_by_ip4(target_ip4)
+    if iface:
+        return _get_gw_mac_address_v4(
+            gw_ip=target_ip4,
+            vlan="NO_VLAN",
+            non_nat_arp_egress_port=iface,
+        )
+    return None
 
 
 def get_iface_by_ip4(target_ip4: str) -> Optional[str]:
@@ -46,15 +66,34 @@ def get_iface_by_ip4(target_ip4: str) -> Optional[str]:
     return None
 
 
-def get_mac_by_ip4(target_ip4: str) -> Optional[str]:
-    iface = get_iface_by_ip4(target_ip4)
-    if iface:
-        return _get_gw_mac_address_v4(
-            gw_ip=target_ip4,
-            vlan="NO_VLAN",
-            non_nat_arp_egress_port=iface,
-        )
-    return None
+def get_mac_by_ip6(gw_ip: str) -> str:
+    for iface, ip6 in get_ifaces_by_ip6(gw_ip):
+        res = subprocess.run(
+            ["ip", "neigh", "get", gw_ip, "dev", iface],
+            capture_output=True,
+        ).stdout.decode("utf-8")
+        if "lladdr" in res:
+            res = res.split("lladdr ")[1].split(" ")[0]
+            return res
+    raise ValueError(f"No mac address found for ip6 {gw_ip}")
+
+
+def get_ifaces_by_ip6(target_ip6: str) -> Tuple[List[str], List[str]]:
+    ifaces = []
+    ifaces_ip6 = []
+    for iface in netifaces.interfaces():
+        try:
+            for i in range(len(netifaces.ifaddresses(iface)[netifaces.AF_INET6])):
+                iface_ip6 = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['addr']
+                netmask = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['netmask']
+                res_prefix = ipaddress.IPv6Network(iface_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
+                target_prefix = ipaddress.IPv6Network(target_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
+                if res_prefix == target_prefix:
+                    ifaces.append(iface)
+                    ifaces_ip6.append(iface_ip6.split('%')[0])
+        except KeyError:
+            continue
+    return ifaces, ifaces_ip6
 
 
 def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) -> str:
@@ -152,46 +191,3 @@ def _send_packet_and_receive_response(pkt: dpkt.arp.ARP, vlan: str, non_nat_arp_
         else:
             res = s.recv(0xffff)
     return res
-
-
-def get_ifaces_by_ip6(target_ip6: str) -> Tuple[List[str], List[str]]:
-    ifaces = []
-    ifaces_ip6 = []
-    for iface in netifaces.interfaces():
-        try:
-            for i in range(len(netifaces.ifaddresses(iface)[netifaces.AF_INET6])):
-                iface_ip6 = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['addr']
-                netmask = netifaces.ifaddresses(iface)[netifaces.AF_INET6][i]['netmask']
-                res_prefix = ipaddress.IPv6Network(iface_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
-                target_prefix = ipaddress.IPv6Network(target_ip6.split('%')[0] + '/' + netmask.split('/')[-1], strict=False)
-                if res_prefix == target_prefix:
-                    ifaces.append(iface)
-                    ifaces_ip6.append(iface_ip6.split('%')[0])
-        except KeyError:
-            continue
-    return ifaces, ifaces_ip6
-
-
-def get_mac_by_ip6(gw_ip: str) -> str:
-    for iface, ip6 in get_ifaces_by_ip6(gw_ip):
-        res = subprocess.run(
-            ["ip", "neigh", "get", gw_ip, "dev", iface],
-            capture_output=True,
-        ).stdout.decode("utf-8")
-        if "lladdr" in res:
-            res = res.split("lladdr ")[1].split(" ")[0]
-            return res
-    raise ValueError(f"No mac address found for ip6 {gw_ip}")
-
-
-def _get_gw_mac_address_v6(gw_ip: str) -> str:
-    try:
-        mac = get_mac_by_ip6(gw_ip)
-        logging.debug("Got mac %s for IP: %s", mac, gw_ip)
-        return mac
-    except ValueError:
-        logging.warning(
-            "Invalid GW Ip address: [%s]",
-            gw_ip,
-        )
-        return ""

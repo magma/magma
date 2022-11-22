@@ -22,10 +22,10 @@ import subprocess
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.gw_mac_address import get_mac_by_ip4, get_mac_by_ip6
 from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPRoute, NetlinkError
-from magma.pipelined.gw_mac_address import get_mac_by_ip4, get_mac_by_ip6
 
 LOG = logging.getLogger("pipelined.ebpf")
 
