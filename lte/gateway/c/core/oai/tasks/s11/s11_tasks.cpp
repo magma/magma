@@ -364,8 +364,6 @@ static void* s11_mme_thread(void* args) {
 
 //------------------------------------------------------------------------------
 extern "C" status_code_e s11_mme_init(mme_config_t* mme_config_p) {
-  status_code_e ret = RETURNok;
-
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface\n");
 
   if (nwGtpv2cInitialize(&s11_mme_stack_handle) != NW_OK) {
@@ -379,7 +377,7 @@ extern "C" status_code_e s11_mme_init(mme_config_t* mme_config_p) {
   }
 
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface: DONE\n");
-  return ret;
+  return RETURNok;
 fail:
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface: FAILURE\n");
   return RETURNerror;
