@@ -66,7 +66,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    1. Download the tar file.
 
       ```bash
-      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.3.linux-amd64.tar.gz
+      wget https://linuxfoundation.jfrog.io/artifactory/magma-blob/go1.18.3.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
