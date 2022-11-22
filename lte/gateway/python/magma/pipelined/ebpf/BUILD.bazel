@@ -20,9 +20,9 @@ py_library(
     srcs = ["ebpf_manager.py"],
     deps = [
         "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined:ifaces",
         "//lte/gateway/python/magma/pipelined:mobilityd_client",
         "@bcc_repo//:bcc",
-        requirement("netifaces"),
         requirement("pyroute2"),
         requirement("scapy"),
     ],

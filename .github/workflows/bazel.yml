@@ -81,11 +81,11 @@ jobs:
       matrix:
         include:
           - bazel-config: ""
-            bazel-target: "//..."
+            bazel-target: ".*_test"
           - bazel-config: "--config=asan"
-            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
+            bazel-target: "cc_test"
           - bazel-config: "--config=production"
-            bazel-target: "`bazel query 'kind(cc.*, //...)'`"
+            bazel-target: "cc_test"
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
@@ -123,7 +123,7 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             TEST_FAILED="false"
             bazel test \
-              ${{ matrix.bazel-target }} \
+              `bazel query 'kind(${{ matrix.bazel-target }}, //...) except attr("tags", "manual", //...)'` \
               ${{ matrix.bazel-config }} \
               --test_output=errors \
               --profile=Bazel_test_all_profile || TEST_FAILED="true"
@@ -386,26 +386,42 @@ jobs:
               echo "Exporting magma version \"${magma_version}\""
               echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
           fi
+
       - name: Setup JFROG CLI
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
-        env:
-          JF_URL: https://artifactory.magmacore.org
-          JF_USER: ${{ secrets.JFROG_USERNAME }}
-          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+
       - name: Set dry run environment variable
         if: ${{ ! ( github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master' ) }}
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
-      - name: Publish debian packages
+
+      - name: Publish debian packages - magmacore
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
           jf rt upload \
             --recursive=false \
             --detailed-summary \
+            --url https://artifactory.magmacore.org:443/artifactory/ \
+            --user ${{ secrets.JFROG_USERNAME }} \
+            --password ${{ secrets.JFROG_PASSWORD }} \
             ${{ env.IS_DRY }} \
             --target-props="${DEBIAN_META_INFO}" \
             "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
+
+      - name: Publish debian packages - linuxfoundation
+        env:
+          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
+        run: |
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            --url https://linuxfoundation.jfrog.io/artifactory/ \
+            --user ${{ secrets.LF_JFROG_USERNAME }} \
+            --password ${{ secrets.LF_JFROG_PASSWORD }} \
+            ${{ env.IS_DRY }} \
+            --target-props="${DEBIAN_META_INFO}" \
+            "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb
 
       - name: Trigger debian integ test workflow
         uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
