@@ -47,19 +47,14 @@
     packages:
       - ca-certificates
 
-- name: Copy gpg key from codebase
-  copy:
-    src: jfrog.pub
-    dest: /tmp/jfrog.pub
-
 - name: Adding the key to agent
   apt_key:
-    file: /tmp/jfrog.pub
+    url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
     state: present
 
 - name: Configuring the registry in sources.list.d
-  ansible.builtin.shell:
-    cmd: echo 'deb https://artifactory.magmacore.org/artifactory/debian focal-1.8.0 main' > /etc/apt/sources.list.d/magma.list
+  shell: "echo 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main' > /etc/apt/sources.list.d/magma.list"
+  when: preburn
 
 - name: Update apt
   apt:
