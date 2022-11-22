@@ -92,7 +92,7 @@ if [ "$DEPLOYMENT_TYPE" != "$FWA" ] && [ "$DEPLOYMENT_TYPE" != "$FFWA" ] && [ "$
 fi
 
 # Check for artifactory URL presence
-if [[ $ONLY_PACKAGE = false && -z $HELM_CHART_ARTIFACTORY_URL ]]; then
+if [[ $ONLY_PACKAGE = false && -z $LF_HELM_CHART_ARTIFACTORY_URL ]]; then
   if [[ -z $GITHUB_REPO ]]; then
     exitmsg "Environment variable GITHUB_REPO must be set"
   fi
@@ -188,16 +188,16 @@ else
     fi
     # Trim last backslash if exists
     # shellcheck disable=SC2001
-    LF_HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
+    LF_LF_HELM_CHART_ARTIFACTORY_URL="$(echo "$LF_HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
     # Verify existence of the helm repo
-    RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO/" || :)"
+    RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$LF_HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO/" || :)"
     if [ $ONLY_PACKAGE != "True" ] && [ "$RESPONSE_CODE_REPO" != "200" ]; then
       exitmsg "There was an error connecting to the artifactory repository $HELM_CHART_MUSEUM_ORIGIN_REPO, the http error code was $RESPONSE_CODE_REPO"
     fi
 
-    HELM_CHART_MUSEUM_URL="$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO"
+    HELM_CHART_MUSEUM_URL="$LF_HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO"
     # Form API URL
-    HELM_CHART_MUSEUM_API_URL="$HELM_CHART_ARTIFACTORY_URL/api"
+    HELM_CHART_MUSEUM_API_URL="$LF_HELM_CHART_ARTIFACTORY_URL/api"
   fi
 
   # Begin packaging necessary Helm charts
