@@ -1651,6 +1651,36 @@ class MagmadUtil(object):
         self._set_agw_nat(False)
         self._validate_non_nat_datapath(ip_version)
 
+    def enable_dhcp_config(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+            data["configs_by_key"]["mobilityd"]["ip_allocator_type"] = "DHCP"
+            data["configs_by_key"]["mobilityd"]["static_ip_enabled"] = False
+            data["configs_by_key"]["mobilityd"]["ipBlock"] = None
+            data["configs_by_key"]["mobilityd"]["ipv6Block"] = None
+            data["configs_by_key"]["mobilityd"]["ipv6PrefixAllocationType"] = None
+
+        with open(mconfig_conf, "w") as json_file:
+            json.dump(data, json_file, sort_keys=True, indent=2)
+
+    def disable_dhcp_config(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+            data["configs_by_key"]["mobilityd"]["ip_allocator_type"] = "IP_POOL"
+            data["configs_by_key"]["mobilityd"]["static_ip_enabled"] = True
+            data["configs_by_key"]["mobilityd"]["ipBlock"] = "192.168.128.0/24"
+            data["configs_by_key"]["mobilityd"]["ipv6Block"] = "fdee:5:6c::/48"
+            data["configs_by_key"]["mobilityd"]["ipv6PrefixAllocationType"] = "RANDOM"
+
+        with open(mconfig_conf, "w") as json_file:
+            json.dump(data, json_file, sort_keys=True, indent=2)
+
     def _set_agw_nat(self, enable: bool):
         mconfig_conf = (
             "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
