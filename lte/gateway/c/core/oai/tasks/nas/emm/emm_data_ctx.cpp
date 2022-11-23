@@ -702,12 +702,13 @@ status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.remove(elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    if (mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.insert(elm->_imsi64, ue_id) != magma::PROTO_MAP_OK) {
+    if (mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.insert(
+            elm->_imsi64, ue_id) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING(LOG_MME_APP,
-                   "Insert failed on imsi2mme_ueid_map "
-                   "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
-                   "\n",
-                   ue_id, elm->_imsi64);
+                     "Insert failed on imsi2mme_ueid_map "
+                     "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
+                     "\n",
+                     ue_id, elm->_imsi64);
       return RETURNerror;
     }
   } else {

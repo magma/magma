@@ -348,11 +348,11 @@ struct ue_mm_context_s* mme_ue_context_exists_imsi(
 
   mme_ue_context_p->imsi2mme_ueid_map.get(imsi, &mme_ue_s1ap_id);
 
-  if (mme_ue_s1ap_id != 0) {
-    return mme_ue_context_exists_mme_ue_s1ap_id(
-        mme_ue_s1ap_id);
+  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+    return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   } else {
-    OAILOG_WARNING_UE(LOG_MME_APP, imsi, " mme_ue_s1ap_id not found for this IMSI\n");
+    OAILOG_WARNING_UE(LOG_MME_APP, imsi,
+                      " mme_ue_s1ap_id not found for this IMSI\n");
   }
   return NULL;
 }
@@ -493,8 +493,7 @@ void mme_ue_context_update_coll_keys(
   } else {
     OAILOG_ERROR_UE(LOG_MME_APP, imsi,
                     "Could not update this ue context %p "
-                    "due to invalid  mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                    " \n",
+                    "due to invalid  mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
                     ue_context_p, ue_context_p->mme_ue_s1ap_id);
   }
 
@@ -567,21 +566,21 @@ void mme_ue_context_update_coll_keys(
 }
 
 static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
-                                       void* argP, void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "imsi_mme_ue_id_htbl key=%llu, data=%lu\n", keyP, dataP);
+                                            void* argP, void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "imsi_mme_ue_id_htbl key=%llu, data=%lu\n", keyP,
+               dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
 //------------------------------------------------------------------------------
 void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
-  OAILOG_INFO(LOG_MME_APP, "Enter display_proto_map_uint64_uint32\n");
   bstring tmp = bfromcstr(" ");
   hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
 
-  magma::proto_map_uint64_uint32_t imsi2mme_ueid_map = mme_ue_contexts_p->imsi2mme_ueid_map;
+  magma::proto_map_uint64_uint32_t imsi2mme_ueid_map =
+      mme_ue_contexts_p->imsi2mme_ueid_map;
   imsi2mme_ueid_map.map_apply_callback_on_all_elements(
-      display_proto_map_uint64_uint32, nullptr,
-      nullptr);
+      display_proto_map_uint64_uint32, nullptr, nullptr);
 
   btrunc(tmp, 0);
   hashtable_uint64_ts_dump_content(mme_ue_contexts_p->tun11_ue_context_htbl,
@@ -675,7 +674,9 @@ status_code_e mme_insert_ue_context(
 
     // filled IMSI
     if (ue_context_p->emm_context._imsi64) {
-      if(mme_ue_context_p->imsi2mme_ueid_map.insert(ue_context_p->emm_context._imsi64, ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
+      if (mme_ue_context_p->imsi2mme_ueid_map.insert(
+              ue_context_p->emm_context._imsi64,
+              ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
         OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
                           "Error could not register this ue context %p "
                           "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
@@ -760,7 +761,8 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   mme_app_ue_context_free_content(ue_context_p);
   // IMSI
   if (ue_context_p->emm_context._imsi64) {
-    if (mme_ue_context_p->imsi2mme_ueid_map.remove(ue_context_p->emm_context._imsi64) != magma::PROTO_MAP_OK) {
+    if (mme_ue_context_p->imsi2mme_ueid_map.remove(
+            ue_context_p->emm_context._imsi64) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "UE context not found!\n"
