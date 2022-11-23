@@ -344,7 +344,7 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
 struct ue_mm_context_s* mme_ue_context_exists_imsi(
     mme_ue_context_t* const mme_ue_context_p, imsi64_t imsi) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
-  uint32_t mme_ue_s1ap_id = 0;
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   mme_ue_context_p->imsi2mme_ueid_map.get(imsi, &mme_ue_s1ap_id);
 
