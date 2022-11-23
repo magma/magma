@@ -44,7 +44,7 @@ jobs:
       # Or is branch name when on release branch
       - name: Set Helm chart version
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ] ;then
+          if [ "${GITHUB_REF}" = "refs/heads/master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
@@ -53,7 +53,7 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
@@ -63,7 +63,7 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
             mkdir charts
             orc8r/tools/helm/package_lf.sh --deployment-type all --version $VERSION --only-package
           else
