@@ -50,6 +50,7 @@ LOG_HEADER="${YELLOW}INFO:${NO_FORMAT}"
 
 IMPACTED_TARGETS_FILE="/tmp/impacted_targets_pre_filter.txt"
 rm -f "$IMPACTED_TARGETS_FILE"
+touch "$IMPACTED_TARGETS_FILE"
 BAZEL_QUERY_FILE="/tmp/bazel_query_impacted_targets.txt"
 IMPACTED_TEST_TARGETS_FILE="/tmp/impacted_test_targets.txt"
 
@@ -58,6 +59,12 @@ while IFS= read -r impacted_target
 do
     echo "$impacted_target" >> "$IMPACTED_TARGETS_FILE"
 done
+
+if [[ ! -s "$IMPACTED_TARGETS_FILE" ]];
+then
+    echo -e "${LOG_HEADER} Input is empty, no targets to be filtered." 1>&2
+    exit 0
+fi
 
 # Optional script argument, e.g. 'cc_test' or 'py_test', default is all test rules.
 BAZEL_FILTER_RULE=${1:-".*_test"}
