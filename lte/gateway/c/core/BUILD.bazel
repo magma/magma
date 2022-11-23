@@ -546,9 +546,9 @@ MME_HDRS = [
     "oai/include/pgw_config.h",
     "oai/include/pgw_types.h",
     "oai/include/proto_map.hpp",
-    "oai/include/s11_messages_def.h",
-    "oai/include/s11_messages_types.h",
-    "oai/include/s11_mme.h",
+    "oai/include/s11_messages_def.hpp",
+    "oai/include/s11_messages_types.hpp",
+    "oai/include/s11_mme.hpp",
     "oai/include/s1ap_messages_def.h",
     "oai/include/s1ap_messages_types.h",
     "oai/include/s1ap_state.hpp",
@@ -1022,10 +1022,10 @@ MME_HDRS = [
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h",
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h",
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h",
-    "oai/tasks/s11/s11_common.h",
-    "oai/tasks/s11/s11_ie_formatter.h",
-    "oai/tasks/s11/s11_mme_bearer_manager.h",
-    "oai/tasks/s11/s11_mme_session_manager.h",
+    "oai/tasks/s11/s11_common.hpp",
+    "oai/tasks/s11/s11_ie_formatter.hpp",
+    "oai/tasks/s11/s11_mme_bearer_manager.hpp",
+    "oai/tasks/s11/s11_mme_session_manager.hpp",
 ]
 
 AGW_OF_DEPS = [
@@ -1143,11 +1143,11 @@ GTPV2_C_C = [
 ]
 
 S11_C = [
-    "oai/tasks/s11/s11_common.c",
-    "oai/tasks/s11/s11_ie_formatter.c",
-    "oai/tasks/s11/s11_mme_bearer_manager.c",
-    "oai/tasks/s11/s11_mme_session_manager.c",
-    "oai/tasks/s11/s11_tasks.c",
+    "oai/tasks/s11/s11_common.cpp",
+    "oai/tasks/s11/s11_ie_formatter.cpp",
+    "oai/tasks/s11/s11_mme_bearer_manager.cpp",
+    "oai/tasks/s11/s11_mme_session_manager.cpp",
+    "oai/tasks/s11/s11_tasks.cpp",
 ]
 
 UDP_C = [

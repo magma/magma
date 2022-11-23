@@ -20,7 +20,9 @@ RUN cd $MAGMA_ROOT && \
     bazel build //lte/gateway/c/core:mme_oai --define=disable_sentry_native=1 && \
     bazel build //lte/gateway/c/sctpd/src:sctpd --define=disable_sentry_native=1 && \
     mv $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    echo 'Shared libraries for oai_mme' && \
     ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    echo 'Shared libraries for sctpd' && \
     ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd
 
 # Prepare config file
@@ -54,7 +56,6 @@ RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
 # Target Image
 ################################################################
 FROM ubuntu:bionic as magma-mme
-
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
 
@@ -128,7 +129,9 @@ WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
     openssl rand -out /root/.rnd 128 && \
+    echo 'Shared libraries for oai_mme' && \
     ldd /magma-mme/bin/oai_mme && \
+    echo 'Shared libraries for sctpd' && \
     ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma
@@ -137,9 +140,9 @@ COPY --from=magma-mme-builder \
     $MAGMA_ROOT/lte/gateway/configs/redis.yml \
     $MAGMA_ROOT/lte/gateway/configs/service_registry.yml \
     $MAGMA_ROOT/lte/gateway/configs/sctpd.yml \
-    ./
+    /etc/magma/
 
-# Scripts to re-generate certificates
+# Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \

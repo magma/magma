@@ -10,17 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-magma_pkgrepo_proto: https
-magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
-magma_pkgrepo_path: ""
-magma_pkgrepo_dist: focal-1.7.0
-magma_pkgrepo_component: main
-magma_pkgrepo_name: "magma"
-
-magma_pkgrepo_key: "https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public"
-magma_pkgrepo_key_fingerprint: ""
-magma_use_pkgrepo: yes
-
 docker_registry: "docker.artifactory.magmacore.org/"
 docker_user: ""
 docker_pass: ""

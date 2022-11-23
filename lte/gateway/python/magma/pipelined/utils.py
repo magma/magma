@@ -12,7 +12,6 @@ limitations under the License.
 """
 import logging
 
-import netifaces
 from magma.pipelined.openflow import flows
 from ryu import cfg
 from ryu.lib.ovs import bridge
@@ -86,8 +85,3 @@ class Utils:
             logging.warning('Cannot initiate OVSDB connection: %s', e)
             return None
         return cls.ovs
-
-
-def get_virtual_iface_mac(iface):
-    virt_ifaddresses = netifaces.ifaddresses(iface)
-    return virt_ifaddresses[netifaces.AF_LINK][0]['addr']

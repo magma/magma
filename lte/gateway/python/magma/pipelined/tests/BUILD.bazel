@@ -252,6 +252,7 @@ pytest_test(
         "//lte/gateway/python/magma/pipelined:bridge_util",
         "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
         "//lte/protos:mobilityd_python_proto",
+        requirement("scapy"),
     ],
 )
 
@@ -268,6 +269,7 @@ pytest_test(
         "//lte/gateway/python/magma/pipelined:bridge_util",
         "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
         "//lte/protos:mobilityd_python_proto",
+        requirement("scapy"),
     ],
 )
 

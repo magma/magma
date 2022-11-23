@@ -19,7 +19,7 @@ After=openvswitch-switch.service
 Wants=openvswitch-switch.service
 
 [Service]
-Type=simple
+Type=notify
 EnvironmentFile=/etc/environment
 ExecStart=/home/vagrant/magma/bazel-bin/lte/gateway/python/magma/mobilityd/mobilityd
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py mobilityd

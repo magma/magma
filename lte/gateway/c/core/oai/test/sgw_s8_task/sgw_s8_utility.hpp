@@ -14,20 +14,20 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_s8_state.hpp"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_s11_handlers.hpp"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 }

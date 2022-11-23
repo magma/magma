@@ -24,14 +24,21 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 

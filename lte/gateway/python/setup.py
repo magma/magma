@@ -133,6 +133,7 @@ setup(
         'ovs==2.16.0',
         'prometheus-client>=0.3.1',
         'aioeventlet @ git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619',
+        'sdnotify>=0.3.2',
     ],
     extras_require={
         'dev': [

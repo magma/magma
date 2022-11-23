@@ -15,18 +15,24 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_ie_formatter.h
+/*! \file s11_ie_formatter.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-
-#ifndef FILE_S11_IE_FORMATTER_SEEN
-#define FILE_S11_IE_FORMATTER_SEEN
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#ifdef __cplusplus
+}
+#endif
 
 //-----------------
 typedef struct ebis_to_be_deleted_s {
@@ -250,5 +256,3 @@ status_code_e gtpv2c_indication_flags_ie_set(
 
 nw_rc_t gtpv2c_fqcsid_ie_get(uint8_t ieType, uint16_t ieLength,
                              uint8_t ieInstance, uint8_t* ieValue, void* arg);
-
-#endif /* FILE_S11_IE_FORMATTER_SEEN */

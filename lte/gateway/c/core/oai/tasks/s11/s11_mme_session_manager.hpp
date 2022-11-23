@@ -15,17 +15,24 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_session_manager.h
+/*! \file s11_mme_session_manager.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_MME_SESSION_MANAGER_SEEN
-#define FILE_S11_MME_SESSION_MANAGER_SEEN
+#pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 /* @brief Create a new Create Session Request and send it to provided S-GW. */
 status_code_e s11_mme_create_session_request(
@@ -51,5 +58,3 @@ status_code_e s11_mme_modify_bearer_request(
 
 status_code_e s11_mme_handle_ulp_error_indicatior(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi);
-
-#endif /* FILE_S11_MME_SESSION_MANAGER_SEEN */

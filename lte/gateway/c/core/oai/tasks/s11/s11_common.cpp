@@ -15,22 +15,33 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_common.h
+/*! \file s11_common.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_COMMON_SEEN
-#define FILE_S11_COMMON_SEEN
+#include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include <stdbool.h>
+#include <stdint.h>
 
-extern task_zmq_ctx_t s11_task_zmq_ctx;
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 nw_rc_t s11_ie_indication_generic(uint8_t ieType, uint16_t ieLength,
                                   uint8_t ieInstance, uint8_t* ieValue,
-                                  void* arg);
-
-#endif /* FILE_S11_COMMON_SEEN */
+                                  void* arg) {
+  OAILOG_DEBUG(LOG_S11,
+               "Received IE Parse Indication for of type %u, length %u, "
+               "instance %u!\n",
+               ieType, ieLength, ieInstance);
+  return NW_OK;
+}
