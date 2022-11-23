@@ -44,6 +44,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/configuration:environment",
         "@aioeventlet_repo//:aioeventlet",
+        requirement("sdnotify"),
     ],
 )
 
