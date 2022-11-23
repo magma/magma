@@ -159,8 +159,8 @@ pipeline {
                   // On the daily regression build, we will regenerate the base image and the master image
                   // Making sure that if the build fails for any reason we can go back to the previous versions
                   if (params.REGRESSION_TEST) {
-                    sh('docker image tag magma-dev-mme:ci-base-image magma-dev-mme:ci-base-image-prev')
-                    sh('docker image tag magma-dev-mme:master magma-dev-mme:master-prev')
+                    sh('docker image tag magma-dev-mme:ci-base-image magma-dev-mme:ci-base-image-prev || true')
+                    sh('docker image tag magma-mme:master magma-mme:master-prev || true')
                   }
 
                   // Removing the .dockerignore file (troublesome for us)
@@ -194,7 +194,7 @@ pipeline {
                   script {
                     sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: OK" >> archives/build_magma_mme.log'
                     // Removing the previous versions
-                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-dev-mme:master-prev')
+                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-mme:master-prev || true')
                   }
                 }
                 unsuccessful {
@@ -204,9 +204,9 @@ pipeline {
                     sh 'docker ps --quiet --filter "status=exited" -n1 | xargs docker rm -f || true'
                     sh('docker image prune --force > /dev/null 2>&1')
                     // Putting back the previous versions
-                    sh('docker image tag magma-dev-mme:ci-base-image-prev magma-dev-mme:ci-base-image')
-                    sh('docker image tag magma-dev-mme:master-prev magma-dev-mme:master')
-                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-dev-mme:master-prev')
+                    sh('docker image tag magma-dev-mme:ci-base-image-prev magma-dev-mme:ci-base-image || true')
+                    sh('docker image tag magma-mme:master-prev magma-mme:master || true')
+                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-mme:master-prev || true')
                   }
                 }
               }
