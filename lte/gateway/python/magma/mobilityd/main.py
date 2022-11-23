@@ -14,6 +14,7 @@ import ipaddress
 import logging
 from typing import Any, Optional
 
+import sdnotify
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
@@ -227,6 +228,9 @@ def main():
         ip_address_man, config.get('print_grpc_payload', False),
     )
     mobility_service_servicer.add_to_server(service.rpc_server)
+
+    notifier = sdnotify.SystemdNotifier()
+    notifier.notify("READY=1")
     service.run()
 
     # Cleanup the service

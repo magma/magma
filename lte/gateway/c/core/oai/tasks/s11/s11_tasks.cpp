@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_task.c
+/*! \file s11_mme_task.cpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
@@ -30,23 +30,29 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_mme.h"
 #include "lte/gateway/c/core/oai/include/udp_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/s11_mme.hpp"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.hpp"
 
 static nw_gtpv2c_stack_handle_t s11_mme_stack_handle = 0;
 // Store the GTPv2-C teid handle
@@ -301,8 +307,9 @@ static int s11_send_init_udp(struct in_addr* address, struct in6_addr* address6,
 //------------------------------------------------------------------------------
 static void* s11_mme_thread(void* args) {
   itti_mark_task_ready(TASK_S11);
-  init_task_context(TASK_S11, (task_id_t[]){TASK_MME_APP, TASK_UDP}, 2,
-                    handle_message, &s11_task_zmq_ctx);
+  const task_id_t peer_task_ids[] = {TASK_MME_APP, TASK_UDP};
+  init_task_context(TASK_S11, peer_task_ids, 2, handle_message,
+                    &s11_task_zmq_ctx);
 
   mme_config_t* mme_config_p = (mme_config_t*)args;
 
@@ -356,9 +363,7 @@ static void* s11_mme_thread(void* args) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_init(mme_config_t* mme_config_p) {
-  int ret = 0;
-
+extern "C" status_code_e s11_mme_init(mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface\n");
 
   if (nwGtpv2cInitialize(&s11_mme_stack_handle) != NW_OK) {
@@ -372,7 +377,7 @@ status_code_e s11_mme_init(mme_config_t* mme_config_p) {
   }
 
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface: DONE\n");
-  return ret;
+  return RETURNok;
 fail:
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface: FAILURE\n");
   return RETURNerror;

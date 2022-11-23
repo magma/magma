@@ -11,6 +11,7 @@
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier", "buildifier_test")
+load("@rules_java//java:defs.bzl", "java_binary")
 
 buildifier(
     name = "buildifier",
@@ -69,3 +70,9 @@ filegroup(
 # TODO: Remove when we move proto generation to bazel - this prevents gazelle from causing import issues in the meantime.
 # gazelle:exclude **/*.proto/
 gazelle(name = "gazelle")
+
+java_binary(
+    name = "bazel-diff",
+    main_class = "com.bazel_diff.Main",
+    runtime_deps = ["@bazel_diff//jar"],
+)

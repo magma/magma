@@ -29,10 +29,6 @@ def nodeExecutor = params.nodeExecutor
 // lock mechanism
 def cn_ci_resource = params.MagmaDockerResources
 
-// We are using a base image to speed up CI build.
-// This base image is potentially subject to changes over time.
-def MAGMA_U18_BASE_IMAGE_TAG = params.MagmaBaseImageTag
-
 // Name of the DsTester child pipeline
 def dsTesterPipelineName = params.dsTesterPipelineName
 // Name of the DsTester child pipeline HTML report file
@@ -103,7 +99,7 @@ pipeline {
               steps {
                 script {
                   try {
-                    sh('docker image inspect --format="Size = {{.Size}} bytes" magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG)
+                    sh('docker image inspect --format="Size = {{.Size}} bytes" magma-dev-mme:ci-base-image')
                   } catch (Exception e) {
                     currentBuild.result = 'FAILURE'
                     echo '\u26D4 \u001B[31mUbuntu18 Base Image does not exist\u001B[0m'
@@ -120,10 +116,8 @@ pipeline {
                   if (params.REGRESSION_TEST) {
                     branch = 'master'
                     u18_image_tag = 'master'
-                    u18_docker_file = 'lte/gateway/docker/mme/Dockerfile.ubuntu18.04'
                   } else {
                     branch = sha1
-                    u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
                   }
                   checkout(
                     changelog: false,
@@ -162,17 +156,11 @@ pipeline {
               steps {
                 script {
                   echo '\u2705 \u001B[32mBuild Ubuntu18 Target Image to Test\u001B[0m'
-                  if (!params.REGRESSION_TEST) {
-                    try {
-                      // Checking if the CI Base image is still there.
-                      // If the inspect command fails, it's not there. If it passes, let remove tag.
-                      sh('docker image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
-                      sh('docker rmi magma-dev-mme:ci-base-image')
-                    } catch (Exception e) {
-                      echo 'No need to remove the CI base image'
-                    }
-                    // "ci-base-image" is the tag used in the docker file.
-                    sh('docker image tag magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
+                  // On the daily regression build, we will regenerate the base image and the master image
+                  // Making sure that if the build fails for any reason we can go back to the previous versions
+                  if (params.REGRESSION_TEST) {
+                    sh('docker image tag magma-dev-mme:ci-base-image magma-dev-mme:ci-base-image-prev || true')
+                    sh('docker image tag magma-mme:master magma-mme:master-prev || true')
                   }
 
                   // Removing the .dockerignore file (troublesome for us)
@@ -187,9 +175,16 @@ pipeline {
                   // Create the image to use
                   // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
                   // On the daily master build, we are doing from scratch
-                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + ' . > archives/build_magma_mme.log 2>&1')
+                  sh('export DOCKER_BUILDKIT=1')
+                  if (params.REGRESSION_TEST) {
+                    u18_docker_file = 'lte/gateway/docker/mme/docker-compose-build-ubuntu18.04.yaml'
+                    sh('export COMPOSE_DOCKER_CLI_BUILD=1')
+                    sh('docker compose -f ' + u18_docker_file + ' build --no-cache > archives/build_magma_mme.log 2>&1')
+                  } else {
+                    u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
+                    sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + ' . > archives/build_magma_mme.log 2>&1')
+                  }
                   sh('wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/flatten_image.py -O ci-scripts/ci-flatten_image.py')
-                  sh('python3 ./ci-scripts/ci-flatten_image.py --tag magma-mme:' + u18_image_tag)
                   sh('docker image prune --force > /dev/null 2>&1')
                   sh('docker image ls >> archives/build_magma_mme.log')
                 }
@@ -198,6 +193,8 @@ pipeline {
                 success {
                   script {
                     sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: OK" >> archives/build_magma_mme.log'
+                    // Removing the previous versions
+                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-mme:master-prev || true')
                   }
                 }
                 unsuccessful {
@@ -206,6 +203,10 @@ pipeline {
                     // Remove any (at least the last one) dangling build container and any dangling image
                     sh 'docker ps --quiet --filter "status=exited" -n1 | xargs docker rm -f || true'
                     sh('docker image prune --force > /dev/null 2>&1')
+                    // Putting back the previous versions
+                    sh('docker image tag magma-dev-mme:ci-base-image-prev magma-dev-mme:ci-base-image || true')
+                    sh('docker image tag magma-mme:master-prev magma-mme:master || true')
+                    sh('docker rmi magma-dev-mme:ci-base-image-prev magma-mme:master-prev || true')
                   }
                 }
               }
@@ -506,8 +507,6 @@ pipeline {
           sh('docker image prune --force > /dev/null 2>&1')
           // Delete image only in case of pull requests
           if (!params.REGRESSION_TEST) {
-            // Remove CI Base image tag
-            sh('docker rmi magma-dev-mme:ci-base-image')
             try {
               sh('docker image rm magma-mme:' + u18_image_tag + ' > /dev/null 2>&1')
             } catch (Exception e) {

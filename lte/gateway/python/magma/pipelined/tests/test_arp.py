@@ -56,7 +56,7 @@ class ArpTableTest(unittest.TestCase):
     @classmethod
     @unittest.mock.patch(
         'netifaces.ifaddresses',
-        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+        return_value={0: [{'addr': '00:11:22:33:44:55'}]},
     )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):

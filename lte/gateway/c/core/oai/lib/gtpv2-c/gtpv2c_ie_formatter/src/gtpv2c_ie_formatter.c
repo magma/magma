@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_ie_formatter.c
+/*! \file gtpv2c_ie_formatter.c
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom

@@ -44,6 +44,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/configuration:environment",
         "@aioeventlet_repo//:aioeventlet",
+        requirement("sdnotify"),
     ],
 )
 
@@ -186,7 +187,6 @@ py_library(
 py_library(
     name = "utils",
     srcs = ["utils.py"],
-    deps = [requirement("netifaces")],
 )
 
 py_library(
@@ -247,7 +247,10 @@ py_library(
 py_library(
     name = "gw_mac_address",
     srcs = ["gw_mac_address.py"],
-    deps = [":ifaces"],
+    deps = [
+        ":ifaces",
+        requirement("scapy"),
+    ],
 )
 
 py_library(

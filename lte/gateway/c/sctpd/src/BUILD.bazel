@@ -29,6 +29,7 @@ cc_binary(
         "//orc8r/gateway/c/common/sentry:sentry_wrapper",
         "//orc8r/gateway/c/common/service_registry",
         "//orc8r/protos:mconfigs_cpp_proto",
+        "@system_libraries//:libsystemd",
     ],
 )
 
