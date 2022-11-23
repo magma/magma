@@ -173,6 +173,8 @@ jobs:
       - name: Publish debian packages
         id: publish_packages
         if: github.event_name == 'push'
+        env:
+          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
           cd lte/gateway/magma-packages
           ARTIFACTS='{"packages":[],"valid":false}'
