@@ -749,7 +749,7 @@ jobs:
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Tag and push to Jfrog Registry
-        id: publish_artifacts_lf
+        id: publish_artifacts
         if: github.event_name == 'push'
         env:
           DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
