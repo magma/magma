@@ -30,7 +30,7 @@ constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
 const int NUM_MAX_UE_HTBL_LISTS = 6;
 constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
     "mme_app_mme_ue_s1ap_id_ue_context_htbl";
-constexpr char IMSI_UE_ID_TABLE_NAME[] = "mme_app_imsi_ue_context_htbl";
+constexpr char MME_IMSI2MME_UE_ID[] = "mme_imsi2ue_id_map";
 constexpr char TUN_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
@@ -131,11 +131,14 @@ void MmeNasStateManager::mme_nas_state_init_local_state() {}
 
 // Create the hashtables for MME NAS state
 void MmeNasStateManager::create_hashtables() {
-  bstring b = bfromcstr(IMSI_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl =
+  bstring b = bfromcstr(MME_IMSI2MME_UE_ID);
+  /*state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl =
       hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
-  bassigncstr(b, TUN_UE_ID_TABLE_NAME);
+  bassigncstr(b, TUN_UE_ID_TABLE_NAME);*/
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
+    new google::protobuf::Map<uint64_t, uint32_t>();
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(MME_IMSI2MME_UE_ID);
   state_cache_p->mme_ue_contexts.tun11_ue_context_htbl =
       hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   AssertFatal(sizeof(uintptr_t) >= sizeof(uint64_t),
@@ -192,8 +195,9 @@ void MmeNasStateManager::clear_mme_nas_hashtables() {
   }
 
   hashtable_ts_destroy(state_ue_ht);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
+  /*hashtable_uint64_ts_destroy(
+      state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);*/
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.destroy_map();
   hashtable_uint64_ts_destroy(
       state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);
   hashtable_uint64_ts_destroy(

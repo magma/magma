@@ -706,9 +706,7 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
 
   OAILOG_DEBUG(LOG_MME_APP, "IMSI table to proto");
-  hashtable_uint64_ts_to_proto(
-      mme_nas_state_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-      mme_ue_ctxts_proto->mutable_imsi_ue_id_htbl());
+  *mme_ue_ctxts_proto->mutable_imsi_ue_id_map() = *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map);
   OAILOG_DEBUG(LOG_MME_APP, "Tunnel table to proto");
   hashtable_uint64_ts_to_proto(
       mme_nas_state_p->mme_ue_contexts.tun11_ue_context_htbl,
@@ -746,9 +744,7 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   mme_ue_context_t* mme_ue_ctxt_state = &mme_nas_state_p->mme_ue_contexts;
   // copy maps to hashtables
   OAILOG_INFO(LOG_MME_APP, "Hashtable MME UE ID => IMSI");
-  proto_to_hashtable_uint64_ts(mme_ue_ctxts_proto.imsi_ue_id_htbl(),
-                               mme_ue_ctxt_state->imsi_mme_ue_id_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
+  *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map) = mme_ue_ctxts_proto.imsi_ue_id_map();
   proto_to_hashtable_uint64_ts(mme_ue_ctxts_proto.tun11_ue_id_htbl(),
                                mme_ue_ctxt_state->tun11_ue_context_htbl);
   OAILOG_INFO(LOG_MME_APP, "Hashtable ENB UE S1AP ID => MME UE ID");

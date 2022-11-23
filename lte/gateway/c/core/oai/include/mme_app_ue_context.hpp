@@ -52,6 +52,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
@@ -489,7 +490,7 @@ typedef struct ue_mm_context_s {
 } ue_mm_context_t;
 
 typedef struct mme_ue_context_s {
-  hash_table_uint64_ts_t* imsi_mme_ue_id_htbl;    // data is mme_ue_s1ap_id_t
+  magma::proto_map_uint64_uint32_t imsi2mme_ueid_map;    // data is mme_ue_s1ap_id_t
   hash_table_uint64_ts_t* tun11_ue_context_htbl;  // data is mme_ue_s1ap_id_t
   hash_table_uint64_ts_t*
       enb_ue_s1ap_id_ue_context_htbl;             // data is mme_ue_s1ap_id_t
