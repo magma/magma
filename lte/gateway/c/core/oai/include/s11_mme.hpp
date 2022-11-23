@@ -15,28 +15,19 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_common.c
+/*! \file s11_mme.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdbool.h>
-#include <stdint.h>
+#pragma once
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/tasks/s11/s11_common.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-
-nw_rc_t s11_ie_indication_generic(uint8_t ieType, uint16_t ieLength,
-                                  uint8_t ieInstance, uint8_t* ieValue,
-                                  void* arg) {
-  OAILOG_DEBUG(LOG_S11,
-               "Received IE Parse Indication for of type %u, length %u, "
-               "instance %u!\n",
-               ieType, ieLength, ieInstance);
-  return NW_OK;
+#ifdef __cplusplus
+extern "C" {
+#endif
+status_code_e s11_mme_init(mme_config_t* mme_config);
+#ifdef __cplusplus
 }
+#endif

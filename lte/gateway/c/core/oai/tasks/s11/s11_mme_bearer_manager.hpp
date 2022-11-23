@@ -15,17 +15,24 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme_bearer_manager.h
+/*! \file s11_mme_bearer_manager.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_MME_BEARER_MANAGER_SEEN
-#define FILE_S11_MME_BEARER_MANAGER_SEEN
+#pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
 /* @brief Create a new Release Access Bearers Request and send it to provided
  * S-GW. */
@@ -66,5 +73,3 @@ int s11_mme_handle_downlink_data_notification(nw_gtpv2c_stack_handle_t* stack_p,
 status_code_e s11_mme_downlink_data_notification_acknowledge(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_downlink_data_notification_acknowledge_t* ack_p);
-
-#endif /* FILE_S11_MME_BEARER_MANAGER_SEEN */

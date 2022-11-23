@@ -12,13 +12,14 @@ limitations under the License.
 */
 
 #pragma once
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }

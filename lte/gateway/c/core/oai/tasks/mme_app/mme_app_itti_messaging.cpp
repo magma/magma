@@ -22,6 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -31,29 +33,22 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/gcc_diag.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
-#include "lte/gateway/c/core/oai/common/gcc_diag.h"
-#include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
