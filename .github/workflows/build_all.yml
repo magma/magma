@@ -212,7 +212,6 @@ jobs:
             --url https://linuxfoundation.jfrog.io/artifactory/ \
             --user ${{ secrets.LF_JFROG_USERNAME }} \
             --password ${{ secrets.LF_JFROG_PASSWORD }} \
-            ${{ env.IS_DRY }} \
             --target-props="${DEBIAN_META_INFO}" \
             "(*).deb" magma-packages-test/pool/focal-ci/{1}.deb
           # set output
