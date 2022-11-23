@@ -16,7 +16,6 @@ on:
   push:
     branches:
       - master
-      - test_double_push
       - 'v1.*'
   pull_request:
     branches:
@@ -746,6 +745,17 @@ jobs:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts_lf
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
+          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
