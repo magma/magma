@@ -123,10 +123,10 @@ RUN yum install -y \
 
 # Add Converged MME sources to the container
 WORKDIR /patches
-COPY  lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch .
-COPY  lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch .
+COPY  lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch /patches
+COPY  lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch /patches
 
-# All works will be done from root of file system
+# All works will be done from the root of the file system
 WORKDIR /
 
 # git clone may fail on our OC cluster (could not resolve github.com, other sites
@@ -143,7 +143,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
      git clone https://github.com/nlohmann/json.git
 
-##### GRPC and it's dependencies
+##### GRPC and its dependencies
 RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
     # Moved git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
@@ -193,7 +193,7 @@ RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
         .. && \
     make -j`nproc` && \
     make install && \
-    cd .. && rm -Rf _build
+    cd .. && rm -R --interactive=never _build
 
 
 ##### Prometheus CPP
@@ -206,7 +206,7 @@ RUN cd prometheus-cpp && \
     cmake .. && \
     make -j`nproc` && \
     make install && \
-    cd .. && rm -Rf _build
+    cd .. && rm -R --interactive=never _build
 
 ##### Redis CPP
 RUN cd cpp_redis && \
@@ -217,7 +217,7 @@ RUN cd cpp_redis && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make -j`nproc` && \
     make install && \
-    cd .. && rm -Rf _build
+    cd .. && rm -R --interactive=never _build
 
 ##### NETTLE / gnutls
 RUN tar -xf nettle-2.5.tar.gz && \
@@ -230,7 +230,7 @@ RUN tar -xf nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    rm -Rf nettle-2.5.tar.gz nettle-2.5/_build && \
+    rm -R --interactive=never nettle-2.5.tar.gz nettle-2.5/_build && \
     # Moved wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
@@ -240,7 +240,7 @@ RUN tar -xf nettle-2.5.tar.gz && \
     make install && \
     make clean 2>&1 > /dev/null && \
     cd / && \
-    rm -Rf gnutls-3.1.23.tar.xz && \
+    rm -R --interactive=never gnutls-3.1.23.tar.xz && \
     ldconfig -v
 
 ##### liblfds
@@ -270,7 +270,7 @@ RUN cd asn1c && \
     ./configure && \
     make -j`nproc` && \
     make install && \
-    make clean 2>&1 > /dev/null
+    git clean -x -d -ff -q
 
 ##### FreeDiameter
 RUN cd freediameter && \
@@ -288,7 +288,7 @@ RUN cd freediameter && \
     grep DISABLE_SCTP CMakeCache.txt && \
     make -j`nproc` && \
     make install && \
-    cd ../ && rm -Rf _build
+    cd ../ && rm -R --interactive=never _build
 
 ##### lib nlohmann json
 RUN cd json && \
