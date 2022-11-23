@@ -49,7 +49,7 @@ jobs:
             let newCompLbls = new Set(); // Set of new label strings
 
             // Fetch files modified in the PR
-            const pulledFiles = await github.pulls.listFiles({
+            const pulledFiles = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
