@@ -81,17 +81,21 @@ jobs:
       matrix:
         include:
           - bazel-config: ""
-            bazel-target: ".*_test"
+            bazel-target-rule: ".*_test"
           - bazel-config: "--config=asan"
-            bazel-target: "cc_test"
+            bazel-target-rule: "cc_test"
           - bazel-config: "--config=production"
-            bazel-target: "cc_test"
+            bazel-target-rule: "cc_test"
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
+        # The value of fetch-depth needs to exceed the maximum number of commits
+        # on all PRs. This is needed for bazel-diff to check out the merge-base.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 100
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -113,20 +117,54 @@ jobs:
             cd /workspaces/magma
             set -euo pipefail
 
+            # Required for bazel-diff to perform git checkout.
+            git config --global --add safe.directory /workspaces/magma
+
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
             printf '\r%s\r\r' '###############################' 1>&2
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}' 1>&2
+            printf '\r%s\r' 'Determining bazel test targets.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            # Check that the workflow is run on a PR and that the .bazelrc and WORKSPACE files have not been affected.
+            if [[ ("${{ github.event_name }}" == "pull_request") && \
+                  ! $(git diff-tree --no-commit-id --name-only -r "${{ github.event.pull_request.base.sha }}" "${{ github.SHA }}" | \
+                    grep -E '(.bazelrc|WORKSPACE.bazel)') \
+                ]];
+            then
+              printf '\r%s\r' 'Determining targets via bazel-diff ...' 1>&2
+              IMPACTED_TARGETS_FILE="/tmp/impacted_targets.txt"
+              bazel/scripts/bazel_diff.sh "${{ github.event.pull_request.base.sha }}"  "${{ github.SHA }}" | tee "$IMPACTED_TARGETS_FILE"
+
+              printf '\r%s\r' 'Determining impacted test targets ...' 1>&2
+              # Choose all impacted test targets of type 'matrix.bazel-target-rule' that are not tagged as manual.
+              TEST_TARGETS=$(bazel/scripts/filter_test_targets.sh "${{ matrix.bazel-target-rule }}" < "$IMPACTED_TARGETS_FILE")
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            else
+              printf '\r%s\r' 'Running all unit test targets of type ${{ matrix.bazel-target-rule }}.' 1>&2
+              TEST_TARGETS="$(bazel query 'kind(${{ matrix.bazel-target-rule }}, //...) except attr(tags, manual, //...)')"
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            fi
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}.' 1>&2
             printf '\r%s\r' '###############################' 1>&2
             TEST_FAILED="false"
-            bazel test \
-              `bazel query 'kind(${{ matrix.bazel-target }}, //...) except attr("tags", "manual", //...)'` \
-              ${{ matrix.bazel-config }} \
-              --test_output=errors \
-              --profile=Bazel_test_all_profile || TEST_FAILED="true"
+
+            if [[ -n "$TEST_TARGETS" ]];
+            then
+              bazel test \
+                $TEST_TARGETS \
+                ${{ matrix.bazel-config }} \
+                --test_output=errors \
+                --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            else
+              printf '\r%s\r' 'No test targets of type ${{ matrix.bazel-target-rule }} were impacted by the changes.' 1>&2
+              printf '\r%s\r' 'No tests will be executed.' 1>&2
+            fi
+
             # Create Bazel unit-test results
             # Can't be a separate step, because the container's '/tmp' folder is not preserved between steps
             mkdir bazel_unit_test_results/
