@@ -1024,7 +1024,7 @@ class MagmadUtil(object):
         """Restart all magma services on magma_dev VM"""
         if self._init_system == InitMode.SYSTEMD:
             self.exec_command(
-                "sudo systemctl stop 'magma@*' 'sctpd' ;"
+                "sudo systemctl stop 'magma@*' ;"
                 "sudo systemctl start magma@magmad",
             )
             self._wait_for_pipelined_to_initialize()
@@ -1664,6 +1664,7 @@ class MagmadUtil(object):
         with open(mconfig_conf, "w") as json_file:
             json.dump(data, json_file, sort_keys=True, indent=2)
 
+        self.restart_services(['sctpd'], wait_time=30)
         self.restart_all_services()
 
     def _validate_non_nat_datapath(self, ip_version: int = 4):
