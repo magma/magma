@@ -234,7 +234,7 @@ py_library(
     name = "packet_parser",
     srcs = ["packet_parser.py"],
     deps = [
-        "//lte/gateway/python/magma/mobilityd:mac",
+        "//lte/gateway/python/magma/mobilityd:dhcp_desc",
         requirement("dpkt"),
     ],
 )
