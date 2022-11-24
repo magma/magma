@@ -1087,7 +1087,7 @@ class MagmadUtil(object):
             time.sleep(self.WAIT_INTERVAL_SECONDS)
             wait_time_seconds += self.WAIT_INTERVAL_SECONDS
 
-    def restart_services(self, services: str, wait_time: int = 0):
+    def restart_services(self, services: List[str], wait_time: int = 0):
         """
         Restart a list of magmad services.
         Hint:
