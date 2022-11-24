@@ -361,14 +361,15 @@ struct ue_mm_context_s* mme_ue_context_exists_imsi(
 struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
     mme_ue_context_t* const mme_ue_context_p, const s11_teid_t teid) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
-  uint64_t mme_ue_s1ap_id64 = 0;
+  uint32_t mme_ue_s1ap_id = 0;
 
-  h_rc = hashtable_uint64_ts_get(mme_ue_context_p->tun11_ue_context_htbl,
-                                 (const hash_key_t)teid, &mme_ue_s1ap_id64);
+  mme_ue_context_p->imsi2mme_ueid_map.get(teid, &mme_ue_s1ap_id);
+  /*h_rc = hashtable_uint64_ts_get(mme_ue_context_p->tun11_ue_context_htbl,
+                                 (const hash_key_t)teid, &mme_ue_s1ap_id64);*/
 
-  if (HASH_TABLE_OK == h_rc) {
+  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
     return mme_ue_context_exists_mme_ue_s1ap_id(
-        (mme_ue_s1ap_id_t)mme_ue_s1ap_id64);
+        mme_ue_s1ap_id);
   } else {
     OAILOG_WARNING(LOG_MME_APP, " No S11 hashtable for S11 Teid " TEID_FMT "\n",
                    teid);
@@ -498,15 +499,21 @@ void mme_ue_context_update_coll_keys(
   }
 
   if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
-    h_rc = hashtable_uint64_ts_remove(
+    /*h_rc = hashtable_uint64_ts_remove(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t)ue_context_p->mme_teid_s11);
     h_rc = hashtable_uint64_ts_insert(mme_ue_context_p->tun11_ue_context_htbl,
                                       (const hash_key_t)mme_teid_s11,
-                                      (uint64_t)mme_ue_s1ap_id);
-    ue_context_p->mme_teid_s11 = mme_teid_s11;
-  } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
+                                      (uint64_t)mme_ue_s1ap_id);*/
+    mme_ue_context_p->s11_teid2mme_ueid_map.remove(mme_teid_s11);
+    if (mme_ue_context_p->s11_teid2mme_ueid_map.insert(mme_teid_s11, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
+      OAILOG_ERROR_UE(LOG_MME_APP, imsi,
+                    "Insert operation failed for s11_teid2mme_ueid_map "
+                    "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
+                    ue_context_p->mme_ue_s1ap_id);
+    } else {
+      ue_context_p->mme_teid_s11 = mme_teid_s11;
+    }
   }
 
   if ((HASH_TABLE_OK != h_rc) && (mme_teid_s11)) {
@@ -572,6 +579,13 @@ static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
+static bool display_proto_map_uint32_uint32(uint64_t keyP, const uint32_t dataP,
+                                            void* argP, void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "s11_teid2mme_ueid_map key=%lu, data=%lu\n", keyP,
+               dataP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
+}
+
 //------------------------------------------------------------------------------
 void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   bstring tmp = bfromcstr(" ");
@@ -582,10 +596,10 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   imsi2mme_ueid_map.map_apply_callback_on_all_elements(
       display_proto_map_uint64_uint32, nullptr, nullptr);
 
-  btrunc(tmp, 0);
-  hashtable_uint64_ts_dump_content(mme_ue_contexts_p->tun11_ue_context_htbl,
-                                   tmp);
-  OAILOG_DEBUG(LOG_MME_APP, "tun11_ue_context_htbl %s\n", bdata(tmp));
+  magma::proto_map_uint32_uint32_t s11_teid2mme_ueid_map =
+      mme_ue_contexts_p->s11_teid2mme_ueid_map;
+  imsi2mme_ueid_map.map_apply_callback_on_all_elements(
+      display_proto_map_uint32_uint32, nullptr, nullptr);
 
   btrunc(tmp, 0);
   hashtable_ts_dump_content(mme_state_ue_id_ht, tmp);
@@ -689,12 +703,9 @@ status_code_e mme_insert_ue_context(
 
     // filled S11 tun id
     if (ue_context_p->mme_teid_s11) {
-      h_rc = hashtable_uint64_ts_insert(
-          mme_ue_context_p->tun11_ue_context_htbl,
-          (const hash_key_t)ue_context_p->mme_teid_s11,
-          ue_context_p->mme_ue_s1ap_id);
-
-      if (HASH_TABLE_OK != h_rc) {
+      if (mme_ue_context_p->s11_teid2mme_ueid_map.insert(
+              ue_context_p->mme_teid_s11,
+              ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
         OAILOG_WARNING(LOG_MME_APP,
                        "Error could not register this ue context %p "
                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
@@ -814,10 +825,12 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
 
   // filled S11 tun id
   if (ue_context_p->mme_teid_s11) {
-    hash_rc = hashtable_uint64_ts_remove(
+    /*hash_rc = hashtable_uint64_ts_remove(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t)ue_context_p->mme_teid_s11);
-    if (HASH_TABLE_OK != hash_rc)
+    if (HASH_TABLE_OK != hash_rc)*/
+    if (mme_ue_context_p->s11_teid2mme_ueid_map.remove(
+          ue_context_p->mme_teid_s11) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR(LOG_MME_APP,
                    "UE Context not found!\n"
                    " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
@@ -825,6 +838,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
                    ", MME S11 TEID  " TEID_FMT "  not in S11 collection\n",
                    ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id,
                    ue_context_p->mme_teid_s11);
+    }
   }
   // filled NAS UE ID/ MME UE S1AP ID
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
