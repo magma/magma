@@ -131,10 +131,11 @@ void MmeNasStateManager::mme_nas_state_init_local_state() {}
 
 // Create the hashtables for MME NAS state
 void MmeNasStateManager::create_hashtables() {
-  bstring b = bfromcstr(MME_IMSI2MME_UE_ID);
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(MME_IMSI2MME_UE_ID);
+
+  bstring b = bfromcstr(TUN_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.tun11_ue_context_htbl =
       hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   AssertFatal(sizeof(uintptr_t) >= sizeof(uint64_t),

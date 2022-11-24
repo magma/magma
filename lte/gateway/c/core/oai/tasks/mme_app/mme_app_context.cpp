@@ -567,7 +567,7 @@ void mme_ue_context_update_coll_keys(
 
 static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
                                             void* argP, void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "imsi_mme_ue_id_htbl key=%llu, data=%lu\n", keyP,
+  OAILOG_DEBUG(LOG_MME_APP, "imsi2mme_ueid_map key=%llu, data=%lu\n", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
