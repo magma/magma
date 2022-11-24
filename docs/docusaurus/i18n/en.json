@@ -2043,6 +2043,9 @@
       "version-1.8.0/nms/version-1.8.0-nms_arch_overview": {
         "title": "Overview"
       },
+      "version-1.8.0/nms/version-1.8.0-deploy_config": {
+        "title": "Set Up NMS"
+      },
       "version-1.8.0/nms/version-1.8.0-dev_components": {
         "title": "Components"
       },
@@ -2052,8 +2055,14 @@
       "version-1.8.0/nms/version-1.8.0-dev_testing": {
         "title": "Test NMS"
       },
+      "version-1.8.0/nms/version-1.8.0-metrics": {
+        "title": "Metrics"
+      },
       "version-1.8.0/nms/version-1.8.0-nms_organizations": {
         "title": "Multitenancy (Organizations)"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-deploy_faq": {
+        "title": "FAQs"
       },
       "version-1.8.0/orc8r/version-1.8.0-deploy_install": {
         "title": "Install Orchestrator"
