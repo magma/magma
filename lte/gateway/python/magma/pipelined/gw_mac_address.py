@@ -68,6 +68,9 @@ def get_iface_by_ip4(target_ip4: str) -> Optional[str]:
 
 def get_mac_by_ip6(gw_ip: str) -> str:
     for iface, ip6 in get_ifaces_by_ip6(gw_ip):
+        # Refresh the ip neighbor table
+        if subprocess.run(["ping", "-c", "1", gw_ip]).returncode != 0:
+            continue
         res = subprocess.run(
             ["ip", "neigh", "get", gw_ip, "dev", iface],
             capture_output=True,
