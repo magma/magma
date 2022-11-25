@@ -25,7 +25,7 @@ on:
     types: [ opened, reopened, synchronize ]
 
 env:
-  registry: ${{ inputs.registry || 'agw-test.artifactory.magmacore.org' }}
+  registry: ${{ inputs.registry || 'linuxfoundation.jfrog.io/magma-docker-agw-test' }}
 
 jobs:
 
@@ -46,7 +46,7 @@ jobs:
           echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
           if [ ${{ env.registry }} = docker.io ]
           then
-            echo image_prefix=${{ secrets.JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
           fi
 
       - name: verify registry output
@@ -66,8 +66,8 @@ jobs:
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-c
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/c/Dockerfile
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
@@ -77,8 +77,8 @@ jobs:
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-python
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/python/Dockerfile
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
@@ -88,8 +88,8 @@ jobs:
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-go
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: feg/gateway/docker/go/Dockerfile
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ steps.get-short-git-sha.outputs.sha }}
@@ -109,7 +109,7 @@ jobs:
           echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
           if [ ${{ env.registry }} = docker.io ]
           then
-            echo image_prefix=${{ secrets.JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
           fi
 
       - name: verify registry output
@@ -122,16 +122,16 @@ jobs:
 
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
           CONTEXT: lte/gateway/docker/ghz
 
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
           CONTEXT: lte/gateway/docker/ghz
