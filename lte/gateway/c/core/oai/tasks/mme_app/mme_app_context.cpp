@@ -360,13 +360,14 @@ struct ue_mm_context_s* mme_ue_context_exists_imsi(
 //------------------------------------------------------------------------------
 struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
     mme_ue_context_t* const mme_ue_context_p, const s11_teid_t teid) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint32_t mme_ue_s1ap_id = 0;
 
-  mme_ue_context_p->imsi2mme_ueid_map.get(teid, &mme_ue_s1ap_id);
+  mme_ue_context_p->s11_teid2mme_ueid_map.get(teid, &mme_ue_s1ap_id);
   /*h_rc = hashtable_uint64_ts_get(mme_ue_context_p->tun11_ue_context_htbl,
                                  (const hash_key_t)teid, &mme_ue_s1ap_id64);*/
 
+    OAILOG_WARNING(LOG_MME_APP, " Get op for S11 Teid " TEID_FMT " mme_ue_s1ap_id" MME_UE_S1AP_ID_FMT "\n",
+                   teid, mme_ue_s1ap_id);
   if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
     return mme_ue_context_exists_mme_ue_s1ap_id(
         mme_ue_s1ap_id);
@@ -499,12 +500,6 @@ void mme_ue_context_update_coll_keys(
   }
 
   if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
-    /*h_rc = hashtable_uint64_ts_remove(
-        mme_ue_context_p->tun11_ue_context_htbl,
-        (const hash_key_t)ue_context_p->mme_teid_s11);
-    h_rc = hashtable_uint64_ts_insert(mme_ue_context_p->tun11_ue_context_htbl,
-                                      (const hash_key_t)mme_teid_s11,
-                                      (uint64_t)mme_ue_s1ap_id);*/
     mme_ue_context_p->s11_teid2mme_ueid_map.remove(mme_teid_s11);
     if (mme_ue_context_p->s11_teid2mme_ueid_map.insert(mme_teid_s11, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(LOG_MME_APP, imsi,
