@@ -86,6 +86,7 @@ setup(
         'scripts/spgw_service_cli.py',
         'scripts/cpe_monitoring_cli.py',
         'scripts/state_cli.py',
+        'scripts/dhcp_helper_cli.py',
         'scripts/dp_probe_cli.py',
         'scripts/user_trace_cli.py',
         'scripts/icmpv6.py',
