@@ -1,7 +1,8 @@
 ---
-id: metrics
+id: version-1.8.0-metrics
 title: Metrics
 hide_title: true
+original_id: metrics
 ---
 # Metrics
 

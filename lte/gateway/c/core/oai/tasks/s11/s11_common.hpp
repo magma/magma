@@ -15,16 +15,26 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s11_mme.h
+/*! \file s11_common.hpp
   \brief
   \author Sebastien ROUX, Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
 
-#ifndef FILE_S11_MME_SEEN
-#define FILE_S11_MME_SEEN
+#pragma once
 
-int s11_mme_init(mme_config_t* mme_config);
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* FILE_S11_MME_SEEN */
+extern task_zmq_ctx_t s11_task_zmq_ctx;
+
+nw_rc_t s11_ie_indication_generic(uint8_t ieType, uint16_t ieLength,
+                                  uint8_t ieInstance, uint8_t* ieValue,
+                                  void* arg);

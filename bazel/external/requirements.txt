@@ -1648,6 +1648,9 @@ yarl==1.8.1 \
     --hash=sha256:f5af52738e225fcc526ae64071b7e5342abe03f42e0e8918227b38c9aa711e28 \
     --hash=sha256:fae37373155f5ef9b403ab48af5136ae9851151f7aacd9926251ab26b953118b
     # via aiohttp
+sdnotify==0.3.2 \
+    --hash=sha256:73977fc746b36cc41184dd43c3fe81323e7b8b06c2bb0826c4f59a20c56bb9f1
+    # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==49.6.0 \

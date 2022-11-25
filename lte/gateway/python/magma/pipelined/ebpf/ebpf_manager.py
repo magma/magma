@@ -22,6 +22,7 @@ import subprocess
 import netifaces
 from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
 from pyroute2 import IPRoute, NetlinkError
 from scapy.layers.inet6 import getmacbyip6
@@ -306,7 +307,7 @@ class EbpfManager:
         return None
 
     def _get_mac_address(self, if_name: str):
-        addr_str = netifaces.ifaddresses(self.sgi_if_name)[netifaces.AF_LINK][0]['addr']
+        addr_str = get_mac_address_from_iface(if_name)
         LOG.debug("if-name: %s, mac: %s" % (if_name, addr_str))
         return self._pack_mac_addr(addr_str)
 
@@ -321,7 +322,6 @@ class EbpfManager:
             LOG.error("Coudn't find mac for IP: %s, disabling ebpf" % (ip_str))
             return None
         LOG.debug("IP: %s, mac: %s" % (ip_str, addr_str))
-
         return self._pack_mac_addr(addr_str)
 
     def _pack_ip(self, ip_str: str):

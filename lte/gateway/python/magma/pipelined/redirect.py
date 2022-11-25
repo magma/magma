@@ -17,8 +17,8 @@ from collections import namedtuple
 from urllib.parse import urlsplit
 
 import aiodns
-import netifaces
 from magma.configuration.service_configs import get_service_config_value
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -95,10 +95,7 @@ class RedirectionManager:
         self._arp_contoller = None
         self._egress_table = egress_table
 
-        def get_virtual_iface_mac(iface):
-            virt_ifaddresses = netifaces.ifaddresses(iface)
-            return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
-        self._bridge_mac = get_virtual_iface_mac(bridge_name)
+        self._bridge_mac = get_mac_address_from_iface(bridge_name)
         self._cwf_args_set = True
         return self
 

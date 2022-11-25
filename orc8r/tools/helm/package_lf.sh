@@ -36,7 +36,7 @@ update_and_send_to_artifactory () {
     MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
     SHA1_CHECKSUM="$(shasum -a 1 "$ARTIFACT_PATH" | awk '{ print $1 }')"
     SHA256_CHECKSUM="$(shasum -a 256 "$ARTIFACT_PATH" | awk '{ print $1 }')"
-    curl --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
+    curl --user "$LF_HELM_CHART_MUSEUM_USERNAME":"$LF_HELM_CHART_MUSEUM_TOKEN" --fail \
                 --header "X-Checksum-MD5:${MD5_CHECKSUM}" \
                 --header "X-Checksum-Sha1:${SHA1_CHECKSUM}" \
                 --header "X-Checksum-Sha256:${SHA256_CHECKSUM}" \
@@ -92,7 +92,7 @@ if [ "$DEPLOYMENT_TYPE" != "$FWA" ] && [ "$DEPLOYMENT_TYPE" != "$FFWA" ] && [ "$
 fi
 
 # Check for artifactory URL presence
-if [[ $ONLY_PACKAGE = false && -z $HELM_CHART_ARTIFACTORY_URL ]]; then
+if [[ $ONLY_PACKAGE = false && -z $LF_HELM_CHART_ARTIFACTORY_URL ]]; then
   if [[ -z $GITHUB_REPO ]]; then
     exitmsg "Environment variable GITHUB_REPO must be set"
   fi
@@ -175,29 +175,29 @@ else
   fi
 
   if [[ $ONLY_PACKAGE = false ]]; then
-      if [[ -z $HELM_CHART_MUSEUM_REPO ]]; then
-    exitmsg "Environment variable $HELM_CHART_MUSEUM_REPO must be set"
+      if [[ -z $LF_HELM_CHART_MUSEUM_REPO ]]; then
+    exitmsg "Environment variable $LF_HELM_CHART_MUSEUM_REPO must be set"
     fi
 
     if [[ -z $HELM_CHART_MUSEUM_USERNAME ]]; then
       exitmsg "Environment variable HELM_CHART_MUSEUM_USERNAME must be set"
     fi
 
-    if [[ -z $HELM_CHART_MUSEUM_TOKEN ]]; then
-      exitmsg "Environment variable HELM_CHART_MUSEUM_TOKEN must be set"
+    if [[ -z $LF_HELM_CHART_MUSEUM_TOKEN ]]; then
+      exitmsg "Environment variable LF_HELM_CHART_MUSEUM_TOKEN must be set"
     fi
     # Trim last backslash if exists
     # shellcheck disable=SC2001
-    HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
+    LF_HELM_CHART_ARTIFACTORY_URL="$(echo "$LF_HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
     # Verify existence of the helm repo
-    RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO/" || :)"
+    RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$LF_HELM_CHART_ARTIFACTORY_URL/$LF_HELM_CHART_MUSEUM_REPO/" || :)"
     if [ $ONLY_PACKAGE != "True" ] && [ "$RESPONSE_CODE_REPO" != "200" ]; then
       exitmsg "There was an error connecting to the artifactory repository $HELM_CHART_MUSEUM_ORIGIN_REPO, the http error code was $RESPONSE_CODE_REPO"
     fi
 
-    HELM_CHART_MUSEUM_URL="$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_REPO"
+    HELM_CHART_MUSEUM_URL="$LF_HELM_CHART_ARTIFACTORY_URL/$LF_HELM_CHART_MUSEUM_REPO"
     # Form API URL
-    HELM_CHART_MUSEUM_API_URL="$HELM_CHART_ARTIFACTORY_URL/api"
+    HELM_CHART_MUSEUM_API_URL="$LF_HELM_CHART_ARTIFACTORY_URL/api"
   fi
 
   # Begin packaging necessary Helm charts
@@ -221,11 +221,11 @@ else
 
   if [[ $ONLY_PACKAGE = false ]]; then
     # Refresh index.yaml
-    curl --request POST --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
-                "$HELM_CHART_MUSEUM_API_URL/helm/$HELM_CHART_MUSEUM_REPO/reindex"
+    curl --request POST --user "$LF_HELM_CHART_MUSEUM_USERNAME":"$LF_HELM_CHART_MUSEUM_TOKEN" \
+                "$HELM_CHART_MUSEUM_API_URL/helm/$LF_HELM_CHART_MUSEUM_REPO/reindex"
 
     # Ensure push was successful
-    helm repo add "$(basename "$HELM_CHART_MUSEUM_URL")" "$HELM_CHART_MUSEUM_URL" --username "$HELM_CHART_MUSEUM_USERNAME" --password "$HELM_CHART_MUSEUM_TOKEN"
+    helm repo add "$(basename "$HELM_CHART_MUSEUM_URL")" "$HELM_CHART_MUSEUM_URL" --username "$LF_HELM_CHART_MUSEUM_USERNAME" --password "$LF_HELM_CHART_MUSEUM_TOKEN"
     helm repo update
 
     # The Helm command returns 0 even when no results are found. Search for err str
