@@ -37,8 +37,8 @@ on:
       repository:
         description: Repository to push to?
         type: choice
-        default: debian-ci
-        options: [ debian-ci, debian-test, debian-prod ]
+        default: magma-packages-test
+        options: [ magma-packages-test, magma-packages-prod ]
         required: true
       distribution:
         description: Distribution to set?
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/magma/magma/devcontainer:sha-385c134
     env:
-      repository: ${{ inputs.repository || 'debian-ci' }}
+      repository: ${{ inputs.repository || 'magma-packages-test' }}
       distribution: ${{ inputs.distribution || 'focal-ci' }}
 
     strategy:
@@ -93,7 +93,7 @@ jobs:
           echo "ERROR: Production deployment is protected. Abort!"
           exit 1
         if: |
-          env.repository == 'debian-prod' &&
+          env.repository == 'magma-packages-prod' &&
           ! (
             inputs.production &&
             contains('["maxhbr", "nstng", "jheidbrink", "lkreutzer", "Neudrino", "MoritzThomasHuebner", "tmdzk", "wolfseb"]', github.actor)
@@ -105,9 +105,9 @@ jobs:
         if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
-          JF_URL: https://artifactory.magmacore.org
-          JF_USER: ${{ secrets.JFROG_USERNAME }}
-          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          JF_URL: https://linuxfoundation.jfrog.io/artifactory
+          JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
       - name: Publish debian package
         if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
