@@ -77,9 +77,6 @@ void esm_ebr_initialize(void);
 ebi_t esm_ebr_assign(emm_context_t* emm_context);
 status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 bool esm_ebr_is_reserved(ebi_t ebi);
 status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
                                   CLONE_REF const_bstring msg, uint32_t msec,
@@ -88,9 +85,6 @@ status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
 bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi);
 
 status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi);
-#ifdef __cplusplus
-}
-#endif
 ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 
 status_code_e esm_ebr_set_status(emm_context_t* emm_context, ebi_t ebi,

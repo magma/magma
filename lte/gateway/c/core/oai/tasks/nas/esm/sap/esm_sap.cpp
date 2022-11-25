@@ -135,7 +135,7 @@ void esm_sap_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
+status_code_e esm_sap_send(esm_sap_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;
   int esm_sap_rc;
