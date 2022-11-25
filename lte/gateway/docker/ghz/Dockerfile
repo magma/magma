@@ -1,5 +1,5 @@
 # AGW test docker private repository location
-ARG REPO_LOCATION=linuxfoundation.jfrog.io/agw-test
+ARG REPO_LOCATION=linuxfoundation.jfrog.io/magma-docker-agw-test
 ARG MAGMA_ROOT=/magma
 ARG BASE_VERSION=latest
 
