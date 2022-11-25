@@ -105,7 +105,7 @@ jobs:
         if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
         env:
-          JF_URL: https://linuxfoundation.jfrog.io/artifactory
+          JF_URL: https://linuxfoundation.jfrog.io/
           JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
           JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
