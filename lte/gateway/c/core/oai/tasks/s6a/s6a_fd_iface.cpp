@@ -23,6 +23,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 
+#include <iostream>
+#include <exception>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,9 +40,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_messages.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
-
-#include <iostream>
-#include <exception>
 
 using namespace std;
 
