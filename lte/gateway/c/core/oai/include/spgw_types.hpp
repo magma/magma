@@ -30,6 +30,9 @@
 
 #pragma once
 
+//#include "lte/protos/oai/std_3gpp_types.pb.h"
+#include "lte/protos/oai/spgw_state.pb.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,9 +85,8 @@ typedef struct sgw_s11_teid_s {
 } sgw_s11_teid_t;
 
 // Map- Key:teid (uint32_t) ,
-// Data:s_plus_p_gw_eps_bearer_context_information_s*
-typedef magma::proto_map_s<uint32_t,
-                           struct s_plus_p_gw_eps_bearer_context_information_s*>
+// Data: S11BearerContext*
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::S11BearerContext*>
     state_teid_map_t;
 
 typedef struct spgw_ue_context_s {
@@ -94,6 +96,10 @@ typedef struct spgw_ue_context_s {
 // Map- Key:imsi of uint64_t, Data:spgw_ue_context_s*
 typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
     map_uint64_spgw_ue_context_t;
+
+// Map- Key: eps_bearer_id(uint32), Data: SgwEpsBearerContext
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::SgwEpsBearerContext>
+   map_uint32_spgw_eps_bearer_context_t;
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
@@ -130,5 +136,5 @@ typedef struct spgw_state_s {
 
 void handle_s5_create_session_response(
     spgw_state_t* state,
-    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);

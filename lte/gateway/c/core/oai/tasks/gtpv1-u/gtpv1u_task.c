@@ -34,11 +34,11 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtp_tunnel_upf.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+//#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
 #ifdef __cplusplus
 }

@@ -59,6 +59,28 @@ void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) { return; }
 
 void delete_sgw_ue_state(imsi64_t imsi64) { return; }
 
+void sgw_s8_free_eps_bearer_context(
+    sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
+  if (*sgw_eps_bearer_ctxt) {
+    if ((*sgw_eps_bearer_ctxt)->pgw_cp_ip_port) {
+      free_wrapper(
+          reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
+    }
+    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
+  }
+}
+
+void sgw_s8_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
+  if (pdn_connection_p) {
+    if (pdn_connection_p->apn_in_use) {
+      free_wrapper((void**)&pdn_connection_p->apn_in_use);
+    }
+
+    for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {
+      sgw_s8_free_eps_bearer_context(&ebix);
+    }
+  }
+}
 void sgw_free_s11_bearer_context_information(void** ptr) {
   if (!ptr) {
     return;
@@ -66,7 +88,7 @@ void sgw_free_s11_bearer_context_information(void** ptr) {
   sgw_eps_bearer_context_information_t* sgw_eps_context =
       reinterpret_cast<sgw_eps_bearer_context_information_t*>(*ptr);
   if (sgw_eps_context) {
-    sgw_free_pdn_connection(&sgw_eps_context->pdn_connection);
+    sgw_s8_free_pdn_connection(&sgw_eps_context->pdn_connection);
     delete_pending_procedures(sgw_eps_context);
     free_cpp_wrapper(reinterpret_cast<void**>(ptr));
   }

@@ -27,7 +27,7 @@ class TestAttachDetach(unittest.TestCase):
 
     def test_attach_detach(self):
         """ Basic attach/detach test with a single UE """
-        num_ues = 2
+        num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,

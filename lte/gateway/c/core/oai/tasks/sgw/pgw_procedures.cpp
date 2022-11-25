@@ -89,24 +89,6 @@ pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
   return NULL;
 }
 //------------------------------------------------------------------------------
-void pgw_delete_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* const ctx_p) {
-  if (ctx_p->sgw_eps_bearer_context_information.pending_procedures) {
-    pgw_base_proc_t* base_proc = NULL;
-
-    LIST_FOREACH(base_proc,
-                 ctx_p->sgw_eps_bearer_context_information.pending_procedures,
-                 entries) {
-      if (PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST ==
-          base_proc->type) {
-        LIST_REMOVE(base_proc, entries);
-        pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&base_proc);
-        return;
-      }
-    }
-  }
-}
-//------------------------------------------------------------------------------
 void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
   if (*ni_cbr_proc && (*ni_cbr_proc)->pending_eps_bearers) {
     sgw_eps_bearer_entry_wrapper_t* eps_bearer_entry_wrapper = NULL;

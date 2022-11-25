@@ -31,4 +31,5 @@ int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
 
 void gtpv1u_exit(void);
 
+int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 #endif /* FILE_GTPV1U_SGW_DEFS_SEEN */

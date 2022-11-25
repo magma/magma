@@ -67,5 +67,3 @@ pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
 #endif
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* const ctx_p);
-void pgw_delete_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);

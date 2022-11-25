@@ -21,7 +21,7 @@
 
 namespace magma {
 namespace lte {
-
+#if 0
 TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
   status_code_e return_code = RETURNerror;
 
@@ -181,6 +181,6 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
+#endif
 }  // namespace lte
 }  // namespace magma

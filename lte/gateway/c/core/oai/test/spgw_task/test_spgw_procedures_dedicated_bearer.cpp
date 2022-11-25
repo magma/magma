@@ -40,7 +40,7 @@ extern "C" {
 
 namespace magma {
 namespace lte {
-
+#if 0
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
   spgw_state_t* spgw_state = get_spgw_state(false);
 
@@ -378,5 +378,6 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
+#endif
 }  // namespace lte
 }  // namespace magma

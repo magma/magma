@@ -37,6 +37,7 @@ extern task_zmq_ctx_t task_zmq_ctx_main_spgw;
 #define DEFAULT_EPS_BEARER_ID 5
 #define UNASSIGNED_UE_IP 0
 #define DEFAULT_UE_IP 0xc0a8800a  // 192.168.128.10
+#define DEFAULT_UE_IP_DOT_FMT 192.168.128.10
 #define DEFAULT_VLAN 0
 #define DEFAULT_ENB_GTP_TEID 1
 #define ERROR_SGW_S11_TEID 100

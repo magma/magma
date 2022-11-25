@@ -22,6 +22,7 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 using magma::lte::oai::CreateSessionMessage;
@@ -59,8 +60,9 @@ void SpgwStateConverter::proto_to_state(const SpgwState& proto,
 }
 
 void SpgwStateConverter::spgw_bearer_context_to_proto(
-    const s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state,
+    const S11BearerContext* spgw_bearer_state,
     S11BearerContext* spgw_bearer_proto) {
+#if 0
   spgw_bearer_proto->Clear();
 
   auto* sgw_eps_bearer_proto =
@@ -113,11 +115,13 @@ void SpgwStateConverter::spgw_bearer_context_to_proto(
   pgw_eps_bearer_proto->set_imsi_unauth_indicator(
       pgw_eps_bearer_state->imsi_unauthenticated_indicator);
   pgw_eps_bearer_proto->set_msisdn(pgw_eps_bearer_state->msisdn);
+#endif
 }
 
 void SpgwStateConverter::proto_to_spgw_bearer_context(
     const S11BearerContext& spgw_bearer_proto,
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state) {
+    S11BearerContext* spgw_bearer_state) {
+#if 0
   auto* sgw_eps_bearer_context_state =
       &spgw_bearer_state->sgw_eps_bearer_context_information;
   auto& sgw_eps_bearer_context_proto =
@@ -182,6 +186,7 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
           pgw_eps_bearer_context_proto.msisdn().length());
   pgw_eps_bearer_context_state->imsi_unauthenticated_indicator =
       pgw_eps_bearer_context_proto.imsi_unauth_indicator();
+#endif
 }
 
 void SpgwStateConverter::sgw_pdn_connection_to_proto(
@@ -242,7 +247,8 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
 
 void SpgwStateConverter::sgw_create_session_message_to_proto(
     const itti_s11_create_session_request_t* session_request,
-    CreateSessionMessage* proto) {
+    magma::lte::oai::CreateSessionMessage* proto) {
+#if 0
   proto->Clear();
 
   if (session_request->trxn != nullptr) {
@@ -251,8 +257,18 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
 
   proto->set_teid(session_request->teid);
   proto->set_imsi((char*)session_request->imsi.digit);
-  proto->set_msisdn((char*)session_request->msisdn.digit);
+  char msisdn[MSISDN_LENGTH + 1];
+  uint32_t msisdn_len = get_msisdn_from_session_req(session_request, msisdn);
+  // proto->set_msisdn((char*)session_request->msisdn.digit);
+  proto->set_msisdn(msisdn);
 
+  char imeisv[IMEISV_DIGITS_MAX + 1];
+  if (get_imeisv_from_session_req(session_request, imeisv)) {
+    convert_imeisv_to_string(imeisv);
+    proto->set_mei(imeisv, IMEISV_DIGITS_MAX);
+    OAILOG_DEBUG(LOG_SPGW_APP, "imeisv:%s \n", imeisv);
+  }
+#if 0  // TODO Rashmi check imeisv valu and remove
   if (MEI_IMEISV) {
     memcpy(proto->mutable_mei(), &session_request->mei.choice.imeisv,
            session_request->mei.choice.imeisv.length);
@@ -260,11 +276,12 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     memcpy(proto->mutable_mei(), &session_request->mei.choice.imei,
            session_request->mei.choice.imei.length);
   }
+#endif
 
-  if (session_request->uli.present) {
-    char uli[sizeof(Uli_t)] = "";
-    memcpy(uli, &session_request->uli, sizeof(Uli_t));
-    proto->set_uli(uli, sizeof(Uli_t));
+  char uli[14];
+  bool uli_exists = get_uli_from_session_req(session_request, uli);
+  if (uli_exists) {
+    proto->set_uli(uli);
   }
 
   const auto cc = session_request->charging_characteristics;
@@ -272,10 +289,10 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     proto->set_charging_characteristics(cc.value, cc.length);
   }
 
-  proto->mutable_serving_network()->set_mcc(
-      (char*)session_request->serving_network.mcc, 3);
-  proto->mutable_serving_network()->set_mnc(
-      (char*)session_request->serving_network.mnc, 3);
+  char mcc_mnc[7];
+  get_plmn_from_session_req(session_request, mcc_mnc);
+  convert_serving_network_to_proto(session_request->serving_network,
+                                   proto->mutable_serving_network());
 
   proto->set_rat_type(session_request->rat_type);
   proto->set_pdn_type(session_request->pdn_type);
@@ -334,6 +351,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     eps_bearer_qos_to_proto(&bearer->bearer_level_qos,
                             bearer_proto->mutable_bearer_level_qos());
   }
+#endif
 }
 
 void SpgwStateConverter::proto_to_sgw_create_session_message(
@@ -755,7 +773,7 @@ void SpgwStateConverter::proto_to_packet_filter(
   packet_filter->length = packet_filter_proto.length();
 
   auto* packet_filter_contents = &packet_filter->packetfiltercontents;
-  for (uint32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
+  for (int32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
        i++) {
     auto& packet_filter_content_proto =
         packet_filter_proto.packet_filter_contents(i);
@@ -917,7 +935,7 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
     }
   }
 }
-
+#if 0  // TODO Rashmi remove if not required
 void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
@@ -958,7 +976,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
                      sgw_eps_bearer_entry_wrapper, entries);
   }
 }
-
+#endif
 void SpgwStateConverter::ue_to_proto(const spgw_ue_context_t* ue_state,
                                      oai::SpgwUeContext* ue_proto) {
   if (ue_state && (!LIST_EMPTY(&ue_state->sgw_s11_teid_list))) {
@@ -1012,26 +1030,346 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
   }
   for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
-        new s_plus_p_gw_eps_bearer_context_information_t();
+    oai::S11BearerContext* spgw_context_p = new oai::S11BearerContext();
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
     if ((state_teid_map->insert(
-             spgw_context_p->sgw_eps_bearer_context_information
-                 .s_gw_teid_S11_S4,
+             spgw_context_p->sgw_eps_bearer_context().sgw_teid_s11_s4(),
              spgw_context_p) != magma::PROTO_MAP_OK)) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP,
-          "Failed to insert spgw_context_p for teid " TEID_FMT " \n",
-          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+      OAILOG_ERROR(LOG_SPGW_APP,
+                   "Failed to insert spgw_context_p for teid " TEID_FMT " \n",
+                   spgw_context_p->sgw_eps_bearer_context().sgw_teid_s11_s4());
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
     spgw_update_teid_in_ue_context(
-        spgw_context_p->sgw_eps_bearer_context_information.imsi64,
-        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+        spgw_context_p->sgw_eps_bearer_context().imsi64(),
+        spgw_context_p->sgw_eps_bearer_context().sgw_teid_s11_s4());
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
 }  // namespace lte
 }  // namespace magma
+
+void port_range_to_proto(const port_range_t* port_range,
+                         magma::lte::oai::PortRange* port_range_proto) {
+  port_range_proto->Clear();
+
+  port_range_proto->set_low_limit(port_range->lowlimit);
+  port_range_proto->set_high_limit(port_range->highlimit);
+}
+
+void packet_filter_to_proto(
+    const packet_filter_t* packet_filter,
+    magma::lte::oai::PacketFilter* packet_filter_proto) {
+  packet_filter_proto->Clear();
+
+  packet_filter_proto->set_spare(packet_filter->spare);
+  packet_filter_proto->set_direction(packet_filter->direction);
+  packet_filter_proto->set_identifier(packet_filter->identifier);
+  packet_filter_proto->set_eval_precedence(packet_filter->eval_precedence);
+
+  uint16_t flag = TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+  while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
+    auto* pf_content = packet_filter_proto->add_packet_filter_contents();
+    switch (packet_filter->packetfiltercontents.flags & flag) {
+      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
+        for (auto& ip : packet_filter->packetfiltercontents.ipv4remoteaddr) {
+          auto* ipv4_proto = pf_content->add_ipv4_remote_addresses();
+          ipv4_proto->set_addr(ip.addr);
+          ipv4_proto->set_mask(ip.mask);
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
+        for (auto& ip : packet_filter->packetfiltercontents.ipv6remoteaddr) {
+          auto* ipv6_proto = pf_content->add_ipv6_remote_addresses();
+          ipv6_proto->set_addr(ip.addr);
+          ipv6_proto->set_mask(ip.mask);
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
+        pf_content->set_protocol_identifier_nextheader(
+            packet_filter->packetfiltercontents.protocolidentifier_nextheader);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
+        pf_content->set_single_local_port(
+            packet_filter->packetfiltercontents.singlelocalport);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
+        pf_content->set_single_remote_port(
+            packet_filter->packetfiltercontents.singleremoteport);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
+        pf_content->set_security_parameter_index(
+            packet_filter->packetfiltercontents.securityparameterindex);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG: {
+        pf_content->set_flags(
+            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
+        pf_content->mutable_type_of_service_traffic_class()->set_value(
+            packet_filter->packetfiltercontents.typdeofservice_trafficclass
+                .value);
+        pf_content->mutable_type_of_service_traffic_class()->set_mask(
+            packet_filter->packetfiltercontents.typdeofservice_trafficclass
+                .mask);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL);
+        pf_content->set_flow_label(
+            packet_filter->packetfiltercontents.flowlabel);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
+        port_range_to_proto(&packet_filter->packetfiltercontents.localportrange,
+                            pf_content->mutable_local_port_range());
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG: {
+        pf_content->set_flags(TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
+        port_range_to_proto(
+            &packet_filter->packetfiltercontents.remoteportrange,
+            pf_content->mutable_remote_port_range());
+      } break;
+      default:
+        break;
+    }
+    flag = flag << 1;
+  }
+}
+
+void eps_bearer_qos_to_proto(
+    const bearer_qos_t* eps_bearer_qos_state,
+    magma::lte::oai::SgwBearerQos* eps_bearer_qos_proto) {
+  eps_bearer_qos_proto->Clear();
+
+  eps_bearer_qos_proto->set_pci(eps_bearer_qos_state->pci);
+  eps_bearer_qos_proto->set_pl(eps_bearer_qos_state->pl);
+  eps_bearer_qos_proto->set_pvi(eps_bearer_qos_state->pvi);
+  eps_bearer_qos_proto->set_qci(eps_bearer_qos_state->qci);
+
+  eps_bearer_qos_proto->mutable_gbr()->set_br_ul(
+      eps_bearer_qos_state->gbr.br_ul);
+  eps_bearer_qos_proto->mutable_gbr()->set_br_dl(
+      eps_bearer_qos_state->gbr.br_dl);
+
+  eps_bearer_qos_proto->mutable_mbr()->set_br_ul(
+      eps_bearer_qos_state->mbr.br_ul);
+  eps_bearer_qos_proto->mutable_mbr()->set_br_dl(
+      eps_bearer_qos_state->mbr.br_dl);
+}
+
+void traffic_flow_template_to_proto(
+    const traffic_flow_template_t* tft_state,
+    magma::lte::oai::TrafficFlowTemplate* tft_proto) {
+  tft_proto->Clear();
+
+  tft_proto->set_tft_operation_code(tft_state->tftoperationcode);
+  tft_proto->set_number_of_packet_filters(tft_state->numberofpacketfilters);
+  tft_proto->set_ebit(tft_state->ebit);
+
+  // parameters_list member conversion
+  tft_proto->mutable_parameters_list()->set_num_parameters(
+      tft_state->parameterslist.num_parameters);
+  for (int i = 0; i < tft_state->parameterslist.num_parameters; i++) {
+    auto* parameter = &tft_state->parameterslist.parameter[i];
+    if (parameter->contents) {
+      auto* param_proto =
+          tft_proto->mutable_parameters_list()->add_parameters();
+      param_proto->set_parameter_identifier(parameter->parameteridentifier);
+      param_proto->set_length(parameter->length);
+      BSTRING_TO_STRING(parameter->contents, param_proto->mutable_contents());
+    }
+  }
+
+  // traffic_flow_template.packet_filter list member conversions
+  auto* pft_proto = tft_proto->mutable_packet_filter_list();
+  auto pft_state = tft_state->packetfilterlist;
+  switch (tft_state->tftoperationcode) {
+    case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
+        pft_proto->add_delete_packet_filter_identifier(
+            pft_state.deletepacketfilter[i].identifier);
+      }
+      break;
+    case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
+        packet_filter_to_proto(&pft_state.createnewtft[i],
+                               pft_proto->add_create_new_tft());
+      }
+      break;
+    case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
+        packet_filter_to_proto(&pft_state.createnewtft[i],
+                               pft_proto->add_add_packet_filter());
+      }
+      break;
+    case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
+        packet_filter_to_proto(&pft_state.createnewtft[i],
+                               pft_proto->add_replace_packet_filter());
+      }
+      break;
+    default:
+      break;
+  };
+}
+
+void convert_serving_network_to_proto(
+    ServingNetwork_t serving_nw,
+    magma::lte::oai::ServingNetwork* serving_nw_proto) {
+  char mcc[3] = {0};
+  char mnc[3] = {0};
+  uint8_t mnc_len = 0;
+
+  mcc[0] = convert_digit_to_char(serving_nw.mcc[0]);
+  mcc[1] = convert_digit_to_char(serving_nw.mcc[1]);
+  mcc[2] = convert_digit_to_char(serving_nw.mcc[2]);
+  mnc[0] = convert_digit_to_char(serving_nw.mnc[0]);
+  mnc[1] = convert_digit_to_char(serving_nw.mnc[1]);
+  if ((serving_nw.mnc[2] & 0xf) != 0xf) {
+    mnc[2] = convert_digit_to_char(serving_nw.mnc[2]);
+    mnc_len = 3;
+  } else {
+    mnc_len = 2;
+  }
+  serving_nw_proto->set_mcc(mcc, 3);
+  serving_nw_proto->set_mnc(mnc, mnc_len);
+}
+
+void sgw_create_session_message_to_proto(
+    const itti_s11_create_session_request_t* session_request,
+    magma::lte::oai::CreateSessionMessage* proto) {
+  proto->Clear();
+
+  if (session_request->trxn != nullptr) {
+    proto->set_trxn((char*)session_request->trxn);
+  }
+
+  proto->set_teid(session_request->teid);
+  proto->set_imsi((char*)session_request->imsi.digit);
+  char msisdn[MSISDN_LENGTH + 1] = {};
+  uint32_t msisdn_len = get_msisdn_from_session_req(session_request, msisdn);
+  // proto->set_msisdn((char*)session_request->msisdn.digit);
+  proto->set_msisdn(msisdn);
+
+  char imeisv[IMEISV_DIGITS_MAX + 1] = {};
+  if (get_imeisv_from_session_req(session_request, imeisv)) {
+    convert_imeisv_to_string(imeisv);
+    proto->set_mei(imeisv, IMEISV_DIGITS_MAX);
+    OAILOG_DEBUG(LOG_SPGW_APP, "imeisv:%s \n", imeisv);
+  }
+#if 0
+  if (MEI_IMEISV) {
+    memcpy(proto->mutable_mei(), &session_request->mei.choice.imeisv,
+           session_request->mei.choice.imeisv.length);
+  } else if (MEI_IMEI) {
+    memcpy(proto->mutable_mei(), &session_request->mei.choice.imei,
+           session_request->mei.choice.imei.length);
+  }
+#endif
+
+  char uli[14] = {};
+  bool uli_exists = get_uli_from_session_req(session_request, uli);
+  if (uli_exists) {
+    proto->set_uli(uli);
+  }
+
+  const auto cc = session_request->charging_characteristics;
+  if (cc.length > 0) {
+    proto->set_charging_characteristics(cc.value, cc.length);
+  }
+
+  char mcc_mnc[7] = {};
+  get_plmn_from_session_req(session_request, mcc_mnc);
+  convert_serving_network_to_proto(session_request->serving_network,
+                                   proto->mutable_serving_network());
+
+  proto->set_rat_type(session_request->rat_type);
+  proto->set_pdn_type(session_request->pdn_type);
+  proto->mutable_ambr()->set_br_ul(session_request->ambr.br_ul);
+  proto->mutable_ambr()->set_br_dl(session_request->ambr.br_dl);
+
+  proto->set_apn(session_request->apn, strlen(session_request->apn));
+  proto->mutable_ue_ip_paa()->set_pdn_type(session_request->paa.pdn_type);
+
+  if (session_request->paa.pdn_type == IPv4) {
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(session_request->paa.ipv4_address.s_addr), ip_str,
+              INET_ADDRSTRLEN);
+    proto->mutable_ue_ip_paa()->set_ipv4_addr(ip_str);
+  } else if (session_request->paa.pdn_type == IPv6) {
+    char ip6_str[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6, &(session_request->paa.ipv6_address), ip6_str,
+              INET6_ADDRSTRLEN);
+    proto->mutable_ue_ip_paa()->set_ipv6_addr(ip6_str);
+    proto->mutable_ue_ip_paa()->set_ipv6_prefix_length(
+        session_request->paa.ipv6_prefix_length);
+    proto->mutable_ue_ip_paa()->set_vlan(session_request->paa.vlan);
+  } else if (session_request->paa.pdn_type == IPv4_AND_v6) {
+    char ip4_str[INET_ADDRSTRLEN] = {};
+    inet_ntop(AF_INET, &(session_request->paa.ipv4_address.s_addr), ip4_str,
+              INET_ADDRSTRLEN);
+    char ip6_str[INET6_ADDRSTRLEN] = {};
+    inet_ntop(AF_INET6, &(session_request->paa.ipv6_address), ip6_str,
+              INET6_ADDRSTRLEN);
+    proto->mutable_ue_ip_paa()->set_ipv4_addr(ip4_str);
+    proto->mutable_ue_ip_paa()->set_ipv6_addr(ip6_str);
+    proto->mutable_ue_ip_paa()->set_ipv6_prefix_length(
+        session_request->paa.ipv6_prefix_length);
+    proto->mutable_ue_ip_paa()->set_vlan(session_request->paa.vlan);
+  }
+
+  proto->set_peer_ip(session_request->edns_peer_ip.addr_v4.sin_addr.s_addr);
+
+  proto->mutable_pco()->set_ext(session_request->pco.ext);
+  proto->mutable_pco()->set_spare(session_request->pco.spare);
+  proto->mutable_pco()->set_configuration_protocol(
+      session_request->pco.configuration_protocol);
+  proto->mutable_pco()->set_num_protocol_or_container_id(
+      session_request->pco.num_protocol_or_container_id);
+
+  if (session_request->sender_fteid_for_cp.ipv4) {
+    proto->mutable_sender_fteid_for_cp()->set_ipv4_address(
+        session_request->sender_fteid_for_cp.ipv4_address.s_addr);
+  } else if (session_request->sender_fteid_for_cp.ipv6) {
+    memcpy(proto->mutable_sender_fteid_for_cp()->mutable_ipv6_address(),
+           &session_request->sender_fteid_for_cp.ipv6_address, 16);
+  }
+
+  proto->mutable_sender_fteid_for_cp()->set_interface_type(
+      session_request->sender_fteid_for_cp.interface_type);
+  proto->mutable_sender_fteid_for_cp()->set_teid(
+      session_request->sender_fteid_for_cp.teid);
+
+  proto->mutable_ue_time_zone()->set_time_zone(
+      session_request->ue_time_zone.time_zone);
+  proto->mutable_ue_time_zone()->set_daylight_saving_time(
+      session_request->ue_time_zone.daylight_saving_time);
+
+  for (int i = 0; i < session_request->pco.num_protocol_or_container_id; i++) {
+    auto* pco_protocol = &session_request->pco.protocol_or_container_ids[i];
+    auto* pco_protocol_proto = proto->mutable_pco()->add_pco_protocol();
+    if (pco_protocol->contents) {
+      pco_protocol_proto->set_id(pco_protocol->id);
+      pco_protocol_proto->set_length(pco_protocol->length);
+      BSTRING_TO_STRING(pco_protocol->contents,
+                        pco_protocol_proto->mutable_contents());
+    }
+  }
+  for (int i = 0;
+       i < session_request->bearer_contexts_to_be_created.num_bearer_context;
+       i++) {
+    auto* bearer =
+        &session_request->bearer_contexts_to_be_created.bearer_contexts[i];
+    auto* bearer_proto = proto->add_bearer_contexts_to_be_created();
+    bearer_proto->set_eps_bearer_id(bearer->eps_bearer_id);
+    traffic_flow_template_to_proto(&bearer->tft, bearer_proto->mutable_tft());
+    eps_bearer_qos_to_proto(&bearer->bearer_level_qos,
+                            bearer_proto->mutable_bearer_level_qos());
+  }
+}

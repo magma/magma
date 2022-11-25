@@ -16,12 +16,12 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 #include <unordered_map>
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/map.h"
