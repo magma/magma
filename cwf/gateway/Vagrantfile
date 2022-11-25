@@ -84,7 +84,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Set to an internal network to prevent possible connection to vagrant host instead of other VM
     cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
     cwag_centos7.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
-#    cwag_centos7.ssh.password = "vagrant"
     cwag_centos7.ssh.insert_key = true
 
     cwag_centos7.vm.provider "virtualbox" do |vb|
