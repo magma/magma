@@ -82,7 +82,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cwag_centos7.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
     cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM"
     cwag_centos7.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
-#    cwag_centos7.ssh.password = "vagrant"
     cwag_centos7.ssh.insert_key = true
 
     cwag_centos7.vm.provider "virtualbox" do |vb|
