@@ -115,9 +115,10 @@ class IPAllocatorDHCP(IPAllocator):
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
-                            "renew"],
+                            "renew",
                             "--ip", str(dhcp_desc.ip),
                             "--server-ip", str(dhcp_desc.server_ip),
+                        ],
                             capture_output=True
                         )
 
@@ -393,9 +394,10 @@ class IPAllocatorDHCP(IPAllocator):
                 "--mac", str(mac),
                 "--vlan", str(vlan),
                 "--interface", self._iface,
-                "release"],
+                "release",
                 "--ip", str(ip_desc.ip),
                 "--server-ip", str(dhcp_desc.server_ip),
+            ],
                 capture_output=True
             )
 
