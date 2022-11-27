@@ -1788,7 +1788,7 @@ class MobilityUtil(object):
             removed_blocks: (tuple(ip_network)): tuple of ipaddress.ip_netework
                 objects representing the removed IP blocks.
         """
-        removed_blocks = self._mobility_client.remove_ip_blocks(blocks)
+        removed_blocks = self._mobility_client.remove_ip_blocks(blocks, force=True)
         return removed_blocks
 
     def cleanup(self):

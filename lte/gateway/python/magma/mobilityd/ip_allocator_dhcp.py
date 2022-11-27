@@ -145,15 +145,92 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
     def remove_ip_blocks(
-        self,
-        ipblocks: List[IPNetwork],
-        force: bool = False,
+            self, ipblocks: List[IPNetwork],
+            force: bool = False,
     ) -> List[IPNetwork]:
-        logging.warning(
-            "Trying to delete ipblock from DHCP allocator: %s",
-            ipblocks,
+        """ Makes the indicated block(s) unavailable for allocation
+        If force is False, blocks that have any addresses currently allocated
+        will not be removed. Otherwise, if force is True, the indicated blocks
+        will be removed regardless of whether any addresses have been allocated
+        and any allocated addresses will no longer be served.
+        Removing a block entails removing the IP addresses within that block
+        from the internal state machine.
+        Args:
+            ipblocks (ipaddress.ip_network): variable number of objects of type
+                ipaddress.ip_network, representing the blocks that are intended
+                to be removed. The blocks should have been explicitly added and
+                not yet removed. Any blocks that are not active in the IP
+                allocator will be ignored with a warning.
+            force (bool): whether to forcibly remove the blocks indicated. If
+                False, will only remove a block if no addresses from within the
+                block have been allocated. If True, will remove all blocks
+                regardless of whether any addresses have been allocated from
+                them.
+        Returns a set of the blocks that have been successfully removed.
+        """
+
+        remove_blocks = set(ipblocks) & self._store.assigned_ip_blocks
+        logging.debug(
+            "Current assigned IP blocks: %s",
+            self._store.assigned_ip_blocks,
         )
-        return []
+        logging.debug("IP blocks to remove: %s", ipblocks)
+
+        extraneous_blocks = set(ipblocks) ^ remove_blocks
+        # check unknown ip blocks
+        if extraneous_blocks:
+            logging.warning(
+                "Cannot remove unknown IP block(s): %s",
+                extraneous_blocks,
+            )
+        del extraneous_blocks
+
+        # "soft" removal does not remove blocks which have IPs allocated
+        if not force:
+            allocated_ip_block_set = self._store.ip_state_map.get_allocated_ip_block_set()
+            remove_blocks -= allocated_ip_block_set
+            del allocated_ip_block_set
+
+        # Remove the associated IP addresses
+        remove_ips = (ip for block in remove_blocks for ip in block.hosts())
+        for ip in remove_ips:
+            for state in (IPState.FREE, IPState.RELEASED, IPState.REAPED):
+                ip_desc = self._store.ip_state_map.remove_ip_from_state(ip, state)
+                if ip_desc:
+                    self._release_dhcp_ip(ip_desc)
+            if force:
+                ip_desc = self._store.ip_state_map.remove_ip_from_state(
+                    ip,
+                    IPState.ALLOCATED,
+                )
+                if ip_desc:
+                    self._release_dhcp_ip(ip_desc)
+            else:
+                assert not self._store.ip_state_map.test_ip_state(
+                    ip,
+                    IPState.ALLOCATED,
+                ), \
+                    "Unexpected ALLOCATED IP %s from a soft IP block " \
+                    "removal "
+
+            # Clean up SID maps
+            for sid in list(self._store.sid_ips_map):
+                self._store.sid_ips_map.pop(sid)
+
+        # Remove the IP blocks
+        self._store.assigned_ip_blocks -= remove_blocks
+
+        # Can't use generators here
+        remove_sids = tuple(
+            sid for sid in self._store.sid_ips_map
+            if not self._store.sid_ips_map[sid]
+        )
+        for sid in remove_sids:
+            self._store.sid_ips_map.pop(sid)
+
+        for block in remove_blocks:
+            logging.info('Removed IP block %s from IPv4 address pool', block)
+        return list(remove_blocks)
 
     def list_added_ip_blocks(self) -> List[IPNetwork]:
         return list(deepcopy(self._store.assigned_ip_blocks))
@@ -264,7 +341,6 @@ class IPAllocatorDHCP(IPAllocator):
                 vlan_id=vlan,
             )
             self._store.assigned_ip_blocks.add(ip_block)
-            logging.info("returning IPDesc")
             return ip_desc
         else:
             msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
@@ -283,32 +359,7 @@ class IPAllocatorDHCP(IPAllocator):
                 IP block of the IP address, vlan id of the APN.
         Returns: None
         """
-        mac = create_mac_from_sid(ip_desc.sid)
-        vlan = ip_desc.vlan_id
-        dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
-
-        if dhcp_desc:
-            dhcp_cli_response = subprocess.run([
-                DHCP_CLI_HELPER_PATH,
-                "--mac", str(mac),
-                "--vlan", str(vlan),
-                "--interface", self._iface,
-                "release"],
-                "--ip", str(ip_desc.ip),
-                "--server-ip", str(dhcp_desc.server_ip),
-                capture_output=True
-            )
-
-            if dhcp_cli_response.returncode != 0:
-                logging.error(f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_CLI_HELPER_PATH} called with parameters '{dhcp_cli_response.args}'")
-                raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
-
-            with self.dhcp_wait:
-                key = mac.as_redis_key(vlan)
-                del self._store.dhcp_store[key]
-        else:
-            LOG.error("Unallocated DHCP release for MAC: %s", mac)
-
+        self._release_dhcp_ip(ip_desc)
 
         # Remove the IP from free IP list, since DHCP is the
         # owner of this IP
@@ -329,6 +380,36 @@ class IPAllocatorDHCP(IPAllocator):
             "del: _assigned_ip_blocks %s ipblock %s",
             self._store.assigned_ip_blocks, ip_desc.ip_block,
         )
+
+    def _release_dhcp_ip(self, ip_desc):
+        logging.info(f"Releasing: {ip_desc}")
+        mac = create_mac_from_sid(ip_desc.sid)
+        vlan = ip_desc.vlan_id
+        dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
+        logging.info(f"Releasing dhcp desc: {dhcp_desc}")
+        if dhcp_desc:
+            dhcp_cli_response = subprocess.run([
+                DHCP_CLI_HELPER_PATH,
+                "--mac", str(mac),
+                "--vlan", str(vlan),
+                "--interface", self._iface,
+                "release"],
+                "--ip", str(ip_desc.ip),
+                "--server-ip", str(dhcp_desc.server_ip),
+                capture_output=True
+            )
+
+            if dhcp_cli_response.returncode != 0:
+                logging.error(
+                    f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_CLI_HELPER_PATH} called with parameters '{dhcp_cli_response.args}'")
+                raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
+
+            with self.dhcp_wait:
+                key = mac.as_redis_key(vlan)
+                del self._store.dhcp_store[key]
+        else:
+            LOG.error("Unallocated DHCP release for MAC: %s", mac)
+
 
 def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
     return dhcp_desc.ip_is_allocated()
