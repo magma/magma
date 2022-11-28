@@ -134,17 +134,11 @@ void MmeNasStateManager::create_hashtables() {
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(MME_IMSI2MME_UE_ID);
-  /*state_cache_p->mme_ue_contexts.tun11_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  AssertFatal(sizeof(uintptr_t) >= sizeof(uint64_t),
-              "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");*/
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(MME_S11_TEID2MME_UE_ID);
 
   bstring b = bfromcstr(UE_ID_UE_CTXT_TABLE_NAME);
-  /*btrunc(b, 0);
-  bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);*/
   state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
                                     mme_app_state_free_ue_context, b);
 
@@ -196,8 +190,6 @@ void MmeNasStateManager::clear_mme_nas_hashtables() {
 
   hashtable_ts_destroy(state_ue_ht);
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.destroy_map();
-  /*hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);*/
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.destroy_map();
   hashtable_uint64_ts_destroy(
       state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
