@@ -473,8 +473,8 @@ MME_SRCS = [
     "oai/tasks/sgs/sgs_nas.cpp",
     "oai/tasks/sgs/sgs_service_handler.cpp",
     "oai/tasks/sgs/sgs_task.cpp",
-    "oai/tasks/sms_orc8r/sms_orc8r_service_handler.c",
-    "oai/tasks/sms_orc8r/sms_orc8r_task.c",
+    "oai/tasks/sms_orc8r/sms_orc8r_service_handler.cpp",
+    "oai/tasks/sms_orc8r/sms_orc8r_task.cpp",
 ]
 
 MME_HDRS = [
@@ -570,7 +570,7 @@ MME_HDRS = [
     "oai/include/sgw_context_manager.hpp",
     "oai/include/sgw_ie_defs.h",
     "oai/include/sgw_s8_state.hpp",
-    "oai/include/sms_orc8r_service_handler.h",
+    "oai/include/sms_orc8r_service_handler.hpp",
     "oai/include/spgw_config.h",
     "oai/include/spgw_service_handler.hpp",
     "oai/include/spgw_state.hpp",
@@ -698,7 +698,6 @@ MME_HDRS = [
     "oai/tasks/nas/emm/EmmCommon.hpp",
     "oai/tasks/nas/emm/LowerLayer.hpp",
     "oai/tasks/nas/emm/emm_data.hpp",
-    "oai/tasks/nas/emm/emm_headers.hpp",
     "oai/tasks/nas/emm/emm_main.hpp",
     "oai/tasks/nas/emm/emm_proc.hpp",
     "oai/tasks/nas/emm/msg/AttachAccept.hpp",
@@ -975,8 +974,8 @@ MME_HDRS = [
     "oai/tasks/sctp/sctpd_uplink_server.hpp",
     "oai/tasks/sgs/sgs_defs.hpp",
     "oai/tasks/sgs/sgs_messages.hpp",
-    "oai/tasks/sms_orc8r/sms_orc8r_defs.h",
-    "oai/tasks/sms_orc8r/sms_orc8r_messages.h",
+    "oai/tasks/sms_orc8r/sms_orc8r_defs.hpp",
+    "oai/tasks/sms_orc8r/sms_orc8r_messages.hpp",
     "oai/lib/openflow/controller/BaseApplication.hpp",
     "oai/lib/openflow/controller/ControllerEvents.hpp",
     "oai/lib/openflow/controller/ControllerMain.hpp",

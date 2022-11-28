@@ -51,7 +51,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"

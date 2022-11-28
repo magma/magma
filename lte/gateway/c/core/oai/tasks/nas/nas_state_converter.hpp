@@ -21,7 +21,6 @@
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"

@@ -30,9 +30,6 @@ typedef struct NasKeySetIdentifier_tag {
   uint8_t naskeysetidentifier : 3;
 } NasKeySetIdentifier;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int encode_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
                                   uint8_t iei, uint8_t* buffer, uint32_t len);
 
@@ -44,6 +41,3 @@ uint8_t encode_u8_nas_key_set_identifier(
 
 int decode_u8_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
                                      uint8_t iei, uint8_t value, uint32_t len);
-#ifdef __cplusplus
-}
-#endif

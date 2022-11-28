@@ -15,24 +15,10 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sms.h
- * \brief
- * \author
- * \company
- * \email:
+#pragma once
+
+/*
+ * Sends a SGS_DOWNLINK_UNITDATA message to NAS for SMS Orc8r service.
  */
-
-#ifndef FILE_SMS_ORC8R_SEEN
-#define FILE_SMS_ORC8R_SEEN
-#include <stdint.h>
-#include <netinet/in.h>
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
-status_code_e sms_orc8r_init(const mme_config_t* mme_config);
-
-#endif
+int handle_sms_orc8r_downlink_unitdata(
+    const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p);

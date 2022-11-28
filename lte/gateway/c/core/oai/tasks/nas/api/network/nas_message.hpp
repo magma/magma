@@ -113,12 +113,7 @@ int nas_message_header_decode(const unsigned char* const buffer,
                               nas_message_decode_status_t* const status,
                               bool* const is_sr);
 
-/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- */
-
-/*int nas_message_decrypt(const unsigned char* const inbuf,
+int nas_message_decrypt(const unsigned char* const inbuf,
                         unsigned char* const outbuf,
                         nas_message_security_header_t* header, size_t length,
                         void* security, nas_message_decode_status_t* status);
@@ -132,4 +127,4 @@ int nas_message_encode(unsigned char* buffer, const nas_message_t* const msg,
 
 int nas_message_encrypt(const unsigned char* inbuf, unsigned char* outbuf,
                         const nas_message_security_header_t* header,
-                        size_t length, void* security);*/
+                        size_t length, void* security);

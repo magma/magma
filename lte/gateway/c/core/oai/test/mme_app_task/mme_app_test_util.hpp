@@ -10,15 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#pragma once
+
 #include <string>
 #include <vector>
 #include <gmock/gmock-matchers.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 }
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"

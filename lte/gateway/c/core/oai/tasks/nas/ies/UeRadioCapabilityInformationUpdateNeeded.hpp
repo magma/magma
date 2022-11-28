@@ -24,9 +24,6 @@
 
 typedef uint8_t ue_radio_capability_information_update_needed_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int encode_ue_radio_capability_information_update_needed(
     ue_radio_capability_information_update_needed_t*
         ueradiocapabilityinformationupdateneeded,
@@ -45,6 +42,3 @@ int decode_u8_ue_radio_capability_information_update_needed(
     ue_radio_capability_information_update_needed_t*
         ueradiocapabilityinformationupdateneeded,
     uint8_t iei, uint8_t value, uint32_t len);
-#ifdef __cplusplus
-}
-#endif

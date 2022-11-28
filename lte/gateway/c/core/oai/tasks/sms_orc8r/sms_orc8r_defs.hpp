@@ -15,11 +15,29 @@
  *      contact@openairinterface.org
  */
 
-#ifndef SMS_ORC8R_MESSAGES_H_
-#define SMS_ORC8R_MESSAGES_H_
+/*! \file sms_orc8r_defs.hpp
+ * \brief
+ * \author
+ * \company
+ * \email:
+ */
 
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#pragma once
 
-extern task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
+#include <stdint.h>
+#include <netinet/in.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+
+status_code_e sms_orc8r_init(const mme_config_t* mme_config);
+#ifdef __cplusplus
+}
 #endif
