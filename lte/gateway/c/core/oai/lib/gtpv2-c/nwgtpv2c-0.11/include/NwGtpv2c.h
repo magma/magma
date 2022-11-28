@@ -636,8 +636,8 @@ nw_rc_t nwGtpv2cProcessUlpReq(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  @param[in] arg : Pointer timeout arguments.
  @return NW_OK on success.
  */
-nw_rc_t nwGtpv2cProcessTimeoutExt(NW_IN zloop_t* loop, NW_IN int timer_id,
-                                  NW_IN void* arg);
+int nwGtpv2cProcessTimeoutExt(NW_IN zloop_t* loop, NW_IN int timer_id,
+                              NW_IN void* arg);
 
 /**
  Process Timer timeout Request from Timer Manager

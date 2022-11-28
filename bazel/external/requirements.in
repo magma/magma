@@ -25,7 +25,7 @@ bravado_core
 jsonschema==3.2.0
 psutil
 systemd-python
-# cryptography<38.0.0 because of runtime issues when starting magmad 
+# cryptography<38.0.0 because of runtime issues when starting magmad
 cryptography<38.0.0
 #  h2>=3,<4 is requirement of aioh2 (loaded via bazel)
 h2>=3,<4
@@ -47,6 +47,7 @@ routes==2.5.1
 tinyrpc==1.1.4
 webob==1.8.7
 ovs==2.16.0
+sdnotify>=0.3.2,<1
 
 # scripts requirements
 envoy>=0.0.3

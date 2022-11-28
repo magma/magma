@@ -473,8 +473,8 @@ MME_SRCS = [
     "oai/tasks/sgs/sgs_nas.cpp",
     "oai/tasks/sgs/sgs_service_handler.cpp",
     "oai/tasks/sgs/sgs_task.cpp",
-    "oai/tasks/sms_orc8r/sms_orc8r_service_handler.c",
-    "oai/tasks/sms_orc8r/sms_orc8r_task.c",
+    "oai/tasks/sms_orc8r/sms_orc8r_service_handler.cpp",
+    "oai/tasks/sms_orc8r/sms_orc8r_task.cpp",
 ]
 
 MME_HDRS = [
@@ -546,9 +546,9 @@ MME_HDRS = [
     "oai/include/pgw_config.h",
     "oai/include/pgw_types.h",
     "oai/include/proto_map.hpp",
-    "oai/include/s11_messages_def.h",
-    "oai/include/s11_messages_types.h",
-    "oai/include/s11_mme.h",
+    "oai/include/s11_messages_def.hpp",
+    "oai/include/s11_messages_types.hpp",
+    "oai/include/s11_mme.hpp",
     "oai/include/s1ap_messages_def.h",
     "oai/include/s1ap_messages_types.h",
     "oai/include/s1ap_state.hpp",
@@ -570,7 +570,7 @@ MME_HDRS = [
     "oai/include/sgw_context_manager.hpp",
     "oai/include/sgw_ie_defs.h",
     "oai/include/sgw_s8_state.hpp",
-    "oai/include/sms_orc8r_service_handler.h",
+    "oai/include/sms_orc8r_service_handler.hpp",
     "oai/include/spgw_config.h",
     "oai/include/spgw_service_handler.hpp",
     "oai/include/spgw_state.hpp",
@@ -698,7 +698,6 @@ MME_HDRS = [
     "oai/tasks/nas/emm/EmmCommon.hpp",
     "oai/tasks/nas/emm/LowerLayer.hpp",
     "oai/tasks/nas/emm/emm_data.hpp",
-    "oai/tasks/nas/emm/emm_headers.hpp",
     "oai/tasks/nas/emm/emm_main.hpp",
     "oai/tasks/nas/emm/emm_proc.hpp",
     "oai/tasks/nas/emm/msg/AttachAccept.hpp",
@@ -975,8 +974,8 @@ MME_HDRS = [
     "oai/tasks/sctp/sctpd_uplink_server.hpp",
     "oai/tasks/sgs/sgs_defs.hpp",
     "oai/tasks/sgs/sgs_messages.hpp",
-    "oai/tasks/sms_orc8r/sms_orc8r_defs.h",
-    "oai/tasks/sms_orc8r/sms_orc8r_messages.h",
+    "oai/tasks/sms_orc8r/sms_orc8r_defs.hpp",
+    "oai/tasks/sms_orc8r/sms_orc8r_messages.hpp",
     "oai/lib/openflow/controller/BaseApplication.hpp",
     "oai/lib/openflow/controller/ControllerEvents.hpp",
     "oai/lib/openflow/controller/ControllerMain.hpp",
@@ -1022,10 +1021,10 @@ MME_HDRS = [
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h",
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h",
     "oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h",
-    "oai/tasks/s11/s11_common.h",
-    "oai/tasks/s11/s11_ie_formatter.h",
-    "oai/tasks/s11/s11_mme_bearer_manager.h",
-    "oai/tasks/s11/s11_mme_session_manager.h",
+    "oai/tasks/s11/s11_common.hpp",
+    "oai/tasks/s11/s11_ie_formatter.hpp",
+    "oai/tasks/s11/s11_mme_bearer_manager.hpp",
+    "oai/tasks/s11/s11_mme_session_manager.hpp",
 ]
 
 AGW_OF_DEPS = [
@@ -1143,11 +1142,11 @@ GTPV2_C_C = [
 ]
 
 S11_C = [
-    "oai/tasks/s11/s11_common.c",
-    "oai/tasks/s11/s11_ie_formatter.c",
-    "oai/tasks/s11/s11_mme_bearer_manager.c",
-    "oai/tasks/s11/s11_mme_session_manager.c",
-    "oai/tasks/s11/s11_tasks.c",
+    "oai/tasks/s11/s11_common.cpp",
+    "oai/tasks/s11/s11_ie_formatter.cpp",
+    "oai/tasks/s11/s11_mme_bearer_manager.cpp",
+    "oai/tasks/s11/s11_mme_session_manager.cpp",
+    "oai/tasks/s11/s11_tasks.cpp",
 ]
 
 UDP_C = [

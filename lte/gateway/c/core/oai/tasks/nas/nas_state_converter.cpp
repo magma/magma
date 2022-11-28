@@ -247,12 +247,12 @@ void NasStateConverter::proto_to_pco_protocol_or_container_id(
       protocol_configuration_options_proto.proto_or_container_id();
   int i = 0;
   for (auto ptr = proto_pco_ids.begin(); ptr < proto_pco_ids.end(); ptr++) {
-    pco_protocol_or_container_id_t state_pco_protocol_or_container_id =
-        state_protocol_configuration_options->protocol_or_container_ids[i];
-    state_pco_protocol_or_container_id.id = ptr->id();
-    state_pco_protocol_or_container_id.length = ptr->length();
+    pco_protocol_or_container_id_t* state_pco_protocol_or_container_id =
+        &(state_protocol_configuration_options->protocol_or_container_ids[i]);
+    state_pco_protocol_or_container_id->id = ptr->id();
+    state_pco_protocol_or_container_id->length = ptr->length();
     if (ptr->contents().length()) {
-      state_pco_protocol_or_container_id.contents = bfromcstr_with_str_len(
+      state_pco_protocol_or_container_id->contents = bfromcstr_with_str_len(
           ptr->contents().c_str(), ptr->contents().length());
     }
     i++;

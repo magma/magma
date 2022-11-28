@@ -39,6 +39,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("sdnotify"),
     ],
 )
 
