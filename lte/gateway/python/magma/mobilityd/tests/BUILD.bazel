@@ -60,6 +60,18 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_ip_allocator_dhcp",
+    size = "small",
+    srcs = ["test_ip_allocator_dhcp.py"],
+    imports = [LTE_ROOT, ORC8R_ROOT],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
     name = "test_ipv6_allocator",
     size = "small",
     srcs = ["test_ipv6_allocator.py"],

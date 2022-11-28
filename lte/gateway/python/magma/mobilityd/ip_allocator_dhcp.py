@@ -25,7 +25,7 @@ import logging
 import subprocess
 import threading
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from ipaddress import IPv4Network, ip_address, ip_network
 from json import JSONDecodeError
 from os import environ
@@ -44,7 +44,7 @@ DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
-DHCP_CLI_HELPER_PATH= f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
+DHCP_CLI_HELPER_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
@@ -52,7 +52,7 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 class IPAllocatorDHCP(IPAllocator):
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300,
-        iface: str = "eth2", #TODO read this from config file
+        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN, #TODO read this from config file
     ):
         """
         Allocate IP address for SID using DHCP server.
@@ -71,18 +71,21 @@ class IPAllocatorDHCP(IPAllocator):
         self.dhcp_wait = Condition()
         self._retry_limit = retry_limit  # default wait for two minutes
         self._iface = iface
+        self._lease_renew_wait_min = lease_renew_wait_min
         self._monitor_thread = threading.Thread(
             target=self._monitor_dhcp_state,
         )
+        self._monitor_thread_event = threading.Event()
+        self._monitor_thread.start()
 
     def _monitor_dhcp_state(self):
         """
         monitor DHCP client state.
         """
         while True:
-            wait_time = LEASE_RENEW_WAIT_MIN
+            wait_time = self._lease_renew_wait_min
             with self.dhcp_wait:
-                dhcp_desc: DHCPDescriptor
+                # dhcp_desc: DHCPDescriptor
 
                 for dhcp_desc in self._store.dhcp_store.values():
                     logging.debug("monitor: %s", dhcp_desc)
@@ -92,15 +95,16 @@ class IPAllocatorDHCP(IPAllocator):
 
                     now = datetime.now()
                     logging.debug("monitor time: %s", now)
-                    request_state = DHCPState.REQUEST
-                    # in case of lost DHCP lease rediscover it.
+
                     if now >= dhcp_desc.lease_expiration_time:
-                        logging.debug("sending lease renewal")
+                        logging.debug("sending lease allocate")
+                        print("sending lease allocate")
                         dhcp_cli_response = subprocess.run([
                             DHCP_CLI_HELPER_PATH,
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
+                            "--json",
                             "allocate"],
                             capture_output=True
                         )
@@ -108,13 +112,18 @@ class IPAllocatorDHCP(IPAllocator):
                         if dhcp_cli_response.returncode != 0:
                             logging.error(f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_CLI_HELPER_PATH} called with parameters '{dhcp_cli_response.args}'")
                             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
-                    if now >= dhcp_desc.lease_renew_deadline:
+                        resp = json.loads(dhcp_cli_response.stdout)
+                        dhcp_desc.lease_renew_deadline = now + timedelta(seconds=resp['lease_expiration_time'])/2
+                        dhcp_desc.lease_expiration_time = now + timedelta(seconds=resp['lease_expiration_time'])
+                    elif now >= dhcp_desc.lease_renew_deadline:
                         logging.debug("sending lease renewal")
+                        print("sending lease renewal")
                         dhcp_cli_response = subprocess.run([
                             DHCP_CLI_HELPER_PATH,
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
+                            "--json",
                             "renew",
                             "--ip", str(dhcp_desc.ip),
                             "--server-ip", str(dhcp_desc.server_ip),
@@ -125,15 +134,17 @@ class IPAllocatorDHCP(IPAllocator):
                         if dhcp_cli_response.returncode != 0:
                             logging.error(f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_CLI_HELPER_PATH} called with parameters '{dhcp_cli_response.args}'")
                             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
+                        resp = json.loads(dhcp_cli_response.stdout)
+                        dhcp_desc.lease_renew_deadline = now + timedelta(seconds=resp['lease_expiration_time'])/2
+                        dhcp_desc.lease_expiration_time = now + timedelta(seconds=resp['lease_expiration_time'])
                     else:
-                        # Find next renewal wait time.
                         time_to_renew = dhcp_desc.lease_renew_deadline - now
                         wait_time = min(
                             wait_time, time_to_renew.total_seconds(),
                         )
 
             # default in wait is 30 sec
-            wait_time = max(wait_time, self._lease_renew_wait_min)
+            print(f"Wait time: {wait_time}")
             logging.debug("lease renewal check after: %s sec", wait_time)
             self._monitor_thread_event.wait(wait_time)
             if self._monitor_thread_event.is_set():

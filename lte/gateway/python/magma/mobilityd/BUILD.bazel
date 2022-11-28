@@ -46,7 +46,6 @@ py_binary(
 py_library(
     name = "mobilityd_lib",
     srcs = [
-        "dhcp_client.py",
         "ip_address_man.py",
         "ip_allocator_base.py",
         "ip_allocator_dhcp.py",
