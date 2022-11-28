@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 ARG PLATFORM=linux/amd64
 
-FROM --platform=$PLATFORM ubuntu:bionic as base
+FROM --platform=$PLATFORM ubuntu:focal as base
 
 ENV GO111MODULE on
 ENV GOPATH ${USER}/go
@@ -88,7 +88,7 @@ RUN . /etc/profile.d/env.sh && make build
 # ------------------------------------------------------------------------------
 # Production
 # ------------------------------------------------------------------------------
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 # Apt runtime deps
 RUN apt-get update && apt-get install -y \
@@ -126,7 +126,7 @@ COPY --from=builder /build/bin /var/opt/magma/bin
 # Supervisor configs
 ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY ${CNTLR_FILES}/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
+COPY ${CNTLR_FILES}/supervisor_logger.py /usr/local/lib/python3.8/dist-packages/supervisor_logger.py
 
 # Scripts for dev mode
 COPY ${CNTLR_FILES}/create_test_controller_certs /usr/local/bin/create_test_controller_certs
