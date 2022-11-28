@@ -554,14 +554,14 @@ void mme_ue_context_update_coll_keys(
 
 static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
                                             void* argP, void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "imsi_mme_ue_id_htbl key=%llu, data=%lu\n", keyP,
+  OAILOG_DEBUG(LOG_MME_APP, "imsi_mme_ue_id_htbl key=%lu, data=%u\n", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
-static bool display_proto_map_uint32_uint32(uint64_t keyP, const uint32_t dataP,
+static bool display_proto_map_uint32_uint32(uint32_t keyP, const uint32_t dataP,
                                             void* argP, void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "s11_teid2mme_ueid_map key=%lu, data=%lu\n", keyP,
+  OAILOG_DEBUG(LOG_MME_APP, "s11_teid2mme_ueid_map key=%u, data=%u\n", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
@@ -578,7 +578,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 
   magma::proto_map_uint32_uint32_t s11_teid2mme_ueid_map =
       mme_ue_contexts_p->s11_teid2mme_ueid_map;
-  imsi2mme_ueid_map.map_apply_callback_on_all_elements(
+  s11_teid2mme_ueid_map.map_apply_callback_on_all_elements(
       display_proto_map_uint32_uint32, nullptr, nullptr);
 
   btrunc(tmp, 0);
