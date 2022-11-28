@@ -75,8 +75,8 @@ jobs:
         run: |
           cd nms
           # Install python3-aioeventlet from the magma apt repo
-          cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
-          echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+          wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | sudo -E apt-key add -
+          echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet
           sudo rm -rf /var/lib/apt/lists/*
