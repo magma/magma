@@ -16,6 +16,7 @@ from ipaddress import IPv4Network
 from unittest.mock import patch, MagicMock
 import unittest
 import fakeredis
+import pytest
 
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP, DHCP_CLI_HELPER_PATH
@@ -30,81 +31,105 @@ IP2 = "1.2.4.0/24"
 VLAN = "0"
 LEASE_EXPIRATION_TIME = 10
 
+@pytest.fixture
+def dhcp_desc_fixture():
+    return DHCPDescriptor(
+        mac=MAC,
+        ip=IP,
+        vlan=VLAN,
+        state=DHCPState.ACK,
+        state_requested=DHCPState.REQUEST,
+        lease_expiration_time=4,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
+    )
 
-class TestMonitorDhcpState(unittest.TestCase):
-    def setUp(self) -> None:
-        self.dhcp_desc = DHCPDescriptor(
-            mac=MAC,
-            ip=IP,
-            vlan=VLAN,
-            state=DHCPState.ACK,
-            state_requested=DHCPState.REQUEST,
-            lease_expiration_time=4,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-        )
-        self.store = MagicMock()
-        self.store.dhcp_store = MagicMock()
-        self.store.dhcp_store.values.return_value = [self.dhcp_desc]
-        self.ip_alloc_dhcp = IPAllocatorDHCP(
-            store=self.store,
-            lease_renew_wait_min=4,
-        )
+@pytest.fixture
+def dhcp_desc_expired_fixture():
+    return DHCPDescriptor(
+        mac=MAC,
+        ip=IP,
+        vlan=VLAN,
+        state=DHCPState.ACK,
+        state_requested=DHCPState.REQUEST,
+        lease_expiration_time=-2,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
+    )
 
-    def tearDown(self) -> None:
-        del self.dhcp_desc
-        del self.store
-        self.ip_alloc_dhcp._monitor_thread_event.set()
-        self.ip_alloc_dhcp._monitor_thread.join()
-        del self.ip_alloc_dhcp
 
-    @patch("subprocess.run")
-    def test_no_renewal_of_ip(self, mock_run):
-        ret = MagicMock()
-        ret.returncode = 0
-        ret.stdout = """{"lease_expiration_time": 4}"""
-        mock_run.return_value = ret
-        time.sleep(1.0)
-        mock_run.assert_not_called()
+@pytest.fixture
+def dhcp_desc_used_fixture():
+    return DHCPDescriptor(
+        mac=MAC2,
+        ip=IP2,
+        vlan=VLAN,
+        state=DHCPState.ACK,
+        state_requested=DHCPState.REQUEST,
+        lease_expiration_time=100,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
+    )
 
-    @patch("subprocess.run")
-    def test_renewal_of_ip(self, mock_run):
-        ret = MagicMock()
-        ret.returncode = 0
-        ret.stdout = """{"lease_expiration_time": 4}"""
-        mock_run.return_value = ret
-        time.sleep(3.0)
-        mock_run.assert_called_once()
-        mock_run.assert_called_with([
-            DHCP_CLI_HELPER_PATH,
-            "--mac", str(self.dhcp_desc.mac),
-            "--vlan", str(self.dhcp_desc.vlan),
-            "--interface", self.ip_alloc_dhcp._iface,
-            "--json",
-            "renew",
-            "--ip", str(self.dhcp_desc.ip),
-            "--server-ip", str(self.dhcp_desc.server_ip),
-        ],
-            capture_output=True
-        )
+@pytest.fixture
+def ipallocator_fixture(dhcp_desc_fixture):
+    store = MagicMock()
+    store.dhcp_store = MagicMock()
+    store.dhcp_store.values.return_value = [dhcp_desc_fixture]
 
-    @patch("subprocess.run")
-    def test_allocate_ip_after_expiry(self, mock_run):
-        ret = MagicMock()
-        ret.returncode = 0
-        ret.stdout = """{"lease_expiration_time": 4}"""
-        mock_run.return_value = ret
-        time.sleep(7.0)
-        assert 2 == mock_run.call_count
+    ip_allocator = IPAllocatorDHCP(
+        store=store,
+        lease_renew_wait_min=4,
+    )
+    yield ip_allocator
 
-        mock_run.assert_called_with([
-            DHCP_CLI_HELPER_PATH,
-            "--mac", str(self.dhcp_desc.mac),
-            "--vlan", str(self.dhcp_desc.vlan),
-            "--interface", self.ip_alloc_dhcp._iface,
-            "--json",
-            "allocate",
-        ],
-            capture_output=True
-        )
+    ip_allocator._monitor_thread_event.set()
+    ip_allocator._monitor_thread.join()
+
+
+@patch("subprocess.run")
+def test_no_renewal_of_ip(mock_run, ipallocator_fixture):
+    ret = MagicMock()
+    ret.returncode = 0
+    ret.stdout = """{"lease_expiration_time": 4}"""
+    mock_run.return_value = ret
+    time.sleep(1.0)
+    mock_run.assert_not_called()
+
+@patch("subprocess.run")
+def test_renewal_of_ip(mock_run, ipallocator_fixture, dhcp_desc_fixture):
+    ret = MagicMock()
+    ret.returncode = 0
+    ret.stdout = """{"lease_expiration_time": 4}"""
+    mock_run.return_value = ret
+    time.sleep(3.0)
+    mock_run.assert_called_once()
+    mock_run.assert_called_with([
+        DHCP_CLI_HELPER_PATH,
+        "--mac", str(dhcp_desc_fixture.mac),
+        "--vlan", str(dhcp_desc_fixture.vlan),
+        "--interface", ipallocator_fixture._iface,
+        "--json",
+        "renew",
+        "--ip", str(dhcp_desc_fixture.ip),
+        "--server-ip", str(dhcp_desc_fixture.server_ip),
+    ],
+        capture_output=True
+    )
+
+@patch("subprocess.run")
+def test_allocate_ip_after_expiry(mock_run, ipallocator_fixture, dhcp_desc_fixture):
+    ret = MagicMock()
+    ret.returncode = 0
+    ret.stdout = """{"lease_expiration_time": 4}"""
+    mock_run.return_value = ret
+    time.sleep(7.0)
+    assert 2 == mock_run.call_count
+
+    mock_run.assert_called_with([
+        DHCP_CLI_HELPER_PATH,
+        "--mac", str(dhcp_desc_fixture.mac),
+        "--vlan", str(dhcp_desc_fixture.vlan),
+        "--interface", ipallocator_fixture._iface,
+        "--json",
+        "allocate",
+    ],
+        capture_output=True
+    )
 
 
 class TestRemoveIpBlocks(unittest.TestCase):
