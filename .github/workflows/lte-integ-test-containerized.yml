@@ -67,7 +67,7 @@ jobs:
           echo registry=${{ inputs.registry }} >> $GITHUB_OUTPUT
           if [ ${{ inputs.registry }} = docker.io ]
           then
-            echo image_prefix=${{ secrets.JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
           fi
       - name: Write image digest to docker-compose.yaml
         working-directory: lte/gateway/docker
