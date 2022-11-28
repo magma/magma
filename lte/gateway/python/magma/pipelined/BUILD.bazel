@@ -249,7 +249,8 @@ py_library(
     srcs = ["gw_mac_address.py"],
     deps = [
         ":ifaces",
-        requirement("scapy"),
+        "//lte/gateway/python/magma/pipelined/app:packet_parser",
+        requirement("dpkt"),
     ],
 )
 
