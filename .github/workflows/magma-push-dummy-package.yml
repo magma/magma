@@ -44,7 +44,6 @@ jobs:
 
       - name: Publish debian package
         if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
-        working-directory: third_party/build
         run: |
           jf rt upload \
             --recursive=false \
