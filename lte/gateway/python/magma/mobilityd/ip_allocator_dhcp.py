@@ -52,7 +52,8 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 class IPAllocatorDHCP(IPAllocator):
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300,
-        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN, #TODO read this from config file
+        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,
+        start: bool = True, #TODO read this from config file
     ):
         """
         Allocate IP address for SID using DHCP server.
@@ -76,6 +77,10 @@ class IPAllocatorDHCP(IPAllocator):
             target=self._monitor_dhcp_state,
         )
         self._monitor_thread_event = threading.Event()
+        if start:
+            self.start_monitor_thread()
+
+    def start_monitor_thread(self):
         self._monitor_thread.start()
 
     def _monitor_dhcp_state(self):
@@ -86,19 +91,16 @@ class IPAllocatorDHCP(IPAllocator):
             wait_time = self._lease_renew_wait_min
             with self.dhcp_wait:
                 # dhcp_desc: DHCPDescriptor
-
                 for dhcp_desc in self._store.dhcp_store.values():
                     logging.debug("monitor: %s", dhcp_desc)
                     # Only process active records.
                     if dhcp_desc.state not in DHCP_ACTIVE_STATES:
                         continue
-
                     now = datetime.now()
                     logging.debug("monitor time: %s", now)
 
                     if now >= dhcp_desc.lease_expiration_time:
                         logging.debug("sending lease allocate")
-                        print("sending lease allocate")
                         dhcp_cli_response = subprocess.run([
                             DHCP_CLI_HELPER_PATH,
                             "--mac", str(dhcp_desc.mac),
@@ -144,7 +146,6 @@ class IPAllocatorDHCP(IPAllocator):
                         )
 
             # default in wait is 30 sec
-            print(f"Wait time: {wait_time}")
             logging.debug("lease renewal check after: %s sec", wait_time)
             self._monitor_thread_event.wait(wait_time)
             if self._monitor_thread_event.is_set():

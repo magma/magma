@@ -68,6 +68,7 @@ pytest_test(
     deps = [
         "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
         requirement("fakeredis"),
+        requirement("freezegun"),
     ],
 )
 
