@@ -327,7 +327,11 @@ jobs:
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
+        # The value of fetch-depth needs to exceed the maximum number of commits
+        # on all PRs. This is needed for bazel-diff to check out the merge-base.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 100
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -349,6 +353,30 @@ jobs:
             cd /workspaces/magma
             set -euo pipefail
 
+            # Required for bazel-diff to perform git checkout.
+            git config --global --add safe.directory /workspaces/magma
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Determining bazel test targets.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            # Check that the workflow is run on a PR and that the .bazelrc and WORKSPACE files have not been affected.
+            if [[ ("${{ github.event_name }}" == "pull_request") && \
+                  ! $(git diff-tree --no-commit-id --name-only -r "${{ github.event.pull_request.base.sha }}" "${{ github.SHA }}" | \
+                    grep -E '(.bazelrc|WORKSPACE.bazel)') \
+                ]];
+            then
+              printf '\r%s\r' 'Determining targets via bazel-diff ...' 1>&2
+              IMPACTED_TARGETS_FILE="/tmp/impacted_targets.txt"
+              bazel/scripts/bazel_diff.sh "${{ github.event.pull_request.base.sha }}"  "${{ github.SHA }}" | tee "$IMPACTED_TARGETS_FILE"
+              printf '\r%s\r' 'Determining impacted targets ...' 1>&2
+              # Choose all impacted targets of type 'py_binary' that are tagged as service.
+              TEST_TARGETS=$(bazel/scripts/filter_test_targets.sh "py_binary" "service" < "$IMPACTED_TARGETS_FILE")
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            else
+              printf '\r%s\r' 'Checking all service targets of type "py_binary" for ModuleNotFoundError.' 1>&2
+              TEST_TARGETS="ALL_PYTHON_SERVICE_TARGETS"
+            fi
+
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
             printf '\r%s\r\r' '###############################' 1>&2
@@ -357,7 +385,23 @@ jobs:
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Executing python import bazelification check.' 1>&2
             printf '\r%s\r' '###############################' 1>&2
-            bazel/scripts/test_python_service_imports.sh;
+            if [[ -n "${TEST_TARGETS}" ]];
+            then
+              if [[ "${TEST_TARGETS}" == "ALL_PYTHON_SERVICE_TARGETS" ]];
+              then
+                bazel/scripts/test_python_service_imports.sh;
+              else
+                # Converting string of whitespace separated targets into an array
+                TEST_TARGETS=( $TEST_TARGETS )
+                for target in "${TEST_TARGETS[@]}"
+                do
+                  bazel/scripts/test_python_service_imports.sh $target;
+                done
+              fi
+            else
+              printf '\r%s\r' 'No service targets of type "py_binary" were impacted by the changes.' 1>&2
+              printf '\r%s\r' 'No tests will be executed.' 1>&2
+            fi
       - name: Build space left after run
         shell: bash
         run: |
