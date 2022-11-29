@@ -31,7 +31,7 @@ const int NUM_MAX_UE_HTBL_LISTS = 6;
 constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
     "mme_app_mme_ue_s1ap_id_ue_context_htbl";
 constexpr char MME_IMSI2MME_UE_ID[] = "mme_imsi2ue_id_map";
-constexpr char MME_S11_TEID2MME_UE_ID[] = "mme_s11_teid2ue_id_map";
+constexpr char MME_S11_TEID2MME_UE_ID_MAP_NAME[] = "mme_s11_teid2ue_id_map";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
     "mme_app_enb_ue_s1ap_id_ue_context_htbl";
@@ -137,7 +137,7 @@ void MmeNasStateManager::create_hashtables() {
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(
-      MME_S11_TEID2MME_UE_ID);
+      MME_S11_TEID2MME_UE_ID_MAP_NAME);
 
   bstring b = bfromcstr(UE_ID_UE_CTXT_TABLE_NAME);
   state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,

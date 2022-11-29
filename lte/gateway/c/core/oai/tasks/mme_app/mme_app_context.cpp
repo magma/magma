@@ -369,7 +369,7 @@ struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
     OAILOG_WARNING(LOG_MME_APP, " No S11 hashtable for S11 Teid " TEID_FMT "\n",
                    teid);
   }
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -559,7 +559,7 @@ static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
 }
 
 static bool display_proto_map_uint32_uint32(uint32_t keyP, const uint32_t dataP,
-                                            void* argP, void** resultP) {
+                                            __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
   OAILOG_DEBUG(LOG_MME_APP, "s11_teid2mme_ueid_map key=%u, data=%u\n", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
@@ -686,7 +686,7 @@ status_code_e mme_insert_ue_context(
               ue_context_p->mme_teid_s11, ue_context_p->mme_ue_s1ap_id) !=
           magma::PROTO_MAP_OK) {
         OAILOG_WARNING(LOG_MME_APP,
-                       "Error could not register this ue context %p "
+                       "Failed to insert s11_teid key to s11_teid2mme_ueid_map, ue context %p "
                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                        " mme_teid_s11 " TEID_FMT "\n",
                        ue_context_p, ue_context_p->mme_ue_s1ap_id,
