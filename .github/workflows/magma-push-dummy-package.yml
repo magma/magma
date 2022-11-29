@@ -1,0 +1,53 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Magma Publish Dummy Package
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Repository to push to?
+        type: choice
+        default: magma-packages-test
+        options: [ magma-packages-test, magma-packages-prod ]
+        required: true
+      distribution:
+        description: Distribution to set?
+        default: 'focal-ci'
+        required: true
+
+jobs:
+  build_dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download dummy debian package
+        run: curl -L http://mirrors.kernel.org/ubuntu/pool/main/h/hello/hello_2.10-2ubuntu2_amd64.deb -o hello_2.10-2ubuntu2_amd64.deb
+
+      - name: Setup JFrog CLI
+        id: jfrog-setup
+        # Workaround because secrets are available in `env` but not in `if`
+        if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+        env:
+          JF_URL: https://linuxfoundation.jfrog.io/
+          JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+
+      - name: Publish debian package
+        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
+        working-directory: third_party/build
+        run: |
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            --target-props="deb.component=main;deb.distribution=${{ inputs.distribution }};deb.architecture=amd64" \
+            "hello_2.10-2ubuntu2_amd64.deb" ${{ inputs.repository }}/pool/${{ inputs.distribution }}/hello_2.10-2ubuntu2_amd64.deb
