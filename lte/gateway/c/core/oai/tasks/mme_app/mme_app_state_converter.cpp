@@ -705,7 +705,7 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   // copy mme_ue_contexts
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
 
-  OAILOG_DEBUG(LOG_MME_APP, "IMSI table to proto");
+  OAILOG_DEBUG(LOG_MME_APP, "IMSI map to proto");
   *mme_ue_ctxts_proto->mutable_imsi_ue_id_map() =
       *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map);
   OAILOG_DEBUG(LOG_MME_APP, "Tunnel table to proto");

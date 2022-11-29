@@ -343,7 +343,6 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
 //------------------------------------------------------------------------------
 struct ue_mm_context_s* mme_ue_context_exists_imsi(
     mme_ue_context_t* const mme_ue_context_p, imsi64_t imsi) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   mme_ue_context_p->imsi2mme_ueid_map.get(imsi, &mme_ue_s1ap_id);
@@ -354,7 +353,7 @@ struct ue_mm_context_s* mme_ue_context_exists_imsi(
     OAILOG_WARNING_UE(LOG_MME_APP, imsi,
                       " mme_ue_s1ap_id not found for this IMSI\n");
   }
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -565,9 +564,10 @@ void mme_ue_context_update_coll_keys(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
-                                            void* argP, void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "imsi2mme_ueid_map key=%llu, data=%lu\n", keyP,
+static bool display_proto_map_uint64_uint32(
+    uint64_t keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
+    __attribute__((unused)) void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "imsi2mme_ueid_map key=%lu, data=%u\n", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
@@ -677,12 +677,12 @@ status_code_e mme_insert_ue_context(
       if (mme_ue_context_p->imsi2mme_ueid_map.insert(
               ue_context_p->emm_context._imsi64,
               ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
-        OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                          "Error could not register this ue context %p "
-                          "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                          " imsi " IMSI_64_FMT "\n",
-                          ue_context_p, ue_context_p->mme_ue_s1ap_id,
-                          ue_context_p->emm_context._imsi64);
+        OAILOG_WARNING_UE(
+            LOG_MME_APP, ue_context_p->emm_context._imsi64,
+            "Failed to insert imsi64 key to imsi2mme_ueid_map ue context %p "
+            "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT "\n",
+            ue_context_p, ue_context_p->mme_ue_s1ap_id,
+            ue_context_p->emm_context._imsi64);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
     }
