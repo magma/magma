@@ -39,7 +39,7 @@ FROM ubuntu:focal AS gateway_python
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https wget
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
-RUN RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
+RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
     apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main"
 
 # Install the runtime deps from apt.
