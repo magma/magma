@@ -192,7 +192,6 @@ py_library(
         "//lte/gateway/python/magma/pipelined:vlan_utils",
         "//lte/gateway/python/magma/pipelined/openflow:flows",
         "//orc8r/gateway/python/magma/configuration:mconfig_managers",
-        requirement("scapy"),
     ],
 )
 
@@ -228,5 +227,14 @@ py_library(
         "//lte/gateway/python/magma/pipelined/openflow:exceptions",
         "//lte/protos:pipelined_python_proto",
         "@ryu_repo//:ryu_patched",
+    ],
+)
+
+py_library(
+    name = "packet_parser",
+    srcs = ["packet_parser.py"],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:dhcp_desc",
+        requirement("dpkt"),
     ],
 )

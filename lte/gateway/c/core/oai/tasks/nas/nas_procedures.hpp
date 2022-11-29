@@ -405,13 +405,7 @@ bool is_nas_common_procedure_guti_realloc_running(
     const struct emm_context_s* const ctxt);
 bool is_nas_common_procedure_smc_running(
     const struct emm_context_s* const ctxt);
-
-/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- */
-
-/*bool is_nas_common_procedure_authentication_running(
+bool is_nas_common_procedure_authentication_running(
     const struct emm_context_s* const ctxt);
 bool is_nas_common_procedure_identification_running(
     const struct emm_context_s* const ctxt);
@@ -437,7 +431,7 @@ nas_auth_info_proc_t* get_nas_cn_procedure_auth_info(
     const struct emm_context_s* const ctxt);
 void nas_emm_procedure_register_emm_message(mme_ue_s1ap_id_t ue_id,
                                             const uint64_t puid,
-                                            bstring nas_msg);*/
+                                            bstring nas_msg);
 
 nas_emm_guti_proc_t* get_nas_common_procedure_guti_realloc(
     const struct emm_context_s* const ctxt);
@@ -452,9 +446,6 @@ bool is_nas_specific_procedure_detach_running(
 bool is_nas_specific_procedure_tau_running(
     const struct emm_context_s* const ctxt);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 nas_emm_attach_proc_t* get_nas_specific_procedure_attach(
     const struct emm_context_s* const ctxt);
 nas_emm_proc_t* nas_emm_find_procedure_by_msg_digest(
@@ -470,9 +461,6 @@ void nas_delete_common_procedure(struct emm_context_s* const emm_context,
 void nas_delete_attach_procedure(struct emm_context_s* const emm_context);
 void nas_delete_tau_procedure(struct emm_context_s* emm_context);
 void nas_delete_detach_procedure(struct emm_context_s* emm_context);
-#ifdef __cplusplus
-}
-#endif
 
 nas_emm_detach_proc_t* get_nas_specific_procedure_detach(
     const struct emm_context_s* const ctxt);

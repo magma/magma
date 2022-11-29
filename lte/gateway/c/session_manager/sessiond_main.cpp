@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <systemd/sd-daemon.h>
 #include <cpp_redis/core/client.hpp>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -525,6 +526,9 @@ int main(int argc, char* argv[]) {
   MLOG(MDEBUG) << "local enforcer Attached EventBase to evb";
   local_enforcer->sync_sessions_on_restart(time(NULL));
   MLOG(MDEBUG) << "Synced session on restart";
+
+  sd_notify(0, "READY=1");
+
   evb->loopForever();
   MLOG(MINFO) << "Stoping.. session manager GRPC server";
 

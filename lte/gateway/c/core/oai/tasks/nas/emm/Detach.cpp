@@ -40,7 +40,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -56,13 +55,7 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -188,9 +181,6 @@ status_code_e release_esm_pdn_context(emm_context_t* emm_context,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void clear_emm_ctxt(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!emm_context) {
@@ -218,9 +208,6 @@ void clear_emm_ctxt(emm_context_t* emm_context) {
   emm_ctx_clear_non_current_security(emm_context);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
-#ifdef __cplusplus
-}
-#endif
 
 /*
    --------------------------------------------------------------------------

@@ -26,6 +26,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+}
+
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.hpp"
@@ -49,7 +51,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msg.hpp"
-}
 
 namespace magma {
 namespace lte {

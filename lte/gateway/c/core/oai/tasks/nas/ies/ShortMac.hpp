@@ -26,14 +26,8 @@ typedef uint16_t short_mac_t;
 
 #define SHORT_MAC_FMT "%" PRIX16
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int encode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
                      uint32_t len);
 
 int decode_short_mac(short_mac_t* shortmac, uint8_t iei, uint8_t* buffer,
                      uint32_t len);
-#ifdef __cplusplus
-}
-#endif

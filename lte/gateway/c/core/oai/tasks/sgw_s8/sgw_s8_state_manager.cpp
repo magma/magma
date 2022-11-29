@@ -74,17 +74,13 @@ void SgwStateManager::create_state() {
 
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
-  state_cache_p->imsi_ue_context_htbl =
-      hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-                          (void (*)(void**))sgw_free_ue_context, nullptr);
-  if (!(state_cache_p->imsi_ue_context_htbl)) {
-    OAILOG_CRITICAL(LOG_SGW_S8,
-                    "Failed to create imsi_ue_context_htbl for SGW_S8 task \n");
-    return;
-  }
+  state_cache_p->imsi_ue_context_map.map =
+      new google::protobuf::Map<uint64_t, struct spgw_ue_context_s*>();
+  state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP_NAME);
+  state_cache_p->imsi_ue_context_map.bind_callback(sgw_free_ue_context);
 
   state_cache_p->temporary_create_session_procedure_id_map.map =
-      new google::protobuf::Map<unsigned int,
+      new google::protobuf::Map<uint32_t,
                                 struct sgw_eps_bearer_context_information_s*>();
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
       SGW_S8_CSR_PROC_ID_MAP);
@@ -112,7 +108,14 @@ void SgwStateManager::free_state() {
     }
   }
 
-  hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
+  if (state_cache_p->imsi_ue_context_map.map) {
+    if (state_cache_p->imsi_ue_context_map.destroy_map() != PROTO_MAP_OK) {
+      OAILOG_ERROR(LOG_SGW_S8,
+                   "An error occurred while destroying "
+                   "imsi_ue_context_map ");
+    }
+  }
+
   if (state_cache_p->temporary_create_session_procedure_id_map.map) {
     if (state_cache_p->temporary_create_session_procedure_id_map
             .destroy_map() != PROTO_MAP_OK) {

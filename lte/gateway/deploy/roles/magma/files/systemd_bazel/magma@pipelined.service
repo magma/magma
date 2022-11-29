@@ -20,7 +20,7 @@ After=openvswitch-switch.service
 Wants=openvswitch-switch.service
 
 [Service]
-Type=simple
+Type=notify
 PermissionsStartOnly=true
 LimitNOFILE=65536
 LimitNPROC=65536

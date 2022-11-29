@@ -307,6 +307,10 @@ docker==6.0.1 \
     --hash=sha256:896c4282e5c7af5c45e8b683b0b0c33932974fe6e50fc6906a0a83616ab3da97 \
     --hash=sha256:dbcb3bd2fa80dca0788ed908218bf43972772009b881ed1e20dfc29a65e49782
     # via -r requirements.in
+dpkt==1.9.8 \
+    --hash=sha256:43f8686e455da5052835fd1eda2689d51de3670aac9799b1b00cfd203927ee45 \
+    --hash=sha256:4da4d111d7bf67575b571f5c678c71bddd2d8a01a3d57d489faf0a92c748fbfd
+    # via -r requirements.in
 envoy==0.0.3 \
     --hash=sha256:22b02009cfda2cf2cdb94a75a15ac3fd910aea8685c53e8e03715c7e9d8e8bde \
     --hash=sha256:789d274f8bc00401848678c0ee18199c1a57901749ed6b1a03a3ea53ec72ceef
@@ -1648,6 +1652,9 @@ yarl==1.8.1 \
     --hash=sha256:f5af52738e225fcc526ae64071b7e5342abe03f42e0e8918227b38c9aa711e28 \
     --hash=sha256:fae37373155f5ef9b403ab48af5136ae9851151f7aacd9926251ab26b953118b
     # via aiohttp
+sdnotify==0.3.2 \
+    --hash=sha256:73977fc746b36cc41184dd43c3fe81323e7b8b06c2bb0826c4f59a20c56bb9f1
+    # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==49.6.0 \

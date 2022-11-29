@@ -45,7 +45,7 @@ Some technical details: You need to use `=~` when matching label names with thes
 
 ### Enabling Access
 
-The feature flag is enabled by default for all new organizations created in the NMS. If you want to turn this feature off or on, you can do so from the `master` organization. Login to the `master` organization, navigate to the feature flag page using
+The feature flag is enabled by default for all new organizations created in the NMS. If you want to turn this feature off or on, you can do so from the `host` organization. Log in to the `host` organization, navigate to the feature flag page using
 the left sidebar, then edit the feature flag named "Include tab for Grafana in the Metrics page". Support can be turned on and off for individual organizations.
 
 ## List of metrics which are currently available
@@ -109,7 +109,7 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 |magmad_ping_rtt_ms |Gateway ping metrics in milliseconds |AGW |magmad |
 |cpu_percent |System-wide CPU utilization as percentage over 1 second |AGW |magmad |
 |swap_memory_percent |Percent of memory that can be assigned to processes |AGW |magmad |
-|virtual_memory_percent |Percent of memoery that can be assigned to processes without the system going to swap |AGW |magmad |
+|virtual_memory_percent |Percent of memory that can be assigned to processes without the system going to swap |AGW |magmad |
 |mem_total |Total memory |AGW |magmad |
 |mem_available |Available memory |AGW |magmad |
 |mem_used |Used memory |AGW |magmad |
@@ -124,7 +124,7 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 |unattended_upgrade_status |Unattended Upgrade status |AGW |magmad |
 |service_restart_status |Count of service restarts |AGW |magmad |
 |enb_connected |Number of eNodeb connected to MME |AGW |MME |
-|ue_registered |Number of UE registered succesfully |AGW |MME |
+|ue_registered |Number of UE registered successfully |AGW |MME |
 |ue_connected |Number of UE connected |AGW |MME |
 |ue_attach |Number of UE attach success |AGW |MME |
 |ue_detach |Number of UE detach |AGW |MME |

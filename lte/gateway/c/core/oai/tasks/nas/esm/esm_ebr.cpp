@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
+
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -34,7 +36,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 
@@ -358,8 +359,7 @@ status_code_e esm_ebr_start_timer(emm_context_t* emm_context, ebi_t ebi,
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-extern "C" status_code_e esm_ebr_stop_timer(emm_context_t* emm_context,
-                                            ebi_t ebi) {
+status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
   esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
 

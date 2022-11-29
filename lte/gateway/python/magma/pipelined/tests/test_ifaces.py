@@ -15,24 +15,20 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
+from magma.pipelined.ifaces import get_mac_address_from_iface
 
 # Prevent flakiness due to prometheus library import
 sys.modules["magma.pipelined.metrics"] = MagicMock()
 
-from magma.pipelined.ifaces import get_mac_address
-
 
 @patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address(netifaces_mock):
+def test_get_mac_address_from_iface(netifaces_mock):
     netifaces_mock.AF_LINK = 13
     netifaces_mock.ifaddresses.return_value = {netifaces_mock.AF_LINK: [{"addr": "00:11:22:33:44:55"}]}
 
-    assert get_mac_address("eth0") == "00:11:22:33:44:55"
+    assert get_mac_address_from_iface("eth0") == "00:11:22:33:44:55"
 
 
-@patch("magma.pipelined.ifaces.netifaces")
-def test_get_mac_address_invalid(netifaces_mock):
-    netifaces_mock.AF_LINK = 13
-    netifaces_mock.ifaddresses.return_value = {netifaces_mock.AF_LINK: []}
+def test_get_mac_address_from_iface_invalid():
     with pytest.raises(ValueError):
-        get_mac_address("eth0")
+        get_mac_address_from_iface("some_invalid_interface")
