@@ -11,19 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from datetime import timedelta
-from ipaddress import IPv4Network, IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 from typing import Any, List
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import fakeredis
 import freezegun
 import pytest
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
-from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP, DHCP_CLI_HELPER_PATH
-from magma.mobilityd.ip_descriptor import IPState, IPDesc, IPType
+from magma.mobilityd.ip_allocator_dhcp import (
+    DHCP_CLI_HELPER_PATH,
+    IPAllocatorDHCP,
+)
+from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
-from magma.mobilityd.mac import sid_to_mac, MacAddress
-from magma.mobilityd.mobility_store import AssignedIpBlocksSet, ip_states, defaultdict_key, MobilityStore
+from magma.mobilityd.mac import MacAddress, sid_to_mac
+from magma.mobilityd.mobility_store import (
+    AssignedIpBlocksSet,
+    MobilityStore,
+    defaultdict_key,
+    ip_states,
+)
 
 SID = "IMSI123456789"
 MAC = MacAddress(sid_to_mac(SID).lower())
@@ -69,7 +77,8 @@ def ip_allocator_fixture() -> IPAllocatorDHCP:
 @pytest.fixture
 def ip_allocator_dhcp_fixture(ip_allocator_fixture, dhcp_desc_fixture: DHCPDescriptor) -> IPAllocatorDHCP:
     ip_allocator_fixture._store.dhcp_store[
-        dhcp_desc_fixture.mac.as_redis_key(dhcp_desc_fixture.vlan)] = dhcp_desc_fixture
+        dhcp_desc_fixture.mac.as_redis_key(dhcp_desc_fixture.vlan)
+    ] = dhcp_desc_fixture
 
     yield ip_allocator_fixture
 
@@ -96,7 +105,8 @@ def create_subprocess_mock() -> MagicMock:
 def run_dhcp_allocator_thread(
         frozen_datetime: Any,
         ip_allocator_dhcp_fixture: IPAllocatorDHCP,
-        freeze_time: float) -> None:
+        freeze_time: float,
+) -> None:
     ip_allocator_dhcp_fixture._monitor_thread_event.set()
     frozen_datetime.tick(timedelta(seconds=freeze_time))
     ip_allocator_dhcp_fixture.start_monitor_thread()
@@ -109,7 +119,7 @@ def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
             ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
-            freeze_time=1
+            freeze_time=1,
         )
 
         subprocess_mock.assert_not_called()
@@ -117,49 +127,54 @@ def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
 
 def test_renewal_of_ip(
         ip_allocator_dhcp_fixture: IPAllocatorDHCP,
-        dhcp_desc_fixture: DHCPDescriptor) -> None:
+        dhcp_desc_fixture: DHCPDescriptor,
+) -> None:
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
             patch("subprocess.run", return_value=create_subprocess_mock()) as subprocess_mock:
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
             ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
-            freeze_time=3
+            freeze_time=3,
         )
 
         subprocess_mock.assert_called_once()
-        subprocess_mock.assert_called_with([
-            DHCP_CLI_HELPER_PATH,
-            "--mac", str(dhcp_desc_fixture.mac),
-            "--vlan", str(dhcp_desc_fixture.vlan),
-            "--interface", ip_allocator_dhcp_fixture._iface,
-            "--json",
-            "renew",
-            "--ip", str(dhcp_desc_fixture.ip),
-            "--server-ip", str(dhcp_desc_fixture.server_ip),
-        ],
-            capture_output=True
+        subprocess_mock.assert_called_with(
+            [
+                DHCP_CLI_HELPER_PATH,
+                "--mac", str(dhcp_desc_fixture.mac),
+                "--vlan", str(dhcp_desc_fixture.vlan),
+                "--interface", ip_allocator_dhcp_fixture._iface,
+                "--json",
+                "renew",
+                "--ip", str(dhcp_desc_fixture.ip),
+                "--server-ip", str(dhcp_desc_fixture.server_ip),
+            ],
+            capture_output=True,
         )
 
 
-def test_allocate_ip_after_expiry(ip_allocator_dhcp_fixture: IPAllocatorDHCP,
-                                  dhcp_desc_fixture: DHCPDescriptor) -> None:
+def test_allocate_ip_after_expiry(
+    ip_allocator_dhcp_fixture: IPAllocatorDHCP,
+    dhcp_desc_fixture: DHCPDescriptor,
+) -> None:
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
             patch("subprocess.run", return_value=create_subprocess_mock()) as subprocess_mock:
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
             ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
-            freeze_time=5
+            freeze_time=5,
         )
         subprocess_mock.assert_called_once()
-        subprocess_mock.assert_called_with([
-            DHCP_CLI_HELPER_PATH,
-            "--mac", str(dhcp_desc_fixture.mac),
-            "--vlan", str(dhcp_desc_fixture.vlan),
-            "--interface", ip_allocator_dhcp_fixture._iface,
-            "--json",
-            "allocate",
-        ],
-            capture_output=True
+        subprocess_mock.assert_called_with(
+            [
+                DHCP_CLI_HELPER_PATH,
+                "--mac", str(dhcp_desc_fixture.mac),
+                "--vlan", str(dhcp_desc_fixture.vlan),
+                "--interface", ip_allocator_dhcp_fixture._iface,
+                "--json",
+                "allocate",
+            ],
+            capture_output=True,
         )
 
 
@@ -253,15 +268,16 @@ def test_allocate_ip_address(
         )
 
         subprocess_mock.assert_called_once()
-        subprocess_mock.assert_called_with([
-            DHCP_CLI_HELPER_PATH,
-            "--mac", str(dhcp_desc_fixture.mac),
-            "--vlan", str(dhcp_desc_fixture.vlan),
-            "--interface", ip_allocator_fixture._iface,
-            "--json",
-            "allocate",
-        ],
-            capture_output=True
+        subprocess_mock.assert_called_with(
+            [
+                DHCP_CLI_HELPER_PATH,
+                "--mac", str(dhcp_desc_fixture.mac),
+                "--vlan", str(dhcp_desc_fixture.vlan),
+                "--interface", ip_allocator_fixture._iface,
+                "--json",
+                "allocate",
+            ],
+            capture_output=True,
         )
 
     assert actual_ip_desc == ip_desc_fixture

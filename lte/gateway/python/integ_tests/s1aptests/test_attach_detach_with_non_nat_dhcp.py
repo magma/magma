@@ -1,5 +1,5 @@
 """
-Copyright 2020 The Magma Authors.
+Copyright 2022 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
@@ -18,7 +18,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestAttachDetach(unittest.TestCase):
+class TestAttachDetachWIthNonNatDhcp(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -34,7 +34,7 @@ class TestAttachDetach(unittest.TestCase):
         self.magma_utils.disable_dhcp_config()
         self.magma_utils.enable_nat()
 
-    def test_attach_detach(self):
+    def test_attach_detach_with_non_nat_dhcp(self):
         """ Basic attach/detach test with a single UE """
         self._s1ap_wrapper.configUEDevice(1)
 

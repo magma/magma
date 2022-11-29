@@ -80,8 +80,8 @@ class IPDesc:
 
     def __eq__(self, other):
         return self.ip == other.ip and \
-               self.ip_block == other.ip_block and \
-               self.state == other.state and \
-               self.sid == other.sid and \
-               self.type == other.type and \
-               self.vlan_id == other.vlan_id
+            self.ip_block == other.ip_block and \
+            self.state == other.state and \
+            self.sid == other.sid and \
+            self.type == other.type and \
+            self.vlan_id == other.vlan_id

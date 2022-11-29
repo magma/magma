@@ -61,6 +61,7 @@ def test_send_dhcp_discover(sendp_mock, dhcp_helper_cli_fixture):
     assert pkt[Ether].src == MACSTRING.lower()
     assert Dot1Q not in pkt
     assert ('message-type', 'discover') in pkt[DHCP].options
+    assert dhcp_helper_cli_fixture._state == DHCPState.DISCOVER
 
 
 @patch("scripts.dhcp_helper_cli.sendp")

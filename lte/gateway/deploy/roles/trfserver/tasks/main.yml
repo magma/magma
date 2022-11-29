@@ -97,6 +97,7 @@
     - iperf3_3.9-1_amd64.deb
   when: preburn
 
+# ODO Can be moved to preburn
 - name: configure dhcpd
   become: yes
   copy: src=udhcpd.conf dest=/etc/
