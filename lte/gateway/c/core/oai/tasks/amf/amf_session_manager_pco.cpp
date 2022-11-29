@@ -120,21 +120,21 @@ uint16_t sm_process_pco_dns_server_request(
 uint16_t sm_process_pco_p_cscf_address_request(
     protocol_configuration_options_t* const pco_resp) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
+  in_addr_t pcscf_prim_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
-  uint8_t dns_array[4];
+  uint8_t pcscf_array[4];
 
   amf_config_read_lock(&amf_config);
-  ipcp_out_dns_prim_ipv4_addr = amf_config.ipv4.default_dns.s_addr;
+  pcscf_prim_ipv4_addr = amf_config.pcscf_addr.ipv4.s_addr;
   amf_config_unlock(&amf_config);
 
   poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
   poc_id_resp.length = 4;
-  dns_array[0] = (uint8_t)(ipcp_out_dns_prim_ipv4_addr & 0x000000FF);
-  dns_array[1] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 8) & 0x000000FF);
-  dns_array[2] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 16) & 0x000000FF);
-  dns_array[3] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
-  poc_id_resp.contents = blk2bstr(dns_array, sizeof(dns_array));
+  pcscf_array[0] = (uint8_t)(pcscf_prim_ipv4_addr & 0x000000FF);
+  pcscf_array[1] = (uint8_t)((pcscf_prim_ipv4_addr >> 8) & 0x000000FF);
+  pcscf_array[2] = (uint8_t)((pcscf_prim_ipv4_addr >> 16) & 0x000000FF);
+  pcscf_array[3] = (uint8_t)((pcscf_prim_ipv4_addr >> 24) & 0x000000FF);
+  poc_id_resp.contents = blk2bstr(pcscf_array, sizeof(pcscf_array));
 
   sm_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 
