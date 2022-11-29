@@ -359,7 +359,7 @@ struct ue_mm_context_s* mme_ue_context_exists_imsi(
 //------------------------------------------------------------------------------
 struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
     mme_ue_context_t* const mme_ue_context_p, const s11_teid_t teid) {
-  uint32_t mme_ue_s1ap_id = 0;
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   mme_ue_context_p->s11_teid2mme_ueid_map.get(teid, &mme_ue_s1ap_id);
 
