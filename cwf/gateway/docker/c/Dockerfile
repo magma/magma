@@ -15,7 +15,7 @@
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
 
-ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages
+ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod
 
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder

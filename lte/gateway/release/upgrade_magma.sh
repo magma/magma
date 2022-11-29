@@ -37,7 +37,7 @@ rm -rf /etc/apt/sources.list.d/*
 wget https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public -O /tmp/public
 apt-key add /tmp/public
 
-echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
+echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"

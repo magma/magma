@@ -48,7 +48,7 @@ RUN apt-get update && \
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 # TODO: change repo to focal once there will be such
 RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" && \
+    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main" && \
     apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
 RUN apt-get -y update && apt-get -y install \

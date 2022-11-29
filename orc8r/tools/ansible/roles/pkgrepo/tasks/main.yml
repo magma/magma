@@ -53,7 +53,7 @@
     state: present
 
 - name: Configuring the registry in sources.list.d
-  shell: "echo 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main' > /etc/apt/sources.list.d/magma.list"
+  shell: "echo 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main' > /etc/apt/sources.list.d/magma.list"
   when: preburn
 
 - name: Update apt

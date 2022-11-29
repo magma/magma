@@ -5,7 +5,7 @@ FROM ${baseImage} as base
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https wget
 RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main"
+    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \

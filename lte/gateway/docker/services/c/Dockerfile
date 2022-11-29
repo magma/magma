@@ -92,7 +92,7 @@ RUN apt-get update && apt-get install -y \
   libczmq-dev \
   libsqlite3-dev
 
-RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 RUN apt-get update && apt-get install -y \
   libfolly-dev \
@@ -191,7 +191,7 @@ RUN apt-get update && apt-get install -y \
   libtspi1 \
   && rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 RUN apt-get update && apt-get install -y \
   libopenvswitch \

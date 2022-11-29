@@ -113,7 +113,7 @@ RUN cd /usr/local/bin && ln -s /usr/bin/python3 pytho && \
 
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
-RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-prod focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
