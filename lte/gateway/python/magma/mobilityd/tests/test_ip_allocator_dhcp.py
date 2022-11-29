@@ -26,11 +26,12 @@ from magma.mobilityd.mac import sid_to_mac
 from magma.mobilityd.mobility_store import AssignedIpBlocksSet, ip_states, defaultdict_key
 
 SID = "IMSI123456789"
-MAC = sid_to_mac(SID)
-MAC2 = "01:23:45:67:89:cd"
+MAC = sid_to_mac(SID).lower()
+MAC2 = "01:23:45:67:89:ab"
 IP = "1.2.3.4"
-IP_NETWORK = "1.2.3.0/24"
-IP_NETWORK_2 = "1.2.4.0/24"
+SUBNET = "24"
+IP_NETWORK = "1.2.3.0/" + SUBNET
+IP_NETWORK_2 = "1.2.4.0/" + SUBNET
 VLAN = "0"
 LEASE_EXPIRATION_TIME = 10
 FROZEN_TEST_TIME = "2021-01-01"
@@ -260,3 +261,66 @@ def assert_remove_blocks(
         actual_removed: List[IPv4Network], expected_removed: List[IPv4Network]) -> None:
     assert expected_removed == actual_removed
     assert set(expected_remain) == set(actual_remain)
+
+
+def get_mock_run_dhcp_return() -> MagicMock:
+    m = MagicMock()
+    m.returncode = 0
+    m.stdout = """{"ip": %s,"subnet": %s,"server_ip": "5.6.7.8","lease_expiration_time": "4"}""" % (f""" "{IP}" """, f""" "{IP_NETWORK}" """)
+    return m
+
+
+def setup_allocate_ip_test(
+        ip_allocator_fixture: IPAllocatorDHCP, mock_run: MagicMock) -> None:
+    mock_run.return_value = get_mock_run_dhcp_return()
+    client = fakeredis.FakeStrictRedis()
+    ip_allocator_fixture._store.assigned_ip_blocks = AssignedIpBlocksSet(client)
+
+
+@patch("subprocess.run")
+def test_allocate_ip_address(
+        mock_run: MagicMock,
+        ip_allocator_fixture: IPAllocatorDHCP,
+        ip_desc_fixture: IPDesc,
+        dhcp_desc_fixture: DHCPDescriptor,
+) -> None:
+    setup_allocate_ip_test(
+        ip_allocator_fixture=ip_allocator_fixture, mock_run=mock_run
+    )
+
+    actual_ip_desc = ip_allocator_fixture.alloc_ip_address(
+        sid=SID,
+        vlan=int(VLAN),
+    )
+    expected_ip_desc = ip_desc_fixture
+
+    assert_ip_desc(actual_ip_desc=actual_ip_desc, expected_ip_desc=expected_ip_desc)
+    mock_run.assert_called_once()
+    mock_run.assert_called_with([
+        DHCP_CLI_HELPER_PATH,
+        "--mac", str(dhcp_desc_fixture.mac),
+        "--vlan", str(dhcp_desc_fixture.vlan),
+        "--interface", ip_allocator_fixture._iface,
+        "--json",
+        "allocate",
+    ],
+        capture_output=True
+    )
+    actual_added_ip_blocks = ip_allocator_fixture.list_added_ip_blocks()
+    expected_added_ip_blocks = [IPv4Network(IP_NETWORK)]
+    assert actual_added_ip_blocks == expected_added_ip_blocks
+    actual_allocated_ips = ip_allocator_fixture.list_allocated_ips(ipblock=IPv4Network(IP_NETWORK))
+    expected_allocated_ips = actual_ip_desc.ip
+    print(IPv4Network(IP_NETWORK))
+    for ip in ip_allocator_fixture._store.ip_state_map.list_ips(IPState.ALLOCATED):
+        print(ip)
+    assert actual_allocated_ips == expected_allocated_ips
+
+
+def assert_ip_desc(actual_ip_desc, expected_ip_desc):
+    assert actual_ip_desc.ip == expected_ip_desc.ip
+    assert actual_ip_desc.state == expected_ip_desc.state
+    assert actual_ip_desc.sid == expected_ip_desc.sid
+    assert actual_ip_desc.ip_block == expected_ip_desc.ip_block
+    assert actual_ip_desc.type == expected_ip_desc.type
+    assert actual_ip_desc.vlan_id == expected_ip_desc.vlan_id

@@ -330,11 +330,11 @@ class IPAllocatorDHCP(IPAllocator):
             if dhcp_json:
                 dhcp_desc = DHCPDescriptor(
                     mac=mac,
-                    ip=ip_address(dhcp_json["ip"]),
+                    ip=str(ip_address(dhcp_json["ip"])),
                     vlan=vlan,
                     state_requested=DHCPState.ACK,
                     state=DHCPState.ACK,
-                    subnet=IPv4Network(dhcp_json["subnet"], strict=False),
+                    subnet=str(IPv4Network(dhcp_json["subnet"], strict=False)),
                     server_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
                     router_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,  # TODO extract router ip from dhcp pkt
                     lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
@@ -354,6 +354,11 @@ class IPAllocatorDHCP(IPAllocator):
                 vlan_id=vlan,
             )
             self._store.assigned_ip_blocks.add(ip_block)
+            self._store.ip_state_map.add_ip_to_state(
+                ip=ip_address(dhcp_desc.ip),
+                ip_desc=ip_desc,
+                state=IPState.ALLOCATED,
+            )
             return ip_desc
         else:
             msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
