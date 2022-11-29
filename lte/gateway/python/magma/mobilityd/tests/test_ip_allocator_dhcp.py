@@ -12,7 +12,7 @@ limitations under the License.
 """
 import time
 from datetime import datetime, timedelta
-from ipaddress import IPv4Network
+from ipaddress import IPv4Network, IPv4Address
 from unittest.mock import patch, MagicMock
 import unittest
 import fakeredis
@@ -21,14 +21,18 @@ import freezegun
 
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP, DHCP_CLI_HELPER_PATH
-from magma.mobilityd.ip_descriptor import IPState
+from magma.mobilityd.ip_descriptor import IPState, IPDesc, IPType
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
 from magma.mobilityd.mobility_store import AssignedIpBlocksSet, ip_states, defaultdict_key
+from magma.mobilityd.mac import sid_to_mac
 
-MAC = "01:23:45:67:89:ab"
+SID = "IMSI123456789"
+MAC = sid_to_mac(SID)
+# MAC = "01:23:45:67:89:ab"
 MAC2 = "01:23:45:67:89:cd"
-IP = "1.2.3.0/24"
-IP2 = "1.2.4.0/24"
+IP = "1.2.3.4"
+IP_NETWORK = "1.2.3.0/24"
+IP_NETWORK_2 = "1.2.4.0/24"
 VLAN = "0"
 LEASE_EXPIRATION_TIME = 10
 FROZEN_TEST_TIME = "2021-01-01"
@@ -39,36 +43,12 @@ def dhcp_desc_fixture():
     with freezegun.freeze_time(FROZEN_TEST_TIME):
         return DHCPDescriptor(
             mac=MAC,
-            ip=IP,
+            ip=IP_NETWORK,
             vlan=VLAN,
             state=DHCPState.ACK,
             state_requested=DHCPState.REQUEST,
-            lease_expiration_time=4,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
+            lease_expiration_time=4,
         )
-
-
-@pytest.fixture
-def dhcp_desc_expired_fixture():
-    return DHCPDescriptor(
-        mac=MAC,
-        ip=IP,
-        vlan=VLAN,
-        state=DHCPState.ACK,
-        state_requested=DHCPState.REQUEST,
-        lease_expiration_time=-2,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-    )
-
-
-@pytest.fixture
-def dhcp_desc_used_fixture():
-    return DHCPDescriptor(
-        mac=MAC2,
-        ip=IP2,
-        vlan=VLAN,
-        state=DHCPState.ACK,
-        state_requested=DHCPState.REQUEST,
-        lease_expiration_time=100,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-    )
 
 
 @pytest.fixture
@@ -86,6 +66,18 @@ def ipallocator_fixture(dhcp_desc_fixture):
 
     ip_allocator._monitor_thread_event.set()
     ip_allocator._monitor_thread.join()
+
+
+@pytest.fixture
+def ip_desc_fixture():
+    return IPDesc(
+        ip=IPv4Address(IP),
+        state=IPState.ALLOCATED,
+        vlan_id=int(VLAN),
+        ip_block=IPv4Network(IP_NETWORK),
+        ip_type=IPType.DHCP,
+        sid=SID,
+    )
 
 
 def get_mock_run():
@@ -152,143 +144,92 @@ def test_allocate_ip_after_expiry(mock_run, ipallocator_fixture, dhcp_desc_fixtu
             capture_output=True
         )
 
-#
-# class TestRemoveIpBlocks(unittest.TestCase):
-#     def setUp(self) -> None:
-#         self.dhcp_desc_expired = DHCPDescriptor(
-#             mac=MAC,
-#             ip=IP,
-#             vlan=VLAN,
-#             state=DHCPState.ACK,
-#             state_requested=DHCPState.REQUEST,
-#             lease_expiration_time=-2,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-#         )
-#         self.dhcp_desc_used = DHCPDescriptor(
-#             mac=MAC2,
-#             ip=IP2,
-#             vlan=VLAN,
-#             state=DHCPState.ACK,
-#             state_requested=DHCPState.REQUEST,
-#             lease_expiration_time=100,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-#         )
-#         self.store = MagicMock()
-#         self.store.dhcp_store = MagicMock()
-#         self.store.dhcp_store.values.return_value = [
-#             self.dhcp_desc_expired,
-#             self.dhcp_desc_used
-#         ]
-#         self.ip_alloc_dhcp = IPAllocatorDHCP(
-#             store=self.store,
-#             lease_renew_wait_min=4,
-#         )
-#
-#     def tearDown(self) -> None:
-#         del self.dhcp_desc_expired
-#         del self.dhcp_desc_used
-#         del self.store
-#         self.ip_alloc_dhcp._monitor_thread_event.set()
-#         self.ip_alloc_dhcp._monitor_thread.join()
-#         del self.ip_alloc_dhcp
-#
-#     @patch("subprocess.run")
-#     def test_remove_one_ip_block(self, mock_run):
-#         ret = MagicMock()
-#         ret.returncode = 0
-#         ret.stdout = """{"lease_expiration_time": 4}"""
-#         mock_run.return_value = ret
-#         client = fakeredis.FakeStrictRedis()
-#         self.store.assigned_ip_blocks = AssignedIpBlocksSet(client)
-#         self.store.assigned_ip_blocks.add(IPv4Network(IP))
-#         self.store.assigned_ip_blocks.add(IPv4Network(IP2))
-#
-#         get_ip_states = lambda key: ip_states(client, key)
-#         self.store.ip_state_map = IpDescriptorMap(
-#             defaultdict_key(get_ip_states),  # type: ignore[arg-type]
-#         )
-#         removed_block = self.ip_alloc_dhcp.remove_ip_blocks([IPv4Network(IP)])
-#
-#         self.assertListEqual([IPv4Network(IP)], removed_block)
-#         expected = AssignedIpBlocksSet(fakeredis.FakeStrictRedis())
-#         expected.add(IPv4Network(IP2))
-#         self.assertSetEqual(expected, self.store.assigned_ip_blocks)
-#
-#     @patch("subprocess.run")
-#     def test_remove_two_ip_blocks(self, mock_run):
-#         ret = MagicMock()
-#         ret.returncode = 0
-#         ret.stdout = """{"lease_expiration_time": 4}"""
-#         mock_run.return_value = ret
-#         client = fakeredis.FakeStrictRedis()
-#         self.store.assigned_ip_blocks = AssignedIpBlocksSet(client)
-#         self.store.assigned_ip_blocks.add(IPv4Network(IP))
-#         self.store.assigned_ip_blocks.add(IPv4Network(IP2))
-#
-#         get_ip_states = lambda key: ip_states(client, key)
-#         self.store.ip_state_map = IpDescriptorMap(
-#             defaultdict_key(get_ip_states),  # type: ignore[arg-type]
-#         )
-#         removed_blocks = self.ip_alloc_dhcp.remove_ip_blocks([IPv4Network(IP), IPv4Network(IP2)])
-#         expected_removed = [IPv4Network(IP), IPv4Network(IP2)]
-#         removed_blocks.sort()
-#         expected_removed.sort()
-#         self.assertListEqual(expected_removed, removed_blocks)
-#
-#         expected_assigned = AssignedIpBlocksSet(fakeredis.FakeStrictRedis())
-#         self.assertSetEqual(expected_assigned, self.store.assigned_ip_blocks)
+
+@patch("subprocess.run")
+def test_remove_ip_block(mock_run, ipallocator_fixture, dhcp_desc_fixture):
+    mock_run.return_value = get_mock_run()
+    client = fakeredis.FakeStrictRedis()
+    ipallocator_fixture._store.assigned_ip_blocks = AssignedIpBlocksSet(client)
+    ipallocator_fixture._store.assigned_ip_blocks.add(IPv4Network(IP_NETWORK))
+    ipallocator_fixture._store.assigned_ip_blocks.add(IPv4Network(IP_NETWORK_2))
+
+    def get_ip_states(key): return ip_states(client, key)
+    ipallocator_fixture._store.ip_state_map = IpDescriptorMap(
+        defaultdict_key(get_ip_states),  # type: ignore[arg-type]
+    )
+    ipallocator_fixture.start_monitor_thread()
+    removed_block = ipallocator_fixture.remove_ip_blocks([IPv4Network(IP_NETWORK)])
+
+    assert [IPv4Network(IP_NETWORK)] == removed_block
+    expected = AssignedIpBlocksSet(fakeredis.FakeStrictRedis())
+    expected.add(IPv4Network(IP_NETWORK_2))
+    assert len(expected) == len(ipallocator_fixture._store.assigned_ip_blocks)
+    for block in expected:
+        assert block in ipallocator_fixture._store.assigned_ip_blocks
+    print(expected)
 
 
-# class TestListAllocatedIPs(unittest.TestCase):
-#
-#     def setUp(self) -> None:
-#         self.dhcp_desc_expired = DHCPDescriptor(
-#             mac=MAC,
-#             ip=IP,
-#             vlan=VLAN,
-#             state=DHCPState.ACK,
-#             state_requested=DHCPState.REQUEST,
-#             lease_expiration_time=-2,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-#         )
-#         self.dhcp_desc_used = DHCPDescriptor(
-#             mac=MAC2,
-#             ip=IP2,
-#             vlan=VLAN,
-#             state=DHCPState.ACK,
-#             state_requested=DHCPState.REQUEST,
-#             lease_expiration_time=100,  # datetime.now() + timedelta(seconds=LEASE_EXPIRATION_TIME),
-#         )
-#         self.store = MagicMock()
-#         self.store.dhcp_store = MagicMock()
-#         self.store.dhcp_store.values.return_value = [
-#             self.dhcp_desc_expired,
-#             self.dhcp_desc_used
-#         ]
-#         self.ip_alloc_dhcp = IPAllocatorDHCP(
-#             store=self.store,
-#             lease_renew_wait_min=4,
-#         )
-#
-#     def tearDown(self) -> None:
-#         del self.dhcp_desc_expired
-#         del self.dhcp_desc_used
-#         del self.store
-#         self.ip_alloc_dhcp._monitor_thread_event.set()
-#         self.ip_alloc_dhcp._monitor_thread.join()
-#         del self.ip_alloc_dhcp
-#
-#     @patch("subprocess.run")
-#     def test_list_allocated_ips(self, mock_run):
-#         ret = MagicMock()
-#         ret.returncode = 0
-#         mock_run.return_value = ret
-#         client = fakeredis.FakeStrictRedis()
-#         IP3 = "1.2.3.0/24"
-#         self.store.assigned_ip_blocks = AssignedIpBlocksSet(client)
-#         self.store.assigned_ip_blocks.add(IPv4Network(IP3))
-#         # self.store.assigned_ip_blocks.add(IPv4Network(IP2))
-#         self.store.ip_state_map = IpDescriptorMap({IPState.ALLOCATED: {IP3}})
-#         get_ip_states = lambda key: ip_states(client, key)
-#         self.store.ip_state_map = IpDescriptorMap(
-#             defaultdict_key(get_ip_states),  # type: ignore[arg-type]
-#         )
-#
-#         print(self.ip_alloc_dhcp.list_allocated_ips(IPv4Network(IP3)))
+@patch("subprocess.run")
+def test_keep_ip_block_with_allocated_ip(
+        mock_run, ipallocator_fixture,
+        dhcp_desc_fixture, ip_desc_fixture,
+):
+    mock_run.return_value = get_mock_run()
+    client = fakeredis.FakeStrictRedis()
+    ipallocator_fixture._store.assigned_ip_blocks = AssignedIpBlocksSet(client)
+    ipallocator_fixture._store.assigned_ip_blocks.add(IPv4Network(IP_NETWORK))
+
+    def get_ip_states(key): return ip_states(client, key)
+    ipallocator_fixture._store.ip_state_map = IpDescriptorMap(
+        defaultdict_key(get_ip_states),  # type: ignore[arg-type]
+    )
+    ipallocator_fixture._store.ip_state_map.add_ip_to_state(
+        ip=IPv4Address(IP),
+        ip_desc=ip_desc_fixture,
+        state=IPState.ALLOCATED,
+    )
+    ipallocator_fixture.start_monitor_thread()
+    removed_block = ipallocator_fixture.remove_ip_blocks([IPv4Network(IP_NETWORK)])
+
+    assert [] == removed_block
+    expected = AssignedIpBlocksSet(fakeredis.FakeStrictRedis())
+    expected.add(IPv4Network(IP_NETWORK))
+    assert len(expected) == len(ipallocator_fixture._store.assigned_ip_blocks)
+    for block in expected:
+        assert block in ipallocator_fixture._store.assigned_ip_blocks
+    print(expected)
+
+
+@patch("subprocess.run")
+def test_force_remove_ip_block_with_allocated_ip(
+        mock_run, ipallocator_fixture,
+        dhcp_desc_fixture, ip_desc_fixture,
+):
+    mock_run.return_value = get_mock_run()
+    client = fakeredis.FakeStrictRedis()
+    ipallocator_fixture._store.assigned_ip_blocks = AssignedIpBlocksSet(client)
+    ipallocator_fixture._store.assigned_ip_blocks.add(IPv4Network(IP_NETWORK))
+    ipallocator_fixture._store.assigned_ip_blocks.add(IPv4Network(IP_NETWORK_2))
+
+    def get_ip_states(key): return ip_states(client, key)
+    ipallocator_fixture._store.ip_state_map = IpDescriptorMap(
+        defaultdict_key(get_ip_states),  # type: ignore[arg-type]
+    )
+    ipallocator_fixture._store.ip_state_map.add_ip_to_state(
+        ip=IPv4Address(IP),
+        ip_desc=ip_desc_fixture,
+        state=IPState.ALLOCATED,
+    )
+    ipallocator_fixture.start_monitor_thread()
+    removed_block = ipallocator_fixture.remove_ip_blocks(
+        ipblocks=[IPv4Network(IP_NETWORK)],
+        force=True,
+    )
+
+    assert [IPv4Network(IP_NETWORK)] == removed_block
+    expected = AssignedIpBlocksSet(fakeredis.FakeStrictRedis())
+    expected.add(IPv4Network(IP_NETWORK_2))
+    assert len(expected) == len(ipallocator_fixture._store.assigned_ip_blocks)
+    for block in expected:
+        assert block in ipallocator_fixture._store.assigned_ip_blocks
+    print(expected)
