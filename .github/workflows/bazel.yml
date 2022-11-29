@@ -380,10 +380,16 @@ jobs:
       github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
     runs-on: ubuntu-latest
+    outputs:
+      package_was_built: ${{ steps.package_build_status.outputs.package_was_built }}
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
+        # The value of fetch-depth needs to exceed the maximum number of commits
+        # on all PRs. This is needed for bazel-diff to check out the merge-base.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 100
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -398,17 +404,63 @@ jobs:
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
           image: ${{ env.BAZEL_BASE_IMAGE }}
+          shell: bash
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
+            set -euo pipefail
+
+            # Required for bazel-diff to perform git checkout.
+            git config --global --add safe.directory /workspaces/magma
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
+            printf '\r%s\r\r' '###############################' 1>&2
             bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Determining if release has to be build.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            # Check if the workflow is run on a PR and whether the .bazelrc and WORKSPACE files have been affected.
+            if [[ ("${{ github.event_name }}" == "pull_request") && \
+                  ! $(git diff-tree --no-commit-id --name-only -r "${{ github.event.pull_request.base.sha }}" "${{ github.SHA }}" | \
+                    grep -E '(.bazelrc|WORKSPACE.bazel)') \
+                ]];
+            then
+              printf '\r%s\r' 'Determining whether the release target (//lte/gateway/release:release_build) was affected ...' 1>&2
+              IMPACTED_TARGETS_FILE="/tmp/impacted_targets.txt"
+              bazel/scripts/bazel_diff.sh "${{ github.event.pull_request.base.sha }}"  "${{ github.SHA }}" | tee "$IMPACTED_TARGETS_FILE"
+              if [[ -z "$(grep '//lte/gateway/release:release_build' "$IMPACTED_TARGETS_FILE")" ]];
+              then
+                printf '\r%s\r' 'Skipping release build, the packages are not affected by the changes.' 1>&2
+                echo "package_was_built=false" > /workspaces/magma/build_status.txt
+                exit 0
+              else
+                printf '\r%s\r' 'The packages are affected by the changes, building the release ...' 1>&2
+              fi
+            fi
+
             bazel run //lte/gateway/release:release_build \
               --config=production \
               --profile=Bazel_build_package_profile
+            echo "package_was_built=true" > /workspaces/magma/build_status.txt
+
             mkdir packages
             mv /tmp/packages/*.deb packages
+
+      - name: Output value of 'package_was_built'
+        shell: bash
+        id: package_build_status
+        # This is necessary because the addnab/docker-run-action
+        # does not allow setting outputs from inside the container.
+        run: |
+          PACKAGE_BUILD_STATUS="$(cat build_status.txt)"
+          echo "$PACKAGE_BUILD_STATUS"
+          echo "$PACKAGE_BUILD_STATUS" >> $GITHUB_OUTPUT
+
       - name: Get magma version
+        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
         run: |
           version_pattern="magma_([0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+)_amd64.deb"
           for i in packages/*.deb; do
@@ -426,14 +478,20 @@ jobs:
           fi
 
       - name: Setup JFROG CLI
+        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
 
       - name: Set dry run environment variable
-        if: ${{ ! ( github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master' ) }}
+        if: |
+          github.event_name != 'push' &&
+          github.repository_owner != 'magma' &&
+          github.ref_name != 'master' &&
+          needs.bazel_package.outputs.package_was_built == 'true'
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
       - name: Publish debian packages - magmacore
+        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
@@ -448,6 +506,7 @@ jobs:
             "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
 
       - name: Publish debian packages - linuxfoundation
+        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
@@ -463,7 +522,11 @@ jobs:
 
       - name: Trigger debian integ test workflow
         uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
-        if: github.event_name == 'push' && github.repository_owner == 'magma' && github.ref_name == 'master'
+        if: |
+          github.event_name == 'push' &&
+          github.repository_owner == 'magma' &&
+          github.ref_name == 'master' &&
+          needs.bazel_package.outputs.package_was_built == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
@@ -472,15 +535,21 @@ jobs:
 
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
+        if: |
+          always() &&
+          github.event.inputs.publish_bazel_profile == 'true' &&
+          needs.bazel_package.outputs.package_was_built == 'true'
         with:
           name: Bazel build package profile
           path: Bazel_build_package_profile
+
       - name: Build space left after run
+        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
         shell: bash
         run: |
           echo "Available storage:"
           df -h
+
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
