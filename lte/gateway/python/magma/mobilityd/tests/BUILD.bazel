@@ -63,7 +63,10 @@ pytest_test(
     name = "test_ip_allocator_dhcp",
     size = "small",
     srcs = ["test_ip_allocator_dhcp.py"],
-    imports = [LTE_ROOT, ORC8R_ROOT],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
     tags = TAG_SUDO_TEST,
     deps = [
         "//lte/gateway/python/magma/mobilityd:mobilityd_lib",

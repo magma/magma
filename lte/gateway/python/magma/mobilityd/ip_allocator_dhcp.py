@@ -113,7 +113,7 @@ class IPAllocatorDHCP(IPAllocator):
                         dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
                         self._parse_dhcp_helper_cli_response_to_store(
                             dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
-                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan
+                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan,
                         )
 
                     elif now >= dhcp_desc.lease_renew_deadline:
@@ -131,7 +131,7 @@ class IPAllocatorDHCP(IPAllocator):
                         dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
                         self._parse_dhcp_helper_cli_response_to_store(
                             dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
-                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan
+                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan,
                         )
 
                     else:
@@ -313,7 +313,7 @@ class IPAllocatorDHCP(IPAllocator):
             dhcp_response = self._get_dhcp_helper_cli_response(call_args)
             dhcp_desc = self._parse_dhcp_helper_cli_response_to_store(
                 dhcp_desc=dhcp_desc, dhcp_response=dhcp_response,
-                mac=mac, vlan=vlan
+                mac=mac, vlan=vlan,
             )
 
         if dhcp_desc and dhcp_desc.ip and dhcp_desc.subnet:
@@ -342,7 +342,8 @@ class IPAllocatorDHCP(IPAllocator):
             dhcp_json = json.loads(dhcp_response.stdout)
         except JSONDecodeError as e:
             logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'")
+                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'",
+            )
             raise NoAvailableIPError(f'Failed to json parse message returned from dhcp_helper_cli.')
         if dhcp_json:
             dhcp_desc = DHCPDescriptor(
@@ -369,7 +370,8 @@ class IPAllocatorDHCP(IPAllocator):
         )
         if dhcp_response.returncode != 0:
             logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_response.args}'")
+                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_response.args}'",
+            )
             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
         return dhcp_response
 

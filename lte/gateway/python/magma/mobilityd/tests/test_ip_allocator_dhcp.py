@@ -10,9 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, List
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import fakeredis
@@ -77,7 +77,7 @@ def ip_allocator_fixture() -> IPAllocatorDHCP:
 @pytest.fixture
 def ip_allocator_dhcp_fixture(
         ip_allocator_fixture: IPAllocatorDHCP,
-        dhcp_desc_fixture: DHCPDescriptor
+        dhcp_desc_fixture: DHCPDescriptor,
 ) -> IPAllocatorDHCP:
     ip_allocator_fixture._store.dhcp_store[
         dhcp_desc_fixture.mac.as_redis_key(dhcp_desc_fixture.vlan)
@@ -96,13 +96,6 @@ def ip_desc_fixture() -> IPDesc:
         ip_type=IPType.DHCP,
         sid=SID,
     )
-
-
-# def create_subprocess_mock() -> MagicMock:
-#     m = MagicMock()
-#     m.returncode = 0
-#     m.stdout = """{"lease_expiration_time": %s}""" % LEASE_EXPIRATION_TIME
-#     return m
 
 
 def run_dhcp_allocator_thread(
@@ -143,7 +136,7 @@ def test_allocate_ip_address(
             call_args=call_args,
             ip_allocator=ip_allocator_fixture,
             reference_time=reference_time,
-            subprocess_mock=subprocess_mock
+            subprocess_mock=subprocess_mock,
         )
 
     assert actual_ip_desc == ip_desc_fixture
@@ -186,7 +179,7 @@ def test_renewal_of_ip(
     _run_allocator_and_assert(
         advance_time=3,
         call_args=call_args,
-        ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture
+        ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
     )
 
 
@@ -205,7 +198,7 @@ def test_allocate_ip_after_expiry(
     _run_allocator_and_assert(
         advance_time=5,
         call_args=call_args,
-        ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture
+        ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
     )
 
 
@@ -223,7 +216,7 @@ def _run_allocator_and_assert(advance_time, call_args, ip_allocator_dhcp_fixture
             call_args=call_args,
             ip_allocator=ip_allocator_dhcp_fixture,
             reference_time=reference_time,
-            subprocess_mock=subprocess_mock
+            subprocess_mock=subprocess_mock,
         )
 
 
