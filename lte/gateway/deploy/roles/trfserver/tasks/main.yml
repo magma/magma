@@ -97,16 +97,15 @@
     - iperf3_3.9-1_amd64.deb
   when: preburn
 
-# TODO Can be moved to preburn
 - name: configure dhcpd
   become: yes
   copy: src=udhcpd.conf dest=/etc/
-  when: full_provision
+  when: preburn
 
 - name: install udhcpd
   apt:
     name: udhcpd
-  when: full_provision
+  when: preburn
 
 - name: configure udhcpd
   become: yes
@@ -114,14 +113,14 @@
     path: /etc/default/udhcpd
     regexp: 'DHCPD_ENABLED="no"'
     replace: 'DHCPD_ENABLED="yes"'
-  when: full_provision
+  when: preburn
 
 - name: Restart service udhcpd
   become: yes
   service:
     name: udhcpd
     state: restarted
-  when: full_provision
+  when: preburn
 
 - name: configure sshd_config
   become: yes
