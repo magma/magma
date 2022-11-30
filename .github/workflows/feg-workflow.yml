@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -56,7 +56,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: feg lint and precommit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
