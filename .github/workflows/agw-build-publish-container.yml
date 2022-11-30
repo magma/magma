@@ -35,7 +35,7 @@ jobs:
       digest_python: ${{ steps.docker-builder-python.outputs.digest }}
       digest_go: ${{ steps.docker-builder-go.outputs.digest }}
       registry: ${{ steps.set-registry.outputs.registry }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
@@ -97,7 +97,7 @@ jobs:
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
   build-containers-ghz:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: build-containers
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
