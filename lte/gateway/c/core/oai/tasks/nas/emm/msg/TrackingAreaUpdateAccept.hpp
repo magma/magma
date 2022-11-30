@@ -19,15 +19,15 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -118,9 +118,6 @@ typedef struct tracking_area_update_accept_msg_tag {
   additional_update_result_t additionalupdateresult;
 } tracking_area_update_accept_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_tracking_area_update_accept(
     tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
     uint32_t len);
@@ -128,6 +125,3 @@ int decode_tracking_area_update_accept(
 int encode_tracking_area_update_accept(
     tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
     uint32_t len);
-#ifdef __cplusplus
-}
-#endif

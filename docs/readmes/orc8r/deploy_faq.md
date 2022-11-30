@@ -40,7 +40,7 @@ helm -n orc8r get values orc8r  # gets the values file for the Orc8r release
 ## NMS pod wasn't showing up properly
 
 ```bash
-$ kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- yarn setAdminPassword master xxxx@xxxx.com 1234
+$ kubectl exec -it $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- yarn setAdminPassword host xxxx@xxxx.com 1234
 
 error: error executing jsonpath "{.items[0].metadata.name}": Error executing template: array index out of bounds: index 0, length 0. Printing more information for debugging the template:
         template was:

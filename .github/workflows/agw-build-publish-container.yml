@@ -9,100 +9,157 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: AGW Build & Publish Container
+name: AGW Build, Publish & Test Container
 
 on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        type: string
+        description: Overwrite registry (default agw-test.artifactory.magmacore.org).
   push:
     branches:
       - master
       - 'v1.*'
-  pull_request_target:
+  pull_request:
     types: [ opened, reopened, synchronize ]
-    branches:
-      - master
-      - 'v1.*'
+
+env:
+  registry: ${{ inputs.registry || 'linuxfoundation.jfrog.io/magma-docker-agw-test' }}
 
 jobs:
 
-  agw-collect-matrix-success:
-    runs-on: ubuntu-latest
-    if: success()
-    needs: build-containers
-    steps:
-      - run: echo "Successfully built AGW containers."
-
-  agw-check-matrix-success:
-    runs-on: ubuntu-latest
-    if: always()
-    needs: agw-collect-matrix-success
-    steps:
-      - name: Check completion of all build steps
-        run: |
-          if [ "${{ needs.agw-collect-matrix-success.result }}" = "success" ];
-          then
-            exit 0
-          else
-            echo "Exit status of some previous job(s) was ${{ needs.agw-collect-matrix-success.result }}"
-            exit 1
-          fi
-
   build-containers:
+    outputs:
+      digest_c: ${{ steps.docker-builder-c.outputs.digest }}
+      digest_python: ${{ steps.docker-builder-python.outputs.digest }}
+      digest_go: ${{ steps.docker-builder-go.outputs.digest }}
+      registry: ${{ steps.set-registry.outputs.registry }}
     runs-on: ubuntu-latest
-    env:
-      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - DOCKER_IMAGE: gateway_go
-            DOCKER_FILE: feg/gateway/docker/go/Dockerfile
-          - DOCKER_IMAGE: agw_gateway_python
-            DOCKER_FILE: lte/gateway/docker/services/python/Dockerfile
-          - DOCKER_IMAGE: agw_gateway_c
-            DOCKER_FILE: lte/gateway/docker/services/c/Dockerfile
-
     steps:
-      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/master'
-
-      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
-
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo Registry is ${{ steps.set-registry.outputs.registry }}
+          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+
+      - id: get-short-git-sha
+        name: Set short git sha output
+        run: |
+          echo ${GITHUB_SHA:0:8}
+          echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+
+      - name: verify git sha output
+        run: echo git sha is ${{ steps.get-short-git-sha.outputs.sha }}
+
       - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-c
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          REGISTRY: ${{ env.DOCKER_REGISTRY }}
-          IMAGE: ${{ matrix.DOCKER_IMAGE }}
-          FILE: ${{ matrix.DOCKER_FILE }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/c/Dockerfile
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+      - run: echo "C container image digest is ${{ steps.docker-builder-c.outputs.digest }}"
+      - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-python
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/python/Dockerfile
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+      - run: echo "Python container image digest is ${{ steps.docker-builder-python.outputs.digest }}"
+      - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-go
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: feg/gateway/docker/go/Dockerfile
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ steps.get-short-git-sha.outputs.sha }}
+      - run: echo "Go container image digest is ${{ steps.docker-builder-go.outputs.digest }}"
+      - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
   build-containers-ghz:
     runs-on: ubuntu-latest
     needs: build-containers
-    env:
-      DOCKER_REGISTRY: agw-ci.artifactory.magmacore.org
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - DOCKER_IMAGE: ghz_gateway_python
-            DOCKER_CONTEXT: lte/gateway/docker/ghz
-          - DOCKER_IMAGE: ghz_gateway_c
-            DOCKER_CONTEXT: lte/gateway/docker/ghz
-
     steps:
-      - run: echo "DOCKER_REGISTRY=agw-test.artifactory.magmacore.org" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/master'
-
-      - run: echo "Publishing images to ${{ env.DOCKER_REGISTRY }}"
-
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo Registry is ${{ steps.set-registry.outputs.registry }}
+          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+
+      - id: get-short-git-sha
+        run: echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
 
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
-          REGISTRY_USERNAME: ${{ secrets.JFROG_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          REGISTRY: ${{ env.DOCKER_REGISTRY }}
-          IMAGE: ${{ matrix.DOCKER_IMAGE }}
-          CONTEXT: ${{ matrix.DOCKER_CONTEXT }}
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+          CONTEXT: lte/gateway/docker/ghz
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+          CONTEXT: lte/gateway/docker/ghz
+
+  test-containers-precommit:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      digest_c: ${{ needs.build-containers.outputs.digest_c }}
+      digest_python: ${{ needs.build-containers.outputs.digest_python }}
+      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: precommit
+    secrets: inherit
+
+  test-containers-extended:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      digest_c: ${{ needs.build-containers.outputs.digest_c }}
+      digest_python: ${{ needs.build-containers.outputs.digest_python }}
+      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: extended
+    secrets: inherit

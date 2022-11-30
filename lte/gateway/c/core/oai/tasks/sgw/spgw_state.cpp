@@ -130,16 +130,21 @@ void sgw_free_ue_context(void** ptr) {
                  "sgw_free_ue_context received invalid pointer for deletion");
     return;
   }
+
   spgw_ue_context_t* ue_context_p = reinterpret_cast<spgw_ue_context_t*>(*ptr);
-  if (ue_context_p) {
-    sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p)->sgw_s11_teid_list);
-    sgw_s11_teid_t* p2 = nullptr;
-    while (p1) {
-      p2 = LIST_NEXT(p1, entries);
-      LIST_REMOVE(p1, entries);
-      free_cpp_wrapper(reinterpret_cast<void**>(&p1));
-      p1 = p2;
-    }
-    free_cpp_wrapper(ptr);
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "sgw_free_ue_context received invalid pointer for deletion");
+    return;
   }
+  sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p)->sgw_s11_teid_list);
+  sgw_s11_teid_t* p2 = nullptr;
+  while (p1) {
+    p2 = LIST_NEXT(p1, entries);
+    LIST_REMOVE(p1, entries);
+    free_cpp_wrapper(reinterpret_cast<void**>(&p1));
+    p1 = p2;
+  }
+  free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+  return;
 }

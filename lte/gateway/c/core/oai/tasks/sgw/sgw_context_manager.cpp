@@ -40,8 +40,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -101,17 +99,6 @@ void sgw_display_s11_bearer_context_information(
 }
 
 //-----------------------------------------------------------------------------
-void pgw_lite_cm_free_apn(pgw_apn_t** apnP)
-//-----------------------------------------------------------------------------
-{
-  if (*apnP) {
-    if ((*apnP)->pdn_connections) {
-      obj_hashtable_ts_destroy((*apnP)->pdn_connections);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid)
 //-----------------------------------------------------------------------------
@@ -144,8 +131,7 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 
   OAILOG_DEBUG(LOG_SPGW_APP,
                "Added new s_plus_p_gw_eps_bearer_context_information_t in "
-               "s11_bearer_context_information_hashtable key TEID " TEID_FMT
-               "\n",
+               "state_teid_map for TEID " TEID_FMT "\n",
                teid);
   return new_bearer_context_information;
 }
