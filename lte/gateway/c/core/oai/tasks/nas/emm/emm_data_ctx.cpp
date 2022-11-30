@@ -671,27 +671,25 @@ struct emm_context_s* emm_context_get_by_imsi(
 
 status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
                                       struct emm_context_s* elm) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
   mme_ue_s1ap_id_t ue_id =
       (PARENT_STRUCT(elm, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id;
 
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  h_rc = hashtable_uint64_ts_remove(
-      mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-      (const hash_key_t)elm->_imsi64);
+  mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.remove(elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-        (const hash_key_t)elm->_imsi64, ue_id);
+    if (mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.insert(
+            elm->_imsi64, ue_id) != magma::PROTO_MAP_OK) {
+      OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
+                        "Insert failed on imsi2mme_ueid_map "
+                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                        ue_id);
+      return RETURNerror;
+    }
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-  if (HASH_TABLE_OK != h_rc) {
-    OAILOG_TRACE(LOG_MME_APP,
-                 "Error could not update this ue context "
-                 "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
-                 ": %s\n",
-                 ue_id, elm->_imsi64, hashtable_rc_code2string(h_rc));
+    OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
+                      "Could not update ue context due to invalid "
+                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                      ue_id);
     return RETURNerror;
   }
   return RETURNok;
