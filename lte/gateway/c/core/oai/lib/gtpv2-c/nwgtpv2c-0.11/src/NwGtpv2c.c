@@ -2134,7 +2134,7 @@ nw_rc_t nwGtpv2cProcessTimeoutOld(void* arg) {
   OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
 }
 
-nw_rc_t nwGtpv2cProcessTimeoutExt(zloop_t* loop, int timer_id, void* arg) {
+int nwGtpv2cProcessTimeoutExt(zloop_t* loop, int timer_id, void* arg) {
   return nwGtpv2cProcessTimeout(arg);
 }
 

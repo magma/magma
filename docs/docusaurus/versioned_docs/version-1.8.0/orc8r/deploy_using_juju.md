@@ -94,11 +94,11 @@ In your domain registrar, create A records for the following Kubernetes services
 
 ## Verify the deployment
 
-Get the master organization's username and password:
+Get the host organization's username and password:
 
 ```bash
 juju run-action nms-magmalte/leader get-master-admin-credentials --wait
 ```
 
-Confirm successful deployment by visiting `https://master.nms.<your domain>` and logging in
+Confirm successful deployment by visiting `https://host.nms.<your domain>` and logging in
 with the `admin-username` and `admin-password` outputted here.

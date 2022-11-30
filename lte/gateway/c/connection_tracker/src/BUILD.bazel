@@ -15,7 +15,7 @@ load("//bazel:test_constants.bzl", "TAG_SERVICE")
 cc_binary(
     name = "connectiond",
     srcs = ["main.cpp"],
-    tags = TAG_SERVICE,
+    tags = TAG_SERVICE + ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
     deps = [
         ":event_tracker",

@@ -30,6 +30,6 @@ go_library(
 go_binary(
     name = "envoy_controller",
     embed = [":envoy_controller_lib"],
-    tags = TAG_SERVICE,
+    tags = TAG_SERVICE + ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
 )

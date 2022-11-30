@@ -24,6 +24,8 @@
 #define SGW
 #define S11_HANDLERS_C
 
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -41,7 +43,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #ifdef __cplusplus
@@ -69,7 +70,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
@@ -1728,9 +1728,10 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
   magma::lte::oai::S11BearerContext* spgw_ctxt =
       sgw_cm_get_spgw_context(s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
   if (!spgw_ctxt) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "failed to get s_plus_pgw_eps_bearer_context for teid %u\n",
-                    s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP, imsi64,
+        "failed to get s_plus_p_gw_eps_bearer_context for teid" TEID_FMT,
+        s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =

@@ -10,6 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -45,7 +48,6 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 

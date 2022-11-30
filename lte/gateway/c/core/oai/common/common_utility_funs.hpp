@@ -5,7 +5,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"

@@ -79,7 +79,7 @@ class SpgwStateManager
   ~SpgwStateManager();
 
   /**
-   * Allocates a new spgw_state_t struct, and inits hashtables and state
+   * Allocates a new spgw_state_t struct, and inits protobuf maps and state
    * structs to default values.
    */
   void create_state() override;

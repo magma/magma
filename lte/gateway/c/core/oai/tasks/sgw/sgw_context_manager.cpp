@@ -40,8 +40,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -158,17 +156,6 @@ void sgw_s8_display_s11_bearer_context_information(
   }
   // void                  *trxn;
   // uint32_t               peer_ip;
-}
-
-//-----------------------------------------------------------------------------
-void pgw_lite_cm_free_apn(pgw_apn_t** apnP)
-//-----------------------------------------------------------------------------
-{
-  if (*apnP) {
-    if ((*apnP)->pdn_connections) {
-      obj_hashtable_ts_destroy((*apnP)->pdn_connections);
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------

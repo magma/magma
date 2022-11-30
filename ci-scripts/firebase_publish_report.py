@@ -68,11 +68,9 @@ def lte_integ_test(args):
     prepare_and_publish('lte_integ_test', args, 'test_status.txt')
 
 
-def make_debian_lte_integ_test(args):
+def debian_lte_integ_test(args):
     """Prepare and publish LTE Integ Test report"""
-    prepare_and_publish(
-        'make_debian_lte_integ_test', args, 'test_status.txt',
-    )
+    prepare_and_publish('debian_lte_integ_test', args, 'test_status.txt')
 
 
 def feg_integ_test(args):
@@ -134,7 +132,7 @@ tests = {
     'feg': feg_integ_test,
     'cwf': cwf_integ_test,
     'sudo_python_tests': sudo_python_tests,
-    'make_debian_lte_integ_test': make_debian_lte_integ_test,
+    'debian_lte_integ_test': debian_lte_integ_test,
 }
 
 for key, value in tests.items():

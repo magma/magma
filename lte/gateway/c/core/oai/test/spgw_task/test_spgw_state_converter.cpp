@@ -54,7 +54,7 @@ TEST(SPGWStateConverterTest, TestSPGWStateConversion) {
 }
 
 TEST(SPGWStateConverterTest, TestUEContextConversion) {
-  // Init SPGW hashtable
+  // Inits spgw's configuration and state information
   spgw_config_t* spgw_config_p =
       (spgw_config_t*)calloc(1, sizeof(spgw_config_t));
   spgw_config_init(spgw_config_p);

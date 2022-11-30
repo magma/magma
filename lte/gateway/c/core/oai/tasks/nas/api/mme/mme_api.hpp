@@ -154,14 +154,8 @@ void mme_api_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bool is_remove_old);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config);
 status_code_e mme_api_unsubscribe(bstring apn);
-#ifdef __cplusplus
-}
-#endif
 
 status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
                                       guti_t* const guti);
@@ -182,16 +176,10 @@ status_code_e mme_api_subscribe(bstring* apn,
                                 bstring* pdn_addr, int is_emergency,
                                 mme_api_qos_t* qos);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                         mm_state_t new_emm_state);
 
 bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
-#ifdef __cplusplus
-}
-#endif
 
 /* Compares the given two PLMNs */
 #define IS_PLMN_EQUAL(pLMN1, pLMN2)           \

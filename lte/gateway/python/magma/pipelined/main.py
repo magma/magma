@@ -20,6 +20,7 @@ import logging
 import threading
 
 import aioeventlet
+import sdnotify
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import get_ip_from_if
 from magma.common.sentry import sentry_init
@@ -39,7 +40,7 @@ from magma.pipelined.gtp_stats_collector import (
     MIN_OVSDB_DUMP_POLLING_INTERVAL,
     GTPStatsCollector,
 )
-from magma.pipelined.ifaces import get_mac_address, monitor_ifaces
+from magma.pipelined.ifaces import get_mac_address_from_iface, monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
 from magma.pipelined.service_manager import ServiceManager
 from ryu import cfg
@@ -120,9 +121,9 @@ def main():
     if 'virtual_mac' not in service.config:
         if service.config['dp_router_enabled']:
             up_iface_name = service.config.get('nat_iface', None)
-            mac_addr = get_mac_address(up_iface_name)
+            mac_addr = get_mac_address_from_iface(up_iface_name)
         else:
-            mac_addr = get_mac_address(service.config.get('bridge_name'))
+            mac_addr = get_mac_address_from_iface(service.config.get('bridge_name'))
 
         service.config['virtual_mac'] = mac_addr
 
@@ -221,6 +222,9 @@ def main():
             service.loop,
         )
         collector.start()
+
+    notifier = sdnotify.SystemdNotifier()
+    notifier.notify("READY=1")
 
     # Run the service loop
     service.run()

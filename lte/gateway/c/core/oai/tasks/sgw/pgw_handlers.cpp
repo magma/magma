@@ -38,7 +38,7 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -63,7 +63,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -238,8 +237,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
 
   state_teid_map = get_spgw_teid_state();
   if (state_teid_map == nullptr) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "No s11_bearer_context_information hash table found \n");
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Failed to get state_teid_map");
     *failed_cause = REQUEST_REJECTED;
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
@@ -340,7 +338,6 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
   state_teid_map_t* state_teid_map = nullptr;
   uint32_t num_elements = 0;
   magma::lte::oai::S11BearerContext* spgw_ctxt_p = nullptr;
-  hash_node_t* node = NULL;
   bool is_lbi_found = false;
   bool is_imsi_found = false;
   bool is_ebi_found = false;

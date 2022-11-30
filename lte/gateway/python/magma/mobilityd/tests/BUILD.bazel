@@ -145,3 +145,14 @@ pytest_test(
         requirement("grpcio"),
     ],
 )
+
+pytest_test(
+    name = "test_dhcp_helper_cli",
+    size = "small",
+    srcs = ["test_dhcp_helper_cli.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/scripts:dhcp_helper_cli",
+        requirement("scapy"),
+    ],
+)

@@ -1020,11 +1020,11 @@ class MagmadUtil(object):
         self.exec_command(MAGTIVATE_CMD + " && " + state_corrupt_cmd)
         print(f"Corrupted {key} on redis")
 
-    def restart_all_services(self):
+    def restart_magma_services(self):
         """Restart all magma services on magma_dev VM"""
         if self._init_system == InitMode.SYSTEMD:
             self.exec_command(
-                "sudo systemctl stop 'magma@*' 'sctpd' ;"
+                "sudo systemctl stop 'magma@*' ;"
                 "sudo systemctl start magma@magmad",
             )
             self._wait_for_pipelined_to_initialize()
@@ -1087,7 +1087,7 @@ class MagmadUtil(object):
             time.sleep(self.WAIT_INTERVAL_SECONDS)
             wait_time_seconds += self.WAIT_INTERVAL_SECONDS
 
-    def restart_services(self, services: str, wait_time: int = 0):
+    def restart_services(self, services: List[str], wait_time: int = 0):
         """
         Restart a list of magmad services.
         Hint:
@@ -1664,7 +1664,8 @@ class MagmadUtil(object):
         with open(mconfig_conf, "w") as json_file:
             json.dump(data, json_file, sort_keys=True, indent=2)
 
-        self.restart_all_services()
+        self.restart_services(['sctpd'], wait_time=30)
+        self.restart_magma_services()
 
     def _validate_non_nat_datapath(self, ip_version: int = 4):
         # validate SGi interface is part of uplink-bridge.
