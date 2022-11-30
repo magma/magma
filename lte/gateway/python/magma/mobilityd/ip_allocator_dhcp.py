@@ -102,49 +102,38 @@ class IPAllocatorDHCP(IPAllocator):
 
                     if now >= dhcp_desc.lease_expiration_time:
                         logging.debug("sending lease allocate")
-                        dhcp_cli_response = subprocess.run(
-                            [
-                                DHCP_HELPER_CLI_PATH,
-                                "--mac", str(dhcp_desc.mac),
-                                "--vlan", str(dhcp_desc.vlan),
-                                "--interface", self._iface,
-                                "--json",
-                                "allocate",
-                            ],
-                            capture_output=True,
+                        call_args = [[
+                            DHCP_HELPER_CLI_PATH,
+                            "--mac", str(dhcp_desc.mac),
+                            "--vlan", str(dhcp_desc.vlan),
+                            "--interface", self._iface,
+                            "--json",
+                            "allocate",
+                        ]]
+                        dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
+                        self._parse_dhcp_helper_cli_response_to_store(
+                            dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
+                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan
                         )
 
-                        if dhcp_cli_response.returncode != 0:
-                            logging.error(f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_cli_response.args}'")
-                            raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
-                        resp = json.loads(dhcp_cli_response.stdout)
-                        dhcp_desc.lease_renew_deadline = now + timedelta(seconds=resp['lease_expiration_time']) / 2
-                        dhcp_desc.lease_expiration_time = now + timedelta(seconds=resp['lease_expiration_time'])
-                        self._store.dhcp_store[dhcp_key] = dhcp_desc
                     elif now >= dhcp_desc.lease_renew_deadline:
                         logging.debug("sending lease renewal")
-                        print("sending lease renewal")
-                        dhcp_cli_response = subprocess.run(
-                            [
-                                DHCP_HELPER_CLI_PATH,
-                                "--mac", str(dhcp_desc.mac),
-                                "--vlan", str(dhcp_desc.vlan),
-                                "--interface", self._iface,
-                                "--json",
-                                "renew",
-                                "--ip", str(dhcp_desc.ip),
-                                "--server-ip", str(dhcp_desc.server_ip),
-                            ],
-                            capture_output=True,
+                        call_args = [[
+                            DHCP_HELPER_CLI_PATH,
+                            "--mac", str(dhcp_desc.mac),
+                            "--vlan", str(dhcp_desc.vlan),
+                            "--interface", self._iface,
+                            "--json",
+                            "renew",
+                            "--ip", str(dhcp_desc.ip),
+                            "--server-ip", str(dhcp_desc.server_ip),
+                        ]]
+                        dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
+                        self._parse_dhcp_helper_cli_response_to_store(
+                            dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
+                            mac=dhcp_desc.mac, vlan=dhcp_desc.vlan
                         )
 
-                        if dhcp_cli_response.returncode != 0:
-                            logging.error(f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_cli_response.args}'")
-                            raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
-                        resp = json.loads(dhcp_cli_response.stdout)
-                        dhcp_desc.lease_renew_deadline = now + timedelta(seconds=resp['lease_expiration_time']) / 2
-                        dhcp_desc.lease_expiration_time = now + timedelta(seconds=resp['lease_expiration_time'])
-                        self._store.dhcp_store[dhcp_key] = dhcp_desc
                     else:
                         time_to_renew = dhcp_desc.lease_renew_deadline - now
                         wait_time = min(
@@ -313,43 +302,19 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
         if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
-            dhcp_response = subprocess.run(
-                [
-                    DHCP_HELPER_CLI_PATH,
-                    "--mac", str(mac),
-                    "--vlan", str(vlan),
-                    "--interface", self._iface,
-                    "--json",
-                    "allocate",
-                ],
-                capture_output=True,
+            call_args = [[
+                DHCP_HELPER_CLI_PATH,
+                "--mac", str(mac),
+                "--vlan", str(vlan),
+                "--interface", self._iface,
+                "--json",
+                "allocate",
+            ]]
+            dhcp_response = self._get_dhcp_helper_cli_response(call_args)
+            dhcp_desc = self._parse_dhcp_helper_cli_response_to_store(
+                dhcp_desc=dhcp_desc, dhcp_response=dhcp_response,
+                mac=mac, vlan=vlan
             )
-
-            if dhcp_response.returncode != 0:
-                logging.error(f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_response.args}'")
-                raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
-
-            try:
-                dhcp_json = json.loads(dhcp_response.stdout)
-            except JSONDecodeError as e:
-                logging.error(f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'")
-                raise NoAvailableIPError(f'Failed to json parse message returned from dhcp_helper_cli.')
-
-            if dhcp_json:
-                dhcp_desc = DHCPDescriptor(
-                    mac=mac,
-                    ip=str(ip_address(dhcp_json["ip"])),
-                    vlan=vlan,
-                    state_requested=DHCPState.ACK,
-                    state=DHCPState.ACK,
-                    subnet=str(IPv4Network(dhcp_json["subnet"], strict=False)),
-                    server_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
-                    router_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,  # TODO extract router ip from dhcp pkt
-                    lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
-                )
-
-                with self.dhcp_wait:
-                    self._store.dhcp_store[mac.as_redis_key(vlan)] = dhcp_desc
 
         if dhcp_desc and dhcp_desc.ip and dhcp_desc.subnet:
             ip_block = ip_network(dhcp_desc.subnet)
@@ -371,6 +336,42 @@ class IPAllocatorDHCP(IPAllocator):
         else:
             msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
             raise NoAvailableIPError(msg)
+
+    def _parse_dhcp_helper_cli_response_to_store(self, dhcp_desc, dhcp_response, mac, vlan):
+        try:
+            dhcp_json = json.loads(dhcp_response.stdout)
+        except JSONDecodeError as e:
+            logging.error(
+                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'")
+            raise NoAvailableIPError(f'Failed to json parse message returned from dhcp_helper_cli.')
+        if dhcp_json:
+            dhcp_desc = DHCPDescriptor(
+                mac=mac,
+                ip=dhcp_json["ip"],
+                vlan=vlan,
+                state_requested=DHCPState.ACK,
+                state=DHCPState.ACK,
+                subnet=str(IPv4Network(dhcp_json["subnet"], strict=False)),
+                server_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
+                router_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
+                # TODO extract router ip from dhcp pkt
+                lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
+            )
+
+            with self.dhcp_wait:
+                self._store.dhcp_store[mac.as_redis_key(vlan)] = dhcp_desc
+        return dhcp_desc
+
+    def _get_dhcp_helper_cli_response(self, call_args):
+        dhcp_response = subprocess.run(
+            *call_args,
+            capture_output=True,
+        )
+        if dhcp_response.returncode != 0:
+            logging.error(
+                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_response.args}'")
+            raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
+        return dhcp_response
 
     def release_ip(self, ip_desc: IPDesc):
         """

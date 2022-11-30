@@ -36,6 +36,7 @@ SID = "IMSI123456789"
 MAC = MacAddress(sid_to_mac(SID).lower())
 MAC2 = MacAddress("01:23:45:67:89:ab")
 IP = "1.2.3.4"
+SERVER_IP = "5.6.7.8"
 SUBNET = "24"
 IP_NETWORK = "1.2.3.0/" + SUBNET
 IP_NETWORK_2 = "1.2.4.0/" + SUBNET
@@ -97,11 +98,11 @@ def ip_desc_fixture() -> IPDesc:
     )
 
 
-def create_subprocess_mock() -> MagicMock:
-    m = MagicMock()
-    m.returncode = 0
-    m.stdout = """{"lease_expiration_time": %s}""" % LEASE_EXPIRATION_TIME
-    return m
+# def create_subprocess_mock() -> MagicMock:
+#     m = MagicMock()
+#     m.returncode = 0
+#     m.stdout = """{"lease_expiration_time": %s}""" % LEASE_EXPIRATION_TIME
+#     return m
 
 
 def run_dhcp_allocator_thread(
@@ -157,7 +158,7 @@ def test_allocate_ip_address(
 def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
     advance_time = 1
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
-            patch("subprocess.run", return_value=create_subprocess_mock()) as subprocess_mock:
+            patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
             ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
@@ -210,7 +211,7 @@ def test_allocate_ip_after_expiry(
 
 def _run_allocator_and_assert(advance_time, call_args, ip_allocator_dhcp_fixture):
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
-            patch("subprocess.run", return_value=create_subprocess_mock()) as subprocess_mock:
+            patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
         reference_time = datetime.now()
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
@@ -311,5 +312,5 @@ def test_force_remove_ip_block_with_allocated_ip(
 def create_subprocess_mock_dhcp_return() -> MagicMock:
     m = MagicMock()
     m.returncode = 0
-    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "5.6.7.8","lease_expiration_time": %s}""" % (IP, IP_NETWORK, LEASE_EXPIRATION_TIME)
+    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "%s","lease_expiration_time": %s}""" % (IP, IP_NETWORK, SERVER_IP, LEASE_EXPIRATION_TIME)
     return m
