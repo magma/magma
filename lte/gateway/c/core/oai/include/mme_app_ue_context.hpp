@@ -495,7 +495,7 @@ typedef struct mme_ue_context_s {
   magma::proto_map_uint32_uint32_t
       s11_teid2mme_ueid_map;  // data is mme_ue_s1ap_id_t
   magma::proto_map_uint64_uint32_t
-      enb_ue_s1ap_key2_mme_ueid_map;  // data is mme_ue_s1ap_id_t
+      enb_ue_s1ap_key2mme_ueid_map;  // data is mme_ue_s1ap_id_t
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 

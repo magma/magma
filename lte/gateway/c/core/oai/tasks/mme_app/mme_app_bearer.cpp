@@ -3641,10 +3641,7 @@ void mme_app_handle_handover_notify(
 
   // update UE context
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    // Remove existing enb_s1ap_id_key which is mapped with source eNB
-    hashtable_uint64_ts_remove(
-        mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   ue_context_p->enb_ue_s1ap_id = handover_notify_p->target_enb_ue_s1ap_id;
@@ -3790,10 +3787,7 @@ void mme_app_handle_path_switch_request(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    // Remove existing enb_s1ap_id_key which is mapped with suorce eNB
-    hashtable_uint64_ts_remove(
-        mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   // Update MME UE context with new enb_ue_s1ap_id
