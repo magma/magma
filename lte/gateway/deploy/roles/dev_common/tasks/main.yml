@@ -82,7 +82,7 @@
       leak:libczmq.so.4
       leak:libzmq.so.5
       leak:fluid_base::BaseOFConnection::OFReadBuffer::read_notify
-  when: full_provision
+  when: preburn
 
 - name: "Go export"
   lineinfile:
@@ -361,7 +361,7 @@
     url: https://linuxfoundation.jfrog.io/artifactory/magma-blob/ghz
     dest: /usr/local/bin/ghz
     mode: 0755
-  when: full_provision
+  when: preburn
 
 - name: Fix kernel commandline for interface naming.
   shell: |

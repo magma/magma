@@ -115,8 +115,10 @@
     value: unlimited
 
 - name: Create the /var/core directory
-  file: path=/var/core state=directory
-  when: full_provision
+  file:
+    path: /var/core
+    state: directory
+  when: preburn
 
 - name: Copy lte scripts
   copy:
@@ -190,14 +192,14 @@
   file:
     path: '{{ magma_repo }}/'
     state: directory
-  when: full_provision
+  when: preburn
 
 - name: Add Magma dependency package directory
   become: no
   file:
     path: '{{ magma_deps }}/'
     state: directory
-  when: full_provision
+  when: preburn
 
 - name: Enable IP forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
@@ -311,16 +313,13 @@
       # managing gtp interface
       - ifupdown
 
-# TODO move to preburn
-# dependency for the dhcp helper cli
 - name: Install scapy
   retries: 5
-  when: full_provision
+  when: preburn
   apt:
     state: present
     update_cache: yes
-    pkg:
-      - python3-scapy
+    name: python3-scapy
 
 - name: Copy the gtp interface initialization definition
   copy:

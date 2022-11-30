@@ -87,7 +87,11 @@
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
-  apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - default-libmysqlclient-dev
   when: preburn
 
 - name: Check whether swagger.yml exists
