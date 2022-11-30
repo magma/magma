@@ -91,7 +91,6 @@ class IPAllocatorDHCP(IPAllocator):
         while True:
             wait_time = self._lease_renew_wait_min
             with self.dhcp_wait:
-                # dhcp_desc: DHCPDescriptor
                 for dhcp_key, dhcp_desc in self._store.dhcp_store.items():
                     logging.debug("monitor: %s", dhcp_desc)
                     # Only process active records.
@@ -153,8 +152,8 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
     def remove_ip_blocks(
-            self, ipblocks: List[IPNetwork],
-            force: bool = False,
+        self, ipblocks: List[IPNetwork],
+        force: bool = False,
     ) -> List[IPNetwork]:
         """ Makes the indicated block(s) unavailable for allocation
         If force is False, blocks that have any addresses currently allocated

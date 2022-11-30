@@ -18,7 +18,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestAttachDetachWIthNonNatDhcp(unittest.TestCase):
+class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""

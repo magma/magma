@@ -76,8 +76,8 @@ def ip_allocator_fixture() -> IPAllocatorDHCP:
 
 @pytest.fixture
 def ip_allocator_dhcp_fixture(
-        ip_allocator_fixture: IPAllocatorDHCP,
-        dhcp_desc_fixture: DHCPDescriptor,
+    ip_allocator_fixture: IPAllocatorDHCP,
+    dhcp_desc_fixture: DHCPDescriptor,
 ) -> IPAllocatorDHCP:
     ip_allocator_fixture._store.dhcp_store[
         dhcp_desc_fixture.mac.as_redis_key(dhcp_desc_fixture.vlan)
@@ -99,9 +99,9 @@ def ip_desc_fixture() -> IPDesc:
 
 
 def run_dhcp_allocator_thread(
-        frozen_datetime: Any,
-        ip_allocator_dhcp_fixture: IPAllocatorDHCP,
-        freeze_time: float,
+    frozen_datetime: Any,
+    ip_allocator_dhcp_fixture: IPAllocatorDHCP,
+    freeze_time: float,
 ) -> None:
     ip_allocator_dhcp_fixture._monitor_thread_event.set()
     frozen_datetime.tick(timedelta(seconds=freeze_time))
@@ -110,9 +110,9 @@ def run_dhcp_allocator_thread(
 
 
 def test_allocate_ip_address(
-        ip_allocator_fixture: IPAllocatorDHCP,
-        ip_desc_fixture: IPDesc,
-        dhcp_desc_fixture: DHCPDescriptor,
+    ip_allocator_fixture: IPAllocatorDHCP,
+    ip_desc_fixture: IPDesc,
+    dhcp_desc_fixture: DHCPDescriptor,
 ) -> None:
     ip_allocator_fixture.start_monitor_thread()
     call_args = [[
@@ -162,7 +162,7 @@ def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
 
 
 def test_renewal_of_ip(
-        ip_allocator_dhcp_fixture: IPAllocatorDHCP,
+    ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
     call_args = [[
@@ -259,8 +259,8 @@ def test_remove_ip_block(ip_allocator_block_fixture: IPAllocatorDHCP) -> None:
 
 @patch("subprocess.run", MagicMock())
 def test_keep_ip_block_with_allocated_ip(
-        ip_allocator_block_fixture: IPAllocatorDHCP,
-        ip_desc_fixture: IPDesc,
+    ip_allocator_block_fixture: IPAllocatorDHCP,
+    ip_desc_fixture: IPDesc,
 ) -> None:
     ip_allocator_block_fixture._store.ip_state_map.add_ip_to_state(
         ip=IPv4Address(IP),
@@ -282,8 +282,8 @@ def test_keep_ip_block_with_allocated_ip(
 
 @patch("subprocess.run", MagicMock())
 def test_force_remove_ip_block_with_allocated_ip(
-        ip_allocator_block_fixture: IPAllocatorDHCP,
-        ip_desc_fixture: IPDesc,
+    ip_allocator_block_fixture: IPAllocatorDHCP,
+    ip_desc_fixture: IPDesc,
 ) -> None:
     ip_allocator_block_fixture._store.ip_state_map.add_ip_to_state(
         ip=IPv4Address(IP),
