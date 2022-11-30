@@ -189,21 +189,12 @@
       - python3-requests
       - python3-pip
       - python3-debian
+      - python3-venv
       - net-tools # ifconfig
       - tcpdump
       - curl
   retries: 5
   when: preburn
-
-- name: Install python3-venv for creating dev venvs (used by rules_pyvenv)
-  # TODO: move to preburn
-  tags: dev
-  apt:
-    state: present
-    update_cache: no
-    pkg:
-      - python3-venv
-  retries: 5
 
 - name: Install build requirements for Ubuntu systems
   # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
