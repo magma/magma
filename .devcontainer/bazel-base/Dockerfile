@@ -76,8 +76,8 @@ RUN apt-get install -y --no-install-recommends \
         libmnl-dev=1.0.4-2
 
 # setup magma artifactories and install magma dependencies
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add - && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' && \
+RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
+    add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \

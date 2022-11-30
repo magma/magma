@@ -380,8 +380,6 @@ jobs:
       github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
     runs-on: ubuntu-latest
-    outputs:
-      package_was_built: ${{ steps.package_build_status.outputs.package_was_built }}
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -460,7 +458,7 @@ jobs:
           echo "$PACKAGE_BUILD_STATUS" >> $GITHUB_OUTPUT
 
       - name: Get magma version
-        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
+        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         run: |
           version_pattern="magma_([0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+)_amd64.deb"
           for i in packages/*.deb; do
@@ -478,7 +476,7 @@ jobs:
           fi
 
       - name: Setup JFROG CLI
-        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
+        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
 
       - name: Set dry run environment variable
@@ -486,12 +484,12 @@ jobs:
           github.event_name != 'push' &&
           github.repository_owner != 'magma' &&
           github.ref_name != 'master' &&
-          needs.bazel_package.outputs.package_was_built == 'true'
+          steps.package_build_status.outputs.package_was_built == 'true'
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
       - name: Publish debian packages - magmacore
-        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
+        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
@@ -506,7 +504,7 @@ jobs:
             "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
 
       - name: Publish debian packages - linuxfoundation
-        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
+        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
@@ -526,7 +524,7 @@ jobs:
           github.event_name == 'push' &&
           github.repository_owner == 'magma' &&
           github.ref_name == 'master' &&
-          needs.bazel_package.outputs.package_was_built == 'true'
+          steps.package_build_status.outputs.package_was_built == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
@@ -538,13 +536,13 @@ jobs:
         if: |
           always() &&
           github.event.inputs.publish_bazel_profile == 'true' &&
-          needs.bazel_package.outputs.package_was_built == 'true'
+          steps.package_build_status.outputs.package_was_built == 'true'
         with:
           name: Bazel build package profile
           path: Bazel_build_package_profile
 
       - name: Build space left after run
-        if: ${{ needs.bazel_package.outputs.package_was_built == 'true' }}
+        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         shell: bash
         run: |
           echo "Available storage:"

@@ -367,7 +367,7 @@
 
 - name: Download gHZ binary from artifactory
   get_url:
-    url: https://artifactory.magmacore.org:443/artifactory/blob-prod/ghz
+    url: https://linuxfoundation.jfrog.io/artifactory/magma-blob/ghz
     dest: /usr/local/bin/ghz
     mode: 0755
   when: full_provision

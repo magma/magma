@@ -1184,7 +1184,7 @@ cc_binary(
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=1"],
     linkstatic = True,
-    tags = TAG_SERVICE,
+    tags = TAG_SERVICE + ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
     deps = [":lib_agw_of"],
 )
@@ -1194,7 +1194,7 @@ cc_binary(
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=0"],
     linkstatic = True,
-    tags = TAG_SERVICE,
+    tags = TAG_SERVICE + ["no-cache"],
     deps = [":lib_mme_oai"],
 )
 

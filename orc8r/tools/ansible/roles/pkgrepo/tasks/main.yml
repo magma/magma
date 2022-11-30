@@ -9,31 +9,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# TODO move to preburn
 - name: Remove all old registries
   become: yes
   ignore_errors: yes
   ansible.builtin.file:
     path: /etc/apt/sources.list.d/*.list
     state: absent
-  when: preburn
+  when: full_provision
 
-- name: Copy gpg key from codebase
-  copy:
-    src: jfrog.pub
-    dest: /tmp/jfrog.pub
-  when: preburn
-
-- name: Adding the key to agent
+# TODO move to preburn
+- name: Adding the key for the registry
   apt_key:
-    file: /tmp/jfrog.pub
+    url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
     state: present
-  when: preburn
+  when: full_provision
 
+# TODO move to preburn
 - name: Configuring the registry in sources.list.d
-  shell: "echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list"
-  when: preburn
+  shell: "echo 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' > /etc/apt/sources.list.d/magma.list"
+  when: full_provision
 
 - name: Update apt
   apt:
     update_cache: yes
-  when: preburn
+  when: full_provision
