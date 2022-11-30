@@ -30,17 +30,17 @@ apt-get update
 apt-get install -y openssh-server gcc rsync dirmngr
 
 # Add the Etagecom magma repo
-bash -c 'echo -e "deb https://artifactory.magmacore.org/artifactory/debian-test stretch-1.5.0 main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
+bash -c 'echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test stretch-1.5.0 main" >> /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
 
 # Create the preferences file for backports
 bash -c 'cat <<EOF > /etc/apt/preferences.d/magma-preferences
 Package: *
-Pin: origin artifactory.magmacore.org
+Pin: origin linuxfoundation.jfrog.io
 Pin-Priority: 900
 EOF'
 
 # Add the Etagecom key
-wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
+wget https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public -O /tmp/public
 apt-key add /tmp/public
 apt-get update
 
