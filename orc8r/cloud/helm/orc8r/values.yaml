@@ -15,7 +15,7 @@ nms:
   magmalte:
     create: true
     image:
-      repository: docker.artifactory.magmacore.org/magmalte
+      repository: linuxfoundation.jfrog.io/magma-docker/magmalte
       tag: 1.7.0
   nginx:
     create: true
@@ -107,7 +107,7 @@ nginx:
 
   # nginx image
   image:
-    repository: docker.artifactory.magmacore.org/nginx
+    repository: linuxfoundation.jfrog.io/magma-docker/nginx
     tag: 1.7.0
     pullPolicy: IfNotPresent
 
@@ -153,7 +153,7 @@ controller:
 
   # orc8r_base image
   image:
-    repository: docker.artifactory.magmacore.org/controller
+    repository: linuxfoundation.jfrog.io/magma-docker/controller
     tag: 1.7.0
     pullPolicy: IfNotPresent
     env:

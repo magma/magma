@@ -316,7 +316,7 @@ variable "orc8r_db_pass" {
 variable "docker_registry" {
   description = "Docker registry to pull Orchestrator containers from."
   type        = string
-  default     = "docker.artifactory.magmacore.org"
+  default     = "linuxfoundation.jfrog.io/magma-docker"
 }
 
 variable "docker_user" {
@@ -339,7 +339,7 @@ variable "seed_certs_dir" {
 variable "helm_repo" {
   description = "Helm repository URL for Orchestrator charts."
   type        = string
-  default     = "https://artifactory.magmacore.org/artifactory/helm/"
+  default     = "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
 }
 
 variable "helm_user" {
