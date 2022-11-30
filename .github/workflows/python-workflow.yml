@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   pre_job:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
       files_changed: ${{ steps.changes.outputs.filesChanged_files }}
@@ -53,7 +53,7 @@ jobs:
     needs: pre_job
     if: ${{ needs.pre_job.outputs.should_not_skip == 'true' }}
     name: Python Format Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:

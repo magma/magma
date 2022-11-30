@@ -16,7 +16,7 @@ concurrency:
 # github-pr-review: Adds lint as GitHub comments
 jobs:
   files_changed:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
       changed_go: ${{ steps.changes.outputs.go }}
@@ -57,7 +57,7 @@ jobs:
     #  For details on cpplint optinos see the detailed comments in
     #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
     ##
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
@@ -81,7 +81,7 @@ jobs:
   golangci-lint:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_go == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -98,7 +98,7 @@ jobs:
 
   hadolint:
     name: dockerfile-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -119,7 +119,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_javascript == 'true' }}
     name: eslint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
         uses: actions/checkout@v2
@@ -144,7 +144,7 @@ jobs:
 
   markdownlint:
     name: markdownlint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
         uses: actions/checkout@v2
@@ -163,7 +163,7 @@ jobs:
 
   misspell:
     name: misspell
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -185,7 +185,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: mypy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
@@ -202,7 +202,7 @@ jobs:
 
   shellcheck:
     name: shellcheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
@@ -221,7 +221,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_terraform == 'true' }}
     name: tflint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
@@ -241,7 +241,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: wemake-python-styleguide
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:
@@ -258,7 +258,7 @@ jobs:
 
   yamllint:
     name: yamllint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:

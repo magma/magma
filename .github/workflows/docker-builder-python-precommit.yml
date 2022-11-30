@@ -28,7 +28,7 @@ env:
 
 jobs:
   build_dockerfile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - uses: ./.github/workflows/composite/docker-builder
