@@ -47,19 +47,6 @@ pytest_test(
 )
 
 pytest_test(
-    name = "test_dhcp_client",
-    size = "small",
-    srcs = ["test_dhcp_client.py"],
-    imports = [LTE_ROOT],
-    tags = TAG_SUDO_TEST,
-    deps = [
-        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
-        "//lte/gateway/python/magma/pipelined:bridge_util",
-        requirement("freezegun"),
-    ],
-)
-
-pytest_test(
     name = "test_ip_allocator_dhcp",
     size = "small",
     srcs = ["test_ip_allocator_dhcp.py"],
