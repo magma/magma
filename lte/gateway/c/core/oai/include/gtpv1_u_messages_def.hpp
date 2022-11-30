@@ -35,7 +35,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#pragma once
+//#pragma once
 
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq,
             gtpv1uCreateTunnelReq)

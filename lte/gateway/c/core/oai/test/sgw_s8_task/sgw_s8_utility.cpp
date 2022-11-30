@@ -18,7 +18,6 @@
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_main_s8;
-const struct gtp_tunnel_ops* gtp_tunnel_ops;
 void fill_imsi(char* imsi) {
   uint8_t idx = 0;
   imsi[idx++] = '0';
