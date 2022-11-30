@@ -10,14 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: Next base image: "when: ansible_distribution == 'Ubuntu' and preburn"
 - name: Ubuntu install tasks
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == 'Ubuntu' and preburn
   include_tasks: install_debian.yml
 
-# TODO: Next base image: "when: ansible_distribution == 'CentOS' and preburn"
 - name: Red Hat install tasks
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' and preburn
   include_tasks: install_redhat.yml
 
 - name: Add the user to the docker group

@@ -12,44 +12,20 @@
 # limitations under the License.
 ################################################################################
 
-# TODO: Remove with next base image release
-- name: Remove Docker install from base image
-  yum:
-    name: "{{ packages }}"
-    state: absent
-  vars:
-    packages:
-      - docker
-      - docker-client
-      - docker-client-latest
-      - docker-common
-      - docker-latest
-      - docker-latest-logrotate
-      - docker-logrotate
-      - docker-engine
-
-# TODO: Remove with next base image release
-- name: Remove Docker Compose V1 install from base image
-  file:
-    name: /usr/local/bin/docker-compose
-    state: absent
-
 # Install Docker based on instructions in:
 # https://docs.docker.com/install/linux/docker-ce/ubuntu
 
 - name: Install utilities
   yum:
-    name: "{{ packages }}"
     state: present
-  vars:
-    packages:
+    name:
       - ca-certificates
       - curl
       - python3-pip
       - python3-setuptools
       - yum-utils
 
-- name: Add Docker’s official GPG key
+- name: Add Docker's official GPG key
   rpm_key:
     key: https://download.docker.com/linux/centos/gpg
     state: present
@@ -59,10 +35,8 @@
 
 - name: Install the latest version of Docker CE
   yum:
-    name: "{{ packages }}"
     state: present
-  vars:
-    packages:
+    name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
