@@ -89,6 +89,12 @@ jobs:
     name: Bazel Build & Test Job
     runs-on: ubuntu-latest
     steps:
+      - name: Print variables
+        run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.repository_owner: ${{ github.repository_owner }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "inputs.publish_bazel_profile: ${{ inputs.publish_bazel_profile }}"
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         # The value of fetch-depth needs to exceed the maximum number of commits
@@ -480,11 +486,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
 
       - name: Set dry run environment variable
-        if: |
-          github.event_name != 'push' &&
-          github.repository_owner != 'magma' &&
-          github.ref_name != 'master' &&
-          steps.package_build_status.outputs.package_was_built == 'true'
+        if: ${{ github.event_name != 'push' || github.repository_owner != 'magma' || github.ref_name != 'master' }}
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
