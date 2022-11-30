@@ -18,7 +18,7 @@ jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
     env:
-      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+      HELM_CHART_ARTIFACTORY_URL: "https://linuxfoundation.jfrog.io/artifactory/"
       HELM_CHART_MUSEUM_REPO: helm-test
       HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
       HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
@@ -142,8 +142,8 @@ jobs:
           PUBLISH_ERROR="false"
           for i in `ls -a1 *.deb`
           do
-            echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-test/pool"
-            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
+            echo "Pushing package $i to JFROG artifiactory: https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool"
+            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
             echo "$HTTP_RESPONSE"
             # extract the body and download uri
             HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
@@ -305,7 +305,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -436,7 +436,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "agw-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-agw-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -575,7 +575,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -682,7 +682,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -781,7 +781,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |
@@ -863,7 +863,7 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
         run: |

@@ -82,7 +82,7 @@ jobs:
       - name: Tag and push nms docker images to registry
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -93,7 +93,7 @@ jobs:
       - name: Tag and push agw docker images to registry
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "agw-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-agw-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -107,7 +107,7 @@ jobs:
       - name: Tag and push orc8r docker images to registry
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -119,7 +119,7 @@ jobs:
       - name: Tag and push cwf operator image
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -130,7 +130,7 @@ jobs:
       - name: Tag and push cwag docker images to Regitry
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "cwf-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-cwag-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -145,7 +145,7 @@ jobs:
       - name: Tag and push xwfm docker images
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "orc8r-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-orc8r-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -157,7 +157,7 @@ jobs:
       - name: Tag and push feg docker images
         if: always() && steps.extract_images.outcome=='success'
         env:
-          DOCKER_REGISTRY: "feg-ci.artifactory.magmacore.org"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/artifactory/magma-docker-feg-test"
           DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
           DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
           ISSUE_NUMBER: "${{ steps.save_metadata.outputs.issue_number }}"
@@ -169,10 +169,10 @@ jobs:
       - name: Push Helm charts and verify the push
         if: always() && steps.save_metadata.outcome=='success'
         env:
-          HELM_CHART_MUSEUM_API_URL: "https://artifactory.magmacore.org:443/artifactory/api"
-          HELM_CHART_MUSEUM_URL: "https://artifactory.magmacore.org:443/artifactory/helm-ci"
+          HELM_CHART_MUSEUM_API_URL: "https://linuxfoundation.jfrog.io/artifactory/api"
+          HELM_CHART_MUSEUM_URL: "https://linuxfoundation.jfrog.io/artifactory/magma-helm-test"
           HELM_CHART_MUSEUM_REPO: helm-test
-          HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+          HELM_CHART_ARTIFACTORY_URL: "https://linuxfoundation.jfrog.io/artifactory"
           HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
           HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
         run: |
