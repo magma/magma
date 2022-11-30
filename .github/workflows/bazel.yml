@@ -490,22 +490,7 @@ jobs:
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
-      - name: Publish debian packages - magmacore
-        if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
-        env:
-          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
-        run: |
-          jf rt upload \
-            --recursive=false \
-            --detailed-summary \
-            --url https://artifactory.magmacore.org:443/artifactory/ \
-            --user ${{ secrets.JFROG_USERNAME }} \
-            --password ${{ secrets.JFROG_PASSWORD }} \
-            ${{ env.IS_DRY }} \
-            --target-props="${DEBIAN_META_INFO}" \
-            "packages/(*).deb" debian-test/pool/focal-ci/{1}.deb
-
-      - name: Publish debian packages - linuxfoundation
+      - name: Publish debian packages
         if: ${{ steps.package_build_status.outputs.package_was_built == 'true' }}
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
