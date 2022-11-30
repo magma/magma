@@ -743,8 +743,8 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   oai::MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();
 
   mme_ue_context_t* mme_ue_ctxt_state = &mme_nas_state_p->mme_ue_contexts;
-  // copy maps to hashtables
-  OAILOG_INFO(LOG_MME_APP, "Hashtable MME UE ID => IMSI");
+  // Copy in-memory map to protobuf map
+  OAILOG_INFO(LOG_MME_APP, "Copy in-memory imsi2mme_ueid_map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map) =
       mme_ue_ctxts_proto.imsi_ue_id_map();
   OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");

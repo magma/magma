@@ -705,17 +705,15 @@ status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
             elm->_imsi64, ue_id) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
                         "Insert failed on imsi2mme_ueid_map "
-                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                        " imsi " IMSI_64_FMT "\n",
-                        ue_id, elm->_imsi64);
+                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                        ue_id);
       return RETURNerror;
     }
   } else {
     OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
                       "Could not update ue context due to invalid "
-                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
-                      "\n",
-                      ue_id, elm->_imsi64);
+                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                      ue_id);
     return RETURNerror;
   }
   return RETURNok;
