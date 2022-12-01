@@ -81,6 +81,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         )
 
     def tearDown(self):
+        self._dhcp_allocator.ip_allocator.stop_monitor_thread()
         BridgeTools.destroy_bridge(self._br)
 
     @unittest.skipIf(os.getuid(), reason="needs root user")

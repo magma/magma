@@ -84,6 +84,10 @@ class IPAllocatorDHCP(IPAllocator):
     def start_monitor_thread(self):
         self._monitor_thread.start()
 
+    def stop_monitor_thread(self):
+        self._monitor_thread_event.set()
+        self._monitor_thread.join()
+
     def _monitor_dhcp_state(self):
         """
         monitor DHCP client state.
