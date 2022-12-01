@@ -63,6 +63,31 @@ jobs:
       - name: verify git sha output
         run: echo git sha is ${{ steps.get-short-git-sha.outputs.sha }}
 
+      - name: Set agwc tags
+        id: set-agwc-tags
+        run: |
+          c_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c
+          python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
+          go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
+
+          commit_hash=${{ steps.get-short-git-sha.outputs.sha }}
+          if [[ ${{ github.ref_name }} = master ]]
+          then
+            echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash},${python_image}:latest >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash},${go_image}:latest >> $GITHUB_OUTPUT
+          else
+            echo c_image_tags=${c_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash} >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print agwc tags
+        run: |
+          echo "C image: ${{ steps.set-agwc-tags.outputs.c_image_tags }}"
+          echo "Python image: ${{ steps.set-agwc-tags.outputs.python_image_tags }}"
+          echo "Go image: ${{ steps.set-agwc-tags.outputs.go_image_tags }}"
+
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-c
         with:
@@ -70,7 +95,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/c/Dockerfile
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+          TAGS: ${{ steps.set-agwc-tags.outputs.c_image_tags }}
       - run: echo "C container image digest is ${{ steps.docker-builder-c.outputs.digest }}"
       - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
 
@@ -81,7 +106,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/python/Dockerfile
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+          TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
       - run: echo "Python container image digest is ${{ steps.docker-builder-python.outputs.digest }}"
       - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
 
@@ -92,7 +117,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           FILE: feg/gateway/docker/go/Dockerfile
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ steps.get-short-git-sha.outputs.sha }}
+          TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
       - run: echo "Go container image digest is ${{ steps.docker-builder-go.outputs.digest }}"
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
