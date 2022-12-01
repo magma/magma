@@ -82,6 +82,7 @@ class IPAllocatorDHCP(IPAllocator):
             self.start_monitor_thread()
 
     def start_monitor_thread(self):
+        self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
     def stop_monitor_thread(self):
