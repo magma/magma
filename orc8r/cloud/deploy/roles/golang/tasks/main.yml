@@ -13,7 +13,7 @@
 
 - name: Download Golang
   get_url:
-    url: "https://artifactory.magmacore.org/artifactory/generic/{{ golang_tar }}"
+    url: "https://linuxfoundation.jfrog.io/artifactory/magma-blob/{{ golang_tar }}"
     dest: "/home/{{ user }}/{{ golang_tar }}"
     checksum: "{{ golang_tar_checksum }}"
   when: preburn

@@ -108,9 +108,9 @@ RUN git clone --depth 1 --branch v2021.02.15.00 https://github.com/facebook/foll
     rm -rf folly
 
 # setup magma artifactories and install magma dependencies
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add - && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.7.0 main' && \
+RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
+    add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
+    add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.7.0 main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \

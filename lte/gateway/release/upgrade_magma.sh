@@ -34,10 +34,10 @@ apt install -y apt-transport-https gnupg2 wget ca-certificates
 # We have changed the name too many time we have to wipe all versions
 rm -rf /etc/apt/sources.list.d/*
 
-wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
+wget https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public -O /tmp/public
 apt-key add /tmp/public
 
-echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
+echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"

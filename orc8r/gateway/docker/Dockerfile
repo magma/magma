@@ -37,11 +37,10 @@ FROM ubuntu:focal AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+    apt-get install -y apt-utils software-properties-common apt-transport-https wget
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian focal-1.8.0 main"
+RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
+    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main"
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \

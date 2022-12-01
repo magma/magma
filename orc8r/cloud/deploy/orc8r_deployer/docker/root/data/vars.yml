@@ -369,7 +369,7 @@ service:
     ConfigApps:
       - tf
   docker_registry:
-    Default: "docker.artifactory.magmacore.org"
+    Default: "linuxfoundation.jfrog.io/magma-docker"
     Description: Docker registry to pull Orchestrator containers from.
     Type: string
     Required: false
@@ -451,7 +451,7 @@ service:
     ConfigApps:
       - tf
   helm_repo:
-    Default: "https://artifactory.magmacore.org/artifactory/helm/"
+    Default: "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
     Description: Helm repository URL for Orchestrator charts.
     Type: string
     Required: false
