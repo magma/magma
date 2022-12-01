@@ -61,7 +61,6 @@ jobs:
               - 'lte/gateway/**'
               - 'lte/cloud/go/**'
               - 'lte/protos/**'
-              - 'src/go/**'
               - '**/BUILD'
               - '**/*.BUILD'
               - '**/*.bazel'
