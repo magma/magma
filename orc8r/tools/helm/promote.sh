@@ -41,7 +41,7 @@ exitmsg() {
 [ $# -eq 0 ] && usage
 
 # Define default values
-HELM_CHART_ARTIFACTORY_URL="${HELM_CHART_ARTIFACTORY_URL:-https://artifactory.magmacore.org:443/artifactory}"
+HELM_CHART_ARTIFACTORY_URL="${HELM_CHART_ARTIFACTORY_URL:-https://linuxfoundation.jfrog.io/artifactory}"
 HELM_CHART_MUSEUM_ORIGIN_REPO="${HELM_CHART_MUSEUM_ORIGIN_REPO:-helm-test}"
 HELM_CHART_MUSEUM_DEST_REPO="${HELM_CHART_MUSEUM_DEST_REPO:-helm-prod}"
 

@@ -20,11 +20,6 @@
     packages:
       - ca-certificates
 
-- name: Add GPG key for magma repository
-  apt_key:
-    url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
-    state: present
-
 - name: Remove old magma etagecom sources
   shell: rm -rf /etc/apt/sources.list.d/packages_magma_etagecom_io.list
   become: yes
@@ -36,11 +31,11 @@
 
 - name: Add JFrog key
   apt_key:
-    url: https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public
+    url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
     state: present
 
 - name: Add JFrog repo
   apt_repository:
-    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
+    repo: 'deb https://linuxfoundation.jfrog.io/artifactory/{{ repo }} {{ distribution }} main'
     update_cache: yes
     mode: 0644
