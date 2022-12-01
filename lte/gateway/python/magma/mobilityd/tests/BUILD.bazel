@@ -36,6 +36,23 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_ip_allocator_dhcp_with_vlan",
+    size = "small",
+    srcs = ["test_ip_allocator_dhcp_with_vlan.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        requirement("fakeredis"),
+        requirement("freezegun"),
+    ],
+)
+
+pytest_test(
     name = "ip_allocator_dhcp_mac_addr_test",
     size = "small",
     srcs = ["ip_allocator_dhcp_mac_addr_test.py"],

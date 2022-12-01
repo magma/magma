@@ -79,8 +79,8 @@ class DhcpHelperCli:
     _vlan = None
 
     def __init__(
-            self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None,
-            server_ip: Optional[str] = None, router_ip: Optional[str] = None,
+        self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None,
+        server_ip: Optional[str] = None, router_ip: Optional[str] = None,
     ):
         self._lease_expiration_time = None
         self._iface = iface

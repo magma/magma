@@ -74,14 +74,16 @@ class IPAllocatorDHCP(IPAllocator):
         self._retry_limit = retry_limit  # default wait for two minutes
         self._iface = iface
         self._lease_renew_wait_min = lease_renew_wait_min
-        self._monitor_thread = threading.Thread(
-            target=self._monitor_dhcp_state,
-        )
-        self._monitor_thread_event = threading.Event()
+        self._monitor_thread = None
+        self._monitor_thread_event = None
         if start:
             self.start_monitor_thread()
 
     def start_monitor_thread(self):
+        self._monitor_thread = threading.Thread(
+            target=self._monitor_dhcp_state,
+        )
+        self._monitor_thread_event = threading.Event()
         self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
@@ -439,6 +441,12 @@ class IPAllocatorDHCP(IPAllocator):
 
             if dhcp_cli_response.returncode != 0:
                 logging.error(
+                    f"Could not decode '{dhcp_cli_response.stdout}'"
+                    f" received '{dhcp_cli_response.stderr}' from "
+                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
+                    f" '{dhcp_cli_response.args}'",
+                )
+                print(
                     f"Could not decode '{dhcp_cli_response.stdout}'"
                     f" received '{dhcp_cli_response.stderr}' from "
                     f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
