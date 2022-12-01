@@ -16,7 +16,7 @@ on:
     inputs:
       registry:
         type: string
-        description: Overwrite registry (default agw-test.artifactory.magmacore.org).
+        description: Overwrite registry (default linuxfoundation.jfrog.io/magma-docker-agw-test).
   push:
     branches:
       - master
