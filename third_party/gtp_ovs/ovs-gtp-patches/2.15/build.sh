@@ -5,6 +5,7 @@ OVS_VER='2.15'
 DIR="ovs-build"
 DEST=$1
 
+sudo apt update
 sudo apt install -y build-essential linux-headers-generic
 sudo apt install -y dh-make debhelper dh-python devscripts python3-dev
 sudo apt install -y graphviz libssl-dev python3-all python3-sphinx libunbound-dev libunwind-dev
