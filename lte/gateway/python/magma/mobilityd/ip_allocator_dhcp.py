@@ -310,10 +310,11 @@ class IPAllocatorDHCP(IPAllocator):
                 "allocate",
             ]]
             dhcp_response = self._get_dhcp_helper_cli_response(call_args)
-            dhcp_desc = self._parse_dhcp_helper_cli_response_to_store(
-                dhcp_desc=dhcp_desc, dhcp_response=dhcp_response,
-                mac=mac, vlan=vlan,
-            )
+            with self.dhcp_wait:
+                dhcp_desc = self._parse_dhcp_helper_cli_response_to_store(
+                    dhcp_desc=dhcp_desc, dhcp_response=dhcp_response,
+                    mac=mac, vlan=vlan,
+                )
 
         if dhcp_desc and dhcp_desc.ip and dhcp_desc.subnet:
             ip_block = ip_network(dhcp_desc.subnet)
@@ -357,11 +358,12 @@ class IPAllocatorDHCP(IPAllocator):
                 lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
             )
 
-            with self.dhcp_wait:
-                self._store.dhcp_store[mac.as_redis_key(vlan)] = dhcp_desc
+            self._store.dhcp_store[mac.as_redis_key(vlan)] = dhcp_desc
+            self._store.dhcp_gw_info.update_ip(dhcp_desc.router_ip, vlan)
         return dhcp_desc
 
-    def _get_dhcp_helper_cli_response(self, call_args):
+    @staticmethod
+    def _get_dhcp_helper_cli_response(call_args):
         dhcp_response = subprocess.run(
             *call_args,
             capture_output=True,
@@ -439,8 +441,8 @@ class IPAllocatorDHCP(IPAllocator):
                 )
                 raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
 
+            key = mac.as_redis_key(vlan)
             with self.dhcp_wait:
-                key = mac.as_redis_key(vlan)
                 del self._store.dhcp_store[key]
         else:
             LOG.error("Unallocated DHCP release for MAC: %s", mac)

@@ -81,7 +81,6 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         )
 
     def tearDown(self):
-        self._dhcp_allocator.ip_allocator.stop_dhcp_sniffer()
         BridgeTools.destroy_bridge(self._br)
 
     @unittest.skipIf(os.getuid(), reason="needs root user")
@@ -91,7 +90,6 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         threading.Event().wait(2)
         dhcp_gw_info = self._dhcp_allocator._store.dhcp_gw_info
         dhcp_store = self._dhcp_allocator._store.dhcp_store
-
         self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
 
