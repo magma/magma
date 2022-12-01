@@ -173,14 +173,14 @@ jobs:
           # Extract magma debian package version
           version_pattern="magma_([0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+)_amd64.deb"
           magma_version=""
-          for i in packages/*.deb; do
+          for i in *.deb; do
               if [[ $i =~ $version_pattern ]]; then
                   magma_version=${BASH_REMATCH[1]}
               fi
           done
           if [[ -z "$magma_version" ]]; then
               echo "No file found with a matching version pattern \"${version_pattern}\". Files in folder:"
-              ls -la packages
+              ls -la
               exit 1
           else
               echo "Exporting magma version \"${magma_version}\""
