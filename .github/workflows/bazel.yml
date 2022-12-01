@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
@@ -87,8 +87,14 @@ jobs:
           - bazel-config: "--config=production"
             bazel-target-rule: "cc_test"
     name: Bazel Build & Test Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
+      - name: Print variables
+        run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.repository_owner: ${{ github.repository_owner }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "inputs.publish_bazel_profile: ${{ inputs.publish_bazel_profile }}"
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
         # The value of fetch-depth needs to exceed the maximum number of commits
@@ -225,7 +231,7 @@ jobs:
   if_bazel_build_and_test_success:
     name: Run when bazel successful
     needs: bazel_build_and_test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: success() # Only run after all matrix jobs have passed
     # See https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions
     # or https://github.com/magma/magma/pull/13562 for more details.
@@ -238,7 +244,7 @@ jobs:
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: always()
     # This job always needs to run. It will be green if the bazel_build_and_test
     # job was successful in all matrix jobs or if the job was skipped.
@@ -274,7 +280,7 @@ jobs:
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Starlark Format Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -318,7 +324,7 @@ jobs:
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Python Import Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -379,7 +385,7 @@ jobs:
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Package Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -480,11 +486,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
 
       - name: Set dry run environment variable
-        if: |
-          github.event_name != 'push' &&
-          github.repository_owner != 'magma' &&
-          github.ref_name != 'master' &&
-          steps.package_build_status.outputs.package_was_built == 'true'
+        if: ${{ github.event_name != 'push' || github.repository_owner != 'magma' || github.ref_name != 'master' }}
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
@@ -562,7 +564,7 @@ jobs:
 
   python_file_check:
     name: Check if there are not bazelified python files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -584,7 +586,7 @@ jobs:
 
   c_cpp_file_check:
     name: Check if there are non-bazelified c or c++ files
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
