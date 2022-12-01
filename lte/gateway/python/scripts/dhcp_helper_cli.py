@@ -78,13 +78,17 @@ class DhcpHelperCli:
     _msg_xid = 0
     _vlan = None
 
-    def __init__(self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None, server_ip: Optional[str] = None):
+    def __init__(
+            self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None,
+            server_ip: Optional[str] = None, router_ip: Optional[str] = None,
+    ):
         self._lease_expiration_time = None
         self._iface = iface
         self._mac = mac
         self._vlan = vlan
         self._ip = ip
         self._server_ip = server_ip
+        self._router_ip = router_ip
         self._pkt_queue: Queue = Queue()
         self._ip_subnet = ""
 
@@ -227,6 +231,7 @@ class DhcpHelperCli:
 
     def update_dhcp_state(self, pkt):
         self._ip = pkt[BOOTP].yiaddr
+        self._router_ip = self._get_option(pkt, "router")
 
         subnet_mask = self._get_option(pkt, "subnet_mask") or "32"
         self._ip_subnet = str(self._ip) + "/" + subnet_mask
@@ -259,6 +264,7 @@ class DhcpHelperCli:
             "subnet": self._ip_subnet,
             "lease_expiration_time": self._lease_expiration_time,
             "server_ip": self._server_ip,
+            "router_ip": self._router_ip,
         }
 
 
@@ -270,6 +276,7 @@ def print_info(info: Dict, print_json: bool) -> None:
         print(f"subnet: {info['subnet']}")
         print(f"lease_expiration_time: {info['lease_expiration_time']}")
         print(f"server_ip: {info['server_ip']}")
+        print(f"router_ip: {info['router_ip']}")
 
 
 def allocate_arg_handler(opts: argparse.Namespace) -> None:

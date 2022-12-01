@@ -25,12 +25,12 @@ import logging
 import subprocess
 import threading
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from ipaddress import IPv4Network, ip_address, ip_network
 from json import JSONDecodeError
 from os import environ
 from threading import Condition
-from typing import List, Optional, cast
+from typing import List, Optional
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
@@ -353,8 +353,7 @@ class IPAllocatorDHCP(IPAllocator):
                 state=DHCPState.ACK,
                 subnet=str(IPv4Network(dhcp_json["subnet"], strict=False)),
                 server_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
-                router_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
-                # TODO extract router ip from dhcp pkt
+                router_ip=ip_address(dhcp_json["router_ip"]) if dhcp_json["router_ip"] else None,
                 lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
             )
 
@@ -369,7 +368,9 @@ class IPAllocatorDHCP(IPAllocator):
         )
         if dhcp_response.returncode != 0:
             logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_response.args}'",
+                f"Could not decode '{dhcp_response.stdout}' received"
+                f" '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called"
+                f" with parameters '{dhcp_response.args}'",
             )
             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
         return dhcp_response
@@ -431,7 +432,10 @@ class IPAllocatorDHCP(IPAllocator):
 
             if dhcp_cli_response.returncode != 0:
                 logging.error(
-                    f"Could not decode '{dhcp_cli_response.stdout}' received '{dhcp_cli_response.stderr}' from {DHCP_HELPER_CLI_PATH} called with parameters '{dhcp_cli_response.args}'",
+                    f"Could not decode '{dhcp_cli_response.stdout}'"
+                    f" received '{dhcp_cli_response.stderr}' from "
+                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
+                    f" '{dhcp_cli_response.args}'",
                 )
                 raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
 

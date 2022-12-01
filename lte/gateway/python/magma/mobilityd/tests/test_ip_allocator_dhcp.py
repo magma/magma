@@ -37,6 +37,7 @@ MAC = MacAddress(sid_to_mac(SID).lower())
 MAC2 = MacAddress("01:23:45:67:89:ab")
 IP = "1.2.3.4"
 SERVER_IP = "5.6.7.8"
+ROUTER_IP = "11.22.33.44"
 SUBNET = "24"
 IP_NETWORK = "1.2.3.0/" + SUBNET
 IP_NETWORK_2 = "1.2.4.0/" + SUBNET
@@ -305,5 +306,5 @@ def test_force_remove_ip_block_with_allocated_ip(
 def create_subprocess_mock_dhcp_return() -> MagicMock:
     m = MagicMock()
     m.returncode = 0
-    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "%s","lease_expiration_time": %s}""" % (IP, IP_NETWORK, SERVER_IP, LEASE_EXPIRATION_TIME)
+    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}""" % (IP, IP_NETWORK, SERVER_IP, ROUTER_IP, LEASE_EXPIRATION_TIME)
     return m
