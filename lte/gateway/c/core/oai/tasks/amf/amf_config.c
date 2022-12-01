@@ -204,6 +204,7 @@ int amf_config_parse_file(amf_config_t* config_pP,
   const char* set_id = NULL;
   const char* pointer = NULL;
   const char* default_dns = NULL;
+  const char* default_pcscf = NULL;
   const char* default_dns_sec = NULL;
   const char* set_sst = NULL;
   const char* set_sd = NULL;
@@ -235,13 +236,20 @@ int amf_config_parse_file(amf_config_t* config_pP,
     if (config_setting_lookup_string(setting_amf,
                                      AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
                                      (const char**)&default_dns) &&
-        config_setting_lookup_string(setting_amf,
-                                     AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
-                                     (const char**)&default_dns_sec)) {
+        config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
+            (const char**)&default_dns_sec)) {
       IPV4_STR_ADDR_TO_INADDR(default_dns, config_pP->ipv4.default_dns,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS !\n");
       IPV4_STR_ADDR_TO_INADDR(default_dns_sec, config_pP->ipv4.default_dns_sec,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS SEC!\n");
+    }
+
+    if (config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS,
+            (const char**)&default_pcscf)) {
+      IPV4_STR_ADDR_TO_INADDR(default_pcscf, config_pP->pcscf_addr.ipv4,
+                              "BAD IPv4 ADDRESS FORMAT FOR DEFAULT PCSCF !\n");
     }
 
     // AMF NAME

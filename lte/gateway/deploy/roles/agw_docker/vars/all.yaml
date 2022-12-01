@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-docker_registry: "docker.artifactory.magmacore.org/"
+docker_registry: "linuxfoundation.jfrog.io/magma-docker/"
 docker_user: ""
 docker_pass: ""
 image_version: "latest"

@@ -36,6 +36,8 @@
 
 #define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
+#define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
+#define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
@@ -184,6 +186,10 @@ typedef struct amf_config_s {
     struct in_addr default_dns;
     struct in_addr default_dns_sec;
   } ipv4;
+  struct {
+    struct in_addr ipv4;
+  } pcscf_addr;
+
   bstring amf_name;
   bstring default_dnn;
   uint32_t auth_retry_interval;
