@@ -1,13 +1,18 @@
 """
 Copyright 2020 The Magma Authors.
+
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+Allocates IP address as per DHCP server in the uplink network.
 """
+
 import datetime
 import ipaddress
 import logging
@@ -17,7 +22,6 @@ import sys
 import threading
 import time
 import unittest
-from typing import Optional
 
 import fakeredis
 from freezegun import freeze_time
@@ -29,8 +33,6 @@ from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 from magma.pipelined.bridge_util import BridgeTools
 from scapy.layers.dhcp import DHCP
-from scapy.layers.l2 import Dot1Q, Ether
-from scapy.sendrecv import AsyncSniffer
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
 LOG.isEnabledFor(logging.DEBUG)
@@ -65,11 +67,9 @@ class IpAllocatorDhcp(unittest.TestCase):
         self._ip_allocator = None
 
     def tearDown(self):
-        pass
-        # BridgeTools.destroy_bridge(self._br)
+        BridgeTools.destroy_bridge(self._br)
 
-    # @unittest.skipIf(os.getuid(), reason="needs root user")
-    @unittest.skip("Skipping test_dhcp_vlan")
+    @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_dhcp_lease1(self):
         self._setup_dhcp_vlan_off()
         sid1 = "IMSI001010000000001"

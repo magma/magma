@@ -23,7 +23,7 @@ import time
 from datetime import datetime, timedelta
 from enum import IntEnum
 from queue import Empty, Queue
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import scapy.packet
 from scapy.all import AsyncSniffer
