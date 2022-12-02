@@ -29,7 +29,6 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
-      changed_go: ${{ steps.changes.outputs.go }}
       changed_javascript: ${{ steps.changes.outputs.javascript }}
       changed_python: ${{ steps.changes.outputs.python }}
       changed_terraform: ${{ steps.changes.outputs.terraform }}
@@ -43,8 +42,6 @@ jobs:
           filters: |
             cpp:
               - ["lte/gateway/c/**", "orc8r/gateway/c/**"]
-            go:
-              - ["src/go/**"]
             javascript:
               - ["nms/**", "**/*.js"]
             python:
