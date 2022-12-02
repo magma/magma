@@ -55,52 +55,32 @@
     - agwc
     - base
 
-- name: Configuring private package manager.
+- name: Add key for magma registry
+  ansible.builtin.copy:
+    src: "{{ magma_pkgrepo_key }}"
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
+  tags:
+    - agwc
+    - base
+
+- name: Ignore server ssl cert
   copy:
-    content: >
-      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }}
-      {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
-    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
-  become: true
+    dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
+    content: |
+      Acquire::https::{{ magma_pkgrepo_host }} {
+      Verify-Peer "false";
+      Verify-Host "false";
+      };
   tags:
     - agwc
     - base
 
-- name: Add unvalidated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint == ""
-  become: true
-  block:
-    - name: Download key
-      apt_key:
-        url: "{{ magma_pkgrepo_key }}"
-        state: present
-        validate_certs: no
-    - name: Ignore server ssl cert
-      copy:
-        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
-        content: |
-          Acquire::https::{{ magma_pkgrepo_host }} {
-          Verify-Peer "false";
-          Verify-Host "false";
-          };
-  tags:
-    - agwc
-    - base
-
-- name: Add validated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint != ""
-  become: true
-  apt_key:
-    url: "{{ magma_pkgrepo_key }}"
-    id: "{{ magma_pkgrepo_key_fingerprint }}"
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.apt_repository:
+    repo: "deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }} {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}"
+    filename: magma
     state: present
-  tags:
-    - agwc
-    - base
-
-- name: Update and upgrade apt packages
-  become: true
-  apt:
     update_cache: true
   tags:
     - agwc
