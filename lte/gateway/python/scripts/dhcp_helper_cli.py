@@ -111,7 +111,7 @@ class DhcpHelperCli:
 
     def release(self):
         self.send_dhcp_release()
-        self.wait_for(self.receive_dhcp_release)
+        # Receiving release ack is not mandatory
 
     def renew(self):
         self._state = DHCPState.OFFER
