@@ -10,10 +10,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Collect all registries
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d/
+    patterns: "*.list*"
+  register: registries_to_be_delete
+  when: full_provision
+
 - name: Remove all old registries
-  shell: rm -rf /etc/apt/sources.list.d/*.list
-  become: yes
-  ignore_errors: yes
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ registries_to_be_delete.files }}"
 
 - name: Wait for APT Lock
   shell: |
@@ -50,9 +58,10 @@
   when: full_provision
 
 - name: Adding the key for the registry
-  apt_key:
-    url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
-    state: present
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
   when: full_provision
 
 - name: Configuring the registry in sources.list.d
