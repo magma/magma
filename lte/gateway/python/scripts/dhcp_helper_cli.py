@@ -19,6 +19,7 @@ along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 import json
+import random
 import time
 from datetime import datetime, timedelta
 from enum import IntEnum
@@ -75,7 +76,7 @@ class DhcpHelperCli:
     _SNIFFER_STARTUP_WAIT = 0.5
     _TIMEOUT = 10
     _state = DHCPState.DISCOVER
-    _msg_xid = 0
+    _msg_xid = random.randint(0, 2**32 - 1)
     _vlan = None
 
     def __init__(
@@ -203,29 +204,31 @@ class DhcpHelperCli:
 
         raise TimeoutError(f"Timed our while waiting for {handler}")
 
-    def receive_dhcp_offer(self, dhcp_state_code: int, pkt: scapy.packet.Packet) -> bool:
+    def receive_dhcp_offer(
+            self, dhcp_state_code: int, pkt: scapy.packet.Packet,
+    ) -> bool:
+        return self.receive_dhcp_packet(dhcp_state_code, pkt, DHCPState.OFFER)
+
+    def receive_dhcp_ack(
+            self, dhcp_state_code: int, pkt: scapy.packet.Packet,
+    ) -> bool:
+        return self.receive_dhcp_packet(dhcp_state_code, pkt, DHCPState.ACK)
+
+    def receive_dhcp_packet(
+            self,
+            dhcp_state_code: int,
+            pkt: scapy.packet.Packet,
+            dhcp_state_expected: DHCPState,
+    ) -> bool:
         mac_addr, vlan = self.parse_reply_header(pkt)
-
-        if not(mac_addr == self._mac and vlan == self._vlan and dhcp_state_code == DHCPState.OFFER):
+        if not (
+            mac_addr == self._mac and vlan == self._vlan
+            and dhcp_state_code == dhcp_state_expected
+        ):
             return False
-
         if BOOTP not in pkt or pkt[BOOTP].yiaddr is None:
             return False
-
-        self._state = DHCPState.OFFER
-        self.update_dhcp_state(pkt)
-        return True
-
-    def receive_dhcp_ack(self, dhcp_state_code: int, pkt: scapy.packet.Packet) -> bool:
-        mac_addr, vlan = self.parse_reply_header(pkt)
-
-        if not(mac_addr == self._mac and vlan == self._vlan and dhcp_state_code == DHCPState.ACK):
-            return False
-
-        if BOOTP not in pkt or pkt[BOOTP].yiaddr is None:
-            return False
-
-        self._state = DHCPState.ACK
+        self._state = dhcp_state_expected
         self.update_dhcp_state(pkt)
         return True
 
@@ -238,17 +241,6 @@ class DhcpHelperCli:
         if IP in pkt:
             self._server_ip = pkt[IP].src
         self._lease_expiration_time = self._get_option(pkt, "lease_time")
-
-    def receive_dhcp_release(self, dhcp_state_code: int, pkt: scapy.packet.Packet) -> bool:
-        mac_addr, vlan = self.parse_reply_header(pkt)
-        if not(mac_addr == self._mac and vlan == self._vlan and dhcp_state_code == DHCPState.RELEASE):
-            return False
-
-        if BOOTP not in pkt or pkt[BOOTP].yiaddr is None:
-            return False
-
-        self._state = DHCPState.RELEASE
-        return True
 
     @staticmethod
     def parse_reply_header(pkt: scapy.packet.Packet) -> Tuple[MacAddress, int]:

@@ -30,7 +30,6 @@ from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.mac import MacAddress, create_mac_from_sid
 from magma.mobilityd.mobility_store import MobilityStore
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 from magma.pipelined.bridge_util import BridgeTools
 from scapy.layers.dhcp import DHCP
 
@@ -61,9 +60,6 @@ class IpAllocatorDhcp(unittest.TestCase):
 
         self.dhcp_wait = threading.Condition()
         self.pkt_list_lock = threading.Condition()
-        self.gw_info_map = {}
-        self.gw_info = UplinkGatewayInfo(self.gw_info_map)
-        self.store = MobilityStore(fakeredis.FakeStrictRedis())
         self._ip_allocator = None
 
     def tearDown(self):
@@ -169,7 +165,7 @@ class IpAllocatorDhcp(unittest.TestCase):
             self._br,
             self.up_link_port,
             DHCP_IFACE,
-            ]
+        ]
         subprocess.check_call(setup_uplink_br)
         self._setup_ip_allocator_dhcp()
 
@@ -183,13 +179,13 @@ class IpAllocatorDhcp(unittest.TestCase):
             self._br,
             self.up_link_port,
             DHCP_IFACE,
-            ]
+        ]
         subprocess.check_call(setup_uplink_br)
         self._setup_ip_allocator_dhcp()
 
     def _setup_ip_allocator_dhcp(self):
         self._ip_allocator = IPAllocatorDHCP(
-            store=self.store,
+            store=MobilityStore(fakeredis.FakeStrictRedis()),
             iface=DHCP_IFACE,
             lease_renew_wait_min=1,
         )
@@ -199,8 +195,8 @@ class IpAllocatorDhcp(unittest.TestCase):
         subprocess.check_call([setup_vlan_switch, self.vlan_sw, str(vlan)])
 
     def _validate_req_state(
-            self, mac: MacAddress,
-            state: DHCPState, vlan: int,
+        self, mac: MacAddress,
+        state: DHCPState, vlan: int,
     ):
         for x in range(RETRY_LIMIT):
             LOG.debug("wait for state: %d" % x)

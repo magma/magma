@@ -74,22 +74,26 @@ class IPAllocatorDHCP(IPAllocator):
         self._retry_limit = retry_limit  # default wait for two minutes
         self._iface = iface
         self._lease_renew_wait_min = lease_renew_wait_min
-        self._monitor_thread = None
-        self._monitor_thread_event = None
-        if start:
-            self.start_monitor_thread()
-
-    def start_monitor_thread(self):
         self._monitor_thread = threading.Thread(
             target=self._monitor_dhcp_state,
         )
         self._monitor_thread_event = threading.Event()
-        self._monitor_thread.daemon = True
+        if start:
+            self.start_monitor_thread()
+
+    def start_monitor_thread(self):
+        if self._monitor_thread is None:
+            self._monitor_thread = threading.Thread(
+                target=self._monitor_dhcp_state,
+            )
+            self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
     def stop_monitor_thread(self):
         self._monitor_thread_event.set()
         self._monitor_thread.join()
+        self._monitor_thread = None
+        self._monitor_thread_event.clear()
 
     def _monitor_dhcp_state(self):
         """
