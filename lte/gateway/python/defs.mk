@@ -24,6 +24,6 @@ TESTS=magma/tests \
       magma/monitord/tests \
       magma/kernsnoopd/tests
 
-SUDO_TESTS=magma/mobilityd/tests/ip_alloc_dhcp_test.py \
-      magma/mobilityd/tests/test_dhcp_client.py \
+SUDO_TESTS=magma/mobilityd/tests/test_ip_allocator_dhcp_e2e.py \
+      magma/mobilityd/tests/test_ip_allocator_dhcp_with_vlan.py \
       magma/pipelined/tests
