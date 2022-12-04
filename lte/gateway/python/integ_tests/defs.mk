@@ -122,7 +122,6 @@ s1aptests/test_attach_detach_setsessionrules_tcp_data.py
 
 PRECOMMIT_TESTS_IPV6 = \
 s1aptests/test_enable_ipv6_iface.py \
-s1aptests/test_ipv6_non_nat_dp_ul_tcp.py \
 s1aptests/test_disable_ipv6_iface.py
 
 PRECOMMIT_TESTS_NOT_CONTAINER = \
@@ -294,6 +293,7 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py
 # s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py
 # s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py
+# s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 
 # Add the s1aptester integration tests with federation gateway
 FEDERATED_TESTS = s1aptests/test_attach_detach.py \
