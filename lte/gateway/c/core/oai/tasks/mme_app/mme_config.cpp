@@ -1498,6 +1498,9 @@ int mme_config_parse_string(const char* config_string,
 
       if (subsetting != NULL) {
         num = config_setting_length(subsetting);
+        AssertFatal(num > 0,
+                    "ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST must have at "
+                    "least one element\n");
 
         if (num <= 8) {
           for (i = 0; i < num; i++) {
@@ -1513,12 +1516,16 @@ int mme_config_parse_string(const char* config_string,
               config_pP->nas_config.prefered_integrity_algorithm[i] =
                   EIA2_128_ALG_ID;
             else
-              config_pP->nas_config.prefered_integrity_algorithm[i] =
-                  EIA0_ALG_ID;
+              Fatal(
+                  "Unrecognized algorithm in "
+                  "ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST\n");
           }
 
+          char default_integrity_algorithm =
+              config_pP->nas_config.prefered_integrity_algorithm[num - 1];
           for (i = num; i < 8; i++) {
-            config_pP->nas_config.prefered_integrity_algorithm[i] = EIA0_ALG_ID;
+            config_pP->nas_config.prefered_integrity_algorithm[i] =
+                default_integrity_algorithm;
           }
         }
       }
