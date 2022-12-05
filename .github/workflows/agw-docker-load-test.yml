@@ -26,7 +26,7 @@ concurrency: ${{ github.workflow }}
 jobs:
   docker-load-test:
     name: agw docker load tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       SHA: "${{ github.event.workflow_run.head_commit.id }}"
       MAGMA_ROOT: "${{ github.workspace }}"

@@ -36,7 +36,7 @@ load_tests:
         id: 16
 
 tag: latest
-docker_repo: agw-test.artifactory.magmacore.org
+docker_repo: linuxfoundation.jfrog.io/magma-docker-agw-test
 magmaRepo: /opt/magma
 MAGMA_ROOT: "{{ magmaRepo }}"
 GHZ_PATH: "{{ magmaRepo }}/lte/gateway/docker/ghz"

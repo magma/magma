@@ -57,12 +57,12 @@ module "orc8r-app" {
   orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   # Note that this can be any container registry provider
-  docker_registry = "docker.artifactory.magmacore.org"
+  docker_registry = "linuxfoundation.jfrog.io/magma-docker"
   docker_user = ""
   docker_pass = ""
 
   # Note that this can be any Helm chart repo provider
-  helm_repo = "https://artifactory.magmacore.org/artifactory/helm"
+  helm_repo = "https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/"
   helm_user = ""
   helm_pass = ""
   eks_cluster_id = module.orc8r.eks_cluster_id

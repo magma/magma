@@ -37,7 +37,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       # Version is github job run number when running on master
@@ -269,7 +269,7 @@ jobs:
       SENTRY_ORG: "lf-9c"
       PATH_TO_EXEC: "./executables"
       MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -323,7 +323,7 @@ jobs:
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
@@ -416,7 +416,7 @@ jobs:
 
   cloud-upload:
     name: cloud upload job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -462,7 +462,7 @@ jobs:
   cwag-deploy:
     if: github.repository_owner == 'magma'
     name: cwag deploy job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
@@ -589,7 +589,7 @@ jobs:
   cwf-operator-build:
     if: github.repository_owner == 'magma'
     name: cwf operator build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -685,7 +685,7 @@ jobs:
   feg-build:
     if: github.repository_owner == 'magma'
     name: feg-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
@@ -797,7 +797,7 @@ jobs:
   nms-build:
     if: github.repository_owner == 'magma'
     name: nms-build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
@@ -890,7 +890,7 @@ jobs:
   Publish_to_firebase:
     name: Publish to firebase
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       [
         agw-build,
@@ -924,7 +924,7 @@ jobs:
   domain-proxy-build:
     if: github.repository_owner == 'magma'
     name: domain proxy build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts_lf.outputs.artifacts }}
     env:
@@ -998,7 +998,7 @@ jobs:
           SLACK_FOOTER: ' '
   trigger-debian-integ-test:
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: agw-build
     steps:
       - name: Trigger debian integ test workflow
