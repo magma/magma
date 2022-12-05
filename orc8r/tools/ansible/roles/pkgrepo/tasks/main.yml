@@ -9,6 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 - name: Remove all old registries
   shell: rm -rf /etc/apt/sources.list.d/*.list
   become: yes
@@ -46,16 +47,19 @@
   vars:
     packages:
       - ca-certificates
+  when: full_provision
 
-- name: Adding the key to agent
+- name: Adding the key for the registry
   apt_key:
     url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
     state: present
+  when: full_provision
 
 - name: Configuring the registry in sources.list.d
   shell: "echo 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main' > /etc/apt/sources.list.d/magma.list"
-  when: preburn
+  when: full_provision
 
 - name: Update apt
   apt:
     update_cache: yes
+  when: full_provision
