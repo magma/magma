@@ -60,8 +60,8 @@ const useStyles = makeStyles(() => ({
     justifyContent: 'center',
   },
 }));
-const SUB_NAME_OFFSET = 0;
-const SUB_IMSI_OFFSET = 1;
+const SUB_IMSI_OFFSET = 0;
+const SUB_NAME_OFFSET = 1;
 const SUB_AUTH_KEY_OFFSET = 2;
 const SUB_AUTH_OPC_OFFSET = 3;
 const SUB_STATE_OFFSET = 4;
