@@ -35,7 +35,10 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-//#pragma once
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
 
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq,
             gtpv1uCreateTunnelReq)
