@@ -26,7 +26,7 @@ def split_hoststring(hoststring):
     return (user, ip, port)
 
 
-def vagrant_setup(host, destroy_vm, force_provision=False):
+def vagrant_setup(host, destroy_vm, force_provision=False, max_retries=1):
     """
     Setup the specified vagrant box
 
@@ -34,7 +34,7 @@ def vagrant_setup(host, destroy_vm, force_provision=False):
     """
     if destroy_vm:
         vagrant.teardown_vagrant(host)
-    vagrant.setup_env_vagrant(host, force_provision=force_provision)
+    vagrant.setup_env_vagrant(host, force_provision=force_provision, max_retries=max_retries)
     return env.hosts[0]
 
 

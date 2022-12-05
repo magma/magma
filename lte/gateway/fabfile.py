@@ -380,11 +380,11 @@ def bazel_integ_test_post_build(
         env.hosts = [gateway_host]
 
 
-def _setup_vm(host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
+def _setup_vm(host, name, ansible_role, ansible_file, destroy_vm, provision_vm, max_retries=1):
     ip = None
     if not host:
         host = vagrant_setup(
-            name, destroy_vm, force_provision=provision_vm,
+            name, destroy_vm, force_provision=provision_vm, max_retries=max_retries,
         )
     else:
         ansible_setup(host, ansible_role, ansible_file)
@@ -484,7 +484,7 @@ def integ_test_deb_installation(
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm, max_retries=3)
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
 

@@ -30,7 +30,7 @@ def __ensure_in_vagrant_dir():
     return
 
 
-def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False):
+def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False, max_retries=1):
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
@@ -48,21 +48,37 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
         # The machine isn't running. Most likely it's just not up. Let's
         # first try the simple thing of bringing it up, and if that doesn't
         # work then we ask the user to fix it.
-        print(
-            "VM %s is not running... Attempting to bring it up."
-            % machine,
-        )
-        local('vagrant up %s' % machine)
-        isUp = local('vagrant status %s' % machine, capture=True) \
-            .find('running')
 
-        if isUp < 0:
+        attempt = 0
+
+        while True:
             print(
-                "Error: VM: %s is still not running...\n"
-                " Failed to bring up %s'"
-                % (machine, machine),
+                "VM %s is not running... Attempting to bring it up (attempt %s/%s)."
+                % (machine, attempt + 1, max_retries),
             )
-            exit(1)
+
+            try:
+                local('vagrant up %s' % machine)
+            except:
+                print("VM %s failed during 'vagrant up'" % machine)
+                teardown_vagrant(machine)
+
+            isUp = local('vagrant status %s' % machine, capture=True) \
+                .find('running')
+
+            attempt += 1
+
+            if isUp < 0:
+                if attempt >= max_retries:
+                    print(
+                        "Error: VM: %s is still not running...\n"
+                        " Failed to bring up %s'"
+                        % (machine, machine),
+                    )
+                    exit(1)
+            else:
+                break # success
+
     elif force_provision:
         local('vagrant provision %s' % machine)
 
