@@ -9,7 +9,7 @@ on:
 jobs:
   # This job is a manual approximation of https://github.com/peter-evans/create-or-update-comment
   comment:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
         with:

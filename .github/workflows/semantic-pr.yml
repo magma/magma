@@ -16,7 +16,7 @@ concurrency:
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     # Map a step output to a job output
@@ -49,7 +49,7 @@ jobs:
   semantic-pr:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases

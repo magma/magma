@@ -8,7 +8,7 @@ jobs:
   rebase:
     name: Rebase
     if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/rebase')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout the latest code
         uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2

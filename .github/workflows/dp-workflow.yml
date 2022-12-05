@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
       am: ${{ steps.filter.outputs.am }}
@@ -88,7 +88,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.cc == 'true' }}
     name: "Configuration controller unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}"
@@ -136,7 +136,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.am == 'true' }}
     name: "Active mode controller unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     defaults:
       run:
@@ -176,7 +176,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.rc == 'true' }}
     name: "Radio controller unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -255,7 +255,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "Domain proxy db migration test"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     continue-on-error: false
     defaults:
       run:
@@ -299,7 +299,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "DB service unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -349,7 +349,7 @@ jobs:
 
   integration_tests_orc8r:
     name: "Domain proxy integration tests with orc8r"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: path_filter
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
@@ -365,7 +365,7 @@ jobs:
     name: "Helm chart smoke tests"
     needs: path_filter
     if: ${{ needs.path_filter.outputs.helm == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: dp

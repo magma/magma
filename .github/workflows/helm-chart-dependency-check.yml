@@ -24,7 +24,7 @@ jobs:
   check_helm_chart_dependencies:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Check dependency of helm chart ${{ matrix.charts[0] }}
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2

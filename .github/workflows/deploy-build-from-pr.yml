@@ -12,7 +12,7 @@ jobs:
   deploy:
     if: github.event.workflow_run.event == 'pull_request'
     name: Deploy artifacts from PR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"

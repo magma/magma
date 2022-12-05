@@ -23,7 +23,7 @@ env:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -56,7 +56,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: lte test job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       CODEGEN_ROOT: "${{ github.workspace }}/.codegen"
@@ -140,7 +140,7 @@ jobs:
       github.repository_owner == 'magma' &&
       github.ref_name == 'master'
     name: C/C++ unit tests with Bazel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -218,7 +218,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: li agent test job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -256,7 +256,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: mme test job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -320,7 +320,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: C / C++ code coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       BRANCH: "${{ github.base_ref }}"
@@ -431,7 +431,7 @@ jobs:
   lint-clang-format:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
       - name: Check clang-format for orc8r/gateway/c
@@ -455,7 +455,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: session manager test job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -491,7 +491,7 @@ jobs:
 
   jsonlint-mconfig:
     name: jsonlint-mconfig
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
         with:

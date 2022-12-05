@@ -9,7 +9,7 @@ on:
 jobs:
   backport:
     name: backport
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
