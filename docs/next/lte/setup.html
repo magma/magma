@@ -18,14 +18,9 @@
 </ul>
 <p><code>HOST:magma/lte/gateway USER$ vagrant ssh magma</code></p>
 <ul>
-<li>Next follow the steps below to get the magma services running:</li>
+<li>Next build and run the services with bazel:</li>
 </ul>
-<ol>
-<li>Create links for cli scripts: <code>cd $MAGMA_ROOT &amp;&amp; bazel/scripts/link_scripts_for_bazel_integ_tests.sh</code></li>
-<li>Use bazel systemd unit files: <code>sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ &amp;&amp; sudo systemctl daemon-reload</code></li>
-<li>Build the services: <code>cd $MAGMA_ROOT &amp;&amp; magma-build-agw</code> (Note: this will take some time for the initial build, but will be fast for follow-up builds.)</li>
-<li>Start the access gateway: <code>magma-restart</code></li>
-</ol>
+<p><code>cd $MAGMA_ROOT &amp;&amp; bazel/scripts/build_and_run_bazelified_agw.sh</code></p>
 <p>Once the Access Gateway VM is running successfully, proceed to attaching the eNodeB.</p>
 </span></div></article></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#steps">Steps</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
