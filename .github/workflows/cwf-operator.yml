@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     # Map a step output to a job output
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
@@ -45,7 +45,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwf operator pre-commit job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"

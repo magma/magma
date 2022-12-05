@@ -15,6 +15,7 @@ on:
     branches:
       - master
     paths:
+      - bazel/docker/Dockerfile.bazel.cache
       - .devcontainer/bazel-base/Dockerfile
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
@@ -25,12 +26,13 @@ on:
       - reopened
       - synchronize
     paths:
+      - bazel/docker/Dockerfile.bazel.cache
       - .devcontainer/bazel-base/Dockerfile
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
       - .github/workflows/composite/**
   schedule:
-    - cron: '13 3 * * *'
+    - cron: '17 4 * * 6' # At 04:17 on Saturday
 
 env:
   REGISTRY: ghcr.io
@@ -39,10 +41,14 @@ env:
   DOCKERFILE_BAZEL_BASE: .devcontainer/bazel-base/Dockerfile
   IMAGE_STREAM_DEVCONTAINER: ${{ github.repository }}/devcontainer
   DOCKERFILE_DEVCONTAINER: .devcontainer/Dockerfile
+  IMAGE_STREAM_BAZEL_CACHE_ASAN: ${{ github.repository }}/bazel-cache-asan
+  IMAGE_STREAM_BAZEL_CACHE_PLAIN: ${{ github.repository }}/bazel-cache-plain
+  IMAGE_STREAM_BAZEL_CACHE_PROD: ${{ github.repository }}/bazel-cache-prod
+  DOCKERFILE_BAZEL_CACHE: bazel/docker/Dockerfile.bazel.cache
 
 jobs:
   build_dockerfile_bazel_base:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: ./.github/workflows/composite/docker-builder
@@ -51,10 +57,11 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_BASE }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_BASE }}
+          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
 
   build_dockerfile_devcontainer:
     needs: build_dockerfile_bazel_base
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: ./.github/workflows/composite/docker-builder
@@ -63,3 +70,60 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_DEVCONTAINER }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_DEVCONTAINER }}
+          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+
+  build_dockerfile_bazel_cache_asan:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_ASAN }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
+          BUILD_ARG_2: "BAZEL_CONFIG=--config=asan"
+          PUSH_TO_REGISTRY: "true"
+
+  build_dockerfile_bazel_cache_plain:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PLAIN }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=.*_test"
+          PUSH_TO_REGISTRY: "true"
+
+  build_dockerfile_bazel_cache_prod:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PROD }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
+          BUILD_ARG_2: "BAZEL_CONFIG=--config=production"
+          PUSH_TO_REGISTRY: "true"

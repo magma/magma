@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   check-reverted-pr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     outputs:
@@ -46,7 +46,7 @@ jobs:
             }
 
   check-semantic-pr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: check-reverted-pr
     if: ${{ needs.check-reverted-pr.outputs.is_reverted_pr == 'false' }}
     steps:
@@ -134,7 +134,7 @@ jobs:
           validateSingleCommit: true
 
   comment-on-pr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: check-semantic-pr
     if: always()
     env:
