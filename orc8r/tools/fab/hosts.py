@@ -38,7 +38,7 @@ def vagrant_connection(
 
 def vagrant_setup(
         c: Connection, host: str, destroy_vm: bool = False,
-        force_provision: bool = False,
+        force_provision: bool = False, max_retries: int = 1,
 ) -> Tuple[Connection, Dict[str, str]]:
     """
     Setup the specified vagrant box
@@ -47,7 +47,7 @@ def vagrant_setup(
     """
     if destroy_vm:
         vagrant.teardown_vagrant(c, host)
-    return vagrant.setup_env_vagrant(c, host, force_provision=force_provision)
+    return vagrant.setup_env_vagrant(c, host, force_provision=force_provision, max_retries=max_retries)
 
 
 def ansible_setup(

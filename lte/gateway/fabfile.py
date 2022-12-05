@@ -273,10 +273,10 @@ def provision_magma_dev_vm(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
 
 
-def _setup_vm(c, host, name, ansible_role, ansible_file, destroy_vm, provision_vm):
+def _setup_vm(c, host, name, ansible_role, ansible_file, destroy_vm, provision_vm, max_retries=1):
     if not host:
         connection, host_data = vagrant_setup(
-            c, name, destroy_vm, force_provision=provision_vm,
+            c, name, destroy_vm, force_provision=provision_vm, max_retries=max_retries,
         )
     else:
         ansible_setup(host, ansible_role, ansible_file)
@@ -289,11 +289,11 @@ def _setup_vm(c, host, name, ansible_role, ansible_file, destroy_vm, provision_v
 
 def _setup_gateway(
         c, gateway_host, name, ansible_role, ansible_file, destroy_vm,
-        provision_vm,
+        provision_vm, max_retries=1,
 ):
     gateway_connection, _ = _setup_vm(
         c, gateway_host, name, ansible_role, ansible_file, destroy_vm,
-        provision_vm,
+        provision_vm, max_retries=max_retries,
     )
     if gateway_host is None:
         gateway_ip = GATEWAY_IP_ADDRESS
@@ -387,7 +387,7 @@ def integ_test_deb_installation(
     # vagrant machine
     c_gw, gateway_ip = _setup_gateway(
         c, gateway_host, "magma_deb", "deb", "magma_deb.yml", destroy_vm,
-        provision_vm,
+        provision_vm, max_retries=3,
     )
     with c_gw:
         _start_gateway(c_gw)
@@ -405,7 +405,7 @@ def integ_test_deb_installation(
     # the vagrant machine
     c_test, test_host_data = _setup_vm(
         c, test_host, "magma_test", "test", "magma_test.yml", destroy_vm,
-        provision_vm,
+        provision_vm, max_retries=3,
     )
 
     # run this on the host, not on the vm, as it will connect to the vm via ssh
@@ -437,7 +437,7 @@ def integ_test_containerized(
     # vagrant machine
     c_trf, _ = _setup_vm(
         c, trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml",
-        destroy_vm, provision_vm,
+        destroy_vm, provision_vm, max_retries=3,
     )
     with c_trf:
         _start_trfserver(c_trf)

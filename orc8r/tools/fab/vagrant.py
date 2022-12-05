@@ -33,6 +33,7 @@ def _ensure_in_vagrant_dir(c: Connection) -> None:
 
 def setup_env_vagrant(
     c: Connection, machine: str = 'magma', force_provision: bool = False,
+    max_retries: int = 1,
 ) -> Tuple[Connection, Dict[str, str]]:
     """ Host config for local Vagrant VM.
 
@@ -44,24 +45,9 @@ def setup_env_vagrant(
     # An empty local ssh config file stops warnings from being printed.
     c.run('touch ~/.ssh/config')
 
-    # Ensure that VM is running
-    down = c.run(f'vagrant status {machine}', hide=True).stdout \
-        .find('running') < 0
-    if down:
-        # The machine isn't running. Most likely it's just not up. Let's
-        # first try the simple thing of bringing it up, and if that doesn't
-        # work then we ask the user to fix it.
-        print(f"VM {machine} is not running... Attempting to bring it up.")
-        c.run(f'vagrant up {machine}')
-        down = c.run(f'vagrant status {machine}', hide=True).stdout \
-            .find('running')
-
-        if down < 0:
-            print(
-                f"Error: VM: {machine} is still not running...\n"
-                f" Failed to bring up {machine}",
-            )
-            exit(1)
+    # Ensure that VM is not already running
+    if not _is_vm_running(c, machine):
+        _vagrant_up_with_retry(c, machine, max_retries)
     elif force_provision:
         c.run(f'vagrant provision {machine}')
 
@@ -85,6 +71,30 @@ def setup_env_vagrant(
         "host_string": host_string,
         "key_filename": identity_file,
     }
+
+
+def _is_vm_running(c: Connection, machine: str):
+    return c.run(f'vagrant status {machine}', hide=True).stdout.find('running') >= 0
+
+
+def _vagrant_up_with_retry(c: Connection, machine: str, max_retries: int):
+    print(f'VM {machine} is not running - attempting to bring it up ...')
+    for attempt in range(max_retries):
+        print(f'... attempt {attempt + 1}/{max_retries} to bring up VM {machine}')
+
+        try:
+            c.run(f'vagrant up {machine}')
+        except:
+            print(f'... VM {machine} failed during "vagrant up" - VM will be destroyed')
+            teardown_vagrant(c, machine)
+
+        if _is_vm_running(c, machine):
+            print(f'... VM {machine} is running.')
+            break  # success
+
+    if not _is_vm_running(c, machine):
+        print(f'Error: VM {machine} is still not running after {max_retries} attempt(s).')
+        exit(1)
 
 
 def teardown_vagrant(c: Connection, machine: str) -> None:
