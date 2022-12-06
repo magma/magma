@@ -177,6 +177,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
+    mme_ue_id_no_imsi_list.clear();
     for (auto ue_itr = enb_association_p->ue_id_coll.map->begin();
          ue_itr != enb_association_p->ue_id_coll.map->end(); ue_itr++) {
       // Check if a UE reference exists for this comp_s1ap_id
