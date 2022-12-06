@@ -74,7 +74,7 @@ class IPAllocatorDHCP(IPAllocator):
         self._retry_limit = retry_limit  # default wait for two minutes
         self._iface = iface
         self._lease_renew_wait_min = lease_renew_wait_min
-        self._monitor_thread = threading.Thread(
+        self._monitor_thread: Optional[threading.Thread] = threading.Thread(
             target=self._monitor_dhcp_state,
         )
         self._monitor_thread.daemon = True
@@ -92,7 +92,7 @@ class IPAllocatorDHCP(IPAllocator):
 
     def stop_monitor_thread(self, join: bool = False, reset: bool = False):
         self._monitor_thread_event.set()
-        if join:
+        if join and self._monitor_thread:
             self._monitor_thread.join()
         if reset:
             self._monitor_thread = None

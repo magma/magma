@@ -25,14 +25,14 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
         self.magma_utils = MagmadUtil(None)
 
         self.magma_utils.enable_dhcp_config()
-        self.magma_utils.disable_nat()
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.magma_utils.disable_nat()
 
     def tearDown(self):
         """Cleanup after test case execution"""
-        self._s1ap_wrapper.cleanup()
         self.magma_utils.disable_dhcp_config()
         self.magma_utils.enable_nat()
+        self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_with_non_nat_dhcp(self):
         """ Basic attach/detach test with a single UE """

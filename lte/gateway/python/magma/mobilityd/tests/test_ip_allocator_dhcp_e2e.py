@@ -16,7 +16,7 @@ import os
 import subprocess
 import sys
 import threading
-import unittest.mock
+import unittest
 from ipaddress import ip_network
 
 import fakeredis

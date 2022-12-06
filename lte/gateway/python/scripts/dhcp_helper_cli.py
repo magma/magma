@@ -76,7 +76,6 @@ class DhcpHelperCli:
     _SNIFFER_STARTUP_WAIT = 0.5
     _TIMEOUT = 10
     _state = DHCPState.DISCOVER
-    _msg_xid = random.randint(0, 2**32 - 1)
     _vlan = None
 
     def __init__(
@@ -123,9 +122,9 @@ class DhcpHelperCli:
         if DHCP in pkt:
             self._pkt_queue.put(pkt)
 
-    def get_next_xid(self) -> int:
-        self._msg_xid += 1
-        return self._msg_xid
+    @staticmethod
+    def _get_new_xid() -> int:
+        return random.randint(0, 2 ** 32 - 1)
 
     @staticmethod
     def _get_option(packet: scapy.packet.Packet, name: str) -> Optional[str]:
@@ -140,12 +139,11 @@ class DhcpHelperCli:
                 ("message-type", "discover"),
                 "end",
             ]
-            pkt_xid = self.get_next_xid()
         else:
             print(f"Wrong previous state {DHCPState(self._state).name} != DISCOVER")
             return
 
-        self.send_dhcp_pkt(dhcp_opts, pkt_xid)
+        self.send_dhcp_pkt(dhcp_opts)
 
     def send_dhcp_request(self) -> None:
         if self._state == DHCPState.OFFER:
@@ -156,12 +154,11 @@ class DhcpHelperCli:
                 ("server_id", self._server_ip),
                 "end",
             ]
-            pkt_xid = self.get_next_xid()
         else:
             print(f"Wrong previous state {DHCPState(self._state).name} != OFFER")
             return
 
-        self.send_dhcp_pkt(dhcp_opts, pkt_xid)
+        self.send_dhcp_pkt(dhcp_opts)
 
     def send_dhcp_release(self) -> None:
         self._state = DHCPState.RELEASE
@@ -170,18 +167,17 @@ class DhcpHelperCli:
             ("server_id", self._server_ip),
             "end",
         ]
-        pkt_xid = self.get_next_xid()
         ciaddr = self._ip
 
-        self.send_dhcp_pkt(dhcp_opts, pkt_xid, ciaddr)
+        self.send_dhcp_pkt(dhcp_opts, ciaddr)
 
-    def send_dhcp_pkt(self, dhcp_opts: List[Any], pkt_xid: int, ciaddr: Optional[str] = None) -> None:
+    def send_dhcp_pkt(self, dhcp_opts: List[Any], ciaddr: Optional[str] = None) -> None:
         pkt = Ether(src=str(self._mac), dst="ff:ff:ff:ff:ff:ff")
         if self._vlan and self._vlan != 0:
             pkt /= Dot1Q(vlan=self._vlan)
         pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
         pkt /= UDP(sport=68, dport=67)
-        pkt /= BOOTP(op=1, chaddr=self._mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
+        pkt /= BOOTP(op=1, chaddr=self._mac.as_hex(), xid=self._get_new_xid(), ciaddr=ciaddr)
         pkt /= DHCP(options=dhcp_opts)
         sendp(pkt, iface=self._iface, verbose=0)
 
