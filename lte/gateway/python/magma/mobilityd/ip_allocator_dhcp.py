@@ -52,9 +52,8 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
 class IPAllocatorDHCP(IPAllocator):
     def __init__(
-        self, store: MobilityStore, retry_limit: int = 300,
-        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,
-        start: bool = True,  # TODO read this from config file
+        self, store: MobilityStore, retry_limit: int = 300, start: bool = True,
+        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
     ):
         """
         Allocate IP address for SID using DHCP server.
@@ -76,8 +75,8 @@ class IPAllocatorDHCP(IPAllocator):
         self._lease_renew_wait_min = lease_renew_wait_min
         self._monitor_thread: Optional[threading.Thread] = threading.Thread(
             target=self._monitor_dhcp_state,
+            daemon=True,
         )
-        self._monitor_thread.daemon = True
         self._monitor_thread_event = threading.Event()
         if start:
             self.start_monitor_thread()
@@ -86,8 +85,8 @@ class IPAllocatorDHCP(IPAllocator):
         if self._monitor_thread is None:
             self._monitor_thread = threading.Thread(
                 target=self._monitor_dhcp_state,
+                daemon=True,
             )
-            self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
     def stop_monitor_thread(self, join: bool = False, reset: bool = False):
