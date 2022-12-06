@@ -77,6 +77,7 @@ class IPAllocatorDHCP(IPAllocator):
         self._monitor_thread = threading.Thread(
             target=self._monitor_dhcp_state,
         )
+        self._monitor_thread.daemon = True
         self._monitor_thread_event = threading.Event()
         if start:
             self.start_monitor_thread()
@@ -89,11 +90,13 @@ class IPAllocatorDHCP(IPAllocator):
             self._monitor_thread.daemon = True
         self._monitor_thread.start()
 
-    def stop_monitor_thread(self):
+    def stop_monitor_thread(self, join: bool = False, reset: bool = False):
         self._monitor_thread_event.set()
-        self._monitor_thread.join()
-        self._monitor_thread = None
-        self._monitor_thread_event.clear()
+        if join:
+            self._monitor_thread.join()
+        if reset:
+            self._monitor_thread = None
+            self._monitor_thread_event.clear()
 
     def _monitor_dhcp_state(self):
         """

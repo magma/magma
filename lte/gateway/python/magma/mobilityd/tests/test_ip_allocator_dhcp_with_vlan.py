@@ -136,7 +136,7 @@ class IpAllocatorDhcp(unittest.TestCase):
         time_after_renew_deadline = datetime.datetime.now() + datetime.timedelta(seconds=100)
         with freeze_time(time_after_renew_deadline):
             LOG.debug("check req packets time: %s", datetime.datetime.now())
-            self._ip_allocator.stop_monitor_thread()
+            self._ip_allocator.stop_monitor_thread(join=True, reset=True)
             self._validate_req_state(mac, DHCPState.ACK, vlan)
             self._validate_state_as_current(mac, vlan)
 
@@ -149,7 +149,7 @@ class IpAllocatorDhcp(unittest.TestCase):
             )
             with freeze_time(time_after_lease_expiry):
                 LOG.debug("check discover after lease loss")
-                self._ip_allocator.stop_monitor_thread()
+                self._ip_allocator.stop_monitor_thread(join=True, reset=True)
                 self._validate_req_state(mac, DHCPState.ACK, vlan)
                 self._validate_state_as_current(mac, vlan)
 
