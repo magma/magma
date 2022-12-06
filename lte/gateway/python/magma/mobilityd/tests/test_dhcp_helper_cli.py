@@ -91,7 +91,7 @@ def test_send_dhcp_release(sendp_mock, dhcp_helper_cli_fixture):
 
 
 def create_send_dhcp_pkt_mock(dhcp_helper_cli_fixture):
-    def mocked_send_dhcp_pkt(dhcp_opts, pkt_xid, ciaddr: Optional[str] = None) -> None:
+    def mocked_send_dhcp_pkt(dhcp_opts, ciaddr: Optional[str] = None) -> None:
         if ('message-type', 'discover') in dhcp_opts:
             dhcp_helper_cli_fixture._pkt_queue.put(DHCP_OFFER_PKT)
         if ('message-type', 'request') in dhcp_opts:
