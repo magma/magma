@@ -1298,7 +1298,6 @@ class MagmadUtil(object):
 
         systemd_only_magma_services = [
             'openvswitch-switch',
-            'magma_dp@envoy',
         ]
 
         docker_only_magma_services = [
