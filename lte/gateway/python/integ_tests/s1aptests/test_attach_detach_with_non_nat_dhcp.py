@@ -36,30 +36,37 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
 
     def test_attach_detach_with_non_nat_dhcp(self):
         """ Basic attach/detach test with a single UE """
-        self._s1ap_wrapper.configUEDevice(1)
+        num_ues = 2
+        detach_type = [
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+        ]
+        wait_for_s1 = [True, False]
+        self._s1ap_wrapper.configUEDevice(num_ues)
 
-        req = self._s1ap_wrapper.ue_req
-        print(
-            "************************* Running End to End attach for ",
-            "UE id ", req.ue_id,
-        )
-        # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
-            req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t,
-        )
+        for i in range(num_ues):
+            req = self._s1ap_wrapper.ue_req
+            print(
+                "************************* Running End to End attach for ",
+                "UE id ", req.ue_id,
+            )
+            # Now actually complete the attach
+            self._s1ap_wrapper._s1_util.attach(
+                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+                s1ap_types.ueAttachAccept_t,
+            )
 
-        # Wait on EMM Information from MME
-        self._s1ap_wrapper._s1_util.receive_emm_info()
-        print(
-            "************************* Running UE detach for UE id ",
-            req.ue_id,
-        )
-        # Now detach the UE
-        self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
-        )
+            # Wait on EMM Information from MME
+            self._s1ap_wrapper._s1_util.receive_emm_info()
+            print(
+                "************************* Running UE detach for UE id ",
+                req.ue_id,
+            )
+            # Now detach the UE
+            self._s1ap_wrapper.s1_util.detach(
+                req.ue_id, detach_type[i], wait_for_s1[i],
+            )
 
 
 if __name__ == "__main__":
