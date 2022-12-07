@@ -29,7 +29,7 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug"
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-385c134",
+	"image": "ghcr.io/magma/magma/devcontainer:sha-84cfceb",
 	"settings": {
 		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {

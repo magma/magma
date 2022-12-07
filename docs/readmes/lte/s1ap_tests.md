@@ -46,12 +46,9 @@ at a time.
 Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run
 `vagrant up magma && vagrant ssh magma`.
 
-Now build the services with bazel.
+Now build and run the services with bazel.
 
-1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
-2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
-3. Build the services: `cd $MAGMA_ROOT && magma-build-agw` (Note: this will take some time for the initial build, but will be fast for follow-up builds.)
-4. Start the access gateway: `magma-restart`
+`cd $MAGMA_ROOT && bazel/scripts/build_and_run_bazelified_agw.sh`
 
 #### Debian installation
 

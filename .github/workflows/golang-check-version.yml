@@ -9,29 +9,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: PR Check Codeowners
-
+name: Magma Check Go Version
 on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
   pull_request:
+    branches:
+      - master
+      - 'v1.*'
     types:
       - opened
       - reopened
       - synchronize
-    paths:
-      - CODEOWNERS
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
-  sanity:
+  check_go_version:
     runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      # Checks-out your repository, which is validated in the next step
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - name: GitHub CODEOWNERS Validator
-        uses: mszostok/codeowners-validator@2f6e3bb39aa6837d7dcf8eff2de5d6c046d0c9a9 # pin@v0.6.0
-        with:
-          checks: "syntax,files,duppatterns"
-          # TODO: enable owner check
+      - name: Run golang_check_version.sh script
+        run: ./.github/workflows/scripts/golang_check_version.sh

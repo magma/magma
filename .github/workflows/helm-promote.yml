@@ -20,7 +20,7 @@ on:
 
 jobs:
   helm-promote:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_VERSION: ${{ inputs.magma_version }}
       MAGMA_ARTIFACTORY: https://artifactory.magmacore.org:443/artifactory

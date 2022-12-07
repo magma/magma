@@ -29,11 +29,8 @@ Vagrant will bring up the VM, then Ansible will provision the VM.
 
 ``HOST:magma/lte/gateway USER$ vagrant ssh magma``
 
-- Next follow the steps below to get the magma services running:
+- Next build and run the services with bazel:
 
-1. Create links for cli scripts: `cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh`
-2. Use bazel systemd unit files: `sudo cp $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/* /etc/systemd/system/ && sudo systemctl daemon-reload`
-3. Build the services: `cd $MAGMA_ROOT && magma-build-agw` (Note: this will take some time for the initial build, but will be fast for follow-up builds.)
-4. Start the access gateway: `magma-restart`
+`cd $MAGMA_ROOT && bazel/scripts/build_and_run_bazelified_agw.sh`
 
 Once the Access Gateway VM is running successfully, proceed to attaching the eNodeB.

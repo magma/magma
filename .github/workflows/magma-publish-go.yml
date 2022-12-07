@@ -9,30 +9,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Magma Publish Dummy Package
+name: Magma Publish Go Package
+
 on:
   workflow_dispatch:
     inputs:
-      repository:
-        description: Repository to push to?
-        type: choice
-        default: magma-packages-test
-        options: [ magma-packages-test, magma-packages-prod ]
+      version:
+        description: Version to upload?
+        default: 1.19.3
         required: true
-      distribution:
-        description: Distribution to set?
-        default: 'focal-ci'
-        required: true
+
+env:
+  GO_PACKAGE: go${{ inputs.version }}.linux-amd64.tar.gz
 
 jobs:
   build_dependencies:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Download dummy debian package
-        run: curl -L http://mirrors.kernel.org/ubuntu/pool/main/h/hello/hello_2.10-2ubuntu2_amd64.deb -o hello_2.10-2ubuntu2_amd64.deb
+      - name: Download Go package
+        run: curl -L https://go.dev/dl/$GO_PACKAGE -o $GO_PACKAGE
 
-      - name: Setup JFrog CLI
+      - name: Set up JFrog CLI
         id: jfrog-setup
         # Workaround because secrets are available in `env` but not in `if`
         if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
@@ -42,11 +40,10 @@ jobs:
           JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
           JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
-      - name: Publish debian package
-        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
+      - name: Publish Go package
+        if: steps.jfrog-setup.conclusion == 'success'
         run: |
           jf rt upload \
             --recursive=false \
             --detailed-summary \
-            --target-props="deb.component=main;deb.distribution=${{ inputs.distribution }};deb.architecture=amd64" \
-            "hello_2.10-2ubuntu2_amd64.deb" ${{ inputs.repository }}/pool/${{ inputs.distribution }}/hello_2.10-2ubuntu2_amd64.deb
+            $GO_PACKAGE magma-blob/$GO_PACKAGE
