@@ -166,8 +166,9 @@ message MmeUeContext {
   map<uint64, uint64> imsi_ue_id_htbl = 4;  // imsi -> mme_ue_id
   map<uint64, uint64> tun11_ue_id_htbl = 5; // tun_id -> mme_ue_id
   map<uint64, uint64> enb_ue_id_ue_id_htbl = 7; // enb_ue_id -> mme_ue_id
-  map<string, uint64> guti_ue_id_htbl = 8; // guti -> mme_ue_id
+  map<string, uint64> guti_ue_id_htbl = 8 [deprecated=true]; // guti -> mme_ue_id
   map<uint64, uint32> imsi_ue_id_map = 9;  // imsi -> mme_ue_id
+  map<string, uint32> guti_ue_id_map = 10;  // guti -> mme_ue_id
 }
 
 // mme_app_desc_t

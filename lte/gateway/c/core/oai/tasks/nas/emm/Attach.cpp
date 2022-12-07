@@ -2450,14 +2450,11 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
       ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
     }
   } else {
-    uint64_t mme_ue_s1ap_id64 = 0;
-
-    hash_rc = obj_hashtable_uint64_ts_get(
-        mme_ue_context_p->guti_ue_context_htbl,
-        (const void*)&ue_context_p->emm_context._guti, sizeof(guti_t),
-        &mme_ue_s1ap_id64);
-
-    if (HASH_TABLE_OK == hash_rc) {
+    uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+    char guti_str[GUTI_STRING_LEN] = {0};
+    convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
+    mme_ue_context_p->guti_ue_context_map.get(guti_str, &mme_ue_s1ap_id);
+    if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
       // While processing new attach req, remove GUTI from hashtable
       if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
           (ue_context_p->emm_context._guti.gummei.mme_gid) ||
@@ -2465,15 +2462,11 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit1) ||
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
-        hash_rc = obj_hashtable_uint64_ts_remove(
-            mme_ue_context_p->guti_ue_context_htbl,
-            (const void* const) & ue_context_p->emm_context._guti,
-            sizeof(ue_context_p->emm_context._guti));
-        if (HASH_TABLE_OK != hash_rc)
-          OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                          "UE Context not found for GUTI " GUTI_FMT " \n",
-                          GUTI_ARG(&(ue_context_p->emm_context._guti)));
+        mme_ue_context_p->guti_ue_context_map.remove(guti_str);
       }
+    } else {
+      OAILOG_WARNING(LOG_MME_APP,
+                     " Failed to get ue context for guti: " GUTI_FMT, guti_str);
     }
   }
 

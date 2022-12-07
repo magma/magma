@@ -716,8 +716,10 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   hashtable_uint64_ts_to_proto(
       mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
       mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
-  guti_table_to_proto(mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
-                      mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Copy in-memory GUTI UE context map to protobuf map");
+  *mme_ue_ctxts_proto->mutable_guti_ue_id_map() =
+      *(mme_nas_state_p->mme_ue_contexts.guti_ue_context_map.map);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -754,8 +756,10 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   proto_to_hashtable_uint64_ts(
       mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
       mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);
-  proto_to_guti_table(mme_ue_ctxts_proto.guti_ue_id_htbl(),
-                      mme_ue_ctxt_state->guti_ue_context_htbl);
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Copy in-memory GUTI UE context map to protobuf map");
+  *(mme_nas_state_p->mme_ue_contexts.guti_ue_context_map.map) =
+      mme_ue_ctxts_proto.guti_ue_id_map();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
