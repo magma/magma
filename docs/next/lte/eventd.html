@@ -110,12 +110,65 @@ An event must be defined before they can be send to <code>eventd</code> service.
 <ul>
 <li>Create a spec under <code>&lt;plugin_name&gt;/swagger</code> e.g. <code>lte/swagger/mock_events.v1.yml</code>, or add an event to one of the specs</li>
 <li>Register the <code>event_type</code> and the location of the swagger file under <code>eventd.yml</code>'s event registry.</li>
-<li>Make an RPC call to eventd's <code>log_event</code> from your service, using the appropriate client API.
-<ul>
-<li>(Python-only) Use <code>make build</code> under <code>lte/gateway</code> to generate swagger models into the <code>$PYTHON_BUILD</code> directory. e.g. Use model <code>ue_added</code> with the import <code>&lt;plugin_name&gt;.swagger.models.ue_added</code></li>
-</ul></li>
+<li>Make an RPC call to eventd's <code>log_event</code> from your service, using the appropriate client API.</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/s1ap_tests"><span class="arrow-prev">← </span><span>S1AP Integration Tests</span></a><a class="docs-next button" href="/magma/docs/next/lte/access_service_restrictions"><span>Restricting Network Access</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#infrastructure">Infrastructure</a></li><li><a href="#gateway-eventd-grpc-interface">Gateway eventd gRPC Interface</a></li><li><a href="#dependencies">Dependencies</a></li><li><a href="#how-to-create-an-event">How-to: Create an event</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+<h3><a class="anchor" aria-hidden="true" id="example"></a><a href="#example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example</h3>
+<p>Create new file <code>$MAGMA_ROOT/lte/swagger/my_events.v1.yml</code> with content:</p>
+<pre><code class="hljs css language-yml"><span class="hljs-meta">---</span>
+<span class="hljs-attr">swagger:</span> <span class="hljs-string">'2.0'</span>
+
+<span class="hljs-attr">info:</span>
+  <span class="hljs-attr">title:</span> <span class="hljs-string">MY</span> <span class="hljs-string">event</span> <span class="hljs-string">definitions</span>
+  <span class="hljs-attr">description:</span> <span class="hljs-string">These</span> <span class="hljs-string">events</span> <span class="hljs-string">occur</span> <span class="hljs-string">in</span> <span class="hljs-string">MY</span> <span class="hljs-string">task</span>
+  <span class="hljs-attr">version:</span> <span class="hljs-number">1.0</span><span class="hljs-number">.0</span>
+
+<span class="hljs-attr">definitions:</span>
+  <span class="hljs-attr">my_success:</span>
+    <span class="hljs-attr">type:</span> <span class="hljs-string">object</span>
+    <span class="hljs-attr">description:</span> <span class="hljs-string">My</span> <span class="hljs-string">success</span>
+    <span class="hljs-attr">properties:</span>
+      <span class="hljs-attr">msg:</span>
+        <span class="hljs-attr">type:</span> <span class="hljs-string">string</span>
+</code></pre>
+<p>Add the following to <code>$MAGMA_ROOT/lte/gateway/configs/eventd.yml</code>:</p>
+<pre><code class="hljs css language-yml">  <span class="hljs-attr">my_success:</span>
+    <span class="hljs-attr">module:</span> <span class="hljs-string">lte</span>
+    <span class="hljs-attr">filename:</span> <span class="hljs-string">my_events.v1.yml</span>
+</code></pre>
+<p>Use the following code in a Python script to emit the event:</p>
+<pre><code class="hljs css language-python"><span class="hljs-keyword">import</span> snowflake
+<span class="hljs-keyword">from</span> magma.eventd.eventd_client <span class="hljs-keyword">import</span> log_event
+<span class="hljs-keyword">from</span> orc8r.protos.eventd_pb2 <span class="hljs-keyword">import</span> Event
+
+log_event(
+    Event(
+        stream_name=<span class="hljs-string">"magmad"</span>,
+        event_type=<span class="hljs-string">"my_success"</span>,
+        tag=snowflake.snowflake(),
+        value=<span class="hljs-string">"{}"</span>,
+    ),
+)
+</code></pre>
+<p>Add the following to the BUILD.bazel file in the directory, where your script is:</p>
+<pre><code class="hljs css language-python">MAGMA_ROOT = <span class="hljs-string">"RELATIVE_PATH_TO_MAGMA_ROOT"</span>
+ORC8R_ROOT = <span class="hljs-string">"{}orc8r/gateway/python"</span>.format(MAGMA_ROOT)
+
+py_binary(
+    name = <span class="hljs-string">"your_script_name"</span>,
+    srcs = [<span class="hljs-string">"your_script_name.py"</span>],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = <span class="hljs-literal">False</span>,
+    deps = [
+        <span class="hljs-string">"//orc8r/gateway/python/magma/eventd:eventd_client"</span>,
+        <span class="hljs-string">"//orc8r/protos:mconfig_python_proto"</span>,
+        requirement(<span class="hljs-string">"snowflake"</span>),
+    ],
+)
+</code></pre>
+<p>Finally call the script with Bazel:</p>
+<p><code>bazel run //PATH/TO/YOUR/SCRIPT:your_script_name</code></p>
+<p>The event should show up in the eventd logs.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/s1ap_tests"><span class="arrow-prev">← </span><span>S1AP Integration Tests</span></a><a class="docs-next button" href="/magma/docs/next/lte/access_service_restrictions"><span>Restricting Network Access</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#infrastructure">Infrastructure</a></li><li><a href="#gateway-eventd-grpc-interface">Gateway eventd gRPC Interface</a></li><li><a href="#dependencies">Dependencies</a></li><li><a href="#how-to-create-an-event">How-to: Create an event</a><ul class="toc-headings"><li><a href="#example">Example</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2022 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
