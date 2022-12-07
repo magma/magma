@@ -508,7 +508,7 @@ void sgw_populate_mbr_bearer_contexts_removed(
         .bearer_contexts[rsp_idx++]
         .eps_bearer_id = resp_pP->bearer_contexts_to_be_removed[idx];
     modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context++;
-      }
+  }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
@@ -716,7 +716,7 @@ void sgw_handle_sgi_endpoint_updated(
   modify_response_p = &message_p->ittiMsg.s11_modify_bearer_response;
 
   magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p =
-          sgw_cm_get_spgw_context(resp_pP->context_teid);
+      sgw_cm_get_spgw_context(resp_pP->context_teid);
   if (new_bearer_ctxt_info_p) {
     modify_response_p->teid =
         new_bearer_ctxt_info_p->sgw_eps_bearer_context().mme_teid_s11();
@@ -1354,12 +1354,11 @@ void handle_s5_create_session_response(
       "EPS bearer id %u\n",
       session_resp.context_teid, session_resp.eps_bearer_id);
 
-// PCO processing
-// TODO Rashmi handle OCO part later
-#if 0
-  protocol_configuration_options_t* pco_req =
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-           .pco;
+  // PCO processing
+  magma::lte::oai::Pco* pco_req =
+      new_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_saved_message()
+          ->mutable_pco();
   protocol_configuration_options_t pco_resp = {0};
   protocol_configuration_options_ids_t pco_ids;
   memset(&pco_ids, 0, sizeof pco_ids);
@@ -1375,7 +1374,6 @@ void handle_s5_create_session_response(
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
-#endif
 
   // Fill SGi create endpoint resp data
   sgi_create_endpoint_resp.status = session_resp.status;
@@ -1643,54 +1641,60 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         &bearer_context, nullptr, LOG_SPGW_APP);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
+  magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc = nullptr;
+  int num_of_bearers_deleted = 0;
+  int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
-      magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
-          sgw_context_p->mutable_pending_procedures(proc_index);
-      if (pgw_ni_cbr_proc->type() ==
-          PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
-        for (int bearer_index = 0;
-             bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
-             bearer_index++) {
-          magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
-              pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
-          if (bearer_context_proto->sgw_teid_s1u_s12_s4_up() ==
-              bearer_context.s1u_sgw_fteid.teid) {
-            bearer_context_proto->set_eps_bearer_id(
+    pgw_ni_cbr_proc = sgw_context_p->mutable_pending_procedures(proc_index);
+    if (pgw_ni_cbr_proc->type() ==
+        PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
+      num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
+      for (int bearer_index = 0;
+           bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
+           bearer_index++) {
+        magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+            pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
+        if (bearer_context_proto->sgw_teid_s1u_s12_s4_up() ==
+            bearer_context.s1u_sgw_fteid.teid) {
+          bearer_context_proto->set_eps_bearer_id(bearer_context.eps_bearer_id);
+          FTEID_T_2_PROTO_IP(&bearer_context.s1u_enb_fteid,
+                             bearer_context_proto->mutable_enb_s1u_ip_addr());
+          bearer_context_proto->set_enb_teid_s1u(
+              bearer_context.s1u_enb_fteid.teid);
+          if (sgw_cm_insert_eps_bearer_ctxt_in_collection(
+                  sgw_context_p->mutable_pdn_connection(),
+                  bearer_context_proto) != magma::PROTO_MAP_OK) {
+            OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                            "Failed to create new EPS bearer entry\n");
+            increment_counter("s11_actv_bearer_rsp", 1, 2, "result", "failure",
+                              "cause", "internal_software_error");
+          } else {
+            OAILOG_INFO_UE(
+                LOG_SPGW_APP, imsi64,
+                "Successfully created new EPS bearer entry with EBI %d\n",
                 bearer_context.eps_bearer_id);
-            FTEID_T_2_PROTO_IP(&bearer_context.s1u_enb_fteid,
-                               bearer_context_proto->mutable_enb_s1u_ip_addr());
-            bearer_context_proto->set_enb_teid_s1u(
-                bearer_context.s1u_enb_fteid.teid);
-            if (sgw_cm_insert_eps_bearer_ctxt_in_collection(
-                    sgw_context_p->mutable_pdn_connection(),
-                    bearer_context_proto) != magma::PROTO_MAP_OK) {
-              OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                              "Failed to create new EPS bearer entry\n");
-              increment_counter("s11_actv_bearer_rsp", 1, 2, "result",
-                                "failure", "cause", "internal_software_error");
-            } else {
-              OAILOG_INFO_UE(
-                  LOG_SPGW_APP, imsi64,
-                  "Successfully created new EPS bearer entry with EBI %d\n",
-                  bearer_context.eps_bearer_id);
 
-              cause = REQUEST_ACCEPTED;
-              strcpy(policy_rule_name,
-                     bearer_context_proto->policy_rule_name().c_str());
-              // setup GTPv1-U tunnel for each packet filter
-              // enb, UE and imsi are common across rules
-              add_tunnel_helper(spgw_context, bearer_context_proto, imsi64);
-            }
+            cause = REQUEST_ACCEPTED;
+            strcpy(policy_rule_name,
+                   bearer_context_proto->policy_rule_name().c_str());
+            // setup GTPv1-U tunnel for each packet filter
+            // enb, UE and imsi are common across rules
+            add_tunnel_helper(spgw_context, bearer_context_proto, imsi64);
           }
-          delete bearer_context_proto;
-          break;
-        }  // end of bearer index loop
-      }
-    if (pgw_ni_cbr_proc->pending_eps_bearers_size() == 0) {
-      delete pgw_ni_cbr_proc;
+          --num_of_bearers_deleted;
+        }
+        if (num_of_bearers_deleted == 0) {
+          pgw_ni_cbr_proc->clear_pending_eps_bearers();
+        }
+        break;
+      }  // end of bearer index loop
     }
+    --num_of_pending_procedures;
   }  // end of procedure index loop
+  if (num_of_pending_procedures == 0) {
+    sgw_context_p->clear_pending_procedures();
+  }
 
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
   rc = spgw_send_nw_init_activate_bearer_rsp(
@@ -1887,10 +1891,8 @@ status_code_e sgw_handle_ip_allocation_rsp(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64, "Rashmi -----");
   magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
       bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
-  // TODO Rashmi Get the bearer context
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctx;
   if (sgw_cm_get_eps_bearer_entry(sgw_context_p->mutable_pdn_connection(),
                                   ip_allocation_rsp->eps_bearer_id,
@@ -2094,6 +2096,9 @@ void handle_failed_create_bearer_response(
       OAILOG_FUNC_OUT(module);
     }
     default_bearer_id = sgw_context_p->pdn_connection().default_bearer();
+
+    int num_of_bearers_deleted = 0;
+    int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
     for (int proc_index = 0;
          proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
       magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
@@ -2107,6 +2112,7 @@ void handle_failed_create_bearer_response(
       }
       if (pgw_ni_cbr_proc->type() ==
           PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
+        num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
         for (int bearer_index = 0;
              bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
              bearer_index++) {
@@ -2125,14 +2131,17 @@ void handle_failed_create_bearer_response(
                        sizeof(dedicated_bearer_ctxt_p));
               }
             }
-            // Remove the temporary spgw entry
-            delete stored_bearer_context_info;
+            --num_of_bearers_deleted;
+          }
+          if (num_of_bearers_deleted == 0) {
+            pgw_ni_cbr_proc->clear_pending_eps_bearers();
           }
         }
+        --num_of_pending_procedures;
       }
-      if (pgw_ni_cbr_proc->pending_eps_bearers_size() == 0) {
-        delete pgw_ni_cbr_proc;
-      }
+    }
+    if (num_of_pending_procedures == 0) {
+      sgw_context_p->clear_pending_procedures();
     }
     if (module == LOG_SPGW_APP) {
       int rc = spgw_send_nw_init_activate_bearer_rsp(
@@ -2301,8 +2310,7 @@ static void add_tunnel_helper(
     struct ip_flow_dl dlflow = {0};
     magma::lte::oai::PacketFilter create_new_tft =
         eps_bearer_ctxt_entry_p->tft().packet_filter_list().create_new_tft(i);
-    generate_dl_flow((create_new_tft
-                          .mutable_packet_filter_contents(i)),
+    generate_dl_flow((create_new_tft.mutable_packet_filter_contents(i)),
                      ue_ipv4.s_addr, &ue_ipv6, &dlflow);
 
 #if !MME_UNIT_TEST
@@ -2528,6 +2536,8 @@ void sgw_process_release_access_bearer_request(
       // release enb's UP teid and IP address
       eps_bearer_ctxt.clear_enb_s1u_ip_addr();
       eps_bearer_ctxt.set_enb_teid_s1u(INVALID_TEID);
+      eps_bearer_map.update_val(eps_bearer_ctxt.eps_bearer_id(),
+                                &eps_bearer_ctxt);
     }
   }
   OAILOG_FUNC_OUT(module);

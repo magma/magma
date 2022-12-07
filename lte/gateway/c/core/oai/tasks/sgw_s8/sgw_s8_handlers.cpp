@@ -94,13 +94,6 @@ static void sgw_s8_process_release_access_bearer_request(
 static void sgw_s8_release_all_enb_related_information(
     sgw_eps_bearer_ctxt_t* const eps_bearer_ctxt);
 
-static status_code_e create_temporary_s8_dedicated_bearer_context(
-    sgw_eps_bearer_context_information_t* sgw_ctxt_p,
-    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
-    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
-    uint32_t sequence_number, log_proto_t module);
-
 status_code_e sgw_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,

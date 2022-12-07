@@ -76,8 +76,7 @@ bool is_num_s1_bearers_valid(teid_t context_teid,
   for (auto itr = eps_bearer_map.map->begin(); itr != eps_bearer_map.map->end();
        itr++) {
     magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt = itr->second;
-
-    if (eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size()) {
+    if (eps_bearer_ctxt.enb_s1u_ip_addr().ipv4_addr().size()) {
       num_active_bearers++;
     }
   }
@@ -88,11 +87,10 @@ bool is_num_s1_bearers_valid(teid_t context_teid,
 }
 
 int get_num_pending_create_bearer_procedures(
-    magma::lte::oai::SgwEpsBearerContext* ctxt_p) {
+    magma::lte::oai::SgwEpsBearerContextInfo* ctxt_p) {
   if (ctxt_p == nullptr) {
     return 0;
   }
-
   return ctxt_p->pending_procedures_size();
 }
 
@@ -365,7 +363,7 @@ void fill_nw_initiated_deactivate_bearer_response(
     nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;
   } else {
-    for (int i = 0; i < num_bearer_context; i++) {
+    for (unsigned int i = 0; i < num_bearer_context; i++) {
       nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[i].eps_bearer_id =
           ebi[i];
       nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[i]

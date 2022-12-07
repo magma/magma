@@ -77,7 +77,7 @@ class SPGWAppProcedureTest : public ::testing::Test {
   teid_t create_default_session(spgw_state_t* spgw_state);
   ebi_t activate_dedicated_bearer(
       spgw_state_t* spgw_state,
-      s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p,
+      magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
       teid_t ue_sgw_teid);
   void deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid,
                                    ebi_t ded_eps_bearer_id);

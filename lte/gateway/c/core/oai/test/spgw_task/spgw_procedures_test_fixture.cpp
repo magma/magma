@@ -119,10 +119,9 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
   magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          .mutable_pdn_connection(),
+          ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
-
-  ASSERT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
+  EXPECT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
               UNASSIGNED_UE_IP);
 
   // send an IP alloc response to SPGW
@@ -136,9 +135,14 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
   EXPECT_EQ(return_code, RETURNok);
 
   // check if IP address is allocated after this message is done
+  sgw_cm_get_eps_bearer_entry(
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection(),
+      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
   struct in_addr ue_ipv4 = {};
+  int ue_ip = DEFAULT_UE_IP;
   inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
-  ASSERT_TRUE(ue_ipv4 == DEFAULT_UE_IP_DOT_FMT);
+  EXPECT_TRUE(!(memcmp(&ue_ipv4, &ue_ip, sizeof(DEFAULT_UE_IP))));
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;
@@ -202,25 +206,25 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
 
   EXPECT_EQ(return_code, RETURNok);
 
+  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
-  EXPECT_EQ(get_num_pending_create_bearer_procedures(
-                spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()),
-            1);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
 
   // fetch new SGW teid for the pending bearer procedure
+  teid_t ue_ded_bearer_sgw_teid = 0;
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
     magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
         sgw_context_p->mutable_pending_procedures(proc_index);
-    EXPECT_TRUE(pgw_ni_cbr_proc->type() !=
+    EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
                 PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
     for (int bearer_index = 0;
          bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
          bearer_index++) {
       magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
           pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
-      teid_t ue_ded_bearer_sgw_teid =
-          bearer_context_proto->sgw_teid_s1u_s12_s4_up;
+      ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
     }
   }
 

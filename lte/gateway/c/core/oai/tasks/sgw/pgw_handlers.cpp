@@ -655,6 +655,8 @@ status_code_e create_temporary_dedicated_bearer_context(
   // Create temporary spgw bearer context entry
   magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
       sgw_ctxt_p->add_pending_procedures();
+  pgw_ni_cbr_proc->set_type(
+      PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
   magma::lte::oai::SgwEpsBearerContext* eps_bearer_proto =
       pgw_ni_cbr_proc->add_pending_eps_bearers();
   eps_bearer_proto->MergeFrom(eps_bearer_ctxt);

@@ -78,8 +78,8 @@ int get_assigned_ipv4_block(int index, struct in_addr* netaddr,
  */
 int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
                                      const std::string apn,
-                                     const std::string pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id);
+                                     const std::string pdn_type,
+                                     teid_t context_teid, ebi_t eps_bearer_id);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -91,9 +91,10 @@ int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
  * @return status of gRPC call
  */
 
-int pgw_handle_allocate_ipv6_address(const std::string subscriber_id, const std::string apn,
-                                     const std::string pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv6_address(const std::string subscriber_id,
+                                     const std::string apn,
+                                     const std::string pdn_type,
+                                     teid_t context_teid, ebi_t eps_bearer_id);
 
 /*
  * Release an allocated IP address.
@@ -104,8 +105,8 @@ int pgw_handle_allocate_ipv6_address(const std::string subscriber_id, const std:
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param addr: IP address to release
  */
-void release_ipv4_address(const std::string subscriber_id, const std::string apn,
-                          const struct in_addr* addr);
+void release_ipv4_address(const std::string subscriber_id,
+                          const std::string apn, const struct in_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -117,8 +118,8 @@ void release_ipv4_address(const std::string subscriber_id, const std::string apn
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: IPv6 address to release in "host byte order
  */
-void release_ipv6_address(const std::string subscriber_id, const std::string apn,
-                          const struct in6_addr* addr);
+void release_ipv6_address(const std::string subscriber_id,
+                          const std::string apn, const struct in6_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -131,7 +132,8 @@ void release_ipv6_address(const std::string subscriber_id, const std::string apn
  * @param ipv4_addr: IPv4 address to release in "host byte order
  * @param ipv6_addr: IPv6 address to release in "host byte order
  */
-void release_ipv4v6_address(const std::string subscriber_id, const std::string apn,
+void release_ipv4v6_address(const std::string subscriber_id,
+                            const std::string apn,
                             const struct in_addr* ipv4_addr,
                             const struct in6_addr* ipv6_addr);
 

@@ -33,7 +33,7 @@ message SgwEpsBearerContextInfo {
     uint64 imsi64 = 6;
 
     uint32 mme_teid_s11 = 10; // teid_t
-    bytes mme_ip_address_s11 = 11;
+    bytes mme_ip_address_s11 = 11[deprecated = true];
 
     uint32 sgw_teid_s11_s4 = 15;
     bytes sgw_ip_address_s11_s4 = 16;

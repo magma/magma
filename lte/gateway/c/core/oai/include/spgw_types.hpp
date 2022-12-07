@@ -99,7 +99,7 @@ typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
 
 // Map- Key: eps_bearer_id(uint32), Data: SgwEpsBearerContext
 typedef magma::proto_map_s<uint32_t, magma::lte::oai::SgwEpsBearerContext>
-   map_uint32_spgw_eps_bearer_context_t;
+    map_uint32_spgw_eps_bearer_context_t;
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {

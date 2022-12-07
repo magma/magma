@@ -81,7 +81,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
   magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          .mutable_pdn_connection(),
+          ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
 
   ASSERT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
@@ -132,7 +132,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
   magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          .mutable_pdn_connection(),
+          ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
 
   ASSERT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
@@ -146,9 +146,14 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp, test_imsi64);
 
   // check if IP address is allocated after this message is done
+  sgw_cm_get_eps_bearer_entry(
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection(),
+      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
   struct in_addr ue_ipv4 = {};
+  int ue_ip = DEFAULT_UE_IP;
   inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
-  ASSERT_TRUE(ue_ipv4 == DEFAULT_UE_IP_DOT_FMT);
+  ASSERT_TRUE(!(memcmp(&ue_ipv4, &ue_ip, sizeof(DEFAULT_UE_IP))));
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;

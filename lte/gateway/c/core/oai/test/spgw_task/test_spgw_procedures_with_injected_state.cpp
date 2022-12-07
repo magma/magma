@@ -192,12 +192,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
   magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          .mutable_pdn_connection(),
+          ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
-  char* test_ue_ip = "192.168.128.13";
   struct in_addr ue_ipv4 = {};
   inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
-  ASSERT_TRUE(ue_ipv4 == test_ue_ip);
+  ASSERT_TRUE(!(memcmp(&ue_ipv4, &test_ue_ip, sizeof(test_ue_ip))));
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
@@ -256,6 +255,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
+#if 1
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
   status_code_e return_code = RETURNerror;
 
@@ -330,7 +330,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -360,20 +360,27 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
 
   EXPECT_EQ(return_code, RETURNok);
 
+  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
 
   // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+  teid_t ue_ded_bearer_sgw_teid = 0;
+  for (int proc_index = 0;
+       proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
+    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+        sgw_context_p->mutable_pending_procedures(proc_index);
+    EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
+                PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
+    for (int bearer_index = 0;
+         bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
+         bearer_index++) {
+      magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+          pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
+      ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
+    }
+  }
 
   // send bearer activation response from MME
   itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
@@ -390,10 +397,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 0);
 
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
@@ -407,7 +411,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -437,20 +441,21 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
 
   EXPECT_EQ(return_code, RETURNok);
 
+  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
 
   // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
+  teid_t ue_ded_bearer_sgw_teid = 0;
+  for (int proc_index = 0;
+       proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
+    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+        sgw_context_p->mutable_pending_procedures(proc_index);
+    magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+        pgw_ni_cbr_proc->mutable_pending_eps_bearers(0);
+    ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
+  }
 
   // send bearer activation response from MME
   ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
@@ -468,10 +473,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 0);
 
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -522,7 +524,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -552,21 +554,27 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
 
   EXPECT_EQ(return_code, RETURNok);
 
+  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      1);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
 
   // fetch new SGW teid for the pending bearer procedure
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information);
-  EXPECT_TRUE(pgw_ni_cbr_proc != nullptr);
-  sgw_eps_bearer_entry_wrapper_t* spgw_eps_bearer_entry_p =
-      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-  teid_t ue_ded_bearer_sgw_teid =
-      spgw_eps_bearer_entry_p->sgw_eps_bearer_entry->s_gw_teid_S1u_S12_S4_up;
-
+  teid_t ue_ded_bearer_sgw_teid = 0;
+  for (int proc_index = 0;
+       proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
+    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+        sgw_context_p->mutable_pending_procedures(proc_index);
+    EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
+                PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
+    for (int bearer_index = 0;
+         bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
+         bearer_index++) {
+      magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+          pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
+      ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
+    }
+  }
   // send bearer activation response from MME
   ebi_t ded_eps_bearer_id = DEFAULT_EPS_BEARER_ID + 1;
   itti_s11_nw_init_actv_bearer_rsp_t sample_nw_init_ded_bearer_actv_resp = {};
@@ -583,10 +591,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 2));
 
   // check that no pending procedure is left
-  EXPECT_EQ(
-      get_num_pending_create_bearer_procedures(
-          &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information),
-      0);
+  EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 0);
 
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -631,6 +636,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
+#endif
 }  // namespace lte
 }  // namespace magma

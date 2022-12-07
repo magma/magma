@@ -164,14 +164,15 @@ void convert_proto_ip_to_standard_ip_fmt(magma::lte::oai::IpTupple* proto_ip,
                                          struct in_addr* ipv4,
                                          struct in6_addr* ipv6,
                                          bool ipv6_enabled);
-void traffic_flow_template_to_proto(const traffic_flow_template_t* tft_state,
-                                    magma::lte::oai::TrafficFlowTemplate* tft_proto);
+void traffic_flow_template_to_proto(
+    const traffic_flow_template_t* tft_state,
+    magma::lte::oai::TrafficFlowTemplate* tft_proto);
 void eps_bearer_qos_to_proto(
     const bearer_qos_t* eps_bearer_qos_state,
     magma::lte::oai::SgwBearerQos* eps_bearer_qos_proto);
 
 void port_range_to_proto(const port_range_t* port_range,
-                    magma::lte::oai::PortRange* port_range_proto);
+                         magma::lte::oai::PortRange* port_range_proto);
 
 void sgw_create_session_message_to_proto(
     const itti_s11_create_session_request_t* session_request,
