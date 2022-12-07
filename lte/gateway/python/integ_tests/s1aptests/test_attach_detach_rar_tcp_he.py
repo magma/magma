@@ -54,8 +54,6 @@ class TestAttachDetachRarTcpHE(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
-        gtp_br_util = GTPBridgeUtils()
-        GTP_PORT = gtp_br_util.get_gtp_port_no()
         utils = HeaderEnrichmentUtils()
 
         for i in range(num_ues):
@@ -202,6 +200,9 @@ class TestAttachDetachRarTcpHE(unittest.TestCase):
             # Check if UL and DL OVS flows are created
             # UPLINK
             print("Checking for uplink flow")
+            gtp_br_util = GTPBridgeUtils()
+            GTP_PORT = gtp_br_util.get_gtp_port_no()
+
             # try at least 5 times before failing as gateway
             # might take some time to install the flows in ovs
             for i in range(MAX_NUM_RETRIES):
@@ -218,10 +219,8 @@ class TestAttachDetachRarTcpHE(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(uplink_flows) > 1, "Uplink flow missing for UE"
-            assert (
-                uplink_flows[0]["match"]["tunnel_id"] is not None,
-                "Uplink flow missing tunnel id match",
-            )
+            assert uplink_flows[0]["match"]["tunnel_id"] is not None, \
+                "Uplink flow missing tunnel id match"
 
             # DOWNLINK
             print("Checking for downlink flow")
@@ -246,10 +245,8 @@ class TestAttachDetachRarTcpHE(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(downlink_flows) > 1, "Downlink flow missing for UE"
-            assert (
-                downlink_flows[0]["match"]["ipv4_dst"] == ue_ip,
-                "UE IP match missing from downlink flow",
-            )
+            assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip, \
+                "UE IP match missing from downlink flow"
 
             actions = downlink_flows[0]["instructions"][0]["actions"]
             has_tunnel_action = any(
@@ -258,9 +255,7 @@ class TestAttachDetachRarTcpHE(unittest.TestCase):
                 if action["field"] == "tunnel_id"
                 and action["type"] == "SET_FIELD"
             )
-            assert (
-                has_tunnel_action, "Downlink flow missing set tunnel action",
-            )
+            assert has_tunnel_action, "Downlink flow missing set tunnel action"
 
             print("Sleeping for 5 seconds")
             time.sleep(5)

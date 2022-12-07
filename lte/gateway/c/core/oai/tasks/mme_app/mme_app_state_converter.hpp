@@ -16,15 +16,14 @@
  */
 
 #pragma once
-extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-}
+
+#include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
 #include <sstream>
 #include "lte/protos/oai/mme_nas_state.pb.h"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ueip_imsi_map.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ueip_imsi_map.hpp"
 
 /******************************************************************************
  * This is a helper class to encapsulate all functions for converting in-memory

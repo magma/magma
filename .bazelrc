@@ -1,4 +1,4 @@
-startup --output_base=/tmp/bazel
+startup --output_base=/var/tmp/bazel
 startup --host_jvm_args="-Xmx8g"
 
 # STYLE CONFIGS
@@ -6,6 +6,12 @@ build --announce_rc
 build --color=yes
 
 build:production --config=lsan --copt=-O3
+build:production --define=production=1
+
+# experimental_allow_tags_propagation means that tags will be propagated from
+# a target to the actions' execution requirements.
+# See https://github.com/bazelbuild/bazel/issues/8830 for details.
+common --experimental_allow_tags_propagation
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
@@ -21,9 +27,6 @@ build --per_file_copt=^lte/gateway/c/.*$@-g
 # DEFAULT TEST CONFIGURATION
 # Please read the GH issue #13073 before adding "test" options.
 test --test_output=errors
-
-# Use dynamically linked folly library
-build --define=folly_so=1
 
 # MAGMA VM CONFIGS
 build:specify_vm_cc --action_env=CC=/usr/bin/gcc
@@ -43,7 +46,7 @@ common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
 # REMOTE CACHING READ-ONLY CONFIGS
 # The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
 # The full config is then written to bazel/bazelrcs/cache.bazelrc
-build:remote_caching_ro --remote_upload_local_results=false 
+build:remote_caching_ro --remote_upload_local_results=false
 
 # REMOTE DOWNLOAD OPTIMIZATION
 build:remote_download_optimization --remote_download_minimal
@@ -63,6 +66,9 @@ build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
 # Needed by python tests (e.g. freedomfi_one_tests in enodebd)
 build --test_env=MAGMA_ROOT
 build --test_env=S1AP_TESTER_ROOT
+
+# Needed for go tests to generate the test result XML in the correct format  
+build --test_env=GO_TEST_WRAP_TESTV=1
 
 # MME specific compile time defines
 # Compile mme libraries with unit test flag

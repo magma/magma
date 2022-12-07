@@ -31,25 +31,32 @@ Author      Frederic Maurel, Lionel GAUTHIER
 Description NAS procedure call manager
 
 *****************************************************************************/
-#ifndef FILE_NAS_PROC_SEEN
-#define FILE_NAS_PROC_SEEN
+
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
 
 /****************************************************************************/
@@ -84,9 +91,6 @@ void nas_proc_cleanup(void);
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e nas_proc_establish_ind(
     const mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
     const tai_t originating_tai, const ecgi_t ecgi, const as_cause_t as_cause,
@@ -133,9 +137,6 @@ status_code_e nas_proc_cs_domain_location_updt_fail(
     SgsRejectCause_t cause, lai_t* lai, mme_ue_s1ap_id_t mme_ue_s1ap_id);
 status_code_e nas_proc_cs_service_notification(mme_ue_s1ap_id_t ue_id,
                                                uint8_t paging_id, bstring cli);
-#ifdef __cplusplus
-}
-#endif
 status_code_e nas_proc_auth_param_res(mme_ue_s1ap_id_t ue_id,
                                       uint8_t nb_vectors,
                                       eutran_vector_t* vectors);
@@ -143,4 +144,6 @@ status_code_e nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id,
                                        nas_cause_t cause);
 int nas_proc_signalling_connection_rel_ind(mme_ue_s1ap_id_t ue_id);
 int nas_proc_smc_fail(emm_cn_smc_fail_t* emm_cn_smc_fail);
-#endif /* FILE_NAS_PROC_SEEN*/
+
+void mme_ue_context_update_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                                               bool vlr_reliable);

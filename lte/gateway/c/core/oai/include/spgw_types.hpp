@@ -41,6 +41,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
@@ -80,15 +81,35 @@ typedef struct sgw_s11_teid_s {
   LIST_ENTRY(sgw_s11_teid_s) entries;
 } sgw_s11_teid_t;
 
+// Map- Key:teid (uint32_t) ,
+// Data:s_plus_p_gw_eps_bearer_context_information_s*
+typedef magma::proto_map_s<uint32_t,
+                           struct s_plus_p_gw_eps_bearer_context_information_s*>
+    state_teid_map_t;
+
 typedef struct spgw_ue_context_s {
   LIST_HEAD(teid_list_head_s, sgw_s11_teid_s) sgw_s11_teid_list;
 } spgw_ue_context_t;
+
+// Map- Key:imsi of uint64_t, Data:spgw_ue_context_s*
+typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
+    map_uint64_spgw_ue_context_t;
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
   uint32_t local_teid;   ///< Local tunnel endpoint Identifier
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
+
+// Map with Key: imsi of uint64_t, Data: spgw_ue_context_t*
+typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
+    map_uint64_sgw_ue_context_t;
+
+// Map with Key: csr_proc_id of uint32_t
+// Data: sgw_eps_bearer_context_information_s*
+typedef magma::proto_map_s<uint32_t,
+                           struct sgw_eps_bearer_context_information_s*>
+    map_uint32_sgw_eps_bearer_context_t;
 
 // AGW-wide state for SGW task
 typedef struct sgw_state_s {
@@ -97,14 +118,13 @@ typedef struct sgw_state_s {
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
   struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
   struct in_addr sgw_ip_address_S5S8_up;
-  hash_table_ts_t* imsi_ue_context_htbl;
-  hash_table_ts_t* temporary_create_session_procedure_id_htbl;
+  map_uint64_sgw_ue_context_t imsi_ue_context_map;
+  map_uint32_sgw_eps_bearer_context_t temporary_create_session_procedure_id_map;
 } sgw_state_t;
 
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
-  hash_table_ts_t* deactivated_predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;

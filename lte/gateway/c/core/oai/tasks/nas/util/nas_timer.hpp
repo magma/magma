@@ -31,8 +31,7 @@ Author      Frederic Maurel
 Description Timer utilities
 
 *****************************************************************************/
-#ifndef FILE_NAS_TIMER_SEEN
-#define FILE_NAS_TIMER_SEEN
+#pragma once
 
 #include <czmq.h>
 
@@ -81,21 +80,9 @@ typedef struct nas_itti_timer_arg_s {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
+status_code_e nas_timer_init(void);
+void nas_timer_cleanup(void);
 
-/*TODO: These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- */
-/*status_code_e nas_timer_init(void);
-void nas_timer_cleanup(void);*/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
                      timer_arg_t* time_out_cb_args);
 void nas_timer_stop(nas_timer_t* const timer);
-#ifdef __cplusplus
-}
-#endif
-#endif /* FILE_NAS_TIMER_SEEN */

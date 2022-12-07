@@ -28,63 +28,76 @@ ifdef enable-flaky-retry
 else
 	FLAKY_CMD_ARGS :=
 endif
+
+define apply_final_status
+	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; \
+	then echo "Final status: Passed"; \
+	else echo "Final status: Failed"; exit 1; \
+	fi
+endef
+
 # Don't remove the ending comment from function execute_test. Somehow without
 # any ending statement the failing testcases are missing status update
 define execute_test
 	echo "Running test: $(1)"
-	timeout --foreground -k 930s 900s sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) $(BIN)/pytest $(FLAKY_CMD_ARGS) --capture=tee-sys --junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) || (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
+	timeout --foreground -k 930s 900s \
+	sudo -E PATH=$(PATH) PYTHONPATH=$(PYTHONPATH):$(S1AP_TESTER_PYTHON_PATH) \
+	$(BIN)/pytest \
+	$(FLAKY_CMD_ARGS) \
+	--capture=tee-sys \
+	--junit-xml=$(RESULTS_DIR)/$(basename $(notdir $(1))).xml -x $(1) \
+	|| (echo "fail" > $(MAGMA_ROOT)/test_status.txt && exit 1)
 	# Testcase $(1) execution completed
 endef
 
-.PHONY: precommit
-precommit: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
+.PHONY: prepare_environment
+prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-endif
+	echo "pass" > $(MAGMA_ROOT)/test_status.txt
+	echo "Flaky test retries enabled? $(enable-flaky-retry)"
+
+.PHONY: prepare_federation
+prepare_federation:
+	$(eval export FEDERATED_MODE = True)
+
+.PHONY: selected_tests
+selected_tests: prepare_environment
+	-$(foreach test,$(TESTS),$(call execute_test,$(test));)
+
+.PHONY: precommit
+precommit: prepare_environment
+	-$(foreach test,$(PRECOMMIT_TESTS),$(call execute_test,$(test));)
+
+.PHONY: precommit_tests_noncontainer
+precommit_tests_noncontainer: prepare_environment
+	-$(foreach test,$(PRECOMMIT_TESTS_NOT_CONTAINER) $(PRECOMMIT_TESTS_IPV6),$(call execute_test,$(test));)
+
+.PHONY: extended_tests
+extended_tests: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS),$(call execute_test,$(test));)
+
+.PHONY: extended_tests_noncontainer
+extended_tests_noncontainer: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS_NOT_CONTAINER),$(call execute_test,$(test));)
+
+.PHONY: extended_tests_long
+extended_tests_long: prepare_environment
+	-$(foreach test,$(EXTENDED_TESTS_LONG),$(call execute_test,$(test));)
 
 .PHONY: integ_test
-integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-ifndef enable-flaky-retry
-	echo "Flaky test retries are disabled"
-	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-else
-	echo "Flaky test retries are enabled"
-	-$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
-	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final integ_test status: Passed"; else echo "Final integ_test status: Failed"; exit 1; fi
-endif
-endif
+integ_test: precommit precommit_tests_noncontainer extended_tests extended_tests_noncontainer extended_tests_long
 
-.PHONY: fed_integ_test
-fed_integ_test: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
-	$(eval export FEDERATED_MODE = True)
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-ifndef enable-flaky-retry
-	echo "Flaky test retries are disabled"
-	$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
-else
-	echo "Flaky test retries are enabled"
+.PHONY: integ_test_containerized
+integ_test_containerized: precommit extended_tests
+
+.PHONY: federated_integ_test
+federated_integ_test: prepare_environment prepare_federation
 	-$(foreach test,$(FEDERATED_TESTS),$(call execute_test,$(test));)
-	if [ ! -z `grep -s pass $(MAGMA_ROOT)/test_status.txt` ]; then echo "Final fed_integ_test status: Passed"; else echo "Final fed_integ_test status: Failed"; exit 1; fi
-endif
-endif
 
 .PHONY: nonsanity
-nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
-	. $(PYTHON_BUILD)/bin/activate
-ifdef TESTS
-	$(call execute_test,$(TESTS))
-else
-	$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
-endif
+nonsanity: prepare_environment
+	-$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
+
+.PHONY: evaluate_result
+evaluate_result:
+	$(call apply_final_status)

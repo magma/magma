@@ -15,14 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_AUTHENTICATION_FAILURE_SEEN
-#define FILE_AUTHENTICATION_FAILURE_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -69,5 +68,3 @@ int decode_authentication_failure(
 int encode_authentication_failure(
     authentication_failure_msg* authenticationfailure, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(FILE_AUTHENTICATION_FAILURE_SEEN) */

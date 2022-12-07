@@ -175,11 +175,11 @@
 
 - name: Create the /var/www/local-cdn directory
   file: path=/var/www/local-cdn state=directory
-  when: full_provision
+  when: preburn
 
 - name: Create the /var/www/local-cdn/store directory
   file: path=/var/www/local-cdn/store state=directory
-  when: full_provision
+  when: preburn
 
 - name: Add Magma package directory
   become: no
@@ -229,6 +229,7 @@
       - prometheus-cpp-dev
       - libczmq-dev
       - libczmq-dev
+      - libsqlite3-dev
 
 - name: Install LI Agent dependencies
   retries: 5
@@ -237,6 +238,7 @@
     update_cache: yes
     pkg:
       - uuid-dev
+  when: preburn
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
   become: yes
@@ -262,8 +264,6 @@
     state: present
     update_cache: yes
     pkg:
-      # install prometheus
-      - prometheus-cpp-dev
       # install openvswitch
       - libopenvswitch
       - libopenvswitch-dev
@@ -303,7 +303,6 @@
     state: present
     update_cache: yes
     pkg:
-      - python3-openvswitch
       - nlohmann-json3-dev
       # managing gtp interface
       - ifupdown
@@ -333,35 +332,36 @@
   retries: 5
   when: preburn
 
-- name: Install C code coverage analysis dependencies
-  apt: pkg=lcov state=present update_cache=yes
-  retries: 5
-  when: preburn
-
 - name: Install gmock and gtest for C++ testing
   become: yes
   ignore_errors: yes
-  shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
+  shell: cmake . && cmake --build . --target install
   args:
-    chdir: /usr/src/{{ item }}
-  with_items:
-    - gtest
-    - gmock
+    chdir: /usr/src/googletest
   when: preburn
 
+# TODO: remove this step for next base image
+- name: Remove Old Golang
+  file:
+    path: "/usr/local/go/"
+    state: absent
+  when: full_provision
+
+# TODO: for the next base image it should be done in the preburn step
 - name: Download golang tar
   get_url:
-    url: "https://artifactory.magmacore.org/artifactory/generic/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    url: "https://linuxfoundation.jfrog.io/artifactory/magma-blob/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
-  when: preburn
+  when: full_provision
 
+# TODO: for the next base image it should be done in the preburn step
 - name: Extract Go tarball
   unarchive:
     src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: /usr/local
     copy: no
-  when: preburn
+  when: full_provision
 
 - name: Set Go environment vars in profile
   lineinfile:
@@ -371,7 +371,7 @@
   with_items:
     - export PATH=$PATH:/usr/local/bin/go/
     - export PATH=$PATH:$(go env GOPATH)/bin/
-  when: preburn
+  when: full_provision
 
 - name: Install dnsmasq
   apt: pkg=dnsmasq state=present update_cache=yes
@@ -462,14 +462,20 @@
     state: latest
     pkg:
       - magma-libfluid
+  when: preburn
 
 - name: Create eBPF code dir
   command: 'mkdir /var/opt/magma/ebpf/ -p'
-  when: full_provision
+  when: preburn
 
 - name: Prepare AGW for eBPF
-  command: 'apt-get -y install bcc-tools linux-headers-5.4.0-74-generic'
-  when: full_provision
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - linux-headers-5.4.0-74-generic
+  when: preburn
+
 
 - name: Copy eBPF code
   copy:
@@ -489,15 +495,6 @@
     dest: /var/opt/magma/ebpf/EbpfMap.h
     force: yes
     remote_src: yes
-  when: full_provision
-
-# TODO: preburn this and add it under MME(OAI) dependencies
-- name: Install SQLite3 C++ library
-  retries: 5
-  apt:
-    state: latest
-    pkg:
-      - libsqlite3-dev
   when: full_provision
 
 - name: Extend sda2

@@ -14,6 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
+
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,42 +30,40 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 
 #define MAX_MINUTE_DIGITS 3 /* Maximum digits required to hold minute value */
 

@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -28,15 +30,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
-
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
@@ -47,20 +47,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msgDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int pdn_connectivity_delete(emm_context_t* ctx, int pid);
-#ifdef __cplusplus
-}
-#endif
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -141,7 +135,7 @@ void esm_sap_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-extern "C" status_code_e esm_sap_send(esm_sap_t* msg) {
+status_code_e esm_sap_send(esm_sap_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;
   int esm_sap_rc;

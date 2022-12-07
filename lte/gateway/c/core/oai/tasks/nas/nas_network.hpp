@@ -32,10 +32,9 @@ Description NAS procedure functions triggered by the network
 
 *****************************************************************************/
 
-#ifndef FILE_NAS_NETWORK_SEEN
-#define FILE_NAS_NETWORK_SEEN
+#pragma once
 
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -52,18 +51,10 @@ Description NAS procedure functions triggered by the network
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void nas_network_initialize(const mme_config_t* mme_config_p);
 
 void nas_network_cleanup(void);
-#ifdef __cplusplus
-}
-#endif
 
 int nas_network_process_data(int command_id, const void* data);
 
 const void* nas_network_get_data(void);
-
-#endif /* FILE_NAS_NETWORK_SEEN*/

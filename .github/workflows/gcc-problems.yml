@@ -19,7 +19,7 @@
 #   - Option: by improving our build system and enabling faster build-all-targets
 #######
 
-name: "GCC Warnings & Errors"
+name: AGW Generate GCC Warnings & Errors
 on:
   push:
     branches:
@@ -39,14 +39,14 @@ concurrency:
 jobs:
   path_filter:
     if: github.repository_owner == 'magma'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
@@ -61,11 +61,11 @@ jobs:
       - path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Build all Bazelified C/C++ targets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Base Image
@@ -136,9 +136,9 @@ jobs:
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_BAZEL_CI }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Build all Bazelified C/C++ targets"
-          SLACK_USERNAME: "GCC Warnings & Errors"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

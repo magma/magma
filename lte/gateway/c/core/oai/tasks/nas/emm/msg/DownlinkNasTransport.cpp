@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.hpp"
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,7 +27,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DownlinkNasTransport.hpp"
 
 int decode_downlink_nas_transport(
     downlink_nas_transport_msg* downlink_nas_transport, uint8_t* buffer,

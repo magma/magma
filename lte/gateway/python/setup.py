@@ -86,6 +86,7 @@ setup(
         'scripts/spgw_service_cli.py',
         'scripts/cpe_monitoring_cli.py',
         'scripts/state_cli.py',
+        'scripts/dhcp_helper_cli.py',
         'scripts/dp_probe_cli.py',
         'scripts/user_trace_cli.py',
         'scripts/icmpv6.py',
@@ -105,6 +106,7 @@ setup(
         'lxml==4.9.1',
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
+        'dpkt==1.9.8',
         'scapy==2.4.5',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',
@@ -133,12 +135,12 @@ setup(
         'ovs==2.16.0',
         'prometheus-client>=0.3.1',
         'aioeventlet @ git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619',
+        'sdnotify>=0.3.2',
     ],
     extras_require={
         'dev': [
             # Should be kept in sync with the version in python.mk
             'grpcio-tools>=1.46.3,<1.49.0',
-            'coverage==6.4.2',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',
             'pytest==7.1.2',

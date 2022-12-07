@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: insync-check
+name: Orc8r Check Generated Files In Sync
 
 on:
   push:
@@ -29,12 +29,12 @@ concurrency:
 jobs:
   insync-checkin:
     name: insync checkin job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Run build.py
@@ -58,7 +58,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
-          SLACK_USERNAME: "Cloud workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_MESSAGE: "COMMIT TITLE:
 
             \ ${{steps.commit.outputs.title}}

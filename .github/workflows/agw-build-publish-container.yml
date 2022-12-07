@@ -1,0 +1,190 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: AGW Build, Publish & Test Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        type: string
+        description: Overwrite registry (default linuxfoundation.jfrog.io/magma-docker-agw-test).
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+env:
+  registry: ${{ inputs.registry || 'linuxfoundation.jfrog.io/magma-docker-agw-test' }}
+
+jobs:
+
+  build-containers:
+    outputs:
+      digest_c: ${{ steps.docker-builder-c.outputs.digest }}
+      digest_python: ${{ steps.docker-builder-python.outputs.digest }}
+      digest_go: ${{ steps.docker-builder-go.outputs.digest }}
+      registry: ${{ steps.set-registry.outputs.registry }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo Registry is ${{ steps.set-registry.outputs.registry }}
+          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+
+      - id: get-short-git-sha
+        name: Set short git sha output
+        run: |
+          echo ${GITHUB_SHA:0:8}
+          echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+
+      - name: verify git sha output
+        run: echo git sha is ${{ steps.get-short-git-sha.outputs.sha }}
+
+      - name: Set agwc tags
+        id: set-agwc-tags
+        run: |
+          c_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c
+          python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
+          go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
+
+          commit_hash=${{ steps.get-short-git-sha.outputs.sha }}
+          if [[ ${{ github.ref_name }} = master ]]
+          then
+            echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash},${python_image}:latest >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash},${go_image}:latest >> $GITHUB_OUTPUT
+          else
+            echo c_image_tags=${c_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash} >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print agwc tags
+        run: |
+          echo "C image: ${{ steps.set-agwc-tags.outputs.c_image_tags }}"
+          echo "Python image: ${{ steps.set-agwc-tags.outputs.python_image_tags }}"
+          echo "Go image: ${{ steps.set-agwc-tags.outputs.go_image_tags }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-c
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/c/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.c_image_tags }}
+      - run: echo "C container image digest is ${{ steps.docker-builder-c.outputs.digest }}"
+      - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-python
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/python/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
+      - run: echo "Python container image digest is ${{ steps.docker-builder-python.outputs.digest }}"
+      - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-go
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: feg/gateway/docker/go/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
+      - run: echo "Go container image digest is ${{ steps.docker-builder-go.outputs.digest }}"
+      - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
+
+  build-containers-ghz:
+    runs-on: ubuntu-20.04
+    needs: build-containers
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo Registry is ${{ steps.set-registry.outputs.registry }}
+          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+
+      - id: get-short-git-sha
+        run: echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+          CONTEXT: lte/gateway/docker/ghz
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+          CONTEXT: lte/gateway/docker/ghz
+
+  test-containers-precommit:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      digest_c: ${{ needs.build-containers.outputs.digest_c }}
+      digest_python: ${{ needs.build-containers.outputs.digest_python }}
+      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: precommit
+    secrets: inherit
+
+  test-containers-extended:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      digest_c: ${{ needs.build-containers.outputs.digest_c }}
+      digest_python: ${{ needs.build-containers.outputs.digest_python }}
+      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: extended_tests
+    secrets: inherit

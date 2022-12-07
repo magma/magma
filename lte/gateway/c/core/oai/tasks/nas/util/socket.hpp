@@ -31,8 +31,7 @@ Author    Frederic Maurel
 Description Implements TCP socket handlers
 
 *****************************************************************************/
-#ifndef FILE_SOCKET_SEEN
-#define FILE_SOCKET_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include <sys/types.h>
@@ -67,5 +66,3 @@ ssize_t socket_recv(void* id, char* buffer, size_t length);
 ssize_t socket_send(const void* id, const char* buffer, size_t length);
 
 void socket_close(void* id);
-
-#endif /* FILE_SOCKET_SEEN*/

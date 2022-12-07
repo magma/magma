@@ -17,5 +17,6 @@
   become: yes
 
   roles:
+    - role: gai_config
     - role: magma_deb
     - role: service_aliases

@@ -30,11 +30,11 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.hpp"
 
 int decode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,

@@ -15,12 +15,12 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,8 +33,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_asDef.hpp"
@@ -47,13 +47,7 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/

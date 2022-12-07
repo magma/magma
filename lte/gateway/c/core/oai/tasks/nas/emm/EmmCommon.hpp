@@ -41,16 +41,15 @@ Description Defines callback functions executed within EMM common procedures
         EMM information
 
 *****************************************************************************/
-#ifndef FILE_EMM_COMMON_SEEN
-#define FILE_EMM_COMMON_SEEN
+#pragma once
+
 #include <pthread.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
@@ -141,15 +140,8 @@ void create_new_attach_info(emm_context_t* emm_context_p,
 
 status_code_e verify_tau_tai(uint64_t imsi64, guti_t guti, tai_t tai,
                              tai_list_t* emm_ctx_tai);
-#ifdef __cplusplus
-extern "C" {
-#endif
 partial_list_t* emm_verify_orig_tai(const tai_t orig_tai);
 
 status_code_e update_tai_list_to_emm_context(
     uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
     tai_list_t* tai_list);
-#ifdef __cplusplus
-}
-#endif
-#endif /* FILE_EMM_COMMON_SEEN*/

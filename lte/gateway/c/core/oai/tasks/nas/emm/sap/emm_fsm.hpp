@@ -33,8 +33,7 @@ Description Defines the EPS Mobility Management procedures executed at
         the EMMREG Service Access Point.
 
 *****************************************************************************/
-#ifndef FILE_EMM_FSM_SEEN
-#define FILE_EMM_FSM_SEEN
+#pragma once
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -82,15 +81,8 @@ struct emm_reg_s;
 status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ueid,
                                 struct emm_context_s* const emm_context,
                                 const emm_fsm_state_t status);
-/* TODO:These declarations are temporarily moved to emm_headers.hpp file to
- * resolve undefined references. Uncomment these functions and delete
- * emm_headers.hpp after moving all the files to c++
- * GH issue: https://github.com/magma/magma/issues/13096
- */
-
-/*emm_fsm_state_t emm_fsm_get_state(
-    const struct emm_context_s* const emm_context);*/
+emm_fsm_state_t emm_fsm_get_state(
+    const struct emm_context_s* const emm_context);
 const char* emm_fsm_get_state_str(
     const struct emm_context_s* const emm_context);
 status_code_e emm_fsm_process(struct emm_reg_s* const evt);
-#endif /* FILE_EMM_FSM_SEEN*/

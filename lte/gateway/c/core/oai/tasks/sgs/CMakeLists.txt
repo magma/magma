@@ -1,8 +1,8 @@
 find_package(Protobuf REQUIRED)
 
 add_library(TASK_SGS
-    sgs_task.c
-    sgs_service_handler.c
+    sgs_task.cpp
+    sgs_service_handler.cpp
     )
 
 target_link_libraries(TASK_SGS

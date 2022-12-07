@@ -24,11 +24,11 @@ import (
 	"time"
 
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 type (
@@ -106,7 +106,6 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 		"Called-Station-Id":  {"type": "string", "value": []string{normalize(rfc2865.CalledStationID_GetString(r.Packet))}},
 		"Calling-Station-Id": {"type": "string", "value": []string{normalize(rfc2865.CallingStationID_GetString(r.Packet))}},
 		"NAS-Identifier":     {"type": "string", "value": []string{rfc2865.NASIdentifier_GetString(r.Packet)}},
-		"XWF-C-Version":      {"type": "string", "value": []string{analyticsVersion}},
 	}
 	// If no nas ip address is specified then no field will be sent
 	if rfc2865.NASIPAddress_Get(r.Packet) != nil {
@@ -134,8 +133,7 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 		zap.Any("request", r.Packet.Attributes),
 		zap.String("Called-Station-Id", rfc2865.CalledStationID_GetString(r.Packet)),
 		zap.String("Calling-Station-Id", rfc2865.CallingStationID_GetString(r.Packet)),
-		zap.String("NAS-Identifier", rfc2865.NASIdentifier_GetString(r.Packet)),
-		zap.String("XWF-C-Version", analyticsVersion))
+		zap.String("NAS-Identifier", rfc2865.NASIdentifier_GetString(r.Packet)))
 
 	if resp.StatusCode != http.StatusOK {
 		rc.Logger.Error("bad status code",

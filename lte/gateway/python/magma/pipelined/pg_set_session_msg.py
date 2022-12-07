@@ -32,7 +32,7 @@ class CreateMMESessionUtils(ABC):
         vlan: int,
         in_teid: int,
         out_teid: int,
-        ue_state: int,
+        ue_state: str,
         flow_dl: str,
     ):
         """Do create the MME Sessions

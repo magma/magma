@@ -3,7 +3,7 @@ setuptools==49.6.0
 grpcio-tools<1.49.0
 grpcio<1.49.0
 redis>=3.5
-protobuf
+protobuf>=3.20.3
 six
 pyyaml
 urllib3
@@ -15,6 +15,7 @@ prometheus_client==0.3.1
 redis-collections
 python-redis-lock
 jsonpickle
+dpkt
 netifaces
 scapy
 wsgiserver
@@ -25,7 +26,7 @@ bravado_core
 jsonschema==3.2.0
 psutil
 systemd-python
-# cryptography<38.0.0 because of runtime issues when starting magmad 
+# cryptography<38.0.0 because of runtime issues when starting magmad
 cryptography<38.0.0
 #  h2>=3,<4 is requirement of aioh2 (loaded via bazel)
 h2>=3,<4
@@ -47,6 +48,7 @@ routes==2.5.1
 tinyrpc==1.1.4
 webob==1.8.7
 ovs==2.16.0
+sdnotify>=0.3.2,<1
 
 # scripts requirements
 envoy>=0.0.3

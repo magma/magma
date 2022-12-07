@@ -166,12 +166,12 @@ class TrafficMessage(object):
         stream.flush()
 
 
-# Enumerated type for TrafficRequest; module-level for pickling purposes
-TrafficRequestType = enum.unique(
-    enum.Enum(
-        'TrafficRequestType', 'EXIT SHUTDOWN START TEST',
-    ),
-)
+@enum.unique
+class TrafficRequestType(enum.Enum):
+    EXIT = 1
+    SHUTDOWN = 2
+    START = 3
+    TEST = 4
 
 
 class TrafficRequest(TrafficMessage):
@@ -191,12 +191,12 @@ class TrafficRequest(TrafficMessage):
         super(TrafficRequest, self).__init__(message, identifier, payload)
 
 
-# Enumerated type for TrafficResponse; module-level for pickling purposes
-TrafficResponseType = enum.unique(
-    enum.Enum(
-        'TrafficResponseType', 'INFO RESULTS SERVER STARTED',
-    ),
-)
+@enum.unique
+class TrafficResponseType(enum.Enum):
+    INFO = 1
+    RESULTS = 2
+    SERVER = 3
+    STARTED = 4
 
 
 class TrafficResponse(TrafficMessage):

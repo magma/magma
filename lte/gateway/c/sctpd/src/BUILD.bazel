@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
 
@@ -17,6 +18,7 @@ cc_binary(
     name = "sctpd",
     srcs = ["sctpd.cpp"],
     linkstatic = True,
+    tags = TAG_SERVICE,
     visibility = ["//lte/gateway/release:__pkg__"],
     deps = [
         ":config",
@@ -27,6 +29,7 @@ cc_binary(
         "//orc8r/gateway/c/common/sentry:sentry_wrapper",
         "//orc8r/gateway/c/common/service_registry",
         "//orc8r/protos:mconfigs_cpp_proto",
+        "@system_libraries//:libsystemd",
     ],
 )
 

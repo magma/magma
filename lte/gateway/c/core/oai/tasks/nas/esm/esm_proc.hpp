@@ -32,15 +32,14 @@ Description Defines the EPS Session Management procedures executed at
         the ESM Service Access Points.
 
 *****************************************************************************/
-#ifndef __ESM_PROC_H__
-#define __ESM_PROC_H__
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -98,9 +97,6 @@ typedef struct esm_proc_data_s {
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_proc_status_ind(emm_context_t* emm_context,
                                   const proc_tid_t pti, ebi_t ebi,
                                   esm_cause_t* esm_cause);
@@ -160,9 +156,6 @@ status_code_e esm_proc_esm_information_response(
     emm_context_t* emm_context_p, pti_t pti, const_bstring const apn,
     const protocol_configuration_options_t* const pco,
     esm_cause_t* const esm_cause);
-#ifdef __cplusplus
-}
-#endif
 
 /*
  * --------------------------------------------------------------------------
@@ -170,9 +163,6 @@ status_code_e esm_proc_esm_information_response(
  * --------------------------------------------------------------------------
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_proc_default_eps_bearer_context_request(
     bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
     STOLEN_REF bstring* msg, const bool ue_triggered);
@@ -222,8 +212,3 @@ status_code_e esm_proc_eps_bearer_context_deactivate_request(
     STOLEN_REF bstring* msg, const bool ue_triggered);
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* __ESM_PROC_H__*/

@@ -40,24 +40,23 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
@@ -412,9 +411,6 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
 //------------------------------------------------------------------------------
 /* Clear UE network capability IE   */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
   memset(&ctxt->_ue_network_capability, 0,
          sizeof(ctxt->_ue_network_capability));
@@ -426,9 +422,6 @@ void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
                (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
                    ->mme_ue_s1ap_id);
 }
-#ifdef __cplusplus
-}
-#endif
 
 /* Set UE network capability IE */
 inline void emm_ctx_set_ue_nw_cap(
@@ -444,9 +437,6 @@ inline void emm_ctx_set_ue_nw_cap(
 }
 
 /* Set UE network capability IE, mark it as valid */
-#ifdef __cplusplus
-extern "C" {
-#endif
 void emm_ctx_set_valid_ue_nw_cap(
     emm_context_t* const ctxt,
     const ue_network_capability_t* const ue_nw_cap_ie) {
@@ -458,9 +448,6 @@ void emm_ctx_set_valid_ue_nw_cap(
                (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
                    ->mme_ue_s1ap_id);
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 /* Clear MS network capability IE   */
@@ -625,9 +612,6 @@ void emm_ctx_set_mobile_station_clsMark2(
 
 //------------------------------------------------------------------------------
 /* Free dynamically allocated memory */
-#ifdef __cplusplus
-extern "C" {
-#endif
 void free_emm_ctx_memory(emm_context_t* const ctxt,
                          const mme_ue_s1ap_id_t ue_id) {
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -641,9 +625,6 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 struct emm_context_s* emm_context_get(emm_data_t* emm_data,  // TODO REMOVE
@@ -690,27 +671,25 @@ struct emm_context_s* emm_context_get_by_imsi(
 
 status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
                                       struct emm_context_s* elm) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
   mme_ue_s1ap_id_t ue_id =
       (PARENT_STRUCT(elm, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id;
 
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  h_rc = hashtable_uint64_ts_remove(
-      mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-      (const hash_key_t)elm->_imsi64);
+  mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.remove(elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    h_rc = hashtable_uint64_ts_insert(
-        mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-        (const hash_key_t)elm->_imsi64, ue_id);
+    if (mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.insert(
+            elm->_imsi64, ue_id) != magma::PROTO_MAP_OK) {
+      OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
+                        "Insert failed on imsi2mme_ueid_map "
+                        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                        ue_id);
+      return RETURNerror;
+    }
   } else {
-    h_rc = HASH_TABLE_KEY_NOT_EXISTS;
-  }
-  if (HASH_TABLE_OK != h_rc) {
-    OAILOG_TRACE(LOG_MME_APP,
-                 "Error could not update this ue context "
-                 "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
-                 ": %s\n",
-                 ue_id, elm->_imsi64, hashtable_rc_code2string(h_rc));
+    OAILOG_WARNING_UE(LOG_MME_APP, elm->_imsi64,
+                      "Could not update ue context due to invalid "
+                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+                      ue_id);
     return RETURNerror;
   }
   return RETURNok;
@@ -839,9 +818,6 @@ void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
   }
 }
 //------------------------------------------------------------------------------
-#ifdef __cplusplus
-extern "C" {
-#endif
 void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
                     struct nas_timer_s* const T3450) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
@@ -851,9 +827,6 @@ void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
                  ue_id);
   }
 }
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,

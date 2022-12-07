@@ -82,9 +82,9 @@ func (GyInitMethod) EnumDescriptor() ([]byte, []int) {
 	return file_feg_protos_mconfig_mconfigs_proto_rawDescGZIP(), []int{0}
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // FeG configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type DiamClientConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -917,7 +917,7 @@ func (x *EapAkaConfig) GetMncLen() int32 {
 
 // EapProviderTimeouts is a generic EAP provider timeout config for all new providers
 // TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
-//       of the switch farther planning is required
+// of the switch farther planning is required
 type EapProviderTimeouts struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -34,14 +34,14 @@ Description Defines the EMM primitives available at the EMMAS Service
         Stratum sublayer.
 
 *****************************************************************************/
-#ifndef FILE_EMM_ASDEF_SEEN
-#define FILE_EMM_ASDEF_SEEN
+#pragma once
+
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
@@ -377,5 +377,3 @@ typedef struct emm_as_s {
  */
 void emm_as_set_security_data(emm_as_security_data_t* data, const void* context,
                               bool is_new, bool is_ciphered);
-
-#endif /* FILE_EMM_ASDEF_SEEN*/

@@ -18,10 +18,10 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 
 extern "C" {
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 }
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 using magma::lte::oai::CreateSessionMessage;
@@ -215,8 +215,10 @@ void SpgwStateConverter::sgw_pdn_connection_to_proto(
 
 void SpgwStateConverter::proto_to_sgw_pdn_connection(
     const oai::SgwPdnConnection& proto, sgw_pdn_connection_t* state_pdn) {
-  state_pdn->apn_in_use =
-      strndup(proto.apn_in_use().c_str(), proto.apn_in_use().length());
+  if ((proto.apn_in_use().length())) {
+    state_pdn->apn_in_use =
+        strndup(proto.apn_in_use().c_str(), proto.apn_in_use().length());
+  }
   state_pdn->default_bearer = proto.default_bearer();
   state_pdn->ue_suspended_for_ps_handover =
       proto.ue_suspended_for_ps_handover();
@@ -231,8 +233,7 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
 
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
-      auto* eps_bearer_entry =
-          (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+      auto* eps_bearer_entry = new sgw_eps_bearer_ctxt_t();
       proto_to_sgw_eps_bearer(proto.eps_bearer_list(i), eps_bearer_entry);
       state_pdn->sgw_eps_bearers_array[i] = eps_bearer_entry;
     }
@@ -921,8 +922,7 @@ void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
   *procedures_p =
-      (sgw_eps_bearer_context_information_t::pending_procedures_s*)calloc(
-          1, sizeof(*procedures_p));
+      new sgw_eps_bearer_context_information_t::pending_procedures_s();
   LIST_INIT(*procedures_p);
   for (auto& procedure_proto : proto.pending_procedures()) {
     if (procedure_proto.type() ==
@@ -936,8 +936,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
     const oai::PgwCbrProcedure& proto,
     sgw_eps_bearer_context_information_t::pending_procedures_s*
         pending_procedures) {
-  pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      (pgw_ni_cbr_proc_t*)calloc(1, sizeof(pgw_ni_cbr_proc_t));
+  pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
   s11_proc_create_bearer->teid = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t)proto.sdf_id();
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
@@ -945,17 +944,15 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      (struct pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
-          1, sizeof(*s11_proc_create_bearer->pending_eps_bearers));
+      new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
   for (auto& eps_bearer_proto : proto.pending_eps_bearers()) {
-    sgw_eps_bearer_ctxt_t* eps_bearer =
-        (sgw_eps_bearer_ctxt_t*)calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
+    sgw_eps_bearer_ctxt_t* eps_bearer = new sgw_eps_bearer_ctxt_t();
+
     proto_to_sgw_eps_bearer(eps_bearer_proto, eps_bearer);
 
     sgw_eps_bearer_entry_wrapper_t* sgw_eps_bearer_entry_wrapper =
-        (sgw_eps_bearer_entry_wrapper_t*)calloc(
-            1, sizeof(*sgw_eps_bearer_entry_wrapper));
+        new sgw_eps_bearer_entry_wrapper_t();
     sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry = eps_bearer;
     LIST_INSERT_HEAD((s11_proc_create_bearer->pending_eps_bearers),
                      sgw_eps_bearer_entry_wrapper, entries);
@@ -981,19 +978,19 @@ void SpgwStateConverter::ue_to_proto(const spgw_ue_context_t* ue_state,
 void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
                                      spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  hash_table_ts_t* state_ue_ht = nullptr;
-  hash_table_ts_t* state_teid_ht = nullptr;
+  map_uint64_spgw_ue_context_t* state_ue_map = nullptr;
+  state_teid_map_t* state_teid_map = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
-    state_teid_ht = get_spgw_teid_state();
-    if (!state_teid_ht) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_ht \n");
+    state_teid_map = get_spgw_teid_state();
+    if (!state_teid_map) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
-    state_ue_ht = get_spgw_ue_state();
-    if (!state_ue_ht) {
+    state_ue_map = get_spgw_ue_state();
+    if (!state_ue_map) {
       OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+                   "Failed to get state_ue_map from get_spgw_ue_state() \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
@@ -1002,8 +999,7 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
         ue_proto.s11_bearer_context(0).sgw_eps_bearer_context().imsi64();
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
-      hashtable_ts_insert(state_ue_ht, (const hash_key_t)imsi64,
-                          (void*)ue_context_p);
+      state_ue_map->insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Failed to allocate memory for UE context \n");
@@ -1017,19 +1013,19 @@ void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
   for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
-        (s_plus_p_gw_eps_bearer_context_information_t*)(calloc(
-            1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
-    if (!spgw_context_p) {
-      OAILOG_ERROR(LOG_SPGW_APP,
-                   "Failed to allocate memory for SPGW context \n");
-      OAILOG_FUNC_OUT(LOG_SPGW_APP);
-    }
+        new s_plus_p_gw_eps_bearer_context_information_t();
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
-    hashtable_ts_insert(
-        state_teid_ht,
-        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
-        (void*)spgw_context_p);
+    if ((state_teid_map->insert(
+             spgw_context_p->sgw_eps_bearer_context_information
+                 .s_gw_teid_S11_S4,
+             spgw_context_p) != magma::PROTO_MAP_OK)) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to insert spgw_context_p for teid " TEID_FMT " \n",
+          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
     spgw_update_teid_in_ue_context(
         spgw_context_p->sgw_eps_bearer_context_information.imsi64,
         spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);

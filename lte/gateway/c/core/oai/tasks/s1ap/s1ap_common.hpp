@@ -429,10 +429,9 @@ extern int asn1_xer_print;
 
 /** \brief Function callback prototype.
  **/
-typedef status_code_e (*s1ap_message_handler_t)(s1ap_state_t* state,
-                                                const sctp_assoc_id_t assoc_id,
-                                                const sctp_stream_id_t stream,
-                                                S1ap_S1AP_PDU_t* pdu);
+typedef status_code_e (*s1ap_message_handler_t)(
+    magma::lte::oai::S1apState* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
 
 /** \brief Handle criticality
  \param criticality Criticality of the IE

@@ -11,7 +11,7 @@
 
 # Based on https://github.com/sqren/backport-github-action/blob/main/README.md under MIT license.
 
-name: backport-pull-request
+name: PR Backport
 on:
   pull_request_target:
     types:
@@ -21,7 +21,7 @@ on:
 jobs:
   backport:
     name: Backport
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: >
       github.event.pull_request.merged
       && contains(join(github.event.pull_request.labels.*.name, ', '), 'apply-')

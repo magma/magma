@@ -11,7 +11,7 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
   - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
-  - /etc/snowflake:/etc/snowflake
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
   - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
   - ./:/var/opt/magma/docker
   - /var/run:/var/run
@@ -26,7 +26,7 @@ x-magmad-volumes: &magmad_volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
   - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
-  - /etc/snowflake:/etc/snowflake
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
   - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
   - ./:/var/opt/magma/docker
   - /var/run:/var/run
@@ -62,6 +62,7 @@ services:
       retries: 3
     volumes: *magmad_volumes_anchor
     environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
@@ -93,6 +94,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.directoryd.main
 
   subscriberdb:
@@ -103,6 +106,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.subscriberdb.main
 
   enodebd:
@@ -115,6 +120,8 @@ services:
       retries: 3
     cap_add:
       - NET_ADMIN  # The container is invoking iptables and needs NET_ADMIN for that
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.enodebd.main
 
   state:
@@ -127,6 +134,8 @@ services:
       retries: 3
     depends_on:
       - redis
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.state.main
 
   policydb:
@@ -139,6 +148,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.policydb.main
 
   health:
@@ -149,6 +160,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.health.main
 
   monitord:
@@ -161,6 +174,8 @@ services:
       retries: 3
     cap_add:
       - NET_RAW
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.monitord.main
 
   redirectd:
@@ -181,6 +196,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.smsd.main
 
   control_proxy:
@@ -191,6 +208,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: >
       sh -c "/usr/local/bin/generate_nghttpx_config.py &&
              sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&
@@ -204,6 +223,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.ctraced.main
 
   sctpd:
@@ -220,6 +241,7 @@ services:
       - seccomp:unconfined
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/local/bin/sctpd
 
   oai_mme:
@@ -230,6 +252,7 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+      start_period: "10s"
     ulimits:
       core: -1
     security_opt:
@@ -237,6 +260,7 @@ services:
     privileged: true
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     depends_on:
       - magmad
     cap_add:
@@ -253,6 +277,7 @@ services:
     privileged: true
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     pid: "host"
     cap_add:
       - NET_ADMIN
@@ -278,8 +303,6 @@ services:
       core: -1
     security_opt:
       - seccomp:unconfined
-    environment:
-      MAGMA_PRINT_GRPC_PAYLOAD: 0
     depends_on:
       - directoryd
     healthcheck:
@@ -289,6 +312,9 @@ services:
       retries: 3
     cap_drop:
       - ALL
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/local/bin/sessiond
 
   mobilityd:
@@ -299,6 +325,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command:
       sh -c "sleep 5 && /usr/bin/env python3 -m magma.mobilityd.main"
 
@@ -312,6 +340,8 @@ services:
       retries: 3
     logging:
       driver: "json-file"
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
@@ -324,6 +354,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.eventd.main
 
   connectiond:
@@ -336,6 +368,8 @@ services:
       retries: 3
     cap_add:
       - NET_ADMIN
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/local/bin/connectiond
 
   liagentd:
@@ -346,6 +380,8 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/local/bin/liagentd
     restart: "no"
 
@@ -358,4 +394,56 @@ services:
       interval: "4s"
       timeout: "4s"
       retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /var/opt/magma/bin/envoy_controller
+
+  # for docker compose v1: https://github.com/docker/compose/issues/8351#issuecomment-1085811366
+  # also see https://docs.docker.com/compose/compose-file/#depends_on
+  waitForHealthyPods:
+    image: alpine:latest
+    depends_on:
+      magmad:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      directoryd:
+        condition: service_healthy
+      subscriberdb:
+        condition: service_healthy
+      enodebd:
+        condition: service_healthy
+      state:
+        condition: service_healthy
+      policydb:
+        condition: service_healthy
+      health:
+        condition: service_healthy
+      monitord:
+        condition: service_healthy
+      redirectd:
+        condition: service_healthy
+      smsd:
+        condition: service_healthy
+      control_proxy:
+        condition: service_healthy
+      ctraced:
+        condition: service_healthy
+      sctpd:
+        condition: service_healthy
+      oai_mme:
+        condition: service_healthy
+      pipelined:
+        condition: service_healthy
+      sessiond:
+        condition: service_healthy
+      mobilityd:
+        condition: service_healthy
+      td-agent-bit:
+        condition: service_healthy
+      eventd:
+        condition: service_healthy
+      connectiond:
+        condition: service_healthy
+      envoy_controller:
+        condition: service_healthy

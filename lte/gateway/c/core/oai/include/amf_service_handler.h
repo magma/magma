@@ -12,6 +12,7 @@
  */
 
 #pragma once
+
 #include "lte/gateway/c/core/oai/include/messages_types.h"
 
 /*

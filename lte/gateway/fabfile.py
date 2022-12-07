@@ -12,18 +12,19 @@ limitations under the License.
 """
 
 import sys
-from distutils.util import strtobool
+from datetime import datetime
 from time import sleep
 
-from fabric.api import cd, env, execute, local, run, settings, sudo
+from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
 from fabric.contrib.files import exists
 from fabric.operations import get
+from fabric.utils import error, fastprint, puts
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
 import tools.fab.pkg as pkg
-from fabric.api import lcd
+from tools.fab.dev_utils import connect_gateway_to_cloud
 from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
+from tools.fab.python_utils import strtobool
 from tools.fab.vagrant import setup_env_vagrant
 
 """
@@ -33,7 +34,7 @@ Magma packages released to different channels have different version schemes.
 
     - dev: used for development.
 
-    - test: used for Continuous Integration (CI). Packages in the `test`
+    - release: used for Continuous Integration (CI). Packages in the `release`
             channel should be built and released automatically.
 
 # HOWTO build magma.deb
@@ -70,47 +71,40 @@ def dev():
     env.debug_mode = True
 
 
-# TODO: Deprecate
-def test():
-    print("Caution! 'test' will be deprecated soon. Please migrate to using 'release'.")
-    env.debug_mode = False
-
-
 def release():
     """Set debug_mode to False, should be used for producing a production AGW package"""
     env.debug_mode = False
 
 
 def package(
-    all_deps="False",
+    all_deps='False',
     cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
     destroy_vm='False',
     vm='magma', os="ubuntu",
 ):
     """ Builds the magma package """
-    all_deps = False if all_deps == "False" else True
-    destroy_vm = bool(strtobool(destroy_vm))
+    all_deps = strtobool(all_deps)
+    destroy_vm = strtobool(destroy_vm)
 
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup(vm, destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
-        print(
-            "Error: The Deploy target isn't specified. Specify one with\n\n"
+        error(
+            "Error: The Deploy target isn't specified. Specify one with\n\n" +
             "\tfab [dev|release] package",
         )
-        exit(1)
 
     hash = pkg.get_commit_hash()
     commit_count = pkg.get_commit_count()
+    puts('Uninstalling dev dependencies of the VM')
+    run('sudo pip uninstall --yes mypy-protobuf grpcio-tools grpcio protobuf')
 
     with cd('~/magma/lte/gateway'):
-        # Generate magma dependency packages
         run('mkdir -p ~/magma-deps')
-        print(
-            'Generating lte/setup.py and orc8r/setup.py '
-            'magma dependency packages',
+        puts(
+            'Generating lte/setup.py and orc8r/setup.py magma dependency packages',
         )
         run(
             './release/pydep finddep --install-from-repo -b --build-output '
@@ -120,7 +114,7 @@ def package(
             + (' %s/setup.py' % ORC8R_AGW_PYTHON_ROOT),
         )
 
-        print('Building magma package, picking up commit %s...' % hash)
+        puts('Building magma package, picking up commit %s...' % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
 
@@ -158,7 +152,7 @@ def package(
 
 
 def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
-    destroy_vm = bool(strtobool(destroy_vm))
+    destroy_vm = strtobool(destroy_vm)
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
         vagrant_setup('magma', destroy_vm=destroy_vm)
@@ -187,23 +181,11 @@ def copy_packages():
     pkg.copy_packages()
 
 
-def connect_gateway_to_cloud(
-    control_proxy_setting_path=None,
-    cert_path=DEFAULT_CERT,
-):
-    """
-    Setup the gateway VM to connects to the cloud
-    Path to control_proxy.yml and rootCA.pem could be specified to use
-    non-default control proxy setting and certificates
-    """
-    setup_env_vagrant()
-    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
-
-
 def s1ap_setup_cloud():
     """ Prepare VMs for s1ap tests touching the cloud. """
     # Use the local cloud for integ tests
-    connect_gateway_to_cloud()
+    setup_env_vagrant()
+    connect_gateway_to_cloud(None, DEFAULT_CERT)
 
     # Update the gateway's streamer timeout and restart services
     run("sudo mkdir -p /var/opt/magma/configs")
@@ -256,11 +238,11 @@ def federated_integ_test(
         build_all='False', clear_orc8r='False', provision_vm='False',
         destroy_vm='False', orc8r_on_vagrant='False',
 ):
-    build_all = bool(strtobool(build_all))
-    clear_orc8r = bool(strtobool(clear_orc8r))
-    provision_vm = bool(strtobool(provision_vm))
-    destroy_vm = bool(strtobool(destroy_vm))
-    orc8r_on_vagrant = bool(strtobool(orc8r_on_vagrant))
+    build_all = strtobool(build_all)
+    clear_orc8r = strtobool(clear_orc8r)
+    provision_vm = strtobool(provision_vm)
+    destroy_vm = strtobool(destroy_vm)
+    orc8r_on_vagrant = strtobool(orc8r_on_vagrant)
 
     if orc8r_on_vagrant:
         # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
@@ -284,7 +266,7 @@ def federated_integ_test(
         local("fab start_all:orc8r_on_vagrant={}".format(orc8r_on_vagrant))
 
         if orc8r_on_vagrant:
-            print("Wait for orc8r to be available")
+            fastprint("Wait for orc8r to be available")
             sleep(60)
 
         local("fab configure_orc8r")
@@ -300,7 +282,7 @@ def federated_integ_test(
     )
     execute(_make_integ_tests)
     sleep(20)
-    execute(run_integ_tests, federated_mode=True)
+    execute(_run_integ_tests, test_mode="federated_integ_test")
 
 
 def _modify_for_bazel_services():
@@ -322,8 +304,8 @@ def provision_magma_dev_vm(
         services on. Formatted as "host:port". If not specified, defaults to
         the `magma` vagrant box.
     """
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     if not gateway_host:
         gateway_host = vagrant_setup(
@@ -331,8 +313,6 @@ def provision_magma_dev_vm(
         )
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
-
-    execute(_dist_upgrade)
 
 
 def bazel_integ_test_post_build(
@@ -356,8 +336,8 @@ def bazel_integ_test_post_build(
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
     """
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     gateway_ip = '192.168.60.142'
 
@@ -372,7 +352,7 @@ def bazel_integ_test_post_build(
     execute(_modify_for_bazel_services)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     if not trf_host:
         trf_host = vagrant_setup(
@@ -441,18 +421,16 @@ def integ_test(
         `magma_trfserver` vagrant box.
     """
 
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
-    execute(_dist_upgrade)
     execute(_build_magma)
-    execute(_run_sudo_python_unit_tests)
     execute(_start_gateway)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # Set up the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
     _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
     execute(_start_trfserver)
@@ -491,8 +469,8 @@ def integ_test_deb_installation(
         `magma_trfserver` vagrant box.
     """
 
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
 
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -511,53 +489,71 @@ def integ_test_deb_installation(
     execute(_run_integ_tests, gateway_ip)
 
 
-def run_integ_tests(tests=None, federated_mode=False):
+def integ_test_containerized(
+        gateway_host=None, test_host=None, trf_host=None,
+        destroy_vm='True', provision_vm='True',
+        test_mode='integ_test_containerized',
+        tests='',
+):
     """
-    Function is required to run tests only in pre-configured Jenkins env.
-
-    In case of no tests specified with command executed like follows:
-    $ fab run_integ_tests
-
-    default tests set will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test
-
-    In case of selecting specific test like follows:
-    $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-    $ fab run_integ_tests:tests=federated_tests/s1aptests/test_attach_detach.py,federated_mode=True
-
-    The specific test will be executed as a result of the execution of following
-    command in test machine:
-    $ make integ_test TESTS=s1aptests/test_attach_detach.py
-    $ make fed_integ_test TESTS=federated_tests/s1aptests/test_attach_detach.py
+    Run the integration tests against the containerized AGW.
+    Other than that the same as `integ_test`.
     """
-    vagrant_setup("magma_test", destroy_vm=False)
-    gateway_ip = '192.168.60.142'
-    if tests:
-        tests = "TESTS=" + tests
 
-    execute(_run_integ_tests, gateway_ip, tests, _to_boolean(federated_mode))
+    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = bool(strtobool(provision_vm))
+
+    # Set up the gateway: use the provided gateway if given, else default to the
+    # vagrant machine
+    gateway_host, gateway_ip = _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
+    execute(_start_gateway_containerized)
+
+    # Set up the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    _setup_vm(trf_host, "magma_trfserver", "trfserver", "magma_trfserver.yml", destroy_vm, provision_vm)
+    execute(_start_trfserver)
+
+    # Run the tests: use the provided test machine if given, else default to
+    # the vagrant machine
+    _setup_vm(test_host, "magma_test", "test", "magma_test.yml", destroy_vm, provision_vm)
+    execute(_make_integ_tests)
+    execute(_run_integ_tests, gateway_ip, test_mode=test_mode, tests=tests)
 
 
-def _to_boolean(value):
-    """Fabric function arguments passed by calling fab from external are strings.
-    This is, boolean arguments set to "True" and "False" must be interpreted.
-    """
-    if isinstance(value, bool):
-        return value
+def _start_gateway_containerized():
+    """ Starts the containerized AGW """
+    with cd(AGW_PYTHON_ROOT):
+        run('make buildenv')
 
-    if not isinstance(value, str):
-        raise ValueError('Input can not be parsed to boolean - not a string or a boolean.')
+    with cd(AGW_ROOT):
+        run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
 
-    return bool(strtobool(value))
+    with cd(AGW_ROOT + "/docker"):
+        # The `docker-compose up` times are machine dependent, such that a retry is needed here for resilience.
+        run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+
+
+def run_with_retry(command, retries=10):
+    iteration = 0
+    while iteration < retries:
+        iteration += 1
+        try:
+            run(command)
+            break
+        except:
+            fastprint(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
+            sleep(3)
+    else:
+        run("docker ps")  # It is _not_ docker-compose by intention to see the container ID.
+        raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
 
 
 def get_test_summaries(
         gateway_host=None,
         test_host=None,
         dst_path="/tmp",
-        integration_tests=True,
-        sudo_tests=True,
+        integration_tests='True',
+        sudo_tests='True',
         dev_vm_name="magma",
 ):
     local('mkdir -p ' + dst_path)
@@ -567,11 +563,11 @@ def get_test_summaries(
         "magma_deb": "magma_deb.yml",
     }
 
-    if _to_boolean(sudo_tests):
+    if strtobool(sudo_tests):
         _switch_to_vm_no_provision(gateway_host, dev_vm_name, vm_name_to_yaml[dev_vm_name])
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    if _to_boolean(integration_tests):
+    if strtobool(integration_tests):
         _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
         with settings(warn_only=True):
             get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
@@ -579,6 +575,7 @@ def get_test_summaries(
 
 def get_test_logs(
     gateway_host=None,
+    gateway_host_name='magma',
     test_host=None,
     trf_host=None,
     dst_path="/tmp/build_logs.tar.gz",
@@ -619,7 +616,7 @@ def get_test_logs(
     # Set up to enter the gateway host
     env.host_string = gateway_host
     if not gateway_host:
-        setup_env_vagrant("magma")
+        setup_env_vagrant(gateway_host_name)
         gateway_host = env.hosts[0]
     (env.user, _, _) = split_hoststring(gateway_host)
 
@@ -671,42 +668,6 @@ def get_test_logs(
     local('rm -rf /tmp/build_logs')
 
 
-def load_test(gateway_host=None, destroy_vm=True):
-    """
-    Run the load performance tests. This defaults to running on local vagrant
-    machines, but can also be pointed to an arbitrary host (e.g. amazon) by
-    passing "address:port" as arguments.
-
-    Args:
-        gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `magma` vagrant box.
-        destroy_vm: If the vagrant VM should be destroyed and setup
-        before running load tests.
-    """
-    # Setup the gateway: use the provided gateway if given, else default to the
-    # vagrant machine
-    if gateway_host:
-        ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
-        gateway_ip = gateway_host.split('@')[1].split(':')[0]
-    else:
-        gateway_host = vagrant_setup('magma', _to_boolean(destroy_vm))
-        gateway_ip = '192.168.60.142'
-
-    execute(_build_magma)
-    execute(_start_gateway)
-
-    # Sleep for 10 secs to let magma services finish starting
-    sleep(10)
-
-    execute(_run_load_tests, gateway_ip)
-
-    if not gateway_host:
-        execute(setup_env_vagrant)
-    else:
-        env.hosts = [gateway_host]
-
-
 def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='False'):
     """
     Build Magma AGW and starts magma
@@ -718,8 +679,8 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
     Returns:
 
     """
-    provision_vm = bool(strtobool(provision_vm))
-    destroy_vm = bool(strtobool(destroy_vm))
+    provision_vm = strtobool(provision_vm)
+    destroy_vm = strtobool(destroy_vm)
     if gateway_host:
         ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
     else:
@@ -730,8 +691,8 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
 
 
 def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma_test', destroy_vm, force_provision=provision_vm)
     else:
@@ -740,8 +701,8 @@ def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
 
 
 def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma_trfserver', destroy_vm, force_provision=provision_vm)
     else:
@@ -750,8 +711,8 @@ def build_and_start_magma_trf(test_host=None, destroy_vm='False', provision_vm='
 
 
 def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
-    destroy_vm = bool(strtobool(destroy_vm))
-    provision_vm = bool(strtobool(provision_vm))
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     if not test_host:
         vagrant_setup('magma', destroy_vm, force_provision=provision_vm)
     else:
@@ -760,6 +721,8 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
 
 
 def build_test_vms(provision_vm='False', destroy_vm='False'):
+    destroy_vm = strtobool(destroy_vm)
+    provision_vm = strtobool(provision_vm)
     vagrant_setup(
         'magma_trfserver', destroy_vm, force_provision=provision_vm,
     )
@@ -781,15 +744,9 @@ def _copy_out_c_execs_in_magma_vm():
         run('mkdir -p ' + dest_path)
         for exec_path in exec_paths:
             if not exists(exec_path):
-                print(exec_path + " does not exist")
+                fastprint(exec_path + " does not exist")
                 continue
             run('cp ' + exec_path + ' ' + dest_path)
-
-
-def _dist_upgrade():
-    """ Upgrades OS packages on dev box """
-    run('sudo apt-get update')
-    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():
@@ -798,13 +755,6 @@ def _build_magma():
     """
     with cd(AGW_ROOT):
         run('make')
-
-
-def _run_sudo_python_unit_tests():
-    """ Run the magma unit tests """
-    with cd(AGW_ROOT):
-        # Run all unit tests that are not run as pre-commit checks in CI
-        run('make test_sudo_python')
 
 
 def _start_gateway():
@@ -846,24 +796,12 @@ def _make_integ_tests():
         run('make')
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=False):
+def _run_integ_tests(gateway_ip='192.168.60.142', test_mode='integ_test', tests=''):
     """ Run the integration tests
 
-    For now, just run a single basic test
-    """
-
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
-    key = env.key_filename
-    tests = tests or ''
-    test_mode = 'integ_test'
-    if federated_mode:
-        test_mode = 'fed_integ_test'
-
-    """
-    NOTE: the s1aptester produces a bunch of output which the python ssh
+    NOTE: The S1AP-tester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
-    ssh into machine and run the tests
+    ssh into machine and run the tests.
 
     ssh switch reference:
         -i: identity file
@@ -873,48 +811,26 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None, federated_mode=Fal
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
-    local(
-        'ssh -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-        ' source ~/build/python/bin/activate;'
-        ' export GATEWAY_IP=%s;'
-        ' make %s enable-flaky-retry=true %s\''
-        % (key, host, port, gateway_ip, test_mode, tests),
-    )
-
-
-def _run_load_tests(gateway_ip='192.168.60.142'):
-    """
-    Run the load tests on given gateway IP.
-
-    ssh switch reference:
-    -i: identity file
-    -tt: (really) force a pseudo tty -- The tests can't initialize logging
-        without this
-    -p: the port to connect to
-    -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
-     never prompt to confirm the host fingerprints
-    """
-
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
 
+    # We do not have a proper shell, so the `magtivate` alias is not available.
+    # We instead directly source the activate file.
     local(
-        'ssh -i %s -o UserKnownHostsFile=/dev/null'
-        ' -o StrictHostKeyChecking=no -tt %s -p %s'
-        ' \'cd $MAGMA_ROOT/lte/gateway/python/load_tests; '
-        # We don't have a proper shell, so the `magtivate` alias isn't
-        # available. We instead directly source the activate file
-        ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-        ' source ~/build/python/bin/activate;'
-        ' export GATEWAY_IP=%s;'
-        ' make load_test\''
-        % (key, host, port, gateway_ip),
+        f'ssh'
+        f' -i {key}'
+        f' -o UserKnownHostsFile=/dev/null'
+        f' -o StrictHostKeyChecking=no'
+        f' -tt {host}'
+        f' -p {port}'
+        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests;'
+        f' sudo ethtool --offload eth1 rx off tx off;'
+        f' sudo ethtool --offload eth2 rx off tx off;'
+        f' source ~/build/python/bin/activate;'
+        f' export GATEWAY_IP={gateway_ip};'
+        f' make {test_mode} enable-flaky-retry=true {tests};'
+        f' make evaluate_result\'',
     )
 
 

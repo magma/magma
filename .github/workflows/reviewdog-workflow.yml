@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: reviewdog-workflow
+name: PR Lint Reviewdog
 on:
   pull_request_target:
     types:
@@ -26,25 +26,22 @@ concurrency:
 # github-pr-review: Adds lint as GitHub comments
 jobs:
   files_changed:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
-      changed_go: ${{ steps.changes.outputs.go }}
       changed_javascript: ${{ steps.changes.outputs.javascript }}
       changed_python: ${{ steps.changes.outputs.python }}
       changed_terraform: ${{ steps.changes.outputs.terraform }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
             cpp:
               - ["lte/gateway/c/**", "orc8r/gateway/c/**"]
-            go:
-              - ["src/go/**"]
             javascript:
               - ["nms/**", "**/*.js"]
             python:
@@ -67,9 +64,9 @@ jobs:
     #  For details on cpplint optinos see the detailed comments in
     #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
     ##
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -91,16 +88,16 @@ jobs:
   golangci-lint:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_go == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@1530051a4d9af7e1c94afb2ea38fe7ba13e180ee # pin@v2
+        uses: reviewdog/action-golangci-lint@53f8eabb87b40b1a2c63ec75b0d418bd0f4aa919 # pin@v2.2.2
         with:
           golangci_lint_flags: '--config=../../.golangci.yml'
           reporter: github-pr-review
@@ -108,10 +105,10 @@ jobs:
 
   hadolint:
     name: dockerfile-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -129,18 +126,18 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_javascript == 'true' }}
     name: eslint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
-        uses: actions/checkout@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
       - name: setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # pin@v3.5.1
         with:
-          node-version: '16'
+          node-version: 16
       - name: install dependencies
         run: yarn install
         working-directory: 'nms/'
@@ -154,10 +151,10 @@ jobs:
 
   markdownlint:
     name: markdownlint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
-        uses: actions/checkout@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -173,10 +170,10 @@ jobs:
 
   misspell:
     name: misspell
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -195,10 +192,10 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: mypy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out code.
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -212,9 +209,9 @@ jobs:
 
   shellcheck:
     name: shellcheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -231,9 +228,9 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_terraform == 'true' }}
     name: tflint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -251,9 +248,9 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: wemake-python-styleguide
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
@@ -268,9 +265,9 @@ jobs:
 
   yamllint:
     name: yamllint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}

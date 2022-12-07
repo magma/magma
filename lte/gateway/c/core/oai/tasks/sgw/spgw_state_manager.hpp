@@ -26,6 +26,7 @@ namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
     "s11_bearer_context_information_htbl";
+constexpr char SPGW_STATE_UE_MAP[] = "spgw_state_ue_map";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
 constexpr char SPGW_TASK_NAME[] = "SPGW";
 }  // namespace
@@ -70,20 +71,22 @@ class SpgwStateManager
 
   status_code_e read_ue_state_from_db() override;
 
-  hash_table_ts_t* get_state_teid_ht();
+  state_teid_map_t* get_state_teid_map();
+  map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
 
  private:
   SpgwStateManager();
   ~SpgwStateManager();
 
   /**
-   * Allocates a new spgw_state_t struct, and inits hashtables and state
+   * Allocates a new spgw_state_t struct, and inits protobuf maps and state
    * structs to default values.
    */
   void create_state() override;
 
-  hash_table_ts_t* state_teid_ht_;
+  state_teid_map_t state_teid_map;
   const spgw_config_t* config_;
+  map_uint64_spgw_ue_context_t state_ue_map;
 };
 
 }  // namespace lte

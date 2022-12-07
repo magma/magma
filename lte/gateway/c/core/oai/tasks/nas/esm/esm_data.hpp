@@ -33,15 +33,14 @@ Description Defines internal private data handled by EPS Session
 
 *****************************************************************************/
 
-#ifndef __ESMDATA_H__
-#define __ESMDATA_H__
+#pragma once
 
-#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -206,16 +205,10 @@ typedef struct esm_data_s {
 void nas_start_T3489(const mme_ue_s1ap_id_t ue_id,
                      struct nas_timer_s* const T3470, time_out_t time_out_cb);
 void nas_stop_T3489(esm_context_t* const esm_ctx);
-#ifdef __cplusplus
-extern "C" {
-#endif
 void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context);
 void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context);
 void free_esm_context_content(esm_context_t* esm_ctx);
 void esm_init_context(struct esm_context_s* esm_ctx);
-#ifdef __cplusplus
-}
-#endif
 
 struct esm_context_s* esm_data_context_get(esm_data_t* esm_data,
                                            unsigned int _ueid);
@@ -246,5 +239,3 @@ extern char* esm_data_get_ipv4_addr(const_bstring ip_addr);
 extern char* esm_data_get_ipv6_addr(const_bstring ip_addr);
 
 extern char* esm_data_get_ipv4v6_addr(const_bstring ip_addr);
-
-#endif /* __ESMDATA_H__*/

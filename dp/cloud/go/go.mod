@@ -11,7 +11,7 @@
 //
 module magma/dp/cloud/go
 
-go 1.18
+go 1.19
 
 replace (
 	magma/dp/cloud/go => ../../../dp/cloud/go
@@ -29,7 +29,7 @@ require (
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang/glog v1.0.0
 	github.com/golang/protobuf v1.5.2
-	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/olivere/elastic/v7 v7.0.6
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/exp v0.0.0-20220907003533-145caa8ea1d0

@@ -14,7 +14,7 @@ Description=Magma sctpd service
 Before=magma@mme.service
 
 [Service]
-Type=simple
+Type=notify
 EnvironmentFile=/etc/environment
 ExecStartPre=-/bin/cp -f /usr/local/share/sctpd/version /var/run/sctpd.version
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_pre

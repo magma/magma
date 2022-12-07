@@ -17,8 +17,8 @@ limitations under the License.
 // GatewayDirectoryService RPC can be provided by a local Gateway/Device service as well as the cloud hosted service.
 // UE locations are reported directly from the relevant device/gateway.
 // Depending on a gateway/device capacity & resources, UE locations can be reported using GatewayDirectoryService RPC:
-//   1) to a locally run directoryd service, backed up by a local DB and synchronized with the cloud by state service
-//   2) to a cloud based directoryd service
+//  1. to a locally run directoryd service, backed up by a local DB and synchronized with the cloud by state service
+//  2. to a cloud based directoryd service
 //
 // Gateways/devices with an excess capacity to host and run local GatewayDirectoryService service & database (currently
 // python based & requiring 40-70MB extra RAM & storage) should prefer reporting path #1 due to its higher persistency,

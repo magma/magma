@@ -135,7 +135,7 @@ func GetEvents(ctx context.Context, params EventQueryParams, client *elastic.Cli
 	return doSearch(ctx, search)
 }
 
-//  GetMultiStreamEvents exposes more query options than EventsHandler,
+// GetMultiStreamEvents exposes more query options than EventsHandler,
 func GetMultiStreamEvents(ctx context.Context, params MultiStreamEventQueryParams, client *elastic.Client) ([]models.Event, error) {
 	query := params.toElasticBoolQuery()
 	search := client.Search().

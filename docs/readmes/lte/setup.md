@@ -25,12 +25,12 @@ To bring up an Access Gateway (AGW) VM using Vagrant:
 
 Vagrant will bring up the VM, then Ansible will provision the VM.
 
-- Once the Access Gateway VM is up and provisioned, run the following commands:
+- Once the Access Gateway VM is up and provisioned, run the following command to ssh into the VM:
 
-```text
-HOST:magma/lte/gateway USER$ vagrant ssh magma
-AGW:~ USER$ cd magma/lte/gateway
-AGW:~/magma/lte/gateway USER$ make run
-```
+``HOST:magma/lte/gateway USER$ vagrant ssh magma``
+
+- Next build and run the services with bazel:
+
+`cd $MAGMA_ROOT && bazel/scripts/build_and_run_bazelified_agw.sh`
 
 Once the Access Gateway VM is running successfully, proceed to attaching the eNodeB.

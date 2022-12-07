@@ -33,14 +33,13 @@ Description
 
 *****************************************************************************/
 
-#ifndef FILE_EMM_CNDEF_SEEN
-#define FILE_EMM_CNDEF_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.hpp"
 
 typedef enum emmcn_primitive_s {
   _EMMCN_START = 400,
@@ -201,5 +200,3 @@ typedef struct emm_mme_ul_s {
     emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp;
   } u;
 } emm_cn_t;
-
-#endif /* FILE_EMM_CNDEF_SEEN */

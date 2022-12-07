@@ -51,7 +51,7 @@ typedef struct s8_create_session_response_s {
                                               // sgw_s8_teid is allocated by
                                               // orc8r, temporary session id is
                                               // removed and shall update
-                                              // imsi_ue_context_htbl based on
+                                              // imsi_ue_context_map based on
                                               // received sgw_s8_teid
   teid_t
       sgw_s8_up_teid;  // Orc8r generates s8 user plane TEID for SGW and shares

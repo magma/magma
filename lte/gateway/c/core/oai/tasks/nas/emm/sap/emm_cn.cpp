@@ -33,12 +33,12 @@
 
 *****************************************************************************/
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,12 +52,13 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
@@ -65,14 +66,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_apn_selection.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgs_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_headers.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cn.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_regDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_sap.hpp"
@@ -83,22 +82,17 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_sapDef.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/sap/esm_send.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 extern status_code_e emm_proc_tracking_area_update_accept(
     nas_emm_tau_proc_t* const tau_proc);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_sap_send(esm_sap_t* msg);
-#ifdef __cplusplus
-}
-#endif
+
 /*
    Internal data used for attach procedure
 */

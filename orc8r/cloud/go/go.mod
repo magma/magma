@@ -40,7 +40,7 @@ require (
 	github.com/imdario/mergo v0.3.5
 	github.com/jxskiss/base62 v1.0.0
 	github.com/labstack/echo-contrib v0.13.0
-	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.9
@@ -170,4 +170,4 @@ require (
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
 
-go 1.18
+go 1.19

@@ -11,7 +11,10 @@ define setup_rules
 endef
 _ := $(foreach python_src, $(PYTHON_SRCS), $(eval $(call setup_rules,$(python_src))))
 
-buildenv: setupenv protos swagger $(BUILD_LIST) py_patches
+snowflake:
+	sudo env PATH=${PYTHON_BUILD}/bin:${PATH} snowflake --make-snowflake
+
+buildenv: setupenv protos swagger $(BUILD_LIST) py_patches snowflake
 $(BUILD_LIST): %_build:
 	make -C $* install_egg
 
@@ -57,12 +60,6 @@ endif
 	$(if $(strip $(SEL_SUDO_TEST_PATH_LTE)),$(call run_sudo_unit_tests,$(SEL_SUDO_TEST_PATH_LTE), $(MAGMA_ROOT)/lte/gateway/python/))
 	$(if $(strip $(TEST_PATH_ORC8R)), $(call run_unit_tests, $(TEST_PATH_ORC8R), $(MAGMA_ROOT)/orc8r/gateway/python/))
 
-coverage: $(BIN)/coverage
-	$(BIN)/coverage report
-
-$(BIN)/coverage: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) coverage==6.4.1
-
 $(BIN)/pytest: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pytest==7.1.2
 
@@ -88,7 +85,7 @@ check: buildenv $(BIN)/pylint $(BIN)/pycodestyle
 	$(CHECK_CMD_PYLINT)
 
 clean: $(CLEAN_LIST)
-	sudo rm -rf $(PYTHON_BUILD)/ .coverage
+	sudo rm -rf $(PYTHON_BUILD)/
 	sudo find . -name '*.pyc' -o -name '__pycache__' -prune -exec rm -rf {} \;
 $(CLEAN_LIST): %_clean:
 	make -C $* remove_egg

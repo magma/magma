@@ -15,16 +15,15 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_DETACH_REQUEST_SEEN
-#define FILE_DETACH_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -88,5 +87,3 @@ typedef struct nw_detach_request_msg_tag {
 
 int encode_nw_detach_request(nw_detach_request_msg* nw_detachrequest,
                              uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_DETACH_REQUEST_SEEN) */

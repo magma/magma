@@ -18,24 +18,28 @@
 #include <iostream>
 
 extern "C" {
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 }
 
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 
 namespace magma {
 namespace lte {
 
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
-  hash_table_ts_t* state_ue_ht = get_spgw_ue_state();
-  return state_ue_ht->num_elements == expected_num_ue_contexts;
+  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  if (!state_ue_map) {
+    std::cout << "Failed to find spgw_ue_state" << std::endl;
+    return false;
+  }
+  return state_ue_map->size() == expected_num_ue_contexts;
 }
 
 bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {

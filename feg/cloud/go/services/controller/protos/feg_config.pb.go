@@ -817,7 +817,7 @@ func (x *EapAkaConfig) GetPlmnIds() []string {
 
 // EapProviderTimeouts is a generic EAP provider timeout config for all new providers
 // TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
-//       of the switch farther planning is required
+// of the switch farther planning is required
 type EapProviderTimeouts struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
