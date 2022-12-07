@@ -330,7 +330,7 @@ py_binary(
     tags = TAG_UTIL_SCRIPT,
     deps = [
         "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
-        requirement("scapy"),
+        requirement("dpkt"),
     ],
 )
 
