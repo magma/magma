@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include <unordered_map>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,7 +22,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <unordered_map>
+
 #include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"

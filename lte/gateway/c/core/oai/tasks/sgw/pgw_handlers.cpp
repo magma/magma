@@ -132,7 +132,8 @@ void handle_s5_create_session_request(
       break;
 
     default:
-      Fatal("BAD paa.pdn_type %d", sgw_context.saved_message().pdn_type());
+      OAILOG_ERROR(LOG_SPGW_APP, "BAD paa.pdn_type %d",
+                   sgw_context.saved_message().pdn_type());
       break;
   }
 }
@@ -630,12 +631,15 @@ status_code_e create_temporary_dedicated_bearer_context(
 
   if (pdn_type == IPv4 || pdn_type == IPv4_AND_v6) {
     eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_pdn_type(IPv4);
-    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv4_addr(
-        std::to_string(sgw_ip_address_S1u_S12_S4_up));
+    char ip4_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &sgw_ip_address_S1u_S12_S4_up, ip4_str, INET_ADDRSTRLEN);
+    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv4_addr(ip4_str);
   } else {
+    char ip6_str[INET6_ADDRSTRLEN];
     eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_pdn_type(IPv6);
-    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv6_addr(
-        sgw_ipv6_address_S1u_S12_S4_up, sizeof(struct in6_addr));
+    inet_ntop(AF_INET6, sgw_ipv6_address_S1u_S12_S4_up, ip6_str,
+              INET6_ADDRSTRLEN);
+    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv6_addr(ip6_str);
   }
   // DL TFT
   traffic_flow_template_to_proto(&bearer_req_p->dl_tft,
@@ -685,25 +689,31 @@ static void delete_temporary_dedicated_bearer_context(
                  spgw_context_p->sgw_eps_bearer_context().imsi64(),
                  "Delete temporary bearer context for lbi :%u \n", lbi);
 
+  int num_of_bearers_deleted = 0;
+  int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
     pgw_ni_cbr_proc = sgw_context_p->mutable_pending_procedures(proc_index);
     if (pgw_ni_cbr_proc->type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
+      num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
       for (int bearer_index = 0;
            bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
            bearer_index++) {
         magma::lte::oai::SgwEpsBearerContext* bearer_context =
             pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
         if (bearer_context->sgw_teid_s1u_s12_s4_up() == s1_u_sgw_fteid) {
-          delete bearer_context;
+          --num_of_bearers_deleted;
         }
       }  // end of bearer index loop
+      if (num_of_bearers_deleted == 0) {
+        pgw_ni_cbr_proc->clear_pending_eps_bearers();
+      }
     }
-    if (pgw_ni_cbr_proc->pending_eps_bearers_size() == 0) {
-      delete pgw_ni_cbr_proc;
-    }
+    --num_of_pending_procedures;
   }  // end of procedure index loop
-
+  if (num_of_pending_procedures == 0) {
+    sgw_context_p->clear_pending_procedures();
+  }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }

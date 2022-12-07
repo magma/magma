@@ -27,7 +27,6 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-//#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
@@ -142,7 +141,6 @@ static void handle_allocate_ipv4_address_status(
   }
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
-  // TODO Rashmi check the imsi64 value
   OAILOG_DEBUG_UE(LOG_UTIL, message_p->ittiMsgHeader.imsi,
                   "Sending IP allocation response message with cause: %u\n",
                   ip_allocation_response_p->status);

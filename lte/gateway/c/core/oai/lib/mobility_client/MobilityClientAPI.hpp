@@ -32,7 +32,6 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-//#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 // Status codes from gRPC
 #define RPC_STATUS_OK 0

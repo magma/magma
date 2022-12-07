@@ -160,6 +160,7 @@ void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
 void sgw_handle_delete_bearer_cmd(
     itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64);
+
 void convert_proto_ip_to_standard_ip_fmt(magma::lte::oai::IpTupple* proto_ip,
                                          struct in_addr* ipv4,
                                          struct in6_addr* ipv6,
@@ -167,6 +168,7 @@ void convert_proto_ip_to_standard_ip_fmt(magma::lte::oai::IpTupple* proto_ip,
 void traffic_flow_template_to_proto(
     const traffic_flow_template_t* tft_state,
     magma::lte::oai::TrafficFlowTemplate* tft_proto);
+
 void eps_bearer_qos_to_proto(
     const bearer_qos_t* eps_bearer_qos_state,
     magma::lte::oai::SgwBearerQos* eps_bearer_qos_proto);

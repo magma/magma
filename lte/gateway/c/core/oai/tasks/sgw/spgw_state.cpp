@@ -86,7 +86,12 @@ void delete_spgw_ue_state(imsi64_t imsi64) {
 }
 
 void spgw_free_s11_bearer_context_information(void** ptr) {
-  if (ptr) {
+  if (!ptr) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Received null pointer");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+
+  if (*ptr) {
     magma::lte::oai::S11BearerContext* context_p =
         reinterpret_cast<magma::lte::oai::S11BearerContext*>(*ptr);
     if (context_p) {
@@ -109,8 +114,11 @@ void spgw_free_s11_bearer_context_information(void** ptr) {
           sgw_context_p->clear_mme_cp_ip_address_s11();
         }
       }  // end of sgw_context_p
+      context_p->clear_sgw_eps_bearer_context();
+      context_p->clear_pgw_eps_bearer_context();
     }    // end of s11_bearer_context_p
   }      // end of ptr
+  free_cpp_wrapper(ptr);
 }
 
 void free_eps_bearer_context(
@@ -146,7 +154,6 @@ void free_eps_bearer_context(
   if (bearer_context_p->has_ue_ip_paa()) {
     bearer_context_p->clear_ue_ip_paa();
   }
-  // free_cpp_wrapper(ptr);TODO Rashmi may not be required remove after testing
 }
 
 void sgw_free_pdn_connection(

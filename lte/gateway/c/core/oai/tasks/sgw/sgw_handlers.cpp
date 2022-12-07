@@ -238,14 +238,10 @@ status_code_e sgw_handle_s11_create_session_request(
     eps_bearer_ctxt.set_eps_bearer_id(
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
             .eps_bearer_id);
-    sgw_display_s11_bearer_context_information(
-        LOG_SPGW_APP, s_plus_p_gw_eps_bearer_ctxt_info_p);
-
     eps_bearer_qos_to_proto(
         &session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
              .bearer_level_qos,
         eps_bearer_ctxt.mutable_eps_bearer_qos());
-    eps_bearer_ctxt.set_sgw_teid_s1u_s12_s4_up(spgw_get_new_s1u_teid(state));
     /*
      * Trying to insert the new tunnel into the tree.
      * If collision_p is not NULL (0), it means tunnel is already present.
@@ -259,6 +255,7 @@ status_code_e sgw_handle_s11_create_session_request(
      * Send a create bearer request to PGW and handle respond
      * asynchronously through sgw_handle_s5_create_bearer_response()
      */
+    eps_bearer_ctxt.set_sgw_teid_s1u_s12_s4_up(spgw_get_new_s1u_teid(state));
     OAILOG_DEBUG_UE(
         LOG_SPGW_APP, imsi64,
         "Updated eps_bearer_entry_p eps_b_id %u with SGW S1U teid" TEID_FMT
@@ -274,6 +271,7 @@ status_code_e sgw_handle_s11_create_session_request(
     }
     sgw_display_s11_bearer_context_information(
         LOG_SPGW_APP, s_plus_p_gw_eps_bearer_ctxt_info_p);
+
     handle_s5_create_session_request(state, s_plus_p_gw_eps_bearer_ctxt_info_p,
                                      new_endpoint_p->local_teid,
                                      eps_bearer_ctxt.eps_bearer_id());
@@ -345,16 +343,11 @@ status_code_e sgw_handle_sgi_endpoint_created(
       }
       create_session_response_p->paa.pdn_type =
           (pdn_type_value_t)eps_bearer_ctxt.ue_ip_paa().pdn_type();
-      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Rashmi----pdn type:%d, ue_ip:%s",
-                      eps_bearer_ctxt.ue_ip_paa().pdn_type(),
-                      eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str());
       if (eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4 ||
           eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4_AND_v6) {
         inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(),
                   &create_session_response_p->paa.ipv4_address.s_addr);
       }
-      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Rashmi----converted val:%x",
-                      create_session_response_p->paa.ipv4_address.s_addr);
       if (eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6) {
         inet_pton(AF_INET6, eps_bearer_ctxt.ue_ip_paa().ipv6_addr().c_str(),
                   &create_session_response_p->paa.ipv6_address);
@@ -526,16 +519,6 @@ static void sgw_add_gtp_tunnel(
       eps_bearer_ctxt_p->mutable_enb_s1u_ip_addr(), &enb, &enb_ipv6,
       spgw_config.sgw_config.ipv6.s1_ipv6_enabled);
 
-  OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                  "Rashmi----enb_s1u_ip_addr converted val:%x", enb.s_addr);
-  for (int i = 0; i < 16; i++) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Rashmi ipv6 address: %d bearer context ipv6: %s  ipv6 address: %c",
-        enb_ipv6.s6_addr[i],
-        eps_bearer_ctxt_p->enb_s1u_ip_addr().ipv6_addr().c_str(),
-        enb_ipv6.s6_addr[i]);
-  }
   struct in_addr ue_ipv4 = {.s_addr = 0};
   struct in6_addr ue_ipv6 = {};
   convert_proto_ip_to_standard_ip_fmt(eps_bearer_ctxt_p->mutable_ue_ip_paa(),
@@ -879,23 +862,10 @@ void populate_sgi_end_point_update(
     itti_sgi_update_end_point_response_t* sgi_update_end_point_resp) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----ipv6_addr:%x pdn_type:%d",
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().ipv6_addr().c_str(),
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().pdn_type());
   FTEID_T_2_PROTO_IP(
       (&modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
             .s1_eNB_fteid),
       (eps_bearer_ctxt_p->mutable_enb_s1u_ip_addr()));
-  OAILOG_ERROR(
-      LOG_SPGW_APP, "Rashmi ipv6 bit:%d",
-      modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
-          .s1_eNB_fteid.ipv6);
-  OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----ipv6_addr:%x pdn_type:%d",
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().ipv6_addr().c_str(),
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().pdn_type());
-  OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----pdn type:%d, enb_s1u_ip_addr:%s",
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().pdn_type(),
-               eps_bearer_ctxt_p->enb_s1u_ip_addr().ipv4_addr().c_str());
   eps_bearer_ctxt_p->set_enb_teid_s1u(
       modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
           .s1_eNB_fteid.teid);
@@ -1123,8 +1093,8 @@ status_code_e sgw_handle_delete_session_request(
   magma::lte::oai::S11BearerContext* ctx_p =
       sgw_cm_get_spgw_context(delete_session_req_pP->teid);
   if (ctx_p) {
-    magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p = nullptr;
-    sgw_context_p = ctx_p->mutable_sgw_eps_bearer_context();
+    magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+        ctx_p->mutable_sgw_eps_bearer_context();
     if ((delete_session_req_pP->sender_fteid_for_cp.ipv4) &&
         (delete_session_req_pP->sender_fteid_for_cp.ipv6)) {
       /*
@@ -1202,10 +1172,6 @@ status_code_e sgw_handle_delete_session_request(
         sgi_delete_end_point_request.pdn_type =
             (pdn_type_value_t)sgw_context_p->saved_message().pdn_type();
 
-        OAILOG_ERROR_UE(LOG_SPGW_APP, sgw_context_p->imsi64(),
-                        "Rashmi-------pdn type: %d saved pdn_type :%d",
-                        sgi_delete_end_point_request.pdn_type,
-                        sgw_context_p->saved_message().pdn_type());
         sgi_delete_end_point_request.paa.pdn_type =
             (pdn_type_value_t)eps_bearer_ctxt.ue_ip_paa().pdn_type();
         convert_proto_ip_to_standard_ip_fmt(
@@ -1902,8 +1868,6 @@ status_code_e sgw_handle_ip_allocation_rsp(
                     ip_allocation_rsp->eps_bearer_id);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64, "Rashmi -----rx ue_ip:%x",
-                  ip_allocation_rsp->paa.ipv4_address.s_addr);
   std::string imsi = sgw_context_p->imsi();
   if (ip_allocation_rsp->status == SGI_STATUS_OK) {
     eps_bearer_ctx.mutable_ue_ip_paa()->set_pdn_type(
@@ -1932,12 +1896,6 @@ status_code_e sgw_handle_ip_allocation_rsp(
       eps_bearer_ctx.mutable_ue_ip_paa()->set_ipv6_prefix_length(
           ip_allocation_rsp->paa.ipv6_prefix_length);
       eps_bearer_ctx.mutable_ue_ip_paa()->set_vlan(ip_allocation_rsp->paa.vlan);
-      for (int i = 0; i < 16; i++) {
-        OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Rashmi ipv6 address: %x ",
-                        ip_allocation_rsp->paa.ipv6_address.s6_addr[i]);
-      }
-      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Rashmi --- ipv6 address:%s",
-                      ip6_str);
       pcef_create_session(imsi, NULL, ip6_str, &session_data, session_req);
     } else if (ip_allocation_rsp->paa.pdn_type == IPv4_AND_v6) {
       char ip4_str[INET_ADDRSTRLEN];
@@ -2181,9 +2139,7 @@ void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
             (((uint32_t)packet_filter->ipv4_remote_addresses(2).addr()) << 8) +
             (((uint32_t)packet_filter->ipv4_remote_addresses(3).addr()));
       }
-      // dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr); TODO Rashmi need to
-      // check
-      dlflow->src_ip.s_addr = remoteaddr.s_addr;
+      dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
       dlflow->set_params |= DST_IPV4;
@@ -2374,24 +2330,17 @@ bool does_bearer_context_hold_valid_enb_ip(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   switch (enb_ip_address_S1u.pdn_type()) {
     case IPv4:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----size:%d",
-                   enb_ip_address_S1u.ipv4_addr().size());
       if (enb_ip_address_S1u.ipv4_addr().size()) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
       break;
     case IPv4_AND_v6:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----size:%d ipv6 size:%d ",
-                   enb_ip_address_S1u.ipv4_addr().size(),
-                   enb_ip_address_S1u.ipv6_addr().size());
       if ((enb_ip_address_S1u.ipv4_addr().size()) ||
           ((enb_ip_address_S1u.ipv6_addr().size()))) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
       break;
     case IPv6:
-      OAILOG_ERROR(LOG_SPGW_APP, "Rashmi----size:%d",
-                   enb_ip_address_S1u.ipv6_addr().size());
       if (enb_ip_address_S1u.ipv6_addr().size()) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
@@ -2601,21 +2550,6 @@ void convert_proto_ip_to_standard_ip_fmt(magma::lte::oai::IpTupple* proto_ip,
   }
 }
 
-#if 0  // TODO Rashmi remove if not required
-//------------------------------------------------------------------------------
-void clear_proto_protocol_configuration_options(
-    magma::lte::oai::Pco* const pco) {
-  if (pco) {
-    for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
-      if (pco->protocol_or_container_ids[i].contents) {
-        bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
-      }
-    }
-    memset(pco, 0, sizeof(protocol_configuration_options_t));
-  }
-}
-#endif
-
 static void get_session_req_data(
     spgw_state_t* spgw_state,
     const magma::lte::oai::CreateSessionMessage* saved_req,
@@ -2623,10 +2557,14 @@ static void get_session_req_data(
   data->msisdn_len = saved_req->msisdn().size();
   memcpy(data->msisdn, saved_req->msisdn().c_str(), data->msisdn_len);
   data->imeisv_exists = saved_req->mei().size() > 0 ? true : false;
-  memcpy(data->imeisv, saved_req->mei().c_str(), saved_req->mei().size());
+  if (data->imeisv_exists) {
+    memcpy(data->imeisv, saved_req->mei().c_str(), saved_req->mei().size());
+  }
 
   data->uli_exists = saved_req->uli().size() > 0 ? true : false;
-  memcpy(data->uli, saved_req->uli().c_str(), saved_req->uli().size());
+  if (data->uli_exists) {
+    memcpy(data->uli, saved_req->uli().c_str(), saved_req->uli().size());
+  }
 
   data->mcc_mnc_len = saved_req->serving_network().mcc().size();
   memcpy(data->mcc_mnc, saved_req->serving_network().mcc().c_str(),

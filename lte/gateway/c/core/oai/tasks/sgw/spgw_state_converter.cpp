@@ -62,12 +62,14 @@ void SpgwStateConverter::proto_to_state(const SpgwState& proto,
 void SpgwStateConverter::spgw_bearer_context_to_proto(
     const S11BearerContext* spgw_bearer_state,
     S11BearerContext* spgw_bearer_proto) {
+  spgw_bearer_proto->Clear();
   spgw_bearer_proto->MergeFrom(*spgw_bearer_state);
 }
 
 void SpgwStateConverter::proto_to_spgw_bearer_context(
     const S11BearerContext& spgw_bearer_proto,
     S11BearerContext* spgw_bearer_state) {
+  spgw_bearer_state->Clear();
   spgw_bearer_state->MergeFrom(spgw_bearer_proto);
 }
 

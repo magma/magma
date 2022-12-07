@@ -31,12 +31,5 @@
 void release_ue_ipv4_address(const std::string imsi, const std::string apn,
                              struct in_addr* addr);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-// int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
-#ifdef __cplusplus
-}
-#endif
 void release_ue_ipv6_address(const std::string imsi, const std::string apn,
                              struct in6_addr* addr);

@@ -83,10 +83,6 @@ void pcef_send_policy2bearer_binding(const char* imsi,
                                      const uint32_t eps_bearer_agw_teid,
                                      const uint32_t eps_bearer_enb_teid);
 
-// void get_session_req_data(spgw_state_t* spgw_state,
-//                        const itti_s11_create_session_request_t* saved_req,
-//                      struct pcef_create_session_data* data);
-
 /**
  * pcef_update_teids is an asynchronous call that updates
  * enb teid and sgw/agw teid for a particular session that is

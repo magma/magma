@@ -30,7 +30,6 @@
 
 #pragma once
 
-//#include "lte/protos/oai/std_3gpp_types.pb.h"
 #include "lte/protos/oai/spgw_state.pb.h"
 
 #ifdef __cplusplus

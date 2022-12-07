@@ -36,7 +36,6 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-//#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -60,8 +59,6 @@ static void pcef_fill_create_session_req(
   common_context->set_apn(session_data->apn);
   common_context->set_msisdn(session_data->msisdn, session_data->msisdn_len);
   common_context->set_rat_type(magma::RATType::TGPP_LTE);
-  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi-----msisdn :%s len:%d",
-               common_context->msisdn().c_str(), session_data->msisdn_len);
 
   // LTE Context
   auto lte_context =
@@ -388,41 +385,7 @@ int get_imeisv_from_session_req(
   }
   return 0;
 }
-#if 0
-void get_session_req_data(spgw_state_t* spgw_state,
-                          const itti_s11_create_session_request_t* saved_req,
-                          struct pcef_create_session_data* data) {
-  const bearer_qos_t* qos;
 
-  data->msisdn_len = get_msisdn_from_session_req(saved_req, data->msisdn);
-
-  data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
-  if (data->imeisv_exists) {
-    convert_imeisv_to_string(data->imeisv);
-  }
-  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
-  get_plmn_from_session_req(saved_req, data->mcc_mnc);
-  get_imsi_plmn_from_session_req(saved_req, data);
-  memcpy(&data->charging_characteristics, &saved_req->charging_characteristics,
-         sizeof(charging_characteristics_t));
-
-  memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
-  data->pdn_type = saved_req->pdn_type;
-
-  inet_ntop(AF_INET, &spgw_state->sgw_ip_address_S1u_S12_S4_up, data->sgw_ip,
-            INET_ADDRSTRLEN);
-
-  // QoS Info
-  data->ambr_dl = saved_req->ambr.br_dl;
-  data->ambr_ul = saved_req->ambr.br_ul;
-  qos = &saved_req->bearer_contexts_to_be_created.bearer_contexts[0]
-             .bearer_level_qos;
-  data->pl = qos->pl;
-  data->pci = qos->pci;
-  data->pvi = qos->pvi;
-  data->qci = qos->qci;
-}
-#endif
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {
   auto imsi_str = std::string(imsi);
 

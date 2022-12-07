@@ -39,14 +39,20 @@ extern "C" {
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
     const magma::lte::oai::SgwEpsBearerContext* eps_bearer_ctxt);
-void sgw_s8_display_sgw_eps_bearer_context(
-    const sgw_eps_bearer_ctxt_t* eps_bearer_ctxt);
 void sgw_display_s11_bearer_context_information(
     log_proto_t module,
     magma::lte::oai::S11BearerContext* sgw_context_information);
+
+// TODO(rsarwad): to be removed while porting sgw_s8 task
+void sgw_s8_display_sgw_eps_bearer_context(
+    const sgw_eps_bearer_ctxt_t* eps_bearer_ctxt);
+
 void sgw_s8_display_s11_bearer_context_information(
     log_proto_t module,
     sgw_eps_bearer_context_information_t* sgw_context_information);
+
+sgw_eps_bearer_ctxt_t* sgw_s8_cm_get_eps_bearer_entry(
+    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
 
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid);
@@ -61,8 +67,6 @@ magma::proto_map_rc_t sgw_cm_insert_eps_bearer_ctxt_in_collection(
     magma::lte::oai::SgwPdnConnection* const sgw_pdn_connection,
     magma::lte::oai::SgwEpsBearerContext* const sgw_eps_bearer_ctxt);
 
-sgw_eps_bearer_ctxt_t* sgw_s8_cm_get_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
 // Returns SPGW state pointer for given UE indexed by IMSI
 magma::lte::oai::S11BearerContext* sgw_cm_get_spgw_context(teid_t teid);
 spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);

@@ -38,7 +38,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
 #ifdef __cplusplus
 }
