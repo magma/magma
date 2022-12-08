@@ -21,7 +21,7 @@ set -euo pipefail
 
 create_bazel_test_query() {
     # Write beginning of the bazel test query.
-    printf '%s' "kind(\"$BAZEL_FILTER_RULE\"," > "$BAZEL_QUERY_FILE"
+    printf '%s' "attr(tags, $BAZEL_FILTER_TAG, kind(\"$BAZEL_FILTER_RULE\"," > "$BAZEL_QUERY_FILE"
 
     # Append union of targets to the bazel test query.
     while IFS="" read -r impacted_target
@@ -31,7 +31,7 @@ create_bazel_test_query() {
 
     # Remove the last 'union ' in the list of targets and
     # append the end of the bazel test query, which filters out manual test targets.
-    sed -i 's/union $/except attr(tags, manual, kind(.*_test, \/\/...)))/' "$BAZEL_QUERY_FILE"
+    sed -i 's/union $/except attr(tags, manual, kind(.*_test, \/\/...))))/' "$BAZEL_QUERY_FILE"
 }
 
 run_bazel_query() {
@@ -68,6 +68,8 @@ fi
 
 # Optional script argument, e.g. 'cc_test' or 'py_test', default is all test rules.
 BAZEL_FILTER_RULE=${1:-".*_test"}
+# Optional script argument for filtering tags, e.g. 'service', default is no filter
+BAZEL_FILTER_TAG=${2:-".*"}
 
 create_bazel_test_query
 run_bazel_query

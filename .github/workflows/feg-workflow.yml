@@ -73,19 +73,12 @@ jobs:
         if: always()
         id: feg-lint-init
         with:
-          command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
+          command: make -C ${MAGMA_ROOT}/feg/gateway download
           timeout_minutes: 10
-      - name: Go lint code
-        if: always() && steps.feg-lint-init.outcome=='success'
-        id: feg-lint
-        run: |
-          cd ${MAGMA_ROOT}/feg/gateway
-          make -C ${MAGMA_ROOT}/feg/gateway lint
       - name: Generate test coverage
         if: always() && steps.feg-lint.outcome=='success'
         id: feg-lint-cov
         run: |
-          cd ${MAGMA_ROOT}/feg/gateway
           make -C ${MAGMA_ROOT}/feg/gateway cover
       - uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         if: always()
@@ -93,12 +86,11 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
-      - name: make feg precommit
+      - name: Run precommit steps
         if: always()
         id: feg-precommit
         run: |
           go install gotest.tools/gotestsum@v1.8.0
-          cd ${MAGMA_ROOT}/feg/gateway
           make -C ${MAGMA_ROOT}/feg/gateway precommit
       - name: Upload Test Results
         id: feg-precommit-upload
@@ -107,12 +99,6 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -121,7 +107,7 @@ jobs:
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_TITLE: "FeG-lint tests failed"
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
@@ -135,7 +121,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"

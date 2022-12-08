@@ -186,5 +186,5 @@ jobs:
       digest_python: ${{ needs.build-containers.outputs.digest_python }}
       digest_go: ${{ needs.build-containers.outputs.digest_go }}
       registry: ${{ needs.build-containers.outputs.registry }}
-      test_targets: extended
+      test_targets: extended_tests
     secrets: inherit
