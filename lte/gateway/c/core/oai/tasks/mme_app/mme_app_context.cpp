@@ -624,8 +624,8 @@ status_code_e mme_insert_ue_context(
     if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
             ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id) !=
         magma::PROTO_MAP_OK) {
-      OAILOG_WARNING(
-          LOG_MME_APP,
+      OAILOG_WARNING_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "Failed to update enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
           "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " " MME_UE_S1AP_ID_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
@@ -786,8 +786,8 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   // eNB UE S1P UE ID
   if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
           ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
         " Failed to remove enb_s1ap_id_key from enb_ue_s1ap_key2mme_ueid_map!"
         " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
