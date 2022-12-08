@@ -198,7 +198,7 @@ class DhcpHelperCli:
             else:
                 self._pkt_queue.task_done()
 
-        raise TimeoutError(f"Timed our while waiting for {handler}")
+        raise TimeoutError(f"Timed out while waiting for {handler}.")
 
     def receive_dhcp_offer(
             self, dhcp_state_code: int, pkt: scapy.packet.Packet,
