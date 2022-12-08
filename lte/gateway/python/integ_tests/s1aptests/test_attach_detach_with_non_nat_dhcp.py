@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import unittest
+import time
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
@@ -67,6 +68,19 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id, detach_type[i], wait_for_s1[i],
             )
+
+        wait_interval = 5
+        max_iterations = 12
+        print(f"Waiting for a maximum of {max_iterations * wait_interval} seconds for IPs to be released")
+        for i in range(max_iterations):
+            keys, _, _, _ = self.magma_utils.get_redis_state()
+            if len(keys) == 0:
+                print(f"  All IPs released after {i * wait_interval} seconds")
+                break
+            print(f"  {len(keys)} IP(s) still in use after {i * wait_interval} seconds")
+            time.sleep(wait_interval)
+            if i == max_iterations - 1:
+                assert False, f"IPs not released after {max_iterations * wait_interval} seconds"
 
 
 if __name__ == "__main__":
