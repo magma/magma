@@ -18,15 +18,15 @@ COPY ./ $MAGMA_ROOT
 RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     # Remove entitlements
     rm -Rf $MAGMA_ROOT/etc-pki-entitlement $MAGMA_ROOT/rhsm-conf $MAGMA_ROOT/rhsm-ca && \
-    cd $MAGMA_ROOT/lte/gateway && \
+    cd $MAGMA_ROOT && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
+    bazel build //lte/gateway/c/core:mme_oai --define=disable_sentry_native=1 && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd --define=disable_sentry_native=1 && \
+    mv $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
     echo 'Shared libraries for oai_mme' && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
     echo 'Shared libraries for sctpd' && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd
 
 # Prepare config file
 RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
@@ -115,9 +115,9 @@ COPY --from=magma-mme-builder \
     /usr/local/lib/libfdcore.so.6 \
     /usr/local/lib/libfdproto.so.6 \
 # From nettle/gnutls src build
-    /usr/local/lib/libgnutls.so.28 \
-    /usr/local/lib/libnettle.so.4 \
-    /usr/local/lib/libhogweed.so.2 \
+    /lib64/libgnutls.so.28 \
+    /lib/libnettle.so.4 \
+    /lib/libhogweed.so.2 \
     /lib64/
 
 # Copy all fdx files from freeDiameter installation
@@ -130,8 +130,8 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
     ./
 
 # Copy the configuration file templates and mean to modify/generate certificates

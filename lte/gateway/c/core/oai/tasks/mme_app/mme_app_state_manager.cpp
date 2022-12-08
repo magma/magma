@@ -133,7 +133,8 @@ void MmeNasStateManager::mme_nas_state_init_local_state() {}
 void MmeNasStateManager::create_hashtables() {
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();
-  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(MME_IMSI2MME_UE_ID_MAP_NAME);
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(
+      MME_IMSI2MME_UE_ID_MAP_NAME);
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(
