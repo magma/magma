@@ -429,7 +429,10 @@ cc_binary(
     #                 but where system libraries (excluding C/C++ runtime libraries) are linked dynamically
     linkstatic = True,
     tags = TAG_SERVICE + ["no-cache"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [
         ":operational_states_handler",
         ":policy_loader",

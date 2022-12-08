@@ -51,3 +51,6 @@ TAG_UTIL_SCRIPT = ["util_script"]
 
 # Tag for Magma services.
 TAG_SERVICE = ["service"]
+
+# Tag to easily exclude OAI MME from builds
+TAG_MME_OAI = ["mme_oai"]

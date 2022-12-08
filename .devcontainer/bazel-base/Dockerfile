@@ -100,4 +100,7 @@ RUN ldconfig -v
 RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
 RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
 
+# Convenience alias to build AGW services
+RUN echo 'alias magma-build-agw="bazel build //... --build_tag_filters=service,util_script,-mme_oai"' >> ~/.bashrc
+
 WORKDIR /workspaces/magma
