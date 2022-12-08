@@ -131,7 +131,7 @@ message SgwEpsBearerContext {
     uint32 sgw_teid_s5_s8_up = 13;
     bytes sgw_ip_address_s1u_s12_s4_up = 14;
     uint32 sgw_teid_s1u_s12_s4_up = 15;
-    bytes enb_ip_address_s1u = 16 ;
+    bytes enb_ip_address_s1u = 16;
     uint32 enb_teid_s1u = 17;
 
     SgwBearerQos eps_bearer_qos = 20;
