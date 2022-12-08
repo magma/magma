@@ -90,4 +90,4 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
-          args: "LTE Debian integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ github.event.head_commit.message || github.event.pull_request.title }}"
+          args: "LTE Debian integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ steps.commit.outputs.title}}"
