@@ -304,7 +304,7 @@ void mme_app_state_free_ue_context(void** ue_context_node) {
 //------------------------------------------------------------------------------
 ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
     mme_ue_context_t* const mme_ue_context_p, const enb_s1ap_id_key_t enb_key) {
-  uint32_t mme_ue_s1ap_id = 0;
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(enb_key, &mme_ue_s1ap_id);
   if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
@@ -428,9 +428,17 @@ void mme_ue_context_update_coll_keys(
     mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
         ue_context_p->enb_s1ap_id_key);
     if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
-      mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(enb_s1ap_id_key,
-                                                            mme_ue_s1ap_id);
-      ue_context_p->enb_s1ap_id_key = enb_s1ap_id_key;
+      if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
+              enb_s1ap_id_key, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, imsi,
+            "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+            "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+            " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+            ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+      } else {
+        ue_context_p->enb_s1ap_id_key = enb_s1ap_id_key;
+      }
     } else {
       OAILOG_ERROR_UE(
           LOG_MME_APP, imsi,
@@ -789,13 +797,13 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   if (ue_context_p->mme_teid_s11) {
     if (mme_ue_context_p->s11_teid2mme_ueid_map.remove(
             ue_context_p->mme_teid_s11) != magma::PROTO_MAP_OK) {
-      OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                      "Failed to remove s11_teid2mme_ueid_map for "
-                      " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-                      " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                      ", MME S11 TEID  " TEID_FMT,
-                      ue_context_p->enb_ue_s1ap_id,
-                      ue_context_p->mme_ue_s1ap_id, ue_context_p->mme_teid_s11);
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Failed to remove s11_teid2mme_ueid_map for s11_teid2mme_ueid_map"
+          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", MME S11 TEID  " TEID_FMT,
+          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id,
+          ue_context_p->mme_teid_s11);
     }
   }
   // filled NAS UE ID/ MME UE S1AP ID
@@ -836,7 +844,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
             ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "Failed to remove enb_ue_s1ap_ue_id_key %ld "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                         ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,
@@ -932,7 +940,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
             ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "Failed to remove enb_ue_s1ap_ue_id_key %ld "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                         ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,

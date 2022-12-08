@@ -3641,6 +3641,7 @@ void mme_app_handle_handover_notify(
 
   // update UE context
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
     mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
         ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
@@ -3788,6 +3789,7 @@ void mme_app_handle_path_switch_request(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
     mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
         ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
