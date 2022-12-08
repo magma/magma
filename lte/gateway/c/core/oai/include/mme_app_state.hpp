@@ -20,6 +20,10 @@
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
 
+// Map- Key: mme_ue_s1ap_id of (uint32_t), Data: ue_mm_context_s
+typedef magma::proto_map_s<uint32_t, struct ue_mm_context_s*>
+    proto_map_uint32_ue_context_t;
+
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if
  * persist state flag is set, load it from the data store.
@@ -48,7 +52,7 @@ void put_mme_nas_state(void);
 void clear_mme_nas_state(void);
 
 // Returns UE MME state hashtable, indexed by IMSI
-hash_table_ts_t* get_mme_ue_state(void);
+proto_map_uint32_ue_context_t* get_mme_ue_state(void);
 // Persists UE MME state for subscriber into db
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);
