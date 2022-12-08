@@ -86,11 +86,14 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: Install gotestsum
+        if: always()
+        run: |
+          go install gotest.tools/gotestsum@v1.8.0
       - name: Run precommit steps
         if: always()
         id: feg-precommit
         run: |
-          go install gotest.tools/gotestsum@v1.8.0
           make -C ${MAGMA_ROOT}/feg/gateway precommit
       - name: Upload Test Results
         id: feg-precommit-upload
