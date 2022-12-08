@@ -99,6 +99,16 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
+      - name: Run radius src unit tests
+        if: always()
+        working-directory: feg/radius/src
+        run: |
+          ./run.sh test
+      - name: Run radius lib unit tests
+        if: always()
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh test); done
       - name: Extract commit title
         if: failure() && github.event_name == 'push'
         id: commit
