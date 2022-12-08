@@ -22,6 +22,7 @@ import (
 )
 
 func TestBasicInsertGetRedis(t *testing.T) {
+	t.Skip("Skipping due to flakiness") // TODO GH14659
 
 	// Arrange
 	sessionID := "test"
@@ -36,6 +37,8 @@ func TestBasicInsertGetRedis(t *testing.T) {
 }
 
 func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
+	t.Skip("Skipping due to flakiness") // TODO GH14659
+
 	// Arrange
 	degOfParallelism := 100
 	reqPerConcurrentContext := 100
