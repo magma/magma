@@ -121,5 +121,5 @@ jobs:
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results-${{ matrix.test_targets }}
+          name: test-results-${{ inputs.test_targets }}
           path: lte/gateway/test-results/**/*.xml
