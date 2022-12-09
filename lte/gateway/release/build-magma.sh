@@ -107,6 +107,7 @@ ARCH=amd64
 PKGFMT=deb
 PKGNAME=magma
 SCTPD_PKGNAME=magma-sctpd
+DHCP_CLI_PKGNAME=magma-dhcp-cli
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -132,7 +133,6 @@ MAGMA_DEPS=(
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
     "ntpdate" # required for eventd time synchronization
-    "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
@@ -146,6 +146,7 @@ MAGMA_DEPS=(
     # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
     "bcc-tools"
     "wireguard"
+    "${DHCP_CLI_PKGNAME}"
     )
 
 # OAI runtime dependencies
@@ -428,5 +429,29 @@ $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 " # Leave this quote on a new line to mark end of BUILDCMD
+
+eval "$BUILDCMD"
+
+DESCRIPTION_DHCP="Magma DHCP helper CLI"
+LICENSE_DHCP="GPLv2"
+SCAPY_PACKAGE="python3-scapy"
+SCAPY_VERSION="2.4.5"
+
+BUILDCMD="fpm \
+-s dir \
+-t ${PKGFMT} \
+-a ${ARCH} \
+-n ${DHCP_CLI_PKGNAME} \
+-v ${FULL_VERSION} \
+--provides ${DHCP_CLI_PKGNAME} \
+--replaces ${DHCP_CLI_PKGNAME} \
+--package ${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
+--description '${DESCRIPTION_DHCP}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE_DHCP}' \
+--maintainer '${MAINTAINER}' \
+--depends '${SCAPY_PACKAGE} >= ${SCAPY_VERSION}' \
+${MAGMA_ROOT}/lte/gateway/python/scripts/dhcp_helper_cli.py=/usr/local/bin/"
 
 eval "$BUILDCMD"

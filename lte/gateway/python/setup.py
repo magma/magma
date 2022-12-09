@@ -144,6 +144,7 @@ setup(
             'parameterized==0.8.1',
             'pytest==7.1.2',
             'pytest-cov==3.0.0',
+            'scapy==2.4.5',
         ],
     },
 )
