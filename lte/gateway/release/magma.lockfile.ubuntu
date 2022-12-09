@@ -420,12 +420,6 @@
       "sysdep": "python3-ryu",
       "version": "4.30"
     },
-    "scapy": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-scapy",
-      "version": "2.4.4"
-    },
     "sentry-sdk": {
       "root": true,
       "source": "pypi",
@@ -1006,12 +1000,6 @@
           "sysdep": "python3-ryu",
           "version": "4.34"
         },
-        "scapy": {
-          "root": true,
-          "source": "pypi",
-          "sysdep": "python3-scapy",
-          "version": "2.4.5"
-        },
         "sdnotify": {
           "root": true,
           "source": "apt",
@@ -1257,9 +1245,6 @@
         "ryu": {
           "version": "4.34"
         },
-        "scapy": {
-          "version": "2.4.5"
-        },
         "sdnotify": {
           "version": "0.3.2"
         },
@@ -1431,9 +1416,6 @@
     },
     "ryu": {
       "version": "4.30"
-    },
-    "scapy": {
-      "version": "2.4.4"
     },
     "sentry-sdk": {
       "version": "1.0.0"

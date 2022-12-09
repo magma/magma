@@ -107,7 +107,6 @@ setup(
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
         'dpkt==1.9.8',
-        'scapy==2.4.5',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',
         'aiodns>=3.0.0',
@@ -145,6 +144,7 @@ setup(
             'parameterized==0.8.1',
             'pytest==7.1.2',
             'pytest-cov==3.0.0',
+            'scapy==2.4.5',
         ],
     },
 )
