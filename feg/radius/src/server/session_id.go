@@ -43,5 +43,5 @@ func (s *Server) GenSessionID(r *radius.Request) string {
 }
 
 func (s *Server) ComposeSessionID(calling string, called string) string {
-	return fmt.Sprintf("%s__%s", string(calling), string(called))
+	return fmt.Sprintf("%s__%s", calling, called)
 }

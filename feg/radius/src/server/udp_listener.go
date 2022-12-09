@@ -182,14 +182,6 @@ func generatePacketHandler(
 		}
 		listenerHandleCounter.GotResponse(response.Code)
 
-		if response == nil {
-			server.logger.Warn(
-				"Request failed to be handled, as no response returned",
-				correlationField,
-			)
-			return
-		}
-
 		// Build response
 		server.logger.Warn(
 			"Request successfully handled",
