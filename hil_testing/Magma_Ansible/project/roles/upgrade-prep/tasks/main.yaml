@@ -20,9 +20,10 @@
     state: absent
 
 - name: Add an Apt signing key, for Magma new repo
-  ansible.builtin.apt_key:
-    url: https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public
-    state: present
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
 
 - name: Add specified repository into sources list for Debian Magma AGW
   tags: prep
@@ -30,6 +31,7 @@
     repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test stretch-{{ UpgradeTag }} main
     state: present
     filename: packages_magma_etagecom_io
+    update_cache: true
   when: ansible_distribution == 'Debian'
 
 - name: Add specified repository into sources list for Ubuntu Magma AGW
