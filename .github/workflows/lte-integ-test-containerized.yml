@@ -128,6 +128,7 @@ jobs:
             echo "final_status=$(cat test_status.txt)" >> $GITHUB_OUTPUT
           else
             echo "final_status=fail" >> $GITHUB_OUTPUT
+          fi
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
