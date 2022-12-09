@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/security_types.h"
-#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
