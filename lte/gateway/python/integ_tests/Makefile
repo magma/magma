@@ -24,8 +24,10 @@ $(PYTHON_BUILD)/setupinteg_env:
 
 RESULTS_DIR := /var/tmp/test_results
 ifdef enable-flaky-retry
+	IS_FLAKY_RETRIES_ENABLED := True
 	FLAKY_CMD_ARGS := --force-flaky --no-flaky-report --max-runs=3 --min-passes=1
 else
+	IS_FLAKY_RETRIES_ENABLED := False
 	FLAKY_CMD_ARGS :=
 endif
 
@@ -54,7 +56,7 @@ endef
 prepare_environment: $(PYTHON_BUILD)/setupinteg_env $(BIN)/pytest
 	. $(PYTHON_BUILD)/bin/activate
 	echo "pass" > $(MAGMA_ROOT)/test_status.txt
-	echo "Flaky test retries enabled? $(enable-flaky-retry)"
+	echo "Flaky test retries enabled? $(IS_FLAKY_RETRIES_ENABLED)"
 
 .PHONY: prepare_federation
 prepare_federation:
