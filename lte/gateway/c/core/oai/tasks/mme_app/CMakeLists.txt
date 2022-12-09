@@ -44,7 +44,6 @@ add_library(TASK_MME_APP
     mme_app_pdn_context.cpp
     mme_app_procedures.cpp
     mme_app_itti_messaging.cpp
-    mme_app_edns_emulation.cpp
     mme_app_sgw_selection.cpp
     mme_app_sgs_status.cpp
     mme_app_state_converter.cpp

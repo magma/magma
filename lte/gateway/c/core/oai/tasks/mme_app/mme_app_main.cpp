@@ -52,7 +52,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ha.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_network.hpp"
@@ -533,9 +532,6 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   if (mme_nas_state_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  if (mme_app_edns_init(mme_config_p)) {
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
 
   // Initialise NAS module
   nas_network_initialize(mme_config_p);
@@ -591,7 +587,6 @@ static bool is_mme_app_healthy(void) {
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
   stop_timer(&mme_app_task_zmq_ctx, epc_stats_timer_id);
-  mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module
   nas_network_cleanup();
