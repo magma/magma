@@ -20,7 +20,7 @@ function lint {
         | sudo sh -s -- -b /usr/sbin/ v1.50.1;
     fi
 
-    golangci-lint run -c ../../ci/.golangci.yml
+    golangci-lint run -c "$MAGMA_ROOT"/.golangci.yml
 
     if [ $? -ne 0 ]; then
         echo Lint failed.
