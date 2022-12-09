@@ -30,8 +30,8 @@ RUN apt-get update && \
   ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
 
 # Add the magma apt repo
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-  apt-add-repository "deb ${EXTRA_REPO} focal-1.8.0 main"
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository "deb ${EXTRA_REPO} focal-1.8.0 main"
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \

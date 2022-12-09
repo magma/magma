@@ -3,9 +3,11 @@ FROM ${baseImage} as base
 
 # Add the magma apt repo
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https wget
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main"
+    apt-get install -y apt-utils software-properties-common apt-transport-https
+
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
