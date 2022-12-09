@@ -23,7 +23,7 @@ set -euo pipefail
 # found at https://github.com/bazelbuild/buildtools/tree/master/buildifier#readme
 
 BUILDIFIER_URL="https://github.com/bazelbuild/buildtools/releases/download/5.1.0/buildifier-linux-amd64"
-BUILDIFIER_PATH="/usr/bin"
+BUILDIFIER_PATH="/tmp"
 BUILDIFIER_EXECUTABLE="$BUILDIFIER_PATH/buildifier-linux-amd64"
 
 # Command line argument, can be either 'check' or 'format'.
