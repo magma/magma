@@ -30,9 +30,10 @@ on:
 
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  # see GH14041
-  CACHE_KEY: bazel-base-image-sha-c4de1e5
-  REMOTE_DOWNLOAD_OPTIMIZATION: true
+  # Warning: the values of BAZEL_CACHE_PLAIN_IMAGE and BAZEL_CACHE_PROD_IMAGE
+  # need to be repeated in the matrix workflow includes for "docker-image-cache".
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+  BAZEL_CACHE_PROD_IMAGE: "ghcr.io/magma/magma/bazel-cache-prod:latest"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -112,11 +113,6 @@ jobs:
 
             # Required for bazel-diff to perform git checkout.
             git config --global --add safe.directory /workspaces/magma
-
-            printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
-            printf '\r%s\r\r' '###############################' 1>&2
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Bazel-diff.' 1>&2
@@ -221,10 +217,13 @@ jobs:
         include:
           - bazel-config: ""
             bazel-target-rule: ".*_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-plain:latest"
           - bazel-config: "--config=asan"
             bazel-target-rule: "cc_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-asan:latest"
           - bazel-config: "--config=production"
             bazel-target-rule: "cc_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-prod:latest"
     name: Bazel Test Job
     runs-on: ubuntu-20.04
     steps:
@@ -242,29 +241,24 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
-      - name: Setup Bazel Base Image
+      - name: Setup Bazel Docker Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ matrix.docker-image-cache }}
           options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            echo "Pulled the bazel base image!"
+            echo "Pulled the bazel docker image!"
       - name: Run bazel build and test
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ matrix.docker-image-cache }}
           shell: bash
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             set -euo pipefail
-
-            printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
-            printf '\r%s\r\r' '###############################' 1>&2
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Determining bazel test targets.' 1>&2
@@ -464,29 +458,24 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
-      - name: Setup Bazel Base Image
+      - name: Setup Bazel Docker Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            echo "Pulled the bazel base image!"
+            echo "Pulled the bazel docker image!"
       - name: Run Python Import Check
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           shell: bash
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             set -euo pipefail
-
-            printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
-            printf '\r%s\r\r' '###############################' 1>&2
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Determining bazel test targets.' 1>&2
@@ -553,29 +542,24 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
-      - name: Setup Bazel Base Image
+      - name: Setup Bazel Docker Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PROD_IMAGE }}
           options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            echo "Pulled the bazel base image!"
+            echo "Pulled the bazel docker image!"
       - name: Build .deb Packages
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PROD_IMAGE }}
           shell: bash
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             cd /workspaces/magma
             set -euo pipefail
-
-            printf '\r%s\r' '###############################' 1>&2
-            printf '\r%s\r' 'Configuring bazel remote cache.' 1>&2
-            printf '\r%s\r\r' '###############################' 1>&2
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Building the release package.' 1>&2
