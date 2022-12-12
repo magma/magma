@@ -51,7 +51,7 @@ function pretty {
 }
 
 function test {
-    find . | grep _test\.go | sed 's/\(.*\)\/.*/\1/' | xargs -L1 go "test"
+    gotestsum ./...
 }
 
 function e2e {
