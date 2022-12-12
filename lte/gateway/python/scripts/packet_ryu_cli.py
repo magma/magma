@@ -14,15 +14,17 @@ limitations under the License.
 """
 
 import argparse
+import binascii
 import logging
+import socket
 
+import dpkt
 from integ_tests.s1aptests.ovs.rest_api import (
     add_flowentry,
     delete_flowentry,
     get_datapath,
     get_flows,
 )
-from scapy.all import IP, Ether, sendp
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
@@ -70,11 +72,22 @@ def _simple_add(args):
 
 
 def _simple_send(args):
-    eth = Ether(dst=DEFAULT_PKT_MAC_DST, src=DEFAULT_PKT_MAC_SRC)
-    ip = IP(proto=1, src=args.ipv4_src, dst=args.ipv4_dst)
-    pkt = eth / ip
-    print(pkt.show())
-    sendp(pkt, iface=args.iface, count=args.num)
+    pkt = dpkt.ip.IP(
+        src=socket.inet_aton(args.ipv4_src),
+        dst=socket.inet_aton(args.ipv4_dst),
+        id=1, p=1,
+    )
+    pkt = dpkt.ethernet.Ethernet(
+        dst=binascii.unhexlify(DEFAULT_PKT_MAC_DST.replace(':', '')),
+        src=binascii.unhexlify(DEFAULT_PKT_MAC_SRC.replace(':', '')),
+        type=dpkt.ethernet.ETH_TYPE_IP,
+        data=bytes(pkt),
+    )
+    print(pkt)
+    for _ in range(args.count):
+        with socket.socket(socket.AF_PACKET, socket.SOCK_RAW) as sock:
+            sock.bind(args.iface)
+            sock.send(pkt)
 
 
 def create_parser():
