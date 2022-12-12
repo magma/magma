@@ -19,7 +19,7 @@ set -e -o pipefail
 FWA="fwa"
 FFWA="federated_fwa"
 ALL="all"
-ORC8R_VERSION="1.4"
+ORC8R_VERSION="1.8"
 
 # package chart, update index.yaml and push it to artifactory
 update_and_send_to_artifactory () {
