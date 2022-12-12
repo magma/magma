@@ -275,7 +275,10 @@ py_binary(
     srcs = ["icmpv6.py"],
     legacy_create_init = False,
     tags = TAG_UTIL_SCRIPT,
-    deps = [requirement("scapy")],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:ifaces",
+        requirement("dpkt"),
+    ],
 )
 
 py_binary(
