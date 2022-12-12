@@ -29,16 +29,16 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
@@ -75,9 +75,6 @@ status_code_e sgw_handle_ip_allocation_rsp(
     spgw_state_t* spgw_state,
     const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64);
 uint32_t spgw_get_new_s1u_teid(spgw_state_t* state);
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 bool is_enb_ip_address_same(const fteid_t* fte_p, struct in_addr ipv4,
                             struct in6_addr ipv6);
@@ -149,9 +146,6 @@ status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     imsi64_t imsi64, uint8_t no_of_bearers_to_be_deact,
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module);
-#ifdef __cplusplus
-}
-#endif
 
 void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
                       in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,

@@ -39,7 +39,7 @@ jobs:
       - name: Run apt
         run: sudo apt-get update && sudo apt -y upgrade
       - name: setup pyenv
-        uses: "gabrielfalcao/pyenv-action@5327db2939908b2ef8f62d284403d678c4b611d0" # pin@v8
+        uses: "gabrielfalcao/pyenv-action@c35d86605f074d0c7ce32e4aa79ef91645a57f14" # pin@v11
         with:
           default: 3.8.10
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0

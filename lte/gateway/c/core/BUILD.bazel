@@ -514,9 +514,9 @@ MME_HDRS = [
     "oai/include/async_system_messages_def.h",
     "oai/include/async_system_messages_types.h",
     "oai/include/grpc_service.hpp",
-    "oai/include/gtpv1_u_messages_def.h",
-    "oai/include/gtpv1_u_messages_types.h",
-    "oai/include/gtpv1u_types.h",
+    "oai/include/gtpv1_u_messages_def.hpp",
+    "oai/include/gtpv1_u_messages_types.hpp",
+    "oai/include/gtpv1u_types.hpp",
     "oai/include/gx_messages_def.h",
     "oai/include/gx_messages_types.h",
     "oai/include/ha_messages_def.hpp",
@@ -987,10 +987,10 @@ MME_HDRS = [
     "oai/lib/pipelined_client/PipelinedClientAPI.hpp",
     "oai/lib/pipelined_client/PipelinedServiceClient.hpp",
     "oai/lib/pipelined_client/proto_converters.hpp",
-    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.h",
-    "oai/tasks/gtpv1-u/gtp_tunnel_upf.h",
-    "oai/tasks/gtpv1-u/gtpv1u.h",
-    "oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h",
+    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.hpp",
+    "oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp",
+    "oai/tasks/gtpv1-u/gtpv1u.hpp",
+    "oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp",
     "oai/tasks/sgw/pgw_handlers.hpp",
     "oai/tasks/sgw/pgw_pco.hpp",
     "oai/tasks/sgw/pgw_procedures.hpp",
@@ -1094,9 +1094,9 @@ PIPELINED_CLIENT_C = [
 ]
 
 GTPV1_U_C = [
-    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.c",
-    "oai/tasks/gtpv1-u/gtp_tunnel_upf.c",
-    "oai/tasks/gtpv1-u/gtpv1u_task.c",
+    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.cpp",
+    "oai/tasks/gtpv1-u/gtp_tunnel_upf.cpp",
+    "oai/tasks/gtpv1-u/gtpv1u_task.cpp",
 ]
 
 SGW_C = [

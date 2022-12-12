@@ -17,10 +17,11 @@
 
 #pragma once
 
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #ifdef __cplusplus
 }
@@ -30,5 +31,3 @@ int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
                 bool persist_state);
 
 void gtpv1u_exit(void);
-
-int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);

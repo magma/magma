@@ -28,8 +28,11 @@
 #include <stdint.h>
 #include <string>
 
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+
 void release_ue_ipv4_address(const std::string imsi, const std::string apn,
                              struct in_addr* addr);
+int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 
 void release_ue_ipv6_address(const std::string imsi, const std::string apn,
                              struct in6_addr* addr);

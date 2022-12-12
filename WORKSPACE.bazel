@@ -25,10 +25,6 @@ http_archive(
     url = "https://github.com/cedarai/rules_pyvenv/archive/refs/tags/1.0.tar.gz",
 )
 
-### BUILDIFIER DEPENDENCIES
-# See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
-# buildifier is written in Go and hence needs rules_go to be built.
-# See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
 http_archive(
     name = "io_bazel_rules_go",
     sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
@@ -63,16 +59,6 @@ gazelle_dependencies()
 # If you use WORKSPACE.bazel, use the following line instead of the bare gazelle_dependencies():
 # gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
-
-# protobuf dependency covered below
-
-http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    sha256 = "7f43df3cca7bb4ea443b4159edd7a204c8d771890a69a50a190dc9543760ca21",
-    strip_prefix = "buildtools-5.0.1",
-    url = "https://github.com/bazelbuild/buildtools/archive/refs/tags/5.0.1.tar.gz",
-)
-### BUILDIFIER DEPENDENCIES
 
 http_archive(
     name = "bazel_skylib",
@@ -157,13 +143,12 @@ load("//bazel:python_repositories.bzl", "python_repositories")
 
 python_repositories()
 
-# TODO: GH13522 upgrade to >0.7.0 when landed - see issue
 http_archive(
     name = "rules_pkg",
-    sha256 = "bdac8d3d178467c89f246e1e894b59c26c784569e91798901fb81291de834708",
-    strip_prefix = "rules_pkg-7f7bcf9c93bed9ee693b5bfedde5d72f9a2d6ea4",
+    sha256 = "eea0f59c28a9241156a47d7a8e32db9122f3d50b505fae0f33de6ce4d9b61834",
     urls = [
-        "https://github.com/bazelbuild/rules_pkg/archive/7f7bcf9c93bed9ee693b5bfedde5d72f9a2d6ea4.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
     ],
 )
 
