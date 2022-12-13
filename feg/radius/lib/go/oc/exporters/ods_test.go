@@ -83,7 +83,6 @@ func (m *mockConfigProvider) setConfig(cfg Config) Config {
 }
 
 func TestPostODS(t *testing.T) {
-	t.Skip("Skipped because it fails consistently") // TODO GH14659
 
 	tests := []struct {
 		testName    string
@@ -100,7 +99,7 @@ func TestPostODS(t *testing.T) {
 			resp:        nil,
 		},
 		{
-			testName: "actuall_datapoints_should_pass",
+			testName: "actual_datapoints_should_pass",
 			metricsData: map[string]string{
 				"success": "1",
 				"failed":  "3",
@@ -133,6 +132,7 @@ func TestPostODS(t *testing.T) {
 			var odsCfg = Config{
 				Category: category,
 				Token:    token,
+				Prefix:   "dummy",
 				Entity:   entity,
 				GraphURL: u.String(),
 			}
