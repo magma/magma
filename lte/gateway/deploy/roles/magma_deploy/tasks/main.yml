@@ -72,6 +72,7 @@
       Verify-Peer "false";
       Verify-Host "false";
       };
+  become: true
   tags:
     - agwc
     - base
@@ -82,6 +83,7 @@
     filename: magma
     state: present
     update_cache: true
+  become: true
   tags:
     - agwc
     - base
