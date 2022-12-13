@@ -89,11 +89,11 @@ RUN apt-get update && apt-get install -y \
   sudo \
   unzip \
   uuid-dev \
-  wget \
   && rm -rf /var/lib/apt/lists/*
 
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 RUN apt-get update && apt-get install -y \
   grpc-dev \
   libfolly-dev \
@@ -188,11 +188,10 @@ RUN apt-get update && apt-get install -y \
   sudo \
   tshark \
   tzdata \
-  wget \
   && rm -rf /var/lib/apt/lists/*
 
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 RUN apt-get update && apt-get install -y \
   libopenvswitch \
   openvswitch-common \
