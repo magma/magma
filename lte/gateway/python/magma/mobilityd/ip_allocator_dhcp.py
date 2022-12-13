@@ -22,6 +22,7 @@ from __future__ import (
 
 import json
 import logging
+import os.path
 import subprocess
 import threading
 from copy import deepcopy
@@ -44,8 +45,11 @@ DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
-#TODO: Change this back to "dhcp_helper_cli.py" in PR 14635
-DHCP_HELPER_CLI_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
+#TODO: Change this back to just "dhcp_helper_cli.py" in PR 14635
+if os.path.exists(f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"):
+    DHCP_HELPER_CLI_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
+else:
+    DHCP_HELPER_CLI_PATH = f"dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
