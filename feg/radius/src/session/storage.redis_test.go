@@ -22,8 +22,6 @@ import (
 )
 
 func TestBasicInsertGetRedis(t *testing.T) {
-	t.Skip("Skipping due to flakiness") // TODO GH14659
-
 	// Arrange
 	sessionID := "test"
 
@@ -37,8 +35,6 @@ func TestBasicInsertGetRedis(t *testing.T) {
 }
 
 func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
-	t.Skip("Skipping due to flakiness") // TODO GH14659
-
 	// Arrange
 	degOfParallelism := 100
 	reqPerConcurrentContext := 100
@@ -51,9 +47,11 @@ func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
 
 	// Act
 	for i := 0; i < degOfParallelism; i++ {
+		onComplete.Add(1)
 		go func(called string, calling string) {
+			defer onComplete.Done()
 			sessionID := fmt.Sprintf("session_%s_%s", calling, called)
-			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext, &onComplete)
+			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext)
 		}(fmt.Sprintf("called%d", i), fmt.Sprintf("calling%d", i))
 	}
 	onComplete.Wait()
