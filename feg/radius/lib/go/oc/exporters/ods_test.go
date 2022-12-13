@@ -39,7 +39,7 @@ var (
 	entity   = "my_component"
 )
 
-// For testing purpose im omitting the time of the datapoint
+// For testing purpose omitting the time of the datapoint
 type DatapointTest struct {
 	Entity string   `json:"entity"`
 	Key    string   `json:"key"`
@@ -113,7 +113,7 @@ func TestPostODS(t *testing.T) {
 		},
 	}
 
-	// Iteratting over tests while mocking ODS graph endpoint each time.
+	// Iterating over tests while mocking ODS graph endpoint each time.
 	for _, test := range tests {
 		test := test
 		t.Run(test.testName, func(t *testing.T) {
@@ -293,7 +293,7 @@ func TestExportView(t *testing.T) {
 			output: map[string]string{"Latency.gauge": "103.000000"},
 		},
 	}
-	// Iteratting over tests while mocking ODS graph endpoint each time.
+	// Iterating over tests while mocking ODS graph endpoint each time.
 	for _, test := range tests {
 		test := test
 		t.Run(test.testName, func(t *testing.T) {
