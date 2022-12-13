@@ -307,7 +307,7 @@ ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
   uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(enb_key, &mme_ue_s1ap_id);
-  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+  if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
     return mme_ue_context_exists_mme_ue_s1ap_id(
         (mme_ue_s1ap_id_t)mme_ue_s1ap_id);
   }
@@ -407,7 +407,7 @@ void mme_ue_context_update_coll_keys(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_TRACE(LOG_MME_APP,
-               "Update ue context.old_enb_ue_s1ap_id_key %ld ue "
+               "Update ue context.old_enb_ue_s1ap_id_key %u ue "
                "context.old_mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                " ue context.old_IMSI " IMSI_64_FMT
                " ue context.old_GUTI " GUTI_FMT "\n",
@@ -416,7 +416,7 @@ void mme_ue_context_update_coll_keys(
                GUTI_ARG(&ue_context_p->emm_context._guti));
 
   OAILOG_TRACE(LOG_MME_APP,
-               "Update ue context %p updated_enb_ue_s1ap_id_key %ld "
+               "Update ue context %p updated_enb_ue_s1ap_id_key %u "
                "updated_mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                " updated_IMSI " IMSI_64_FMT " updated_GUTI " GUTI_FMT "\n",
                ue_context_p, enb_s1ap_id_key, mme_ue_s1ap_id, imsi,
@@ -442,7 +442,7 @@ void mme_ue_context_update_coll_keys(
     } else {
       OAILOG_ERROR_UE(
           LOG_MME_APP, imsi,
-          "Failed to update enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+          "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
           "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
@@ -450,7 +450,7 @@ void mme_ue_context_update_coll_keys(
   } else {
     OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
-        "Did not update enb_s1ap_id_key %ld to enb_ue_s1ap_key2mme_ueid_map "
+        "Did not insert enb_s1ap_id_key %u to enb_ue_s1ap_key2mme_ueid_map "
         "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
         enb_s1ap_id_key, ue_context_p->enb_ue_s1ap_id,
@@ -626,7 +626,7 @@ status_code_e mme_insert_ue_context(
         magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to update enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+          "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
           "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " " MME_UE_S1AP_ID_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -797,13 +797,13 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   if (ue_context_p->mme_teid_s11) {
     if (mme_ue_context_p->s11_teid2mme_ueid_map.remove(
             ue_context_p->mme_teid_s11) != magma::PROTO_MAP_OK) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to remove s11_teid2mme_ueid_map for s11_teid2mme_ueid_map"
-          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", MME S11 TEID  " TEID_FMT,
-          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id,
-          ue_context_p->mme_teid_s11);
+      OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                      "Failed to remove mme_teid_s11 from s11_teid2mme_ueid_map"
+                      " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+                      " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+                      ", MME S11 TEID  " TEID_FMT,
+                      ue_context_p->enb_ue_s1ap_id,
+                      ue_context_p->mme_ue_s1ap_id, ue_context_p->mme_teid_s11);
     }
   }
   // filled NAS UE ID/ MME UE S1AP ID
@@ -1292,7 +1292,7 @@ static void mme_app_handle_s1ap_ue_context_release(
     OAILOG_WARNING(
         LOG_MME_APP,
         "Invalid mme_ue_s1ap_ue_id " MME_UE_S1AP_ID_FMT
-        " received from S1AP. Using enb_s1ap_id_key %ld to get the context \n",
+        " received from S1AP. Using enb_s1ap_id_key %u to get the context \n",
         mme_ue_s1ap_id, enb_s1ap_id_key);
   }
   if (!ue_mm_context) {
