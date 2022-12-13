@@ -58,6 +58,14 @@ jobs:
             sudo pip install ovs==2.16.0
             sudo apt-get install --yes --allow-downgrades ./*.deb
 
+      - name: Verify distribution
+        run: |
+          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
+              echo "You have chosen 'distribution' ${{ env.distribution }} as input."
+              echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"
+              exit 1
+          fi
+
       - name: Setup JFrog CLI
         id: jfrog-setup
         # Workaround because secrets are available in `env` but not in `if`
@@ -73,6 +81,7 @@ jobs:
         working-directory: ${{ env.DEST }}
         run: |
             for file in ./*.deb; do
+              file=${file:2}
               name=${file%%.deb}
               architecture=${name##*_}
               echo Architecture is ${architecture}
