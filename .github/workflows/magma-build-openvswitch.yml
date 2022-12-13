@@ -30,16 +30,6 @@ on:
     - cron: 36 4 * * 0
   workflow_dispatch:
     inputs:
-      production:
-        description: Is production build?
-        type: boolean
-        default: false
-      repository:
-        description: Repository to push to?
-        type: choice
-        default: magma-packages-test
-        options: [ magma-packages-test, magma-packages-prod ]
-        required: true
       distribution:
         description: Distribution to set?
         default: 'focal-ci'
@@ -51,7 +41,7 @@ jobs:
     env:
       MAGMA_ROOT: ${{ github.workspace }}
       DEST: ${{ github.workspace }}/deb_packages
-      repository: ${{ inputs.repository || 'magma-packages-test' }}
+      repository: magma-packages-test
       distribution: ${{ inputs.distribution || 'focal-ci' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -67,22 +57,6 @@ jobs:
         run: |
             sudo pip install ovs==2.16.0
             sudo apt-get install --yes --allow-downgrades ./*.deb
-
-      - name: Set repository to debian-test if not workflow_dispatch
-        run: echo "repository=debian-test" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/master' && github.event_name != 'workflow_dispatch'
-
-      - name: Verify inputs
-        run: |
-          echo "You have chosen 'repository' ${{ env.repository }} and 'is production' ${{ inputs.production }}."
-          echo "ERROR: Production deployment is protected. Abort!"
-          exit 1
-        if: |
-          env.repository == 'magma-packages-prod' &&
-          ! (
-            inputs.production &&
-            contains('["maxhbr", "nstng", "jheidbrink", "lkreutzer", "Neudrino", "MoritzThomasHuebner", "tmdzk", "wolfseb"]', github.actor)
-          )
 
       - name: Setup JFrog CLI
         id: jfrog-setup
