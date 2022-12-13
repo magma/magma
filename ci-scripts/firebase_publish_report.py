@@ -88,6 +88,11 @@ def sudo_python_tests(args):
     prepare_and_publish('sudo_python_tests', args)
 
 
+def containerized_lte_integ_test(args):
+    """Prepare and publish containerized LTE Integ Test report"""
+    prepare_and_publish('containerized_lte_integ_test', args, 'test_status.txt')
+
+
 def prepare_and_publish(test_type: str, args, path: Optional[str] = None):
     """Prepare and publish test report"""
     report = url_to_html_redirect(args.run_id, args.url)
@@ -133,6 +138,7 @@ tests = {
     'cwf': cwf_integ_test,
     'sudo_python_tests': sudo_python_tests,
     'debian_lte_integ_test': debian_lte_integ_test,
+    'containerized_lte': containerized_lte_integ_test,
 }
 
 for key, value in tests.items():

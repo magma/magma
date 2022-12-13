@@ -12,6 +12,10 @@ build:production --define=production=1
 # a target to the actions' execution requirements.
 # See https://github.com/bazelbuild/bazel/issues/8830 for details.
 common --experimental_allow_tags_propagation
+# experimental_remote_cache_compression enables compression and decompression
+# of cache blocks with zstd. This reduces the remote cache traffic, local cache
+# size is not affected.
+common --experimental_remote_cache_compression
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14

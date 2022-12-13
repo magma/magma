@@ -86,11 +86,14 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: Install gotestsum
+        if: always()
+        run: |
+          go install gotest.tools/gotestsum@v1.8.0
       - name: Run precommit steps
         if: always()
         id: feg-precommit
         run: |
-          go install gotest.tools/gotestsum@v1.8.0
           make -C ${MAGMA_ROOT}/feg/gateway precommit
       - name: Upload Test Results
         id: feg-precommit-upload
@@ -99,6 +102,18 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
+      - name: Run radius src unit tests
+        if: always()
+        id: radius-src-unit-tests
+        working-directory: feg/radius/src
+        run: |
+          ./run.sh test
+      - name: Run radius lib unit tests
+        if: always()
+        id: radius-lib-unit-tests
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh test); done
       - name: Extract commit title
         if: failure() && github.event_name == 'push'
         id: commit
@@ -122,7 +137,12 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
+        if: |
+          ( steps.feg-precommit.outcome=='failure' ||
+          steps.feg-precommit-upload.outcome=='failure' ||
+          steps.radius-src-unit-tests.outcome=='failure' ||
+          steps.radius-lib-unit-tests.outcome=='failure' ) &&
+          github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}

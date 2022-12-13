@@ -16,6 +16,7 @@ package authstate
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -43,7 +44,7 @@ func performSignleReadWriteDeleteReadTest(t *testing.T, manager Manager, authReq
 	// Arrange (randomize state)
 	correlationID := rand.Intn(9999999)
 	eapType := packet.EAPTypeAKA
-	protocolState := string(rand.Intn(999999))
+	protocolState := strconv.Itoa(rand.Intn(999999))
 
 	// Act
 	stateBeforeWrite, errBeforeWrite := manager.Get(&authReq, packet.EAPTypeAKA)

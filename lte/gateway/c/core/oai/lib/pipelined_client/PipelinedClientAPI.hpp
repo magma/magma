@@ -10,15 +10,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef PIPELINE_RPC_CLIENT_H
-#define PIPELINE_RPC_CLIENT_H
+
+#pragma once
 
 #include "stdint.h"
+
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#ifdef __cplusplus
+}
+#endif
+
 typedef enum {
   UE_SESSION_ACTIVE_STATE,
   UE_SESSION_UNREGISTERED_STATE,
@@ -27,9 +34,6 @@ typedef enum {
   UE_SESSION_SUSPENDED_DATA_STATE,
   UE_SESSION_RESUME_DATA_STATE,
 } ue_session_states;
-
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
                               int vlan, struct in_addr enb, uint32_t i_tei,
@@ -55,9 +59,3 @@ int upf_classifier_forward_data_on_tunnel(struct in_addr ue,
 int upf_classifier_add_paging_rule(struct in_addr ue);
 
 int upf_classifier_delete_paging_rule(struct in_addr ue);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // PIPELINE_RPC_CLIENT_H

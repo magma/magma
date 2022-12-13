@@ -27,17 +27,24 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file gtpv1_u_messages_types.h
+
+/*! \file gtpv1_u_messages_types.hpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#ifndef FILE_GTPV1_U_MESSAGES_TYPES_SEEN
-#define FILE_GTPV1_U_MESSAGES_TYPES_SEEN
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct Gtpv1uCreateTunnelReq_s {
   teid_t context_teid;  ///< Tunnel Endpoint Identifier
@@ -94,5 +101,3 @@ typedef struct Gtpv1uTunnelDataReq_s {
   teid_t local_S1u_teid;  ///< Tunnel Endpoint Identifier
   teid_t S1u_enb_teid;    ///< Tunnel Endpoint Identifier
 } Gtpv1uTunnelDataReq;
-
-#endif /* FILE_GTPV1_U_MESSAGES_TYPES_SEEN */
