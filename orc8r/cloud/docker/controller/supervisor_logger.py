@@ -43,7 +43,7 @@ def main():
 def result_handler(event, _):
     print(
         f"{event.process.config.name} {event.channel} | "
-        f"{event.data.decode('utf-8').rstrip()}"
+        f"{event.data.decode('utf-8').rstrip()}",
     )
 
 
