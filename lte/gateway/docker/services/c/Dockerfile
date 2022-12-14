@@ -188,6 +188,7 @@ RUN apt-get update && apt-get install -y \
   sudo \
   tshark \
   tzdata \
+  wget \
   && rm -rf /var/lib/apt/lists/*
 
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
