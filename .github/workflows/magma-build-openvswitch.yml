@@ -26,8 +26,6 @@ on:
     paths:
       - third_party/gtp_ovs/ovs-gtp-patches/**
       - .github/workflows/magma-build-openvswitch.yml
-  schedule:
-    - cron: 36 4 * * 0
   workflow_dispatch:
     inputs:
       distribution:
@@ -60,7 +58,7 @@ jobs:
 
       - name: Verify distribution
         run: |
-          if ${{ env.distribution }} != 'focal-ci' && [[ ! ${{ env.distribution }} =~ ^focal-1.[0-9]+\.[0-9]+$ ]]; then
+          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
               echo "You have chosen 'distribution' ${{ env.distribution }} as input."
               echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"
               exit 1
@@ -77,10 +75,11 @@ jobs:
           JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
       - name: Publish debian packages
-        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
+        if: steps.jfrog-setup.conclusion == 'success'
         working-directory: ${{ env.DEST }}
         run: |
             for file in ./*.deb; do
+              file=${file:2} 
               name=${file%%.deb}
               architecture=${name##*_}
               echo Architecture is ${architecture}
