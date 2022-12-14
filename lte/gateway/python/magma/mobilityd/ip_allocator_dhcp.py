@@ -46,7 +46,8 @@ DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
 # TODO: Change this back to just "dhcp_helper_cli.py" in PR 14635
-if os.path.exists(f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"):
+if environ.get('MAGMA_ROOT') and \
+        os.path.exists(f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"):
     DHCP_HELPER_CLI_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
 else:
     DHCP_HELPER_CLI_PATH = f"dhcp_helper_cli.py"
