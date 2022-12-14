@@ -44,6 +44,14 @@ MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
     ver = VERSION_DEB,
 )
 
+DHCP_HELPER_CLI_PKGNAME = "dhcp_helper_cli"
+
+DHCP_HELPER_CLI_FILENAME = "{name}_{ver}_{arch}".format(
+    name = DHCP_HELPER_CLI_PKGNAME,
+    arch = ARCH,
+    ver = VERSION_DEB,
+)
+
 ### META INFO
 
 URL = "https://github.com/magma/magma/"
@@ -225,6 +233,29 @@ pkg_deb(
     version = VERSION_DEB,
 )
 
+### DHCP HELPER CLI BUILD
+
+pkg_tar(
+    name = "dhcp_helper_cli_tar",
+    srcs = ["//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg"],
+    package_dir = PY_DEST,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = DHCP_HELPER_CLI_FILENAME,
+    ),
+)
+
+pkg_deb(
+    name = "dhcp_helper_cli_deb_pkg",
+    architecture = ARCH,
+    data = ":dhcp_helper_cli_tar",
+    description = "CLI tool for the DHCP client",
+    maintainer = "Magma Dev",
+    package = "dhcp_helper_cli",
+    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
+    version = VERSION_DEB,
+)
+
 ### CI BUILDS
 
 config_setting(
@@ -240,6 +271,7 @@ genrule(
         " && ".join([
             "cp $(location update_deb_meta_info.sh.template) $@",
             "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
+            "sed -i 's/DHCP_HELPER_CLI_FILENAME=REPLACE_ME/DHCP_HELPER_CLI_FILENAME={name}.deb/' $@".format(name = DHCP_HELPER_CLI_FILENAME),
             "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
             "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
             "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
@@ -262,6 +294,7 @@ sh_binary(
     name = "release_build",
     srcs = [":update_deb_meta_info"],
     data = [
+        ":dhcp_helper_cli_deb_pkg",
         ":magma_deb_pkg",
         ":sctpd_deb_pkg",
     ],

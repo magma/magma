@@ -126,6 +126,7 @@ RUN apt-get update && apt-get install -y \
   python3-eventlet \
   python3-pystemd \
   python3-jinja2 \
+  python3-scapy \
   redis-server \
   sudo \
   virtualenv \
@@ -156,6 +157,7 @@ RUN apt-get update && apt-get install -y \
 COPY \
     ./orc8r/gateway/python/scripts/ \
     ./lte/gateway/python/scripts/ \
+    ./lte/gateway/python/dhcp_helper_cli/ \
     /usr/local/bin/
 COPY ./lte/gateway/configs/templates /etc/magma/templates/
 COPY ./lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity

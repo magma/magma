@@ -22,14 +22,12 @@ from __future__ import (
 
 import json
 import logging
-import os.path
 import subprocess
 import threading
 from copy import deepcopy
 from datetime import datetime
 from ipaddress import IPv4Network, ip_address, ip_network
 from json import JSONDecodeError
-from os import environ
 from threading import Condition
 from typing import List, Optional
 
@@ -45,12 +43,7 @@ DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
-# TODO: Change this back to just "dhcp_helper_cli.py" in PR 14635
-if environ.get('MAGMA_ROOT') and \
-        os.path.exists(f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"):
-    DHCP_HELPER_CLI_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
-else:
-    DHCP_HELPER_CLI_PATH = f"dhcp_helper_cli.py"
+DHCP_HELPER_CLI = f"dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
@@ -121,7 +114,7 @@ class IPAllocatorDHCP(IPAllocator):
                     if now >= dhcp_desc.lease_expiration_time:
                         logging.debug("sending lease allocate")
                         call_args = [[
-                            DHCP_HELPER_CLI_PATH,
+                            DHCP_HELPER_CLI,
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
@@ -137,7 +130,7 @@ class IPAllocatorDHCP(IPAllocator):
                     elif now >= dhcp_desc.lease_renew_deadline:
                         logging.debug("sending lease renewal")
                         call_args = [[
-                            DHCP_HELPER_CLI_PATH,
+                            DHCP_HELPER_CLI,
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
@@ -321,7 +314,7 @@ class IPAllocatorDHCP(IPAllocator):
 
         if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
             call_args = [[
-                DHCP_HELPER_CLI_PATH,
+                DHCP_HELPER_CLI,
                 "--mac", str(mac),
                 "--vlan", str(vlan),
                 "--interface", self._iface,
@@ -390,7 +383,7 @@ class IPAllocatorDHCP(IPAllocator):
         if dhcp_response.returncode != 0:
             logging.error(
                 f"Could not decode '{dhcp_response.stdout}' received"
-                f" '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called"
+                f" '{dhcp_response.stderr}' from {DHCP_HELPER_CLI} called"
                 f" with parameters '{dhcp_response.args}'",
             )
             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
@@ -440,7 +433,7 @@ class IPAllocatorDHCP(IPAllocator):
         if dhcp_desc:
             dhcp_cli_response = subprocess.run(
                 [
-                    DHCP_HELPER_CLI_PATH,
+                    DHCP_HELPER_CLI,
                     "--mac", str(mac),
                     "--vlan", str(vlan),
                     "--interface", self._iface,
@@ -455,13 +448,13 @@ class IPAllocatorDHCP(IPAllocator):
                 logging.error(
                     f"Could not decode '{dhcp_cli_response.stdout}'"
                     f" received '{dhcp_cli_response.stderr}' from "
-                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
+                    f"'{DHCP_HELPER_CLI}' called with parameters"
                     f" '{dhcp_cli_response.args}'",
                 )
                 print(
                     f"Could not decode '{dhcp_cli_response.stdout}'"
                     f" received '{dhcp_cli_response.stderr}' from "
-                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
+                    f"'{DHCP_HELPER_CLI}' called with parameters"
                     f" '{dhcp_cli_response.args}'",
                 )
                 raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')

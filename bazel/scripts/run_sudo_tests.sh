@@ -24,13 +24,13 @@ help() {
     echo -e "Usage:${NO_FORMATTING}"
     echo "   $(basename "$0") --help"
     echo "      Display this help message."
-    echo "   $(basename "$0")" 
-    echo "      Executes all bazel tests that are tagged as sudo_test." 
+    echo "   $(basename "$0")"
+    echo "      Executes all bazel tests that are tagged as sudo_test."
     echo "   $(basename "$0") path_to_tests_directory/"
-    echo "      Executes all bazel tests that are tagged as sudo_test" 
+    echo "      Executes all bazel tests that are tagged as sudo_test"
     echo "      inside the specified directory (recursively)."
     echo "   $(basename "$0") path_to_tests_directory:test_name"
-    echo "      Executes the specified sudo test." 
+    echo "      Executes the specified sudo test."
     echo "   --list"
     echo "      List all sudo test targets."
     echo "   --retry-on-failure"
@@ -79,7 +79,7 @@ create_xml_report() {
     local MERGED_REPORT_XML="sudotests_report.xml"
     rm -f "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}"
     mkdir -p "${SUDO_TEST_REPORT_FOLDER}"
-    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${SUDO_TEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}" 
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${SUDO_TEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}"
     sudo rm -f "${SUDO_TEST_REPORT_FOLDER}/"*.xml
 }
 
@@ -149,6 +149,13 @@ then
 fi
 
 cd "${MAGMA_ROOT}"
+
+# Build the dhcp_helper_cli script and create a symlink for its intended usage.
+# This is needed for the tests
+# test_ip_allocator_dhcp_e2e.py and
+# test_ip_allocator_with_vlan.py
+bazel build //lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli
+ln -s /usr/local/bin/dhcp_helper_cli.py "${MAGMA_ROOT}"/bazel-bin/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py
 
 create_test_targets
 
