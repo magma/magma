@@ -118,7 +118,8 @@ s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp.py
 
 PRECOMMIT_TESTS_IPV6 = \
 s1aptests/test_enable_ipv6_iface.py \

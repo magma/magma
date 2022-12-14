@@ -19,16 +19,16 @@ from magma.mobilityd.mac import create_mac_from_sid
 class MacAddressGenTests(unittest.TestCase):
     def test_mac_address_generation(self):
         mac = create_mac_from_sid("IMSI00000000001")
-        self.assertEqual(str(mac), "8A:00:00:00:00:01")
+        self.assertEqual(str(mac), "8a:00:00:00:00:01")
 
         mac = create_mac_from_sid("IMSI980000002918")
-        self.assertEqual(str(mac), "8A:E4:2C:8D:53:66")
+        self.assertEqual(str(mac), "8a:e4:2c:8d:53:66")
 
         mac = create_mac_from_sid("IMSI311980000002918")
-        self.assertEqual(str(mac), "8A:E4:2C:8D:53:66")
+        self.assertEqual(str(mac), "8a:e4:2c:8d:53:66")
 
         mac = create_mac_from_sid("IMSI02918")
-        self.assertEqual(str(mac), "8A:00:00:00:0B:66")
+        self.assertEqual(str(mac), "8a:00:00:00:0b:66")
 
     def test_mac_from_hex(self):
         mac = create_mac_from_sid("123456789012")
