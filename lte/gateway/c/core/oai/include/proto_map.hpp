@@ -341,5 +341,7 @@ typedef magma::proto_map_s<uint32_t, uint64_t> proto_map_uint32_uint64_t;
 typedef magma::proto_map_s<uint32_t, uint32_t> proto_map_uint32_uint32_t;
 // Map- Key: uint64_t, Data: uint32_t
 typedef magma::proto_map_s<uint64_t, uint32_t> proto_map_uint64_uint32_t;
+// Map- Key: uint32_2, Data: string
+//typedef magma::proto_map_s<uint32_t, std::string> proto_map_uint32_string_t;
 
 }  // namespace magma

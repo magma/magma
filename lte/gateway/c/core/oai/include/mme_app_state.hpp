@@ -21,8 +21,8 @@
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
 
 // Map- Key: mme_ue_s1ap_id of (uint32_t), Data: ue_mm_context_s
-typedef magma::proto_map_s<uint32_t, struct ue_mm_context_s*>
-    proto_map_uint32_ue_context_t;
+/*typedef magma::proto_map_s<uint32_t, struct ue_mm_context_s*>
+    proto_map_uint32_ue_context_t;*/
 
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if

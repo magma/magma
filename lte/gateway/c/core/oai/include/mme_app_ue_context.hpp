@@ -499,6 +499,9 @@ typedef struct mme_ue_context_s {
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
+typedef magma::proto_map_s<uint32_t, struct ue_mm_context_s*>
+    proto_map_uint32_ue_context_t;
+
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
  * @returns an UE context matching the IMSI or NULL if the context doesn't
@@ -580,7 +583,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  **/
 status_code_e mme_insert_ue_context(
     mme_ue_context_t* const mme_ue_context,
-    const struct ue_mm_context_s* const ue_context_p);
+    struct ue_mm_context_s* ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove

@@ -36,6 +36,7 @@ extern "C" {
 #include <unordered_map>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 namespace {
 constexpr char IMSI_PREFIX[] = "IMSI";
@@ -251,6 +252,7 @@ class StateManager {
   // TODO: Make this a unique_ptr
   StateType* state_cache_p;
   hash_table_ts_t* state_ue_ht;
+  //proto_map_uint32_ue_context_t mme_ue_id2ue_context_map;
   // TODO: Revisit one shared connection for all types of state
   std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.

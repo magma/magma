@@ -105,7 +105,7 @@ static void mme_app_handle_s1ap_ue_context_release(
     const enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id, enum s1cause cause);
 
 static bool mme_app_recover_timers_for_ue(const uint32_t keyP,
-                                          void* const ue_context_pP,
+                                          struct ue_mm_context_s* const ue_context_pP,
                                           void* unused_param_pP,
                                           void** unused_result_pP);
 
@@ -572,10 +572,10 @@ static bool display_proto_map_uint32_uint32(uint32_t keyP, const uint32_t dataP,
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
-static bool display_proto_map_uint32_string(uint32_t keyP, const std::string dataP,
+static bool display_proto_map_uint32_string(uint32_t keyP, struct ue_mm_context_s* const ue_context_pP,
                                             __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%s\n", keyP,
-               dataP.c_str());
+  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%p\n", keyP,
+               ue_context_pP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
@@ -618,7 +618,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 //------------------------------------------------------------------------------
 status_code_e mme_insert_ue_context(
     mme_ue_context_t* const mme_ue_context_p,
-    const struct ue_mm_context_s* const ue_context_p) {
+    struct ue_mm_context_s* ue_context_p) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   //hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
   proto_map_uint32_ue_context_t* mme_ue_id2ue_context_map = get_mme_ue_state();
@@ -664,7 +664,7 @@ status_code_e mme_insert_ue_context(
                                (void*)ue_context_p);
 
     if (HASH_TABLE_OK != h_rc)*/
-      if(mme_ue_id2ue_context_map->insert(ue_context_p->mme_ue_s1ap_id, &ue_context_p) != magma::PROTO_MAP_OK) {
+      if(mme_ue_id2ue_context_map->insert(ue_context_p->mme_ue_s1ap_id, ue_context_p) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING(LOG_MME_APP,
                      "Failed to insert mme_ue_s1ap_id key to mme_ue_id2ue_context_map %p "
                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
@@ -1529,7 +1529,7 @@ void mme_app_recover_timers_for_all_ues(void) {
   /*hashtable_ts_apply_callback_on_elements(
       mme_state_imsi_ht, mme_app_recover_timers_for_ue, &num_unreg_ues,
       (void**)&mme_ue_id_unreg_list);*/
-  mme_ue_id2ue_context_map->map_apply_callback_on_all_elements(mme_app_recover_timers_for_ue, reinterpret_cast<void*>(&num_unreg_ues), reinterpret_cast<void*>(&mme_ue_id_unreg_list));
+  mme_ue_id2ue_context_map->map_apply_callback_on_all_elements(mme_app_recover_timers_for_ue, reinterpret_cast<void*>(&num_unreg_ues), reinterpret_cast<void**>(&mme_ue_id_unreg_list));
 
   // Handle timer for unregistered UEs here as it will modify the hashtable
   // entries
@@ -1545,7 +1545,7 @@ void mme_app_recover_timers_for_all_ues(void) {
 }
 
 static bool mme_app_recover_timers_for_ue(const uint32_t keyP,
-                                          void* const ue_context_pP,
+                                          struct ue_mm_context_s* const ue_context_pP,
                                           void* param_pP, void** result_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint32_t* num_unreg_ues = (uint32_t*)param_pP;

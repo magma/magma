@@ -109,7 +109,7 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **                                                                        **
  ***************************************************************************/
 bool mme_app_handle_reset_indication(const uint32_t unused_keyP,
-                                     void* const ue_context_pP,
+                                     struct ue_mm_context_s* const ue_context_pP,
                                      void* unused_param_pP,
                                      void** unused_result_pP) {
   status_code_e rc = RETURNerror;
