@@ -38,7 +38,7 @@ TAG_SUDO_TEST = ["sudo_test"] + TAG_MANUAL
 # Used for integration tests. These tests need to be executed manually
 # by a user with sudo privileges. These tags represent test categories,
 # which are used to determine the appropriate environment for them.
-# To run integration tests execute: $MAGMA_ROOT/bazel/scripts/run_integ_tests.sh
+# To run the LTE integration tests execute: $MAGMA_ROOT/bazel/scripts/run_integ_tests.sh
 TAG_INTEGRATION_TEST = ["integration_test"]
 TAG_PRECOMMIT_TEST = ["precommit_test"] + TAG_MANUAL + TAG_INTEGRATION_TEST
 TAG_EXTENDED_TEST = ["extended_test"] + TAG_MANUAL + TAG_INTEGRATION_TEST
