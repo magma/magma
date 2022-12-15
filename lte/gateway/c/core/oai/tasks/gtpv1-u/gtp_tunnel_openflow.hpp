@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-/* File : gtp_tunnel_openflow.h
+/* File : gtp_tunnel_openflow.hpp
  */
 
 #pragma once

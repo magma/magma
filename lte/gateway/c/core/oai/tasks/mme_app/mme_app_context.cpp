@@ -373,7 +373,9 @@ struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
   if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
     return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   } else {
-    OAILOG_WARNING(LOG_MME_APP, " No S11 hashtable for S11 Teid " TEID_FMT "\n",
+    OAILOG_WARNING(LOG_MME_APP,
+                   " Failed to get s11_teid2mme_ueid_map due to invalid "
+                   "mme_ue_s1ap_id , S11 Teid " TEID_FMT,
                    teid);
   }
   return nullptr;
@@ -501,12 +503,12 @@ void mme_ue_context_update_coll_keys(
   }
 
   if ((INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) && (mme_teid_s11)) {
-    mme_ue_context_p->s11_teid2mme_ueid_map.remove(mme_teid_s11);
+    mme_ue_context_p->s11_teid2mme_ueid_map.remove(ue_context_p->mme_teid_s11);
     if (mme_ue_context_p->s11_teid2mme_ueid_map.insert(
             mme_teid_s11, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(LOG_MME_APP, imsi,
                       "Insert operation failed for s11_teid2mme_ueid_map "
-                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
+                      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
                       ue_context_p->mme_ue_s1ap_id);
     } else {
       ue_context_p->mme_teid_s11 = mme_teid_s11;
@@ -558,24 +560,23 @@ void mme_ue_context_update_coll_keys(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-static bool display_proto_map_uint64_uint32(uint64_t keyP, const uint32_t dataP,
-                                            __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "key=%lu, data=%u\n", keyP,
-               dataP);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
-}
-
-static bool display_proto_map_uint32_uint32(uint32_t keyP, const uint32_t dataP,
-                                            __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%u\n", keyP,
-               dataP);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
-}
-
 static bool display_proto_map_uint32_string(uint32_t keyP, struct ue_mm_context_s* const ue_context_pP,
                                             __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%p\n", keyP,
+  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%p", keyP,
                ue_context_pP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
+}
+static bool display_proto_map_uint64_uint32(
+    uint64_t keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
+    __attribute__((unused)) void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "key=%lu, data=%u", keyP, dataP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
+}
+
+static bool display_proto_map_uint32_uint32(
+    uint32_t keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
+    __attribute__((unused)) void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%u", keyP, dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
@@ -691,12 +692,13 @@ status_code_e mme_insert_ue_context(
       if (mme_ue_context_p->s11_teid2mme_ueid_map.insert(
               ue_context_p->mme_teid_s11, ue_context_p->mme_ue_s1ap_id) !=
           magma::PROTO_MAP_OK) {
-        OAILOG_WARNING(LOG_MME_APP,
-                       "Failed to insert s11_teid key to s11_teid2mme_ueid_map, ue context %p "
-                       "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                       " mme_teid_s11 " TEID_FMT "\n",
-                       ue_context_p, ue_context_p->mme_ue_s1ap_id,
-                       ue_context_p->mme_teid_s11);
+        OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                          "Failed to insert s11_teid key to "
+                          "s11_teid2mme_ueid_map, ue context %p "
+                          "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+                          " mme_teid_s11 " TEID_FMT,
+                          ue_context_p, ue_context_p->mme_ue_s1ap_id,
+                          ue_context_p->mme_teid_s11);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
     }
@@ -810,13 +812,13 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   if (ue_context_p->mme_teid_s11) {
     if (mme_ue_context_p->s11_teid2mme_ueid_map.remove(
             ue_context_p->mme_teid_s11) != magma::PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "UE Context not found!\n"
-                   " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-                   " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                   ", MME S11 TEID  " TEID_FMT "  not in S11 collection\n",
-                   ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id,
-                   ue_context_p->mme_teid_s11);
+      OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                      "Failed to remove s11_teid2mme_ueid_map for "
+                      " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+                      " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+                      ", MME S11 TEID  " TEID_FMT,
+                      ue_context_p->enb_ue_s1ap_id,
+                      ue_context_p->mme_ue_s1ap_id, ue_context_p->mme_teid_s11);
     }
   }
   // filled NAS UE ID/ MME UE S1AP ID

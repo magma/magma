@@ -239,6 +239,13 @@
       },
       {
         "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "cwf/pipelined_packet_tracer_debugging"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "orc8r/debug_logs"
@@ -262,7 +269,8 @@
     "Contribute": [
       "contributing/contribute_github",
       "contributing/contribute_codeowners",
-      "contributing/contribute_tsc_norms"
+      "contributing/contribute_tsc_norms",
+      "contributing/contribute_proposals"
     ],
     "Technical Reference": [
       {
@@ -287,6 +295,7 @@
           "lte/tr069",
           "lte/s1ap_tests",
           "lte/eventd",
+          "lte/sessiond",
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
           "lte/integrated_5G_sa",
@@ -326,7 +335,8 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing",
-          "feg/s1ap_federated_tests"
+          "feg/s1ap_federated_tests",
+          "feg/session_proxy"
         ]
       },
       {

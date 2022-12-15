@@ -31,7 +31,10 @@ py_binary(
     main = "main.py",
     python_version = "PY3",
     tags = TAG_SERVICE,
-    visibility = ["//lte/gateway/python:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":mobilityd_lib",
         "//lte/protos:mconfigs_python_proto",
@@ -46,7 +49,6 @@ py_binary(
 py_library(
     name = "mobilityd_lib",
     srcs = [
-        "dhcp_client.py",
         "ip_address_man.py",
         "ip_allocator_base.py",
         "ip_allocator_dhcp.py",

@@ -137,13 +137,16 @@ void MmeNasStateManager::mme_nas_state_init_local_state() {}
 void MmeNasStateManager::create_protomaps() {
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();
-  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(MME_IMSI2MME_UE_ID_MAP_NAME);
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(
+      MME_IMSI2MME_UE_ID_MAP_NAME);
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.map =
       new google::protobuf::Map<uint32_t, uint32_t>();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(
       MME_S11_TEID2MME_UE_ID_MAP_NAME);
 
   /*state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
+  bstring b = bfromcstr(UE_ID_UE_CTXT_TABLE_NAME);
+  state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
                                     mme_app_state_free_ue_context, b);
 
   if (!(state_ue_ht->lock_attr = (pthread_mutexattr_t*)calloc(

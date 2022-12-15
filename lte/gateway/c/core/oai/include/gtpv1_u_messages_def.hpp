@@ -27,12 +27,19 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-/*! \file gtpv1_u_messages_def.h
+
+/*! \file gtpv1_u_messages_def.hpp
   \brief
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+// "#pragma once" will not work for this file, because this file is included
+// in include/messages_def.h, which is included more than once within enum
+// and structure in the file intertask_interface_types.h
+// See comment in "lte/gateway/c/core/oai/include/messages_def.h" for details
+
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_REQ, Gtpv1uCreateTunnelReq,
             gtpv1uCreateTunnelReq)
 MESSAGE_DEF(GTPV1U_CREATE_TUNNEL_RESP, Gtpv1uCreateTunnelResp,

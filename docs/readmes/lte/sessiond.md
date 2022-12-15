@@ -1,3 +1,9 @@
+---
+id: sessiond
+title: Session Management in Magma
+hide_title: true
+---
+
 # Session Management in Magma
 
 ## Overview of SessionD

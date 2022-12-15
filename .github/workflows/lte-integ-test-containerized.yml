@@ -50,6 +50,8 @@ on:
 
 jobs:
   lte-integ-test-containerized:
+    outputs:
+      final_status: ${{ steps.get_final_status.outputs.final_status }}
     runs-on: macos-12
     steps:
       - name: Show inputs
@@ -117,9 +119,19 @@ jobs:
         working-directory: lte/gateway
         run: |
           fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+      - name: Get final status
+        id: get_final_status
+        if: always()
+        run: |
+          if [ -f test_status.txt ]
+          then
+            echo "final_status=$(cat test_status.txt)" >> $GITHUB_OUTPUT
+          else
+            echo "final_status=fail" >> $GITHUB_OUTPUT
+          fi
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results-${{ matrix.test_targets }}
+          name: test-results-${{ inputs.test_targets }}
           path: lte/gateway/test-results/**/*.xml

@@ -1,3 +1,9 @@
+---
+id: pipelined_packet_tracer_debugging
+title: Pipelined Packet Tracer Debugging
+hide_title: true
+---
+
 # Pipelined Packet Tracer Debugging
 
 This is what the trace should look like when everything is setup properly. There might be additional tables based on a specific setup but the primary objective is for the packer to hit table 20 and to go out of either the uplink bridge(uplink_br0) or the gre port(32768, trace will say `output to kernel tunnel`)

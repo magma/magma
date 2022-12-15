@@ -20,17 +20,11 @@
       "contributing/contribute_github": {
         "title": "Community"
       },
-      "contributing/contribute_onboarding": {
-        "title": "Developer Onboarding"
-      },
       "contributing/contribute_proposals": {
         "title": "Proposals Process"
       },
       "contributing/contribute_tsc_norms": {
         "title": "TSC Processes"
-      },
-      "contributing/contribute_workflow": {
-        "title": "Development Workflow"
       },
       "cwf/deploy_build": {
         "title": "Building Carrier Wifi Gateway"
@@ -48,8 +42,8 @@
         "title": "Health Checker",
         "sidebar_label": "Health Checker"
       },
-      "cwf/troubleshooting": {
-        "title": "cwf/troubleshooting"
+      "cwf/pipelined_packet_tracer_debugging": {
+        "title": "Pipelined Packet Tracer Debugging"
       },
       "dp/architecture_overview": {
         "title": "Overview"
@@ -91,7 +85,7 @@
         "title": "S1AP Federated Integration Tests"
       },
       "feg/session_proxy": {
-        "title": "feg/session_proxy"
+        "title": "Session Proxy"
       },
       "general/aws_cloudstrapper": {
         "title": "AWS Cloudstrapper Install"
@@ -239,15 +233,11 @@
         "title": "S1AP Integration Tests"
       },
       "lte/sessiond": {
-        "title": "lte/sessiond"
+        "title": "Session Management in Magma"
       },
       "lte/setup_baremetal": {
         "title": "AGW Setup (Bare Metal)",
         "sidebar_label": "Setup (Bare Metal)"
-      },
-      "lte/setup": {
-        "title": "AGW Setup (With Vagrant)",
-        "sidebar_label": "Setup (With Vagrant)"
       },
       "lte/suci_extensions": {
         "title": "SUCI Extensions"

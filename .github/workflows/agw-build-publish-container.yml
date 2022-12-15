@@ -186,5 +186,72 @@ jobs:
       digest_python: ${{ needs.build-containers.outputs.digest_python }}
       digest_go: ${{ needs.build-containers.outputs.digest_go }}
       registry: ${{ needs.build-containers.outputs.registry }}
-      test_targets: extended
+      test_targets: extended_tests
     secrets: inherit
+
+  publish-container-test-results:
+    runs-on: ubuntu-20.04
+    if: always() && github.event_name == 'push'
+    needs: [test-containers-precommit, test-containers-extended]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - name: Create test_results directory
+        run: mkdir -p lte/gateway/test-results
+
+      - name: Download results of precommit tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-results-precommit
+          path: "${{ github.workspace }}/lte/gateway/test-results"
+
+      - name: Download results of extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-results-extended_tests
+          path: "${{ github.workspace }}/lte/gateway/test-results"
+
+      - name: Determine end result for both tests
+        run: |
+          echo "${{ needs.test-containers-precommit.outputs.final_status }}" > test_status_precommit.txt
+          echo "${{ needs.test-containers-extended.outputs.final_status }}" > test_status_extended.txt
+          diff test_status_precommit.txt test_status_extended.txt > /dev/null
+          if [ $? -eq 0 ]
+          then
+            mv test_status_precommit.txt test_status.txt
+          else
+            echo fail > test_status.txt
+          fi
+          rm test_status_*.txt
+
+      - name: Setup python
+        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+
+      - name: Install pre-requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install firebase_admin
+
+      - name: Publish results to Firebase
+        env:
+          FIREBASE_SERVICE_CONFIG: "${{ secrets.FIREBASE_SERVICE_CONFIG }}"
+          REPORT_FILENAME: "lte_integ_test_containerized${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} containerized_lte --url $URL
+
+      - name: Notify failure to slack
+        if: failure()
+        env:
+          SLACK_WEBHOOK: "${{ secrets.SLACK_WEBHOOK }}"
+          SLACK_USERNAME: "${{ github.workflow }}"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        with:
+          args: "Containerized LTE integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ steps.commit.outputs.title}}"

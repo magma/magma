@@ -43,8 +43,8 @@ bazel test ...
 
 ## Format bazel files
 
-To format all bazel related files, exec into a bazel container and run the following
+To format all bazel related files run the following
 
 ```bash
-bazel run //:buildifier
+$MAGMA_ROOT/bazel/scripts/run_buildifier.sh format
 ```

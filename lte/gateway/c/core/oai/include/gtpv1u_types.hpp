@@ -17,8 +17,14 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define GTPV1U_UDP_PORT (2152)
 #define MAX_BEARERS_PER_UE (11)

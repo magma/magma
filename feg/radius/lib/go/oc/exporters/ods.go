@@ -192,7 +192,7 @@ func (ce *odsMetricsExporter) ExportView(vd *view.Data) {
 		}
 		key = ""
 	}
-	if cfg.DisablePost == true {
+	if cfg.DisablePost {
 		return
 	}
 	err := PostToODS(ce.metricsData, cfg)
