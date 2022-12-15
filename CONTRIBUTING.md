@@ -5,7 +5,7 @@ presubmit checks and more.
 Please read also the [DCO](./DCO.md) for details regarding regarding the
 sign-off rules for a contribution.
 
-1. **TSC Responsibilities **
+1. **TSC Responsibilities**
     1. As outlined in the [Magma Technical Charter](https://github.com/magma/magma/blob/master/Magma_Technical_Charter_Final_1-26-2021.docx.pdf), the TSC will be responsible for all aspects of oversight relating to the Project, which may include: 
         1. coordinating the technical direction of the Project; 
         2. approving project or system proposals (including, but not limited to, incubation, deprecation, and changes to a sub-project’s scope); 
@@ -17,6 +17,7 @@ sign-off rules for a contribution.
         8. discussions, seeking consensus, and where necessary, voting on technical matters relating to the code base that affect multiple projects; and 
         9. coordinating any marketing, events, or communications regarding the Project. 
     2. Allocations recommendations to the Linux Foundation as per approved budgets.
+
 2. **TSC Voting Members**
     3. The TSC will be composed of seven (7) members.
     4. Each TSC member will be elected to a one year term.
@@ -24,6 +25,7 @@ sign-off rules for a contribution.
         11. In the case that a TSC member resigns or is removed, a special election to fill the open seat would occur following the same election process outlined in section 3.
     5. There will be an annual election to determine the composition of the TSC.
     6. Employees from the same organization/company should not hold more than one TSC seat.
+
 3. **TSC Elections**
     7. **Candidate Eligibility**
         12. Current TSC members and active contributors are eligible to run for a voting seat on the TSC.
