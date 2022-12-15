@@ -16,7 +16,6 @@ package session
 import (
 	"fmt"
 	"math/rand"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,10 +55,8 @@ func loopReadWriteDelete(
 	storage GlobalStorage,
 	sessionID string,
 	count int,
-	onComplete *sync.WaitGroup,
 ) {
 	for i := 1; i < count; i++ {
 		performSignleReadWriteDeleteReadTest(t, storage, fmt.Sprintf("%s_%d", sessionID, i))
 	}
-	onComplete.Done()
 }
