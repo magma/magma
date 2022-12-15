@@ -19,23 +19,23 @@ sign-off rules for a contribution.
     2. Allocations recommendations to the Linux Foundation as per approved budgets.
 
 2. **TSC Voting Members**
-    3. The TSC will be composed of seven (7) members.
-    4. Each TSC member will be elected to a one year term.
-        10. If a TSC member is inactive, the other TSC members have the authority to vote the inactive member off the TSC with a two thirds vote. 
-        11. In the case that a TSC member resigns or is removed, a special election to fill the open seat would occur following the same election process outlined in section 3.
-    5. There will be an annual election to determine the composition of the TSC.
-    6. Employees from the same organization/company should not hold more than one TSC seat.
+    1. The TSC will be composed of seven (7) members.
+    2. Each TSC member will be elected to a one year term.
+        1. If a TSC member is inactive, the other TSC members have the authority to vote the inactive member off the TSC with a two thirds vote. 
+        2. In the case that a TSC member resigns or is removed, a special election to fill the open seat would occur following the same election process outlined in section 3.
+    3.There will be an annual election to determine the composition of the TSC.
+    4. Employees from the same organization/company should not hold more than one TSC seat.
 
 3. **TSC Elections**
-    7. **Candidate Eligibility**
-        12. Current TSC members and active contributors are eligible to run for a voting seat on the TSC.
-        13. Candidates may self-nominate or be nominated by an individual who is qualified as a TSC voter as defined in Section 3.b.ii.
-    8. **Voter Eligibility**
-        14. Any individual who has contributed to a Magma repo in the twelve months prior to the election is eligible to vote and run for a voting seat in the TSC election.
-        15. Contributions include, but are not limited to, opening PRs, reviewing and commenting on PRs, opening and commenting on issues, writing design docs, commenting on design docs, participating in mailing list or Slack discussions and participating in working groups.
-        16. Each election cycle, an initial set of voters will be identified through automated reporting. Any individual who has at least 20 measurable contributions in the last 12 months will be automatically added to the eligible voter list.
-        17. If a community member has contributed over the past year but is not captured in automated reporting, they will be able to submit an eligibility form to the current TSC who will then determine whether this member will be eligible.
-    9. **Election Method and Tools**
-        18. If the number of candidates is equal to or less than the number of TSC seats available to be elected, the candidates shall be approved after the nomination period has closed.
-        19. If there are more Qualified Nominees than open TSC seats available for election, all eligible voters shall elect the TSC members using a time-limited [Condorcet ranking method](https://www.opavote.com/methods/condorcet-voting).
-        20. Elections may be run via [OpaVote](https://www.opavote.com/).
+    1. **Candidate Eligibility**
+        1. Current TSC members and active contributors are eligible to run for a voting seat on the TSC.
+        2. Candidates may self-nominate or be nominated by an individual who is qualified as a TSC voter as defined in Section 3.b.ii.
+    2. **Voter Eligibility**
+        1. Any individual who has contributed to a Magma repo in the twelve months prior to the election is eligible to vote and run for a voting seat in the TSC election.
+        2. Contributions include, but are not limited to, opening PRs, reviewing and commenting on PRs, opening and commenting on issues, writing design docs, commenting on design docs, participating in mailing list or Slack discussions and participating in working groups.
+        3. Each election cycle, an initial set of voters will be identified through automated reporting. Any individual who has at least 20 measurable contributions in the last 12 months will be automatically added to the eligible voter list.
+        4. If a community member has contributed over the past year but is not captured in automated reporting, they will be able to submit an eligibility form to the current TSC who will then determine whether this member will be eligible.
+    3. **Election Method and Tools**
+        1. If the number of candidates is equal to or less than the number of TSC seats available to be elected, the candidates shall be approved after the nomination period has closed.
+        2. If there are more Qualified Nominees than open TSC seats available for election, all eligible voters shall elect the TSC members using a time-limited [Condorcet ranking method](https://www.opavote.com/methods/condorcet-voting).
+        3. Elections may be run via [OpaVote](https://www.opavote.com/).
