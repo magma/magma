@@ -97,7 +97,7 @@ jobs:
           JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
       - name: Publish debian package
-        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
+        if: steps.jfrog-setup.conclusion == 'success' # && github.event_name == 'workflow_dispatch'
         working-directory: ${{ env.build-directory }}
         run: |
           file=$(ls *${{ matrix.dependency }}*.deb)
