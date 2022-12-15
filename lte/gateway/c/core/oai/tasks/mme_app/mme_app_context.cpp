@@ -308,8 +308,7 @@ ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
 
   mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(enb_key, &mme_ue_s1ap_id);
   if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
-    return mme_ue_context_exists_mme_ue_s1ap_id(
-        (mme_ue_s1ap_id_t)mme_ue_s1ap_id);
+    return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   }
   return nullptr;
 }
@@ -427,7 +426,7 @@ void mme_ue_context_update_coll_keys(
     // new insertion of enb_ue_s1ap_id_key,
     mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
         ue_context_p->enb_s1ap_id_key);
-    if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+    if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
       if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
               enb_s1ap_id_key, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
         OAILOG_ERROR_UE(
@@ -619,6 +618,17 @@ status_code_e mme_insert_ue_context(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(
+          ue_context_p->enb_s1ap_id_key, &mme_ue_s1ap_id) ==
+      magma::PROTO_MAP_OK) {
+    OAILOG_WARNING_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "enb_s1ap_id_key-%u already exists in enb_ue_s1ap_key2mme_ueid_map for "
+        "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
+        ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   // Insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
     if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
@@ -829,7 +839,6 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* const mme_ue_context_p,
     struct ue_mm_context_s* ue_context_p, ecm_state_t new_ecm_state) {
   // Function is used to update UE's Signaling Connection State
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_ue_context_p == NULL) {
