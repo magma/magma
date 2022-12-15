@@ -31,7 +31,7 @@ func TestBasicInsertGetRedis(t *testing.T) {
 	storage := NewMultiSessionRedisStorage(mr.Addr(), "", 0)
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, storage, sessionID)
+	performSingleReadWriteDeleteReadTest(t, storage, sessionID)
 }
 
 func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {

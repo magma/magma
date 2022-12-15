@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func performSignleReadWriteDeleteReadTest(t *testing.T, storage GlobalStorage, sessionID string) {
+func performSingleReadWriteDeleteReadTest(t *testing.T, storage GlobalStorage, sessionID string) {
 	// Arrange
 	msisdn := fmt.Sprintf("+%d", rand.Intn(999999))
 
@@ -57,6 +57,6 @@ func loopReadWriteDelete(
 	count int,
 ) {
 	for i := 1; i < count; i++ {
-		performSignleReadWriteDeleteReadTest(t, storage, fmt.Sprintf("%s_%d", sessionID, i))
+		performSingleReadWriteDeleteReadTest(t, storage, fmt.Sprintf("%s_%d", sessionID, i))
 	}
 }

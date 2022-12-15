@@ -24,7 +24,7 @@ func TestBasicInsertGet(t *testing.T) {
 	storage := NewMultiSessionMemoryStorage()
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, storage, "test")
+	performSingleReadWriteDeleteReadTest(t, storage, "test")
 }
 
 func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
