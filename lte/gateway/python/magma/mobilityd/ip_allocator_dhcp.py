@@ -43,7 +43,7 @@ DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
-DHCP_HELPER_CLI = f"dhcp_helper_cli.py"
+DHCP_HELPER_CLI = "dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
