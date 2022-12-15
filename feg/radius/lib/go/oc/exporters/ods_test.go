@@ -39,7 +39,7 @@ var (
 	entity   = "my_component"
 )
 
-// For testing purpose im omitting the time of the datapoint
+// For testing purpose omitting the time of the datapoint
 type DatapointTest struct {
 	Entity string   `json:"entity"`
 	Key    string   `json:"key"`
@@ -83,7 +83,6 @@ func (m *mockConfigProvider) setConfig(cfg Config) Config {
 }
 
 func TestPostODS(t *testing.T) {
-	t.Skip("Skipped because it fails consistently") // TODO GH14659
 
 	tests := []struct {
 		testName    string
@@ -100,7 +99,7 @@ func TestPostODS(t *testing.T) {
 			resp:        nil,
 		},
 		{
-			testName: "actuall_datapoints_should_pass",
+			testName: "actual_datapoints_should_pass",
 			metricsData: map[string]string{
 				"success": "1",
 				"failed":  "3",
@@ -113,7 +112,7 @@ func TestPostODS(t *testing.T) {
 		},
 	}
 
-	// Iteratting over tests while mocking ODS graph endpoint each time.
+	// Iterating over tests while mocking ODS graph endpoint each time.
 	for _, test := range tests {
 		test := test
 		t.Run(test.testName, func(t *testing.T) {
@@ -133,6 +132,7 @@ func TestPostODS(t *testing.T) {
 			var odsCfg = Config{
 				Category: category,
 				Token:    token,
+				Prefix:   "dummy",
 				Entity:   entity,
 				GraphURL: u.String(),
 			}
@@ -293,7 +293,7 @@ func TestExportView(t *testing.T) {
 			output: map[string]string{"Latency.gauge": "103.000000"},
 		},
 	}
-	// Iteratting over tests while mocking ODS graph endpoint each time.
+	// Iterating over tests while mocking ODS graph endpoint each time.
 	for _, test := range tests {
 		test := test
 		t.Run(test.testName, func(t *testing.T) {

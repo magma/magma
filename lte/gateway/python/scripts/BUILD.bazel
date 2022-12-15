@@ -21,6 +21,7 @@ SCRIPTS = [
     "config_stateless_agw",
     "cpe_monitoring_cli",
     "create_oai_certs",
+    "dhcp_helper_cli",
     "dp_probe_cli",
     "enodebd_cli",
     "fake_user",

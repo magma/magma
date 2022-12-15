@@ -54,6 +54,7 @@ type (
 )
 
 // Init module interface implementation
+//
 //nolint:deadcode
 func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var ctx ModuleCtx
@@ -110,6 +111,7 @@ func getSessionState(logger *zap.Logger, c *modules.RequestContext) (*session.St
 }
 
 // Handle module interface implementation
+//
 //nolint:deadcode
 func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	mCtx := m.(ModuleCtx)
