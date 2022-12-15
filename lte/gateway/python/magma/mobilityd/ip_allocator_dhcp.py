@@ -351,10 +351,16 @@ class IPAllocatorDHCP(IPAllocator):
 
     def _parse_dhcp_helper_cli_response_to_store(self, dhcp_desc, dhcp_response, mac, vlan):
         try:
-            dhcp_json = json.loads(dhcp_response.stdout)
-        except JSONDecodeError as e:
+            # Only look in at the last line of the stdout for the JSON
+            # Previous lines may contain warnings or other unnecessary info.
+            # This is also helpful for debugging since we can add print
+            # statements to the helper script without breaking the JSON.
+            dhcp_json = json.loads(dhcp_response.stdout.split('\n')[-1])
+        except JSONDecodeError:
             logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'",
+                f"Could not decode '{dhcp_response.stdout}' received "
+                f"'{dhcp_response.stderr}' from dhcp_helper_cli called "
+                f"with parameters '{dhcp_response.args}'",
             )
             raise NoAvailableIPError(f'Failed to json parse message returned from dhcp_helper_cli.')
         if dhcp_json:
@@ -446,12 +452,6 @@ class IPAllocatorDHCP(IPAllocator):
 
             if dhcp_cli_response.returncode != 0:
                 logging.error(
-                    f"Could not decode '{dhcp_cli_response.stdout}'"
-                    f" received '{dhcp_cli_response.stderr}' from "
-                    f"'{DHCP_HELPER_CLI}' called with parameters"
-                    f" '{dhcp_cli_response.args}'",
-                )
-                print(
                     f"Could not decode '{dhcp_cli_response.stdout}'"
                     f" received '{dhcp_cli_response.stderr}' from "
                     f"'{DHCP_HELPER_CLI}' called with parameters"
