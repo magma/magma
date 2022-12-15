@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_LOAD_TEST")
 
 MAGMA_ROOT = "../../../../"
 
@@ -32,6 +33,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//orc8r/gateway/python/magma/common:service_registry",
@@ -48,6 +50,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/subscriberdb:sid",
@@ -63,6 +66,7 @@ py_binary(
     srcs = ["loadtest_pipelined.py"],
     imports = [LTE_ROOT],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/pipelined:policy_converters",
@@ -78,6 +82,7 @@ py_binary(
     srcs = ["loadtest_policydb.py"],
     imports = [LTE_ROOT],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/protos:policydb_python_proto",
@@ -90,6 +95,7 @@ py_binary(
     srcs = ["loadtest_sessiond.py"],
     imports = [LTE_ROOT],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/protos:session_manager_python_proto",
@@ -105,6 +111,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/subscriberdb:sid",
