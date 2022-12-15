@@ -17,8 +17,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/emakeev/milenage"
 	"github.com/golang/glog"
+	"github.com/magma/milenage"
 
 	"magma/lte/cloud/go/protos"
 )

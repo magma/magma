@@ -16,7 +16,7 @@ package servicers_test
 import (
 	"testing"
 
-	"github.com/emakeev/milenage"
+	"github.com/magma/milenage"
 	"github.com/stretchr/testify/assert"
 
 	"magma/feg/gateway/services/testcore/hss/servicers"
