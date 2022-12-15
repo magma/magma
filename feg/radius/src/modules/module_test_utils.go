@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"layeh.com/radius"
 )
@@ -38,6 +39,7 @@ func WaitForRadiusServerToBeReady(secret []byte, addr string) (err error) {
 		if err == nil {
 			return nil
 		}
+		time.Sleep(5 * time.Millisecond)
 	}
 	return fmt.Errorf(
 		"radius server failed to be ready after %d retries: %v",
