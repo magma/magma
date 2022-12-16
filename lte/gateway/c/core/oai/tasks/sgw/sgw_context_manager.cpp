@@ -46,8 +46,7 @@ extern "C" {
 
 //-----------------------------------------------------------------------------
 void sgw_display_sgw_eps_bearer_context(
-    const magma::lte::oai::SgwEpsBearerContext* const eps_bearer_ctxt)
-{
+    const magma::lte::oai::SgwEpsBearerContext* const eps_bearer_ctxt) {
   if (eps_bearer_ctxt) {
     OAILOG_DEBUG(LOG_SPGW_APP,
                  "|\t\t\t\tebi: %u, enb_teid_for_S1u: " TEID_FMT

@@ -24,6 +24,7 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 using magma::lte::oai::CreateSessionMessage;
 using magma::lte::oai::GTPV1uData;
@@ -437,6 +438,105 @@ void eps_bearer_qos_to_proto(
   eps_bearer_qos_proto->mutable_mbr()->set_br_dl(
       eps_bearer_qos_state->mbr.br_dl);
 }
+void proto_to_port_range(const magma::lte::oai::PortRange& port_range_proto,
+                         port_range_t* port_range) {
+  port_range->lowlimit = port_range_proto.low_limit();
+  port_range->highlimit = port_range_proto.high_limit();
+}
+
+void proto_to_packet_filter(
+    const magma::lte::oai::PacketFilter& packet_filter_proto,
+    packet_filter_t* packet_filter) {
+  packet_filter->spare = packet_filter_proto.spare();
+  packet_filter->direction = packet_filter_proto.direction();
+  packet_filter->identifier = packet_filter_proto.identifier();
+  packet_filter->eval_precedence = packet_filter_proto.eval_precedence();
+  packet_filter->length = packet_filter_proto.length();
+
+  auto* packet_filter_contents = &packet_filter->packetfiltercontents;
+  for (int32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
+       i++) {
+    auto& packet_filter_content_proto =
+        packet_filter_proto.packet_filter_contents(i);
+    switch (packet_filter_content_proto.flags()) {
+      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR: {
+        if (packet_filter_content_proto.ipv4_remote_addresses_size()) {
+          packet_filter_contents->flags |=
+              TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+          int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
+          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+            packet_filter_contents->ipv4remoteaddr[local_idx].addr =
+                packet_filter_content_proto.ipv4_remote_addresses(i).addr();
+            packet_filter_contents->ipv4remoteaddr[local_idx].mask =
+                packet_filter_content_proto.ipv4_remote_addresses(0).mask();
+            --local_idx;
+          }
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR: {
+        if (packet_filter_content_proto.ipv6_remote_addresses_size()) {
+          packet_filter_contents->flags |=
+              TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
+            packet_filter_contents->ipv6remoteaddr[i].addr =
+                packet_filter_content_proto.ipv6_remote_addresses(i).addr();
+            packet_filter_contents->ipv6remoteaddr[i].mask =
+                packet_filter_content_proto.ipv6_remote_addresses(i).mask();
+          }
+        }
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
+        packet_filter_contents->protocolidentifier_nextheader =
+            packet_filter_content_proto.protocol_identifier_nextheader();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
+        packet_filter_contents->singlelocalport =
+            packet_filter_content_proto.single_local_port();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
+        packet_filter_contents->singleremoteport =
+            packet_filter_content_proto.single_remote_port();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
+        packet_filter_contents->securityparameterindex =
+            packet_filter_content_proto.security_parameter_index();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
+        packet_filter_contents->typdeofservice_trafficclass.value =
+            packet_filter_content_proto.type_of_service_traffic_class().value();
+        packet_filter_contents->typdeofservice_trafficclass.mask =
+            packet_filter_content_proto.type_of_service_traffic_class().mask();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL: {
+        packet_filter_contents->flags |= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+        packet_filter_contents->flowlabel =
+            packet_filter_content_proto.flow_label();
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
+        proto_to_port_range(packet_filter_content_proto.local_port_range(),
+                            &packet_filter_contents->localportrange);
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE: {
+        packet_filter_contents->flags |=
+            TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
+        proto_to_port_range(packet_filter_content_proto.remote_port_range(),
+                            &packet_filter_contents->remoteportrange);
+      } break;
+    }
+  }
+}
 
 void traffic_flow_template_to_proto(
     const traffic_flow_template_t* tft_state,
@@ -490,6 +590,8 @@ void traffic_flow_template_to_proto(
       }
       break;
     default:
+      OAILOG_ERROR(LOG_SPGW_APP, "Invalid TFT operation code:%u ",
+                   tft_state->tftoperationcode);
       break;
   };
 }
@@ -529,7 +631,6 @@ void sgw_create_session_message_to_proto(
   proto->set_imsi((char*)session_request->imsi.digit);
   char msisdn[MSISDN_LENGTH + 1] = {};
   uint32_t msisdn_len = get_msisdn_from_session_req(session_request, msisdn);
-  // proto->set_msisdn((char*)session_request->msisdn.digit);
   proto->set_msisdn(msisdn);
 
   char imeisv[IMEISV_DIGITS_MAX + 1] = {};
@@ -538,20 +639,11 @@ void sgw_create_session_message_to_proto(
     proto->set_mei(imeisv, IMEISV_DIGITS_MAX);
     OAILOG_DEBUG(LOG_SPGW_APP, "imeisv:%s \n", imeisv);
   }
-#if 0
-  if (MEI_IMEISV) {
-    memcpy(proto->mutable_mei(), &session_request->mei.choice.imeisv,
-           session_request->mei.choice.imeisv.length);
-  } else if (MEI_IMEI) {
-    memcpy(proto->mutable_mei(), &session_request->mei.choice.imei,
-           session_request->mei.choice.imei.length);
-  }
-#endif
 
   char uli[14] = {};
   bool uli_exists = get_uli_from_session_req(session_request, uli);
   if (uli_exists) {
-    proto->set_uli(uli);
+    proto->set_uli(uli, 14);
   }
 
   const auto cc = session_request->charging_characteristics;

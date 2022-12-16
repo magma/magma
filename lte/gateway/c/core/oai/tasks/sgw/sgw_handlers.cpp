@@ -189,8 +189,7 @@ status_code_e sgw_handle_s11_create_session_request(
     s_plus_p_gw_eps_bearer_ctxt_info_p->mutable_pgw_eps_bearer_context()
         ->set_imsi_unauth_indicator(1);
     sgw_context_p->set_mme_teid_s11(session_req_pP->sender_fteid_for_cp.teid);
-    s_plus_p_gw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-        ->set_sgw_teid_s11_s4(new_endpoint_p->local_teid);
+    sgw_context_p->set_sgw_teid_s11_s4(new_endpoint_p->local_teid);
     if (session_req_pP->trxn) {
       sgw_context_p->set_trxn((char*)session_req_pP->trxn);
     }
@@ -345,7 +344,8 @@ status_code_e sgw_handle_sgi_endpoint_created(
         inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(),
                   &create_session_response_p->paa.ipv4_address.s_addr);
       }
-      if (eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6) {
+      if (eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6 ||
+          eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4_AND_v6) {
         inet_pton(AF_INET6, eps_bearer_ctxt.ue_ip_paa().ipv6_addr().c_str(),
                   &create_session_response_p->paa.ipv6_address);
         create_session_response_p->paa.ipv6_prefix_length =
@@ -520,6 +520,12 @@ static void sgw_add_gtp_tunnel(
   struct in6_addr ue_ipv6 = {};
   convert_proto_ip_to_standard_ip_fmt(eps_bearer_ctxt_p->mutable_ue_ip_paa(),
                                       &ue_ipv4, &ue_ipv6, true);
+  bool is_ue_ipv6_pres = false;
+  if (((eps_bearer_ctxt_p->ue_ip_paa().pdn_type() == IPv6 ||
+        eps_bearer_ctxt_p->ue_ip_paa().pdn_type() == IPv4_AND_v6)) &&
+      !(eps_bearer_ctxt_p->ue_ip_paa().ipv6_addr().empty())) {
+    is_ue_ipv6_pres = true;
+  }
 
   int vlan = eps_bearer_ctxt_p->ue_ip_paa().vlan();
   Imsi_t imsi;
@@ -563,10 +569,17 @@ static void sgw_add_gtp_tunnel(
                      eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
                      eps_bearer_ctxt_p->enb_teid_s1u());
 
-      rv = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
-                             eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
-                             eps_bearer_ctxt_p->enb_teid_s1u(), imsi, nullptr,
-                             DEFAULT_PRECEDENCE, apn);
+      if (is_ue_ipv6_pres) {
+        rv = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
+                               eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+                               eps_bearer_ctxt_p->enb_teid_s1u(), imsi, nullptr,
+                               DEFAULT_PRECEDENCE, apn);
+      } else {
+        rv = gtpv1u_add_tunnel(ue_ipv4, nullptr, vlan, enb, &enb_ipv6,
+                               eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+                               eps_bearer_ctxt_p->enb_teid_s1u(), imsi, nullptr,
+                               DEFAULT_PRECEDENCE, apn);
+      }
 
       // (@ulaskozat) We only need to update the TEIDs during session creation
       // which triggers rule installments on sessiond. When pipelined needs to
@@ -588,9 +601,17 @@ static void sgw_add_gtp_tunnel(
         // Prepare DL flow rule
         magma::lte::oai::PacketFilter create_new_tft =
             eps_bearer_ctxt_p->tft().packet_filter_list().create_new_tft(itrn);
+        packet_filter_t packet_filter = {0};
+        proto_to_packet_filter(create_new_tft, &packet_filter);
         struct ip_flow_dl dlflow = {0};
-        generate_dl_flow((create_new_tft.mutable_packet_filter_contents(0)),
-                         ue_ipv4.s_addr, &ue_ipv6, &dlflow);
+        if (is_ue_ipv6_pres) {
+          generate_dl_flow(&packet_filter.packetfiltercontents, ue_ipv4.s_addr,
+                           &ue_ipv6, &dlflow);
+        } else {
+          generate_dl_flow(&packet_filter.packetfiltercontents, ue_ipv4.s_addr,
+                           nullptr, &dlflow);
+        }
+
         OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
                        "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
                        "sgw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
@@ -598,10 +619,19 @@ static void sgw_add_gtp_tunnel(
                        eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
                        eps_bearer_ctxt_p->enb_teid_s1u());
 
-        rv = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
-                               eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
-                               eps_bearer_ctxt_p->enb_teid_s1u(), imsi, &dlflow,
-                               create_new_tft.eval_precedence(), apn);
+        if (is_ue_ipv6_pres) {
+          rv =
+              gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
+                                eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+                                eps_bearer_ctxt_p->enb_teid_s1u(), imsi,
+                                &dlflow, create_new_tft.eval_precedence(), apn);
+        } else {
+          rv =
+              gtpv1u_add_tunnel(ue_ipv4, nullptr, vlan, enb, &enb_ipv6,
+                                eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+                                eps_bearer_ctxt_p->enb_teid_s1u(), imsi,
+                                &dlflow, create_new_tft.eval_precedence(), apn);
+        }
 
         if (rv < 0) {
           OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
@@ -619,6 +649,7 @@ static void sgw_add_gtp_tunnel(
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
+
 //------------------------------------------------------------------------------
 /* Populates bearer contexts to be modified structure in
  * modify bearer rsp message
@@ -1711,6 +1742,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
     }
     // Delete all the dedicated bearers linked to this default bearer
+    std::vector<uint32_t> remove_bearer_list = {};
     if (sgw_context_p->mutable_pdn_connection()->eps_bearer_map_size()) {
       map_uint32_spgw_eps_bearer_context_t eps_bearer_map;
       eps_bearer_map.map =
@@ -1731,12 +1763,27 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           struct in6_addr ue_ipv6 = {};
           convert_proto_ip_to_standard_ip_fmt(
               eps_bearer_ctxt.mutable_ue_ip_paa(), &ue_ipv4, &ue_ipv6, true);
+          bool is_ue_ipv6_pres = false;
+          if (((eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6 ||
+                eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4_AND_v6)) &&
+              !(eps_bearer_ctxt.ue_ip_paa().ipv6_addr().empty())) {
+            is_ue_ipv6_pres = true;
+          }
 
 #if !MME_UNIT_TEST
-          if (gtp_tunnel_ops->del_tunnel(
-                  enb, &enb_ipv6, ue_ipv4, &ue_ipv6,
-                  eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
-                  eps_bearer_ctxt.enb_teid_s1u(), nullptr) < 0) {
+          int rc = RETURNerror;
+          if (is_ue_ipv6_pres) {
+            rc = gtp_tunnel_ops->del_tunnel(
+                enb, &enb_ipv6, ue_ipv4, &ue_ipv6,
+                eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
+                eps_bearer_ctxt.enb_teid_s1u(), nullptr);
+          } else {
+            rc = gtp_tunnel_ops->del_tunnel(
+                enb, &enb_ipv6, ue_ipv4, nullptr,
+                eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
+                eps_bearer_ctxt.enb_teid_s1u(), nullptr);
+          }
+          if (rc != RETURNok) {
             OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                             "ERROR in deleting TUNNEL " TEID_FMT
                             " (eNB) <-> (SGW) " TEID_FMT "\n",
@@ -1748,10 +1795,14 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                            ebi);
           }
 #endif
-          sgw_remove_eps_bearer_context(sgw_context_p->mutable_pdn_connection(),
-                                        eps_bearer_ctxt.eps_bearer_id());
+          remove_bearer_list.push_back(eps_bearer_ctxt.eps_bearer_id());
         }
       }
+      for (uint32_t i = 0; i < remove_bearer_list.size(); i++) {
+        sgw_remove_eps_bearer_context(sgw_context_p->mutable_pdn_connection(),
+                                      remove_bearer_list[i]);
+      }
+      remove_bearer_list.clear();
     }
     OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
                    "Removed default bearer context for (ebi = %d)\n",
@@ -1798,10 +1849,24 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           struct in6_addr ue_ipv6 = {};
           convert_proto_ip_to_standard_ip_fmt(
               eps_bearer_ctxt.mutable_ue_ip_paa(), &ue_ipv4, &ue_ipv6, true);
+          bool is_ue_ipv6_pres = false;
+          if (((eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6 ||
+                eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4_AND_v6)) &&
+              !(eps_bearer_ctxt.ue_ip_paa().ipv6_addr().empty())) {
+            is_ue_ipv6_pres = true;
+          }
+
           magma::lte::oai::PacketFilter create_new_tft =
-              eps_bearer_ctxt.tft().packet_filter_list().create_new_tft(i);
-          generate_dl_flow((create_new_tft.mutable_packet_filter_contents(i)),
-                           ue_ipv4.s_addr, &ue_ipv6, &dlflow);
+              eps_bearer_ctxt.tft().packet_filter_list().create_new_tft(itrn);
+          create_new_tft_t new_tft = {0};
+          proto_to_packet_filter(create_new_tft, &new_tft);
+          if (is_ue_ipv6_pres) {
+            generate_dl_flow(&new_tft.packetfiltercontents, ue_ipv4.s_addr,
+                             &ue_ipv6, &dlflow);
+          } else {
+            generate_dl_flow(&new_tft.packetfiltercontents, ue_ipv4.s_addr,
+                             nullptr, &dlflow);
+          }
 
           struct in_addr enb = {.s_addr = 0};
           struct in6_addr enb_ipv6 = {};
@@ -1874,7 +1939,7 @@ status_code_e sgw_handle_ip_allocation_rsp(
     session_req.context_teid = ip_allocation_rsp->context_teid;
     session_req.eps_bearer_id = ip_allocation_rsp->eps_bearer_id;
     session_req.status = ip_allocation_rsp->status;
-    struct pcef_create_session_data session_data;
+    struct pcef_create_session_data session_data = {};
     get_session_req_data(spgw_state, sgw_context_p->mutable_saved_message(),
                          &session_data);
 
@@ -2112,7 +2177,7 @@ void handle_failed_create_bearer_response(
 }
 
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
-void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
+void generate_dl_flow(packet_filter_contents_t* packet_filter,
                       in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,
                       struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule
@@ -2125,30 +2190,23 @@ void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
      * address should be set, check the remote address flag and set the
      * ips accordingly
      */
-    if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG &
-         packet_filter->flags()) ==
+    if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-      struct in_addr remoteaddr = {.s_addr = 0};
-      if (packet_filter->ipv4_remote_addresses_size()) {
-        remoteaddr.s_addr =
-            (((uint32_t)packet_filter->ipv4_remote_addresses(0).addr()) << 24) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(1).addr()) << 16) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(2).addr()) << 8) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(3).addr()));
-      }
-      dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
+      dlflow->src_ip.s_addr =
+          (((uint32_t)packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[3].addr));
+
       dlflow->set_params |= SRC_IPV4;
       dlflow->dst_ip.s_addr = ipv4_s_addr;
       dlflow->set_params |= DST_IPV4;
     } else if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
-                packet_filter->flags()) ==
+                packet_filter->flags) ==
                TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
       struct in6_addr remoteaddr = {};
-      if (packet_filter->ipv6_remote_addresses_size()) {
-        for (uint8_t itr = 0; itr < 16; itr++) {
-          uint8_t ipv6 = packet_filter->ipv6_remote_addresses(itr).addr();
-          remoteaddr.s6_addr[itr] = ipv6;
-        }
+      for (uint8_t itr = 0; itr < 16; itr++) {
+        remoteaddr.s6_addr[itr] = packet_filter->ipv6remoteaddr[itr].addr;
       }
       dlflow->src_ip6 = remoteaddr;
       dlflow->set_params |= SRC_IPV6;
@@ -2158,40 +2216,30 @@ void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
   } else if (ipv4_s_addr) {
     dlflow->dst_ip.s_addr = ipv4_s_addr;
     dlflow->set_params |= DST_IPV4;
-    if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG &
-         packet_filter->flags()) ==
+    if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-      struct in_addr remoteaddr = {};
-      if (packet_filter->ipv4_remote_addresses_size()) {
-        remoteaddr.s_addr =
-            (((uint32_t)packet_filter->ipv4_remote_addresses(0).addr()) << 24) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(1).addr()) << 16) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(2).addr()) << 8) +
-            (((uint32_t)packet_filter->ipv4_remote_addresses(3).addr()));
-      }
-      dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
+      dlflow->src_ip.s_addr =
+          (((uint32_t)packet_filter->ipv4remoteaddr[0].addr) << 24) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[1].addr) << 16) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[2].addr) << 8) +
+          (((uint32_t)packet_filter->ipv4remoteaddr[3].addr));
       dlflow->set_params |= SRC_IPV4;
     }
   } else if (ue_ipv6) {
     dlflow->dst_ip6 = *ue_ipv6;
     dlflow->set_params |= DST_IPV6;
-    if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
-         packet_filter->flags()) ==
+    if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG & packet_filter->flags) ==
         TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
       struct in6_addr remoteaddr = {};
-      if (packet_filter->ipv6_remote_addresses_size()) {
-        for (uint8_t itr = 0; itr < 16; itr++) {
-          uint8_t ipv6 = packet_filter->ipv6_remote_addresses(0).addr();
-          remoteaddr.s6_addr[itr] = ipv6;
-        }
+      for (uint8_t itr = 0; itr < 16; itr++) {
+        remoteaddr.s6_addr[itr] = packet_filter->ipv6remoteaddr[itr].addr;
       }
-
       dlflow->src_ip6 = remoteaddr;
       dlflow->set_params |= SRC_IPV6;
     }
   }
   // Specify the next header
-  dlflow->ip_proto = packet_filter->protocol_identifier_nextheader();
+  dlflow->ip_proto = packet_filter->protocolidentifier_nextheader;
   // Match on proto if it is explicity specified to be
   // other than the dummy IP. When PCRF RAR message does not
   // define the protocol type, this field defaults to value 0.
@@ -2203,27 +2251,26 @@ void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
   }
 
   // Process remote port if present
-  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
-       packet_filter->flags()) ==
+  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG & packet_filter->flags) ==
       TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
     if (dlflow->ip_proto == IPPROTO_TCP) {
       dlflow->set_params |= TCP_SRC_PORT;
-      dlflow->tcp_src_port = packet_filter->single_remote_port();
+      dlflow->tcp_src_port = packet_filter->singleremoteport;
     } else if (dlflow->ip_proto == IPPROTO_UDP) {
       dlflow->set_params |= UDP_SRC_PORT;
-      dlflow->udp_src_port = packet_filter->single_remote_port();
+      dlflow->udp_src_port = packet_filter->singleremoteport;
     }
   }
 
   // Process UE port if present
-  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG & packet_filter->flags()) ==
+  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG & packet_filter->flags) ==
       TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
     if (dlflow->ip_proto == IPPROTO_TCP) {
       dlflow->set_params |= TCP_DST_PORT;
-      dlflow->tcp_dst_port = packet_filter->single_local_port();
+      dlflow->tcp_dst_port = packet_filter->singlelocalport;
     } else if (dlflow->ip_proto == IPPROTO_UDP) {
       dlflow->set_params |= UDP_DST_PORT;
-      dlflow->udp_dst_port = packet_filter->single_local_port();
+      dlflow->udp_dst_port = packet_filter->singlelocalport;
     }
   }
 }
@@ -2251,6 +2298,12 @@ static void add_tunnel_helper(
   convert_proto_ip_to_standard_ip_fmt(
       eps_bearer_ctxt_entry_p->mutable_ue_ip_paa(), &ue_ipv4, &ue_ipv6, true);
 
+  bool is_ue_ipv6_pres = false;
+  if (((eps_bearer_ctxt_entry_p->ue_ip_paa().pdn_type() == IPv6 ||
+        eps_bearer_ctxt_entry_p->ue_ip_paa().pdn_type() == IPv4_AND_v6)) &&
+      !(eps_bearer_ctxt_entry_p->ue_ip_paa().ipv6_addr().empty())) {
+    is_ue_ipv6_pres = true;
+  }
   int vlan = eps_bearer_ctxt_entry_p->ue_ip_paa().vlan();
   Imsi_t imsi;
   memcpy(imsi.digit,
@@ -2263,8 +2316,15 @@ static void add_tunnel_helper(
     struct ip_flow_dl dlflow = {0};
     magma::lte::oai::PacketFilter create_new_tft =
         eps_bearer_ctxt_entry_p->tft().packet_filter_list().create_new_tft(i);
-    generate_dl_flow((create_new_tft.mutable_packet_filter_contents(i)),
-                     ue_ipv4.s_addr, &ue_ipv6, &dlflow);
+    create_new_tft_t new_tft = {0};
+    proto_to_packet_filter(create_new_tft, &new_tft);
+    if (is_ue_ipv6_pres) {
+      generate_dl_flow(&new_tft.packetfiltercontents, ue_ipv4.s_addr, &ue_ipv6,
+                       &dlflow);
+    } else {
+      generate_dl_flow(&new_tft.packetfiltercontents, ue_ipv4.s_addr, nullptr,
+                       &dlflow);
+    }
 
 #if !MME_UNIT_TEST
     rc = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
@@ -2420,6 +2480,13 @@ void sgw_process_release_access_bearer_request(
       struct in6_addr ue_ipv6 = {};
       convert_proto_ip_to_standard_ip_fmt(eps_bearer_ctxt.mutable_ue_ip_paa(),
                                           &ue_ipv4, &ue_ipv6, true);
+      bool is_ue_ipv6_pres = false;
+      if (((eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv6 ||
+            eps_bearer_ctxt.ue_ip_paa().pdn_type() == IPv4_AND_v6)) &&
+          !(eps_bearer_ctxt.ue_ip_paa().ipv6_addr().empty())) {
+        is_ue_ipv6_pres = true;
+      }
+
       struct in_addr pgw = {.s_addr = 0};
       struct in6_addr pgw_ipv6 = {};
       convert_proto_ip_to_standard_ip_fmt(
@@ -2439,10 +2506,17 @@ void sgw_process_release_access_bearer_request(
                       eps_bearer_ctxt.sgw_teid_s5_s8_up());
 #if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
       if (module == LOG_SPGW_APP) {
-        rv =
-            gtp_tunnel_ops->del_tunnel(enb, &enb_ipv6, ue_ipv4, &ue_ipv6,
-                                       eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
-                                       eps_bearer_ctxt.enb_teid_s1u(), nullptr);
+        if (is_ue_ipv6_pres) {
+          rv = gtp_tunnel_ops->del_tunnel(
+              enb, &enb_ipv6, ue_ipv4, &ue_ipv6,
+              eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
+              eps_bearer_ctxt.enb_teid_s1u(), nullptr);
+        } else {
+          rv = gtp_tunnel_ops->del_tunnel(
+              enb, &enb_ipv6, ue_ipv4, nullptr,
+              eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
+              eps_bearer_ctxt.enb_teid_s1u(), nullptr);
+        }
       } else if (module == LOG_SGW_S8) {
         rv = gtpv1u_del_s8_tunnel(enb, &enb_ipv6, pgw, &pgw_ipv6, ue_ipv4,
                                   &ue_ipv6,
@@ -2463,7 +2537,11 @@ void sgw_process_release_access_bearer_request(
       Imsi_t imsi;
       memcpy(imsi.digit, sgw_context->imsi().c_str(),
              sgw_context->imsi().size());
-      rv = gtp_tunnel_ops->add_paging_rule(imsi, ue_ipv4, &ue_ipv6);
+      if (is_ue_ipv6_pres) {
+        rv = gtp_tunnel_ops->add_paging_rule(imsi, ue_ipv4, &ue_ipv6);
+      } else {
+        rv = gtp_tunnel_ops->add_paging_rule(imsi, ue_ipv4, nullptr);
+      }
       // Convert to string for logging
       char* ip_str = inet_ntoa(ue_ipv4);
       if (rv < 0) {
@@ -2564,13 +2642,14 @@ static void get_session_req_data(
   }
 
   data->mcc_mnc_len = saved_req->serving_network().mcc().size();
+  memset(data->mcc_mnc, 0, 7);
   memcpy(data->mcc_mnc, saved_req->serving_network().mcc().c_str(),
          saved_req->serving_network().mcc().size());
-  data->mcc_mnc_len += saved_req->serving_network().mnc().size();
 
   memcpy(&data->mcc_mnc[data->mcc_mnc_len],
          saved_req->serving_network().mnc().c_str(),
          saved_req->serving_network().mnc().size());
+  data->mcc_mnc_len += saved_req->serving_network().mnc().size();
   get_imsi_plmn_from_session_req(saved_req->imsi(), data);
 
   memcpy(data->charging_characteristics.value,
@@ -2579,6 +2658,7 @@ static void get_session_req_data(
   data->charging_characteristics.length =
       saved_req->charging_characteristics().size();
 
+  memset(data->apn, 0, APN_MAX_LENGTH + 1);
   memcpy(data->apn, saved_req->apn().c_str(), saved_req->apn().size());
   data->pdn_type = saved_req->pdn_type();
 

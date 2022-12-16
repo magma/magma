@@ -25,7 +25,6 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp"
 #ifdef __cplusplus
 }
 #endif

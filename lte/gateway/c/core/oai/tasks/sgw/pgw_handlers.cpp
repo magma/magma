@@ -187,6 +187,7 @@ void spgw_handle_pcef_create_session_response(
                         .pdn_connection()
                         .apn_in_use();
   eps_bearer_ctxt.set_update_teids(true);
+  // getting updated eps_bearer_ctxt
   if (sgw_update_eps_bearer_entry(
           bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
               ->mutable_pdn_connection(),

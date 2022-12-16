@@ -147,10 +147,9 @@ status_code_e spgw_build_and_send_s11_deactivate_bearer_req(
     ebi_t* ebi_to_be_deactivated, bool delete_default_bearer,
     teid_t mme_teid_S11, log_proto_t module);
 
-void generate_dl_flow(magma::lte::oai::PacketFilterContents* packet_filter,
+void generate_dl_flow(packet_filter_contents_t* packet_filter,
                       in_addr_t ipv4_s_addr, struct in6_addr* ue_ipv6,
                       struct ip_flow_dl* dlflow);
-
 void sgw_handle_delete_bearer_cmd(
     itti_s11_delete_bearer_command_t* s11_delete_bearer_command,
     imsi64_t imsi64);
@@ -173,3 +172,7 @@ void port_range_to_proto(const port_range_t* port_range,
 void sgw_create_session_message_to_proto(
     const itti_s11_create_session_request_t* session_request,
     magma::lte::oai::CreateSessionMessage* proto);
+
+void proto_to_packet_filter(
+    const magma::lte::oai::PacketFilter& packet_filter_proto,
+    packet_filter_t* packet_filter);

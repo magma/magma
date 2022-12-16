@@ -255,7 +255,6 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-#if 1
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
   status_code_e return_code = RETURNerror;
 
@@ -636,6 +635,5 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-#endif
 }  // namespace lte
 }  // namespace magma
