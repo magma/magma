@@ -304,16 +304,13 @@ void mme_app_state_free_ue_context(void** ue_context_node) {
 //------------------------------------------------------------------------------
 ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
     mme_ue_context_t* const mme_ue_context_p, const enb_s1ap_id_key_t enb_key) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-  uint64_t mme_ue_s1ap_id64 = 0;
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
-  hashtable_uint64_ts_get(mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-                          (const hash_key_t)enb_key, &mme_ue_s1ap_id64);
-  if (HASH_TABLE_OK == h_rc) {
-    return mme_ue_context_exists_mme_ue_s1ap_id(
-        (mme_ue_s1ap_id_t)mme_ue_s1ap_id64);
+  mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(enb_key, &mme_ue_s1ap_id);
+  if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
+    return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   }
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -409,7 +406,7 @@ void mme_ue_context_update_coll_keys(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_TRACE(LOG_MME_APP,
-               "Update ue context.old_enb_ue_s1ap_id_key %ld ue "
+               "Update ue context.old_enb_ue_s1ap_id_key %u ue "
                "context.old_mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                " ue context.old_IMSI " IMSI_64_FMT
                " ue context.old_GUTI " GUTI_FMT "\n",
@@ -418,7 +415,7 @@ void mme_ue_context_update_coll_keys(
                GUTI_ARG(&ue_context_p->emm_context._guti));
 
   OAILOG_TRACE(LOG_MME_APP,
-               "Update ue context %p updated_enb_ue_s1ap_id_key %ld "
+               "Update ue context %p updated_enb_ue_s1ap_id_key %u "
                "updated_mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                " updated_IMSI " IMSI_64_FMT " updated_GUTI " GUTI_FMT "\n",
                ue_context_p, enb_s1ap_id_key, mme_ue_s1ap_id, imsi,
@@ -427,30 +424,36 @@ void mme_ue_context_update_coll_keys(
   if ((INVALID_ENB_UE_S1AP_ID_KEY != enb_s1ap_id_key) &&
       (ue_context_p->enb_s1ap_id_key != enb_s1ap_id_key)) {
     // new insertion of enb_ue_s1ap_id_key,
-    h_rc = hashtable_uint64_ts_remove(
-        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
-    h_rc = hashtable_uint64_ts_insert(
-        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)enb_s1ap_id_key, mme_ue_s1ap_id);
-
-    if (HASH_TABLE_OK != h_rc) {
-      OAILOG_ERROR_UE(LOG_MME_APP, imsi,
-                      "Error could not update this ue context %p "
-                      "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-                      " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %s\n",
-                      ue_context_p, ue_context_p->enb_ue_s1ap_id,
-                      ue_context_p->mme_ue_s1ap_id,
-                      hashtable_rc_code2string(h_rc));
+    mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
+        ue_context_p->enb_s1ap_id_key);
+    if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
+      if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
+              enb_s1ap_id_key, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, imsi,
+            "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+            "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+            " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+            ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+      } else {
+        ue_context_p->enb_s1ap_id_key = enb_s1ap_id_key;
+      }
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi,
+          "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+          "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
     }
-    ue_context_p->enb_s1ap_id_key = enb_s1ap_id_key;
   } else {
-    OAILOG_DEBUG_UE(LOG_MME_APP, imsi,
-                    "Did not update enb_s1ap_id_key %ld in ue context %p "
-                    "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-                    " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-                    enb_s1ap_id_key, ue_context_p, ue_context_p->enb_ue_s1ap_id,
-                    ue_context_p->mme_ue_s1ap_id);
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, imsi,
+        "Did not insert enb_s1ap_id_key %u to enb_ue_s1ap_key2mme_ueid_map "
+        "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+        " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+        enb_s1ap_id_key, ue_context_p->enb_ue_s1ap_id,
+        ue_context_p->mme_ue_s1ap_id);
   }
 
   if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
@@ -585,10 +588,10 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   hashtable_ts_dump_content(mme_state_ue_id_ht, tmp);
   OAILOG_DEBUG(LOG_MME_APP, "mme_ue_s1ap_id_ue_context_htbl %s\n", bdata(tmp));
 
-  btrunc(tmp, 0);
-  hashtable_uint64_ts_dump_content(
-      mme_ue_contexts_p->enb_ue_s1ap_id_ue_context_htbl, tmp);
-  OAILOG_DEBUG(LOG_MME_APP, "enb_ue_s1ap_id_ue_context_htbl %s\n", bdata(tmp));
+  magma::proto_map_uint64_uint32_t enb_ue_s1ap_key2mme_ueid_map =
+      mme_ue_contexts_p->enb_ue_s1ap_key2mme_ueid_map;
+  enb_ue_s1ap_key2mme_ueid_map.map_apply_callback_on_all_elements(
+      display_proto_map_uint64_uint32, nullptr, nullptr);
 
   btrunc(tmp, 0);
   obj_hashtable_uint64_ts_dump_content(mme_ue_contexts_p->guti_ue_context_htbl,
@@ -615,30 +618,29 @@ status_code_e mme_insert_ue_context(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  // filled ENB UE S1AP ID
-  h_rc = hashtable_uint64_ts_is_key_exists(
-      mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-      (const hash_key_t)ue_context_p->enb_s1ap_id_key);
-  if (HASH_TABLE_OK == h_rc) {
-    OAILOG_WARNING(
-        LOG_MME_APP,
-        "This ue context %p already exists enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-        "\n",
-        ue_context_p, ue_context_p->enb_ue_s1ap_id);
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(
+          ue_context_p->enb_s1ap_id_key, &mme_ue_s1ap_id) ==
+      magma::PROTO_MAP_OK) {
+    OAILOG_WARNING_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "enb_s1ap_id_key-%u already exists in enb_ue_s1ap_key2mme_ueid_map for "
+        "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
+        ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  h_rc = hashtable_uint64_ts_insert(
-      mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-      (const hash_key_t)ue_context_p->enb_s1ap_id_key,
-      ue_context_p->mme_ue_s1ap_id);
-
-  if (HASH_TABLE_OK != h_rc) {
-    OAILOG_WARNING(LOG_MME_APP,
-                   "Error could not register this ue context %p "
-                   "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " ue_id 0x%x\n",
-                   ue_context_p, ue_context_p->enb_ue_s1ap_id,
-                   ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  // Insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map
+  if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+    if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.insert(
+            ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id) !=
+        magma::PROTO_MAP_OK) {
+      OAILOG_WARNING_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Failed to insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map "
+          "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " " MME_UE_S1AP_ID_FMT,
+          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
   }
 
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
@@ -792,23 +794,21 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   clear_emm_ctxt(&ue_context_p->emm_context);
 
   // eNB UE S1P UE ID
-  hash_rc = hashtable_uint64_ts_remove(
-      mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-      (const hash_key_t)ue_context_p->enb_s1ap_id_key);
-  if (HASH_TABLE_OK != hash_rc)
-    OAILOG_ERROR(LOG_MME_APP,
-                 "UE context not found!\n"
-                 " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-                 " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                 ", ENB_UE_S1AP_ID not in ENB_UE_S1AP_ID collection",
-                 ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
-
+  if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
+          ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        " Failed to remove enb_s1ap_id_key from enb_ue_s1ap_key2mme_ueid_map!"
+        " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+        " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+        ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+  }
   // filled S11 tun id
   if (ue_context_p->mme_teid_s11) {
     if (mme_ue_context_p->s11_teid2mme_ueid_map.remove(
             ue_context_p->mme_teid_s11) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                      "Failed to remove s11_teid2mme_ueid_map for "
+                      "Failed to remove mme_teid_s11 from s11_teid2mme_ueid_map"
                       " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
                       " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                       ", MME S11 TEID  " TEID_FMT,
@@ -839,7 +839,6 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* const mme_ue_context_p,
     struct ue_mm_context_s* ue_context_p, ecm_state_t new_ecm_state) {
   // Function is used to update UE's Signaling Connection State
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_ue_context_p == NULL) {
@@ -851,14 +850,12 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->ecm_state == ECM_CONNECTED && new_ecm_state == ECM_IDLE) {
-    hash_rc = hashtable_uint64_ts_remove(
-        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
-    if (HASH_TABLE_OK != hash_rc) {
+    if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
+            ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "UE context enb_ue_s1ap_ue_id_key %ld "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                        ", ENB_UE_S1AP_ID_KEY could not be found",
+                        ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,
                         ue_context_p->mme_ue_s1ap_id);
     }
@@ -949,14 +946,12 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Old UE ECM State (IDLE) is same as the new UE ECM state (IDLE)\n");
-    hash_rc = hashtable_uint64_ts_remove(
-        mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
-    if (HASH_TABLE_OK != hash_rc) {
+    if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
+            ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "UE context enb_ue_s1ap_ue_id_key %ld "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                        ", ENB_UE_S1AP_ID_KEY could not be found",
+                        ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,
                         ue_context_p->mme_ue_s1ap_id);
     }
@@ -1306,7 +1301,7 @@ static void mme_app_handle_s1ap_ue_context_release(
     OAILOG_WARNING(
         LOG_MME_APP,
         "Invalid mme_ue_s1ap_ue_id " MME_UE_S1AP_ID_FMT
-        " received from S1AP. Using enb_s1ap_id_key %ld to get the context \n",
+        " received from S1AP. Using enb_s1ap_id_key %u to get the context \n",
         mme_ue_s1ap_id, enb_s1ap_id_key);
   }
   if (!ue_mm_context) {
@@ -1687,17 +1682,14 @@ void mme_app_remove_stale_ue_context(
                  enb_s1ap_id_key);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  uint64_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
-  if (hashtable_uint64_ts_get(
-          mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-          (const hash_key_t)enb_s1ap_id_key,
-          &mme_ue_s1ap_id) == HASH_TABLE_OK) {
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  if (mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.get(
+          enb_s1ap_id_key, &mme_ue_s1ap_id) == magma::PROTO_MAP_OK) {
     ue_mm_context_t* ue_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
     if (ue_context_p) {
-      hashtable_uint64_ts_remove(
-          mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-          (const hash_key_t)enb_s1ap_id_key);
+      mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
+          ue_context_p->enb_s1ap_id_key);
       OAILOG_INFO(
           LOG_MME_APP,
           "Removed stale UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
