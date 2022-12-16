@@ -210,8 +210,9 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
           calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
-      if(mme_app_state_ue_map.insert(ue_context->mme_ue_s1ap_id, ue_context) != magma::PROTO_MAP_OK) {
-         OAILOG_ERROR(log_task,
+      if (mme_app_state_ue_map.insert(ue_context->mme_ue_s1ap_id, ue_context) !=
+          magma::PROTO_MAP_OK) {
+        OAILOG_ERROR(log_task,
                      "Failed to insert UE state with key mme_ue_s1ap_id "
                      " " MME_UE_S1AP_ID_FMT,
                      ue_context->mme_ue_s1ap_id);

@@ -65,8 +65,8 @@ status_code_e mme_app_handle_s6a_reset_req(
     OAILOG_ERROR(LOG_MME_APP, "mme_app_state_ue_map doesn't exist");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  for (auto itr = mme_app_state_ue_map->map->begin(); itr != mme_app_state_ue_map->map->end();
-       itr++) {
+  for (auto itr = mme_app_state_ue_map->map->begin();
+       itr != mme_app_state_ue_map->map->end(); itr++) {
     mme_app_state_ue_map->get(itr->first, &ue_context_p);
     if (ue_context_p != nullptr) {
       if (ue_context_p->mm_state == UE_REGISTERED) {

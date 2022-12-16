@@ -105,10 +105,9 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **          Return:    true, false                                        **
  **                                                                        **
  ***************************************************************************/
-bool mme_app_handle_reset_indication(const uint32_t unused_keyP,
-                                     struct ue_mm_context_s* const ue_context_pP,
-                                     void* unused_param_pP,
-                                     void** unused_result_pP) {
+bool mme_app_handle_reset_indication(
+    const uint32_t unused_keyP, struct ue_mm_context_s* const ue_context_pP,
+    void* unused_param_pP, void** unused_result_pP) {
   status_code_e rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   OAILOG_FUNC_IN(LOG_MME_APP);

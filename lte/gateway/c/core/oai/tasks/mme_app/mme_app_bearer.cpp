@@ -615,7 +615,8 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    */
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
-    if (mme_app_state_ue_map->get(ue_id, &ue_context_p) == magma::PROTO_MAP_OK) {
+    if (mme_app_state_ue_map->get(ue_id, &ue_context_p) ==
+        magma::PROTO_MAP_OK) {
       imsi64 = ue_context_p->emm_context._imsi64;
     }
   }
@@ -3639,7 +3640,9 @@ void mme_app_handle_handover_notify(
 
   // update UE context
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(ue_context_p->enb_s1ap_id_key);
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
+        ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   ue_context_p->enb_ue_s1ap_id = handover_notify_p->target_enb_ue_s1ap_id;
@@ -3785,7 +3788,9 @@ void mme_app_handle_path_switch_request(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(ue_context_p->enb_s1ap_id_key);
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
+        ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   // Update MME UE context with new enb_ue_s1ap_id

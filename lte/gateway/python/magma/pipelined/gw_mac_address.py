@@ -121,7 +121,6 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
                 f"Unexpected IP in ARP response. expected: {gw_ip} pkt: {str(parsed)}",
             )
             return ""
-
         if vlan.isdigit():
             if parsed.dot1q is not None and str(parsed.dot1q.vlan) == vlan:
                 mac = parsed.arp.hwsrc
@@ -179,12 +178,12 @@ def _send_packet_and_receive_response(pkt: dpkt.arp.ARP, vlan: str, non_nat_arp_
     buffsize = 2 ** 16
     sol_packet = 263
     packet_aux_data = 8
-    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(dpkt.ethernet.ETH_TYPE_ARP)) as s:
+    with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x0003)) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, buffsize)
         if vlan.isdigit():
             s.setsockopt(sol_packet, packet_aux_data, 1)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_MARK, 1)
-        s.bind((non_nat_arp_egress_port, dpkt.ethernet.ETH_TYPE_ARP))
+        s.bind((non_nat_arp_egress_port, 0x0003))
         s.send(bytes(pkt))
         if vlan.isdigit():
             res, aux, _, _ = s.recvmsg(0xffff, socket.CMSG_LEN(4096))

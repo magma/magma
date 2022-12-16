@@ -745,10 +745,11 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   OAILOG_INFO(LOG_MME_APP, "Copy in-memory imsi2mme_ueid_map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map) =
       mme_ue_ctxts_proto.imsi_ue_id_map();
-  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
+  OAILOG_INFO(LOG_MME_APP,
+              "Copy in-memory s11_teid2mme_ueid_map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.s11_teid2mme_ueid_map.map) =
       mme_ue_ctxts_proto.s11_teid_ueid_map();
-  OAILOG_INFO(LOG_MME_APP, "Copy enb_ue_s1ap_key2mme_ueid map to proto map");
+  OAILOG_INFO(LOG_MME_APP, "Copy enb_ue_s1ap_key2mme_ueid map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map) =
       mme_ue_ctxts_proto.enb_ue_s1ap_key_ue_id_map();
   proto_to_guti_table(mme_ue_ctxts_proto.guti_ue_id_htbl(),
