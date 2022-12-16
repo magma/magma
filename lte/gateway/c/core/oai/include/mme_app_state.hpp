@@ -47,8 +47,9 @@ void put_mme_nas_state(void);
  */
 void clear_mme_nas_state(void);
 
-// Returns UE MME state hashtable, indexed by IMSI
+// Returns UE MME state map
 proto_map_uint32_ue_context_t* get_mme_ue_state(void);
+
 // Persists UE MME state for subscriber into db
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);

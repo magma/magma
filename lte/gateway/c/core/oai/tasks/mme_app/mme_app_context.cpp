@@ -322,12 +322,12 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   if (!mme_app_state_ue_map) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_ue_state");
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
     OAILOG_FUNC_RETURN(LOG_MME_APP, nullptr);
   }
 
   if(mme_app_state_ue_map->get(mme_ue_s1ap_id, &ue_context_p) != magma::PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_ue_state for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT, mme_ue_s1ap_id);
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT, mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, nullptr);
   }
 
@@ -414,9 +414,6 @@ void mme_ue_context_update_coll_keys(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
-  if (!mme_app_state_ue_map) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to get mme_ue_state");
-  }
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_TRACE(LOG_MME_APP,
@@ -474,11 +471,10 @@ void mme_ue_context_update_coll_keys(
       ue_context_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
     }
   } else {
-    OAILOG_DEBUG_UE(LOG_MME_APP, imsi,
-                    "Did not update mme_app_state_ue_map for ue context %p "
+    OAILOG_ERROR_UE(LOG_MME_APP, imsi,
+                    "Failed to insert mme_ue_s1ap_id key into mme_app_state_ue_map for ue context %p "
                     "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-                    " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT
-                    " \n",
+                    " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
                     ue_context_p, ue_context_p->enb_ue_s1ap_id,
                     ue_context_p->mme_ue_s1ap_id, imsi);
   }
@@ -551,7 +547,7 @@ void mme_ue_context_update_coll_keys(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-static bool display_proto_map_uint32_string(uint32_t keyP, struct ue_mm_context_s* const ue_context_pP,
+static bool display_proto_map_uint32_ue_context(uint32_t keyP, struct ue_mm_context_s* const ue_context_pP,
                                             __attribute__((unused)) void* argP, __attribute__((unused)) void** resultP) {
   OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%p", keyP,
                ue_context_pP);
@@ -587,7 +583,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
       display_proto_map_uint32_uint32, nullptr, nullptr);
 
   mme_app_state_ue_map->map_apply_callback_on_all_elements(
-  display_proto_map_uint32_string, nullptr, nullptr);
+  display_proto_map_uint32_ue_context, nullptr, nullptr);
 
   magma::proto_map_uint64_uint32_t enb_ue_s1ap_key2mme_ueid_map =
       mme_ue_contexts_p->enb_ue_s1ap_key2mme_ueid_map;
@@ -633,17 +629,17 @@ status_code_e mme_insert_ue_context(
 
   if (ue_context_p->mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
       if(mme_app_state_ue_map->get(ue_context_p->mme_ue_s1ap_id, &ue_context_p) == magma::PROTO_MAP_OK) {
-      OAILOG_WARNING(
-          LOG_MME_APP,
-          "mme_ue_s1ap_id key "MME_UE_S1AP_ID_FMT" already exists",
+      OAILOG_WARNING_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+           " mme_ue_s1ap_id key "MME_UE_S1AP_ID_FMT" already exists",
           ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
 
     if(mme_app_state_ue_map->insert(ue_context_p->mme_ue_s1ap_id, ue_context_p) != magma::PROTO_MAP_OK) {
-      OAILOG_WARNING(LOG_MME_APP,
+      OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
                      "Failed to insert mme_ue_s1ap_id key to mme_app_state_ue_map %p "
-                     "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+                     "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
                      ue_context_p, ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
@@ -798,7 +794,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   // filled NAS UE ID/ MME UE S1AP ID
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
     if (mme_app_state_ue_map->remove(ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_MME_APP,
+      OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
                    "Failed to remove mme_ue_s1ap_id key from mme_app_state_ue_map!"
                    "  enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
                    ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
@@ -1491,7 +1487,7 @@ void mme_app_recover_timers_for_all_ues(void) {
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
   uint32_t num_unreg_ues = 0;
   uint64_t* mme_ue_id_unreg_list;
-    mme_ue_id_unreg_list =
+  mme_ue_id_unreg_list =
       (uint64_t*)calloc(mme_app_state_ue_map->size(), sizeof(uint64_t));
 
   mme_app_state_ue_map->map_apply_callback_on_all_elements(mme_app_recover_timers_for_ue, reinterpret_cast<void*>(&num_unreg_ues), reinterpret_cast<void**>(&mme_ue_id_unreg_list));
