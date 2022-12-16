@@ -32,7 +32,7 @@ constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
     "mme_app_mme_ue_s1ap_id_ue_context_htbl";
 constexpr char MME_IMSI2MME_UE_ID_MAP_NAME[] = "mme_imsi2ue_id_map";
 constexpr char MME_S11_TEID2MME_UE_ID_MAP_NAME[] = "mme_s11_teid2ue_id_map";
-constexpr char GUTI_UE_ID_MAP_NAME[] = "mme_app_guti_ue_context_map";
+constexpr char MME_APP_GUTI2MME_UE_ID_MAP_NAME[] = "mme_app_guti2mme_ue_id_map";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
     "mme_app_enb_ue_s1ap_id_ue_context_htbl";
 constexpr char MME_TASK_NAME[] = "MME";
@@ -167,11 +167,11 @@ void MmeNasStateManager::create_hashtables() {
 
   bdestroy_wrapper(&b);
 
-  OAILOG_DEBUG(LOG_MME_APP, "Creating and naming guti_ue_context_map");
-  state_cache_p->mme_ue_contexts.guti_ue_context_map.map =
+  OAILOG_DEBUG(LOG_MME_APP, "Creating and naming mme_app_guti2mme_ue_id_map");
+  state_cache_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map =
       new google::protobuf::Map<std::string, uint32_t>();
-  state_cache_p->mme_ue_contexts.guti_ue_context_map.set_name(
-      GUTI_UE_ID_MAP_NAME);
+  state_cache_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.set_name(
+      MME_APP_GUTI2MME_UE_ID_MAP_NAME);
 }
 
 // Initialize memory for MME state before reading from data-store
@@ -198,8 +198,8 @@ void MmeNasStateManager::clear_mme_nas_hashtables() {
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.destroy_map();
   hashtable_uint64_ts_destroy(
       state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
-  OAILOG_DEBUG(LOG_MME_APP, "Destroying guti_ue_context_map");
-  state_cache_p->mme_ue_contexts.guti_ue_context_map.destroy_map();
+  OAILOG_DEBUG(LOG_MME_APP, "Destroying mme_app_guti2mme_ue_id_map");
+  state_cache_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.destroy_map();
 }
 
 // Free the memory allocated to state pointer

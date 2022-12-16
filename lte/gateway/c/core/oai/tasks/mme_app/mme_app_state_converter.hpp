@@ -83,14 +83,6 @@ class MmeNasStateConverter : public StateConverter {
       const google::protobuf::Map<unsigned long, oai::UeContext>& proto_map,
       hash_table_ts_t* state_htbl);
 
-  static void guti_table_to_proto(
-      const obj_hash_table_uint64_t* guti_htbl,
-      google::protobuf::Map<std::string, unsigned long>* proto_map);
-
-  static void proto_to_guti_table(
-      const google::protobuf::Map<std::string, unsigned long>& proto_map,
-      obj_hash_table_uint64_t* guti_htbl);
-
   /**********************************************************
    *                 UE Context <-> Proto                    *
    *  Functions to serialize/desearialize UE context         *

@@ -497,7 +497,7 @@ typedef struct mme_ue_context_s {
   hash_table_uint64_ts_t*
       enb_ue_s1ap_id_ue_context_htbl;  // data is mme_ue_s1ap_id_t
   magma::proto_map_string_uint32_t
-      guti_ue_context_map;  // data is mme_ue_s1ap_id_t
+      mme_app_guti2mme_ue_id_map;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
 /** \brief Retrieve an UE context by selecting the provided IMSI

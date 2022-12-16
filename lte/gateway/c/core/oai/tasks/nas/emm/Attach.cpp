@@ -2453,7 +2453,7 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
     uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
     char guti_str[GUTI_STRING_LEN] = {0};
     convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
-    mme_ue_context_p->guti_ue_context_map.get(guti_str, &mme_ue_s1ap_id);
+    mme_ue_context_p->mme_app_guti2mme_ue_id_map.get(guti_str, &mme_ue_s1ap_id);
     if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
       // While processing new attach req, remove GUTI from hashtable
       if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
@@ -2462,11 +2462,18 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit1) ||
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
-        mme_ue_context_p->guti_ue_context_map.remove(guti_str);
+        if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str) !=
+            magma::PROTO_MAP_OK) {
+          OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                          "Failed to remove from mme_app_guti2mme_ue_id_map, "
+                          "GUTI: " GUTI_FMT,
+                          guti_str);
+        }
       }
     } else {
       OAILOG_WARNING(LOG_MME_APP,
-                     " Failed to get ue context for guti: " GUTI_FMT, guti_str);
+                     "Failed to get mme ue s1ap id for GUTI: " GUTI_FMT,
+                     guti_str);
     }
   }
 

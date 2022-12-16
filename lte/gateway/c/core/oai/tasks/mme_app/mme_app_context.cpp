@@ -381,11 +381,12 @@ ue_mm_context_t* mme_ue_context_exists_guti(
   char guti_str[GUTI_STRING_LEN] = {0};
   convert_guti_to_string(guti_p, &guti_str);
 
-  mme_ue_context_p->guti_ue_context_map.get(guti_str, &mme_ue_s1ap_id);
+  mme_ue_context_p->mme_app_guti2mme_ue_id_map.get(guti_str, &mme_ue_s1ap_id);
   if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
     return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   } else {
-    OAILOG_WARNING(LOG_MME_APP, " Failed to get ue context for guti: " GUTI_FMT,
+    OAILOG_WARNING(LOG_MME_APP,
+                   "Failed to get mme ue s1ap id for GUTI: " GUTI_FMT,
                    guti_str);
   }
   return nullptr;
@@ -519,17 +520,21 @@ void mme_ue_context_update_coll_keys(
       // may check guti_p with a kind of instanceof()?
       char guti_str[GUTI_STRING_LEN] = {0};
       convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
-      mme_ue_context_p->guti_ue_context_map.remove(guti_str);
+      mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str);
       if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
         memset(&guti_str[0], 0, GUTI_STRING_LEN);
         convert_guti_to_string(guti_p, &guti_str);
-        if (mme_ue_context_p->guti_ue_context_map.insert(
-                guti_str, mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
-          OAILOG_ERROR_UE(LOG_MME_APP, imsi,
-                          "Insert operation failed for guti_ue_context_map, "
-                          "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT,
-                          ", GUTI: " GUTI_FMT, ue_context_p->mme_ue_s1ap_id,
-                          guti_str);
+        magma::proto_map_rc_t map_rc =
+            mme_ue_context_p->mme_app_guti2mme_ue_id_map.insert(guti_str,
+                                                                mme_ue_s1ap_id);
+        if (magma::PROTO_MAP_OK != map_rc) {
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, imsi,
+              "Insert operation failed for mme_app_guti2mme_ue_id_map, "
+              "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT,
+              ", GUTI: " GUTI_FMT " (Error Code: %s)",
+              ue_context_p->mme_ue_s1ap_id, guti_str,
+              map_rc_code2string(map_rc));
         } else {
           ue_context_p->emm_context._guti = *guti_p;
         }
@@ -553,10 +558,10 @@ static bool display_proto_map_uint32_uint32(
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
-static bool display_proto_guti_ue_context_map_string_uint32(
+static bool display_proto_mme_app_guti2mme_ue_id_map_string_uint32(
     std::string keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
     __attribute__((unused)) void** resultP) {
-  OAILOG_DEBUG(LOG_MME_APP, "guti_ue_context_map: key=%s, data=%u", keyP,
+  OAILOG_DEBUG(LOG_MME_APP, "mme_app_guti2mme_ue_id_map: key=%s, data=%u", keyP,
                dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
@@ -587,10 +592,10 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 
   bdestroy_wrapper(&tmp);
 
-  magma::proto_map_string_uint32_t guti_ue_context_map =
-      mme_ue_contexts_p->guti_ue_context_map;
-  guti_ue_context_map.map_apply_callback_on_all_elements(
-      display_proto_guti_ue_context_map_string_uint32, nullptr, nullptr);
+  magma::proto_map_string_uint32_t mme_app_guti2mme_ue_id_map =
+      mme_ue_contexts_p->mme_app_guti2mme_ue_id_map;
+  mme_app_guti2mme_ue_id_map.map_apply_callback_on_all_elements(
+      display_proto_mme_app_guti2mme_ue_id_map_string_uint32, nullptr, nullptr);
 }
 
 //------------------------------------------------------------------------------
@@ -702,7 +707,7 @@ status_code_e mme_insert_ue_context(
       char guti_str[GUTI_STRING_LEN] = {0};
       convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
 
-      if (mme_ue_context_p->guti_ue_context_map.insert(
+      if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.insert(
               guti_str, ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
         OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
                           "Failed to insert guti key to ue context map, "
@@ -766,11 +771,11 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
     char guti_str[GUTI_STRING_LEN] = {0};
     convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
 
-    if (mme_ue_context_p->guti_ue_context_map.remove(guti_str) !=
+    if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str) !=
         magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to remove guti_ue_context_map for "
+          "Failed to remove mme_app_guti2mme_ue_id_map for "
           " enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT ", GUTI:  " GUTI_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id, guti_str);
