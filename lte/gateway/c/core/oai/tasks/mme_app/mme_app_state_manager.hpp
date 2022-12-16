@@ -109,7 +109,7 @@ class MmeNasStateManager
    * having same ue_ip
    */
   UeIpImsiMap ueip_imsi_map;  // ueip => list of imsi64
-  proto_map_uint32_ue_context_t mme_ue_id2ue_context_map;
+  proto_map_uint32_ue_context_t mme_app_state_ue_map;
 };
 }  // namespace lte
 }  // namespace magma

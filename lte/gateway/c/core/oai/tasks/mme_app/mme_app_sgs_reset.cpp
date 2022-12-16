@@ -75,17 +75,14 @@ status_code_e mme_app_handle_sgsap_reset_indication(
               reset_indication_pP->vlr_name);
 
   /* Handle VLR Reset for each SGS associated UE */
-  /*hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
-  hashtable_ts_apply_callback_on_elements(
-      mme_state_imsi_ht, mme_app_handle_reset_indication, NULL, NULL);*/
-  proto_map_uint32_ue_context_t* mme_ue_id2ue_context_map = get_mme_ue_state();
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
-  if (!mme_ue_id2ue_context_map) {
+  if (!mme_app_state_ue_map) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_ue_state");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  mme_ue_id2ue_context_map->map_apply_callback_on_all_elements(
+  mme_app_state_ue_map->map_apply_callback_on_all_elements(
       mme_app_handle_reset_indication, nullptr, nullptr);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

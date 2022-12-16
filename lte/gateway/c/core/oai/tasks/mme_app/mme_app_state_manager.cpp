@@ -52,7 +52,7 @@ MmeNasStateManager& MmeNasStateManager::getInstance() {
 }
 
 proto_map_uint32_ue_context_t* MmeNasStateManager::get_ue_state_map() {
-  return &mme_ue_id2ue_context_map;
+  return &mme_app_state_ue_map;
 }
 
 // Constructor for MME NAS state object
@@ -144,29 +144,9 @@ void MmeNasStateManager::create_protomaps() {
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(
       MME_S11_TEID2MME_UE_ID_MAP_NAME);
 
-  /*state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
-  bstring b = bfromcstr(UE_ID_UE_CTXT_TABLE_NAME);
-  state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
-                                    mme_app_state_free_ue_context, b);
-
-  if (!(state_ue_ht->lock_attr = (pthread_mutexattr_t*)calloc(
-            max_ue_htbl_lists_, sizeof(pthread_mutexattr_t)))) {
-    free_wrapper((void**)&state_ue_ht->lock_nodes);
-    free_wrapper((void**)&state_ue_ht->nodes);
-    free_wrapper((void**)&state_ue_ht->name);
-    free_wrapper((void**)&state_ue_ht);
-    return;
-  }
-
-  for (int i = 0; i < max_ue_htbl_lists_; i++) {
-    pthread_mutexattr_init(&state_ue_ht->lock_attr[i]);
-    pthread_mutexattr_settype(&state_ue_ht->lock_attr[i],
-                              PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&state_ue_ht->lock_nodes[i], &state_ue_ht->lock_attr[i]);
-  }*/
-  mme_ue_id2ue_context_map.map =
+  mme_app_state_ue_map.map =
       new google::protobuf::Map<uint32_t, struct ue_mm_context_s*>();
-  mme_ue_id2ue_context_map.set_name(MME_UE_ID2UE_CTXT_MAP_NAME);
+  mme_app_state_ue_map.set_name(MME_UE_ID2UE_CTXT_MAP_NAME);
 
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();
@@ -198,8 +178,7 @@ void MmeNasStateManager::clear_mme_nas_protomaps() {
     return;
   }
 
-  //hashtable_ts_destroy(state_ue_ht);
-  mme_ue_id2ue_context_map.destroy_map();
+  mme_app_state_ue_map.destroy_map();
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.destroy_map();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.destroy_map();
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.destroy_map();
@@ -231,15 +210,7 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
           calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
-      /*hashtable_rc_t h_rc = hashtable_ts_insert(
-          state_ue_ht, ue_context->mme_ue_s1ap_id, (void*)ue_context);
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_ERROR(log_task,
-                     "Failed to insert UE state with key mme_ue_s1ap_id "
-                     " " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
-                     ue_context->mme_ue_s1ap_id,
-                     hashtable_rc_code2string(h_rc));*/
-      if(mme_ue_id2ue_context_map.insert(ue_context->mme_ue_s1ap_id, ue_context) != magma::PROTO_MAP_OK) {
+      if(mme_app_state_ue_map.insert(ue_context->mme_ue_s1ap_id, ue_context) != magma::PROTO_MAP_OK) {
          OAILOG_ERROR(log_task,
                      "Failed to insert UE state with key mme_ue_s1ap_id "
                      " " MME_UE_S1AP_ID_FMT,

@@ -614,11 +614,8 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    * exists or not
    */
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    /*hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
-    if (hashtable_ts_is_key_exists(mme_state_ue_id_ht,
-                                   (const hash_key_t)ue_id) == HASH_TABLE_OK) {*/
-    proto_map_uint32_ue_context_t* mme_ue_id2ue_context_map = get_mme_ue_state();
-    if (mme_ue_id2ue_context_map->get(ue_id, &ue_context_p) == magma::PROTO_MAP_OK) {
+    proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+    if (mme_app_state_ue_map->get(ue_id, &ue_context_p) == magma::PROTO_MAP_OK) {
       imsi64 = ue_context_p->emm_context._imsi64;
     }
   }

@@ -47,11 +47,8 @@ status_code_e mme_app_handle_s6a_reset_req(
     const s6a_reset_req_t* const rsr_pP) {
   status_code_e rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
-  //hash_node_t* node = NULL;
   unsigned int i = 0;
   unsigned int num_elements = 0;
-  //hash_table_ts_t* hashtblP = NULL;
-
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -63,14 +60,14 @@ status_code_e mme_app_handle_s6a_reset_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  proto_map_uint32_ue_context_t* mme_ue_id2ue_context_map = get_mme_ue_state();
-  if (!mme_ue_id2ue_context_map) {
-    OAILOG_ERROR(LOG_S1AP, "mme_ue_id2ue_context_map doesn't exist");
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  if (!mme_app_state_ue_map) {
+    OAILOG_ERROR(LOG_S1AP, "mme_app_state_ue_map doesn't exist");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  for (auto itr = mme_ue_id2ue_context_map->map->begin(); itr != mme_ue_id2ue_context_map->map->end();
+  for (auto itr = mme_app_state_ue_map->map->begin(); itr != mme_app_state_ue_map->map->end();
        itr++) {
-    mme_ue_id2ue_context_map->get(itr->first, &ue_context_p);
+    mme_app_state_ue_map->get(itr->first, &ue_context_p);
     if (ue_context_p != nullptr) {
       if (ue_context_p->mm_state == UE_REGISTERED) {
         /*
@@ -96,50 +93,5 @@ status_code_e mme_app_handle_s6a_reset_req(
       }
     }
   }
-#if 0
-  hashtblP = get_mme_ue_state();
-  if (!hashtblP) {
-    OAILOG_INFO(LOG_MME_APP, "There is no Ue Context in the MME context \n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-  }
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
-      num_elements++;
-      hashtable_ts_get(hashtblP, (const hash_key_t)node->key,
-                       (void**)&ue_context_p);
-      if (ue_context_p != NULL) {
-        if (ue_context_p->mm_state == UE_REGISTERED) {
-          /*
-           * set the flag: location_info_confirmed_in_hss to indicate that,
-           * hss has restarted and MME shall send ULR to hss
-           */
-          ue_context_p->location_info_confirmed_in_hss = true;
-          /*
-           * set the sgs context flag: neaf to indicate that,
-           * hss has restarted and MME shall send SGS Ue Activity Indication to
-           * MSC/VLR to indicate that activity from a UE has been detected
-           */
-          if (ue_context_p->sgs_context != NULL) {
-            ue_context_p->sgs_context->neaf = true;
-          }
-
-          if (ue_context_p->ecm_state == ECM_CONNECTED) {
-            /*
-             * hss has restarted and MME shall send ULR to hss for connected Ue
-             */
-            rc = mme_app_send_s6a_update_location_req(ue_context_p);
-          }
-        }
-      }
-      node = node->next;
-    }
-    i++;
-  }
-#endif
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
