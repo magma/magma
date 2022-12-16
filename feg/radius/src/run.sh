@@ -15,12 +15,12 @@
 function lint {
     LINTER=$(which golangci-lint)
     if [ -z "$LINTER" ]; then
-        echo ERROR :: Could not find 'golangci-lint' executable
-        echo To install, run 'brew install golangci/tap/golangci-lint'
-        exit 1
+        echo "-> installing golangci " && \
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+        | sudo sh -s -- -b /usr/sbin/ v1.50.1;
     fi
 
-    golangci-lint run -c ../../ci/.golangci.yml
+    golangci-lint run -c "$MAGMA_ROOT"/.golangci.yml
 
     if [ $? -ne 0 ]; then
         echo Lint failed.

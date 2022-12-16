@@ -136,8 +136,9 @@ RUN python3 -m venv $VIRTUAL_ENV
 
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -

@@ -63,11 +63,6 @@ def url_to_html_redirect(run_id: str, url: Optional[str]):
     )
 
 
-def lte_integ_test(args):
-    """Prepare and publish LTE Integ Test report"""
-    prepare_and_publish('lte_integ_test', args, 'test_status.txt')
-
-
 def debian_lte_integ_test(args):
     """Prepare and publish LTE Integ Test report"""
     prepare_and_publish('debian_lte_integ_test', args, 'test_status.txt')
@@ -133,7 +128,6 @@ parser.add_argument("--run_id", default="none", help="Github Actions Run ID")
 subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
 tests = {
-    'lte': lte_integ_test,
     'feg': feg_integ_test,
     'cwf': cwf_integ_test,
     'sudo_python_tests': sudo_python_tests,

@@ -11,7 +11,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//bazel:asn1c.bzl", "cc_asn1_library")
-load("//bazel:test_constants.bzl", "TAG_SERVICE")
+load("//bazel:test_constants.bzl", "TAG_MME_OAI", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 
@@ -1176,6 +1176,7 @@ cc_library(
         "-DEMBEDDED_SGW=0",
         "-DS6A_OVER_GRPC=0",
     ],
+    tags = TAG_MME_OAI,
     deps = MME_DEPS,
 )
 
@@ -1185,7 +1186,10 @@ cc_binary(
     copts = ["-DEMBEDDED_SGW=1"],
     linkstatic = True,
     tags = TAG_SERVICE + ["no-cache"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [":lib_agw_of"],
 )
 
@@ -1194,7 +1198,8 @@ cc_binary(
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=0"],
     linkstatic = True,
-    tags = TAG_SERVICE + ["no-cache"],
+    tags = TAG_SERVICE + TAG_MME_OAI + ["no-cache"],
+    visibility = ["//:__pkg__"],
     deps = [":lib_mme_oai"],
 )
 
