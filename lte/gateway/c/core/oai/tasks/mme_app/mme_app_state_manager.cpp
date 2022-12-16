@@ -33,8 +33,8 @@ constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
 constexpr char MME_IMSI2MME_UE_ID_MAP_NAME[] = "mme_imsi2ue_id_map";
 constexpr char MME_S11_TEID2MME_UE_ID_MAP_NAME[] = "mme_s11_teid2ue_id_map";
 constexpr char MME_APP_GUTI2MME_UE_ID_MAP_NAME[] = "mme_app_guti2mme_ue_id_map";
-constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
-    "mme_app_enb_ue_s1ap_id_ue_context_htbl";
+constexpr char MME_ENB_UE_S1AP_KEY2MME_UE_ID_MAP_NAME[] =
+    "mme_enb_ue_s1ap_key2ue_id_map";
 constexpr char MME_TASK_NAME[] = "MME";
 constexpr char MME_UEIP_IMSI_MAP_NAME[] = "mme_ueip_imsi_map";
 }  // namespace
@@ -160,12 +160,12 @@ void MmeNasStateManager::create_hashtables() {
     pthread_mutex_init(&state_ue_ht->lock_nodes[i], &state_ue_ht->lock_attr[i]);
   }
 
-  btrunc(b, 0);
-  bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-
   bdestroy_wrapper(&b);
+
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map =
+      new google::protobuf::Map<uint64_t, uint32_t>();
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.set_name(
+      MME_ENB_UE_S1AP_KEY2MME_UE_ID_MAP_NAME);
 
   OAILOG_DEBUG(LOG_MME_APP, "Creating and naming mme_app_guti2mme_ue_id_map");
   state_cache_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map =
@@ -196,8 +196,7 @@ void MmeNasStateManager::clear_mme_nas_hashtables() {
   hashtable_ts_destroy(state_ue_ht);
   state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.destroy_map();
   state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.destroy_map();
-  hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.destroy_map();
   OAILOG_DEBUG(LOG_MME_APP, "Destroying mme_app_guti2mme_ue_id_map");
   state_cache_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.destroy_map();
 }

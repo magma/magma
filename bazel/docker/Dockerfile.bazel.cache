@@ -29,8 +29,6 @@ RUN rm /var/cache/bazel-cache && \
     cd $MAGMA_ROOT && \
     echo "Running Bazel test on all '${BAZEL_TARGET_RULE}' targets with config '${BAZEL_CONFIG}' ..." && \
     bazel test ${BAZEL_CONFIG} --flaky_test_attempts=5 --test_tag_filters=-manual `bazel query "kind(${BAZEL_TARGET_RULE}, //...)"` && \
-    echo "Running Bazel build //:bazel-diff" && \
-    bazel build //:bazel-diff && \
     echo "The size of the /var/cache/bazel-cache* folders is:" && \
     du -sh /var/cache/bazel-cache*
 

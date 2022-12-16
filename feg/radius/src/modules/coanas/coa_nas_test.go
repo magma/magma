@@ -73,7 +73,7 @@ func TestCoaNas(t *testing.T) {
 func TestCoaNasNoResponse(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
-	addr := fmt.Sprintf(":4799")
+	addr := ":4799"
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{

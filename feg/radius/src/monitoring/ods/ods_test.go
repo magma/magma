@@ -33,7 +33,7 @@ func TestSendOdsCounters(t *testing.T) {
 	// Arrange
 	logger, _ := zap.NewDevelopment()
 	Init(&config.Ods{
-		ReportingPeriod: config.Duration{time.Second},
+		ReportingPeriod: config.Duration{Duration: time.Second},
 		GraphURL:        "http://127.0.0.1:1234/ods",
 		Entity:          "entity",
 		Category:        "123",
@@ -76,7 +76,7 @@ func TestSendOdsCounters(t *testing.T) {
 		[]tag.Mutator{tag.Upsert(tg, "test")},
 		ctr.M(1),
 	)
-	time.Sleep(time.Duration(time.Second))
+	time.Sleep(time.Second)
 
 	// Assert
 	timeout := time.NewTimer(5 * time.Second)

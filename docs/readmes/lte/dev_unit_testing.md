@@ -140,6 +140,5 @@ To use the script, run
 To format all Bazel related files, run
 
 ```bash
-cd magma # or any subdirectory inside magma
-bazel run //:buildifier
+$MAGMA_ROOT/bazel/scripts/run_buildifier.sh format
 ```

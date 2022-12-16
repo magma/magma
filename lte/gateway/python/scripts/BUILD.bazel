@@ -21,6 +21,7 @@ SCRIPTS = [
     "config_stateless_agw",
     "cpe_monitoring_cli",
     "create_oai_certs",
+    "dhcp_helper_cli",
     "dp_probe_cli",
     "enodebd_cli",
     "fake_user",
@@ -275,7 +276,10 @@ py_binary(
     srcs = ["icmpv6.py"],
     legacy_create_init = False,
     tags = TAG_UTIL_SCRIPT,
-    deps = [requirement("scapy")],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:ifaces",
+        requirement("dpkt"),
+    ],
 )
 
 py_binary(
@@ -330,7 +334,7 @@ py_binary(
     tags = TAG_UTIL_SCRIPT,
     deps = [
         "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
-        requirement("scapy"),
+        requirement("dpkt"),
     ],
 )
 

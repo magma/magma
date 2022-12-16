@@ -16,13 +16,12 @@ package session
 import (
 	"fmt"
 	"math/rand"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func performSignleReadWriteDeleteReadTest(t *testing.T, storage GlobalStorage, sessionID string) {
+func performSingleReadWriteDeleteReadTest(t *testing.T, storage GlobalStorage, sessionID string) {
 	// Arrange
 	msisdn := fmt.Sprintf("+%d", rand.Intn(999999))
 
@@ -56,10 +55,8 @@ func loopReadWriteDelete(
 	storage GlobalStorage,
 	sessionID string,
 	count int,
-	onComplete *sync.WaitGroup,
 ) {
 	for i := 1; i < count; i++ {
-		performSignleReadWriteDeleteReadTest(t, storage, fmt.Sprintf("%s_%d", sessionID, i))
+		performSingleReadWriteDeleteReadTest(t, storage, fmt.Sprintf("%s_%d", sessionID, i))
 	}
-	onComplete.Done()
 }

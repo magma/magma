@@ -14,8 +14,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 """
-import json
-import subprocess
 from typing import Optional
 from unittest.mock import patch
 
@@ -63,6 +61,7 @@ def test_send_dhcp_discover(sendp_mock, dhcp_helper_cli_fixture):
     assert pkt[Ether].src == MACSTRING.lower()
     assert Dot1Q not in pkt
     assert ('message-type', 'discover') in pkt[DHCP].options
+    assert dhcp_helper_cli_fixture._state == DHCPState.DISCOVER
 
 
 @patch("scripts.dhcp_helper_cli.sendp")
@@ -92,7 +91,7 @@ def test_send_dhcp_release(sendp_mock, dhcp_helper_cli_fixture):
 
 
 def create_send_dhcp_pkt_mock(dhcp_helper_cli_fixture):
-    def mocked_send_dhcp_pkt(dhcp_opts, pkt_xid, ciaddr: Optional[str] = None) -> None:
+    def mocked_send_dhcp_pkt(dhcp_opts, ciaddr: Optional[str] = None) -> None:
         if ('message-type', 'discover') in dhcp_opts:
             dhcp_helper_cli_fixture._pkt_queue.put(DHCP_OFFER_PKT)
         if ('message-type', 'request') in dhcp_opts:

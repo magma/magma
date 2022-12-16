@@ -161,7 +161,7 @@ func (ce *odsMetricsExporter) ExportView(vd *view.Data) {
 		}
 		key = ""
 	}
-	if ce.config.DisablePost == true {
+	if ce.config.DisablePost {
 		return
 	}
 
@@ -174,7 +174,7 @@ func (ce *odsMetricsExporter) ExportView(vd *view.Data) {
 	}()
 }
 
-// Init Should be called once if ODS counters are to be emmitted
+// Init Should be called once if ODS counters are to be emitted
 func Init(odsConfig *config.Ods, logger *zap.Logger) {
 	// If no ODS configuration is there - skip initialization
 	if odsConfig == nil {

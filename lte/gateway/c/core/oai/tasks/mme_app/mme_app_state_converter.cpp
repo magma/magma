@@ -658,12 +658,11 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   OAILOG_DEBUG(LOG_MME_APP, "S11 teid map to proto");
   *mme_ue_ctxts_proto->mutable_s11_teid_ueid_map() =
       *(mme_nas_state_p->mme_ue_contexts.s11_teid2mme_ueid_map.map);
-  OAILOG_DEBUG(LOG_MME_APP, "Enb_Ue_S1ap_id table to proto");
-  hashtable_uint64_ts_to_proto(
-      mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-      mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP, "enb_ue_s1ap_key map to proto");
+  *mme_ue_ctxts_proto->mutable_enb_ue_s1ap_key_ue_id_map() =
+      *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map);
   OAILOG_DEBUG(LOG_MME_APP,
-               "Copy in-memory mme_app_guti2mme_ue_id_map to protobuf map");
+               "Copy in-memory mme_app_guti2mme_ue_id_map to proto");
   *mme_ue_ctxts_proto->mutable_guti_ue_id_map() =
       *(mme_nas_state_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -695,15 +694,15 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   OAILOG_INFO(LOG_MME_APP, "Copy in-memory imsi2mme_ueid_map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map) =
       mme_ue_ctxts_proto.imsi_ue_id_map();
-  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
+  OAILOG_INFO(LOG_MME_APP,
+              "Copy in-memory s11_teid2mme_ueid_map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.s11_teid2mme_ueid_map.map) =
       mme_ue_ctxts_proto.s11_teid_ueid_map();
-  OAILOG_INFO(LOG_MME_APP, "Hashtable ENB UE S1AP ID => MME UE ID");
-  proto_to_hashtable_uint64_ts(
-      mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
-      mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);
+  OAILOG_INFO(LOG_MME_APP, "Copy enb_ue_s1ap_key2mme_ueid map to protobuf map");
+  *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map) =
+      mme_ue_ctxts_proto.enb_ue_s1ap_key_ue_id_map();
   OAILOG_DEBUG(LOG_MME_APP,
-               "Copy protobuf map to in-memory mme_app_guti2mme_ue_id_map");
+               "Copy proto to in-memory mme_app_guti2mme_ue_id_map");
   *(mme_nas_state_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map) =
       mme_ue_ctxts_proto.guti_ue_id_map();
   OAILOG_FUNC_OUT(LOG_MME_APP);

@@ -120,7 +120,7 @@ def _get_attrs():
         "_asn1c": attr.label(
             executable = True,
             default = Label("@system_libraries//:asn1c"),
-            cfg = "host",
+            cfg = "exec",
         ),
     }
 

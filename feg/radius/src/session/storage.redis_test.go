@@ -22,7 +22,6 @@ import (
 )
 
 func TestBasicInsertGetRedis(t *testing.T) {
-
 	// Arrange
 	sessionID := "test"
 
@@ -32,7 +31,7 @@ func TestBasicInsertGetRedis(t *testing.T) {
 	storage := NewMultiSessionRedisStorage(mr.Addr(), "", 0)
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, storage, sessionID)
+	performSingleReadWriteDeleteReadTest(t, storage, sessionID)
 }
 
 func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
@@ -48,9 +47,11 @@ func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
 
 	// Act
 	for i := 0; i < degOfParallelism; i++ {
+		onComplete.Add(1)
 		go func(called string, calling string) {
+			defer onComplete.Done()
 			sessionID := fmt.Sprintf("session_%s_%s", calling, called)
-			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext, &onComplete)
+			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext)
 		}(fmt.Sprintf("called%d", i), fmt.Sprintf("calling%d", i))
 	}
 	onComplete.Wait()

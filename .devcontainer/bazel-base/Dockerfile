@@ -76,8 +76,8 @@ RUN apt-get install -y --no-install-recommends \
         libmnl-dev=1.0.4-2
 
 # setup magma artifactories and install magma dependencies
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-    add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \
@@ -99,5 +99,8 @@ RUN ldconfig -v
 
 RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
 RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
+
+# Convenience alias to build AGW services
+RUN echo 'alias magma-build-agw="bazel build //... --build_tag_filters=service,util_script,-mme_oai"' >> ~/.bashrc
 
 WORKDIR /workspaces/magma
