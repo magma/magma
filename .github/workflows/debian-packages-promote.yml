@@ -60,12 +60,6 @@ jobs:
           JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
           JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
 
-      - name: Publish debian packages
-        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
-        env:
-          source-directory: ${{ env.source-repository }}/${{ env.distribution }}
-          target-directory: ${{ env.target-repository }}/${{ env.distribution }}
-        run: |
-          for file in ./*.deb; do
-              file=${file:2}
-          done
+      - name: Move all debian packages to prod
+        if: steps.jfrog-setup.conclusion == 'success'
+        run: jf rt cp "${{ env.source-repository }}/pool/${{ env.distribution }}/(*.deb)" ${{ env.target-repository }}/pool/${{ env.distribution }}/{1}
