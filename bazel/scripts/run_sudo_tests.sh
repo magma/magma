@@ -151,11 +151,12 @@ fi
 cd "${MAGMA_ROOT}"
 
 # Build the dhcp_helper_cli script and create a symlink for its intended usage.
-# This is needed for the tests
-# test_ip_allocator_dhcp_e2e.py and
-# test_ip_allocator_with_vlan.py
-bazel build //lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli
-ln -s /usr/local/bin/dhcp_helper_cli.py "${MAGMA_ROOT}"/bazel-bin/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py
+# This is needed for several sudo tests.
+if [[ ! -L "/usr/local/bin/dhcp_helper_cli.py" ]];
+then
+  bazel build //lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli
+  sudo ln -s "${MAGMA_ROOT}"/bazel-bin/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py /usr/local/bin/dhcp_helper_cli.py
+fi
 
 create_test_targets
 
