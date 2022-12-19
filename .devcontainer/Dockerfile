@@ -130,7 +130,7 @@ RUN apt-get install -y --no-install-recommends \
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
-RUN git clone https://git.osmocom.org/libgtpnl && \
+RUN git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl && \
     cd libgtpnl && \
     git reset --hard 345d687 && \
     autoreconf -fi && \
