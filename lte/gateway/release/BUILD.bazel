@@ -44,7 +44,7 @@ MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
     ver = VERSION_DEB,
 )
 
-DHCP_HELPER_CLI_PKGNAME = "dhcp_helper_cli"
+DHCP_HELPER_CLI_PKGNAME = "magma-dhcp-cli"
 
 DHCP_HELPER_CLI_FILENAME = "{name}_{ver}_{arch}".format(
     name = DHCP_HELPER_CLI_PKGNAME,
@@ -254,7 +254,6 @@ pkg_deb(
     maintainer = "The Magma Authors <main@lists.magmacore.org>",
     package = "magma-dhcp-cli",
     package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
-    priority = "extra",
     provides = ["dhcp_helper_cli"],
     replaces = ["dhcp_helper_cli"],
     section = "default",
