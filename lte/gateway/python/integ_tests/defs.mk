@@ -244,6 +244,8 @@ s1aptests/test_s1_handover_cancel.py \
 s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
 s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
