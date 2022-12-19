@@ -453,6 +453,6 @@ BUILDCMD="fpm \
 --license '${LICENSE_DHCP}' \
 --maintainer '${MAINTAINER}' \
 --depends '${SCAPY_PACKAGE} >= ${SCAPY_VERSION}' \
-${MAGMA_ROOT}/lte/gateway/python/scripts/dhcp_helper_cli.py=/usr/local/bin/"
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py=/usr/local/bin/"
 
 eval "$BUILDCMD"
