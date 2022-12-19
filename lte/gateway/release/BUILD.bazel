@@ -250,14 +250,14 @@ pkg_deb(
     architecture = ARCH,
     data = ":dhcp_helper_cli_tar",
     description = "Magma DHCP helper CLI",
+    homepage = "https://github.com/magma/magma/",
     maintainer = "The Magma Authors <main@lists.magmacore.org>",
     package = "magma-dhcp-cli",
+    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
     priority = "extra",
-    section = "default",
     provides = ["dhcp_helper_cli"],
     replaces = ["dhcp_helper_cli"],
-    homepage = "https://github.com/magma/magma/",
-    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
+    section = "default",
     version = VERSION_DEB,
 )
 
