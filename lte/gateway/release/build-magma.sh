@@ -306,8 +306,8 @@ LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 cd $PWD
 # remove old packages
-if [ -f ${MAGMA_BUILD_PATH} ]; then
-  rm ${MAGMA_BUILD_PATH}
+if [ -f "${MAGMA_BUILD_PATH}" ]; then
+  rm "${MAGMA_BUILD_PATH}"
 fi
 
 SERVICE_DIR="/etc/systemd/system/"
