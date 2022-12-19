@@ -353,8 +353,6 @@ class IPAllocatorDHCP(IPAllocator):
         try:
             # Only look in at the last line of the stdout for the JSON
             # Previous lines may contain warnings or other unnecessary info.
-            # This is also helpful for debugging since we can add print
-            # statements to the helper script without breaking the JSON.
             if isinstance(dhcp_response.stdout, str):
                 stdout = dhcp_response.stdout.splitlines()[-1]
             elif isinstance(dhcp_response.stdout, bytes):
