@@ -256,7 +256,6 @@ pkg_deb(
     package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
     provides = ["dhcp_helper_cli"],
     replaces = ["dhcp_helper_cli"],
-    section = "default",
     version = VERSION_DEB,
 )
 
