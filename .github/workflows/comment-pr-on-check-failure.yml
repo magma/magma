@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: needs.skip_check.outputs.should_skip == 'false'
     env:
-      CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
+      CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
     steps:
@@ -109,7 +109,7 @@ jobs:
         run: |
           echo "Oops! Looks like you failed the \`PR Check DCO\`. Be sure to sign all your commits.
           ### Howto
-          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [Magma guidelines on signing commits](https://github.com/magma/magma/wiki/Contributing-Code#signed-off-commits)
           - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
           - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357#answer-15667644)
           - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)
@@ -119,14 +119,14 @@ jobs:
         run: |
           echo "Oops! Looks like you failed the \`AGW Build & Format Python\`.
           ### Howto
-          - Instructions on running the formatter and linter locally are provided in the [format AGW doc](https://docs.magmacore.org/docs/next/lte/dev_unit_testing#format-agw)
+          - Instructions on running the formatter and linter locally are provided in the [format AGW doc](https://magma.github.io/magma/docs/lte/dev_unit_testing#format-python)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Semantic PR comment message
         if: ${{ github.event.workflow.name == 'Semantic PR' }}
         run: |
           echo "Oops! Looks like you failed the \`Semantic PR check\`.
           ### Howto
-          - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [Instructions on formatting your PR title](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format)
           - For PRs with only one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Markdown lint comment message
