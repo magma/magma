@@ -355,7 +355,13 @@ class IPAllocatorDHCP(IPAllocator):
             # Previous lines may contain warnings or other unnecessary info.
             # This is also helpful for debugging since we can add print
             # statements to the helper script without breaking the JSON.
-            dhcp_json = json.loads(dhcp_response.stdout.decode("utf-8").splitlines()[-1])
+            if isinstance(dhcp_response.stdout, str):
+                stdout = dhcp_response.stdout.splitlines()[-1]
+            elif isinstance(dhcp_response.stdout, bytes):
+                stdout = dhcp_response.stdout.decode("utf-8").splitlines()[-1]
+            else:
+                raise TypeError("Invalid type for stdout")
+            dhcp_json = json.loads(stdout)
         except JSONDecodeError:
             logging.error(
                 f"Could not decode '{dhcp_response.stdout}' received "
