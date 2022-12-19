@@ -105,9 +105,12 @@ esac
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
-PKGNAME=magma
+MAGMA_PKGNAME=magma
+MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 SCTPD_PKGNAME=magma-sctpd
+SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 DHCP_CLI_PKGNAME=magma-dhcp-cli
+DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -198,7 +201,7 @@ PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
 PY_LTE=${MAGMA_ROOT}/lte/gateway/python
 PY_ORC8R=${MAGMA_ROOT}/orc8r/gateway/python
-PY_TMP_BUILD=/tmp/build-${PKGNAME}
+PY_TMP_BUILD=/tmp/build-${MAGMA_PKGNAME}
 PY_TMP_BUILD_SUFFIX=/usr/lib/python3/${PY_PKG_LOC}
 
 PWD=`pwd`
@@ -300,13 +303,11 @@ LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
-PKGFILE=${PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
-BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
 cd $PWD
 # remove old packages
-if [ -f ${BUILD_PATH} ]; then
-  rm ${BUILD_PATH}
+if [ -f ${MAGMA_BUILD_PATH} ]; then
+  rm ${MAGMA_BUILD_PATH}
 fi
 
 SERVICE_DIR="/etc/systemd/system/"
@@ -345,7 +346,7 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${SCTPD_PKGNAME} \
 --replaces ${SCTPD_PKGNAME} \
---package ${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
+--package ${SCTPD_BUILD_PATH} \
 --description '${DESCRIPTION_SCTPD}' \
 --url '${URL}' \
 --vendor '${VENDOR}' \
@@ -366,7 +367,7 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${PKGNAME} \
 --replaces ${PKGNAME} \
---package ${BUILD_PATH} \
+--package ${MAGMA_BUILD_PATH} \
 --description '${DESCRIPTION_AGW}' \
 --url '${URL}' \
 --vendor '${VENDOR}' \
@@ -425,7 +426,7 @@ ${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-setup-wg.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-create-gtp-port.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
-$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
+$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${MAGMA_PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 " # Leave this quote on a new line to mark end of BUILDCMD
@@ -445,7 +446,7 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${DHCP_CLI_PKGNAME} \
 --replaces ${DHCP_CLI_PKGNAME} \
---package ${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
+--package ${DHCP_CLI_BUILD_PATH} \
 --description '${DESCRIPTION_DHCP}' \
 --url '${URL}' \
 --vendor '${VENDOR}' \
