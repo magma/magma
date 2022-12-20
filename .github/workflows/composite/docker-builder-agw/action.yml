@@ -25,6 +25,10 @@ inputs:
   TAGS:
     description: Docker image stream tags
     required: true
+  TARGET:
+    description: Target stage in the Docker file
+    required: false
+    default: ""
   FILE:
     description: Docker file
     required: false
@@ -45,6 +49,7 @@ runs:
       run: |
         echo "Registry:   ${{ inputs.REGISTRY }}"
         echo "Tags:       ${{ inputs.TAGS }}"
+        echo "Target:     ${{ inputs.TARGET }}"
         echo "Dockerfile: ${{ inputs.FILE }}"
         echo "Context:    ${{ inputs.CONTEXT }}"
       shell: bash
@@ -70,6 +75,7 @@ runs:
         context: ${{ inputs.CONTEXT }}
         file: ${{ inputs.CONTEXT }}/${{ inputs.FILE }}
         tags: ${{ inputs.TAGS }}
+        target: ${{ inputs.TARGET }}
         push: ${{ steps.docker-login.conclusion == 'success' }}
 
     - run: echo "Image digest for \`${{ inputs.TAGS }}\` is \`${{ steps.build-docker.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
