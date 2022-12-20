@@ -87,6 +87,9 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_ASAN }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
           BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
           BUILD_ARG_2: "BAZEL_CONFIG=--config=asan"
           PUSH_TO_REGISTRY: "true"
@@ -106,6 +109,9 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PLAIN }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
           BUILD_ARG_1: "BAZEL_TARGET_RULE=.*_test"
           PUSH_TO_REGISTRY: "true"
 
@@ -124,6 +130,9 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PROD }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
           BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
           BUILD_ARG_2: "BAZEL_CONFIG=--config=production"
           PUSH_TO_REGISTRY: "true"
