@@ -24,7 +24,6 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
     def setUp(self):
         """Initialize before test case execution"""
         self.magma_utils = MagmadUtil(None)
-
         self.magma_utils.enable_dhcp_config()
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self.magma_utils.disable_nat()

@@ -63,7 +63,7 @@ class TestAttachDetachWithNonNatDhcpMultiUeLooped(unittest.TestCase):
             # Now detach the UE
             print(
                 "************************* Running UE detach for UE id ",
-                req.ue_id
+                req.ue_id,
             )
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id, detach_type[i % 2], True,
