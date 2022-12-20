@@ -21,9 +21,7 @@ exports_files(["LICENSE"])
 expand_runfiles(
     name = "dhcp_helper_cli_expanded",
     tags = ["no-cache"],
-    targets = [
-        "//lte/gateway/python/dhcp_helper_cli",
-    ],
+    targets = ["//lte/gateway/python/dhcp_helper_cli"],
 )
 
 pkg_mklink(
@@ -42,13 +40,9 @@ pkg_filegroup(
 
 py_binary(
     name = "dhcp_helper_cli",
-    srcs = [
-        "dhcp_helper_cli.py",
-    ],
+    srcs = ["dhcp_helper_cli.py"],
     legacy_create_init = False,
     tags = TAG_UTIL_SCRIPT,
-    visibility = [
-        "//lte/gateway/python/dhcp_helper_cli/tests:__pkg__",
-    ],
+    visibility = ["//lte/gateway/python/dhcp_helper_cli/tests:__pkg__"],
     deps = [requirement("scapy")],
 )
