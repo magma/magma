@@ -213,7 +213,7 @@ void service303_config_init(service303_data_t* service303_conf) {
 
 void blocked_imei_config_init(blocked_imei_list_t* blocked_imeis) {
   blocked_imeis->num = 0;
-  blocked_imeis->imei_htbl = NULL;
+  blocked_imeis->imei_map = nullptr;
 }
 
 void sac_to_tacs_map_config_init(sac_to_tacs_map_config_t* sac_to_tacs_map) {
@@ -299,8 +299,8 @@ void free_mme_config(mme_config_t* mme_config) {
     bdestroy_wrapper(&mme_config->e_dns_emulation.sgw_id[i]);
   }
 
-  if (mme_config->blocked_imei.imei_htbl) {
-    hashtable_uint64_ts_destroy(mme_config->blocked_imei.imei_htbl);
+  if (mme_config->blocked_imei.imei_map) {
+    mme_config->blocked_imei.imei_map.destroy_map();
   }
 
   if (mme_config->sac_to_tacs_map.sac_to_tacs_map_htbl) {
@@ -1245,14 +1245,14 @@ int mme_config_parse_string(const char* config_string,
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
       if (num > 0) {
-        // Create IMEI hashtable
-        hashtable_rc_t h_rc = HASH_TABLE_OK;
-        bstring b = bfromcstr("mme_app_config_imei_htbl");
-        config_pP->blocked_imei.imei_htbl =
-            hashtable_uint64_ts_create(MAX_IMEI_HTBL_SZ, NULL, b);
+        // Create IMEI map
+        bstring b = bfromcstr("mme_app_config_imei_map");
+        config_pP->blocked_imei.imei_map.map =
+            new google::protobuf::Map<std::string, uint32_t>();
+        config_pP->blocked_imei.imei_map.set_name(b);
         bdestroy_wrapper(&b);
-        AssertFatal(config_pP->blocked_imei.imei_htbl != NULL,
-                    "Error creating IMEI hashtable\n");
+        AssertFatal(config_pP->blocked_imei.imei_map != NULL,
+                    "Error creating IMEI map\n");
 
         for (i = 0; i < num; i++) {
           memset(imei_str, 0, (MAX_LEN_IMEI + 1));
@@ -1277,10 +1277,9 @@ int mme_config_parse_string(const char* config_string,
             // Store IMEI into hashlist
             imei64 = 0;
             IMEI_STRING_TO_IMEI64(imei_str, &imei64);
-            h_rc = hashtable_uint64_ts_insert(config_pP->blocked_imei.imei_htbl,
-                                              (const hash_key_t)imei64, 0);
-            AssertFatal(h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
-
+            AssertFatal(config_pP->blocked_imei.imei_map.insert(imei64, 0) ==
+                            magma::PROTO_MAP_OK,
+                        "Hashtable insertion failed\n");
             config_pP->blocked_imei.num += 1;
           }
         }

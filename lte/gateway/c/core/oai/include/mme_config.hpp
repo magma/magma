@@ -55,6 +55,7 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
@@ -364,7 +365,7 @@ typedef struct restricted_plmn_s {
 typedef struct blocked_imei_list_s {
   int num;
   // data is NULL
-  hash_table_uint64_ts_t* imei_htbl;
+  magma::proto_map_uint64_uint32_t imei_map;
 } blocked_imei_list_t;
 
 typedef struct fed_mode_map_s {
