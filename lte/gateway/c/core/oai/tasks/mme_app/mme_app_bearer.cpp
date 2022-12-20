@@ -615,9 +615,11 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    */
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
-    if (mme_app_state_ue_map->get(ue_id, &ue_context_p) ==
-        magma::PROTO_MAP_OK) {
-      imsi64 = ue_context_p->emm_context._imsi64;
+    if (mme_app_state_ue_map) {
+      if (mme_app_state_ue_map->get(ue_id, &ue_context_p) ==
+          magma::PROTO_MAP_OK) {
+        imsi64 = ue_context_p->emm_context._imsi64;
+      }
     }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);

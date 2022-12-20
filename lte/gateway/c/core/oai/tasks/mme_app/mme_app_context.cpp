@@ -414,7 +414,6 @@ void mme_ue_context_update_coll_keys(
     const guti_t* const guti_p)  //  never NULL, if none put &ue_context_p->guti
 {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -467,6 +466,12 @@ void mme_ue_context_update_coll_keys(
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
         enb_s1ap_id_key, ue_context_p->enb_ue_s1ap_id,
         ue_context_p->mme_ue_s1ap_id);
+  }
+
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  if (mme_app_state_ue_map == nullptr) {
+    OAILOG_ERROR_UE(LOG_MME_APP, imsi, "Failed to get mme_app_state_ue_map");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
   if ((mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) && mme_app_state_ue_map) {
@@ -587,7 +592,6 @@ static bool display_proto_map_uint32_uint32(
 //------------------------------------------------------------------------------
 void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   bstring tmp = bfromcstr(" ");
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   magma::proto_map_uint64_uint32_t imsi2mme_ueid_map =
       mme_ue_contexts_p->imsi2mme_ueid_map;
@@ -598,6 +602,13 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
       mme_ue_contexts_p->s11_teid2mme_ueid_map;
   s11_teid2mme_ueid_map.map_apply_callback_on_all_elements(
       display_proto_map_uint32_uint32, nullptr, nullptr);
+
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+
+  if (!mme_app_state_ue_map) {
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
 
   mme_app_state_ue_map->map_apply_callback_on_all_elements(
       display_proto_map_uint32_ue_context, nullptr, nullptr);
@@ -619,7 +630,6 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context_p,
                                     struct ue_mm_context_s* ue_context_p) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_ue_context_p == NULL) {
@@ -654,6 +664,14 @@ status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context_p,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
+  }
+
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+
+  if (!mme_app_state_ue_map) {
+    OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                    "Failed to get mme_app_state_ue_map");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   if (ue_context_p->mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
@@ -740,7 +758,6 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
                            struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   if (!mme_ue_context_p) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid MME UE context received\n");
@@ -824,6 +841,14 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
                       ue_context_p->mme_ue_s1ap_id, ue_context_p->mme_teid_s11);
     }
   }
+
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  if (!mme_app_state_ue_map) {
+    OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                    "Failed to get mme_app_state_ue_map");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
   // filled NAS UE ID/ MME UE S1AP ID
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
     if (mme_app_state_ue_map->remove(ue_context_p->mme_ue_s1ap_id) !=
@@ -1521,10 +1546,15 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
 void mme_app_recover_timers_for_all_ues(void) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  if (mme_app_state_ue_map == nullptr) {
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
   uint32_t num_unreg_ues = 0;
   uint64_t* mme_ue_id_unreg_list;
-  mme_ue_id_unreg_list =
-      (uint64_t*)calloc(mme_app_state_ue_map->size(), sizeof(uint64_t));
+  mme_ue_id_unreg_list = reinterpret_cast<uint64_t*>(
+      calloc(mme_app_state_ue_map->size(), sizeof(uint64_t)));
 
   mme_app_state_ue_map->map_apply_callback_on_all_elements(
       mme_app_recover_timers_for_ue, reinterpret_cast<void*>(&num_unreg_ues),

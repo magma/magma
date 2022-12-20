@@ -46,7 +46,7 @@ extern "C" {
 status_code_e mme_app_handle_s6a_reset_req(
     const s6a_reset_req_t* const rsr_pP) {
   status_code_e rc = RETURNok;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = nullptr;
   unsigned int i = 0;
   unsigned int num_elements = 0;
 
@@ -54,7 +54,7 @@ status_code_e mme_app_handle_s6a_reset_req(
 
   OAILOG_DEBUG(LOG_MME_APP, "S6a Reset Request received\n");
 
-  if (rsr_pP == NULL) {
+  if (rsr_pP == nullptr) {
     OAILOG_ERROR(LOG_MME_APP,
                  "Invalid S6a Reset Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
