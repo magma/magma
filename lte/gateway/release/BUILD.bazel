@@ -44,6 +44,14 @@ MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
     ver = VERSION_DEB,
 )
 
+DHCP_HELPER_CLI_PKGNAME = "magma-dhcp-cli"
+
+DHCP_HELPER_CLI_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = DHCP_HELPER_CLI_PKGNAME,
+    arch = ARCH,
+    ver = VERSION_DEB,
+)
+
 ### META INFO
 
 URL = "https://github.com/magma/magma/"
@@ -51,6 +59,8 @@ URL = "https://github.com/magma/magma/"
 MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
 
 LICENSE_BSD_3_CLAUSE = "BSD-3-Clause"
+
+LICENSE_GPL2_CLAUSE = "GPL-2.0"
 
 ### SCTPD BUILD
 
@@ -225,6 +235,41 @@ pkg_deb(
     version = VERSION_DEB,
 )
 
+### DHCP HELPER CLI BUILD
+
+pkg_files(
+    name = "dhcp_license",
+    srcs = ["//lte/gateway/python/dhcp_helper_cli:LICENSE"],
+    prefix = "/usr/share/doc/{pkg_name}".format(pkg_name = DHCP_HELPER_CLI_PKGNAME),
+)
+
+pkg_tar(
+    name = "dhcp_helper_cli_tar",
+    srcs = [
+        ":dhcp_license",
+        "//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg",
+    ],
+    package_dir = PY_DEST,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = DHCP_HELPER_CLI_FILE_NAME,
+    ),
+)
+
+pkg_deb(
+    name = "dhcp_helper_cli_deb_pkg",
+    architecture = ARCH,
+    data = ":dhcp_helper_cli_tar",
+    description = "Magma DHCP helper CLI",
+    homepage = URL,
+    maintainer = MAINTAINER,
+    package = "magma-dhcp-cli",
+    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILE_NAME),
+    provides = ["dhcp_helper_cli"],
+    replaces = ["dhcp_helper_cli"],
+    version = VERSION_DEB,
+)
+
 ### CI BUILDS
 
 config_setting(
@@ -240,10 +285,12 @@ genrule(
         " && ".join([
             "cp $(location update_deb_meta_info.sh.template) $@",
             "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
+            "sed -i 's/DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME/DHCP_HELPER_CLI_INPUT_FILE_NAME={name}.deb/' $@".format(name = DHCP_HELPER_CLI_FILE_NAME),
             "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
             "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
             "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
             "sed -i 's/SCTPD_LICENSE=REPLACE_ME/SCTPD_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
+            "sed -i 's/DHCP_LICENSE=REPLACE_ME/DHCP_LICENSE={license}/' $@".format(license = LICENSE_GPL2_CLAUSE),
         ]) + select({
             ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
             "//conditions:default": "",
@@ -262,6 +309,7 @@ sh_binary(
     name = "release_build",
     srcs = [":update_deb_meta_info"],
     data = [
+        ":dhcp_helper_cli_deb_pkg",
         ":magma_deb_pkg",
         ":sctpd_deb_pkg",
     ],

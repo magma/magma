@@ -71,7 +71,6 @@ py_library(
         "//lte/protos:subscriberdb_python_grpc",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common/redis:client",
-        requirement("scapy"),
         requirement("prometheus_client"),
     ],
 )

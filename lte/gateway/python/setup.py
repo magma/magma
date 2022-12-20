@@ -86,7 +86,6 @@ setup(
         'scripts/spgw_service_cli.py',
         'scripts/cpe_monitoring_cli.py',
         'scripts/state_cli.py',
-        'scripts/dhcp_helper_cli.py',
         'scripts/dp_probe_cli.py',
         'scripts/user_trace_cli.py',
         'scripts/icmpv6.py',
@@ -107,7 +106,6 @@ setup(
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
         'dpkt==1.9.8',
-        'scapy==2.4.5',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',
         'aiodns>=3.0.0',
@@ -145,6 +143,7 @@ setup(
             'parameterized==0.8.1',
             'pytest==7.1.2',
             'pytest-cov==3.0.0',
+            'scapy==2.4.5',
         ],
     },
 )

@@ -22,6 +22,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # Test builds are versioned automatically by fabfile.py
 VERSION=1.8.0 # magma version number
 SCTPD_MIN_VERSION=1.8.0 # earliest version of sctpd with which this version is compatible
+DHCP_CLI_MIN_VERSION=1.9.0 # earliest version of dhcp_cli with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=RelWithDebInfo
@@ -105,8 +106,12 @@ esac
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
-PKGNAME=magma
+MAGMA_PKGNAME=magma
+MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 SCTPD_PKGNAME=magma-sctpd
+SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+DHCP_CLI_PKGNAME=magma-dhcp-cli
+DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -132,7 +137,6 @@ MAGMA_DEPS=(
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
     "ntpdate" # required for eventd time synchronization
-    "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
@@ -146,6 +150,7 @@ MAGMA_DEPS=(
     # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
     "bcc-tools"
     "wireguard"
+    "${DHCP_CLI_PKGNAME} >= ${DHCP_CLI_MIN_VERSION}"
     )
 
 # OAI runtime dependencies
@@ -197,7 +202,7 @@ PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
 PY_LTE=${MAGMA_ROOT}/lte/gateway/python
 PY_ORC8R=${MAGMA_ROOT}/orc8r/gateway/python
-PY_TMP_BUILD=/tmp/build-${PKGNAME}
+PY_TMP_BUILD=/tmp/build-${MAGMA_PKGNAME}
 PY_TMP_BUILD_SUFFIX=/usr/lib/python3/${PY_PKG_LOC}
 
 PWD=`pwd`
@@ -297,15 +302,10 @@ PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
 LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
-# now the binaries are built, we can package up everything else and build the
-# magma package.
-PKGFILE=${PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
-BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
-
 cd $PWD
 # remove old packages
-if [ -f ${BUILD_PATH} ]; then
-  rm ${BUILD_PATH}
+if [ -f "${MAGMA_BUILD_PATH}" ]; then
+  rm "${MAGMA_BUILD_PATH}"
 fi
 
 SERVICE_DIR="/etc/systemd/system/"
@@ -344,7 +344,7 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${SCTPD_PKGNAME} \
 --replaces ${SCTPD_PKGNAME} \
---package ${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
+--package ${SCTPD_BUILD_PATH} \
 --description '${DESCRIPTION_SCTPD}' \
 --url '${URL}' \
 --vendor '${VENDOR}' \
@@ -365,7 +365,7 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${PKGNAME} \
 --replaces ${PKGNAME} \
---package ${BUILD_PATH} \
+--package ${MAGMA_BUILD_PATH} \
 --description '${DESCRIPTION_AGW}' \
 --url '${URL}' \
 --vendor '${VENDOR}' \
@@ -424,9 +424,33 @@ ${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-setup-wg.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-create-gtp-port.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
-$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
+$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${MAGMA_PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 " # Leave this quote on a new line to mark end of BUILDCMD
+
+eval "$BUILDCMD"
+
+DESCRIPTION_DHCP="Magma DHCP helper CLI"
+LICENSE_DHCP="GPL-2.0"
+SCAPY_PACKAGE="python3-scapy"
+SCAPY_VERSION="2.4.5"
+
+BUILDCMD="fpm \
+-s dir \
+-t ${PKGFMT} \
+-a ${ARCH} \
+-n ${DHCP_CLI_PKGNAME} \
+-v ${FULL_VERSION} \
+--provides ${DHCP_CLI_PKGNAME} \
+--replaces ${DHCP_CLI_PKGNAME} \
+--package ${DHCP_CLI_BUILD_PATH} \
+--description '${DESCRIPTION_DHCP}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE_DHCP}' \
+--maintainer '${MAINTAINER}' \
+--depends '${SCAPY_PACKAGE} >= ${SCAPY_VERSION}' \
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py=/usr/local/bin/"
 
 eval "$BUILDCMD"

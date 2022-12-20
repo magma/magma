@@ -21,7 +21,6 @@ SCRIPTS = [
     "config_stateless_agw",
     "cpe_monitoring_cli",
     "create_oai_certs",
-    "dhcp_helper_cli",
     "dp_probe_cli",
     "enodebd_cli",
     "fake_user",
@@ -535,13 +534,4 @@ py_binary(
     srcs = ["user_trace_cli.py"],
     legacy_create_init = False,
     tags = TAG_UTIL_SCRIPT,
-)
-
-py_binary(
-    name = "dhcp_helper_cli",
-    srcs = ["dhcp_helper_cli.py"],
-    legacy_create_init = False,
-    tags = TAG_UTIL_SCRIPT,
-    visibility = ["//lte/gateway/python/magma/mobilityd/tests:__pkg__"],
-    deps = [requirement("scapy")],
 )
