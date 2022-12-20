@@ -2513,6 +2513,7 @@ void sgw_process_release_access_bearer_request(
                       eps_bearer_ctxt.sgw_ip_address_s5_s8_up().c_str(),
                       eps_bearer_ctxt.sgw_teid_s5_s8_up());
 #if !MME_UNIT_TEST  // skip tunnel deletion for unit tests
+      int rv = RETURNok;
       if (module == LOG_SPGW_APP) {
         if (is_ue_ipv6_pres) {
           rv = gtp_tunnel_ops->del_tunnel(

@@ -50,6 +50,8 @@ URL = "https://github.com/magma/magma/"
 
 MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
 
+LICENSE_BSD_3_CLAUSE = "BSD-3-Clause"
+
 ### SCTPD BUILD
 
 genrule(
@@ -240,6 +242,8 @@ genrule(
             "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
             "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
             "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
+            "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
+            "sed -i 's/SCTPD_LICENSE=REPLACE_ME/SCTPD_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
         ]) + select({
             ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
             "//conditions:default": "",
