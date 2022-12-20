@@ -109,15 +109,19 @@ def run_dhcp_allocator_thread(
 
 def test_allocate_ip_address(
     ip_allocator_fixture: IPAllocatorDHCP,
+    ip_allocator_dhcp_fixture: IPAllocatorDHCP,
     ip_desc_fixture: IPDesc,
     dhcp_desc_fixture: DHCPDescriptor,
 ) -> None:
     ip_allocator_fixture.start_monitor_thread()
+    dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
+    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc_fixture.mac),
         "--vlan", str(dhcp_desc_fixture.vlan),
         "--interface", ip_allocator_fixture._iface,
+        "--save-file", save_file,
         "--json",
         "allocate",
     ]]
@@ -163,12 +167,14 @@ def test_renewal_of_ip(
     ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
+    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
         "--json",
+        "--save-file", save_file,
         "renew",
         "--ip", str(dhcp_desc.ip),
         "--server-ip", str(dhcp_desc.server_ip),
@@ -185,12 +191,14 @@ def test_allocate_ip_after_expiry(
     ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
+    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
         "--json",
+        "--save-file", save_file,
         "allocate",
     ]]
     _run_allocator_and_assert(
