@@ -27,11 +27,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
-  # Regarding the CACHE_KEY see https://github.com/magma/magma/pull/14041
-  CACHE_KEY: bazel-base-image-sha-c4de1e5
-  REMOTE_DOWNLOAD_OPTIMIZATION_C_CPP: true
-  REMOTE_DOWNLOAD_OPTIMIZATION_PYTHON: false
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
 
 jobs:
   path_filter:
@@ -63,30 +59,27 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
-      - name: Setup Bazel Base Image
+      - name: Setup Bazel Docker Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            echo "Pulled the bazel base image!"
+            echo "Pulled the bazel docker image!"
             bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
       - name: Run C/C++ coverage with Bazel
         if: always()
         id: bazel-cc-codecoverage
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION_C_CPP }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
-            # Coverage in bazel is flaky for remote caches - the flags below are helping. See GH13026 for details.
             bazel coverage \
               --profile=Bazel_test_cc_coverage_profile \
-              --experimental_split_coverage_postprocessing --experimental_fetch_all_coverage_outputs --remote_download_outputs=all \
               //orc8r/gateway/c/...:* //lte/gateway/c/...:*
             # copy out coverage information into magma so that it's accessible from the CI node
             cp bazel-out/_coverage/_coverage_report.dat .
@@ -135,27 +128,25 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
-      - name: Setup Bazel Base Image
+      - name: Setup Bazel Docker Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           options: --pull always
           # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
           run: |
-            echo "Pulled the bazel base image!"
+            echo "Pulled the bazel docker image!"
             bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
       - name: Run Python coverage with Bazel
         if: always()
         id: bazel-python-codecoverage
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
         with:
-          image: ${{ env.BAZEL_BASE_IMAGE }}
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
           # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
-            bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION_PYTHON }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}"
             # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
-            # Coverage in bazel is flaky for remote caches - the flags below are helping. See GH13026 for details.
             bazel coverage \
               --profile=Bazel_test_python_coverage_profile \
               //orc8r/gateway/python/...:* //lte/gateway/python/...:*

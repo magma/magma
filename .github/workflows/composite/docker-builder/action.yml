@@ -30,6 +30,8 @@ inputs:
     required: true
   PUSH_TO_REGISTRY:
     required: true
+  REMOVE_DOCKERIGNORE_FILE:
+    default: false
   BUILD_ARG_1:
     default: ''
   BUILD_ARG_2:
@@ -40,6 +42,13 @@ runs:
   steps:
     - name: Check Out Repo
       uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+    - name: Remove .dockerignore (optional step)
+      # The .dockerignore file excludes testing and release code that is needed during
+      # bazel builds but not for production environments. This step should only be run
+      # when building docker images with bazel cache for CI use.
+      if: ${{ inputs.REMOVE_DOCKERIGNORE_FILE == 'true' }}
+      shell: bash
+      run: rm .dockerignore
     - name: Set up Docker meta
       id: meta
       uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # pin@v4.1.1

@@ -21,6 +21,7 @@ set -euo pipefail
 
 update_version() {
     local INPUT_FILE_NAME=$1
+    local LICENSE=$2
 
     WORK_FOLDER=$(mktemp -d)
     cd "${WORK_FOLDER}"
@@ -37,6 +38,9 @@ update_version() {
     if [ "${DEV_BUILD}" = true ] ; then
         sed -i "s/\(Description: .*$\)/\1 - dev build/" control
     fi
+
+    echo "  Updating license to \"${LICENSE}\""
+    echo "License: $LICENSE" >> control
 
     if [ -f postinst ]; then
         COMMIT_HASH_WITH_VERSION="magma@${VERSION}.${COMMIT_COUNT}-${HASH_SHORT}"
@@ -64,6 +68,8 @@ update_version() {
 VERSION=REPLACE_ME # set by genrule
 MAGMA_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 SCTPD_INPUT_FILE_NAME=REPLACE_ME # set by genrule
+MAGMA_LICENSE=REPLACE_ME # set by genrule
+SCTPD_LICENSE=REPLACE_ME # set by genrule
 DEV_BUILD=true # can be overridden by genrule
 
 RESULT_FOLDER=/tmp/packages
@@ -79,5 +85,5 @@ HASH_SHORT=${HASH::8}
 TIMESTAMP=$(date +%s)
 VERSION_SUFFIX="${TIMESTAMP}-${HASH_SHORT}"
 
-update_version $MAGMA_INPUT_FILE_NAME
-update_version $SCTPD_INPUT_FILE_NAME
+update_version $MAGMA_INPUT_FILE_NAME $MAGMA_LICENSE
+update_version $SCTPD_INPUT_FILE_NAME $SCTPD_LICENSE

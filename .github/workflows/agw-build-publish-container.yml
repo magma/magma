@@ -200,24 +200,33 @@ jobs:
       - name: Create test_results directory
         run: mkdir -p lte/gateway/test-results
 
-      - name: Download results of precommit tests
+      - name: Download test results of precommit tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: test-results-precommit
           path: "${{ github.workspace }}/lte/gateway/test-results"
 
-      - name: Download results of extended tests
+      - name: Download final status of precommit tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-precommit
+
+      - name: Download test results of extended tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: test-results-extended_tests
           path: "${{ github.workspace }}/lte/gateway/test-results"
 
+      - name: Download final status of of extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-extended_tests
+
       - name: Determine end result for both tests
         run: |
-          echo "${{ needs.test-containers-precommit.outputs.final_status }}" > test_status_precommit.txt
-          echo "${{ needs.test-containers-extended.outputs.final_status }}" > test_status_extended.txt
-          diff test_status_precommit.txt test_status_extended.txt > /dev/null
-          if [ $? -eq 0 ]
+          result_precommit=$(cat test_status_precommit.txt)
+          result_extended=$(cat test_status_extended_tests.txt)
+          if [ $result_precommit == $result_extended ]
           then
             mv test_status_precommit.txt test_status.txt
           else
