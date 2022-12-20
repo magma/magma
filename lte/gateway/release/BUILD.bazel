@@ -46,7 +46,7 @@ MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
 
 DHCP_HELPER_CLI_PKGNAME = "magma-dhcp-cli"
 
-DHCP_HELPER_CLI_FILENAME = "{name}_{ver}_{arch}".format(
+DHCP_HELPER_CLI_FILE_NAME = "{name}_{ver}_{arch}".format(
     name = DHCP_HELPER_CLI_PKGNAME,
     arch = ARCH,
     ver = VERSION_DEB,
@@ -59,6 +59,7 @@ URL = "https://github.com/magma/magma/"
 MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
 
 LICENSE_BSD_3_CLAUSE = "BSD-3-Clause"
+LICENSE_GPLv2_CLAUSE = "GPL-2.0"
 
 ### SCTPD BUILD
 
@@ -241,7 +242,7 @@ pkg_tar(
     package_dir = PY_DEST,
     package_file_name = "{fname}.{ext}".format(
         ext = TAR_EXTENSION,
-        fname = DHCP_HELPER_CLI_FILENAME,
+        fname = DHCP_HELPER_CLI_FILE_NAME,
     ),
 )
 
@@ -250,10 +251,10 @@ pkg_deb(
     architecture = ARCH,
     data = ":dhcp_helper_cli_tar",
     description = "Magma DHCP helper CLI",
-    homepage = "https://github.com/magma/magma/",
-    maintainer = "The Magma Authors <main@lists.magmacore.org>",
+    homepage = URL,
+    maintainer = MAINTAINER,
     package = "magma-dhcp-cli",
-    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILENAME),
+    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILE_NAME),
     provides = ["dhcp_helper_cli"],
     replaces = ["dhcp_helper_cli"],
     version = VERSION_DEB,
@@ -274,11 +275,12 @@ genrule(
         " && ".join([
             "cp $(location update_deb_meta_info.sh.template) $@",
             "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
-            "sed -i 's/DHCP_HELPER_CLI_FILENAME=REPLACE_ME/DHCP_HELPER_CLI_FILENAME={name}.deb/' $@".format(name = DHCP_HELPER_CLI_FILENAME),
+            "sed -i 's/DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME/DHCP_HELPER_CLI_INPUT_FILE_NAME={name}.deb/' $@".format(name = DHCP_HELPER_CLI_FILE_NAME),
             "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
             "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
             "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
             "sed -i 's/SCTPD_LICENSE=REPLACE_ME/SCTPD_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
+            "sed -i 's/DHCP_LICENSE=REPLACE_ME/DHCP_LICENSE={license}/' $@".format(license = LICENSE_GPLv2_CLAUSE),
         ]) + select({
             ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
             "//conditions:default": "",

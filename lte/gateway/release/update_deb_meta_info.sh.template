@@ -66,7 +66,7 @@ update_version() {
 ###############################################################################
 
 VERSION=REPLACE_ME # set by genrule
-DHCP_HELPER_CLI_FILENAME=REPLACE_ME # set by genrule
+DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 MAGMA_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 SCTPD_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 DHCP_LICENSE=REPLACE_ME # set by genrule
@@ -87,6 +87,6 @@ HASH_SHORT=${HASH::8}
 TIMESTAMP=$(date +%s)
 VERSION_SUFFIX="${TIMESTAMP}-${HASH_SHORT}"
 
-update_version $DHCP_HELPER_CLI_FILENAME $DHCP_LICENSE
+update_version $DHCP_HELPER_CLI_INPUT_FILE_NAME $DHCP_LICENSE
 update_version $MAGMA_INPUT_FILE_NAME $MAGMA_LICENSE
 update_version $SCTPD_INPUT_FILE_NAME $SCTPD_LICENSE
