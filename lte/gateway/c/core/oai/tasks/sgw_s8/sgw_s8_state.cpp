@@ -73,7 +73,7 @@ void sgw_s8_free_eps_bearer_context(
 void sgw_s8_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
   if (pdn_connection_p) {
     if (pdn_connection_p->apn_in_use) {
-      free_wrapper((void**)&pdn_connection_p->apn_in_use);
+      free_wrapper(reinterpret_cast<void**>(&pdn_connection_p->apn_in_use));
     }
 
     for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {

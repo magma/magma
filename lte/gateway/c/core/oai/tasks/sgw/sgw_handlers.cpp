@@ -191,7 +191,7 @@ status_code_e sgw_handle_s11_create_session_request(
     sgw_context_p->set_mme_teid_s11(session_req_pP->sender_fteid_for_cp.teid);
     sgw_context_p->set_sgw_teid_s11_s4(new_endpoint_p->local_teid);
     if (session_req_pP->trxn) {
-      sgw_context_p->set_trxn((char*)session_req_pP->trxn);
+      sgw_context_p->set_trxn(reinterpret_cast<char*>(session_req_pP->trxn));
     }
     // s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_int_ip_address_S11
     // = session_req_pP->peer_ip;
@@ -402,8 +402,11 @@ status_code_e sgw_handle_sgi_endpoint_created(
         .eps_bearer_id = resp_pP->eps_bearer_id;
     create_session_response_p->bearer_contexts_created.num_bearer_context += 1;
 
-    create_session_response_p->trxn =
-        (void*)new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str();
+    memcpy(create_session_response_p->trxn,
+           reinterpret_cast<const void*>(
+               new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str()),
+           new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().size());
+
     inet_pton(AF_INET,
               new_bearer_ctxt_info_p->sgw_eps_bearer_context()
                   .mme_cp_ip_address_s11()
@@ -532,10 +535,11 @@ static void sgw_add_gtp_tunnel(
   memcpy(imsi.digit,
          new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi().c_str(),
          new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi().size());
-  char* apn = (char*)new_bearer_ctxt_info_p->sgw_eps_bearer_context()
-                  .pdn_connection()
-                  .apn_in_use()
-                  .c_str();
+  const char* apn = reinterpret_cast<const char*>(
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context()
+          .pdn_connection()
+          .apn_in_use()
+          .c_str());
   char ip6_str[INET6_ADDRSTRLEN];
 
   inet_ntop(AF_INET6, &ue_ipv6, ip6_str, INET6_ADDRSTRLEN);
@@ -591,7 +595,8 @@ static void sgw_add_gtp_tunnel(
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                         "ERROR in setting up TUNNEL err=%d\n", rv);
       } else if (update_teids) {
-        pcef_update_teids((char*)imsi.digit, eps_bearer_ctxt_p->eps_bearer_id(),
+        pcef_update_teids(reinterpret_cast<char*>(imsi.digit),
+                          eps_bearer_ctxt_p->eps_bearer_id(),
                           eps_bearer_ctxt_p->enb_teid_s1u(),
                           eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up());
       }
@@ -732,8 +737,11 @@ void sgw_handle_sgi_endpoint_updated(
     modify_response_p->teid =
         new_bearer_ctxt_info_p->sgw_eps_bearer_context().mme_teid_s11();
     modify_response_p->cause.cause_value = REQUEST_ACCEPTED;
-    modify_response_p->trxn =
-        (void*)new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str();
+
+    memcpy(modify_response_p->trxn,
+           reinterpret_cast<const void*>(
+               new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str()),
+           new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().size());
     message_p->ittiMsgHeader.imsi = imsi64;
 
     sgw_populate_mbr_bearer_contexts_modified(
@@ -978,7 +986,7 @@ status_code_e sgw_handle_modify_bearer_request(
         modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
             .eps_bearer_id);
     if (modify_bearer_pP->trxn) {
-      sgw_context_p->set_trxn((char*)modify_bearer_pP->trxn);
+      sgw_context_p->set_trxn(reinterpret_cast<char*>(modify_bearer_pP->trxn));
     }
 
     sgi_update_end_point_resp.context_teid = modify_bearer_pP->teid;
@@ -1453,7 +1461,8 @@ void handle_s5_create_session_response(
   create_session_response_p->teid =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context().mme_teid_s11();
   memcpy(create_session_response_p->trxn,
-         new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str(),
+         reinterpret_cast<const void*>(
+             new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().c_str()),
          new_bearer_ctxt_info_p->sgw_eps_bearer_context().trxn().size());
   message_p->ittiMsgHeader.imsi =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi64();
@@ -1670,8 +1679,8 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
                 bearer_context.eps_bearer_id);
 
             cause = REQUEST_ACCEPTED;
-            strcpy(policy_rule_name,
-                   bearer_context_proto->policy_rule_name().c_str());
+            snprintf(policy_rule_name, POLICY_RULE_NAME_MAXLEN + 1, "%s",
+                     bearer_context_proto->policy_rule_name().c_str());
             // setup GTPv1-U tunnel for each packet filter
             // enb, UE and imsi are common across rules
             add_tunnel_helper(spgw_context, bearer_context_proto, imsi64);
@@ -2015,7 +2024,6 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, struct in_addr ipv4,
                             struct in6_addr ipv6) {
   bool rc = true;
   if ((fte_p)->ipv4) {
-    struct in_addr enb = {.s_addr = 0};
     if (ipv4.s_addr != (fte_p)->ipv4_address.s_addr) {
       rc = false;
     }
@@ -2283,10 +2291,11 @@ static void add_tunnel_helper(
     imsi64_t imsi64) {
   uint32_t rc = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
-  char* apn = (char*)spgw_context->mutable_sgw_eps_bearer_context()
-                  ->mutable_pdn_connection()
-                  ->apn_in_use()
-                  .c_str();
+  const char* apn = reinterpret_cast<const char*>(
+      spgw_context->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection()
+          ->apn_in_use()
+          .c_str());
   struct in6_addr enb_ipv6 = {};
 
   convert_proto_ip_to_standard_ip_fmt(
@@ -2455,7 +2464,6 @@ void sgw_process_release_access_bearer_request(
     log_proto_t module, imsi64_t imsi64,
     magma::lte::oai::SgwEpsBearerContextInfo* sgw_context) {
   OAILOG_FUNC_IN(module);
-  int rv = RETURNok;
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
   /*
    * Release the tunnels so that in idle state, DL packets are not sent
@@ -2602,7 +2610,8 @@ void sgw_handle_delete_bearer_cmd(
     OAILOG_FUNC_OUT(TASK_SPGW_APP);
   }
 
-  char* imsi = (char*)spgw_ctxt->sgw_eps_bearer_context().imsi().c_str();
+  const char* imsi = reinterpret_cast<const char*>(
+      spgw_ctxt->sgw_eps_bearer_context().imsi().c_str());
   pcef_delete_dedicated_bearer(imsi, s11_delete_bearer_command->ebi_list);
 
   // Send itti_s11_nw_init_deactv_bearer_request_t to MME to delete the bearer/s

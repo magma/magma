@@ -74,9 +74,7 @@ void sgw_s8_display_sgw_eps_bearer_context(
 //-----------------------------------------------------------------------------
 void sgw_display_s11_bearer_context_information(
     log_proto_t module,
-    magma::lte::oai::S11BearerContext* sgw_context_information)
-//-----------------------------------------------------------------------------
-{
+    magma::lte::oai::S11BearerContext* sgw_context_information) {
   magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
       sgw_context_information->mutable_sgw_eps_bearer_context();
   OAILOG_DEBUG(module, "| KEY %" PRId64 ":      \n", sgw_context_p->imsi64());

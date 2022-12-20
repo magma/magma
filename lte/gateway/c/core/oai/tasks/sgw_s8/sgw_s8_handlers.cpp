@@ -1995,8 +1995,9 @@ void sgw_s8_process_release_access_bearer_request(
       if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
           (eps_bearer_ctxt->paa.pdn_type == IPv4_AND_v6)) {
         char ip6_str[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6, (void*)&eps_bearer_ctxt->paa.ipv6_address, ip6_str,
-                  INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6,
+                  reinterpret_cast<void*>(&eps_bearer_ctxt->paa.ipv6_address),
+                  ip6_str, INET6_ADDRSTRLEN);
         OAILOG_DEBUG(module, "Set the paging rule for IPv6 Addr: %s\n",
                      ip6_str);
       } else {

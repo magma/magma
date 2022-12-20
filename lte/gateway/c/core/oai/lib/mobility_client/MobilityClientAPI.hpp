@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef RPC_CLIENT_H
-#define RPC_CLIENT_H
+#pragma once
 
 #include "stdint.h"
 #include <string>
@@ -176,5 +175,3 @@ int pgw_handle_allocate_ipv4v6_address(const std::string subscriber_id_str,
                                        const std::string pdn_type_str,
                                        teid_t context_teid,
                                        ebi_t eps_bearer_id);
-
-#endif  // RPC_CLIENT_H

@@ -593,7 +593,7 @@ void traffic_flow_template_to_proto(
       OAILOG_ERROR(LOG_SPGW_APP, "Invalid TFT operation code:%u ",
                    tft_state->tftoperationcode);
       break;
-  };
+  }
 }
 
 void convert_serving_network_to_proto(
@@ -624,7 +624,7 @@ void sgw_create_session_message_to_proto(
   proto->Clear();
 
   if (session_request->trxn != nullptr) {
-    proto->set_trxn((char*)session_request->trxn);
+    proto->set_trxn(reinterpret_cast<char*>(session_request->trxn));
   }
 
   proto->set_teid(session_request->teid);
