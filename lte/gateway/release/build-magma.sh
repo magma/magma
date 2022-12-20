@@ -301,9 +301,6 @@ PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
 LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
-# now the binaries are built, we can package up everything else and build the
-# magma package.
-
 cd $PWD
 # remove old packages
 if [ -f "${MAGMA_BUILD_PATH}" ]; then
