@@ -432,7 +432,7 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 eval "$BUILDCMD"
 
 DESCRIPTION_DHCP="Magma DHCP helper CLI"
-LICENSE_DHCP="GPLv2"
+LICENSE_DHCP="GPL-2.0"
 SCAPY_PACKAGE="python3-scapy"
 SCAPY_VERSION="2.4.5"
 
