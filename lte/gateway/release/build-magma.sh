@@ -150,7 +150,7 @@ MAGMA_DEPS=(
     # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
     "bcc-tools"
     "wireguard"
-    "${DHCP_CLI_PKGNAME}" >= "${DHCP_CLI_MIN_VERSION}"
+    "${DHCP_CLI_PKGNAME} >= ${DHCP_CLI_MIN_VERSION}"
     )
 
 # OAI runtime dependencies

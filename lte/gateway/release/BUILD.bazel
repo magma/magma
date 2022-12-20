@@ -59,7 +59,8 @@ URL = "https://github.com/magma/magma/"
 MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
 
 LICENSE_BSD_3_CLAUSE = "BSD-3-Clause"
-LICENSE_GPLv2_CLAUSE = "GPL-2.0"
+
+LICENSE_GPL2_CLAUSE = "GPL-2.0"
 
 ### SCTPD BUILD
 
@@ -245,9 +246,9 @@ pkg_files(
 pkg_tar(
     name = "dhcp_helper_cli_tar",
     srcs = [
-        "//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg",
         ":dhcp_license",
-        ],
+        "//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg",
+    ],
     package_dir = PY_DEST,
     package_file_name = "{fname}.{ext}".format(
         ext = TAR_EXTENSION,
@@ -289,7 +290,7 @@ genrule(
             "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
             "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
             "sed -i 's/SCTPD_LICENSE=REPLACE_ME/SCTPD_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
-            "sed -i 's/DHCP_LICENSE=REPLACE_ME/DHCP_LICENSE={license}/' $@".format(license = LICENSE_GPLv2_CLAUSE),
+            "sed -i 's/DHCP_LICENSE=REPLACE_ME/DHCP_LICENSE={license}/' $@".format(license = LICENSE_GPL2_CLAUSE),
         ]) + select({
             ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
             "//conditions:default": "",
