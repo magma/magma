@@ -236,9 +236,18 @@ pkg_deb(
 
 ### DHCP HELPER CLI BUILD
 
+pkg_files(
+    name = "dhcp_license",
+    srcs = ["//lte/gateway/python/dhcp_helper_cli:LICENSE"],
+    prefix = "/usr/share/doc/{pkg_name}".format(pkg_name = DHCP_HELPER_CLI_PKGNAME),
+)
+
 pkg_tar(
     name = "dhcp_helper_cli_tar",
-    srcs = ["//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg"],
+    srcs = [
+        "//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg",
+        ":dhcp_license",
+        ],
     package_dir = PY_DEST,
     package_file_name = "{fname}.{ext}".format(
         ext = TAR_EXTENSION,

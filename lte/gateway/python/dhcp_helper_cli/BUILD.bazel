@@ -16,6 +16,8 @@ load("//bazel:deb_build.bzl", "PY_DEST")
 load("//bazel:runfiles.bzl", "expand_runfiles")
 load("//bazel:test_constants.bzl", "TAG_UTIL_SCRIPT")
 
+exports_files(["LICENSE"])
+
 expand_runfiles(
     name = "dhcp_helper_cli_expanded",
     tags = ["no-cache"],
