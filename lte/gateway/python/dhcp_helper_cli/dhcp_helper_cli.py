@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 """
+from __future__ import annotations
 
 import argparse
 import json
@@ -47,10 +48,10 @@ class DHCPState(IntEnum):
 
 
 class MacAddress:
-    def __init__(self, mac: str):
+    def __init__(self, mac: str) -> None:
         self.mac_address = mac.lower()
 
-    def __eq__(self, other):
+    def __eq__(self, other: MacAddress) -> bool:
         return hasattr(other, 'mac_address') and self.mac_address == other.mac_address
 
     def as_hex(self) -> bytes:
@@ -63,9 +64,9 @@ class MacAddress:
         else:
             return key
 
-    @staticmethod
-    def from_hex(sid: str) -> 'MacAddress':
-        return MacAddress(':'.join(''.join(x) for x in zip(*[iter(sid)] * 2)))
+    @classmethod
+    def from_hex(cls, sid: str) -> MacAddress:
+        return cls(':'.join(''.join(x) for x in zip(*[iter(sid)] * 2)))
 
     def __str__(self) -> str:
         return self.mac_address
@@ -80,8 +81,8 @@ class DhcpHelperCli:
 
     def __init__(
         self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None,
-        server_ip: Optional[str] = None, router_ip: Optional[str] = None,
-    ):
+            server_ip: Optional[str] = None, router_ip: Optional[str] = None,
+    ) -> None:
         self._lease_expiration_time = None
         self._iface = iface
         self._mac = mac
@@ -103,17 +104,17 @@ class DhcpHelperCli:
 
         time.sleep(self._SNIFFER_STARTUP_WAIT)
 
-    def allocate(self):
+    def allocate(self) -> None:
         self.send_dhcp_discover()
         self.wait_for(self.receive_dhcp_offer)
         self.send_dhcp_request()
         self.wait_for(self.receive_dhcp_ack)
 
-    def release(self):
+    def release(self) -> None:
         self.send_dhcp_release()
         # Receiving release ack is not mandatory
 
-    def renew(self):
+    def renew(self) -> None:
         self._state = DHCPState.OFFER
         self.send_dhcp_request()
         self.wait_for(self.receive_dhcp_ack)
@@ -228,7 +229,7 @@ class DhcpHelperCli:
         self.update_dhcp_state(pkt)
         return True
 
-    def update_dhcp_state(self, pkt):
+    def update_dhcp_state(self, pkt: scapy.packet.Packet) -> None:
         self._ip = pkt[BOOTP].yiaddr
         self._router_ip = self._get_option(pkt, "router")
 

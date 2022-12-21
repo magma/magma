@@ -52,8 +52,8 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 class IPAllocatorDHCP(IPAllocator):
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300, start: bool = True,
-        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
-    ):
+            iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
+    ) -> None:
         """
         Allocate IP address for SID using DHCP server.
         SID is mapped to MAC address using function defined in mac.py
@@ -80,7 +80,7 @@ class IPAllocatorDHCP(IPAllocator):
         if start:
             self.start_monitor_thread()
 
-    def start_monitor_thread(self):
+    def start_monitor_thread(self) -> None:
         if self._monitor_thread is None:
             self._monitor_thread = threading.Thread(
                 target=self._monitor_dhcp_state,
@@ -88,7 +88,7 @@ class IPAllocatorDHCP(IPAllocator):
             )
         self._monitor_thread.start()
 
-    def stop_monitor_thread(self, join: bool = False, reset: bool = False):
+    def stop_monitor_thread(self, join: bool = False, reset: bool = False) -> None:
         self._monitor_thread_event.set()
         if join and self._monitor_thread:
             self._monitor_thread.join()
@@ -96,7 +96,7 @@ class IPAllocatorDHCP(IPAllocator):
             self._monitor_thread = None
             self._monitor_thread_event.clear()
 
-    def _monitor_dhcp_state(self):
+    def _monitor_dhcp_state(self) -> None:
         """
         monitor DHCP client state.
         """
@@ -157,7 +157,7 @@ class IPAllocatorDHCP(IPAllocator):
             if self._monitor_thread_event.is_set():
                 break
 
-    def add_ip_block(self, ipblock: IPNetwork):
+    def add_ip_block(self, ipblock: IPNetwork) -> None:
         logging.warning(
             "No need to allocate block for DHCP allocator: %s",
             ipblock,
@@ -349,7 +349,10 @@ class IPAllocatorDHCP(IPAllocator):
             msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
             raise NoAvailableIPError(msg)
 
-    def _parse_dhcp_helper_cli_response_to_store(self, dhcp_desc, dhcp_response, mac, vlan):
+    def _parse_dhcp_helper_cli_response_to_store(
+            self, dhcp_desc: DHCPDescriptor, dhcp_response: subprocess.CompletedProcess,
+            mac: MacAddress, vlan: int
+    ) -> DHCPDescriptor:
         try:
             # Only look in at the last line of the stdout for the JSON
             # Previous lines may contain warnings or other unnecessary info.
@@ -385,7 +388,7 @@ class IPAllocatorDHCP(IPAllocator):
         return dhcp_desc
 
     @staticmethod
-    def _get_dhcp_helper_cli_response(call_args):
+    def _get_dhcp_helper_cli_response(call_args: List[List[str]]) -> subprocess.CompletedProcess:
         dhcp_response = subprocess.run(
             *call_args,
             capture_output=True,
@@ -399,7 +402,7 @@ class IPAllocatorDHCP(IPAllocator):
             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
         return dhcp_response
 
-    def release_ip(self, ip_desc: IPDesc):
+    def release_ip(self, ip_desc: IPDesc) -> None:
         """
         Release IP address, this involves following steps.
         1. send DHCP protocol packet to release the IP.
@@ -434,7 +437,7 @@ class IPAllocatorDHCP(IPAllocator):
             self._store.assigned_ip_blocks, ip_desc.ip_block,
         )
 
-    def _release_dhcp_ip(self, ip_desc):
+    def _release_dhcp_ip(self, ip_desc: IPDesc) -> None:
         logging.info(f"Releasing: {ip_desc}")
         mac = create_mac_from_sid(ip_desc.sid)
         vlan = ip_desc.vlan_id
