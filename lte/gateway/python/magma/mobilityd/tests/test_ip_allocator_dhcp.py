@@ -324,11 +324,16 @@ def test_force_remove_ip_block_with_allocated_ip(
 def create_subprocess_mock_dhcp_return() -> MagicMock:
     m = MagicMock()
     m.returncode = 0
-    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}""" % (IP, IP_NETWORK, SERVER_IP, ROUTER_IP, LEASE_EXPIRATION_TIME)
+    m.stdout = """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}""" % (
+        IP, IP_NETWORK, SERVER_IP, ROUTER_IP, LEASE_EXPIRATION_TIME,
+    )
     return m
 
 
 def create_subprocess_mock_json_file(call_args, capture_output=True) -> MagicMock:
     with open(call_args[8], "w") as f:
-        f.write("""{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}""" % (IP, IP_NETWORK, SERVER_IP, ROUTER_IP, LEASE_EXPIRATION_TIME))
+        f.write(
+            """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}"""
+            % (IP, IP_NETWORK, SERVER_IP, ROUTER_IP, LEASE_EXPIRATION_TIME),
+        )
     return create_subprocess_mock_dhcp_return()
