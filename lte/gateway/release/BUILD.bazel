@@ -279,8 +279,8 @@ pkg_deb(
     maintainer = MAINTAINER,
     package = "magma-dhcp-cli",
     package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILE_NAME),
-    provides = ["dhcp_helper_cli"],
-    replaces = ["dhcp_helper_cli"],
+    provides = ["magma-dhcp-cli"],
+    replaces = ["magma-dhcp-cli"],
     version = VERSION_DEB,
 )
 

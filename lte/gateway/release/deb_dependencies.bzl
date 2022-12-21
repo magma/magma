@@ -45,7 +45,7 @@ MAGMA_DEPS = [
     "uuid-dev",  # for liagentd
     "libprotobuf17 (>= 3.0.0)",
     "nlohmann-json3-dev",
-    "dhcp_helper_cli (>= {min_version})".format(min_version = DHCP_HELPER_CLI_MIN_VERSION),
+    "magma-dhcp-cli (>= {min_version})".format(min_version = DHCP_HELPER_CLI_MIN_VERSION),
     "sentry-native",  # sessiond
     "td-agent-bit (>= 1.7.8)",
     # eBPF compile and load tools for kernsnoopd and AGW datapath
