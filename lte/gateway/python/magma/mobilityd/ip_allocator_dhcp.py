@@ -120,8 +120,8 @@ class IPAllocatorDHCP(IPAllocator):
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
-                            "--json",
                             "--save-file", save_file,
+                            "--json",
                             "allocate",
                         ]]
                         dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args, save_file)
@@ -137,8 +137,8 @@ class IPAllocatorDHCP(IPAllocator):
                             "--mac", str(dhcp_desc.mac),
                             "--vlan", str(dhcp_desc.vlan),
                             "--interface", self._iface,
-                            "--json",
                             "--save-file", save_file,
+                            "--json",
                             "renew",
                             "--ip", str(dhcp_desc.ip),
                             "--server-ip", str(dhcp_desc.server_ip),
