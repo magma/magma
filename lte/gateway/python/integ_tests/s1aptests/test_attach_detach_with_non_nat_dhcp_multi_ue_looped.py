@@ -35,9 +35,8 @@ class TestAttachDetachWithNonNatDhcpMultiUeLooped(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_with_non_nat_dhcp(self):
-        # return
-        """ Basic attach/detach test with two UEs and DHCP"""
-        num_ues = 64
+        """ looped attach/detach test with 32 UEs and DHCP"""
+        num_ues = 32
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
