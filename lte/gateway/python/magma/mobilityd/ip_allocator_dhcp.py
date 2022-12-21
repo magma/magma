@@ -391,7 +391,7 @@ class IPAllocatorDHCP(IPAllocator):
 
         with open(save_file, 'r') as f:
             dhcp_response = json.load(f)
-        # os.remove(save_file)
+        os.remove(save_file)
         return dhcp_response
 
     def release_ip(self, ip_desc: IPDesc) -> None:
