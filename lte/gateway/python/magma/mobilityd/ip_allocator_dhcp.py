@@ -22,13 +22,12 @@ from __future__ import (
 
 import json
 import logging
+import os
 import subprocess
 import threading
 from copy import deepcopy
 from datetime import datetime
 from ipaddress import IPv4Network, ip_address, ip_network
-from json import JSONDecodeError
-import os
 from threading import Condition
 from typing import Any, Dict, List, Optional
 
