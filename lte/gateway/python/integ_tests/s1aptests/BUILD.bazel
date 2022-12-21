@@ -1676,6 +1676,24 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue_looped",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
     name = "test_restore_mme_config_after_sanity",
     size = "small",
     srcs = ["test_restore_mme_config_after_sanity.py"],
@@ -2218,24 +2236,6 @@ pytest_test(
     srcs = ["test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py"],
     imports = [LTE_ROOT],
     tags = TAG_NON_SANITY_TEST,
-    deps = [":s1ap_wrapper"],
-)
-
-pytest_test(
-    name = "test_attach_detach_with_non_nat_dhcp_multi_ue",
-    size = "large",
-    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue.py"],
-    imports = [LTE_ROOT],
-    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
-    deps = [":s1ap_wrapper"],
-)
-
-pytest_test(
-    name = "test_attach_detach_with_non_nat_dhcp_multi_ue_looped",
-    size = "large",
-    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py"],
-    imports = [LTE_ROOT],
-    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
     deps = [":s1ap_wrapper"],
 )
 

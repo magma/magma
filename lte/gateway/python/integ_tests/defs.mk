@@ -178,6 +178,8 @@ s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_detach_with_he_policy.py \
 s1aptests/test_paging_after_mme_restart.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 EXTENDED_TESTS_LONG = s1aptests/test_modify_mme_config_for_sanity.py \
@@ -244,8 +246,6 @@ s1aptests/test_s1_handover_cancel.py \
 s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
 s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
-s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue.py \
-s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
