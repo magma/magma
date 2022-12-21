@@ -360,7 +360,8 @@ BUILDCMD="fpm \
 --exclude '*/.ignoreme' \
 ${SCTPD_BUILD}/sctpd=/usr/local/sbin/ \
 ${SCTPD_VERSION_FILE}=/usr/local/share/sctpd/version \
-$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service)"
+$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service) \
+${MAGMA_ROOT}/LICENSE=/usr/share/doc/${SCTPD_PKGNAME}/"
 
 eval "$BUILDCMD"
 
@@ -434,6 +435,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${MAGMA_PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
+${MAGMA_ROOT}/LICENSE=/usr/share/doc/${PKGNAME}/ \
 " # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
