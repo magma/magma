@@ -232,10 +232,9 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   bool is_imsi_found = false;
   bool is_lbi_found = false;
 
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
-      bearer_req_p->lbi, imsi64);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received Create Bearer Req from PCRF with lbi:%u ",
+                 bearer_req_p->lbi);
 
   state_teid_map = get_spgw_teid_state();
   if (state_teid_map == nullptr) {

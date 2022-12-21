@@ -1689,11 +1689,10 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         }
         if (num_of_bearers_deleted == 0) {
           pgw_ni_cbr_proc->clear_pending_eps_bearers();
+          --num_of_pending_procedures;
         }
-        break;
       }  // end of bearer index loop
     }
-    --num_of_pending_procedures;
   }  // end of procedure index loop
   if (num_of_pending_procedures == 0) {
     sgw_context_p->clear_pending_procedures();
