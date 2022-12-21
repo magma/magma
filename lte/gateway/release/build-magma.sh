@@ -22,7 +22,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # Test builds are versioned automatically by fabfile.py
 VERSION=1.8.0 # magma version number
 SCTPD_MIN_VERSION=1.8.0 # earliest version of sctpd with which this version is compatible
-DHCP_CLI_MIN_VERSION=1.9.0 # earliest version of dhcp_cli with which this version is compatible
+DHCP_CLI_MIN_VERSION=1.8.0 # earliest version of dhcp_cli with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=RelWithDebInfo
@@ -107,11 +107,8 @@ BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
 MAGMA_PKGNAME=magma
-MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 SCTPD_PKGNAME=magma-sctpd
-SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 DHCP_CLI_PKGNAME=magma-dhcp-cli
-DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -302,10 +299,20 @@ PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
 LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
+MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+
 cd $PWD
 # remove old packages
 if [ -f "${MAGMA_BUILD_PATH}" ]; then
   rm "${MAGMA_BUILD_PATH}"
+fi
+if [ -f "${SCTPD_BUILD_PATH}" ]; then
+  rm "${SCTPD_BUILD_PATH}"
+fi
+if [ -f "${DHCP_CLI_BUILD_PATH}" ]; then
+  rm "${DHCP_CLI_BUILD_PATH}"
 fi
 
 SERVICE_DIR="/etc/systemd/system/"
@@ -361,10 +368,10 @@ BUILDCMD="fpm \
 -s dir \
 -t ${PKGFMT} \
 -a ${ARCH} \
--n ${PKGNAME} \
+-n ${MAGMA_PKGNAME} \
 -v ${FULL_VERSION} \
---provides ${PKGNAME} \
---replaces ${PKGNAME} \
+--provides ${MAGMA_PKGNAME} \
+--replaces ${MAGMA_PKGNAME} \
 --package ${MAGMA_BUILD_PATH} \
 --description '${DESCRIPTION_AGW}' \
 --url '${URL}' \
