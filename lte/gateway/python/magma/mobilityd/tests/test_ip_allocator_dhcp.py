@@ -13,7 +13,7 @@ limitations under the License.
 import os
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, List
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import fakeredis
@@ -130,7 +130,7 @@ def test_allocate_ip_address(
                 "subprocess.run",
                 return_value=create_subprocess_mock_dhcp_return(),
                 side_effect=create_subprocess_mock_json_file,
-            ) as subprocess_mock:
+    ) as subprocess_mock:
         reference_time = datetime.now()
         actual_ip_desc = ip_allocator_fixture.alloc_ip_address(
             sid=SID,
@@ -219,7 +219,7 @@ def _run_allocator_and_assert(
                 "subprocess.run",
                 return_value=create_subprocess_mock_dhcp_return(),
                 side_effect=create_subprocess_mock_json_file,
-            ) as subprocess_mock:
+    ) as subprocess_mock:
         reference_time = datetime.now()
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
