@@ -106,12 +106,6 @@ esac
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
-MAGMA_PKGNAME=magma
-MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
-SCTPD_PKGNAME=magma-sctpd
-SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
-DHCP_CLI_PKGNAME=magma-dhcp-cli
-DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -302,6 +296,16 @@ PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
 LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
+# now the binaries are built, we can package up everything else and build the
+# magma package.
+MAGMA_PKGNAME=magma
+MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+SCTPD_PKGNAME=magma-sctpd
+SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+DHCP_CLI_PKGNAME=magma-dhcp-cli
+DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+
+
 cd $PWD
 # remove old packages
 if [ -f "${MAGMA_BUILD_PATH}" ]; then
@@ -361,10 +365,10 @@ BUILDCMD="fpm \
 -s dir \
 -t ${PKGFMT} \
 -a ${ARCH} \
--n ${PKGNAME} \
+-n ${MAGMA_PKGNAME} \
 -v ${FULL_VERSION} \
---provides ${PKGNAME} \
---replaces ${PKGNAME} \
+--provides ${MAGMA_PKGNAME} \
+--replaces ${MAGMA_PKGNAME} \
 --package ${MAGMA_BUILD_PATH} \
 --description '${DESCRIPTION_AGW}' \
 --url '${URL}' \
