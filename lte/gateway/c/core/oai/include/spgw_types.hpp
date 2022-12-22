@@ -85,6 +85,8 @@ typedef struct sgw_s11_teid_s {
 
 // Map- Key:teid (uint32_t) ,
 // Data: S11BearerContext*
+// TODO (rsarwad): rename S11BearerContext to SpgwSessionContext and also
+// internal structures
 typedef magma::proto_map_s<uint32_t, magma::lte::oai::S11BearerContext*>
     state_teid_map_t;
 
