@@ -2454,7 +2454,7 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
     char guti_str[GUTI_STRING_LEN] = {0};
     convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
     mme_ue_context_p->mme_app_guti2mme_ue_id_map.get(guti_str, &mme_ue_s1ap_id);
-    if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+    if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
       // While processing new attach req, remove GUTI from hashtable
       if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
           (ue_context_p->emm_context._guti.gummei.mme_gid) ||
@@ -2464,10 +2464,11 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
         if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str) !=
             magma::PROTO_MAP_OK) {
-          OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                          "Failed to remove from mme_app_guti2mme_ue_id_map, "
-                          "GUTI: " GUTI_FMT,
-                          guti_str);
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "Failed to remove guti from mme_app_guti2mme_ue_id_map, "
+              "GUTI: " GUTI_FMT,
+              guti_str);
         }
       }
     } else {

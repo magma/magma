@@ -363,6 +363,10 @@ typedef struct restricted_plmn_s {
 
 typedef struct blocked_imei_list_s {
   int num;
+  /* TODO: imei_htbl needs to be converted to protobuf map as part of the GH
+   * Issue #11190. This will be done under cleanup activity after amf/ngap c
+   * files are migrated to cpp. The activity is tracked under GH Issue #14734
+   */
   // data is NULL
   hash_table_uint64_ts_t* imei_htbl;
 } blocked_imei_list_t;
@@ -383,6 +387,11 @@ typedef struct fed_mode_map_config_s {
 
 typedef struct sac_to_tacs_map_config_s {
   tac_list_per_sac_t* tac_list;
+  /* TODO: sac_to_tacs_map_htbl needs to be converted to protobuf map as part
+   * of the GH Issue #11190. This will be done under cleanup activity after
+   * amf/ngap c files are migrated to cpp. The activity is tracked under GH
+   * Issue #14734
+   */
   obj_hash_table_t* sac_to_tacs_map_htbl;
 } sac_to_tacs_map_config_t;
 

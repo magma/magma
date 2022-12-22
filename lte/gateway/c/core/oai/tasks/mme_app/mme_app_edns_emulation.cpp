@@ -43,6 +43,14 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
+/* TODO: The hashtable g_e_dns_entries needs to be converted to protobuf map as
+ * part of the GH Issue #11190. At this point of time, this file and its
+ * corresponding functionalities are used only for the purpose of OAI
+ * deployments with magma MME and hence, the working of the modified code can be
+ * verified only in OAI deployment setup. The activity is under follow-up over
+ * slack conversation:
+ * https://magmacore.slack.com/archives/C01B32Q9L76/p1670564029595199
+ */
 static obj_hash_table_t* g_e_dns_entries = NULL;
 
 //------------------------------------------------------------------------------

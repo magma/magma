@@ -379,7 +379,7 @@ ue_mm_context_t* mme_ue_context_exists_guti(
   convert_guti_to_string(guti_p, &guti_str);
 
   mme_ue_context_p->mme_app_guti2mme_ue_id_map.get(guti_str, &mme_ue_s1ap_id);
-  if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+  if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
     return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   } else {
     OAILOG_WARNING(LOG_MME_APP,
@@ -524,13 +524,13 @@ void mme_ue_context_update_coll_keys(
       char guti_str[GUTI_STRING_LEN] = {0};
       convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
       mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str);
-      if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
+      if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
         memset(&guti_str[0], 0, GUTI_STRING_LEN);
         convert_guti_to_string(guti_p, &guti_str);
         magma::proto_map_rc_t map_rc =
             mme_ue_context_p->mme_app_guti2mme_ue_id_map.insert(guti_str,
                                                                 mme_ue_s1ap_id);
-        if (magma::PROTO_MAP_OK != map_rc) {
+        if (map_rc != magma::PROTO_MAP_OK) {
           OAILOG_ERROR_UE(
               LOG_MME_APP, imsi,
               "Insert operation failed for mme_app_guti2mme_ue_id_map, "
@@ -777,7 +777,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
         magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to remove mme_app_guti2mme_ue_id_map for "
+          "Failed to remove guti from mme_app_guti2mme_ue_id_map,"
           " enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT ", GUTI:  " GUTI_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id, guti_str);
