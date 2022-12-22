@@ -290,8 +290,8 @@ void get_imsi_plmn_from_session_req(const std::string imsi,
   }
 }
 
-int get_uli_from_session_req(const itti_s11_create_session_request_t* saved_req,
-                             char* uli) {
+bool get_uli_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* uli) {
   if (!saved_req->uli.present) {
     return 0;
   }

@@ -97,7 +97,7 @@ TEST_F(SPGWAppProcedureTest,
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+  sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
           ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
@@ -161,7 +161,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+  sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
           ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
@@ -242,7 +242,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+  sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
           ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
@@ -343,13 +343,13 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
 
   // fetch new SGW teid for the pending bearer procedure
   teid_t ue_ded_bearer_sgw_teid = 0;
-  for (int proc_index = 0;
+  for (uint8_t proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
-    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
-        sgw_context_p->mutable_pending_procedures(proc_index);
-    magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
-        pgw_ni_cbr_proc->mutable_pending_eps_bearers(0);
-    ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
+    magma::lte::oai::PgwCbrProcedure pgw_ni_cbr_proc =
+        sgw_context_p->pending_procedures(proc_index);
+    magma::lte::oai::SgwEpsBearerContext bearer_context_proto =
+        pgw_ni_cbr_proc.pending_eps_bearers(0);
+    ue_ded_bearer_sgw_teid = bearer_context_proto.sgw_teid_s1u_s12_s4_up();
   }
 
   // send bearer activation response from MME with cause=REQUEST_REJECTED
