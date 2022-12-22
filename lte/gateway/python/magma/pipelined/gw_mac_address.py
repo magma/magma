@@ -67,13 +67,14 @@ def get_iface_by_ip4(target_ip4: str) -> Optional[str]:
 
 
 def get_mac_by_ip6(gw_ip: str) -> str:
-    for iface, ip6 in get_ifaces_by_ip6(gw_ip):
+    for iface, _ in get_ifaces_by_ip6(gw_ip):
         # Refresh the ip neighbor table
-        if subprocess.run(["ping", "-c", "1", gw_ip]).returncode != 0:
+        if subprocess.run(["ping", "-c", "1", gw_ip], check=False).returncode != 0:
             continue
         res = subprocess.run(
             ["ip", "neigh", "get", gw_ip, "dev", iface],
             capture_output=True,
+            check=False,
         ).stdout.decode("utf-8")
         if "lladdr" in res:
             res = res.split("lladdr ")[1].split(" ")[0]
@@ -118,7 +119,8 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
         logging.debug("ARP Res pkt %s", str(parsed))
         if str(parsed.arp.psrc) != gw_ip:
             logging.warning(
-                f"Unexpected IP in ARP response. expected: {gw_ip} pkt: {str(parsed)}",
+                "Unexpected IP in ARP response. expected: %s pkt: {str(parsed)}",
+                gw_ip,
             )
             return ""
         if vlan.isdigit():

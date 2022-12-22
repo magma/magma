@@ -133,7 +133,7 @@ def test_allocate_ip_address(
             reference_time = datetime.now()
             actual_ip_desc = ip_allocator_fixture.alloc_ip_address(
                 sid=SID,
-                vlan=int(VLAN),
+                vlan_id=int(VLAN),
             )
             _assert_calls_and_deadlines(
                 advance_time=0,
@@ -248,6 +248,7 @@ def _assert_calls_and_deadlines(
     subprocess_mock.assert_called_with(
         call_args,
         capture_output=True,
+        check=False,
     )
     dhcp_desc = list(ip_allocator._store.dhcp_store.values())[0]
     expected_lease_expiration_time = reference_time + timedelta(seconds=advance_time + LEASE_EXPIRATION_TIME)
@@ -335,7 +336,7 @@ def create_subprocess_mock_dhcp_return() -> MagicMock:
     return m
 
 
-def create_subprocess_mock_json_file(call_args: List[str], capture_output=True) -> MagicMock:
+def create_subprocess_mock_json_file(call_args: List[str], capture_output=True, check=False) -> MagicMock:
     with open(call_args[8], "w") as f:
         f.write(
             """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}"""
