@@ -14,6 +14,7 @@ External dependencies of the magma debian build.
 """
 
 SCTPD_MIN_VERSION = "1.9.0"  # earliest version of sctpd with which this magma version is compatible
+DHCP_HELPER_CLI_MIN_VERSION = "1.9.0"  # earliest version of dhcp_helper_cli with which this magma version is compatible
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -44,6 +45,7 @@ MAGMA_DEPS = [
     "uuid-dev",  # for liagentd
     "libprotobuf17 (>= 3.0.0)",
     "nlohmann-json3-dev",
+    "magma-dhcp-cli (>= {min_version})".format(min_version = DHCP_HELPER_CLI_MIN_VERSION),
     "sentry-native",  # sessiond
     "td-agent-bit (>= 1.7.8)",
     # eBPF compile and load tools for kernsnoopd and AGW datapath

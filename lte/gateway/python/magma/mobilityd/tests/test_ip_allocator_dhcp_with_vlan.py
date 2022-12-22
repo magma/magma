@@ -48,7 +48,7 @@ Test dhclient class independent of IP allocator.
 
 
 class IpAllocatorDhcp(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self._br = "dh_br0"
         self.vlan_sw = "vlan_sw"
         self.up_link_port = ""
@@ -62,11 +62,11 @@ class IpAllocatorDhcp(unittest.TestCase):
         self.pkt_list_lock = threading.Condition()
         self._ip_allocator = None
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         BridgeTools.destroy_bridge(self._br)
 
     @unittest.skipIf(os.getuid(), reason="needs root user")
-    def test_dhcp_lease1(self):
+    def test_dhcp_lease1(self) -> None:
         self._setup_dhcp_vlan_off()
         sid1 = "IMSI001010000000001"
         vlan = 0
@@ -87,7 +87,7 @@ class IpAllocatorDhcp(unittest.TestCase):
     """
 
     @unittest.skipIf(os.getuid(), reason="needs root user")
-    def test_dhcp_vlan(self):
+    def test_dhcp_vlan(self) -> None:
         vlan1: int = 2
         sid1 = "IMSI001010000000001"
 
@@ -99,7 +99,7 @@ class IpAllocatorDhcp(unittest.TestCase):
         self._release_ip(sid1, vlan1, dhcp_desc)
 
     @unittest.skip("needs more investigation.")
-    def test_dhcp_vlan_multi(self):
+    def test_dhcp_vlan_multi(self) -> None:
         self._setup_vlan_network()
 
         vlan1 = 51
@@ -155,7 +155,7 @@ class IpAllocatorDhcp(unittest.TestCase):
 
         return dhcp_desc
 
-    def _setup_dhcp_vlan_off(self):
+    def _setup_dhcp_vlan_off(self) -> None:
         self.up_link_port = "cl1uplink_p0"
         setup_dhcp_server = SCRIPT_PATH + "scripts/setup-test-dhcp-srv.sh"
         subprocess.check_call([setup_dhcp_server, "cl1"])
@@ -169,7 +169,7 @@ class IpAllocatorDhcp(unittest.TestCase):
         subprocess.check_call(setup_uplink_br)
         self._setup_ip_allocator_dhcp()
 
-    def _setup_vlan_network(self):
+    def _setup_vlan_network(self) -> None:
         self.up_link_port = "v_ul_0"
         setup_vlan_switch = SCRIPT_PATH + "scripts/setup-uplink-vlan-sw.sh"
         subprocess.check_call([setup_vlan_switch, self.vlan_sw, "v"])
@@ -183,21 +183,21 @@ class IpAllocatorDhcp(unittest.TestCase):
         subprocess.check_call(setup_uplink_br)
         self._setup_ip_allocator_dhcp()
 
-    def _setup_ip_allocator_dhcp(self):
+    def _setup_ip_allocator_dhcp(self) -> None:
         self._ip_allocator = IPAllocatorDHCP(
             store=MobilityStore(fakeredis.FakeStrictRedis()),
             iface=DHCP_IFACE,
             lease_renew_wait_min=1,
         )
 
-    def _setup_dhcp_on_vlan(self, vlan: int):
+    def _setup_dhcp_on_vlan(self, vlan: int) -> None:
         setup_vlan_switch = SCRIPT_PATH + "scripts/setup-uplink-vlan-srv.sh"
         subprocess.check_call([setup_vlan_switch, self.vlan_sw, str(vlan)])
 
     def _validate_req_state(
         self, mac: MacAddress,
         state: DHCPState, vlan: int,
-    ):
+    ) -> None:
         for x in range(RETRY_LIMIT):
             LOG.debug("wait for state: %d" % x)
             with self.dhcp_wait:
@@ -210,7 +210,7 @@ class IpAllocatorDhcp(unittest.TestCase):
 
         assert 0
 
-    def _validate_state_as_current(self, mac: MacAddress, vlan: int):
+    def _validate_state_as_current(self, mac: MacAddress, vlan: int) -> None:
         with self.dhcp_wait:
             dhcp_desc = self._ip_allocator._store.dhcp_store.get(mac.as_redis_key(vlan))
             self.assertTrue(
@@ -237,7 +237,7 @@ class IpAllocatorDhcp(unittest.TestCase):
 
             return dhcp_desc
 
-    def _validate_ip_subnet(self, sid: str, vlan: int):
+    def _validate_ip_subnet(self, sid: str, vlan: int) -> None:
         # vlan is configured with subnet : 10.200.x.1
         # router IP is 10.200.x.211
         exptected_subnet = ipaddress.ip_network(f"10.200.{vlan}.0/24")
@@ -249,16 +249,10 @@ class IpAllocatorDhcp(unittest.TestCase):
             self.assertEqual(dhcp1.router_ip, exptected_router_ip)
             self.assertTrue(ipaddress.ip_address(dhcp1.ip) in exptected_subnet)
 
-    def _release_ip(self, sid: str, vlan: int, dhcp_desc: DHCPDescriptor):
+    def _release_ip(self, sid: str, vlan: int, dhcp_desc: DHCPDescriptor) -> None:
         mac = create_mac_from_sid(sid)
         key = dhcp_desc.ip
         ip_desc = self._ip_allocator._store.ip_state_map.ip_states[IPState.ALLOCATED][key]
         self._ip_allocator.release_ip(ip_desc)
         time.sleep(PKT_CAPTURE_WAIT)
         self._validate_req_state(mac, DHCPState.RELEASE, vlan)
-
-    def _handle_dhcp_req_packet(self, packet):
-        if DHCP not in packet:
-            return
-        with self.pkt_list_lock:
-            self.pkt_list.append(packet)

@@ -35,6 +35,8 @@ help() {
     echo "      Should be used together with --retry-on-failure."
     echo "   --rerun-previously-failed"
     echo "      Rerun all tests that have failed during the previous run."
+    echo "   --profile PROFILE_FILE_PATH"
+    echo "      Create a bazel profile during build. The profile will be stored in the given file."
     echo -e "${BOLD}List tests:${NO_FORMATTING}"
     echo "   $(basename "$0") --list"
     echo "      List all integration tests."
@@ -139,12 +141,12 @@ create_test_targets() {
             create_nonsanity_test_targets
         fi
     fi
-    ALL_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" "${NONSANITY_TEST_TARGETS[@]}" )
-    for TARGET in "${ALL_TARGETS[@]}"
+    ALL_REQUESTED_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" "${NONSANITY_TEST_TARGETS[@]}" )
+    for TARGET in "${ALL_REQUESTED_TARGETS[@]}"
     do
         echo "${TARGET}"
     done
-    if [[ "${#ALL_TARGETS[@]}" -eq 0 ]];
+    if [[ "${#ALL_REQUESTED_TARGETS[@]}" -eq 0 ]];
     then
         echo "ERROR: No targets found with the given options!"
         exit 1
@@ -281,15 +283,18 @@ run_test_batch() {
     done
 }
 
+build_tests() {
+    (
+        set -x
+        bazel build "${ALL_REQUESTED_TARGETS[@]}" --define=on_magma_test=1 "$PROFILE"
+    )
+}
+
 run_test() {
     local TARGET=$1
     local TARGET_PATH=${TARGET%:*}
     local SHORT_TARGET=${TARGET#*:}
     (
-        echo "BUILDING TEST: ${TARGET}"
-        set -x
-        bazel build "${TARGET}" --define=on_magma_test=1
-        set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
         sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \
@@ -309,6 +314,7 @@ create_xml_report() {
 print_summary() {
     local NUM_SUCCESS=$1
     local TOTAL_TESTS=$2
+    echo "The bazel profile was saved to the following location: ${PROFILE#*=}"
     echo "SUMMARY: ${NUM_SUCCESS}/${TOTAL_TESTS} tests were successful."
     for TARGET in "${!TEST_RESULTS[@]}"
     do
@@ -348,6 +354,7 @@ FAILED_LIST=()
 FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
 MERGED_REPORT_FOLDER="/var/tmp/test_results"
 INTEGTEST_REPORT_FOLDER="${MERGED_REPORT_FOLDER}/integtest_reports"
+PROFILE="--profile=/var/tmp/bazel_profile_lte_integ_tests"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
@@ -429,6 +436,11 @@ while [[ $# -gt 0 ]]; do
       RERUN_PREVIOUSLY_FAILED="true"
       break
       ;;
+    --profile)
+      shift
+      PROFILE="--profile=$1"
+      shift
+      ;;
     --help)
       help
       exit 0
@@ -475,6 +487,11 @@ if [[ "${RETRY_ON_FAILURE}" == "true" ]];
 then
     FLAKY_ARGS=( --force-flaky --no-flaky-report "--max-runs=$((RETRY_ATTEMPTS + 1))" "--min-passes=1" )
 fi
+
+echo "#######################################"
+echo "BUILDING REQUESTED TESTS"
+echo "#######################################"
+build_tests
 
 declare -a TEST_BATCH_TO_RUN
 
