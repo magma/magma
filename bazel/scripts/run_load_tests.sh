@@ -19,6 +19,15 @@ set -euo pipefail
 # FUNCTION DECLARATIONS
 ###############################################################################
 
+help() {
+    echo "Run the AGW load tests with bazel."
+    echo "Usage:"
+    echo "   $(basename "$0") --help"
+    echo "      Display this help message."
+    echo "   $(basename "$0")" 
+    echo "      Executes all bazel tests that are tagged as load_test." 
+}
+
 build_load_tests() {
     echo "Building load tests..."
     bazel build //lte/gateway/python/load_tests:all
@@ -43,6 +52,12 @@ run_load_tests() {
 ###############################################################################
 # SCRIPT SECTION
 ###############################################################################
+
+if [[ "${1:-}" != "" ]];
+then
+    help
+    exit 0
+fi
 
 declare -a LOAD_TEST_LIST=("loadtest_mobilityd allocate" \
                            "loadtest_mobilityd release" \

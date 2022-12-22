@@ -12,17 +12,14 @@ limitations under the License.
 """
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any
+from typing import Any, List
 from unittest.mock import MagicMock, patch
 
 import fakeredis
 import freezegun
 import pytest
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
-from magma.mobilityd.ip_allocator_dhcp import (
-    DHCP_HELPER_CLI_PATH,
-    IPAllocatorDHCP,
-)
+from magma.mobilityd.ip_allocator_dhcp import DHCP_HELPER_CLI, IPAllocatorDHCP
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mac import MacAddress, sid_to_mac
 from magma.mobilityd.mobility_store import (
@@ -117,7 +114,7 @@ def test_allocate_ip_address(
 ) -> None:
     ip_allocator_fixture.start_monitor_thread()
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc_fixture.mac),
         "--vlan", str(dhcp_desc_fixture.vlan),
         "--interface", ip_allocator_fixture._iface,
@@ -167,7 +164,7 @@ def test_renewal_of_ip(
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
@@ -189,7 +186,7 @@ def test_allocate_ip_after_expiry(
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
@@ -203,7 +200,9 @@ def test_allocate_ip_after_expiry(
     )
 
 
-def _run_allocator_and_assert(advance_time, call_args, ip_allocator_dhcp_fixture):
+def _run_allocator_and_assert(
+        advance_time: int, call_args: List[List[str]], ip_allocator_dhcp_fixture: IPAllocatorDHCP,
+) -> None:
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
             patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
         reference_time = datetime.now()
@@ -221,7 +220,10 @@ def _run_allocator_and_assert(advance_time, call_args, ip_allocator_dhcp_fixture
         )
 
 
-def _assert_calls_and_deadlines(advance_time, call_args, ip_allocator, reference_time, subprocess_mock):
+def _assert_calls_and_deadlines(
+        advance_time: int, call_args: List[List[str]], ip_allocator: IPAllocatorDHCP,
+        reference_time: datetime.date, subprocess_mock: MagicMock,
+) -> None:
     subprocess_mock.assert_called_once()
     subprocess_mock.assert_called_with(
         *call_args,
@@ -235,7 +237,7 @@ def _assert_calls_and_deadlines(advance_time, call_args, ip_allocator, reference
 
 
 @pytest.fixture
-def ip_allocator_block_fixture(ip_allocator_fixture):
+def ip_allocator_block_fixture(ip_allocator_fixture: IPAllocatorDHCP) -> IPAllocatorDHCP:
     networks = [IPv4Network(IP_NETWORK), IPv4Network(IP_NETWORK_2)]
     for network in networks:
         ip_allocator_fixture._store.assigned_ip_blocks.add(network)

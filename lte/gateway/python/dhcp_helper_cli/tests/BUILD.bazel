@@ -9,19 +9,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_python//python:defs.bzl", "py_library")
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
 
-py_library(
-    name = "coverage_decorator",
-    srcs = ["coverage_decorator.py"],
-    visibility = ["//visibility:public"],
-)
+MAGMA_ROOT = "../../../../../"
 
-# 'conftest.py' is a configuration file for pytest, it is used to prevent
-# the execution of the Python sudo and LTE integration tests with the
-# 'bazel test' command.
-py_library(
-    name = "conftest",
-    srcs = ["conftest.py"],
-    visibility = ["//visibility:public"],
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "test_dhcp_helper_cli",
+    size = "small",
+    srcs = ["test_dhcp_helper_cli.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/dhcp_helper_cli",
+        requirement("scapy"),
+    ],
 )
