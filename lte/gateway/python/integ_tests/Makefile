@@ -24,8 +24,13 @@ $(PYTHON_BUILD)/setupinteg_env:
 
 RESULTS_DIR := /var/tmp/test_results
 ifdef enable-flaky-retry
+ifneq ($(enable-flaky-retry), false)
 	IS_FLAKY_RETRIES_ENABLED := True
 	FLAKY_CMD_ARGS := --force-flaky --no-flaky-report --max-runs=3 --min-passes=1
+else
+	IS_FLAKY_RETRIES_ENABLED := False
+	FLAKY_CMD_ARGS :=
+endif
 else
 	IS_FLAKY_RETRIES_ENABLED := False
 	FLAKY_CMD_ARGS :=
