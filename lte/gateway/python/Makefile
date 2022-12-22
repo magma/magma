@@ -63,26 +63,20 @@ endif
 $(BIN)/pytest: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pytest==7.1.2
 
-$(BIN)/pytest-cov: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) pytest-cov==3.0.0
-
 $(BIN)/pylint: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pylint==2.14.0
-
-$(BIN)/pycodestyle: install_virtualenv
-	# pylint doesn't cover all the pep8 style guidelines. Specifically,
-	# E203, E301, E303, W203, W291, W292
-	$(VIRT_ENV_PIP_INSTALL) pycodestyle==2.8.0
 
 # Disable W0511: todo warnings
 # Disable R0903: Too few public methods
 CHECK_CMD_PYLINT := -find . -name '*.py' -exec $(BIN)/pylint --disable=R0903,W0511 {} +;
-CHECK_CMD_PYCODESTYLE := -find . -name '*.py' -exec $(BIN)/pycodestyle {} +;
 # ’-’ ignores the exit 1 and the script is not terminated by a linter error,
 # see https://www.gnu.org/software/make/manual/make.html#Errors
-check: buildenv $(BIN)/pylint $(BIN)/pycodestyle
-	$(CHECK_CMD_PYCODESTYLE)
+
+pylint: buildenv $(BIN)/pylint
 	$(CHECK_CMD_PYLINT)
+
+check:
+	./precommit.py --format --diff
 
 clean: $(CLEAN_LIST)
 	sudo rm -rf $(PYTHON_BUILD)/
