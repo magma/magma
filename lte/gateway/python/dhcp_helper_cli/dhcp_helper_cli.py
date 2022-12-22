@@ -51,7 +51,7 @@ class MacAddress:
     def __init__(self, mac: str) -> None:
         self.mac_address = mac.lower()
 
-    def __eq__(self, other: MacAddress) -> bool:
+    def __eq__(self, other: Any) -> bool:
         return hasattr(other, 'mac_address') and self.mac_address == other.mac_address
 
     def as_hex(self) -> bytes:

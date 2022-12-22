@@ -351,7 +351,7 @@ class IPAllocatorDHCP(IPAllocator):
 
     def _parse_dhcp_helper_cli_response_to_store(
             self, dhcp_desc: DHCPDescriptor, dhcp_response: subprocess.CompletedProcess,
-            mac: MacAddress, vlan: int
+            mac: MacAddress, vlan: int,
     ) -> DHCPDescriptor:
         try:
             # Only look in at the last line of the stdout for the JSON

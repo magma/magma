@@ -201,7 +201,7 @@ def test_allocate_ip_after_expiry(
 
 
 def _run_allocator_and_assert(
-        advance_time: int, call_args: List[List[str]], ip_allocator_dhcp_fixture: IPAllocatorDHCP
+        advance_time: int, call_args: List[List[str]], ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
             patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
@@ -222,7 +222,7 @@ def _run_allocator_and_assert(
 
 def _assert_calls_and_deadlines(
         advance_time: int, call_args: List[List[str]], ip_allocator: IPAllocatorDHCP,
-        reference_time: datetime.date, subprocess_mock: MagicMock
+        reference_time: datetime.date, subprocess_mock: MagicMock,
 ) -> None:
     subprocess_mock.assert_called_once()
     subprocess_mock.assert_called_with(
