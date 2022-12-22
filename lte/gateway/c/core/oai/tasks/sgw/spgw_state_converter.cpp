@@ -98,23 +98,24 @@ void SpgwStateConverter::proto_to_packet_filter(
   packet_filter->length = packet_filter_proto.length();
 
   auto* packet_filter_contents = &packet_filter->packetfiltercontents;
-  for (int32_t i = 0; i < packet_filter_proto.packet_filter_contents_size();
-       i++) {
+  for (uint8_t pf_idx = 0;
+       pf_idx < packet_filter_proto.packet_filter_contents_size(); pf_idx++) {
     auto& packet_filter_content_proto =
-        packet_filter_proto.packet_filter_contents(i);
+        packet_filter_proto.packet_filter_contents(pf_idx);
     switch (packet_filter_content_proto.flags()) {
       case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR: {
         if (packet_filter_content_proto.ipv4_remote_addresses_size()) {
           packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-          int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
-          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+          uint8_t local_idx = TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1;
+          for (uint8_t idx = 0; idx < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
+               idx++) {
             packet_filter_contents->ipv4remoteaddr[local_idx].addr =
                 packet_filter_content_proto.ipv4_remote_addresses(0).addr() >>
-                (i * 8);
+                (idx * 8);
             packet_filter_contents->ipv4remoteaddr[local_idx].mask =
                 packet_filter_content_proto.ipv4_remote_addresses(0).mask() >>
-                (i * 8);
+                (idx * 8);
             --local_idx;
           }
         }
@@ -123,12 +124,13 @@ void SpgwStateConverter::proto_to_packet_filter(
         if (packet_filter_content_proto.ipv6_remote_addresses_size()) {
           packet_filter_contents->flags |=
               TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
-          int local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
-          for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
+          uint8_t local_idx = TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE - 1;
+          for (uint8_t idx = 0; idx < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
+               idx++) {
             packet_filter_contents->ipv6remoteaddr[local_idx].addr =
-                packet_filter_content_proto.ipv6_remote_addresses(i).addr();
+                packet_filter_content_proto.ipv6_remote_addresses(idx).addr();
             packet_filter_contents->ipv6remoteaddr[local_idx].mask =
-                packet_filter_content_proto.ipv6_remote_addresses(i).mask();
+                packet_filter_content_proto.ipv6_remote_addresses(idx).mask();
             --local_idx;
           }
         }
@@ -550,8 +552,8 @@ void traffic_flow_template_to_proto(
   // parameters_list member conversion
   tft_proto->mutable_parameters_list()->set_num_parameters(
       tft_state->parameterslist.num_parameters);
-  for (int i = 0; i < tft_state->parameterslist.num_parameters; i++) {
-    auto* parameter = &tft_state->parameterslist.parameter[i];
+  for (int idx = 0; idx < tft_state->parameterslist.num_parameters; idx++) {
+    auto* parameter = &tft_state->parameterslist.parameter[idx];
     if (parameter->contents) {
       auto* param_proto =
           tft_proto->mutable_parameters_list()->add_parameters();
@@ -566,26 +568,26 @@ void traffic_flow_template_to_proto(
   auto pft_state = tft_state->packetfilterlist;
   switch (tft_state->tftoperationcode) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int idx = 0; idx < tft_state->numberofpacketfilters; idx++) {
         pft_proto->add_delete_packet_filter_identifier(
-            pft_state.deletepacketfilter[i].identifier);
+            pft_state.deletepacketfilter[idx].identifier);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
-        packet_filter_to_proto(&pft_state.createnewtft[i],
+      for (int idx = 0; idx < tft_state->numberofpacketfilters; idx++) {
+        packet_filter_to_proto(&pft_state.createnewtft[idx],
                                pft_proto->add_create_new_tft());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
-        packet_filter_to_proto(&pft_state.createnewtft[i],
+      for (int idx = 0; idx < tft_state->numberofpacketfilters; idx++) {
+        packet_filter_to_proto(&pft_state.createnewtft[idx],
                                pft_proto->add_add_packet_filter());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
-        packet_filter_to_proto(&pft_state.createnewtft[i],
+      for (int idx = 0; idx < tft_state->numberofpacketfilters; idx++) {
+        packet_filter_to_proto(&pft_state.createnewtft[idx],
                                pft_proto->add_replace_packet_filter());
       }
       break;

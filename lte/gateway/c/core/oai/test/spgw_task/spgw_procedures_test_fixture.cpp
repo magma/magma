@@ -140,7 +140,7 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
           ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
   struct in_addr ue_ipv4 = {};
-  int ue_ip = DEFAULT_UE_IP;
+  uint32_t ue_ip = DEFAULT_UE_IP;
   inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
   EXPECT_TRUE(!(memcmp(&ue_ipv4, &ue_ip, sizeof(DEFAULT_UE_IP))));
 
@@ -219,7 +219,7 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
         sgw_context_p->mutable_pending_procedures(proc_index);
     EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
                 PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
-    for (int bearer_index = 0;
+    for (uint8_t bearer_index = 0;
          bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
          bearer_index++) {
       magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
