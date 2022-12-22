@@ -435,7 +435,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${MAGMA_PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
-${MAGMA_ROOT}/LICENSE=/usr/share/doc/${PKGNAME}/ \
+${MAGMA_ROOT}/LICENSE=/usr/share/doc/${MAGMA_PKGNAME}/ \
 " # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
@@ -460,6 +460,8 @@ BUILDCMD="fpm \
 --license '${LICENSE_DHCP}' \
 --maintainer '${MAINTAINER}' \
 --depends '${SCAPY_PACKAGE} >= ${SCAPY_VERSION}' \
-${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py=/usr/local/bin/"
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py=/usr/local/bin/ \
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/LICENSE=/usr/share/doc/${DHCP_CLI_PKGNAME}/ \
+"
 
 eval "$BUILDCMD"
