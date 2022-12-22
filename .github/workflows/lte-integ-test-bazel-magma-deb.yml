@@ -112,13 +112,13 @@ jobs:
         if: always() && github.event_name == 'repository_dispatch'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
-          REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.sha }}.html"
+          REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.event.client_payload.trigger_sha }}.html"
         run: |
           npm install -g xunit-viewer
           [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
-          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} debian_lte_integ_test --url $URL
+          python ci-scripts/firebase_publish_report.py -id ${{ github.event.client_payload.trigger_sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} debian_lte_integ_test --url $URL
 
       - name: Notify failure to slack
         if: failure() && github.repository_owner == 'magma'
