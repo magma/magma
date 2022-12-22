@@ -1,0 +1,48 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+load("//bazel:test_constants.bzl", "TAG_UTIL_SCRIPT")
+
+exports_files(["LICENSE"])
+
+expand_runfiles(
+    name = "dhcp_helper_cli_expanded",
+    tags = ["no-cache"],
+    targets = ["//lte/gateway/python/dhcp_helper_cli"],
+)
+
+pkg_mklink(
+    name = "dhcp_helper_cli_symlink",
+    link_name = "/usr/local/bin/dhcp_helper_cli.py",
+    tags = ["no-cache"],
+    target = "{dest}/dhcp_helper_cli/dhcp_helper_cli.py".format(dest = PY_DEST),
+)
+
+pkg_filegroup(
+    name = "dhcp_helper_cli_pkg",
+    srcs = ["dhcp_helper_cli_expanded"] + ["dhcp_helper_cli_symlink"],
+    tags = ["no-cache"],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
+
+py_binary(
+    name = "dhcp_helper_cli",
+    srcs = ["dhcp_helper_cli.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//lte/gateway/python/dhcp_helper_cli/tests:__pkg__"],
+    deps = [requirement("scapy")],
+)

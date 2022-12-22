@@ -19,10 +19,7 @@ import fakeredis
 import freezegun
 import pytest
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
-from magma.mobilityd.ip_allocator_dhcp import (
-    DHCP_HELPER_CLI_PATH,
-    IPAllocatorDHCP,
-)
+from magma.mobilityd.ip_allocator_dhcp import DHCP_HELPER_CLI, IPAllocatorDHCP
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mac import MacAddress, sid_to_mac
 from magma.mobilityd.mobility_store import (
@@ -117,7 +114,7 @@ def test_allocate_ip_address(
 ) -> None:
     ip_allocator_fixture.start_monitor_thread()
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc_fixture.mac),
         "--vlan", str(dhcp_desc_fixture.vlan),
         "--interface", ip_allocator_fixture._iface,
@@ -167,7 +164,7 @@ def test_renewal_of_ip(
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
@@ -189,7 +186,7 @@ def test_allocate_ip_after_expiry(
 ) -> None:
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
     call_args = [[
-        DHCP_HELPER_CLI_PATH,
+        DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,

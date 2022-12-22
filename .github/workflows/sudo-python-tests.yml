@@ -17,10 +17,6 @@ on:
     branches:
       - master
 
-env:
-  CACHE_KEY: magma-dev-vm
-  REMOTE_DOWNLOAD_OPTIMIZATION: false
-
 jobs:
   sudo-python-tests:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
@@ -63,7 +59,6 @@ jobs:
       - name: Run the sudo python tests
         run: |
           cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Get test results
         if: always()
