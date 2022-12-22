@@ -15,7 +15,10 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+
 #include <string>
+
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -23,7 +26,6 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
@@ -147,6 +149,7 @@ void MmeNasStateManager::create_protomaps() {
   mme_app_state_ue_map.map =
       new google::protobuf::Map<uint32_t, struct ue_mm_context_s*>();
   mme_app_state_ue_map.set_name(MME_UE_ID2UE_CTXT_MAP_NAME);
+  //mme_app_state_ue_map.bind_callback(mme_app_state_free_ue_context);
 
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map =
       new google::protobuf::Map<uint64_t, uint32_t>();

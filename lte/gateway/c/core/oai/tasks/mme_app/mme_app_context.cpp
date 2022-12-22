@@ -320,14 +320,14 @@ ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   if (!mme_app_state_ue_map) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_RETURN(LOG_MME_APP, nullptr);
   }
 
   if (mme_app_state_ue_map->get(mme_ue_s1ap_id, &ue_context_p) !=
       magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_MME_APP,
-                 "Failed to get mme_app_state_ue_map for "
+                 "Failed to get ue_context_p from mme_app_state_ue_map for "
                  "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
                  mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, nullptr);
@@ -470,7 +470,7 @@ void mme_ue_context_update_coll_keys(
 
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
   if (mme_app_state_ue_map == nullptr) {
-    OAILOG_ERROR_UE(LOG_MME_APP, imsi, "Failed to get mme_app_state_ue_map");
+    OAILOG_ERROR_UE(LOG_MME_APP, imsi, "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -606,7 +606,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
 
   if (!mme_app_state_ue_map) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -670,7 +670,7 @@ status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context_p,
 
   if (!mme_app_state_ue_map) {
     OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                    "Failed to get mme_app_state_ue_map");
+                    "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -845,7 +845,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
   if (!mme_app_state_ue_map) {
     OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                    "Failed to get mme_app_state_ue_map");
+                    "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -1547,7 +1547,7 @@ void mme_app_recover_timers_for_all_ues(void) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
   if (mme_app_state_ue_map == nullptr) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map");
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_app_state_ue_map as it is NULL");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
