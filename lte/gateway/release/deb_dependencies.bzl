@@ -52,6 +52,8 @@ MAGMA_DEPS = [
     # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
     "bcc-tools",
     "wireguard",
+    "systemd",  # for postinstall script
+    "psmisc",  # for postinstall script
 ]
 
 # OAI runtime dependencies
@@ -167,6 +169,8 @@ MAGMA_CONFLICTS_UPSTREAM = [
     "python3-wrapt",
     "python3-yaml",
     "python3-yarl",
+    "python3-dpkt",
+    "python3-sdnotify",
 ]
 
 # Conflicts of the Magma 1.9 package with third party Ubuntu packages
