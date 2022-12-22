@@ -42,6 +42,7 @@ IP_NETWORK_2 = "1.2.4.0/" + SUBNET
 VLAN = "0"
 LEASE_EXPIRATION_TIME = 4
 FROZEN_TEST_TIME = "2021-01-01"
+TMP_FILE = "/tmp/tmpfile"
 
 
 @pytest.fixture
@@ -108,19 +109,22 @@ def run_dhcp_allocator_thread(
     ip_allocator_dhcp_fixture._monitor_thread.join()
 
 
+@patch("tempfile.NamedTemporaryFile")
 def test_allocate_ip_address(
+    mock_tempfile: MagicMock,
     ip_allocator_fixture: IPAllocatorDHCP,
     ip_desc_fixture: IPDesc,
     dhcp_desc_fixture: DHCPDescriptor,
 ) -> None:
+    mock_tempfile.return_value.__enter__.return_value.name = TMP_FILE
+    mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
     ip_allocator_fixture.start_monitor_thread()
-    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc_fixture.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc_fixture.mac),
         "--vlan", str(dhcp_desc_fixture.vlan),
         "--interface", ip_allocator_fixture._iface,
-        "--save-file", save_file,
+        "--save-file", TMP_FILE,
         "--json",
         "allocate",
     ]]
@@ -166,17 +170,21 @@ def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
         subprocess_mock.assert_not_called()
 
 
+@patch("tempfile.NamedTemporaryFile")
 def test_renewal_of_ip(
+    mock_tempfile: MagicMock,
     ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
+    mock_tempfile.return_value.__enter__.return_value.name = TMP_FILE
+    mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
+
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
-    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
-        "--save-file", save_file,
+        "--save-file", TMP_FILE,
         "--json",
         "renew",
         "--ip", str(dhcp_desc.ip),
@@ -190,17 +198,21 @@ def test_renewal_of_ip(
     )
 
 
+@patch("tempfile.NamedTemporaryFile")
 def test_allocate_ip_after_expiry(
+    mock_tempfile: MagicMock,
     ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
+    mock_tempfile.return_value.__enter__.return_value.name = TMP_FILE
+    mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
+
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
-    save_file = f"/tmp/dhcp_cli_{str(dhcp_desc.mac)}.json"
     call_args = [[
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
         "--interface", ip_allocator_dhcp_fixture._iface,
-        "--save-file", save_file,
+        "--save-file", TMP_FILE,
         "--json",
         "allocate",
     ]]
