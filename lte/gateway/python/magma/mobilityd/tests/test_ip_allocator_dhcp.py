@@ -22,12 +22,7 @@ from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.ip_allocator_dhcp import DHCP_HELPER_CLI, IPAllocatorDHCP
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mac import MacAddress, sid_to_mac
-from magma.mobilityd.mobility_store import (
-    AssignedIpBlocksSet,
-    MobilityStore,
-    defaultdict_key,
-    ip_states,
-)
+from magma.mobilityd.mobility_store import MobilityStore
 
 SID = "IMSI123456789"
 MAC = MacAddress(sid_to_mac(SID).lower())
