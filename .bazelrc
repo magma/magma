@@ -109,8 +109,5 @@ build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-poi
 # This is helpful for builds on the VM on github runners where only 14g are available.
 build:limit_mem --discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state
 
-# Config for turning up more GCC warnings
-build:max_gcc_warnings --per_file_copt=^.*/gateway/c/.*$@-Wextra,-Wshadow,-Wimplicit-fallthrough,-Wduplicated-cond,-Wduplicated-branches,-Wlogical-op,-Wnull-dereference,-Wformat=2,-Wstrict-overflow=4,-Wuninitialized,-Wshift-overflow=2
-
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

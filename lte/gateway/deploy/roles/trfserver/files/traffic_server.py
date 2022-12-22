@@ -496,6 +496,22 @@ class TrafficTestServer(socketserver.StreamRequestHandler):
         self.log.debug('Driver %d successfully received START', d_id)
 
 
+class _ThreadSafeCounter(object):
+    ''' A simple thread save counter. '''
+
+    def __init__(self):
+        self._counter = 0
+        self._lock = threading.Lock()
+
+    def inc(self):
+        with self._lock:
+            self._counter += 1
+
+    def get_value(self):
+        with self._lock:
+            return self._counter
+
+
 class TrafficTestDriver(object):
     ''' Driver for creating the iperf3 instances, monitoring them, caching the
     results, and reporting the results '''
@@ -544,7 +560,7 @@ class TrafficTestDriver(object):
             TrafficTestDriver._port += 1
             return TrafficTestDriver._port
 
-    def _run_iperf3(self, results_buffer, iperf):
+    def _run_iperf3(self, results_buffer, iperf, iperf_instances_counter):
         ''' Runs the given iperf3 and writes the results into the given list
         buffer by appending the result to it
 
@@ -565,6 +581,8 @@ class TrafficTestDriver(object):
             results_buffer (list): the results buffer to which the
                 iperf3.TestResult object to should be appended
             iperf (iperf3.IPerf3): the iperf3 object to run
+            iperf_instances_counter (_ThreadSafeCounter): shared variable to count
+                started iperf instances
         '''
         # Constructing the subprocess call
         params = ('-B', iperf.bind_address, '-p', str(iperf.port), '-J')
@@ -587,6 +605,7 @@ class TrafficTestDriver(object):
         # Make the iperf3 call and spin off the subprocess
         self._server.log.debug('Running iperf3 command: %s', ' '.join(params))
         with subprocess.Popen(params, stdout=subprocess.PIPE) as proc:
+            iperf_instances_counter.inc()
             result_str = proc.stdout.read().decode('utf-8')
             results_buffer += [iperf3.TestResult(result_str)]
         self._barrier.wait()
@@ -671,10 +690,11 @@ class TrafficTestDriver(object):
         )
         results = ()
         threads = ()
+        iperf_instances_counter = _ThreadSafeCounter()
         for iperf in self._iperfs:
             buf = []
             thread = threading.Thread(
-                target=self._run_iperf3, args=(buf, iperf),
+                target=self._run_iperf3, args=(buf, iperf, iperf_instances_counter),
             )
             results += (buf,)
             threads += (thread,)
@@ -683,6 +703,17 @@ class TrafficTestDriver(object):
             'Driver %d has started %d iperf3 servers',
             id(self), len(self._iperfs),
         )
+
+        # Wait for iperf instances to be started - It can happen that test data is sent
+        # before the respective iperf instances are started.
+        waited = 0
+        WAITING_TIME = 0.1
+        MAX_WAITING_TIME = 10
+        while True:
+            if iperf_instances_counter.get_value() == len(threads) or waited > MAX_WAITING_TIME:
+                break
+            time.sleep(WAITING_TIME)
+            waited += WAITING_TIME
 
         # Send STARTED message to let client know that we've spun everything up
         self._server.send_resp(

@@ -117,9 +117,24 @@ jobs:
         working-directory: lte/gateway
         run: |
           fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+      - name: Adapt name of file containing final status
+        if: always()
+        run: |
+          if [ -f test_status.txt ]
+          then
+            mv test_status.txt test_status_${{ inputs.test_targets }}.txt
+          else
+            echo fail > test_status_${{ inputs.test_targets }}.txt
+          fi
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results-${{ matrix.test_targets }}
+          name: test-results-${{ inputs.test_targets }}
           path: lte/gateway/test-results/**/*.xml
+      - name: Upload final_status
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-status-${{ inputs.test_targets }}
+          path: test_status_${{ inputs.test_targets }}.txt

@@ -145,7 +145,6 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 				fmt.Sprintf("failed to create listener, listener type '%s'", lconfig.Type),
 				zap.String("listener", lconfig.Name),
 			)
-			break
 		}
 
 		// Set configuration for listener

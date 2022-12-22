@@ -1,0 +1,57 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Comment on PR
+description: Comment the status of a check on a pull request
+
+inputs:
+  check-type:
+    description: Name of the check to be commented
+    required: true
+  check-documentation:
+    description: Link to documentation. Github Markdown formatted.
+    required: true
+  job-status:
+    description: How did the job end?
+    required: true
+
+outputs:
+  comment-id:
+    description: Comment ID
+    value: ${{ steps.fc.outputs.comment-id }}
+
+runs:
+  using: composite
+  steps:
+
+    - run: echo 'STATUS=:heavy_check_mark:' >> $GITHUB_ENV
+      shell: bash
+
+    - if: inputs.job-status == 'failure'
+      run: echo 'STATUS=:x:' >> $GITHUB_ENV
+      shell: bash
+
+    - uses: peter-evans/find-comment@b657a70ff16d17651703a84bee1cb9ad9d2be2ea # pin@v2.0.1
+      id: fc
+      with:
+        issue-number: ${{ github.event.number }}
+        body-includes: ${{ inputs.check-type }}
+
+    - uses: peter-evans/create-or-update-comment@5adcb0bb0f9fb3f95ef05400558bdb3f329ee808 # pin@v2.1.0
+      if: >
+        (inputs.job-status == 'failure')
+        || (steps.fc.outputs.comment-id != '')
+      with:
+        issue-number: ${{ github.event.number }}
+        comment-id: ${{ steps.fc.outputs.comment-id }}
+        edit-mode: replace
+        body: |
+          ${{ env.STATUS }} The **${{ inputs.check-type }}** ended with status **${{ inputs.job-status }}**. ${{ inputs.check-documentation }}

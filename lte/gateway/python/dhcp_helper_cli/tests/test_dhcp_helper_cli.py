@@ -14,20 +14,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; If not, see <http://www.gnu.org/licenses/>.
 """
-import json
-import subprocess
 from typing import Optional
 from unittest.mock import patch
 
 import pytest
-from scapy.layers.dhcp import BOOTP, DHCP
-from scapy.layers.l2 import Dot1Q, Ether
-from scripts.dhcp_helper_cli import (
+from dhcp_helper_cli.dhcp_helper_cli import (
     DhcpHelperCli,
     DHCPState,
     MacAddress,
     release_arg_handler,
 )
+from scapy.layers.dhcp import BOOTP, DHCP
+from scapy.layers.l2 import Dot1Q, Ether
 
 MACSTRING = "12:34:56:78:90:AB"
 MAC = MacAddress(MACSTRING)
@@ -50,11 +48,11 @@ DHCP_RELEASE_PKT /= DHCP(options=[("message-type", DHCPState.RELEASE), "end"])
 
 @pytest.fixture()
 def dhcp_helper_cli_fixture(mac: MacAddress = MAC, vlan: int = VLAN, iface=IFACE, ip: Optional[str] = None, server_ip: Optional[str] = None):
-    with patch("scripts.dhcp_helper_cli.AsyncSniffer"):
+    with patch("dhcp_helper_cli.dhcp_helper_cli.AsyncSniffer"):
         return DhcpHelperCli(mac, vlan, iface, ip, server_ip)
 
 
-@patch("scripts.dhcp_helper_cli.sendp")
+@patch("dhcp_helper_cli.dhcp_helper_cli.sendp")
 def test_send_dhcp_discover(sendp_mock, dhcp_helper_cli_fixture):
     dhcp_helper_cli_fixture.send_dhcp_discover()
     pkt = sendp_mock.call_args[0][0]
@@ -63,9 +61,10 @@ def test_send_dhcp_discover(sendp_mock, dhcp_helper_cli_fixture):
     assert pkt[Ether].src == MACSTRING.lower()
     assert Dot1Q not in pkt
     assert ('message-type', 'discover') in pkt[DHCP].options
+    assert dhcp_helper_cli_fixture._state == DHCPState.DISCOVER
 
 
-@patch("scripts.dhcp_helper_cli.sendp")
+@patch("dhcp_helper_cli.dhcp_helper_cli.sendp")
 def test_send_dhcp_request(sendp_mock, dhcp_helper_cli_fixture):
     dhcp_helper_cli_fixture._state = DHCPState.OFFER
     dhcp_helper_cli_fixture.send_dhcp_request()
@@ -78,7 +77,7 @@ def test_send_dhcp_request(sendp_mock, dhcp_helper_cli_fixture):
     assert dhcp_helper_cli_fixture._state == DHCPState.REQUEST
 
 
-@patch("scripts.dhcp_helper_cli.sendp")
+@patch("dhcp_helper_cli.dhcp_helper_cli.sendp")
 def test_send_dhcp_release(sendp_mock, dhcp_helper_cli_fixture):
     dhcp_helper_cli_fixture._state = DHCPState.ACK
     dhcp_helper_cli_fixture.send_dhcp_release()
@@ -92,7 +91,7 @@ def test_send_dhcp_release(sendp_mock, dhcp_helper_cli_fixture):
 
 
 def create_send_dhcp_pkt_mock(dhcp_helper_cli_fixture):
-    def mocked_send_dhcp_pkt(dhcp_opts, pkt_xid, ciaddr: Optional[str] = None) -> None:
+    def mocked_send_dhcp_pkt(dhcp_opts, ciaddr: Optional[str] = None) -> None:
         if ('message-type', 'discover') in dhcp_opts:
             dhcp_helper_cli_fixture._pkt_queue.put(DHCP_OFFER_PKT)
         if ('message-type', 'request') in dhcp_opts:

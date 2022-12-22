@@ -18,7 +18,10 @@ cc_binary(
     name = "liagentd",
     srcs = ["main.cpp"],
     tags = TAG_SERVICE + ["no-cache"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [
         ":interface_monitor",
         "//orc8r/gateway/c/common/config:mconfig_loader",

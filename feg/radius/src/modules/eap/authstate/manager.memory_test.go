@@ -16,6 +16,7 @@ package authstate
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -36,14 +37,14 @@ func TestBasicInsertGet(t *testing.T) {
 	authReq := createRadiusPacket("called", "calling")
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, manager, authReq)
+	performSingleReadWriteDeleteReadTest(t, manager, authReq)
 }
 
-func performSignleReadWriteDeleteReadTest(t *testing.T, manager Manager, authReq radius.Packet) {
+func performSingleReadWriteDeleteReadTest(t *testing.T, manager Manager, authReq radius.Packet) {
 	// Arrange (randomize state)
 	correlationID := rand.Intn(9999999)
 	eapType := packet.EAPTypeAKA
-	protocolState := string(rand.Intn(999999))
+	protocolState := strconv.Itoa(rand.Intn(999999))
 
 	// Act
 	stateBeforeWrite, errBeforeWrite := manager.Get(&authReq, packet.EAPTypeAKA)
@@ -89,7 +90,7 @@ func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
 			defer wg.Done()
 			authReq := createRadiusPacket(called, calling)
 			for i := 0; i < reqPerConcurrentContext; i++ {
-				performSignleReadWriteDeleteReadTest(t, manager, authReq)
+				performSingleReadWriteDeleteReadTest(t, manager, authReq)
 			}
 		}(fmt.Sprintf("called%d", i), fmt.Sprintf("calling%d", i))
 	}

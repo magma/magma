@@ -61,3 +61,5 @@
 !.bazelrc
 !.bazelignore
 !.bazelversion
+
+!keys/

@@ -65,12 +65,13 @@ ARG MAGMA_BUILD_COMMIT_DATE=unknown
 
 # Add the magma apt repo
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https curl wget
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add - && \
-    apt-add-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
+    apt-get install -y apt-utils software-properties-common apt-transport-https curl
+
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
-    apt-add-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
+    add-apt-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \

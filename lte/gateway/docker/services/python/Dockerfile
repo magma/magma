@@ -76,6 +76,7 @@ COPY \
     $MAGMA_ROOT/lte/gateway/python/
 COPY ./lte/gateway/python/load_tests $MAGMA_ROOT/lte/gateway/python/load_tests
 COPY ./lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
+COPY ./lte/gateway/python/dhcp_helper_cli $MAGMA_ROOT/lte/gateway/python/dhcp_helper_cli
 COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
 COPY ./orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 
@@ -126,6 +127,7 @@ RUN apt-get update && apt-get install -y \
   python3-eventlet \
   python3-pystemd \
   python3-jinja2 \
+  python3-scapy \
   redis-server \
   sudo \
   virtualenv \
@@ -136,8 +138,9 @@ RUN python3 -m venv $VIRTUAL_ENV
 
 ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
 
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | apt-key add -
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
@@ -155,6 +158,7 @@ RUN apt-get update && apt-get install -y \
 COPY \
     ./orc8r/gateway/python/scripts/ \
     ./lte/gateway/python/scripts/ \
+    ./lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py \
     /usr/local/bin/
 COPY ./lte/gateway/configs/templates /etc/magma/templates/
 COPY ./lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
@@ -164,6 +168,9 @@ COPY ./orc8r/gateway/python/magma /magma/orc8r/gateway/python/magma
 
 COPY --from=builder /build /build
 COPY --from=builder /var/tmp/python3-aioeventlet*.deb /var/tmp/
+
+# The Python scripts in /build/bin are broken inside the container
+RUN rm -f /build/bin/dhcp_helper_cli.py
 
 RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
   dpkg -i /var/tmp/python3-aioeventlet* && \

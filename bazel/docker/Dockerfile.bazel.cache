@@ -27,10 +27,12 @@ RUN rm /var/cache/bazel-cache && \
     mkdir -p /var/cache/bazel-cache && \
     mkdir -p /var/cache/bazel-cache-repo && \
     cd $MAGMA_ROOT && \
+    if [ -z "${BAZEL_CONFIG}" ]; then echo "Running Bazel coverage on all 'cc_test' targets ..."; fi && \
+    if [ -z "${BAZEL_CONFIG}" ]; then bazel coverage //orc8r/gateway/c/... //lte/gateway/c/... --flaky_test_attempts=5; fi && \
+    if [ "${BAZEL_CONFIG}" = "--config=production" ]; then echo "Running Bazel release build ..." ; fi && \
+    if [ "${BAZEL_CONFIG}" = "--config=production" ]; then bazel run //lte/gateway/release:release_build --config=production; fi && \
     echo "Running Bazel test on all '${BAZEL_TARGET_RULE}' targets with config '${BAZEL_CONFIG}' ..." && \
     bazel test ${BAZEL_CONFIG} --flaky_test_attempts=5 --test_tag_filters=-manual `bazel query "kind(${BAZEL_TARGET_RULE}, //...)"` && \
-    echo "Running Bazel build //:bazel-diff" && \
-    bazel build //:bazel-diff && \
     echo "The size of the /var/cache/bazel-cache* folders is:" && \
     du -sh /var/cache/bazel-cache*
 

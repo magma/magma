@@ -17,4 +17,4 @@
     line: "{{ item }}"
   with_items:
     # build all services and scripts needed to run the lte access gateway
-    - alias magma-build-agw='bazel build `bazel query "attr(tags, \"service|util_script\", kind(.*_binary, //orc8r/... union //lte/... union //feg/... except //lte/gateway/c/core:mme_oai))"`'
+    - alias magma-build-agw='bazel build //... --build_tag_filters=service,util_script,-mme_oai'

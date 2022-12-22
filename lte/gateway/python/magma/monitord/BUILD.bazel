@@ -30,7 +30,10 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     tags = TAG_SERVICE,
-    visibility = ["//lte/gateway/python:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":monitord_lib",
         "//lte/protos:mconfigs_python_proto",

@@ -119,7 +119,6 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 			return nil, err
 		}
 		ctx.Logger.Debug("MagmaAccounting.Start succeeded", zap.Any("context", c))
-		break
 	case rfc2866.AcctStatusType_Value_AccountingOff:
 	case rfc2866.AcctStatusType_Value_Stop:
 		stopRequest := &protos.StopRequest{
@@ -135,7 +134,6 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 			return nil, err
 		}
 		ctx.Logger.Debug("MagmaAccounting.Stop succeeded", zap.Any("context", c))
-		break
 	case rfc2866.AcctStatusType_Value_InterimUpdate:
 		updateRequest := &protos.UpdateRequest{
 			OctetsIn:     getValue(r, rfc2866.AcctInputOctets_Type),
@@ -151,7 +149,6 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 			return nil, err
 		}
 		ctx.Logger.Debug("MagmaAccounting.InterimUpdate succeeded", zap.Any("context", c))
-		break
 	default:
 		return nil, fmt.Errorf("unknown Acct-Status-Type received: %d", acctType)
 	}
