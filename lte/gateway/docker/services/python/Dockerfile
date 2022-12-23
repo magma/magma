@@ -170,7 +170,9 @@ COPY --from=builder /build /build
 COPY --from=builder /var/tmp/python3-aioeventlet*.deb /var/tmp/
 
 # The Python scripts in /build/bin are broken inside the container
-RUN rm -f /build/bin/dhcp_helper_cli.py
+# Remove all Python scripts already exist in /usr/local/bin
+WORKDIR /usr/local/bin
+RUN find ./*.py -exec rm -rf /build/bin/{} \;
 
 RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
   dpkg -i /var/tmp/python3-aioeventlet* && \
