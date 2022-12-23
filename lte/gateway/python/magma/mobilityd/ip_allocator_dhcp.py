@@ -353,7 +353,7 @@ class IPAllocatorDHCP(IPAllocator):
             raise NoAvailableIPError(msg)
 
     def _parse_dhcp_helper_cli_response_to_store(
-            self, dhcp_desc: DHCPDescriptor, dhcp_response: subprocess.CompletedProcess,
+            self, dhcp_desc: DHCPDescriptor, dhcp_response: Dict[str, Any],
             mac: MacAddress, vlan: int,
     ) -> DHCPDescriptor:
         if dhcp_response:

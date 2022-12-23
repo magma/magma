@@ -13,7 +13,7 @@ limitations under the License.
 import os
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any
+from typing import Any, List
 from unittest.mock import MagicMock, patch
 
 import fakeredis
