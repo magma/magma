@@ -90,7 +90,7 @@ func configureAlertReceiver(c echo.Context, url string, client HttpClient) error
 
 	sendErr := sendConfig(receiver, url, http.MethodPost, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Sprintf("%s", sendErr.Message))
+		return sendErr
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -131,7 +131,7 @@ func updateAlertReceiver(c echo.Context, url string, client HttpClient) error {
 
 	sendErr := sendConfig(receiver, url, http.MethodPut, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Sprintf("%s", sendErr.Message))
+		return sendErr
 	}
 	return c.NoContent(http.StatusOK)
 }

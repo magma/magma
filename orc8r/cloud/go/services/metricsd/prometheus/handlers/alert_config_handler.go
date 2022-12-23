@@ -142,7 +142,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context, client Http
 
 	sendErr := sendConfig(rule, url, http.MethodPost, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Sprintf("%s", sendErr.Message))
+		return sendErr
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
@@ -236,7 +236,7 @@ func updateAlertRule(c echo.Context, url string, client HttpClient) error {
 
 	sendErr := sendConfig(rule, url, http.MethodPut, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Sprintf("%s", sendErr.Message))
+		return sendErr
 	}
 	return c.JSON(http.StatusOK, nil)
 }

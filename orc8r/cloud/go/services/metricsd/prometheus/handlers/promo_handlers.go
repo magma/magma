@@ -410,7 +410,7 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		labelName := c.Param("label_name")
 		if labelName == "" {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("label_name is required"))
+			return echo.NewHTTPError(http.StatusBadRequest, "label_name is required")
 		}
 
 		reqCtx := c.Request().Context()
