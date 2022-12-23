@@ -203,7 +203,7 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 	cert := getCert(c)
 	if cert == nil {
 		err := fmt.Errorf("Client certificate with valid SANs is required for network: %s", networkId)
-		return echo.NewHTTPError(http.StatusForbidden, err)
+		return echo.NewHTTPError(http.StatusForbidden, err.Error())
 	}
 
 	if cert.Subject.CommonName == wildcard ||
@@ -252,7 +252,7 @@ func CheckTenantAccess(c echo.Context) *echo.HTTPError {
 	cert := getCert(c)
 	if cert == nil {
 		err := errors.New("Client certificate with valid SANs is required for tenant access")
-		return echo.NewHTTPError(http.StatusForbidden, err)
+		return echo.NewHTTPError(http.StatusForbidden, err.Error())
 	}
 
 	if cert.Subject.CommonName == wildcard || cert.Subject.CommonName == networkWildcard {
@@ -294,7 +294,7 @@ func GetParamValues(c echo.Context, paramNames ...string) ([]string, *echo.HTTPE
 	for _, paramName := range paramNames {
 		val := c.Param(paramName)
 		if val == "" {
-			return []string{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid/missing param %s", paramName))
+			return []string{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid/missing param %s", paramName))
 		}
 		ret = append(ret, val)
 	}
@@ -312,11 +312,11 @@ func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 }
 
 func NetworkIdHttpErr() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Missing Network ID"))
+	return echo.NewHTTPError(http.StatusBadRequest, "Missing Network ID")
 }
 
 func TenantIdHttpErr() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Missing Tenant ID"))
+	return echo.NewHTTPError(http.StatusBadRequest, "Missing Tenant ID")
 }
 
 // GetPaginationParams returns page size and token params.
@@ -329,7 +329,7 @@ func GetPaginationParams(c echo.Context) (uint64, string, error) {
 	pageSize, err := strconv.ParseUint(pageSizeStr, 10, 32)
 	if err != nil {
 		err := fmt.Errorf("invalid page size parameter: %w", err)
-		return 0, pageToken, echo.NewHTTPError(http.StatusBadRequest, err)
+		return 0, pageToken, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return pageSize, pageToken, nil
 }

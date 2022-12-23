@@ -15,7 +15,6 @@ package handlers
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -75,7 +74,7 @@ func GetCombinedSpecHandler(yamlCommon string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		combined, err := swagger.GetCombinedSpec(yamlCommon)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.String(http.StatusOK, combined)
 	}
@@ -87,15 +86,15 @@ func GetSpecHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		service, ok, err := getServiceName(c.Param("service"))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		if !ok {
-			return echo.NewHTTPError(http.StatusNotFound, errors.New("service not found"))
+			return echo.NewHTTPError(http.StatusNotFound, "service not found")
 		}
 
 		yamlSpec, err := swagger.GetServiceSpec(service)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		return c.String(http.StatusOK, yamlSpec)
@@ -107,15 +106,15 @@ func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		service, ok, err := getServiceName(c.Param("service"))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		if !ok {
-			return echo.NewHTTPError(http.StatusNotFound, errors.New("service not found"))
+			return echo.NewHTTPError(http.StatusNotFound, "service not found")
 		}
 
 		services, err := registry.FindServices(orc8r.SwaggerSpecLabel)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		sort.Strings(services)
 
@@ -128,7 +127,7 @@ func GetUIHandler(tmpl *template.Template) echo.HandlerFunc {
 		var buf bytes.Buffer
 		err = tmpl.Execute(&buf, uiInfo)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		return c.HTML(http.StatusOK, buf.String())

@@ -77,7 +77,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 func GetTenantsHandler(c echo.Context) error {
 	tenants, err := tenants.GetAllTenants(c.Request().Context())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	tenantsAndIDs := make([]models.Tenant, 0)
 	for _, tenant := range tenants.Tenants {
@@ -93,10 +93,10 @@ func CreateTenantHandler(c echo.Context) error {
 	var tenantInfo = models.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error decoding request: %v", err))
 	}
 	if tenantInfo.ID == nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("must provide tenant ID"))
+		return echo.NewHTTPError(http.StatusBadRequest, "must provide tenant ID")
 	}
 
 	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &protos.Tenant{
@@ -104,7 +104,7 @@ func CreateTenantHandler(c echo.Context) error {
 		Networks: tenantInfo.Networks,
 	})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error creating tenant: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating tenant: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -132,7 +132,7 @@ func SetTenantHandler(c echo.Context) error {
 	var tenantInfo = protos.Tenant{}
 	err := json.NewDecoder(c.Request().Body).Decode(&tenantInfo)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error decoding request: %v", err))
 	}
 
 	err = tenants.SetTenant(c.Request().Context(), tenantID, &tenantInfo)
@@ -190,17 +190,17 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 	req.Id = tenantID
 	data := &models.ControlProxy{}
 	if err := c.Bind(data); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error decoding request: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error decoding request: %v", err))
 	}
 	if err := data.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	req.ControlProxy = *data.ControlProxy
 
 	err = tenants.CreateOrUpdateControlProxy(c.Request().Context(), &req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error setting control_proxy contents: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error setting control_proxy contents: %v", err))
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -209,9 +209,9 @@ func CreateOrUpdateControlProxyHandler(c echo.Context) error {
 func mapErr(err error, notFoundErr error, nonNilErr error) error {
 	switch {
 	case err == merrors.ErrNotFound:
-		return echo.NewHTTPError(http.StatusNotFound, notFoundErr)
+		return echo.NewHTTPError(http.StatusNotFound, notFoundErr.Error())
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, nonNilErr)
+		return echo.NewHTTPError(http.StatusInternalServerError, nonNilErr.Error())
 	}
 	return nil
 }
