@@ -306,7 +306,7 @@ def renew_arg_handler(opts: argparse.Namespace) -> None:
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description='DHCP helper to get IPs for an DHCP IP allocator.',
+        description='DHCP helper to get IPs for a DHCP IP allocator.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
