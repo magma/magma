@@ -76,11 +76,13 @@
       - git+https://github.com/thiezn/iperf3-python#egg=iperf3-python
   when: preburn
 
-- name: remove preinstalled iperf3 and libiperf0
+- name: Remove preinstalled iperf3 and libiperf0
   apt:
-    name: ['iperf3', 'libiperf0']
     state: absent
     update_cache: yes
+    name:
+      - iperf3
+      - libiperf0
     purge: yes
   when: preburn
 
@@ -89,7 +91,7 @@
     name: libsctp1
   when: preburn
 
-- name: install iperf3 and libiperf0
+- name: Install iperf3 and libiperf0
   apt:
     deb: "https://iperf.fr/download/ubuntu/{{ item }}"
   with_items:
@@ -97,17 +99,19 @@
     - iperf3_3.9-1_amd64.deb
   when: preburn
 
-- name: configure dhcpd
+- name: Configure dhcpd
   become: yes
-  copy: src=udhcpd.conf dest=/etc/
+  copy:
+    src: udhcpd.conf
+    dest: /etc/
   when: preburn
 
-- name: install udhcpd
+- name: Install udhcpd
   apt:
     name: udhcpd
   when: preburn
 
-- name: configure udhcpd
+- name: Configure udhcpd
   become: yes
   replace:
     path: /etc/default/udhcpd
@@ -122,7 +126,7 @@
     state: restarted
   when: preburn
 
-- name: configure sshd_config
+- name: Configure sshd_config
   become: yes
   replace:
     path: /etc/ssh/sshd_config
