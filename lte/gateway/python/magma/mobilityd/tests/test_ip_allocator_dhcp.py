@@ -220,25 +220,24 @@ def test_allocate_ip_after_expiry(
 def _run_allocator_and_assert(
         advance_time: int, call_args: List[str], ip_allocator_dhcp_fixture: IPAllocatorDHCP,
 ) -> None:
-    with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
-            patch(
+    with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime:
+        with patch(
                 "subprocess.run", return_value=create_subprocess_mock_dhcp_return(),
                 side_effect=create_subprocess_mock_json_file,
-    ) as \
-            subprocess_mock:
-        reference_time = datetime.now()
-        run_dhcp_allocator_thread(
-            frozen_datetime=frozen_datetime,
-            ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
-            freeze_time=advance_time,
-        )
-        _assert_calls_and_deadlines(
-            advance_time=advance_time,
-            call_args=call_args,
-            ip_allocator=ip_allocator_dhcp_fixture,
-            reference_time=reference_time,
-            subprocess_mock=subprocess_mock,
-        )
+        ) as subprocess_mock:
+            reference_time = datetime.now()
+            run_dhcp_allocator_thread(
+                frozen_datetime=frozen_datetime,
+                ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
+                freeze_time=advance_time,
+            )
+            _assert_calls_and_deadlines(
+                advance_time=advance_time,
+                call_args=call_args,
+                ip_allocator=ip_allocator_dhcp_fixture,
+                reference_time=reference_time,
+                subprocess_mock=subprocess_mock,
+            )
 
 
 def _assert_calls_and_deadlines(
