@@ -154,15 +154,14 @@ def test_allocate_ip_address(
 
 def test_no_renewal_of_ip(ip_allocator_dhcp_fixture: IPAllocatorDHCP) -> None:
     advance_time = 1
-    with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
-            patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
-        run_dhcp_allocator_thread(
-            frozen_datetime=frozen_datetime,
-            ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
-            freeze_time=advance_time,
-        )
-
-        subprocess_mock.assert_not_called()
+    with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime:
+        with patch("subprocess.run", return_value=create_subprocess_mock_dhcp_return()) as subprocess_mock:
+            run_dhcp_allocator_thread(
+                frozen_datetime=frozen_datetime,
+                ip_allocator_dhcp_fixture=ip_allocator_dhcp_fixture,
+                freeze_time=advance_time,
+            )
+            subprocess_mock.assert_not_called()
 
 
 @patch("tempfile.NamedTemporaryFile")
