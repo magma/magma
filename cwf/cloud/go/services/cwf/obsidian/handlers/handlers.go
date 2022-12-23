@@ -150,7 +150,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load cwf gateway: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to load cwf gateway: %v", err))
 	}
 
 	ret := &cwfModels.CwfGateway{
@@ -239,24 +239,24 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	configuratorNetwork, err := configurator.LoadNetwork(reqCtx, networkID, false, false, serdes.Network)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if configuratorNetwork.Type != cwf.CwfNetworkType {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("NetworkID %s is not a CWF network", networkID))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("NetworkID %s is not a CWF network", networkID))
 	}
 	subscriberID := c.Param("subscriber_id")
 	if subscriberID == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("SubscriberID cannot be empty"))
+		return echo.NewHTTPError(http.StatusBadRequest, "SubscriberID cannot be empty")
 	}
 	directoryState, err := state.GetState(reqCtx, networkID, orc8r.DirectoryRecordType, subscriberID, serdes.State)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	cwfRecord, err := convertDirectoryRecordToSubscriberRecord(directoryState.ReportedState)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, cwfRecord)
 }
@@ -291,7 +291,7 @@ func getHAPairStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if network.Type != cwf.CwfNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
@@ -315,7 +315,7 @@ func getHealthStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	healthState, err := getCwfGatewayHealth(reqCtx, nid, gid)
 	if err != nil {
@@ -333,14 +333,14 @@ func listHAPairsHandler(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	haPairEnts, _, err := configurator.LoadAllEntitiesOfType(reqCtx, nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	ret := make(map[string]*cwfModels.CwfHaPair, len(haPairEnts))
 	for _, haPairEnt := range haPairEnts {
 		cwfHaPair := &cwfModels.CwfHaPair{}
 		err = cwfHaPair.FromBackendModels(haPairEnt)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		cwfHaPair.State = getHaPairState(reqCtx, nid, cwfHaPair)
 		ret[haPairEnt.Key] = cwfHaPair
@@ -355,14 +355,14 @@ func createHAPairHandler(c echo.Context) error {
 	}
 	haPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(haPair); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := haPair.ValidateModel(context.Background()); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	_, err := configurator.CreateEntity(c.Request().Context(), networkID, haPair.ToEntity(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, haPair.HaPairID)
 }
@@ -381,15 +381,15 @@ func getHAPairHandler(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	cwfHaPair := &cwfModels.CwfHaPair{}
 	err = cwfHaPair.FromBackendModels(ent)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	cwfHaPair.State = getHaPairState(reqCtx, networkID, cwfHaPair)
 	return c.JSON(http.StatusOK, cwfHaPair)
@@ -404,26 +404,26 @@ func updateHAPairHandler(c echo.Context) error {
 
 	mutableHaPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(mutableHaPair); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := mutableHaPair.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if mutableHaPair.HaPairID != haPairID {
 		err := fmt.Errorf("ha pair ID from parameters (%s) and payload (%s) must match", haPairID, mutableHaPair.HaPairID)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	// 404 if pair doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if ha pair exists: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to check if ha pair exists: %v", err))
 	}
 	if !exists {
 		return echo.ErrNotFound
 	}
 	_, err = configurator.UpdateEntity(reqCtx, networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -435,7 +435,7 @@ func deleteHAPairHandler(c echo.Context) error {
 	}
 	err := configurator.DeleteEntity(c.Request().Context(), networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -460,15 +460,15 @@ func getHaPairState(ctx context.Context, networkID string, haPair *cwfModels.Cwf
 func getCwfGatewayHealth(ctx context.Context, networkID string, gatewayID string) (*cwfModels.CarrierWifiGatewayHealthStatus, error) {
 	reportedGatewayState, err := state.GetState(ctx, networkID, cwf.CwfGatewayHealthType, gatewayID, serdes.State)
 	if err == merrors.ErrNotFound {
-		return nil, echo.NewHTTPError(http.StatusNotFound, err)
+		return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
 	if !ok {
 		return nil, echo.NewHTTPError(
 			http.StatusInternalServerError,
-			fmt.Errorf("could not convert retrieved type %T to CarrierWifiGatewayHealthStatus", reportedGatewayState.ReportedState),
+			fmt.Sprintf("could not convert retrieved type %T to CarrierWifiGatewayHealthStatus", reportedGatewayState.ReportedState),
 		)
 	}
 	return healthState, nil
@@ -477,15 +477,15 @@ func getCwfGatewayHealth(ctx context.Context, networkID string, gatewayID string
 func getCwfHaPairStatus(ctx context.Context, networkID string, haPairID string) (*cwfModels.CarrierWifiHaPairStatus, error) {
 	reportedHaPairStatus, err := state.GetState(ctx, networkID, cwf.CwfHAPairStatusType, haPairID, serdes.State)
 	if err == merrors.ErrNotFound {
-		return nil, echo.NewHTTPError(http.StatusNotFound, err)
+		return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	haPairStatus, ok := reportedHaPairStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
 	if !ok {
 		return nil, echo.NewHTTPError(
 			http.StatusInternalServerError,
-			fmt.Errorf("could not convert retrieved type %T to CarrierWifiHaPairStatus", reportedHaPairStatus.ReportedState),
+			fmt.Sprintf("could not convert retrieved type %T to CarrierWifiHaPairStatus", reportedHaPairStatus.ReportedState),
 		)
 	}
 	return haPairStatus, nil
@@ -503,5 +503,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 }
