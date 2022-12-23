@@ -83,7 +83,7 @@ func getCbsdId(c echo.Context) (string, *echo.HTTPError) {
 }
 
 func cbsdIdHTTPError() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("missing Cbsd ID"))
+	return echo.NewHTTPError(http.StatusBadRequest, "missing Cbsd ID")
 }
 
 func listCbsds(c echo.Context, networkId string, client protos.CbsdManagementClient) error {
