@@ -223,10 +223,10 @@ def _run_allocator_and_assert(
 ) -> None:
     with freezegun.freeze_time(FROZEN_TEST_TIME) as frozen_datetime, \
             patch(
-                "subprocess.run",
-                return_value=create_subprocess_mock_dhcp_return(),
+                "subprocess.run", return_value=create_subprocess_mock_dhcp_return(),
                 side_effect=create_subprocess_mock_json_file,
-    ) as subprocess_mock:
+    ) as \
+            subprocess_mock:
         reference_time = datetime.now()
         run_dhcp_allocator_thread(
             frozen_datetime=frozen_datetime,
