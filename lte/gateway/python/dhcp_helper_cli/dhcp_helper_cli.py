@@ -307,25 +307,25 @@ def renew_arg_handler(opts: argparse.Namespace) -> None:
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description='dhcp helper to get ips for the ip allocator',
+        description='DHCP helper to get IPs for a DHCP IP allocator.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('--mac', help='mac address to allocate/release', required=True)
-    parser.add_argument('--json', help='json output', default=False, action='store_true')
-    parser.add_argument('--vlan', help='vlan', default=0)
-    parser.add_argument('--interface', help='interface', default='eth0')
+    parser.add_argument('--mac', help='MAC address to allocate/release', required=True)
+    parser.add_argument('--json', help='Print the allocation/release information in json format', default=False, action='store_true')
+    parser.add_argument('--vlan', help='Whether to use VLAN (0 means no VLAN)', default=0)
+    parser.add_argument('--interface', help='The network interface to send the request to', default='eth0')
 
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    parser_allocate = subparsers.add_parser('allocate', help='allocate an ip for mac')
+    parser_allocate = subparsers.add_parser('allocate', help='Allocate an IP for a given MAC address')
 
-    parser_release = subparsers.add_parser('release', help='release ip')
-    parser_release.add_argument('--ip', help='ip to release', required=True)
-    parser_release.add_argument('--server-ip', help='server to release the ip from', required=True)
+    parser_release = subparsers.add_parser('release', help='Release the specified IP for a given MAC address')
+    parser_release.add_argument('--ip', help='The IP to release', required=True)
+    parser_release.add_argument('--server-ip', help='The server IP to release the IP from', required=True)
 
     parser_renew = subparsers.add_parser('renew', help='release ip')
-    parser_renew.add_argument('--ip', help='ip to renew', required=True)
-    parser_renew.add_argument('--server-ip', help='ip to renew', required=True)
+    parser_renew.add_argument('--ip', help='The IP to renew', required=True)
+    parser_renew.add_argument('--server-ip', help='The server IP for which to renew the IP', required=True)
 
     parser_allocate.set_defaults(func=allocate_arg_handler)
     parser_release.set_defaults(func=release_arg_handler)
