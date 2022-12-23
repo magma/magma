@@ -114,7 +114,7 @@ def test_allocate_ip_address(
     mock_tempfile.return_value.__enter__.return_value.name = TMP_FILE
     mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
     ip_allocator_fixture.start_monitor_thread()
-    call_args = [[
+    call_args = [
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc_fixture.mac),
         "--vlan", str(dhcp_desc_fixture.vlan),
@@ -122,7 +122,7 @@ def test_allocate_ip_address(
         "--save-file", TMP_FILE,
         "--json",
         "allocate",
-    ]]
+    ]
 
     with freezegun.freeze_time(FROZEN_TEST_TIME):
         with patch(
@@ -174,7 +174,7 @@ def test_renewal_of_ip(
     mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
 
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
-    call_args = [[
+    call_args = [
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
@@ -184,7 +184,7 @@ def test_renewal_of_ip(
         "renew",
         "--ip", str(dhcp_desc.ip),
         "--server-ip", str(dhcp_desc.server_ip),
-    ]]
+    ]
 
     _run_allocator_and_assert(
         advance_time=3,
@@ -202,7 +202,7 @@ def test_allocate_ip_after_expiry(
     mock_tempfile.return_value.__exit__.side_effect = lambda *args: os.remove(TMP_FILE)
 
     dhcp_desc = list(ip_allocator_dhcp_fixture._store.dhcp_store.values())[0]
-    call_args = [[
+    call_args = [
         DHCP_HELPER_CLI,
         "--mac", str(dhcp_desc.mac),
         "--vlan", str(dhcp_desc.vlan),
@@ -210,7 +210,7 @@ def test_allocate_ip_after_expiry(
         "--save-file", TMP_FILE,
         "--json",
         "allocate",
-    ]]
+    ]
     _run_allocator_and_assert(
         advance_time=5,
         call_args=call_args,
@@ -243,12 +243,12 @@ def _run_allocator_and_assert(
 
 
 def _assert_calls_and_deadlines(
-        advance_time: int, call_args: List[List[str]], ip_allocator: IPAllocatorDHCP,
+        advance_time: int, call_args: List[str], ip_allocator: IPAllocatorDHCP,
         reference_time: datetime.date, subprocess_mock: MagicMock,
 ) -> None:
     subprocess_mock.assert_called_once()
     subprocess_mock.assert_called_with(
-        *call_args,
+        call_args,
         capture_output=True,
     )
     dhcp_desc = list(ip_allocator._store.dhcp_store.values())[0]
@@ -256,7 +256,7 @@ def _assert_calls_and_deadlines(
     expected_lease_renew_deadline = reference_time + timedelta(seconds=advance_time + LEASE_EXPIRATION_TIME / 2)
     assert dhcp_desc.lease_expiration_time == expected_lease_expiration_time
     assert dhcp_desc.lease_renew_deadline == expected_lease_renew_deadline
-    assert not os.path.exists(call_args[0][8])
+    assert not os.path.exists(call_args[8])
 
 
 @pytest.fixture
@@ -337,7 +337,7 @@ def create_subprocess_mock_dhcp_return() -> MagicMock:
     return m
 
 
-def create_subprocess_mock_json_file(call_args, capture_output=True) -> MagicMock:
+def create_subprocess_mock_json_file(call_args: List[str], capture_output=True) -> MagicMock:
     with open(call_args[8], "w") as f:
         f.write(
             """{"ip": "%s","subnet": "%s","server_ip": "%s", "router_ip": "%s","lease_expiration_time": %s}"""
