@@ -1422,7 +1422,7 @@ bool is_mme_ue_context_network_access_mode_packet_only(
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->network_access_mode == NAM_ONLY_PACKET) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, true);
@@ -1462,7 +1462,7 @@ bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if ((ue_context_p->sgs_context) &&
       (ue_context_p->sgs_context->vlr_reliable == true)) {
@@ -1500,7 +1500,7 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if ((ue_context_p->sgs_context) &&
       (ue_context_p->sgs_context->neaf == true)) {

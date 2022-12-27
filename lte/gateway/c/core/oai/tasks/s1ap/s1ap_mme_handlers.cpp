@@ -5032,7 +5032,7 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container) {
                              true);
   if (!ie) {
     OAILOG_ERROR(LOG_S1AP, "Incorrect IE \n");
-    return RETURNerror;
+    return false;
   }
   S1ap_E_RABToBeSwitchedDLList_t* e_rab_to_be_switched_dl_list =
       &ie->value.choice.E_RABToBeSwitchedDLList;
