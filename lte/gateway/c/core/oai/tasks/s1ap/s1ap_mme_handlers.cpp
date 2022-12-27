@@ -437,8 +437,6 @@ void clean_stale_enb_state(oai::S1apState* state,
 static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
     oai::S1apState* state, sctp_assoc_id_t sctp_assoc_id) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  unsigned int i = 0;
-  unsigned int num_elements = 0;
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
 
   if (!s1ap_ue_state) {
@@ -2393,7 +2391,6 @@ status_code_e s1ap_mme_handle_handover_cancel(oai::S1apState* state,
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   oai::UeDescription* ue_ref_p = nullptr;
-  e_rab_admitted_list_t e_rab_admitted_list = {0};
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   S1ap_Cause_PR cause_type;
@@ -4495,7 +4492,6 @@ status_code_e s1ap_handle_paging_request(
   uint16_t tai_list_count = paging_request->tai_list_count;
 
   bool is_tai_found = false;
-  uint32_t idx = 0;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
@@ -4919,7 +4915,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  uint32_t idx = 0;
   status_code_e rc = RETURNok;
 
   // Not done according to Rel-15 (Target TAI and Source TAI)
