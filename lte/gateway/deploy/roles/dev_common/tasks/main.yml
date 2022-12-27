@@ -252,6 +252,7 @@
   ansible.builtin.shell: "{{ magma_root }}/bazel/scripts/setup_bazel_bash_completion.sh $(cat {{ magma_root }}/.bazelversion)"
   become: yes
   become_user: "{{ ansible_user }}"
+  when: full_provision
 
 ########################################
 # Install common Magma dev dependencies
