@@ -27,6 +27,10 @@ build --cxxopt=-std=c++14
 # https://bazel.build/docs/user-manual#strip
 build --strip=never
 build --per_file_copt=^lte/gateway/c/.*$@-g
+# Exclude a couple of warnings from compiling external libraries (note: the external folder
+# does not belong to the magma repo, only exists for a build and contains the external
+# c/c++ libraries)
+build --per_file_copt=^external/.*$@-Wno-all,-Wno-format-security,-Wno-deprecated-declarations
 
 # DEFAULT TEST CONFIGURATION
 # Please read the GH issue #13073 before adding "test" options.
