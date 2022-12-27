@@ -592,7 +592,7 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
              sizeof(teidString) - strlen(teidString), "%u%c", teidlist[idx],
              separator);
   }
-  char* ptr = "sgw_c_teid";
+  const char* ptr = "sgw_c_teid";
   if (teid_type == UP_TEID) {
     ptr = "sgw_u_teid";
   }

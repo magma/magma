@@ -975,7 +975,7 @@ void log_message_add_async(struct shared_log_queue_item_s* messageP,
   }
 }
 //------------------------------------------------------------------------------
-void log_message_add_sync(log_queue_item_t* messageP, char* format, ...) {
+void log_message_add_sync(log_queue_item_t* messageP, const char* format, ...) {
   va_list args;
   int rv = 0;
 
@@ -1053,7 +1053,8 @@ void log_message_start_sync(log_thread_ctxt_t* thread_ctxtP,
                             const log_proto_t protoP,
                             log_queue_item_t** messageP,  // Out parameter
                             const char* const source_fileP,
-                            const unsigned int line_numP, char* format, ...) {
+                            const unsigned int line_numP, const char* format,
+                            ...) {
   va_list args;
 
   va_start(args, format);
