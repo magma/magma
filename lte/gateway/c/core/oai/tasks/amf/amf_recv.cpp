@@ -567,8 +567,8 @@ status_code_e amf_handle_registration_request(
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
-    if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
-         M5GSMobileIdentityMsg_GUTI)) {
+    if (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+        M5GSMobileIdentityMsg_GUTI) {
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
           msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
