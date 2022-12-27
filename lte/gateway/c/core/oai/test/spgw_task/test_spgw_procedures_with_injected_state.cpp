@@ -190,10 +190,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  sgw_cm_get_eps_bearer_entry(
-      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          ->mutable_pdn_connection(),
-      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
+  EXPECT_EQ((sgw_cm_get_eps_bearer_entry(
+                spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+                    ->mutable_pdn_connection(),
+                DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt)),
+            magma::PROTO_MAP_OK);
   struct in_addr ue_ipv4 = {};
   inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
   ASSERT_TRUE(!(memcmp(&ue_ipv4, &test_ue_ip, sizeof(test_ue_ip))));

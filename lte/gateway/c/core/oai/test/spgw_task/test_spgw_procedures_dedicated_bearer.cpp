@@ -161,10 +161,11 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  sgw_cm_get_eps_bearer_entry(
-      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          ->mutable_pdn_connection(),
-      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
+  EXPECT_EQ((sgw_cm_get_eps_bearer_entry(
+                spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+                    ->mutable_pdn_connection(),
+                DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt)),
+            magma::PROTO_MAP_OK);
 
   // send network initiated dedicated bearer activation request with
   // invalid imsi
@@ -242,10 +243,11 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  sgw_cm_get_eps_bearer_entry(
-      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
-          ->mutable_pdn_connection(),
-      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
+  EXPECT_EQ((sgw_cm_get_eps_bearer_entry(
+                spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+                    ->mutable_pdn_connection(),
+                DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt)),
+            magma::PROTO_MAP_OK);
 
   // Activate dedicated bearer
   ebi_t ded_eps_bearer_id = activate_dedicated_bearer(

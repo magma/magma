@@ -697,8 +697,10 @@ static void delete_temporary_dedicated_bearer_context(
     if (!pgw_ni_cbr_proc) {
       OAILOG_ERROR_UE(
           LOG_SPGW_APP, spgw_context_p->sgw_eps_bearer_context().imsi64(),
-          "Pending procedure within sgw_context is null for proc_index:%u",
-          proc_index);
+          "Pending procedure within sgw_context is null for "
+          "proc_index:%u and s1u_teid " TEID_FMT,
+          proc_index,
+          pgw_ni_cbr_proc->pending_eps_bearers(0).sgw_teid_s1u_s12_s4_up());
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
     if (pgw_ni_cbr_proc->type() ==
