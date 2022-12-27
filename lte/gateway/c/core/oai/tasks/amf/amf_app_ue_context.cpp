@@ -732,7 +732,7 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
     OAILOG_DEBUG_UE(
         LOG_AMF_APP, ue_context_p->amf_context.imsi64,
         "Started Implicit Deregistration timer for UE id: " AMF_UE_NGAP_ID_FMT
-        ", Timer Id: %ld, Timer Val: %u (ms) ",
+        ", Timer Id: %ld, Timer Val: %ld (ms) ",
         ue_context_p->amf_ue_ngap_id,
         ue_context_p->m5_implicit_deregistration_timer.id,
         ue_context_p->m5_implicit_deregistration_timer.sec);
@@ -803,7 +803,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         OAILOG_DEBUG_UE(
             LOG_AMF_APP, ue_context_p->amf_context.imsi64,
             "Started Mobile Reachability timer for UE id " AMF_UE_NGAP_ID_FMT
-            ", Timer Id: %ld, Timer Val: %u (s) ",
+            ", Timer Id: %ld, Timer Val: %ld (s) ",
             ue_context_p->amf_ue_ngap_id,
             ue_context_p->m5_mobile_reachability_timer.id,
             ue_context_p->m5_mobile_reachability_timer.sec);
