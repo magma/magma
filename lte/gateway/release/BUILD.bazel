@@ -18,7 +18,7 @@ load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//bazel:deb_build.bzl", "PY_DEST")
-load(":deb_dependencies.bzl", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS", "SCTPD_MIN_VERSION")
+load(":deb_dependencies.bzl", "MAGMA_CONFLICTS_THIRDPARTY", "MAGMA_CONFLICTS_UPSTREAM", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS", "SCTPD_MIN_VERSION")
 
 SCTPD_PKGNAME = "magma-sctpd"
 
@@ -243,8 +243,14 @@ pkg_deb(
     package = MAGMA_PKGNAME,
     package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
     postinst = ":magma-postinst-bazel",
-    provides = [MAGMA_PKGNAME],
-    replaces = [MAGMA_PKGNAME],
+    # This package contains its Python dependencies.
+    # In previous versions of Magma, we would use our custom pydep tool to build separate .deb packages
+    # for the Python dependencies. Given that this package installs its files to the same locations
+    # as the previously separate packages, this package conflicts with the old packages.
+    # In order to make the upgrade from Magma 1.8 to Magma 1.9 seamless, we set the "replaces"
+    # and "provides" fields.
+    provides = MAGMA_CONFLICTS_UPSTREAM + MAGMA_CONFLICTS_THIRDPARTY,
+    replaces = MAGMA_CONFLICTS_UPSTREAM + MAGMA_CONFLICTS_THIRDPARTY,
     tags = ["no-cache"],
     version = VERSION_DEB,
 )

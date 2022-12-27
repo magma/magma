@@ -118,6 +118,7 @@ class GYTableTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'dpi': {'enable': False},
                 'clean_restart': True,
+                'redis_enabled': False,
             },
             mconfig=PipelineD(
                 ue_ip_block='192.168.128.0/24',

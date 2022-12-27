@@ -82,12 +82,12 @@ func (c *N7Client) postSmPolicyUpdateNotification(ctx echo.Context) error {
 	if err != nil {
 		err = fmt.Errorf("invalid SmPolicyNotification received: %s", err)
 		glog.Errorf("postSmPolicyUpdateNotification: %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	sessionId, imsi, err := getSessionIdAndIMSI(ctx.Param(EncodedSessionId))
 	if err != nil {
 		glog.Errorf("postSmPolicyUpdateNotification unable to fetch session-id for UpdateNotify - %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	policyReauthProto := GetPolicyReauthRequestProto(sessionId, imsi, smUpdateNotify.SmPolicyDecision)
@@ -119,13 +119,13 @@ func (c *N7Client) postSmPolicyTerminateNotification(ctx echo.Context) error {
 	if err != nil {
 		err = fmt.Errorf("invalid TerminateNotification received: %s", err)
 		glog.Errorf("postSmPolicyTerminateNotification: %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	sessionId, imsi, err := getSessionIdAndIMSI(ctx.Param(EncodedSessionId))
 	if err != nil {
 		glog.Errorf("postSmPolicyTerminateNotification unable to fetch session-id for TerminateNotify - %s", err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	ans, err := client.AbortSession(context.Background(), &protos.AbortSessionRequest{
