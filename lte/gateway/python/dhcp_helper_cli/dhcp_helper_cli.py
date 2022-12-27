@@ -268,6 +268,12 @@ def print_info(info: Dict, print_json: bool) -> None:
         print(f"router_ip: {info['router_ip']}")
 
 
+def save_to_file(info: Dict, filename: str) -> None:
+    if filename:
+        with open(filename, "w") as f:
+            f.write(json.dumps(info))
+
+
 def allocate_arg_handler(opts: argparse.Namespace) -> None:
     mac = MacAddress(opts.mac)
     vlan = int(opts.vlan)
@@ -277,6 +283,7 @@ def allocate_arg_handler(opts: argparse.Namespace) -> None:
     cli.allocate()
 
     print_info(cli.get_info(), opts.json)
+    save_to_file(cli.get_info(), opts.save_file)
 
 
 def release_arg_handler(opts: argparse.Namespace) -> None:
@@ -290,6 +297,7 @@ def release_arg_handler(opts: argparse.Namespace) -> None:
     cli.release()
 
     print_info(cli.get_info(), opts.json)
+    save_to_file(cli.get_info(), opts.save_file)
 
 
 def renew_arg_handler(opts: argparse.Namespace) -> None:
@@ -303,6 +311,7 @@ def renew_arg_handler(opts: argparse.Namespace) -> None:
     cli.renew()
 
     print_info(cli.get_info(), opts.json)
+    save_to_file(cli.get_info(), opts.save_file)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -313,6 +322,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument('--mac', help='MAC address to allocate/release', required=True)
     parser.add_argument('--json', help='Print the allocation/release information in json format', default=False, action='store_true')
+    parser.add_argument('--save-file', help='Save to the specified file', default="")
     parser.add_argument('--vlan', help='Whether to use VLAN (0 means no VLAN)', default=0)
     parser.add_argument('--interface', help='The network interface to send the request to', default='eth0')
 
