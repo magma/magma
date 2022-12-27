@@ -87,8 +87,8 @@ int decode_security_mode_command(
       case SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI:
         if ((decoded_result = decode_imeisv_request_ie(
                  &security_mode_command->imeisvrequest,
-                 SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+                 SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0,
+                 buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -194,10 +194,10 @@ int encode_security_mode_command(
   if ((security_mode_command->presencemask &
        SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) ==
       SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) {
-    if ((encode_result =
-             encode_imeisv_request_ie(&security_mode_command->imeisvrequest,
-                                      SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI,
-                                      buffer + encoded, len - encoded)) < 0)
+    if ((encode_result = encode_imeisv_request_ie(
+             &security_mode_command->imeisvrequest,
+             SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0, buffer + encoded,
+             len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
