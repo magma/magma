@@ -352,8 +352,6 @@ void traffic_flow_template_to_proto(
       }
       break;
     default:
-      OAILOG_ERROR(LOG_SPGW_APP, "Invalid TFT operation code:%u ",
-                   tft_state->tftoperationcode);
       break;
   }
 }

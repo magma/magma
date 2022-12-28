@@ -152,7 +152,7 @@ status_code_e sgw_handle_s11_create_session_request(
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64,
       "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
-      "S-GW S11 teid " TEID_FMT " APN %s EPS bearer Id %d\n",
+      " S-GW S11 teid " TEID_FMT " APN %s bearer Id %d\n",
       new_endpoint_p->remote_teid, new_endpoint_p->local_teid,
       session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
@@ -1349,8 +1349,8 @@ void handle_s5_create_session_response(
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi64(),
-      "Handle s5_create_session_response, for Context SGW S11 teid, " TEID_FMT
-      "EPS bearer id %u\n",
+      "Handle s5_create_session_response, for Context SGW S11 teid " TEID_FMT
+      " bearer id %u\n",
       session_resp.context_teid, session_resp.eps_bearer_id);
 
   // PCO processing

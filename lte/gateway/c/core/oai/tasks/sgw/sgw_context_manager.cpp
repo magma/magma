@@ -390,7 +390,7 @@ magma::lte::oai::S11BearerContext* spgw_update_teid_in_ue_context(
 
   OAILOG_DEBUG(LOG_SPGW_APP,
                "Inserted spgw_context to list of S11BearerContext of UE "
-               "context for sgw_s11_teid" TEID_FMT,
+               "context for sgw_s11_teid " TEID_FMT,
                teid);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p->add_s11_bearer_context());
 }

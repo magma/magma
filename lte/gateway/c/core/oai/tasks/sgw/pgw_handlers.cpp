@@ -107,8 +107,8 @@ void handle_s5_create_session_request(
       new_bearer_ctxt_info_p->sgw_eps_bearer_context();
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, sgw_context.imsi64(),
-      "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
-      "EPS bearer id %u\n",
+      "Handle s5_create_session_request, for context sgw s11 teid " TEID_FMT
+      " EPS bearer id %u\n",
       context_teid, eps_bearer_id);
 
   imsi = sgw_context.imsi();
