@@ -135,7 +135,6 @@ py_library(
     ],
     deps = [
         "//lte/gateway/python/magma/pipelined:utils",
-        "//lte/gateway/python/magma/pipelined/app:dpi",
         "//lte/gateway/python/magma/pipelined/app:restart_mixin",
         "//lte/gateway/python/magma/pipelined/ng_manager:session_state_manager",
         "//lte/gateway/python/magma/pipelined/qos:types",
@@ -162,16 +161,6 @@ py_library(
 py_library(
     name = "ipfix",
     srcs = ["ipfix.py"],
-    deps = [":dpi"],
-)
-
-py_library(
-    name = "dpi",
-    srcs = ["dpi.py"],
-    deps = [
-        ":base",
-        "//lte/gateway/python/magma/pipelined/openflow:flows",
-    ],
 )
 
 py_library(

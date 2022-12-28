@@ -212,7 +212,7 @@ class RedirectTest(unittest.TestCase):
 
         # =========================== Verification ===========================
         # 1 packet sent, permit rules installed, learn action installed. Since
-        # the enforcement table is entered via the DPI table and the scratch
+        # the enforcement table is entered via the middle table and the scratch
         # enforcement table, the number of packets handled by the table is 2.
         flow_verifier = FlowVerifier(
             [
@@ -310,7 +310,7 @@ class RedirectTest(unittest.TestCase):
 
         # =========================== Verification ===========================
         # 1 packet sent, permit rules installed, learn action installed. Since
-        # the enforcement table is entered via the DPI table and the scratch
+        # the enforcement table is entered via the middle table and the scratch
         # enforcement table, the number of packets handled by the table is 2.
         flow_verifier = FlowVerifier(
             [

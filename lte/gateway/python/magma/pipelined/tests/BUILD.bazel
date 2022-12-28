@@ -220,26 +220,6 @@ pytest_test(
 )
 
 pytest_test(
-    name = "test_dpi",
-    size = "small",
-    srcs = ["test_dpi.py"],
-    imports = [
-        LTE_ROOT,
-        ORC8R_ROOT,
-    ],
-    tags = TAG_SUDO_TEST,
-    deps = [
-        ":pipelined_test_util",
-        "//lte/gateway/python/magma/pipelined:bridge_util",
-        "//lte/gateway/python/magma/pipelined:policy_converters",
-        "//lte/gateway/python/magma/pipelined/app:testing",
-        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
-        "//lte/protos:mconfigs_python_proto",
-        "//lte/protos:pipelined_python_proto",
-    ],
-)
-
-pytest_test(
     name = "test_ebpf_dl_dp",
     size = "small",
     srcs = ["test_ebpf_dl_dp.py"],
@@ -455,7 +435,6 @@ pytest_test(
     tags = TAG_SUDO_TEST,
     deps = [
         ":pipelined_test_util",
-        "//lte/gateway/python/magma/pipelined/app:dpi",
         "//lte/gateway/python/magma/pipelined/app:testing",
         "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
         "//lte/protos:mconfigs_python_proto",
@@ -712,7 +691,6 @@ pytest_test(
         "//lte/gateway/python/magma/pipelined:service_manager",
         "//lte/gateway/python/magma/pipelined/app:access_control",
         "//lte/gateway/python/magma/pipelined/app:arp",
-        "//lte/gateway/python/magma/pipelined/app:dpi",
         "//lte/gateway/python/magma/pipelined/app:enforcement",
         "//lte/gateway/python/magma/pipelined/app:gy",
         "//lte/gateway/python/magma/pipelined/app:he",

@@ -21,7 +21,6 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.access_control import AccessControlController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.base import ControllerType
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
@@ -42,7 +41,7 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock = MagicMock()
         magma_service_mock.mconfig = PipelineD()
         magma_service_mock.mconfig.services.extend(
-            [PipelineD.ENFORCEMENT, PipelineD.DPI],
+            [PipelineD.ENFORCEMENT],
         )
         magma_service_mock.config = {
             'static_services': ['arpd', 'access_control', 'ipfix', 'proxy'],
@@ -68,24 +67,20 @@ class ServiceManagerTest(unittest.TestCase):
             ), 3,
         )
         self.assertEqual(
-            self.service_manager.get_table_num(DPIController.APP_NAME),
+            self.service_manager.get_table_num(GYController.APP_NAME),
             11,
         )
         self.assertEqual(
-            self.service_manager.get_table_num(GYController.APP_NAME),
+            self.service_manager.get_table_num(EnforcementController.APP_NAME),
             12,
         )
         self.assertEqual(
-            self.service_manager.get_table_num(EnforcementController.APP_NAME),
+            self.service_manager.get_table_num(EnforcementStatsController.APP_NAME),
             13,
         )
         self.assertEqual(
-            self.service_manager.get_table_num(EnforcementStatsController.APP_NAME),
-            14,
-        )
-        self.assertEqual(
             self.service_manager.get_table_num(IPFIXController.APP_NAME),
-            15,
+            14,
         )
         self.assertEqual(
             self.service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
@@ -108,26 +103,22 @@ class ServiceManagerTest(unittest.TestCase):
             ), 10,
         )
         self.assertEqual(
-            self.service_manager.get_next_table_num(DPIController.APP_NAME),
-            12,
-        )
-        self.assertEqual(
             self.service_manager.get_next_table_num(
                 GYController.APP_NAME,
             ),
-            13,
+            12,
         )
         self.assertEqual(
             self.service_manager.get_next_table_num(
                 EnforcementController.APP_NAME,
             ),
-            14,
+            13,
         )
         self.assertEqual(
             self.service_manager.get_next_table_num(
                 EnforcementStatsController.APP_NAME,
             ),
-            15,
+            14,
         )
         self.assertEqual(
             self.service_manager.get_next_table_num(IPFIXController.APP_NAME),
@@ -144,11 +135,6 @@ class ServiceManagerTest(unittest.TestCase):
         self.assertTrue(
             self.service_manager.is_app_enabled(
                 EnforcementController.APP_NAME,
-            ),
-        )
-        self.assertTrue(
-            self.service_manager.is_app_enabled(
-                DPIController.APP_NAME,
             ),
         )
         self.assertTrue(
@@ -238,32 +224,26 @@ class ServiceManagerTest(unittest.TestCase):
             ),
             ('middle', Tables(main_table=10, scratch_tables=[], type=None)),
             (
-                'dpi', Tables(
+                'gy', Tables(
                     main_table=11, scratch_tables=[],
                     type=ControllerType.LOGICAL,
                 ),
             ),
             (
-                'gy', Tables(
-                    main_table=12, scratch_tables=[],
-                    type=ControllerType.LOGICAL,
-                ),
-            ),
-            (
                 'enforcement', Tables(
-                    main_table=13, scratch_tables=[21],
+                    main_table=12, scratch_tables=[21],
                     type=ControllerType.LOGICAL,
                 ),
             ),
             (
                 'enforcement_stats', Tables(
-                    main_table=14, scratch_tables=[22, 23],
+                    main_table=13, scratch_tables=[22, 23],
                     type=ControllerType.LOGICAL,
                 ),
             ),
             (
                 'ipfix', Tables(
-                    main_table=15, scratch_tables=[],
+                    main_table=14, scratch_tables=[],
                     type=ControllerType.LOGICAL,
                 ),
             ),

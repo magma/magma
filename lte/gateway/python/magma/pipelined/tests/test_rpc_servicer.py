@@ -41,7 +41,6 @@ class RPCServicerTest(unittest.TestCase):
         self._gy_app = MagicMock()
         self._enforcer_app = MagicMock()
         self._enforcement_stats = MagicMock()
-        self._dpi_app = MagicMock()
         self._ue_mac_app = MagicMock()
         self._check_quota_app = MagicMock()
         self._ipfix_app = MagicMock()
@@ -68,7 +67,6 @@ class RPCServicerTest(unittest.TestCase):
             self._gy_app,
             self._enforcer_app,
             self._enforcement_stats,
-            self._dpi_app,
             self._ue_mac_app,
             self._check_quota_app,
             self._ipfix_app,

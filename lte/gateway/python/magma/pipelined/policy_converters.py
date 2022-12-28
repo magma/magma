@@ -17,11 +17,7 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.ipv6_prefix_store import IPV6_PREFIX_LEN, get_ipv6_prefix
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import (
-    DPI_REG,
-    Direction,
-    load_direction,
-)
+from magma.pipelined.openflow.registers import Direction, load_direction
 from ryu.lib.packet import ether_types
 
 MATCH_ATTRIBUTES = [
@@ -114,8 +110,6 @@ def flow_match_to_magma_match(match, ip_addr=None):
                 elif attrib == 'ip_dst':
                     match_kwargs['ipv6_dst'] = decoded_ip
             continue
-        elif attrib == 'app_name':
-            attrib = DPI_REG
 
         match_kwargs[attrib] = value
 
@@ -157,7 +151,6 @@ def flow_match_to_actions(datapath, match):
         parser.OFPActionSetField(ipv4_src=getattr(match, 'ipv4_src', '1.1.1.1')),
         parser.OFPActionSetField(ipv4_dst=getattr(match, 'ipv4_dst', '1.2.3.4')),
         load_direction(parser, get_direction_for_match(match)),
-        parser.NXActionRegLoad2(dst=DPI_REG, value=getattr(match, 'app_id', 0)),
     ]
     if match.ip_proto == FlowMatch.IPPROTO_TCP:
         actions.extend([

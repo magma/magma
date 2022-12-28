@@ -178,7 +178,6 @@ def main():
         manager.applications.get('GYController', None),
         manager.applications.get('EnforcementController', None),
         manager.applications.get('EnforcementStatsController', None),
-        manager.applications.get('DPIController', None),
         manager.applications.get('UEMacAddressController', None),
         manager.applications.get('CheckQuotaController', None),
         manager.applications.get('IPFIXController', None),

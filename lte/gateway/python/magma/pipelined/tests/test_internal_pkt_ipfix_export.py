@@ -18,7 +18,6 @@ from concurrent.futures import Future
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import FlowRequest
 from lte.protos.policydb_pb2 import FlowMatch
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.start_pipelined import (
@@ -38,8 +37,6 @@ class InternalPktIpfixExportTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
-    DPI_PORT = 'mon1'
-    DPI_IP = '1.1.1.1'
 
     @classmethod
     def setUpClass(cls):
@@ -48,27 +45,21 @@ class InternalPktIpfixExportTest(unittest.TestCase):
 
         Create a testing bridge, add a port, setup the port interfaces. Then
         launch the ryu apps for testing pipelined. Gets the references
-        to apps launched by using futures, mocks the redis policy_dictionary
-        of dpi_controller
+        to apps launched by using futures
         """
         super(InternalPktIpfixExportTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls._static_rule_dict = {}
         cls.service_manager = create_service_manager(
-            [PipelineD.DPI], ['ue_mac', 'ipfix'],
-        )
-        cls._tbl_num = cls.service_manager.get_table_num(
-            DPIController.APP_NAME,
+            [], ['ue_mac', 'ipfix'],
         )
 
         ue_mac_controller_reference = Future()
-        dpi_controller_reference = Future()
         ipfix_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
                 PipelinedController.UEMac,
-                PipelinedController.DPI,
                 PipelinedController.IPFIX,
                 PipelinedController.Testing,
                 PipelinedController.StartupFlows,
@@ -76,8 +67,6 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             references={
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
-                PipelinedController.DPI:
-                    dpi_controller_reference,
                 PipelinedController.Arp:
                     Future(),
                 PipelinedController.IPFIX:
@@ -96,12 +85,6 @@ class InternalPktIpfixExportTest(unittest.TestCase):
                 'enable_queue_pgm': False,
                 'clean_restart': True,
                 'setup_type': 'CWF',
-                'dpi': {
-                    'enabled': True,
-                    'mon_port': 'mon1',
-                    'mon_port_number': 32769,
-                    'idle_timeout': 42,
-                },
                 'ipfix': {
                     'enabled': True,
                     'probability': 65,
@@ -124,19 +107,12 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(
-            cls.BRIDGE, cls.DPI_PORT,
-            cls.DPI_IP,
-        )
 
         cls.thread = start_ryu_app_thread(test_setup)
 
         cls.ue_mac_controller = ue_mac_controller_reference.result()
-        cls.dpi_controller = dpi_controller_reference.result()
         cls.ipfix_controller = ipfix_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
-
-        cls.dpi_controller._policy_dict = cls._static_rule_dict
 
     @classmethod
     def tearDownClass(cls):
@@ -145,7 +121,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
 
     def test_subscriber_policy(self):
         """
-        Classify DPI flow, verify internal packet is generated
+        Verify internal packet is generated
 
         Assert:
             snapshots math
@@ -160,10 +136,6 @@ class InternalPktIpfixExportTest(unittest.TestCase):
             ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.1'),
             ip_src=convert_ipv4_str_to_ip_proto('1.2.3.0'),
             tcp_dst=80, tcp_src=51115, direction=FlowMatch.UPLINK,
-        )
-        self.dpi_controller.add_classify_flow(
-            flow_match, FlowRequest.FLOW_FINAL_CLASSIFICATION,
-            'base.ip.http.facebook', 'tbd',
         )
         self.ipfix_controller.add_ue_sample_flow(
             imsi, "magma_is_awesome_msisdn",

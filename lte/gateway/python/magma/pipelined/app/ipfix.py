@@ -15,7 +15,6 @@ from typing import Dict, NamedTuple
 
 from magma.common.sentry import EXCLUDE_FROM_ERROR_MONITORING
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -55,15 +54,13 @@ class IPFIXController(MagmaController):
         self._app_set_tbl_num = self._service_manager.INTERNAL_APP_SET_TABLE_NUM
         self._imsi_set_tbl_num = \
             self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
-        self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._bridge_name = kwargs['config']['bridge_name']
         self._conntrackd_enabled = kwargs['config']['conntrackd']['enabled']
         self.ipfix_config = self._get_ipfix_config(
             kwargs['config'],
             kwargs['mconfig'],
         )
-        # If DPI enabled don't sample normal traffic, sample only internal pkts
-        if self._dpi_enabled or self._conntrackd_enabled:
+        if self._conntrackd_enabled:
             self._ipfix_sample_tbl_num = \
                 self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
         else:
@@ -106,7 +103,7 @@ class IPFIXController(MagmaController):
                 sampling_port=0,
             )
 
-        if self._dpi_enabled or self._conntrackd_enabled:
+        if self._conntrackd_enabled:
             probability = 65535
         else:
             probability = config_dict['ipfix']['probability']
@@ -200,12 +197,11 @@ class IPFIXController(MagmaController):
             resubmit_table=self.next_main_table,
         )
 
-        if not self._service_manager.is_app_enabled(DPIController.APP_NAME):
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num, MagmaMatch(),
-                priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
-                resubmit_table=self._imsi_set_tbl_num,
-            )
+        flows.add_resubmit_next_service_flow(
+            self._datapath, self._app_set_tbl_num, MagmaMatch(),
+            priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
+            resubmit_table=self._imsi_set_tbl_num,
+        )
 
         flows.add_resubmit_next_service_flow(
             self._datapath, self._imsi_set_tbl_num, MagmaMatch(),
@@ -213,7 +209,7 @@ class IPFIXController(MagmaController):
             resubmit_table=self._ipfix_sample_tbl_num,
         )
 
-        if self.ipfix_config.enabled and (self._dpi_enabled or self._conntrackd_enabled):
+        if self.ipfix_config.enabled and self._conntrackd_enabled:
             pdp = 1
             actions = [
                 parser.NXActionSample2(
@@ -281,7 +277,7 @@ class IPFIXController(MagmaController):
         ]
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
-        if self._dpi_enabled or self._conntrackd_enabled:
+        if self._conntrackd_enabled:
             flows.add_drop_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
                 priority=flows.UE_FLOW_PRIORITY,

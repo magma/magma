@@ -21,7 +21,6 @@ from lte.protos.pipelined_pb2 import (
     RuleModResult,
 )
 from lte.protos.policydb_pb2 import PolicyRule
-from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.messages import MsgChannel
@@ -158,7 +157,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
     def _get_classify_rule_flow_msgs(
         self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
-        priority, qos, hard_timeout, rule_id, app_name,
+        priority, qos, hard_timeout, rule_id,
         app_service_type, next_table, version, qos_mgr,
         copy_table, _, urls: List[str] = None, local_f_teid_ng: int = 0,
     ):
@@ -175,34 +174,6 @@ class PolicyMixin(metaclass=ABCMeta):
             local_f_teid_ng,
         )
         msgs = []
-        if app_name:
-            # We have to allow initial traffic to pass through, before it gets
-            # classified by DPI, flow match set app_id to unclassified
-            flow_match.app_id = UNCLASSIFIED_PROTO_ID
-            passthrough_actions = flow_match_actions + \
-                [
-                    parser.NXActionRegLoad2(
-                        dst=SCRATCH_REGS[1],
-                        value=IGNORE_STATS,
-                    ),
-                ]
-            msgs.append(
-                flows.get_add_resubmit_current_service_flow_msg(
-                    self._datapath,
-                    self.tbl_num,
-                    flow_match,
-                    passthrough_actions,
-                    hard_timeout=hard_timeout,
-                    priority=Utils.UNCLASSIFIED_ALLOW_PRIORITY,
-                    cookie=rule_num,
-                    copy_table=copy_table,
-                    resubmit_table=next_table,
-                ),
-            )
-            flow_match.app_id = get_app_id(
-                PolicyRule.AppName.Name(app_name),
-                PolicyRule.AppServiceType.Name(app_service_type),
-            )
 
         # For DROP flow just send to stats table, it'll get dropped there
         if flow.action == flow.DENY:

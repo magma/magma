@@ -309,8 +309,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
                 flow_adds.extend(
                     self._get_classify_rule_flow_msgs(
                         imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
-                        rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                        rule.app_service_type, self.next_service_table,
+                        rule.qos, rule.hard_timeout, rule.id, rule.app_service_type, self.next_service_table,
                         version, self._qos_mgr, self._enforcement_stats_tbl, shard_id, local_f_teid_ng,
                     ),
                 )

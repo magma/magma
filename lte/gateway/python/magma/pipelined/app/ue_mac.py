@@ -66,8 +66,6 @@ class UEMacAddressController(MagmaController):
         if 'li_local_iface' in kwargs['config']:
             self._li_port = \
                 BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
-        self._dpi_port = \
-            BridgeTools.get_ofport(kwargs['config']['dpi']['mon_port'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -408,13 +406,6 @@ class UEMacAddressController(MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             tbl_num=self._passthrough_set_tbl,
         )
-
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            self._add_resubmit_flow(
-                None, MagmaMatch(in_port=self._dpi_port),
-                priority=flows.PASSTHROUGH_PRIORITY,
-                next_table=self._app_set_tbl_num,
-            )
 
         if self._li_port:
             match = MagmaMatch(in_port=self._li_port)

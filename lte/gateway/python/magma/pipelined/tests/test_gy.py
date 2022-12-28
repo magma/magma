@@ -116,7 +116,6 @@ class GYTableTest(unittest.TestCase):
                 'enable_queue_pgm': False,
                 'local_ue_eth_addr': False,
                 'qos': {'enable': False},
-                'dpi': {'enable': False},
                 'clean_restart': True,
                 'redis_enabled': False,
             },

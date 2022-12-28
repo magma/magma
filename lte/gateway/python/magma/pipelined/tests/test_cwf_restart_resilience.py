@@ -41,8 +41,6 @@ class CWFRestartResilienceTest(unittest.TestCase):
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP_ADDRESS = '192.168.128.1'
     UE_BLOCK = '192.168.128.0/24'
-    DPI_PORT = 'mon1'
-    DPI_IP = '1.1.1.1'
 
     @classmethod
     @unittest.mock.patch(
@@ -103,12 +101,6 @@ class CWFRestartResilienceTest(unittest.TestCase):
                 'clean_restart': False,
                 'quota_check_ip': '1.2.3.4',
                 'enable_nat': False,
-                'dpi': {
-                    'enabled': False,
-                    'mon_port': 'mon1',
-                    'mon_port_number': 32769,
-                    'idle_timeout': 42,
-                },
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,
@@ -119,10 +111,6 @@ class CWFRestartResilienceTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
-        BridgeTools.create_internal_iface(
-            cls.BRIDGE, cls.DPI_PORT,
-            cls.DPI_IP,
-        )
 
         cls.thread = start_ryu_app_thread(test_setup)
 

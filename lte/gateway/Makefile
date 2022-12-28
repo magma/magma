@@ -118,6 +118,6 @@ build_envoy_controller: ## Build envoy controller
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
 # Catch all for c service tests
-# This works with test_dpi and test_session_manager
+# This works with test_session_manager
 test_%: build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
