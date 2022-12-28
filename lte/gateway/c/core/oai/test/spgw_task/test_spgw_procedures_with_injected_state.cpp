@@ -182,9 +182,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 };
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
@@ -258,10 +260,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
@@ -290,9 +293,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
   status_code_e return_code = RETURNerror;
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   // verify that exactly one session exists in SPGW state
   ASSERT_TRUE(is_num_ue_contexts_valid(name_of_ue_samples.size()));
@@ -325,9 +330,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
@@ -406,9 +413,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
@@ -520,9 +529,11 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   spgw_state_t* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 

@@ -76,4 +76,4 @@ void sgw_free_s11_bearer_context_information(void** ptr);
  * state_ue_map
  * @param pointer to an object of spgw_ue_context_t
  */
-void sgw_free_ue_context(void** ptr);
+void sgw_s8_free_ue_context(void** ptr);

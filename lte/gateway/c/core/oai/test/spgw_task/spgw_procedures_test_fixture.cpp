@@ -104,13 +104,15 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
   EXPECT_EQ(return_code, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
   EXPECT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
-  EXPECT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  EXPECT_TRUE((ue_context_p->s11_bearer_context_size() > 0));
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   // Verify that no IP address is allocated for this UE
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =

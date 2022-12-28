@@ -61,8 +61,8 @@ static void convert_proto_msg_to_itti_create_bearer_req(
     get_qos_from_proto_msg(request->bearer_context().qos(), &s8_bc->qos);
   }
   if (request->bearer_context().has_tft()) {
-    magma::lte::SpgwStateConverter::proto_to_traffic_flow_template(
-        request->bearer_context().tft(), &s8_bc->tft);
+    proto_to_traffic_flow_template(request->bearer_context().tft(),
+                                   &s8_bc->tft);
   }
   get_fteid_from_proto_msg(request->bearer_context().user_plane_fteid(),
                            &s8_bc->pgw_s8_up);

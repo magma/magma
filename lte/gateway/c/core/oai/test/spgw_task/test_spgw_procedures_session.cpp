@@ -66,20 +66,22 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   ASSERT_EQ(create_session_rc, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
   ASSERT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  ASSERT_TRUE((ue_context_p->s11_bearer_context_size() > 0));
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   // Verify that no IP address is allocated for this UE
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
-  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+  sgw_cm_get_eps_bearer_entry(
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
           ->mutable_pdn_connection(),
       DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
@@ -117,13 +119,15 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   ASSERT_EQ(create_session_rc, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_get_ue_context(test_imsi64);
   ASSERT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
-  ASSERT_FALSE(LIST_EMPTY(&ue_context_p->sgw_s11_teid_list));
-  teid_t ue_sgw_teid =
-      LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
+  ASSERT_TRUE((ue_context_p->s11_bearer_context_size() > 0));
+  teid_t ue_sgw_teid = ue_context_p->s11_bearer_context(0)
+                           .sgw_eps_bearer_context()
+                           .sgw_teid_s11_s4();
 
   // Verify that no IP address is allocated for this UE
   magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =

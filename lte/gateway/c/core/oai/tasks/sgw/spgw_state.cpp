@@ -64,10 +64,10 @@ void put_spgw_state() { SpgwStateManager::getInstance().write_state_to_db(); }
 
 void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
-    spgw_ue_context_t* ue_context_p = nullptr;
+    magma::lte::oai::SpgwUeContext* ue_context_p = nullptr;
     map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
     if (!spgw_ue_state) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+      OAILOG_ERROR(LOG_SPGW_APP, "spgw_ue_state is nullptr");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
     spgw_ue_state->get(imsi64, &ue_context_p);
@@ -185,6 +185,25 @@ void sgw_remove_eps_bearer_context(
 }
 
 void sgw_free_ue_context(void** ptr) {
+  if (!ptr) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "sgw_free_ue_context received invalid pointer for deletion");
+    return;
+  }
+
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      reinterpret_cast<magma::lte::oai::SpgwUeContext*>(*ptr);
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "sgw_free_ue_context received invalid pointer for deletion");
+    return;
+  }
+  ue_context_p->Clear();
+  free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+  return;
+}
+
+void sgw_s8_free_ue_context(void** ptr) {
   if (!ptr) {
     OAILOG_ERROR(LOG_SPGW_APP,
                  "sgw_free_ue_context received invalid pointer for deletion");

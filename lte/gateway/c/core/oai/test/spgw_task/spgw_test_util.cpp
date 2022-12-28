@@ -43,16 +43,16 @@ bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
 }
 
 bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
+  magma::lte::oai::SpgwUeContext* ue_context_p = spgw_get_ue_context(imsi64);
 
   if (!ue_context_p) return expected_num_teids == 0;
 
   int num_teids = 0;
-  sgw_s11_teid_t* s11_teid_p = nullptr;
 
-  LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-    if (s11_teid_p &&
-        (sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid) != nullptr)) {
+  for (uint8_t idx = 0; idx < ue_context_p->s11_bearer_context_size(); idx++) {
+    if (ue_context_p->s11_bearer_context(idx)
+            .sgw_eps_bearer_context()
+            .sgw_teid_s11_s4() != 0) {
       num_teids++;
     }
   }

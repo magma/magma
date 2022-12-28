@@ -158,17 +158,9 @@ status_code_e sgw_handle_s11_create_session_request(
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
-  if (spgw_update_teid_in_ue_context(imsi64, new_endpoint_p->local_teid) ==
-      RETURNerror) {
-    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                    "Failed to update sgw_s11_teid" TEID_FMT
-                    " in UE context \n",
-                    new_endpoint_p->local_teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
       sgw_cm_create_bearer_context_information_in_collection(
-          new_endpoint_p->local_teid);
+          imsi64, new_endpoint_p->local_teid);
   if (s_plus_p_gw_eps_bearer_ctxt_info_p) {
     /*
      * We try to create endpoint for S11 interface. A NULL endpoint means that
@@ -1298,7 +1290,7 @@ void sgw_handle_release_access_bearers_request(
   OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
                   "Release Access Bearer Request Received in SGW\n");
 
-  spgw_ue_context_t* ue_context_p = nullptr;
+  magma::lte::oai::SpgwUeContext* ue_context_p = nullptr;
   gtpv2c_cause_value_t cause = CONTEXT_NOT_FOUND;
   magma::lte::oai::S11BearerContext* ctx_p = nullptr;
 
@@ -1310,15 +1302,20 @@ void sgw_handle_release_access_bearers_request(
   state_ue_map->get(imsi64, &ue_context_p);
 
   if (ue_context_p) {
-    sgw_s11_teid_t* s11_teid_p = nullptr;
-    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-      if (s11_teid_p) {
-        ctx_p = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
-        if (ctx_p) {
-          sgw_process_release_access_bearer_request(
-              LOG_SPGW_APP, imsi64, ctx_p->mutable_sgw_eps_bearer_context());
-          cause = REQUEST_ACCEPTED;
-        }
+    for (auto idx = 0; idx < ue_context_p->s11_bearer_context_size(); idx++) {
+      ctx_p = ue_context_p->mutable_s11_bearer_context(idx);
+      magma::lte::oai::S11BearerContext* check_ctx_p = nullptr;
+      check_ctx_p = sgw_cm_get_spgw_context(
+          ctx_p->sgw_eps_bearer_context().sgw_teid_s11_s4());
+      if (ctx_p == check_ctx_p) {
+        sgw_process_release_access_bearer_request(
+            LOG_SPGW_APP, imsi64, ctx_p->mutable_sgw_eps_bearer_context());
+        cause = REQUEST_ACCEPTED;
+      } else {
+        OAILOG_DEBUG_UE(
+            LOG_SPGW_APP, imsi64,
+            "S11BearerContext doesn't match state teid map for teid" TEID_FMT,
+            ctx_p->sgw_eps_bearer_context().sgw_teid_s11_s4());
       }
     }
   }

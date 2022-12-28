@@ -40,7 +40,7 @@ namespace lte {
  * freeing state structs, and writing / reading state to db.
  */
 class SpgwStateManager
-    : public StateManager<spgw_state_t, spgw_ue_context_t, oai::SpgwState,
+    : public StateManager<spgw_state_t, oai::SpgwUeContext, oai::SpgwState,
                           oai::SpgwUeContext, SpgwStateConverter> {
  public:
   /**
@@ -73,6 +73,8 @@ class SpgwStateManager
 
   state_teid_map_t* get_state_teid_map();
   map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
+  void write_ue_state_to_db(const oai::SpgwUeContext* ue_context,
+                            const std::string& imsi_str) override;
 
  private:
   SpgwStateManager();
@@ -87,6 +89,10 @@ class SpgwStateManager
   state_teid_map_t state_teid_map;
   const spgw_config_t* config_;
   map_uint64_spgw_ue_context_t state_ue_map;
+  std::unordered_map<std::string, uint64_t> ue_state_version;
+  // Last written hash values for task and ue context
+  std::size_t task_state_hash;
+  std::unordered_map<std::string, std::size_t> ue_state_hash;
 };
 
 }  // namespace lte

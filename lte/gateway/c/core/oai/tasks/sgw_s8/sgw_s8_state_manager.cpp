@@ -77,7 +77,7 @@ void SgwStateManager::create_state() {
   state_cache_p->imsi_ue_context_map.map =
       new google::protobuf::Map<uint64_t, struct spgw_ue_context_s*>();
   state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP_NAME);
-  state_cache_p->imsi_ue_context_map.bind_callback(sgw_free_ue_context);
+  state_cache_p->imsi_ue_context_map.bind_callback(sgw_s8_free_ue_context);
 
   state_cache_p->temporary_create_session_procedure_id_map.map =
       new google::protobuf::Map<uint32_t,

@@ -92,8 +92,8 @@ typedef struct spgw_ue_context_s {
   LIST_HEAD(teid_list_head_s, sgw_s11_teid_s) sgw_s11_teid_list;
 } spgw_ue_context_t;
 
-// Map- Key:imsi of uint64_t, Data:spgw_ue_context_s*
-typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
+// Map- Key:imsi of uint64_t, Data:magma::lte::oai::SpgwUeContext*
+typedef magma::proto_map_s<uint64_t, magma::lte::oai::SpgwUeContext*>
     map_uint64_spgw_ue_context_t;
 
 // Map- Key: eps_bearer_id(uint32), Data: SgwEpsBearerContext

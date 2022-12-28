@@ -168,10 +168,18 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
 
 //-----------------------------------------------------------------------------
 magma::lte::oai::S11BearerContext*
-sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
+sgw_cm_create_bearer_context_information_in_collection(imsi64_t imsi64,
+                                                       teid_t teid) {
   magma::lte::oai::S11BearerContext* new_bearer_context_information =
-      new magma::lte::oai::S11BearerContext();
+      spgw_update_teid_in_ue_context(imsi64, teid);
 
+  if (!new_bearer_context_information) {
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                    "Failed to create new s_plus_pgw_context in ue context for "
+                    "teid " TEID_FMT,
+                    teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
+  }
   /*
    * Trying to insert the new tunnel into the map.
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
@@ -203,7 +211,7 @@ magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
                     "Failed to free teid from state_teid_map \n");
     return magma::PROTO_MAP_REMOVE_KEY_FAILED;
   }
-  spgw_ue_context_t* ue_context_p = nullptr;
+  magma::lte::oai::SpgwUeContext* ue_context_p = nullptr;
   map_uint64_spgw_ue_context_t* spgw_ue_state = get_spgw_ue_state();
   if (!spgw_ue_state) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "Failed to find spgw_ue_state");
@@ -211,16 +219,15 @@ magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
   }
   spgw_ue_state->get(imsi64, &ue_context_p);
   if (ue_context_p) {
-    sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
-    while (p1) {
-      if (p1->sgw_s11_teid == teid) {
-        LIST_REMOVE(p1, entries);
-        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
+    for (auto itr = ue_context_p->s11_bearer_context().begin();
+         itr != ue_context_p->s11_bearer_context().end(); itr++) {
+      magma::lte::oai::S11BearerContext spgw_context = *itr;
+      if (spgw_context.sgw_eps_bearer_context().sgw_teid_s11_s4() == teid) {
+        ue_context_p->mutable_s11_bearer_context()->erase(itr);
         break;
       }
-      p1 = LIST_NEXT(p1, entries);
     }
-    if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
+    if (ue_context_p->s11_bearer_context_size() == 0) {
       if (spgw_ue_state->remove(imsi64) != magma::PROTO_MAP_OK) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                         "Failed to free imsi64 from imsi_ue_context_map \n");
@@ -336,31 +343,30 @@ magma::proto_map_rc_t sgw_update_eps_bearer_entry(
   return (eps_bearer_map.update_val(ebi, bearer_context_p));
 }
 
-spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64) {
+magma::lte::oai::SpgwUeContext* spgw_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p = nullptr;
+  magma::lte::oai::SpgwUeContext* ue_context_p = nullptr;
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find state_ue_map");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
   }
   state_ue_map->get(imsi64, &ue_context_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
-spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
+magma::lte::oai::SpgwUeContext* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p = nullptr;
+  magma::lte::oai::SpgwUeContext* ue_context_p = nullptr;
   map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
   if (!state_ue_map) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find spgw_ue_state");
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to find state_ue_map");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
   }
   state_ue_map->get(imsi64, &ue_context_p);
   if (!ue_context_p) {
-    ue_context_p = new spgw_ue_context_t();
+    ue_context_p = new magma::lte::oai::SpgwUeContext();
     if (ue_context_p) {
-      LIST_INIT(&ue_context_p->sgw_s11_teid_list);
       state_ue_map->insert(imsi64, ue_context_p);
     } else {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
@@ -370,22 +376,21 @@ spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
-status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
+magma::lte::oai::S11BearerContext* spgw_update_teid_in_ue_context(
+    imsi64_t imsi64, teid_t teid) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p = spgw_create_or_get_ue_context(imsi64);
+  magma::lte::oai::SpgwUeContext* ue_context_p =
+      spgw_create_or_get_ue_context(imsi64);
   if (!ue_context_p) {
     OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                     "Failed to get UE context for sgw_s11_teid " TEID_FMT "\n",
                     teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, nullptr);
   }
 
-  sgw_s11_teid_t* sgw_s11_teid_p = new sgw_s11_teid_t();
-  sgw_s11_teid_p->sgw_s11_teid = teid;
-  LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
   OAILOG_DEBUG(LOG_SPGW_APP,
-               "Inserted sgw_s11_teid to list of teids of UE context" TEID_FMT
-               "\n",
+               "Inserted spgw_context to list of S11BearerContext of UE "
+               "context for sgw_s11_teid" TEID_FMT,
                teid);
-  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p->add_s11_bearer_context());
 }

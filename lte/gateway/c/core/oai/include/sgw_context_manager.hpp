@@ -57,7 +57,8 @@ sgw_eps_bearer_ctxt_t* sgw_s8_cm_get_eps_bearer_entry(
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid);
 magma::lte::oai::S11BearerContext*
-sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
+sgw_cm_create_bearer_context_information_in_collection(imsi64_t imsi64,
+                                                       teid_t teid);
 magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
                                                                imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
@@ -69,10 +70,11 @@ magma::proto_map_rc_t sgw_cm_insert_eps_bearer_ctxt_in_collection(
 
 // Returns SPGW state pointer for given UE indexed by IMSI
 magma::lte::oai::S11BearerContext* sgw_cm_get_spgw_context(teid_t teid);
-spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
-spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
+magma::lte::oai::SpgwUeContext* spgw_get_ue_context(imsi64_t imsi64);
+magma::lte::oai::SpgwUeContext* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
-status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
+magma::lte::oai::S11BearerContext* spgw_update_teid_in_ue_context(
+    imsi64_t imsi64, teid_t teid);
 
 magma::proto_map_rc_t sgw_cm_get_eps_bearer_entry(
     magma::lte::oai::SgwPdnConnection* const sgw_pdn_connection, ebi_t ebi,

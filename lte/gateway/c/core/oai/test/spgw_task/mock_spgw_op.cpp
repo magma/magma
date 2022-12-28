@@ -45,6 +45,11 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 // samples
 status_code_e mock_read_spgw_ue_state_db(
     const std::vector<std::string>& ue_samples) {
+  state_teid_map_t* state_teid_map = get_spgw_teid_state();
+  if (!state_teid_map) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_map");
+    return RETURNerror;
+  }
   for (const auto& name_of_sample_file : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     std::fstream input(name_of_sample_file.c_str(),
@@ -55,8 +60,23 @@ status_code_e mock_read_spgw_ue_state_db(
       return RETURNerror;
     }
 
-    spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
-    SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
+    oai::SpgwUeContext* ue_context_p = new magma::lte::oai::SpgwUeContext();
+    ue_context_p->MergeFrom(ue_proto);
+    map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+    if (!state_ue_map) {
+      std::cout << "Failed to find spgw_ue_state" << std::endl;
+      return RETURNerror;
+    }
+    state_ue_map->insert(
+        ue_context_p->s11_bearer_context(0).sgw_eps_bearer_context().imsi64(),
+        ue_context_p);
+    for (uint8_t idx = 0; idx < ue_context_p->s11_bearer_context_size();
+         idx++) {
+      state_teid_map->insert(ue_context_p->s11_bearer_context(idx)
+                                 .sgw_eps_bearer_context()
+                                 .sgw_teid_s11_s4(),
+                             ue_context_p->mutable_s11_bearer_context(idx));
+    }
   }
   return RETURNok;
 }
