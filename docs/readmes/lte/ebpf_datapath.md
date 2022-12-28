@@ -49,7 +49,6 @@ BPF is an efficient virtual machine-like construct in the Linux kernel allowing 
     - Provide general purpose data structures to map datapath state to 3GPP session
     - This would allow us to make improvements to datapath without changing 3GPP code
 - Allow service chaining, Today AGW has support for following services
-    - DPI
     - Mirroring
     - Header enrichment
     - NAT
