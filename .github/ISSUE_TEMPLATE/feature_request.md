@@ -12,7 +12,7 @@ assignees: ''
 - **Version:**
 - **Affected Component:** Orchestrator, Access Gateway, or NMS
 - **Affected Subcomponent:** Orchestrator pod/service or AGW service
-- **Deployment Environment:** e.g. AWS (orc8r), local docker-compose (orc8r), bare-metal (AGW), Vagrant (AGW)
+- **Deployment Environment:** e.g. AWS (orc8r), local docker compose (orc8r), bare-metal (AGW), Vagrant (AGW)
 
 ### Describe the problem
 
