@@ -94,7 +94,7 @@ jobs:
             gzip -d $IMAGES
           done
           mkdir -p /tmp/cwf-images
-          cp cwf-*.tar /tmp/cwf-images
+          cp cwf_*.tar /tmp/cwf-images
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
