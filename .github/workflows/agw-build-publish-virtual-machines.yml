@@ -1,0 +1,67 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: AGW Build, Publish & Release Virtual Machines
+
+on:
+  workflow_dispatch:
+    inputs:
+      vm_name:
+        type: choice
+        options:
+          - dev
+          - test
+          - trfserver
+        description: Name of the AGW virtual machine.
+        required: true
+      VAGRANT_CLOUD_TOKEN:
+        # It may also be possible to test / use the checked-in
+        # `secrets.VAGRANT_TOKEN`. This would require appropriate user
+        # restriction to execute this workflow and access to the secret.
+        type: string
+        description: Access token to magmacore's vagrant cloud account.
+        required: true
+
+
+jobs:
+  build-publish-vm:
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@ae6b3ed3bec089bbfb576ab7d714df7cbc4b88a4 # pin@v2.0.0
+        id: setup
+        with:
+          version: "latest"
+
+      - name: Mask Token
+        id: mask
+        run: |
+          TOKEN=$(cat $GITHUB_EVENT_PATH | jq -r ".inputs.VAGRANT_CLOUD_TOKEN" )
+          echo "::add-mask::$TOKEN"
+          echo "VAGRANT_TOKEN=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Pack virtual machine
+        id: pack
+        env:
+          VM_NAME: ${{ inputs.vm_name }}
+        working-directory: orc8r/tools/packer
+        run: "packer build magma-${{ env.VM_NAME }}-virtualbox.json"
+        shell: bash
+
+      - name: Upload virtual machine
+        id: upload
+        env:
+          VM_NAME: ${{ inputs.vm_name }}
+          VAGRANT_CLOUD_TOKEN: ${{ steps.mask.outputs.VAGRANT_TOKEN }}
+        working-directory: orc8r/tools/packer
+        run: ./vagrant-box-upload.sh builds/magma_${{ env.VM_NAME }}_virtualbox.box -f
