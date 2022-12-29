@@ -212,7 +212,7 @@ def get_gateway_hardware_id_from_docker(location_docker_compose: str) -> str:
     with lcd('docker'), hide('output', 'running', 'warnings'), \
             cd(location_docker_compose):
         hardware_id = local(
-            'docker-compose exec magmad bash -c "cat /etc/snowflake"',
+            'docker compose exec magmad bash -c "cat /etc/snowflake"',
             capture=True,
         )
     return str(hardware_id)
@@ -243,7 +243,7 @@ def delete_gateway_certs_from_docker(location_docker_compose: str):
 
     subprocess.check_call(
         [
-            'docker-compose exec magmad bash -c '
+            'docker compose exec magmad bash -c '
             '"rm -f /var/opt/magma/certs/gateway.*"',
         ],
         shell=True,
@@ -252,7 +252,7 @@ def delete_gateway_certs_from_docker(location_docker_compose: str):
 
     subprocess.check_call(
         [
-            'docker-compose exec magmad bash -c '
+            'docker compose exec magmad bash -c '
             '"rm -f /var/opt/magma/certs/gw_challenge.key    "',
         ],
         shell=True,

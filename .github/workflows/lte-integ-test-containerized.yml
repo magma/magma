@@ -72,8 +72,8 @@ jobs:
       - name: Write image digest to docker-compose.yaml
         working-directory: lte/gateway/docker
         run: |
-          sed -i '' "s#image:.*agw_gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c@${{ inputs.digest_c }}#" docker-compose.yaml
-          sed -i '' "s#image:.*agw_gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python@${{ inputs.digest_python }}#" docker-compose.yaml
+          sed -i '' "s#image:.*gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c@${{ inputs.digest_c }}#" docker-compose.yaml
+          sed -i '' "s#image:.*gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python@${{ inputs.digest_python }}#" docker-compose.yaml
           sed -i '' "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go@${{ inputs.digest_go }}#" docker-compose.yaml
       - name: Show docker-compose yaml to verify correct docker images hashes
         run: cat lte/gateway/docker/docker-compose.yaml
