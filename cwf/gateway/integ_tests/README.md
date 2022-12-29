@@ -74,8 +74,8 @@ to only run Gx tests. See the fabfile for more options.
 ## Debugging on `cwag-dev` VM
 
 - To see the list of running services, run `docker ps` in the `cwag-dev` VM.
-- To see per-service logs, run `docker-compose logs <container_name>`
-- To go into a running container, run `docker-compose exec <container_name> bash`
+- To see per-service logs, run `docker compose logs <container_name>`
+- To go into a running container, run `docker compose exec <container_name> bash`
 - `/usr/local/bin/pipelined_cli.py` in pipelined service maybe useful for
 viewing installed flows for debugging.
 
@@ -88,8 +88,8 @@ Before committing, please make sure you run the commands below to test and forma
 - If you touch anything in `magma/feg/gateway`, run `make precommit` inside
 the FeG test container.
     - `cd magma/feg/gateway/docker`
-    - `docker-compose up -d test`
-    - `docker-compose exec test /bin/bash`
+    - `docker compose up -d test`
+    - `docker compose exec test /bin/bash`
     - `make precommit`
 - If you touch anything in `magma/.../cloud/go`, please run the
 orc8r precommit.
