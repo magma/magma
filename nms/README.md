@@ -45,7 +45,7 @@ Triggering unit tests, e2e tests, eslint, and TypeScript checks is done from thi
 Run the following command from [`nms/`](../nms/)
 
 ```
-COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
 ```
 
 ### Run NMS Containers
@@ -53,7 +53,7 @@ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
 Run the following command from [`nms/`](../nms/)
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 ---
@@ -70,8 +70,8 @@ This should correspond to a recent pull of the `main`/`master` branch from Githu
 Here are some example logs from the Magma NMS `magmalte` container from a successful startup:
 
 ```
-➜  magmalte git:(1-9-nms-orgs-fix) docker-compose logs -f magmalte
-Attaching to magmalte_magmalte_1
+➜  magmalte git:(1-9-nms-orgs-fix) docker compose logs -f magmalte
+Attaching to magmalte-magmalte_1
 magmalte_1     | wait-for-it.sh: waiting 30 seconds for postgres:5432
 magmalte_1     | wait-for-it.sh: postgres:5432 is available after 0 seconds
 magmalte_1     | yarn run v1.22.4
@@ -110,7 +110,7 @@ magmalte_1     | 2021-09-11T22:16:12.511Z [express-middleware/webpackSmartMiddle
 Run the following from [`nms/`](../nms/)
 
 ```
-docker-compose logs -f magmalte
+docker compose logs -f magmalte
 ```
 
 Depending on the issues you run into, you may need to check the logs of other containers, both NMS and Orc8r related.
@@ -231,7 +231,7 @@ When you deploy the NMS for the first time, you'll need to create a user that ha
 Run the following command from [`nms/`](../nms/) and make sure to substitute `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` with your desired email and password.
 
 ```
-docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+docker compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 Access the `host` (http://host.localhost:8081/host) portal to create your first organization.
