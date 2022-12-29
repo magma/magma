@@ -199,8 +199,8 @@ def build_feg():
     vagrant_setup('magma', destroy_vm=False)
 
     with cd(feg_docker_integ_test_path_vagrant):
-        run('docker-compose down')
-        run('docker-compose build')
+        run('docker compose down')
+        run('docker compose build')
         run('./run.py')
 
 
@@ -210,11 +210,11 @@ def _build_feg_on_host():
     """
     print('#### Building FEG ####')
     subprocess.check_call(
-        'docker-compose down', shell=True,
+        'docker compose down', shell=True,
         cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
-        'docker-compose build', shell=True,
+        'docker compose build', shell=True,
         cwd=feg_docker_integ_test_path,
     )
     subprocess.check_call(
@@ -248,7 +248,7 @@ def stop_feg():
     """
     vagrant_setup('magma', destroy_vm=False)
     with cd(feg_docker_integ_test_path_vagrant):
-        run('docker-compose down')
+        run('docker compose down')
 
 
 def _stop_feg_on_host():
@@ -256,7 +256,7 @@ def _stop_feg_on_host():
     stop FEG locally on Docker
     """
     subprocess.check_call(
-        'docker-compose down', shell=True,
+        'docker compose down', shell=True,
         cwd=feg_docker_integ_test_path,
     )
 
@@ -318,7 +318,7 @@ def test_connectivity(timeout=10):
     vagrant_setup('magma', destroy_vm=False)
     with cd(feg_docker_integ_test_path_vagrant):
         dev_utils.run_remote_command_with_repetition(
-            'docker-compose exec magmad checkin_cli.py', timeout,
+            'docker compose exec magmad checkin_cli.py', timeout,
         )
 
     # check AGW-FEG connectivity
