@@ -32,12 +32,12 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save cwf-gateway_sessiond:latest | gzip > cwf_gateway_sessiond.tar.gz
-          docker save cwf-nginx:latest  | gzip > cwf_nginx.tar.gz
-          docker save cwf-gateway_python:latest | gzip > cwf_gateway_python.tar.gz
-          docker save cwf-cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
-          docker save cwf-gateway_go:latest | gzip > cwf_gateway_go.tar.gz
-          docker save cwf-gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
+          docker save cwf-gateway_sessiond:latest | gzip > cwf-gateway_sessiond.tar.gz
+          docker save cwf-nginx:latest  | gzip > cwf-nginx.tar.gz
+          docker save cwf-gateway_python:latest | gzip > cwf-gateway_python.tar.gz
+          docker save cwf-cwag_go:latest  | gzip > cwf-cwag_go.tar.gz
+          docker save cwf-gateway_go:latest | gzip > cwf-gateway_go.tar.gz
+          docker save cwf-gateway_pipelined:latest | gzip > cwf-gateway_pipelined.tar.gz
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: docker-images
@@ -94,7 +94,7 @@ jobs:
             gzip -d $IMAGES
           done
           mkdir -p /tmp/cwf-images
-          cp cwf_*.tar /tmp/cwf-images
+          cp cwf-*.tar /tmp/cwf-images
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
