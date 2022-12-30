@@ -33,12 +33,12 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
-          key: vagrant-box-magma-test-v1.2.20221012
+          key: vagrant-box-magma-test-v1.3.20221230
       - name: Cache magma-trfserver-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver-v20220722
+          key: vagrant-box-magma-trfserver-v1.3.20221230
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
