@@ -26,7 +26,7 @@ jobs:
     env:
       distribution: ${{ inputs.distribution }}
       source-repository: magma-packages-test
-      target-repository: magma-packages-prod
+      target-repository: magma-packages-tmp
     steps:
       - uses: tspascoal/get-user-teams-membership@39b5264024b7c3bd7480de2f2c8d3076eed49ec5 # pin@v1.0.4
         name: Check if user has rights to promote
