@@ -90,7 +90,7 @@ def start_orc8r(on_vagrant='False'):
     Start orc8r locally on Docker
     """
     on_vagrant = strtobool(on_vagrant)
-    command = './run.py'
+    command = './run.py --quiet'
     if not on_vagrant:
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
     else:

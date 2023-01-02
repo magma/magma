@@ -64,12 +64,19 @@ def main() -> None:
     pathlib.Path(HOST_BUILD_CTX).mkdir(parents=True, exist_ok=True)
 
     cmd = ['docker', 'compose', '--compatibility', 'up', '-d']
+
+    stdout = None
+    stderr = None
+    if args.quiet:
+        stdout = subprocess.DEVNULL
+        stderr = subprocess.STDOUT
+
     if args.down:
         cmd = ['docker', 'compose', 'down']
 
     print("Running '%s'..." % ' '.join(cmd))
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, stdout=stdout, stderr=stderr)
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
 
@@ -141,6 +148,12 @@ def _parse_args() -> argparse.Namespace:
         '--clear-db',
         action='store_true',
         help='Clear all content on the database',
+    )
+
+    parser.add_argument(
+        '--quiet',
+        action='store_true',
+        help='Disable stdout for container pull',
     )
 
     args = parser.parse_args()

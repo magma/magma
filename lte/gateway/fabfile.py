@@ -461,7 +461,7 @@ def _start_gateway_containerized():
 
     with cd(AGW_ROOT + "/docker"):
         # The `docker compose up` times are machine dependent, such that a retry is needed here for resilience.
-        run_with_retry('DOCKER_REGISTRY=%s docker compose --compatibility -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+        run_with_retry('DOCKER_REGISTRY=%s docker compose --compatibility -f docker-compose.yaml up -d --quiet-pull 2> /dev/null' % (env.DOCKER_REGISTRY))
 
 
 def run_with_retry(command, retries=10):
