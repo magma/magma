@@ -273,6 +273,7 @@ py_binary(
 py_binary(
     name = "icmpv6",
     srcs = ["icmpv6.py"],
+    imports = [LTE_ROOT],
     legacy_create_init = False,
     tags = TAG_UTIL_SCRIPT,
     deps = [

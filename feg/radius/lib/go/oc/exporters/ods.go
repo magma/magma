@@ -44,7 +44,7 @@ type prodConfigProvider struct {
 }
 
 // Config needed in order to report to ODs should be also be defined in
-// your docker-compose
+// your docker compose
 type Config struct {
 	Category        string        `envconfig:"ODS_CATEGORY_ID" required:"true"`
 	DisablePost     bool          `envconfig:"DISABLE_POST" default:"false"`

@@ -148,3 +148,7 @@ volumes:
   pgdata:
   mysql:
   elasticsearch:
+
+networks:
+  default:
+    name: orc8r_default

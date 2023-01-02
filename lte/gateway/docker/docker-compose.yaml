@@ -44,12 +44,12 @@ x-generic-service: &service
 # Generic python anchor to avoid repetition for agw python services
 x-agw-python-service: &pyservice
   <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_python${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}gateway_python${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
 x-agw-c-service: &cservice
   <<: *service
-  image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 services:
   magmad:
@@ -387,7 +387,7 @@ services:
 
   envoy_controller:
     <<: *service
-    image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+    image: gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
     container_name: envoy_controller
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost", "50081"]

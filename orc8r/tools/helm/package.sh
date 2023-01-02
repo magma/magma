@@ -175,8 +175,8 @@ else
   fi
 
   if [[ $ONLY_PACKAGE = false ]]; then
-      if [[ -z $HELM_CHART_MUSEUM_REPO ]]; then
-    exitmsg "Environment variable $HELM_CHART_MUSEUM_REPO must be set"
+    if [[ -z $HELM_CHART_MUSEUM_REPO ]]; then
+      exitmsg "Environment variable HELM_CHART_MUSEUM_REPO must be set"
     fi
 
     if [[ -z $HELM_CHART_MUSEUM_USERNAME ]]; then
