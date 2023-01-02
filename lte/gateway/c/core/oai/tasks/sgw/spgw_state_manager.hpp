@@ -40,7 +40,7 @@ namespace lte {
  * freeing state structs, and writing / reading state to db.
  */
 class SpgwStateManager
-    : public StateManager<spgw_state_t, oai::SpgwUeContext, oai::SpgwState,
+    : public StateManager<oai::SpgwState, oai::SpgwUeContext, oai::SpgwState,
                           oai::SpgwUeContext, SpgwStateConverter> {
  public:
   /**
@@ -65,7 +65,7 @@ class SpgwStateManager
   SpgwStateManager& operator=(SpgwStateManager const&) = delete;
 
   /**
-   * Frees all memory allocated on spgw_state_t.
+   * Frees all memory allocated on SpgwState.
    */
   void free_state() override;
 
@@ -75,13 +75,14 @@ class SpgwStateManager
   map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
   void write_ue_state_to_db(const oai::SpgwUeContext* ue_context,
                             const std::string& imsi_str) override;
+  void write_spgw_state_to_db(void);
 
  private:
   SpgwStateManager();
   ~SpgwStateManager();
 
   /**
-   * Allocates a new spgw_state_t struct, and inits protobuf maps and state
+   * Allocates a new SpgwState struct, and inits protobuf maps and state
    * structs to default values.
    */
   void create_state() override;

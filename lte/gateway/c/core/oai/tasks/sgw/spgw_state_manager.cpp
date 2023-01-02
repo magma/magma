@@ -47,7 +47,7 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
 
 void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
-  state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
+  state_cache_p = new oai::SpgwState();
 
   state_teid_map.map =
       new google::protobuf::Map<uint32_t, magma::lte::oai::S11BearerContext*>();
@@ -57,22 +57,20 @@ void SpgwStateManager::create_state() {
       new google::protobuf::Map<uint64_t, magma::lte::oai::SpgwUeContext*>();
   state_ue_map.set_name(SPGW_STATE_UE_MAP);
   state_ue_map.bind_callback(sgw_free_ue_context);
+  char ip_str[INET_ADDRSTRLEN];
+  inet_ntop(AF_INET, &(config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr), ip_str,
+            INET_ADDRSTRLEN);
+  state_cache_p->mutable_sgw_s1u_ip_addr()->set_ipv4_addr(ip_str);
 
-  state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
-      config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
+  char ip6_str[INET6_ADDRSTRLEN];
+  inet_ntop(AF_INET6, &(config_->sgw_config.ipv6.S1u_S12_S4_up), ip6_str,
+            INET6_ADDRSTRLEN);
+  state_cache_p->mutable_sgw_s1u_ip_addr()->set_ipv6_addr(ip6_str);
 
-  memcpy(&state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
-         &config_->sgw_config.ipv6.S1u_S12_S4_up,
-         sizeof(state_cache_p->sgw_ipv6_address_S1u_S12_S4_up));
+  state_cache_p->mutable_gtpv1u_data()->mutable_sgw_s1u_ip_addr()->MergeFrom(
+      state_cache_p->sgw_s1u_ip_addr());
 
-  state_cache_p->gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
-      state_cache_p->sgw_ip_address_S1u_S12_S4_up;
-
-  memcpy(&state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up,
-         &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
-         sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
-
-  state_cache_p->gtpv1u_teid = 0;
+  state_cache_p->set_gtpv1u_teid(0);
 }
 
 void SpgwStateManager::free_state() {
@@ -91,8 +89,8 @@ void SpgwStateManager::free_state() {
   if (state_teid_map.destroy_map() != magma::PROTO_MAP_OK) {
     OAI_FPRINTF_ERR("An error occurred while destroying state_teid_map");
   }
-
-  free_wrapper((void**)&state_cache_p);
+  state_cache_p->Clear();
+  free_cpp_wrapper((void**)&state_cache_p);
 }
 
 status_code_e SpgwStateManager::read_ue_state_from_db() {
@@ -166,5 +164,35 @@ void SpgwStateManager::write_ue_state_to_db(
                  imsi_str.c_str());
   }
 }
+
+void SpgwStateManager::write_spgw_state_to_db(void) {
+  AssertFatal(
+      is_initialized,
+      "Spgw StateManager init() function should be called to initialize state");
+
+  if (!state_dirty) {
+    OAILOG_ERROR(log_task, "Tried to put state while it was not in use");
+    return;
+  }
+
+  if (persist_state_enabled) {
+    std::string proto_str;
+    redis_client->serialize(*state_cache_p, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+
+    if (new_hash != this->task_state_hash) {
+      if (redis_client->write_proto_str(table_key, proto_str,
+                                        this->task_state_version) != RETURNok) {
+        OAILOG_ERROR(log_task, "Failed to write state to db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Finished writing state");
+      this->task_state_version++;
+      this->state_dirty = false;
+      this->task_state_hash = new_hash;
+    }
+  }
+}
+
 }  // namespace lte
 }  // namespace magma

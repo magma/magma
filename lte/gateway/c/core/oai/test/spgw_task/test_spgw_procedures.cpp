@@ -45,7 +45,7 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
@@ -69,7 +69,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
@@ -95,7 +95,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
@@ -127,7 +127,7 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
@@ -166,7 +166,7 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
       REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
       ue_sgw_teid);
   return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
-      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
   EXPECT_EQ(return_code, RETURNok);
 
   // check that the dedicated bearer is deleted

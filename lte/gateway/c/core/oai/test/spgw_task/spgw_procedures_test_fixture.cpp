@@ -90,7 +90,8 @@ void SPGWAppProcedureTest::TearDown() {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
+teid_t SPGWAppProcedureTest::create_default_session(
+    magma::lte::oai::SpgwState* spgw_state) {
   status_code_e return_code = RETURNerror;
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
@@ -181,7 +182,7 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
 }
 
 ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
     teid_t ue_sgw_teid) {
   status_code_e return_code = RETURNerror;
@@ -253,7 +254,8 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
 }
 
 void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
-    spgw_state_t* spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id) {
+    magma::lte::oai::SpgwState* spgw_state, teid_t ue_sgw_teid,
+    ebi_t ded_eps_bearer_id) {
   status_code_e return_code = RETURNerror;
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -278,7 +280,7 @@ void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
       REQUEST_ACCEPTED, eps_bearer_id_array, num_bearers_to_delete,
       ue_sgw_teid);
   return_code = sgw_handle_nw_initiated_deactv_bearer_rsp(
-      spgw_state, &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
+      &sample_nw_init_ded_bearer_deactv_resp, test_imsi64);
   EXPECT_EQ(return_code, RETURNok);
 
   // check that bearer is deleted

@@ -50,7 +50,7 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_proto SpgwState proto object to be written to
    * Memory is owned by the caller
    */
-  static void state_to_proto(const spgw_state_t* spgw_state,
+  static void state_to_proto(const magma::lte::oai::SpgwState* spgw_state,
                              oai::SpgwState* spgw_proto);
 
   /**
@@ -60,7 +60,7 @@ class SpgwStateConverter : StateConverter {
    * Memory is owned by the caller
    */
   static void proto_to_state(const oai::SpgwState& proto,
-                             spgw_state_t* spgw_state);
+                             magma::lte::oai::SpgwState* spgw_state);
 
   static void ue_to_proto(const oai::SpgwUeContext* ue_state,
                           oai::SpgwUeContext* ue_proto);

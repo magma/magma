@@ -74,12 +74,12 @@ class SPGWAppProcedureTest : public ::testing::Test {
       .gbr = {.br_ul = 200000000, .br_dl = 100000000},
       .mbr = {.br_ul = 200000000, .br_dl = 100000000}};
 
-  teid_t create_default_session(spgw_state_t* spgw_state);
+  teid_t create_default_session(magma::lte::oai::SpgwState* spgw_state);
   ebi_t activate_dedicated_bearer(
-      spgw_state_t* spgw_state,
+      magma::lte::oai::SpgwState* spgw_state,
       magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
       teid_t ue_sgw_teid);
-  void deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid,
+  void deactivate_dedicated_bearer(magma::lte::oai::SpgwState* spgw_state, teid_t ue_sgw_teid,
                                    ebi_t ded_eps_bearer_id);
 };
 

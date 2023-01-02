@@ -43,7 +43,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
 
   // Create session
   create_default_session(spgw_state);
@@ -53,7 +53,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
                               DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
@@ -105,7 +105,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
   // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
@@ -180,7 +180,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session

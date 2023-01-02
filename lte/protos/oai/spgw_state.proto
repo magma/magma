@@ -207,6 +207,7 @@ message GTPV1uData {
 
     uint32 fd0 = 4;
     uint32 fd1u = 5;
+    IpTupple sgw_s1u_ip_addr = 6;
 }
 
 message SpgwState {
@@ -215,6 +216,7 @@ message SpgwState {
     repeated uint64 ipv4_list_free = 5;
     repeated uint64 ipv4_list_allocated = 6;
     GTPV1uData gtpv1u_data = 7;
+    IpTupple sgw_s1u_ip_addr = 8;
 }
 
 message IpTupple {

@@ -127,16 +127,7 @@ typedef struct sgw_state_s {
   map_uint32_sgw_eps_bearer_context_t temporary_create_session_procedure_id_map;
 } sgw_state_t;
 
-// AGW-wide state for SPGW task
-typedef struct spgw_state_s {
-  STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
-  gtpv1u_data_t gtpv1u_data;
-  uint32_t gtpv1u_teid;
-  struct in_addr sgw_ip_address_S1u_S12_S4_up;
-  struct in6_addr sgw_ipv6_address_S1u_S12_S4_up;
-} spgw_state_t;
-
 void handle_s5_create_session_response(
-    spgw_state_t* state,
+    magma::lte::oai::SpgwState* state,
     magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);

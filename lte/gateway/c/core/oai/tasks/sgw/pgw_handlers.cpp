@@ -76,7 +76,7 @@ static void delete_temporary_dedicated_bearer_context(
     magma::lte::oai::S11BearerContext* spgw_context_p);
 
 static void spgw_handle_s5_response_with_error(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id,
     s5_create_session_response_t* s5_response);
@@ -84,7 +84,7 @@ static void spgw_handle_s5_response_with_error(
 //--------------------------------------------------------------------------------
 
 void handle_s5_create_session_request(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -139,7 +139,7 @@ void handle_s5_create_session_request(
 }
 
 void spgw_handle_s5_response_with_error(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id,
     s5_create_session_response_t* s5_response) {
@@ -158,7 +158,7 @@ void spgw_handle_s5_response_with_error(
 }
 
 void spgw_handle_pcef_create_session_response(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     const itti_pcef_create_session_response_t* const pcef_csr_resp_p,
     imsi64_t imsi64) {
   OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
@@ -222,7 +222,7 @@ void spgw_handle_pcef_create_session_response(
  * Handle NW initiated Dedicated Bearer Activation from SPGW service
  */
 status_code_e spgw_handle_nw_initiated_bearer_actv_req(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -299,9 +299,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   rc = create_temporary_dedicated_bearer_context(
       spgw_ctxt_p->mutable_sgw_eps_bearer_context(), bearer_req_p,
       eps_bearer_ctxt.sgw_s1u_s12_s4_up_ip_addr().pdn_type(),
-      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
-      &spgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid, 0,
-      LOG_SPGW_APP);
+      spgw_state->mutable_sgw_s1u_ip_addr(), s1_u_sgw_fteid, 0, LOG_SPGW_APP);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -314,9 +312,7 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   rc = sgw_build_and_send_s11_create_bearer_request(
       spgw_ctxt_p->mutable_sgw_eps_bearer_context(), bearer_req_p,
       eps_bearer_ctxt.sgw_s1u_s12_s4_up_ip_addr().pdn_type(),
-      spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
-      &spgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
-      LOG_SPGW_APP);
+      spgw_state->mutable_sgw_s1u_ip_addr(), s1_u_sgw_fteid, LOG_SPGW_APP);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -338,7 +334,6 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   status_code_e rc = RETURNok;
   state_teid_map_t* state_teid_map = nullptr;
-  uint32_t num_elements = 0;
   magma::lte::oai::S11BearerContext* spgw_ctxt_p = nullptr;
   bool is_lbi_found = false;
   bool is_imsi_found = false;
@@ -541,9 +536,8 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
     magma::lte::oai::SgwEpsBearerContextInfo*
         sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
-    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
-    log_proto_t module) {
+    pdn_type_t pdn_type, magma::lte::oai::IpTupple* sgw_s1u_ip_addr,
+    teid_t s1_u_sgw_fteid, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   MessageDef* message_p = NULL;
   status_code_e rc = RETURNerror;
@@ -577,17 +571,17 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
   s11_actv_bearer_request->s1_u_sgw_fteid.teid = s1_u_sgw_fteid;
   s11_actv_bearer_request->s1_u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
   // Set IPv4 address type bit
-
+  bool enable_ipv6 = false;
   if (pdn_type == IPv4 || pdn_type == IPv4_AND_v6) {
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;
-    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
-        sgw_ip_address_S1u_S12_S4_up;
-  } else {
+  } else if (pdn_type == IPv6 || pdn_type == IPv4_AND_v6) {
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv6 = true;
-    memcpy(&s11_actv_bearer_request->s1_u_sgw_fteid.ipv6_address,
-           sgw_ipv6_address_S1u_S12_S4_up,
-           sizeof(s11_actv_bearer_request->s1_u_sgw_fteid.ipv6_address));
+    enable_ipv6 = true;
   }
+  convert_proto_ip_to_standard_ip_fmt(
+      sgw_s1u_ip_addr, &s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address,
+      &s11_actv_bearer_request->s1_u_sgw_fteid.ipv6_address, enable_ipv6);
+
   message_p->ittiMsgHeader.imsi = sgw_eps_bearer_context_information->imsi64();
   OAILOG_INFO_UE(module, sgw_eps_bearer_context_information->imsi64(),
                  "Sending S11 Create Bearer Request to MME_APP for LBI %d \n",
@@ -607,9 +601,8 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
 status_code_e create_temporary_dedicated_bearer_context(
     magma::lte::oai::SgwEpsBearerContextInfo* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
-    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
-    uint32_t sequence_number, log_proto_t module) {
+    pdn_type_t pdn_type, magma::lte::oai::IpTupple* sgw_s1u_ip_addr,
+    teid_t s1_u_sgw_fteid, uint32_t sequence_number, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
 
@@ -632,15 +625,14 @@ status_code_e create_temporary_dedicated_bearer_context(
 
   if (pdn_type == IPv4 || pdn_type == IPv4_AND_v6) {
     eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_pdn_type(IPv4);
-    char ip4_str[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &sgw_ip_address_S1u_S12_S4_up, ip4_str, INET_ADDRSTRLEN);
-    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv4_addr(ip4_str);
-  } else {
-    char ip6_str[INET6_ADDRSTRLEN];
+    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv4_addr(
+        sgw_s1u_ip_addr->ipv4_addr().c_str(),
+        sgw_s1u_ip_addr->ipv4_addr().size());
+  } else if (pdn_type == IPv6 || pdn_type == IPv4_AND_v6) {
     eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_pdn_type(IPv6);
-    inet_ntop(AF_INET6, sgw_ipv6_address_S1u_S12_S4_up, ip6_str,
-              INET6_ADDRSTRLEN);
-    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv6_addr(ip6_str);
+    eps_bearer_ctxt.mutable_sgw_s1u_s12_s4_up_ip_addr()->set_ipv6_addr(
+        sgw_s1u_ip_addr->ipv6_addr().c_str(),
+        sgw_s1u_ip_addr->ipv6_addr().size());
   }
   // DL TFT
   traffic_flow_template_to_proto(&bearer_req_p->dl_tft,

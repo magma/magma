@@ -19,6 +19,4 @@ namespace magma {
 
 gtpv1u_data_t make_gtpv1u_data(int fd0, int fd1u);
 
-spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u);
-
 }  // namespace magma

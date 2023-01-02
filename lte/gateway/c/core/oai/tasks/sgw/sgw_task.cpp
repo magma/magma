@@ -66,7 +66,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state = get_spgw_state(false);
 
   bool is_state_same = false;
 
@@ -136,7 +136,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
       // Handle Dedicated bearer deactivation Rsp from MME
       sgw_handle_nw_initiated_deactv_bearer_rsp(
-          spgw_state,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
       is_state_same = true;  // task state is not changed
     } break;
@@ -251,17 +250,19 @@ extern "C" status_code_e spgw_app_init(spgw_config_t* spgw_config_pP,
     return RETURNerror;
   }
 
-  spgw_state_t* spgw_state_p = get_spgw_state(false);
+  magma::lte::oai::SpgwState* spgw_state_p = get_spgw_state(false);
 
   // Read SPGW state for subscribers from db
   read_spgw_ue_state_db();
 
 #if !MME_UNIT_TEST  // No need to initialize OVS data path for unit tests
-  if (gtpv1u_init(&spgw_state_p->gtpv1u_data, spgw_config_pP, persist_state) <
-      0) {
+  gtpv1u_data_t gtpv1u_data = {};
+  if (gtpv1u_init(&gtpv1u_data, spgw_config_pP, persist_state) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
+  spgw_state_p->mutable_gtpv1u_data()->set_fd0(gtpv1u_data.fd0);
+  spgw_state_p->mutable_gtpv1u_data()->set_fd1u(gtpv1u_data.fd1u);
 #endif
 
   if (itti_create_task(TASK_SPGW_APP, &spgw_app_thread, NULL) < 0) {

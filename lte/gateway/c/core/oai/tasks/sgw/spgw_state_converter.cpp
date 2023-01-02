@@ -45,19 +45,16 @@ namespace lte {
 SpgwStateConverter::SpgwStateConverter() = default;
 SpgwStateConverter::~SpgwStateConverter() = default;
 
-void SpgwStateConverter::state_to_proto(const spgw_state_t* spgw_state,
+void SpgwStateConverter::state_to_proto(const SpgwState* spgw_state,
                                         SpgwState* proto) {
   proto->Clear();
-
-  gtpv1u_data_to_proto(&spgw_state->gtpv1u_data, proto->mutable_gtpv1u_data());
-
-  proto->set_gtpv1u_teid(spgw_state->gtpv1u_teid);
+  proto->MergeFrom(*spgw_state);
 }
 
 void SpgwStateConverter::proto_to_state(const SpgwState& proto,
-                                        spgw_state_t* spgw_state) {
-  proto_to_gtpv1u_data(proto.gtpv1u_data(), &spgw_state->gtpv1u_data);
-  spgw_state->gtpv1u_teid = proto.gtpv1u_teid();
+                                        SpgwState* spgw_state) {
+  spgw_state->Clear();
+  spgw_state->MergeFrom(proto);
 }
 
 void SpgwStateConverter::gtpv1u_data_to_proto(const gtpv1u_data_t* gtp_data,

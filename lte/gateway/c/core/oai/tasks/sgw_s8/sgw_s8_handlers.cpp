@@ -95,7 +95,7 @@ static void sgw_s8_process_release_access_bearer_request(
 static void sgw_s8_release_all_enb_related_information(
     sgw_eps_bearer_ctxt_t* const eps_bearer_ctxt);
 
-status_code_e sgw_build_and_send_s11_create_bearer_request(
+status_code_e sgw_s8_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
@@ -1401,7 +1401,7 @@ imsi64_t sgw_s8_handle_create_bearer_request(
     OAILOG_FUNC_RETURN(LOG_SGW_S8, INVALID_IMSI64);
   }
 
-  if (sgw_build_and_send_s11_create_bearer_request(
+  if (sgw_s8_build_and_send_s11_create_bearer_request(
           sgw_context_p, &itti_bearer_req,
           bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type,
           sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
@@ -2084,7 +2084,7 @@ status_code_e create_temporary_s8_dedicated_bearer_context(
 }
 
 // Build and send ITTI message, s11_create_bearer_request to MME APP
-status_code_e sgw_build_and_send_s11_create_bearer_request(
+status_code_e sgw_s8_build_and_send_s11_create_bearer_request(
     sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,

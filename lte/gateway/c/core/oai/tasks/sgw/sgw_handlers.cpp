@@ -79,7 +79,7 @@ static void add_tunnel_helper(
     imsi64_t imsi64);
 static teid_t sgw_generate_new_s11_cp_teid(void);
 static void get_session_req_data(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     const magma::lte::oai::CreateSessionMessage* saved_req,
     struct pcef_create_session_data* data);
 
@@ -87,14 +87,16 @@ constexpr char SPGW_EPS_BEARER_MAP_NAME[] = "spgw_eps_bearer_map";
 #define TASK_MME TASK_MME_APP
 
 //------------------------------------------------------------------------------
-uint32_t spgw_get_new_s1u_teid(spgw_state_t* state) {
-  __sync_fetch_and_add(&state->gtpv1u_teid, 1);
-  return (state->gtpv1u_teid) % INITIAL_SGW_S8_S1U_TEID;
+uint32_t spgw_get_new_s1u_teid(magma::lte::oai::SpgwState* state) {
+  uint32_t gtp_teid = state->gtpv1u_teid();
+  __sync_fetch_and_add(&gtp_teid, 1);
+  state->set_gtpv1u_teid(gtp_teid);
+  return (state->gtpv1u_teid()) % INITIAL_SGW_S8_S1U_TEID;
 }
 
 //------------------------------------------------------------------------------
 status_code_e sgw_handle_s11_create_session_request(
-    spgw_state_t* state,
+    magma::lte::oai::SpgwState* state,
     const itti_s11_create_session_request_t* const session_req_pP,
     imsi64_t imsi64) {
   mme_sgw_tunnel_t* new_endpoint_p = nullptr;
@@ -278,8 +280,8 @@ status_code_e sgw_handle_s11_create_session_request(
 
 //------------------------------------------------------------------------------
 status_code_e sgw_handle_sgi_endpoint_created(
-    spgw_state_t* state, itti_sgi_create_end_point_response_t* const resp_pP,
-    imsi64_t imsi64) {
+    magma::lte::oai::SpgwState* state,
+    itti_sgi_create_end_point_response_t* const resp_pP, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_create_session_response_t* create_session_response_p = NULL;
   MessageDef* message_p = NULL;
@@ -354,21 +356,18 @@ status_code_e sgw_handle_sgi_endpoint_created(
       create_session_response_p->bearer_contexts_created.bearer_contexts[0]
           .s1u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
 
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-          .s1u_sgw_fteid.ipv4 = 1;
-      create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-          .s1u_sgw_fteid.ipv4_address.s_addr =
-          state->sgw_ip_address_S1u_S12_S4_up.s_addr;
+      bearer_context_created_t* bearer_context_created =
+          &(create_session_response_p->bearer_contexts_created
+                .bearer_contexts[0]);
+      convert_proto_ip_to_standard_ip_fmt(
+          state->mutable_sgw_s1u_ip_addr(),
+          &(bearer_context_created->s1u_sgw_fteid.ipv4_address),
+          &(bearer_context_created->s1u_sgw_fteid.ipv6_address),
+          spgw_config.sgw_config.ipv6.s1_ipv6_enabled);
+
+      bearer_context_created->s1u_sgw_fteid.ipv4 = 1;
       if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled) {
-        create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-            .s1u_sgw_fteid.ipv6 = 1;
-        memcpy(&create_session_response_p->bearer_contexts_created
-                    .bearer_contexts[0]
-                    .s1u_sgw_fteid.ipv6_address,
-               &state->sgw_ipv6_address_S1u_S12_S4_up,
-               sizeof(create_session_response_p->bearer_contexts_created
-                          .bearer_contexts[0]
-                          .s1u_sgw_fteid.ipv6_address));
+        bearer_context_created->s1u_sgw_fteid.ipv6 = 1;
       }
       /*
        * Set the Cause information from bearer context created.
@@ -1327,7 +1326,7 @@ void sgw_handle_release_access_bearers_request(
 
 //-------------------------------------------------------------------------
 void handle_s5_create_session_response(
-    spgw_state_t* state,
+    magma::lte::oai::SpgwState* state,
     magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1711,7 +1710,6 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
  */
 
 status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
-    spgw_state_t* spgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64) {
@@ -1908,7 +1906,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
 }
 
 status_code_e sgw_handle_ip_allocation_rsp(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
@@ -2286,13 +2284,7 @@ static void add_tunnel_helper(
     magma::lte::oai::S11BearerContext* spgw_context,
     magma::lte::oai::SgwEpsBearerContext* eps_bearer_ctxt_entry_p,
     imsi64_t imsi64) {
-  uint32_t rc = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
-  const char* apn = reinterpret_cast<const char*>(
-      spgw_context->mutable_sgw_eps_bearer_context()
-          ->mutable_pdn_connection()
-          ->apn_in_use()
-          .c_str());
   struct in6_addr enb_ipv6 = {};
 
   convert_proto_ip_to_standard_ip_fmt(
@@ -2310,7 +2302,6 @@ static void add_tunnel_helper(
       !(eps_bearer_ctxt_entry_p->ue_ip_paa().ipv6_addr().empty())) {
     is_ue_ipv6_pres = true;
   }
-  int vlan = eps_bearer_ctxt_entry_p->ue_ip_paa().vlan();
   Imsi_t imsi;
   memcpy(imsi.digit,
          spgw_context->mutable_sgw_eps_bearer_context()->imsi().c_str(),
@@ -2333,6 +2324,14 @@ static void add_tunnel_helper(
     }
 
 #if !MME_UNIT_TEST
+    int vlan = eps_bearer_ctxt_entry_p->ue_ip_paa().vlan();
+    uint32_t rc = RETURNerror;
+    const char* apn = reinterpret_cast<const char*>(
+        spgw_context->mutable_sgw_eps_bearer_context()
+            ->mutable_pdn_connection()
+            ->apn_in_use()
+            .c_str());
+
     rc = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
                            eps_bearer_ctxt_entry_p->sgw_teid_s1u_s12_s4_up(),
                            eps_bearer_ctxt_entry_p->enb_teid_s1u(), imsi,
@@ -2633,7 +2632,7 @@ void convert_proto_ip_to_standard_ip_fmt(magma::lte::oai::IpTupple* proto_ip,
 }
 
 static void get_session_req_data(
-    spgw_state_t* spgw_state,
+    magma::lte::oai::SpgwState* spgw_state,
     const magma::lte::oai::CreateSessionMessage* saved_req,
     struct pcef_create_session_data* data) {
   data->msisdn_len = saved_req->msisdn().size();
@@ -2669,8 +2668,8 @@ static void get_session_req_data(
   memcpy(data->apn, saved_req->apn().c_str(), saved_req->apn().size());
   data->pdn_type = saved_req->pdn_type();
 
-  inet_ntop(AF_INET, &spgw_state->sgw_ip_address_S1u_S12_S4_up, data->sgw_ip,
-            INET_ADDRSTRLEN);
+  memcpy(data->sgw_ip, spgw_state->sgw_s1u_ip_addr().ipv4_addr().c_str(),
+         spgw_state->sgw_s1u_ip_addr().ipv4_addr().size());
 
   // QoS Info
   data->ambr_dl = saved_req->ambr().br_dl();

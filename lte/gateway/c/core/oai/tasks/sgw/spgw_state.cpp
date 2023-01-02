@@ -42,7 +42,7 @@ int spgw_state_init(bool persist_state, const spgw_config_t* config) {
   return RETURNok;
 }
 
-spgw_state_t* get_spgw_state(bool read_from_db) {
+magma::lte::oai::SpgwState* get_spgw_state(bool read_from_db) {
   return SpgwStateManager::getInstance().get_state(read_from_db);
 }
 
@@ -60,7 +60,9 @@ int read_spgw_ue_state_db() {
 
 void spgw_state_exit() { SpgwStateManager::getInstance().free_state(); }
 
-void put_spgw_state() { SpgwStateManager::getInstance().write_state_to_db(); }
+void put_spgw_state() {
+  SpgwStateManager::getInstance().write_spgw_state_to_db();
+}
 
 void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
