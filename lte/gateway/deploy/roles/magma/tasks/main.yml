@@ -145,6 +145,10 @@
   file: src='{{ c_build }}/sctpd/src/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
 
+- name: Create symlink for DHCP helper CLI binary
+  file: src='/home/{{ ansible_user }}/magma/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py' path=/usr/local/bin/dhcp_helper_cli.py state=link force=yes follow=no
+  when: full_provision
+
 - name: Create symlink for OAI mme binary
   file: src='{{ oai_build }}/oai_mme/mme' path=/usr/local/bin/mme state=link force=yes follow=no
   when: full_provision
@@ -306,6 +310,17 @@
       - nlohmann-json3-dev
       # managing gtp interface
       - ifupdown
+
+# TODO move to preburn
+# dependency for the dhcp helper cli
+- name: Install scapy
+  retries: 5
+  when: full_provision
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - python3-scapy
 
 - name: Copy the gtp interface initialization definition
   copy:

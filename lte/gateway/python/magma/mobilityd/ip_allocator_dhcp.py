@@ -22,16 +22,14 @@ from __future__ import (
 
 import json
 import logging
-import os.path
 import subprocess
+import tempfile
 import threading
 from copy import deepcopy
 from datetime import datetime
 from ipaddress import IPv4Network, ip_address, ip_network
-from json import JSONDecodeError
-from os import environ
 from threading import Condition
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
@@ -45,12 +43,7 @@ DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10
 DEFAULT_DHCP_REQUEST_RETRY_DELAY = 1
 LEASE_RENEW_WAIT_MIN = 200
 
-# TODO: Change this back to just "dhcp_helper_cli.py" in PR 14635
-if environ.get('MAGMA_ROOT') and \
-        os.path.exists(f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"):
-    DHCP_HELPER_CLI_PATH = f"{environ.get('MAGMA_ROOT')}/lte/gateway/python/scripts/dhcp_helper_cli.py"
-else:
-    DHCP_HELPER_CLI_PATH = f"dhcp_helper_cli.py"
+DHCP_HELPER_CLI = "dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
@@ -59,8 +52,8 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 class IPAllocatorDHCP(IPAllocator):
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300, start: bool = True,
-        iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
-    ):
+            iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
+    ) -> None:
         """
         Allocate IP address for SID using DHCP server.
         SID is mapped to MAC address using function defined in mac.py
@@ -87,7 +80,7 @@ class IPAllocatorDHCP(IPAllocator):
         if start:
             self.start_monitor_thread()
 
-    def start_monitor_thread(self):
+    def start_monitor_thread(self) -> None:
         if self._monitor_thread is None:
             self._monitor_thread = threading.Thread(
                 target=self._monitor_dhcp_state,
@@ -95,7 +88,7 @@ class IPAllocatorDHCP(IPAllocator):
             )
         self._monitor_thread.start()
 
-    def stop_monitor_thread(self, join: bool = False, reset: bool = False):
+    def stop_monitor_thread(self, join: bool = False, reset: bool = False) -> None:
         self._monitor_thread_event.set()
         if join and self._monitor_thread:
             self._monitor_thread.join()
@@ -103,7 +96,7 @@ class IPAllocatorDHCP(IPAllocator):
             self._monitor_thread = None
             self._monitor_thread_event.clear()
 
-    def _monitor_dhcp_state(self):
+    def _monitor_dhcp_state(self) -> None:
         """
         monitor DHCP client state.
         """
@@ -120,38 +113,40 @@ class IPAllocatorDHCP(IPAllocator):
 
                     if now >= dhcp_desc.lease_expiration_time:
                         logging.debug("sending lease allocate")
-                        call_args = [[
-                            DHCP_HELPER_CLI_PATH,
-                            "--mac", str(dhcp_desc.mac),
-                            "--vlan", str(dhcp_desc.vlan),
-                            "--interface", self._iface,
-                            "--json",
-                            "allocate",
-                        ]]
-                        dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
+                        with tempfile.NamedTemporaryFile() as tmpfile:
+                            call_args = [
+                                DHCP_HELPER_CLI,
+                                "--mac", str(dhcp_desc.mac),
+                                "--vlan", str(dhcp_desc.vlan),
+                                "--interface", self._iface,
+                                "--save-file", tmpfile.name,
+                                "--json",
+                                "allocate",
+                            ]
+                            dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args, tmpfile.name)
                         self._parse_dhcp_helper_cli_response_to_store(
                             dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
                             mac=dhcp_desc.mac, vlan=dhcp_desc.vlan,
                         )
-
                     elif now >= dhcp_desc.lease_renew_deadline:
                         logging.debug("sending lease renewal")
-                        call_args = [[
-                            DHCP_HELPER_CLI_PATH,
-                            "--mac", str(dhcp_desc.mac),
-                            "--vlan", str(dhcp_desc.vlan),
-                            "--interface", self._iface,
-                            "--json",
-                            "renew",
-                            "--ip", str(dhcp_desc.ip),
-                            "--server-ip", str(dhcp_desc.server_ip),
-                        ]]
-                        dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args)
+                        with tempfile.NamedTemporaryFile() as tmpfile:
+                            call_args = [
+                                DHCP_HELPER_CLI,
+                                "--mac", str(dhcp_desc.mac),
+                                "--vlan", str(dhcp_desc.vlan),
+                                "--interface", self._iface,
+                                "--save-file", tmpfile.name,
+                                "--json",
+                                "renew",
+                                "--ip", str(dhcp_desc.ip),
+                                "--server-ip", str(dhcp_desc.server_ip),
+                            ]
+                            dhcp_cli_response = self._get_dhcp_helper_cli_response(call_args, tmpfile.name)
                         self._parse_dhcp_helper_cli_response_to_store(
                             dhcp_desc=dhcp_desc, dhcp_response=dhcp_cli_response,
                             mac=dhcp_desc.mac, vlan=dhcp_desc.vlan,
                         )
-
                     else:
                         time_to_renew = dhcp_desc.lease_renew_deadline - now
                         wait_time = min(
@@ -164,7 +159,7 @@ class IPAllocatorDHCP(IPAllocator):
             if self._monitor_thread_event.is_set():
                 break
 
-    def add_ip_block(self, ipblock: IPNetwork):
+    def add_ip_block(self, ipblock: IPNetwork) -> None:
         logging.warning(
             "No need to allocate block for DHCP allocator: %s",
             ipblock,
@@ -312,7 +307,6 @@ class IPAllocatorDHCP(IPAllocator):
             NoAvailableIPError: if run out of available IP addresses
         """
         mac = create_mac_from_sid(sid)
-
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
         LOG.debug(
             "allocate IP for %s mac %s dhcp_desc %s", sid, mac,
@@ -320,15 +314,17 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
         if not dhcp_desc or not dhcp_allocated_ip(dhcp_desc):
-            call_args = [[
-                DHCP_HELPER_CLI_PATH,
-                "--mac", str(mac),
-                "--vlan", str(vlan),
-                "--interface", self._iface,
-                "--json",
-                "allocate",
-            ]]
-            dhcp_response = self._get_dhcp_helper_cli_response(call_args)
+            with tempfile.NamedTemporaryFile() as tmpfile:
+                call_args = [
+                    DHCP_HELPER_CLI,
+                    "--mac", str(mac),
+                    "--vlan", str(vlan),
+                    "--interface", self._iface,
+                    "--save-file", tmpfile.name,
+                    "--json",
+                    "allocate",
+                ]
+                dhcp_response = self._get_dhcp_helper_cli_response(call_args, tmpfile.name)
             with self.dhcp_wait:
                 dhcp_desc = self._parse_dhcp_helper_cli_response_to_store(
                     dhcp_desc=dhcp_desc, dhcp_response=dhcp_response,
@@ -356,25 +352,21 @@ class IPAllocatorDHCP(IPAllocator):
             msg = f"No available IP addresses From DHCP for SID: {sid} MAC {mac}"
             raise NoAvailableIPError(msg)
 
-    def _parse_dhcp_helper_cli_response_to_store(self, dhcp_desc, dhcp_response, mac, vlan):
-        try:
-            dhcp_json = json.loads(dhcp_response.stdout)
-        except JSONDecodeError as e:
-            logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received '{dhcp_response.stderr}' from dhcp_helper_cli called with parameters '{dhcp_response.args}'",
-            )
-            raise NoAvailableIPError(f'Failed to json parse message returned from dhcp_helper_cli.')
-        if dhcp_json:
+    def _parse_dhcp_helper_cli_response_to_store(
+            self, dhcp_desc: DHCPDescriptor, dhcp_response: Dict[str, Any],
+            mac: MacAddress, vlan: int,
+    ) -> DHCPDescriptor:
+        if dhcp_response:
             dhcp_desc = DHCPDescriptor(
                 mac=mac,
-                ip=dhcp_json["ip"],
+                ip=dhcp_response["ip"],
                 vlan=vlan,
                 state_requested=DHCPState.ACK,
                 state=DHCPState.ACK,
-                subnet=str(IPv4Network(dhcp_json["subnet"], strict=False)),
-                server_ip=ip_address(dhcp_json["server_ip"]) if dhcp_json["server_ip"] else None,
-                router_ip=ip_address(dhcp_json["router_ip"]) if dhcp_json["router_ip"] else None,
-                lease_expiration_time=int(dhcp_json["lease_expiration_time"]),
+                subnet=str(IPv4Network(dhcp_response["subnet"], strict=False)),
+                server_ip=ip_address(dhcp_response["server_ip"]) if dhcp_response["server_ip"] else None,
+                router_ip=ip_address(dhcp_response["router_ip"]) if dhcp_response["router_ip"] else None,
+                lease_expiration_time=int(dhcp_response["lease_expiration_time"]),
             )
 
             self._store.dhcp_store[mac.as_redis_key(vlan)] = dhcp_desc
@@ -382,21 +374,24 @@ class IPAllocatorDHCP(IPAllocator):
         return dhcp_desc
 
     @staticmethod
-    def _get_dhcp_helper_cli_response(call_args):
-        dhcp_response = subprocess.run(
-            *call_args,
+    def _get_dhcp_helper_cli_response(call_args: List[str], save_file: str) -> Dict[str, Any]:
+        ret = subprocess.run(
+            call_args,
             capture_output=True,
         )
-        if dhcp_response.returncode != 0:
+        if ret.returncode != 0:
+            call_str = " ".join(call_args)
             logging.error(
-                f"Could not decode '{dhcp_response.stdout}' received"
-                f" '{dhcp_response.stderr}' from {DHCP_HELPER_CLI_PATH} called"
-                f" with parameters '{dhcp_response.args}'",
+                f"CLI call '{call_str}' failed with return code "
+                f"{ret.returncode} and error {ret.stderr}",
             )
             raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
+
+        with open(save_file, 'r') as f:
+            dhcp_response = json.load(f)
         return dhcp_response
 
-    def release_ip(self, ip_desc: IPDesc):
+    def release_ip(self, ip_desc: IPDesc) -> None:
         """
         Release IP address, this involves following steps.
         1. send DHCP protocol packet to release the IP.
@@ -431,38 +426,33 @@ class IPAllocatorDHCP(IPAllocator):
             self._store.assigned_ip_blocks, ip_desc.ip_block,
         )
 
-    def _release_dhcp_ip(self, ip_desc):
+    def _release_dhcp_ip(self, ip_desc: IPDesc) -> None:
         logging.info(f"Releasing: {ip_desc}")
         mac = create_mac_from_sid(ip_desc.sid)
         vlan = ip_desc.vlan_id
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
         logging.info(f"Releasing dhcp desc: {dhcp_desc}")
         if dhcp_desc:
-            dhcp_cli_response = subprocess.run(
-                [
-                    DHCP_HELPER_CLI_PATH,
-                    "--mac", str(mac),
-                    "--vlan", str(vlan),
-                    "--interface", self._iface,
-                    "release",
-                    "--ip", str(ip_desc.ip),
-                    "--server-ip", str(dhcp_desc.server_ip),
-                ],
+            call_args = [
+                DHCP_HELPER_CLI,
+                "--mac", str(mac),
+                "--vlan", str(vlan),
+                "--interface", self._iface,
+                "--json",
+                "release",
+                "--ip", str(ip_desc.ip),
+                "--server-ip", str(dhcp_desc.server_ip),
+            ]
+            ret = subprocess.run(
+                call_args,
                 capture_output=True,
             )
 
-            if dhcp_cli_response.returncode != 0:
+            if ret.returncode != 0:
+                call_str = " ".join(call_args)
                 logging.error(
-                    f"Could not decode '{dhcp_cli_response.stdout}'"
-                    f" received '{dhcp_cli_response.stderr}' from "
-                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
-                    f" '{dhcp_cli_response.args}'",
-                )
-                print(
-                    f"Could not decode '{dhcp_cli_response.stdout}'"
-                    f" received '{dhcp_cli_response.stderr}' from "
-                    f"'{DHCP_HELPER_CLI_PATH}' called with parameters"
-                    f" '{dhcp_cli_response.args}'",
+                    f"CLI call '{call_str}' failed with return code "
+                    f"{ret.returncode} and error {ret.stderr}",
                 )
                 raise NoAvailableIPError(f'Failed to call dhcp_helper_cli.')
 

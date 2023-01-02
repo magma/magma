@@ -83,7 +83,7 @@ func getCbsdId(c echo.Context) (string, *echo.HTTPError) {
 }
 
 func cbsdIdHTTPError() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("missing Cbsd ID"))
+	return echo.NewHTTPError(http.StatusBadRequest, "missing Cbsd ID")
 }
 
 func listCbsds(c echo.Context, networkId string, client protos.CbsdManagementClient) error {
@@ -100,7 +100,7 @@ func listCbsds(c echo.Context, networkId string, client protos.CbsdManagementCli
 	ctx := c.Request().Context()
 	cbsds, err := client.ListCbsds(ctx, &req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	payload := &models.PaginatedCbsds{
 		Cbsds:      make([]*models.Cbsd, len(cbsds.Details)),
@@ -119,7 +119,7 @@ func fetchCbsd(c echo.Context, networkId string, client protos.CbsdManagementCli
 	}
 	id, err := strconv.Atoi(cbsdId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	req := protos.FetchCbsdRequest{NetworkId: networkId, Id: int64(id)}
 	ctx := c.Request().Context()
@@ -133,15 +133,15 @@ func fetchCbsd(c echo.Context, networkId string, client protos.CbsdManagementCli
 func createCbsd(c echo.Context, networkId string, client protos.CbsdManagementClient) error {
 	payload := &models.MutableCbsd{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	ctx := c.Request().Context()
 	if err := payload.ValidateModel(ctx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	data, err := models.CbsdToBackend(payload)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	req := protos.CreateCbsdRequest{NetworkId: networkId, Data: data}
 	_, err = client.CreateCbsd(ctx, &req)
@@ -158,7 +158,7 @@ func deleteCbsd(c echo.Context, networkId string, client protos.CbsdManagementCl
 	}
 	id, err := strconv.Atoi(cbsdId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	req := protos.DeleteCbsdRequest{NetworkId: networkId, Id: int64(id)}
 	ctx := c.Request().Context()
@@ -172,10 +172,10 @@ func deleteCbsd(c echo.Context, networkId string, client protos.CbsdManagementCl
 func updateCbsd(c echo.Context, networkId string, client protos.CbsdManagementClient) error {
 	payload := &models.MutableCbsd{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	cbsdId, nerr := getCbsdId(c)
 	if nerr != nil {
@@ -183,11 +183,11 @@ func updateCbsd(c echo.Context, networkId string, client protos.CbsdManagementCl
 	}
 	id, err := strconv.Atoi(cbsdId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	data, err := models.CbsdToBackend(payload)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	req := protos.UpdateCbsdRequest{NetworkId: networkId, Id: int64(id), Data: data}
 	ctx := c.Request().Context()
@@ -205,7 +205,7 @@ func deregisterCbsd(c echo.Context, networkId string, client protos.CbsdManageme
 	}
 	id, err := strconv.Atoi(cbsdId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	req := protos.DeregisterCbsdRequest{NetworkId: networkId, Id: int64(id)}
 	ctx := c.Request().Context()
@@ -223,7 +223,7 @@ func relinquishCbsd(c echo.Context, networkId string, client protos.CbsdManageme
 	}
 	id, err := strconv.Atoi(cbsdId)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	req := protos.RelinquishCbsdRequest{NetworkId: networkId, Id: int64(id)}
 	ctx := c.Request().Context()
@@ -243,11 +243,11 @@ func GetCbsdFilter(c echo.Context) *protos.CbsdFilter {
 func getHttpError(err error) error {
 	switch s, _ := status.FromError(err); s.Code() {
 	case codes.NotFound:
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	case codes.AlreadyExists:
-		return echo.NewHTTPError(http.StatusConflict, err)
+		return echo.NewHTTPError(http.StatusConflict, err.Error())
 	default:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 }
 

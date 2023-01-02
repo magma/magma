@@ -25,7 +25,7 @@ function setup() {
   git am "$MAGMA_ROOT/third_party/gtp_ovs/ovs-gtp-patches/$OVS_VER"/00*
 
   cd ../
-  git clone git://git.osmocom.org/libgtpnl
+  git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl
   cd libgtpnl
   autoreconf -fi && ./configure && make && make install
   cp ./src/.libs/libgtpnl.so.0.1.2 /lib/libgtpnl.so.0

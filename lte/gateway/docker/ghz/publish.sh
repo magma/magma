@@ -14,7 +14,7 @@ REGISTRY=$1
 VERSION=latest
 
 publish () {
-  docker tag ghz_gateway_"$1":latest "${REGISTRY}"/ghz_gateway_"$1":"${VERSION}"
+  docker tag ghz-gateway_"$1":latest "${REGISTRY}"/ghz_gateway_"$1":"${VERSION}"
   docker push "${REGISTRY}/"ghz_gateway_"$1":"${VERSION}"
 }
 

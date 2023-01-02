@@ -104,8 +104,8 @@ void convert_imeisv_to_string(char* imeisv);
 
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list);
 
-int get_uli_from_session_req(const itti_s11_create_session_request_t* saved_req,
-                             char* uli);
+bool get_uli_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* uli);
 
 void get_plmn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* mcc_mnc);

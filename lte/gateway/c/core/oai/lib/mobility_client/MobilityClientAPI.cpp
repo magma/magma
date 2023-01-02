@@ -64,7 +64,7 @@ int get_assigned_ipv4_block(int index, struct in_addr* netaddr,
   return status;
 }
 
-int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
+int pgw_handle_allocate_ipv4_address(const std::string subscriber_id_str,
                                      const std::string apn_str,
                                      const std::string pdn_type_str,
                                      teid_t context_teid, ebi_t eps_bearer_id) {
@@ -72,8 +72,8 @@ int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
   return RETURNok;  // skip this call for unit testing
 #endif
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-      subscriber_id, apn_str,
-      [subscriber_id, apn_str, pdn_type_str, context_teid, eps_bearer_id](
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
@@ -83,7 +83,7 @@ int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
         memcpy(&addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
         handle_allocate_ipv4_address_status(
-            status, addr, vlan, subscriber_id.c_str(), apn_str.c_str(),
+            status, addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
             pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
   return RETURNok;
@@ -173,7 +173,7 @@ int get_subscriber_id_from_ipv4(const struct in_addr* addr,
   return status;
 }
 
-int pgw_handle_allocate_ipv6_address(const std::string subscriber_id,
+int pgw_handle_allocate_ipv6_address(const std::string subscriber_id_str,
                                      const std::string apn_str,
                                      const std::string pdn_type_str,
                                      teid_t context_teid, ebi_t eps_bearer_id) {
@@ -182,8 +182,8 @@ int pgw_handle_allocate_ipv6_address(const std::string subscriber_id,
 #endif
   // Make an RPC call to Mobilityd
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
-      subscriber_id, apn_str,
-      [subscriber_id, apn_str, pdn_type_str, context_teid, eps_bearer_id](
+      subscriber_id_str, apn_str,
+      [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in6_addr ip6_addr;
         std::string ipv6_addr_str;
@@ -193,14 +193,14 @@ int pgw_handle_allocate_ipv6_address(const std::string subscriber_id,
           OAILOG_ERROR(
               LOG_UTIL,
               " Error in allocating ipv6 address for IMSI <%s> apn <%s>\n",
-              subscriber_id.c_str(), apn_str.c_str());
+              subscriber_id_str.c_str(), apn_str.c_str());
         }
 
         memcpy(&ip6_addr.s6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
 
         handle_allocate_ipv6_address_status(
-            status, ip6_addr, vlan, subscriber_id.c_str(), apn_str.c_str(),
+            status, ip6_addr, vlan, subscriber_id_str.c_str(), apn_str.c_str(),
             pdn_type_str.c_str(), context_teid, eps_bearer_id);
       });
   return RETURNok;

@@ -33,7 +33,7 @@ update_version() {
     INPUT_VERSION=$(dpkg-deb -f "${BUILD_PATH}/${INPUT_FILE_NAME}" Version)
     echo "  Updating version \"${INPUT_VERSION}\" to \"${VERSION}-${VERSION_SUFFIX}\""
     sed -i "s/VERSION-SUFFIX/${VERSION_SUFFIX}/" control
-    
+
     echo "  Updating description to development build \"${DEV_BUILD}\""
     if [ "${DEV_BUILD}" = true ] ; then
         sed -i "s/\(Description: .*$\)/\1 - dev build/" control
@@ -66,8 +66,10 @@ update_version() {
 ###############################################################################
 
 VERSION=REPLACE_ME # set by genrule
+DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 MAGMA_INPUT_FILE_NAME=REPLACE_ME # set by genrule
 SCTPD_INPUT_FILE_NAME=REPLACE_ME # set by genrule
+DHCP_LICENSE=REPLACE_ME # set by genrule
 MAGMA_LICENSE=REPLACE_ME # set by genrule
 SCTPD_LICENSE=REPLACE_ME # set by genrule
 DEV_BUILD=true # can be overridden by genrule
@@ -85,5 +87,6 @@ HASH_SHORT=${HASH::8}
 TIMESTAMP=$(date +%s)
 VERSION_SUFFIX="${TIMESTAMP}-${HASH_SHORT}"
 
+update_version $DHCP_HELPER_CLI_INPUT_FILE_NAME $DHCP_LICENSE
 update_version $MAGMA_INPUT_FILE_NAME $MAGMA_LICENSE
 update_version $SCTPD_INPUT_FILE_NAME $SCTPD_LICENSE

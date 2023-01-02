@@ -72,12 +72,6 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -86,7 +80,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Push helm charts to artifactory failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -99,7 +93,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Helm charts have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -215,13 +209,6 @@ jobs:
         with:
           name: sentry-exec
           path: lte/gateway/magma-packages
-      - name: Extract commit title
-        # yamllint enable
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:
@@ -231,7 +218,7 @@ jobs:
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
-          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ github.event.head_commit.message || github.event.pull_request.title }}"
       # Notify ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
@@ -242,7 +229,7 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
-          args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
+          args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ github.event.head_commit.message || github.event.pull_request.title }}"
   sentry_release:
     if: always() && github.event_name == 'push'
     needs: [ agw-build ]
@@ -321,14 +308,14 @@ jobs:
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
-          python3 build.py --all --nocache --parallel
+          python3 build.py --all --nocache
       - name: Export docker images to deploy them
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save orc8r_nginx | gzip > nginx.tar.gz
-          docker save orc8r_controller  | gzip > controller.tar.gz
+          docker save orc8r-nginx | gzip > nginx.tar.gz
+          docker save orc8r-controller  | gzip > controller.tar.gz
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
         with:
@@ -354,12 +341,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -368,7 +349,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action orc8r-build failed"
           SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -380,7 +361,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -401,19 +382,13 @@ jobs:
         run: |
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-upload failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -426,7 +401,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*SwaggerHub Updated*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -446,19 +421,19 @@ jobs:
         continue-on-error: true
         # yamllint disable rule:line-length
         env:
-          DOCKER_REGISTRY: cwf_
+          DOCKER_REGISTRY: cwf-
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --file docker-compose.yml --file docker-compose.override.yml build
       - name: Retry docker compose on failure
         id: retry-cwag-docker-compose
         continue-on-error: true
         if: steps.cwag-docker-compose.outcome=='failure'
         env:
-          DOCKER_REGISTRY: cwf_
+          DOCKER_REGISTRY: cwf-
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --file docker-compose.yml --file docker-compose.override.yml build
       - name: Set the job status
         if: always()
         run: |
@@ -473,11 +448,11 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save cwf_cwag_go | gzip > cwag_go.tar.gz
-          docker save cwf_gateway_go | gzip > gateway_go.tar.gz
-          docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
-          docker save cwf_gateway_python | gzip > gateway_python.tar.gz
-          docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
+          docker save cwf-cwag_go | gzip > cwag_go.tar.gz
+          docker save cwf-gateway_go | gzip > gateway_go.tar.gz
+          docker save cwf-gateway_sessiond | gzip > gateway_sessiond.tar.gz
+          docker save cwf-gateway_python | gzip > gateway_python.tar.gz
+          docker save cwf-gateway_pipelined | gzip > gateway_pipelined.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -514,12 +489,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -529,7 +498,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-deploy failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -542,7 +511,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -557,16 +526,16 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run docker compose build
         env:
-          DOCKER_REGISTRY: cwf_
+          DOCKER_REGISTRY: cwf-
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
-          DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+          DOCKER_REGISTRY=cwf- docker compose build
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save cwf_operator | gzip > operator.tar.gz
+          docker save cwf-operator | gzip > operator.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -601,12 +570,6 @@ jobs:
           DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -616,7 +579,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -628,7 +591,7 @@ jobs:
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_TITLE: "*CWF Artifact Has Been Published*"
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
@@ -660,13 +623,13 @@ jobs:
           cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
       - name: Build docker images
         env:
-          DOCKER_REGISTRY: feg_
+          DOCKER_REGISTRY: feg-
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py
       - name: run docker containers and check health
         env:
-          DOCKER_REGISTRY: feg_
+          DOCKER_REGISTRY: feg-
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
@@ -675,8 +638,8 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
-          docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
+          docker save feg-gateway_go | gzip > feg_gateway_go.tar.gz
+          docker save feg-gateway_python | gzip > feg_gateway_python.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -702,12 +665,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -717,7 +674,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -730,7 +687,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*FeG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -751,13 +708,13 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           cd ${MAGMA_ROOT}/nms
-          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+          COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save magmalte_magmalte | gzip > magmalte.tar.gz
+          docker save magmalte-magmalte | gzip > magmalte.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -784,12 +741,6 @@ jobs:
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
           echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -799,7 +750,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action nms-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
@@ -812,7 +763,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "NMS Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -885,12 +836,6 @@ jobs:
         run: |
           docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
           skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo "title=${str%%\\n*}" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -899,7 +844,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action domain-proxy-build failed"
           SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -911,7 +856,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Domain proxy images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
@@ -927,4 +872,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
           event-type: build-all-artifact
-          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}" }'
+          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}", "trigger_sha": "${{ github.sha }}" }'
