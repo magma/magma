@@ -3,6 +3,7 @@
 set -euo pipefail
 
 BOX_FILE=$1
+FORCE="--no-force"
 
 USER=magmacore
 BOX=$(basename $BOX_FILE | cut -d_ -f1-2 | cut -d. -f1)
@@ -18,9 +19,22 @@ if [ -z "$VAGRANT_CLOUD_TOKEN" ]; then
   exit 1
 fi
 
+shift
+while getopts ":f" opt; do
+  case $opt in
+    f)
+      FORCE="--force"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
 vagrant cloud auth login --token "$VAGRANT_CLOUD_TOKEN"
 vagrant cloud publish \
     --release \
+    "${FORCE}" \
     "${USER}/${BOX}" \
     "$VERSION" \
     "$BOX_PROVIDER" \
