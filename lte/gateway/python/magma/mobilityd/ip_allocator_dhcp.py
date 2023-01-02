@@ -429,35 +429,23 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
     def _release_dhcp_ip(self, ip_desc: IPDesc) -> None:
-        logging.info("Releasing: %s", ip_desc)
+        logging.info(f"Releasing: {ip_desc}")
         mac = create_mac_from_sid(ip_desc.sid)
         vlan = ip_desc.vlan_id
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
-        logging.info("Releasing dhcp desc: %s", dhcp_desc)
+        logging.info(f"Releasing dhcp desc: {dhcp_desc}")
         if dhcp_desc:
-            call_args = [
-                DHCP_HELPER_CLI,
-                "--mac", str(mac),
-                "--vlan", str(vlan),
-                "--interface", self._iface,
-                "--json",
-                "release",
-                "--ip", str(ip_desc.ip),
-                "--server-ip", str(dhcp_desc.server_ip),
-            ]
-            ret = subprocess.run(
-                call_args,
-                capture_output=True,
-                check=False,
+            subprocess.Popen(
+                [
+                    DHCP_HELPER_CLI,
+                    "--mac", str(mac),
+                    "--vlan", str(vlan),
+                    "--interface", self._iface,
+                    "release",
+                    "--ip", str(ip_desc.ip),
+                    "--server-ip", str(dhcp_desc.server_ip),
+                ],
             )
-
-            if ret.returncode != 0:
-                call_str = " ".join(call_args)
-                logging.error(
-                    "CLI call '%s' failed with return code %s and error %s",
-                    call_str, ret.returncode, ret.stderr,
-                )
-                raise NoAvailableIPError('Failed to call dhcp_helper_cli.')
 
             key = mac.as_redis_key(vlan)
             with self.dhcp_wait:
