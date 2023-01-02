@@ -289,6 +289,17 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   }
 }
 
+void mme_app_state_free_ue_context(void** ue_context_node) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  ue_mm_context_t* ue_context_p = (ue_mm_context_t*)(*ue_context_node);
+  // clean up EMM context
+  emm_context_t* emm_ctx = &ue_context_p->emm_context;
+  free_emm_ctx_memory(emm_ctx, ue_context_p->mme_ue_s1ap_id);
+  mme_app_ue_context_free_content(ue_context_p);
+  free_wrapper((void**)&ue_context_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 //------------------------------------------------------------------------------
 ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
     mme_ue_context_t* const mme_ue_context_p, const enb_s1ap_id_key_t enb_key) {
@@ -852,6 +863,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
     }
+    ue_context_p = nullptr;
   }
 
   free_wrapper((void**)&ue_context_p);
