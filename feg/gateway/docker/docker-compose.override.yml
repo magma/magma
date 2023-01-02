@@ -3,7 +3,7 @@ version: "3.7"
 services:
   test:
     container_name: test
-    image: feg_gateway_go_base
+    image: feg-gateway_go_base
     build:
       target: base
       context: ${BUILD_CONTEXT}
@@ -24,7 +24,7 @@ services:
 
   hss:
     container_name: hss
-    image: feg_gateway_go
+    image: feg-gateway_go
     network_mode: host
     volumes:
       - ../configs:/etc/magma

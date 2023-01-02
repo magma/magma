@@ -37,10 +37,10 @@ jobs:
           mkdir images
           cd images
           docker images
-          docker save orc8r_nginx:latest | gzip > fed_orc8r_nginx.tar.gz
-          docker save orc8r_controller:latest  | gzip > fed_orc8r_controller.tar.gz
-          docker save orc8r_fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
-          docker save orc8r_test:latest  | gzip > fed_orc8r_test.tar.gz
+          docker save orc8r-nginx:latest | gzip > fed_orc8r_nginx.tar.gz
+          docker save orc8r-controller:latest  | gzip > fed_orc8r_controller.tar.gz
+          docker save orc8r-fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
+          docker save orc8r-test:latest  | gzip > fed_orc8r_test.tar.gz
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: docker-build-orc8r-images
@@ -60,14 +60,14 @@ jobs:
       - name: Build FEG docker images
         run: |
           cd feg/gateway/docker
-          docker-compose build --force-rm --parallel
+          docker compose build
           docker images
       - name: Export docker images to deploy them
         run: |
           mkdir images
           cd images
-          docker save feg_gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
-          docker save feg_gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
+          docker save feg-gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
+          docker save feg-gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         with:
           name: docker-build-feg-images

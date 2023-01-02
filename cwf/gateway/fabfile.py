@@ -91,10 +91,10 @@ def integ_test(
     no_build: When set to true, this script will not rebuild all docker images
         in the CWAG VM
 
-    transfer_images: When set to true, the script will transfer all cwf_* docker
+    transfer_images: When set to true, the script will transfer all cwf-* docker
         images from the host machine to the CWAG VM to use in the test
 
-    skip_docker_load: When set to true, /tmp/cwf_* will copied into the CWAG VM
+    skip_docker_load: When set to true, /tmp/cwf-* will copied into the CWAG VM
         instead of loading the docker images then copying. This option only is
         valid if transfer_images is set.
 
@@ -296,10 +296,10 @@ def _transfer_docker_images(skip_docker_load, tar_path):
     if skip_docker_load:
         print("Skipping docker save step and grabbing whatever is in " + tar_path)
     else:
-        print("Loading cwf_* docker images into " + tar_path)
+        print("Loading cwf-* docker images into " + tar_path)
         local("rm -rf " + tar_path)
         local("mkdir -p " + tar_path)
-        output = local("docker images cwf_*", capture=True)
+        output = local("docker images cwf-*", capture=True)
         for line in output.splitlines():
             if not line.startswith('cwf'):
                 continue
@@ -307,7 +307,7 @@ def _transfer_docker_images(skip_docker_load, tar_path):
             image = line.split(" ")[0]
             local("docker save -o %s/%s.tar %s" % (tar_path, image, image))
 
-    output = local("ls %s/cwf_*.tar" % tar_path, capture=True)
+    output = local("ls %s/cwf-*.tar" % tar_path, capture=True)
     for line in output.splitlines():
         regex = '%s/(.+?).tar' % tar_path
         match = re.search(regex, line)
@@ -394,7 +394,7 @@ def _stop_gateway():
     """ Stop the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
@@ -406,12 +406,12 @@ def _build_gateway():
     """ Builds the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.nginx.yml'
             ' -f docker-compose.integ-test.yml'
-            ' build --parallel',
+            ' build',
         )
 
 
@@ -419,7 +419,7 @@ def _run_gateway():
     """ Runs the gateway's docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(
-            ' docker-compose'
+            ' docker compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'

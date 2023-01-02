@@ -393,7 +393,7 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	// Requested-Service-Unit can only be send in CCR-I and CCR-U
 	if requestType != credit_control.CRTTerminate {
 		var usuGrp []*diam.AVP
-		// controlled by DISABLE_REQUESTED_SERVICE_UNIT_AVP env var on docker-compose
+		// controlled by DISABLE_REQUESTED_SERVICE_UNIT_AVP env var on docker compose
 		if globalConfig.DisableServiceGrantedUnitsAVP {
 			usuGrp = []*diam.AVP{}
 		} else {
