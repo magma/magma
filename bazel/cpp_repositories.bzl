@@ -73,13 +73,10 @@ def cpp_repositories():
         url = "https://github.com/cylix/tacopie/archive/master.zip",
     )
 
-    http_archive(
+    git_repository(
         name = "cpp_redis",
-        sha256 = "3859289d8254685fc775bda73de03dad27df923423b8ceb375b02d036c03b02f",
-        strip_prefix = "cpp_redis-4.3.1",
-        # TODO: We do not need a custom BUILD file if we upgrade to a more recent version of cpp_redis - #8321
-        build_file = "//bazel/external:cpp_redis.BUILD",
-        url = "https://github.com/cpp-redis/cpp_redis/archive/refs/tags/4.3.1.tar.gz",
+        commit = "201d96c59a096a33de6c94e08eb92db737c2e967",
+        remote = "https://github.com/cpp-redis/cpp_redis.git",
     )
 
     http_archive(
