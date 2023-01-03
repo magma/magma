@@ -600,13 +600,14 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context,
 ue_mm_context_t* mme_create_new_ue_context(void);
 
 void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
-void mme_app_state_free_ue_context(void** ue_context_node);
 
 /**
  * Release memory allocated by MmeNasStateManager through MmeNasStateConverter
  * and NasStateConverter for each UE context, this is called by
  * hashtable_ts_destroy
  */
+void mme_app_state_free_ue_context(void** ue_context_node);
+
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
