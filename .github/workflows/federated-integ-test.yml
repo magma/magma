@@ -213,6 +213,6 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@2.1.0
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
           args: "Federated integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
