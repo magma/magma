@@ -322,7 +322,6 @@ status_code_e spgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   status_code_e rc = RETURNok;
   state_teid_map_t* state_teid_map = nullptr;
-  uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p = nullptr;
   bool is_lbi_found = false;
   bool is_imsi_found = false;

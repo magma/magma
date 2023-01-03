@@ -33,7 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 
-char* USAGE_TEXT =
+const char* USAGE_TEXT =
     "==== EURECOM %s version: %s ====\n"  // PACKAGE_NAME, PACKAGE_VERSION
     "Please report any bug to: %s\n"      // PACKAGE_BUGREPORT
     "Usage: %s [options]\n"               // exe_path

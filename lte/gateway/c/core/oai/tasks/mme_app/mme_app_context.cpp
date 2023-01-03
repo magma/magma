@@ -449,7 +449,7 @@ void mme_ue_context_update_coll_keys(
   } else {
     OAILOG_ERROR_UE(
         LOG_MME_APP, imsi,
-        "Did not insert enb_s1ap_id_key %u to enb_ue_s1ap_key2mme_ueid_map "
+        "Did not insert enb_s1ap_id_key %lu to enb_ue_s1ap_key2mme_ueid_map "
         "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
         enb_s1ap_id_key, ue_context_p->enb_ue_s1ap_id,
@@ -622,11 +622,12 @@ status_code_e mme_insert_ue_context(
   if (mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.get(
           ue_context_p->enb_s1ap_id_key, &mme_ue_s1ap_id) ==
       magma::PROTO_MAP_OK) {
-    OAILOG_WARNING_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "enb_s1ap_id_key-%u already exists in enb_ue_s1ap_key2mme_ueid_map for "
-        "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
-        ue_context_p->enb_s1ap_id_key, ue_context_p->mme_ue_s1ap_id);
+    OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                      "enb_s1ap_id_key-%lu already exists in "
+                      "enb_ue_s1ap_key2mme_ueid_map for "
+                      "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
+                      ue_context_p->enb_s1ap_id_key,
+                      ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // Insert enb_s1ap_id_key to enb_ue_s1ap_key2mme_ueid_map
@@ -853,7 +854,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
             ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %lu "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                         ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,
@@ -949,7 +950,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     if ((mme_ue_context_p->enb_ue_s1ap_key2mme_ueid_map.remove(
             ue_context_p->enb_s1ap_id_key)) != magma::PROTO_MAP_OK) {
       OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
-                        "Failed to remove enb_ue_s1ap_ue_id_key %u "
+                        "Failed to remove enb_ue_s1ap_ue_id_key %lu "
                         "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
                         ", from enb_ue_s1ap_key2mme_ueid_map",
                         ue_context_p->enb_s1ap_id_key,
@@ -1301,7 +1302,7 @@ static void mme_app_handle_s1ap_ue_context_release(
     OAILOG_WARNING(
         LOG_MME_APP,
         "Invalid mme_ue_s1ap_ue_id " MME_UE_S1AP_ID_FMT
-        " received from S1AP. Using enb_s1ap_id_key %u to get the context \n",
+        " received from S1AP. Using enb_s1ap_id_key %lu to get the context \n",
         mme_ue_s1ap_id, enb_s1ap_id_key);
   }
   if (!ue_mm_context) {
@@ -1421,7 +1422,7 @@ bool is_mme_ue_context_network_access_mode_packet_only(
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->network_access_mode == NAM_ONLY_PACKET) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, true);
@@ -1461,7 +1462,7 @@ bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if ((ue_context_p->sgs_context) &&
       (ue_context_p->sgs_context->vlr_reliable == true)) {
@@ -1499,7 +1500,7 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if ((ue_context_p->sgs_context) &&
       (ue_context_p->sgs_context->neaf == true)) {

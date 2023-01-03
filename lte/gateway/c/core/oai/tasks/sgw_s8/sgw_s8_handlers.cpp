@@ -82,7 +82,6 @@ static sgw_eps_bearer_context_information_t* update_sgw_context_to_s11_teid_map(
 void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
                                                teid_t teid, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  int rc = 0;
 
   map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
   if (!state_teid_map) {
@@ -592,7 +591,7 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
              sizeof(teidString) - strlen(teidString), "%u%c", teidlist[idx],
              separator);
   }
-  char* ptr = "sgw_c_teid";
+  const char* ptr = "sgw_c_teid";
   if (teid_type == UP_TEID) {
     ptr = "sgw_u_teid";
   }

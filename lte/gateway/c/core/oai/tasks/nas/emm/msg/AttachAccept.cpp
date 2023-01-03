@@ -99,7 +99,7 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
       case ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI:
         if ((decoded_result = decode_location_area_identification_ie(
                  &attach_accept->locationareaidentification,
-                 ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI,
+                 ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -113,7 +113,7 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 
       case ATTACH_ACCEPT_MS_IDENTITY_IEI:
         if ((decoded_result = decode_mobile_identity_ie(
-                 &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI,
+                 &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -166,7 +166,7 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
       case ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI:
         if ((decoded_result =
                  decode_plmn_list_ie(&attach_accept->equivalentplmns,
-                                     ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI,
+                                     ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
                                      buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -180,7 +180,7 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
       case ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
         if ((decoded_result = decode_emergency_number_list_ie(
                  &attach_accept->emergencynumberlist,
-                 ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI, buffer + decoded,
+                 ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0, buffer + decoded,
                  len - decoded)) <= 0)
           return decoded_result;
 
@@ -288,8 +288,8 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
       ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT) {
     if ((encode_result = encode_location_area_identification_ie(
              &attach_accept->locationareaidentification,
-             ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+             ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI != 0,
+             buffer + encoded, len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_EMM,
                    "Failed encode_location_area_identification_ie\n");
       // Return in case of error
@@ -301,7 +301,7 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
   if ((attach_accept->presencemask & ATTACH_ACCEPT_MS_IDENTITY_PRESENT) ==
       ATTACH_ACCEPT_MS_IDENTITY_PRESENT) {
     if ((encode_result = encode_mobile_identity_ie(
-             &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI,
+             &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI != 0,
              buffer + encoded, len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_mobile_identity_ie\n");
       // Return in case of error
@@ -349,10 +349,10 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 
   if ((attach_accept->presencemask & ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT) ==
       ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT) {
-    if ((encode_result = encode_plmn_list_ie(&attach_accept->equivalentplmns,
-                                             ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI,
-                                             buffer + encoded, len - encoded)) <
-        0) {
+    if ((encode_result =
+             encode_plmn_list_ie(&attach_accept->equivalentplmns,
+                                 ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
+                                 buffer + encoded, len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_plmn_list_ie\n");
       // Return in case of error
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
@@ -365,7 +365,7 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
       ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT) {
     if ((encode_result = encode_emergency_number_list_ie(
              &attach_accept->emergencynumberlist,
-             ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI, buffer + encoded,
+             ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0, buffer + encoded,
              len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_emergency_number_list\n");
       // Return in case of error

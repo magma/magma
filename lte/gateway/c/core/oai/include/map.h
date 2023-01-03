@@ -85,7 +85,7 @@ typedef enum map_return_code_e {
 **                                                                        **
 ***************************************************************************/
 
-static std::string map_rc_code2string(map_rc_t rc) {
+static inline std::string map_rc_code2string(map_rc_t rc) {
   switch (rc) {
     case MAP_OK:
       return "MAP_OK";
