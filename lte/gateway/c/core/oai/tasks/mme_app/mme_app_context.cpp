@@ -854,7 +854,7 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
 
   // filled NAS UE ID/ MME UE S1AP ID
   if (INVALID_MME_UE_S1AP_ID != ue_context_p->mme_ue_s1ap_id) {
-    if (mme_app_state_ue_map->remove(ue_context_p->mme_ue_s1ap_id) !=
+    if (mme_app_state_ue_map->remove(ue_context_p->mme_ue_s1ap_id, false) !=
         magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -863,7 +863,6 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
     }
-    ue_context_p = nullptr;
   }
 
   free_wrapper((void**)&ue_context_p);
