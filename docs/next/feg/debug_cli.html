@@ -63,16 +63,16 @@
 <code>/var/opt/magma/bin/</code>.</p>
 <p>You have different options to obtain and run the CLI:</p>
 <ul>
-<li>Using <code>docker-compose</code> from the host:</li>
+<li>Using <code>docker compose</code> from the host:</li>
 </ul>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> /var/opt/magma/docker
-sudo docker-compose <span class="hljs-built_in">exec</span> s6a_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
+sudo docker compose <span class="hljs-built_in">exec</span> s6a_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
 </code></pre>
 <ul>
 <li>Using the binary from inside the pod:</li>
 </ul>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> /var/opt/magma/docker
-docker-compose <span class="hljs-built_in">exec</span> s6a_proxy bash
+docker compose <span class="hljs-built_in">exec</span> s6a_proxy bash
 <span class="hljs-comment">#inside pod</span>
 <span class="hljs-built_in">cd</span> /var/opt/magma/bin/
 ./s8_cli cs -server 192.168.32.118:2123 -delete 3
@@ -91,8 +91,8 @@ chmod +x s8_cli
 </ul>
 <pre><code class="hljs css language-bash"><span class="hljs-comment">#after cloning magma from github</span>
 <span class="hljs-built_in">cd</span> ~/magma/feg/gateway/docker
-docker-compose up -d <span class="hljs-built_in">test</span>
-docker-compose <span class="hljs-built_in">exec</span> <span class="hljs-built_in">test</span> bash
+docker compose up -d <span class="hljs-built_in">test</span>
+docker compose <span class="hljs-built_in">exec</span> <span class="hljs-built_in">test</span> bash
 <span class="hljs-comment">#inside pod</span>
 <span class="hljs-built_in">cd</span> /tools/s6a_cli
 go build
