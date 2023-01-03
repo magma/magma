@@ -96,6 +96,7 @@ jobs:
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/c/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.c_image_tags }}
+          TARGET: gateway_c
       - run: echo "C container image digest is ${{ steps.docker-builder-c.outputs.digest }}"
       - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
 
@@ -107,6 +108,7 @@ jobs:
           REGISTRY: ${{ env.registry }}
           FILE: lte/gateway/docker/services/python/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
+          TARGET: gateway_python
       - run: echo "Python container image digest is ${{ steps.docker-builder-python.outputs.digest }}"
       - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
 
@@ -118,6 +120,7 @@ jobs:
           REGISTRY: ${{ env.registry }}
           FILE: feg/gateway/docker/go/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
+          TARGET: gateway_go
       - run: echo "Go container image digest is ${{ steps.docker-builder-go.outputs.digest }}"
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
@@ -151,6 +154,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+          TARGET: agw_c_ghz
           CONTEXT: lte/gateway/docker/ghz
 
       - uses: ./.github/workflows/composite/docker-builder-agw
@@ -159,6 +163,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
           TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+          TARGET: agw_python_ghz
           CONTEXT: lte/gateway/docker/ghz
 
   test-containers-precommit:
@@ -263,4 +268,4 @@ jobs:
           SLACK_AVATAR: ":boom:"
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
         with:
-          args: "Containerized LTE integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ steps.commit.outputs.title}}"
+          args: "Containerized LTE integration test failed on [${{ github.sha }}](${{github.event.repository.owner.html_url}}/magma/commit/${{ github.sha }}): ${{ github.event.head_commit.message || github.event.pull_request.title }}"

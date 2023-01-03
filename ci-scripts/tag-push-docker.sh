@@ -86,7 +86,7 @@ IMAGES_ARRAY=($(echo "$IMAGES" | tr "|" "\n"))
 for IMAGE in "${IMAGES_ARRAY[@]}"; do
   IMAGE_TOSEARCH=$IMAGE
   if [ -n "${PROJECT}" ]; then
-    IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+    IMAGE_TOSEARCH="${PROJECT}-${IMAGE}"
   fi
   IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
   tag_and_push "$TAG"

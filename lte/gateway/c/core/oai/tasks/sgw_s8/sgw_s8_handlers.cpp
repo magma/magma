@@ -1423,9 +1423,9 @@ void sgw_s8_proc_s11_create_bearer_rsp(
     itti_s11_nw_init_actv_bearer_rsp_t* s11_actv_bearer_rsp, imsi64_t imsi64,
     sgw_state_t* sgw_state) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
+  struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = nullptr;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = nullptr;
   pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
 
   if (!pgw_ni_cbr_proc) {
@@ -1437,7 +1437,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
         bc_cbrsp->eps_bearer_id, s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_s8_create_bearer_response(
         sgw_context_p, s11_actv_bearer_rsp->cause.cause_value, imsi64, bc_cbrsp,
-        NULL, LOG_SGW_S8);
+        nullptr, LOG_SGW_S8);
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
@@ -1456,7 +1456,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
         sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p =
             sgw_cm_insert_eps_bearer_ctxt_in_collection(
                 &sgw_context_p->pdn_connection, eps_bearer_ctxt_p);
-        if (eps_bearer_ctxt_entry_p == NULL) {
+        if (eps_bearer_ctxt_entry_p == nullptr) {
           OAILOG_ERROR_UE(
               LOG_SGW_S8, imsi64,
               "Failed to create new EPS bearer entry for bearer_id :%u \n",
@@ -1918,12 +1918,12 @@ void sgw_s8_process_release_access_bearer_request(
    * towards eNB.
    * These tunnels will be added again when UE moves back to connected mode.
    */
-  for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
+  for (uint8_t ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
         sgw_context->pdn_connection.sgw_eps_bearers_array[ebx];
     if (eps_bearer_ctxt) {
       struct in_addr enb = {.s_addr = 0};
-      struct in6_addr* enb_ipv6 = NULL;
+      struct in6_addr* enb_ipv6 = nullptr;
       enb.s_addr =
           eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
       if (spgw_config.sgw_config.ipv6.s1_ipv6_enabled &&
@@ -1931,7 +1931,7 @@ void sgw_s8_process_release_access_bearer_request(
         enb_ipv6 = &eps_bearer_ctxt->enb_ip_address_S1u.address.ipv6_address;
       }
 
-      struct in6_addr* ue_ipv6 = NULL;
+      struct in6_addr* ue_ipv6 = nullptr;
       if ((eps_bearer_ctxt->paa.pdn_type == IPv6) ||
           (eps_bearer_ctxt->paa.pdn_type == IPv4_AND_v6)) {
         ue_ipv6 = &eps_bearer_ctxt->paa.ipv6_address;
@@ -1941,7 +1941,7 @@ void sgw_s8_process_release_access_bearer_request(
       struct in_addr pgw = {.s_addr = 0};
       pgw.s_addr =
           eps_bearer_ctxt->p_gw_address_in_use_up.address.ipv4_address.s_addr;
-      struct in6_addr* pgw_ipv6 = NULL;
+      struct in6_addr* pgw_ipv6 = nullptr;
       if ((eps_bearer_ctxt->p_gw_address_in_use_up.pdn_type == IPv6) ||
           (eps_bearer_ctxt->p_gw_address_in_use_up.pdn_type == IPv4_AND_v6)) {
         pgw_ipv6 =
@@ -1950,10 +1950,11 @@ void sgw_s8_process_release_access_bearer_request(
       OAILOG_DEBUG_UE(
           module, imsi64,
           "Deleting tunnel for bearer_id %u ue addr %x enb_ip %x "
-          "sgw_teid_s1u_s12_s4_up %x, enb_teid_S1u %x pgw_up_ip %x "
-          "pgw_up_teid %x "
+          "sgw_teid_s1u_s12_s4_up " TEID_FMT "enb_teid_S1u " TEID_FMT
+          " pgw_up_ip %x "
+          "pgw_up_teid " TEID_FMT
           "s_gw_ip_address_S5_S8_up %x"
-          "s_gw_teid_S5_S8_up %x \n ",
+          "s_gw_teid_S5_S8_up " TEID_FMT,
           eps_bearer_ctxt->eps_bearer_id, ue_ipv4.s_addr, enb.s_addr,
           eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt->enb_teid_S1u, pgw.s_addr,
@@ -1965,7 +1966,7 @@ void sgw_s8_process_release_access_bearer_request(
         rv = gtp_tunnel_ops->del_tunnel(
             enb, enb_ipv6, eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt->enb_teid_S1u, NULL);
+            eps_bearer_ctxt->enb_teid_S1u, nullptr);
       } else if (module == LOG_SGW_S8) {
         rv = gtpv1u_del_s8_tunnel(enb, enb_ipv6, pgw, pgw_ipv6,
                                   eps_bearer_ctxt->paa.ipv4_address, ue_ipv6,
@@ -2027,7 +2028,8 @@ status_code_e create_temporary_s8_dedicated_bearer_context(
 
   if (!default_eps_bearer_entry_p) {
     OAILOG_ERROR_UE(module, sgw_ctxt_p->imsi64,
-                    "Failed to get default bearer context\n");
+                    "Failed to get default bearer context for bearer id :%u",
+                    sgw_ctxt_p->pdn_connection.default_bearer);
     OAILOG_FUNC_RETURN(module, RETURNerror);
   }
 
@@ -2169,7 +2171,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
   } else {
     OAILOG_WARNING(
         LOG_SPGW_APP,
-        "Could not create mew EPS bearer ctxt for EPS bearer id %u : already "
+        "Could not create new EPS bearer ctxt for EPS bearer id %u : already "
         "exist\n",
         sgw_eps_bearer_ctxt->eps_bearer_id);
   }
@@ -2205,7 +2207,7 @@ void sgw_s8_populate_mbr_bearer_contexts_removed(
     itti_s11_modify_bearer_response_t* modify_response_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint8_t rsp_idx = 0;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
   for (uint8_t idx = 0; idx < resp_pP->num_bearers_removed; idx++) {
     eps_bearer_ctxt_p = sgw_s8_cm_get_eps_bearer_entry(
         &(sgw_context_p->pdn_connection),
@@ -2215,7 +2217,7 @@ void sgw_s8_populate_mbr_bearer_contexts_removed(
      * CONTEXT_NOT_FOUND. MME App sends bearer deactivation message to UE for
      * the bearers with cause CONTEXT_NOT_FOUND
      */
-    if (NULL != eps_bearer_ctxt_p) {
+    if (eps_bearer_ctxt_p != nullptr) {
       sgw_s8_free_eps_bearer_context(
           &(sgw_context_p->pdn_connection.sgw_eps_bearers_array[EBI_TO_INDEX(
               eps_bearer_ctxt_p->eps_bearer_id)]));

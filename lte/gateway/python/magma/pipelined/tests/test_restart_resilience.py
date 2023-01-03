@@ -139,6 +139,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': False,
                 'setup_type': 'LTE',
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=loop_mock,
@@ -686,6 +687,107 @@ class RestartResilienceTest(unittest.TestCase):
 
         self.enforcement_controller._clean_restart = False
         self.enforcement_stats_controller._clean_restart = False
+
+    def test_with_stateless_enforcement_restart(self):
+        """
+        Adds rules using the setup feature
+
+        1) Empty SetupFlowsRequest
+            - assert default flows
+        2) Add 1 imsi, add 1 policiy sub1_rule_temp
+            - assert everything is properly added
+        3) Restart controller
+            - assert extra flows
+        """
+        self.enforcement_controller.delete_all_flows(RestartResilienceTest.enforcement_controller._datapath)
+        self.enforcement_stats_controller.delete_all_flows(RestartResilienceTest.enforcement_stats_controller._datapath)
+        self.enforcement_controller.is_stateless = True
+        self.enforcement_stats_controller._rule_mapper = RuleIDToNumMapper()
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'default_flows',
+        )
+        with snapshot_verifier:
+            pass
+
+        imsi = 'IMSI010000000088888'
+        sub_ip = '192.168.128.74'
+        flow_list = [
+            FlowDescription(
+                match=FlowMatch(
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                    direction=FlowMatch.UPLINK,
+                ),
+                action=FlowDescription.PERMIT,
+            ),
+        ]
+        policies = [
+            VersionedPolicy(
+                rule=PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list),
+                version=1,
+            ),
+        ]
+
+        setup_flows_request = SetupFlowsRequest(
+            requests=[
+                ActivateFlowsRequest(
+                    sid=SIDUtils.to_pb(imsi),
+                    ip_addr=sub_ip,
+                    policies=policies,
+                ),
+            ],
+            epoch=global_epoch,
+        )
+
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request,
+        )
+
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller,
+            self._enforcement_tbl_num,
+        )
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                                     .build_requests(),
+            self.testing_controller,
+        )
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packets = IPPacketBuilder()\
+            .set_ip_layer('45.10.0.8/20', sub_ip)\
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
+            .build()
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'before_restart',
+        )
+        with isolator, snapshot_verifier:
+            pkt_sender.send(packets)
+
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+        )
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+            'after_restart',
+        )
+        with snapshot_verifier:
+            pass
+
+        self.enforcement_controller.is_stateless = False
 
 
 if __name__ == "__main__":

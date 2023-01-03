@@ -143,12 +143,12 @@ message SgwEpsBearerContext {
     string policy_rule_name = 27;
 
     bytes sgw_ipv6_address_s1u_s12_s4_up = 28;
-    IpTupple enb_s1u_ip_addr = 30;
-    IpTupple ue_ip_paa = 31;
-    IpTupple pgw_address_up = 32;
-    IpTupple sgw_s1u_s12_s4_up_ip_addr = 33;
-    uint32 sgw_sequence_number = 34;
-    bool update_teids = 35;
+    IpTupple enb_s1u_ip_addr = 29;
+    IpTupple ue_ip_paa = 30;
+    IpTupple pgw_address_up = 31;
+    IpTupple sgw_s1u_s12_s4_up_ip_addr = 32;
+    uint32 sgw_sequence_number = 33;
+    bool update_teids = 34;
 }
 
 // traffic_flow_template

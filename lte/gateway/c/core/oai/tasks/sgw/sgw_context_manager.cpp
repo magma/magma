@@ -110,8 +110,6 @@ void sgw_display_s11_bearer_context_information(
     magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt = itr->second;
     sgw_display_sgw_eps_bearer_context(&eps_bearer_ctxt);
   }
-  // void                  *trxn;
-  // uint32_t               peer_ip;
 }
 
 //-----------------------------------------------------------------------------
@@ -146,12 +144,10 @@ void sgw_s8_display_s11_bearer_context_information(
   OAILOG_DEBUG(module, "|\t\t\tdefault_bearer:    %u\n",
                sgw_context_information->pdn_connection.default_bearer);
   OAILOG_DEBUG(module, "|\t\t\teps_bearers:\n");
-  for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
+  for (uint8_t ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
     sgw_s8_display_sgw_eps_bearer_context(
         sgw_context_information->pdn_connection.sgw_eps_bearers_array[ebix]);
   }
-  // void                  *trxn;
-  // uint32_t               peer_ip;
 }
 
 //-----------------------------------------------------------------------------
@@ -293,7 +289,7 @@ magma::proto_map_rc_t sgw_cm_insert_eps_bearer_ctxt_in_collection(
                  sgw_eps_bearer_ctxt->eps_bearer_id());
   } else {
     OAILOG_WARNING(LOG_SPGW_APP,
-                   "Could not create mew EPS bearer ctxt for EPS bearer id %u: "
+                   "Could not create new EPS bearer ctxt for EPS bearer id %u: "
                    "for error:%s ",
                    sgw_eps_bearer_ctxt->eps_bearer_id(),
                    map_rc_code2string(rc));
@@ -390,7 +386,7 @@ magma::lte::oai::S11BearerContext* spgw_update_teid_in_ue_context(
 
   OAILOG_DEBUG(LOG_SPGW_APP,
                "Inserted spgw_context to list of S11BearerContext of UE "
-               "context for sgw_s11_teid" TEID_FMT,
+               "context for sgw_s11_teid " TEID_FMT,
                teid);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p->add_s11_bearer_context());
 }

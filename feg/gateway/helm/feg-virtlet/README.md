@@ -53,7 +53,7 @@ This chart installs the Magma Federated Gateway.
 
    source .env
 
-   docker-compose -f docker-compose.yml build
+   docker compose -f docker-compose.yml build
 
    ./magma/orc8r/tools/docker/publish.sh -r REGISTRY -i gateway_go -u USERNAME -p passwordfile
 
@@ -162,7 +162,7 @@ The following table list the configurable parameters of the orchestrator chart a
     
    b. SSH into VM
    
-         ssh testuser@${feg_ip} "/var/opt/magma/docker/docker-compose exec magmad /usr/local/bin/show_gateway_info.py"
+         ssh testuser@${feg_ip} "cd /var/opt/magma/docker/ ; sudo docker compose exec magmad /usr/local/bin/show_gateway_info.py"
       
    c. Note down the H/w Id and Challenge Key: 
   

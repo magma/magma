@@ -400,7 +400,7 @@ status_code_e pgw_process_pco_request(
       break;
   }
 
-  for (int id = 0; id < pco_req->num_protocol_or_container_id(); id++) {
+  for (uint8_t id = 0; id < pco_req->num_protocol_or_container_id(); id++) {
     magma::lte::oai::PcoProtocol pco_protocol = pco_req->pco_protocol(id);
     switch (pco_protocol.id()) {
       case PCO_PI_IPCP:

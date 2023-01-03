@@ -107,8 +107,8 @@ void handle_s5_create_session_request(
       new_bearer_ctxt_info_p->sgw_eps_bearer_context();
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, sgw_context.imsi64(),
-      "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
-      "EPS bearer id %u\n",
+      "Handle s5_create_session_request, for context sgw s11 teid " TEID_FMT
+      " EPS bearer id %u\n",
       context_teid, eps_bearer_id);
 
   imsi = sgw_context.imsi();
@@ -187,7 +187,7 @@ void spgw_handle_pcef_create_session_response(
                         .pdn_connection()
                         .apn_in_use();
   eps_bearer_ctxt.set_update_teids(true);
-  // getting updated eps_bearer_ctxt
+  // Updating eps_bearer_ctxt
   if (sgw_update_eps_bearer_entry(
           bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
               ->mutable_pdn_connection(),
@@ -232,10 +232,9 @@ status_code_e spgw_handle_nw_initiated_bearer_actv_req(
   bool is_imsi_found = false;
   bool is_lbi_found = false;
 
-  OAILOG_INFO_UE(
-      LOG_SPGW_APP, imsi64,
-      "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
-      bearer_req_p->lbi, imsi64);
+  OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
+                 "Received Create Bearer Req from PCRF with lbi:%u ",
+                 bearer_req_p->lbi);
 
   state_teid_map = get_spgw_teid_state();
   if (state_teid_map == nullptr) {
@@ -649,7 +648,7 @@ status_code_e create_temporary_dedicated_bearer_context(
                  "Number of DL packet filter rules: %d\n",
                  eps_bearer_ctxt.tft().number_of_packet_filters());
 
-  // Create temporary spgw bearer context entry
+  // Create temporary bearer context for NW initiated dedicated bearer request
   magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
       sgw_ctxt_p->add_pending_procedures();
   pgw_ni_cbr_proc->set_type(
@@ -682,28 +681,37 @@ static void delete_temporary_dedicated_bearer_context(
                  spgw_context_p->sgw_eps_bearer_context().imsi64(),
                  "Delete temporary bearer context for lbi :%u \n", lbi);
 
-  int num_of_bearers_deleted = 0;
-  int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
-  for (int proc_index = 0;
+  uint8_t num_of_bearers_deleted = 0;
+  uint8_t num_of_pending_procedures = sgw_context_p->pending_procedures_size();
+  for (uint8_t proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
     pgw_ni_cbr_proc = sgw_context_p->mutable_pending_procedures(proc_index);
+    if (!pgw_ni_cbr_proc) {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, spgw_context_p->sgw_eps_bearer_context().imsi64(),
+          "Pending procedure within sgw_context is null for "
+          "proc_index:%u and s1u_teid " TEID_FMT,
+          proc_index,
+          pgw_ni_cbr_proc->pending_eps_bearers(0).sgw_teid_s1u_s12_s4_up());
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
     if (pgw_ni_cbr_proc->type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
       num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
-      for (int bearer_index = 0;
+      for (uint8_t bearer_index = 0;
            bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
            bearer_index++) {
-        magma::lte::oai::SgwEpsBearerContext* bearer_context =
-            pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
-        if (bearer_context->sgw_teid_s1u_s12_s4_up() == s1_u_sgw_fteid) {
+        magma::lte::oai::SgwEpsBearerContext bearer_context =
+            pgw_ni_cbr_proc->pending_eps_bearers(bearer_index);
+        if (bearer_context.sgw_teid_s1u_s12_s4_up() == s1_u_sgw_fteid) {
           --num_of_bearers_deleted;
         }
       }  // end of bearer index loop
       if (num_of_bearers_deleted == 0) {
         pgw_ni_cbr_proc->clear_pending_eps_bearers();
+        --num_of_pending_procedures;
       }
     }
-    --num_of_pending_procedures;
   }  // end of procedure index loop
   if (num_of_pending_procedures == 0) {
     sgw_context_p->clear_pending_procedures();

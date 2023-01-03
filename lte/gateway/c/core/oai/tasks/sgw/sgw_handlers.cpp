@@ -154,7 +154,7 @@ status_code_e sgw_handle_s11_create_session_request(
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64,
       "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
-      "S-GW S11 teid " TEID_FMT " APN %s EPS bearer Id %d\n",
+      " S-GW S11 teid " TEID_FMT " APN %s bearer Id %d\n",
       new_endpoint_p->remote_teid, new_endpoint_p->local_teid,
       session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
@@ -187,8 +187,6 @@ status_code_e sgw_handle_s11_create_session_request(
     if (session_req_pP->trxn) {
       sgw_context_p->set_trxn(reinterpret_cast<char*>(session_req_pP->trxn));
     }
-    // s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_int_ip_address_S11
-    // = session_req_pP->peer_ip;
 
     FTEID_T_2_PROTO_IP((&session_req_pP->sender_fteid_for_cp),
                        sgw_context_p->mutable_mme_cp_ip_address_s11());
@@ -557,12 +555,12 @@ static void sgw_add_gtp_tunnel(
             .pdn_connection()
             .default_bearer()) {
       // Set default precedence and tft for default bearer
-      OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
-                     "Adding tunnel for ipv6 ue addr %s, enb %x, "
-                     "sgw_teid_s1u_s12_s4_up %x, enb_teid_S1u %x\n",
-                     ip6_str, enb.s_addr,
-                     eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
-                     eps_bearer_ctxt_p->enb_teid_s1u());
+      OAILOG_INFO_UE(
+          LOG_SPGW_APP, imsi64,
+          "Adding tunnel for ipv6 ue addr %s, enb %x, "
+          "sgw_teid_s1u_s12_s4_up" TEID_FMT " enb_teid_S1u " TEID_FMT,
+          ip6_str, enb.s_addr, eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+          eps_bearer_ctxt_p->enb_teid_s1u());
 
       if (is_ue_ipv6_pres) {
         rv = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
@@ -608,12 +606,12 @@ static void sgw_add_gtp_tunnel(
                            nullptr, &dlflow);
         }
 
-        OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
-                       "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
-                       "sgw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
-                       ip6_str, enb.s_addr,
-                       eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
-                       eps_bearer_ctxt_p->enb_teid_s1u());
+        OAILOG_INFO_UE(
+            LOG_SPGW_APP, imsi64,
+            "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
+            "sgw_teid_S1u_S12_S4_up" TEID_FMT " enb_teid_S1u " TEID_FMT,
+            ip6_str, enb.s_addr, eps_bearer_ctxt_p->sgw_teid_s1u_s12_s4_up(),
+            eps_bearer_ctxt_p->enb_teid_s1u());
 
         if (is_ue_ipv6_pres) {
           rv =
@@ -773,7 +771,8 @@ int sgw_handle_sgi_endpoint_deleted(
             resp_pP->eps_bearer_id, &eps_bearer_ctxt) != magma::PROTO_MAP_OK) {
       OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                       "Rx SGI_DELETE_ENDPOINT_REQUEST: CONTEXT_NOT_FOUND "
-                      "(pdn_connection.sgw_eps_bearers context)\n");
+                      "(pdn_connection.sgw_eps_bearers context) for bearer id",
+                      resp_pP->eps_bearer_id);
     } else {
       OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
                       "Rx SGI_DELETE_ENDPOINT_REQUEST: REQUEST_ACCEPTED\n");
@@ -790,8 +789,8 @@ int sgw_handle_sgi_endpoint_deleted(
               ->pdn_connection()
               .ue_suspended_for_ps_handover()) {
         rv = gtp_tunnel_ops->forward_data_on_tunnel(
-            ue_ipv4, &ue_ipv6, eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(), NULL,
-            DEFAULT_PRECEDENCE);
+            ue_ipv4, &ue_ipv6, eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
+            nullptr, DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
                           "ERROR in resume forwarding data on TUNNEL err=%d\n",
@@ -809,7 +808,7 @@ int sgw_handle_sgi_endpoint_deleted(
 
       rv = gtp_tunnel_ops->del_tunnel(enb, &enb_ipv6, ue_ipv4, &ue_ipv6,
                                       eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
-                                      eps_bearer_ctxt.enb_teid_s1u(), NULL);
+                                      eps_bearer_ctxt.enb_teid_s1u(), nullptr);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
@@ -1028,7 +1027,7 @@ status_code_e sgw_handle_modify_bearer_request(
           }
 
           OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64,
-                          "Delete GTPv1-U tunnel for sgw_teid : %d"
+                          "Delete GTPv1-U tunnel for sgw_teid " TEID_FMT
                           "for bearer %d\n",
                           eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
                           eps_bearer_ctxt.eps_bearer_id());
@@ -1348,8 +1347,8 @@ void handle_s5_create_session_response(
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi64(),
-      "Handle s5_create_session_response, for Context SGW S11 teid, " TEID_FMT
-      "EPS bearer id %u\n",
+      "Handle s5_create_session_response, for Context SGW S11 teid " TEID_FMT
+      " bearer id %u\n",
       session_resp.context_teid, session_resp.eps_bearer_id);
 
   // PCO processing
@@ -1474,7 +1473,7 @@ void handle_s5_create_session_response(
    */
   OAILOG_INFO_UE(
       LOG_SPGW_APP, new_bearer_ctxt_info_p->sgw_eps_bearer_context().imsi64(),
-      "Deleted default bearer context with SGW C-plane TEID = %u "
+      "Deleted default bearer context with SGW C-plane TEID =" TEID_FMT
       "as create session response failure is received\n",
       new_bearer_ctxt_info_p->sgw_eps_bearer_context().mme_teid_s11());
   sgw_cm_remove_bearer_context_information(
@@ -1641,19 +1640,34 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc = nullptr;
-  int num_of_bearers_deleted = 0;
-  int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
-  for (int proc_index = 0;
+  uint8_t num_of_bearers_deleted = 0;
+  uint8_t num_of_pending_procedures = sgw_context_p->pending_procedures_size();
+  for (uint8_t proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
     pgw_ni_cbr_proc = sgw_context_p->mutable_pending_procedures(proc_index);
+    if (!pgw_ni_cbr_proc) {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, sgw_context_p->imsi64(),
+          "Pending procedure within sgw_context is null for proc_index:%u",
+          proc_index);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+    }
     if (pgw_ni_cbr_proc->type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
       num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
-      for (int bearer_index = 0;
+      for (uint8_t bearer_index = 0;
            bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
            bearer_index++) {
         magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
             pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
+        if (!bearer_context_proto) {
+          OAILOG_ERROR_UE(LOG_SPGW_APP, sgw_context_p->imsi64(),
+                          "Bearer context within pending procedure is null for "
+                          "proc_index:%u bearer_index:%u",
+                          proc_index, bearer_index);
+          OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+        }
+
         if (bearer_context_proto->sgw_teid_s1u_s12_s4_up() ==
             bearer_context.s1u_sgw_fteid.teid) {
           bearer_context_proto->set_eps_bearer_id(bearer_context.eps_bearer_id);
@@ -1664,14 +1678,16 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
           if (sgw_cm_insert_eps_bearer_ctxt_in_collection(
                   sgw_context_p->mutable_pdn_connection(),
                   bearer_context_proto) != magma::PROTO_MAP_OK) {
-            OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-                            "Failed to create new EPS bearer entry\n");
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to create new EPS bearer entry for bearer id: %u\n",
+                bearer_context.eps_bearer_id);
             increment_counter("s11_actv_bearer_rsp", 1, 2, "result", "failure",
                               "cause", "internal_software_error");
           } else {
             OAILOG_INFO_UE(
                 LOG_SPGW_APP, imsi64,
-                "Successfully created new EPS bearer entry with EBI %d\n",
+                "Successfully created new EPS bearer entry with EBI %u\n",
                 bearer_context.eps_bearer_id);
 
             cause = REQUEST_ACCEPTED;
@@ -1685,11 +1701,10 @@ status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
         }
         if (num_of_bearers_deleted == 0) {
           pgw_ni_cbr_proc->clear_pending_eps_bearers();
+          --num_of_pending_procedures;
         }
-        break;
       }  // end of bearer index loop
     }
-    --num_of_pending_procedures;
   }  // end of procedure index loop
   if (num_of_pending_procedures == 0) {
     sgw_context_p->clear_pending_procedures();
@@ -1802,7 +1817,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
           remove_bearer_list.push_back(eps_bearer_ctxt.eps_bearer_id());
         }
       }
-      for (uint32_t i = 0; i < remove_bearer_list.size(); i++) {
+      for (uint8_t i = 0; i < remove_bearer_list.size(); i++) {
         sgw_remove_eps_bearer_context(sgw_context_p->mutable_pdn_connection(),
                                       remove_bearer_list[i]);
       }
@@ -1812,8 +1827,13 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
                    "Removed default bearer context for (ebi = %d)\n",
                    *s11_pcrf_ded_bearer_deactv_rsp->lbi);
     ebi = *s11_pcrf_ded_bearer_deactv_rsp->lbi;
-    sgw_cm_get_eps_bearer_entry(sgw_context_p->mutable_pdn_connection(), ebi,
-                                &eps_bearer_ctxt);
+    if (sgw_cm_get_eps_bearer_entry(sgw_context_p->mutable_pdn_connection(),
+                                    ebi,
+                                    &eps_bearer_ctxt) != magma::PROTO_MAP_OK) {
+      OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
+                      "Failed to get eps_bearer_ctxt for bearer id:%u", ebi);
+      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+    }
 
     sgi_delete_end_point_request.context_teid =
         sgw_context_p->sgw_teid_s11_s4();
@@ -1845,7 +1865,7 @@ status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
         OAILOG_INFO_UE(LOG_SPGW_APP, imsi64,
                        "Removed bearer context for (ebi = %u)\n", ebi);
         // Get all the DL flow rules for this dedicated bearer
-        for (int itrn = 0;
+        for (uint8_t itrn = 0;
              itrn < eps_bearer_ctxt.tft().number_of_packet_filters(); ++itrn) {
           // Prepare DL flow rule from stored packet filters
           struct ip_flow_dl dlflow = {0};
@@ -2120,9 +2140,10 @@ void handle_failed_create_bearer_response(
     }
     default_bearer_id = sgw_context_p->pdn_connection().default_bearer();
 
-    int num_of_bearers_deleted = 0;
-    int num_of_pending_procedures = sgw_context_p->pending_procedures_size();
-    for (int proc_index = 0;
+    uint8_t num_of_bearers_deleted = 0;
+    uint8_t num_of_pending_procedures =
+        sgw_context_p->pending_procedures_size();
+    for (uint8_t proc_index = 0;
          proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
       magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
           sgw_context_p->mutable_pending_procedures(proc_index);
@@ -2136,7 +2157,7 @@ void handle_failed_create_bearer_response(
       if (pgw_ni_cbr_proc->type() ==
           PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
         num_of_bearers_deleted = pgw_ni_cbr_proc->pending_eps_bearers_size();
-        for (int bearer_index = 0;
+        for (uint8_t bearer_index = 0;
              bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
              bearer_index++) {
           magma::lte::oai::SgwEpsBearerContext* stored_bearer_context_info =
@@ -2158,18 +2179,18 @@ void handle_failed_create_bearer_response(
           }
           if (num_of_bearers_deleted == 0) {
             pgw_ni_cbr_proc->clear_pending_eps_bearers();
+            --num_of_pending_procedures;
           }
         }
-        --num_of_pending_procedures;
       }
     }
     if (num_of_pending_procedures == 0) {
       sgw_context_p->clear_pending_procedures();
     }
     if (module == LOG_SPGW_APP) {
-      int rc = spgw_send_nw_init_activate_bearer_rsp(
-          cause, imsi64, bearer_context, default_bearer_id, policy_rule_name);
-      if (rc != RETURNok) {
+      if (spgw_send_nw_init_activate_bearer_rsp(cause, imsi64, bearer_context,
+                                                default_bearer_id,
+                                                policy_rule_name) != RETURNok) {
         OAILOG_ERROR_UE(
             module, imsi64,
             "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
@@ -2499,9 +2520,9 @@ void sgw_process_release_access_bearer_request(
       OAILOG_DEBUG_UE(module, imsi64,
                       "Deleting tunnel for bearer_id %u ue addr %x enb_ip %x "
                       "sgw_teid_s1u_s12_s4_up %x, enb_teid_S1u %x pgw_up_ip %x "
-                      "pgw_up_teid %x "
+                      "pgw_up_teid " TEID_FMT
                       "s_gw_ip_address_S5_S8_up %s"
-                      "s_gw_teid_S5_S8_up %x \n ",
+                      "s_gw_teid_S5_S8_up " TEID_FMT,
                       eps_bearer_ctxt.eps_bearer_id(), ue_ipv4.s_addr,
                       enb.s_addr, eps_bearer_ctxt.sgw_teid_s1u_s12_s4_up(),
                       eps_bearer_ctxt.enb_teid_s1u(), pgw.s_addr,
@@ -2601,7 +2622,7 @@ void sgw_handle_delete_bearer_cmd(
   if (!spgw_ctxt) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
-        "failed to get s_plu_pgw_eps bearer context for teid " TEID_FMT
+        "failed to get s_plus_pgw_eps bearer context for teid " TEID_FMT
         " while processing s11_delete_bearer_command\n",
         s11_delete_bearer_command->teid);
     OAILOG_FUNC_OUT(TASK_SPGW_APP);

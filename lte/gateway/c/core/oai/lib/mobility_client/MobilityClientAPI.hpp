@@ -17,7 +17,8 @@
 
 #pragma once
 
-#include "stdint.h"
+#include <stdint.h>
+
 #include <string>
 
 #ifdef __cplusplus

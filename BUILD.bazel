@@ -12,6 +12,8 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_java//java:defs.bzl", "java_binary")
 
+exports_files(["LICENSE"])
+
 # gazelle:prefix github.com/magma/magma
 # gazelle:exclude .cache/
 # gazelle:exclude orc8r/
