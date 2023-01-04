@@ -13,8 +13,8 @@ containerized AGW on AWS](#deploying-the-containerized-agw-on-aws).
 
 ## Building the images
 
-The images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker compose build`.
-On an Arm architecture with the 5.4 kernel, the images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64`.
+The images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker-compose build`.
+On an Arm architecture with the 5.4 kernel, the images can be built with `cd $MAGMA_ROOT/lte/gateway/docker && docker-compose build --build-arg CPU_ARCH=aarch64 --build-arg DEB_PORT=arm64`.
 
 ## Deploying the containerized AGW on AWS
 
@@ -50,8 +50,8 @@ sudo systemctl start magma_dp@envoy
 cp ${MAGMA_ROOT}/.cache/test_certs/rootCA.pem /var/opt/magma/certs/
 
 cd $MAGMA_ROOT/lte/gateway/docker
-docker compose build
-docker compose up
+docker-compose build
+docker-compose up
 ```
 
 Note that with the containerized AGW we ultimately want to get rid of the dependency
@@ -66,8 +66,8 @@ To run the tests, first start the docker containers:
 
 ```
 cd $MAGMA_ROOT/lte/gateway/docker
-docker compose down # If containers are already running
-docker compose up
+docker-compose down # If containers are already running
+docker-compose up
 ```
 
 The test VM can then be set up and the tests executed by following

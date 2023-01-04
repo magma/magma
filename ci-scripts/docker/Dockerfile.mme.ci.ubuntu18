@@ -122,7 +122,7 @@ COPY --from=magma-mme-builder \
     ./
 
 # For the moment, we are not putting any etc/*.conf files
-# We will mount volumes from docker compose
+# We will mount volumes from docker-compose
 
 # Create running dirs
 WORKDIR /var/opt/magma/configs

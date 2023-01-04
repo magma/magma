@@ -55,7 +55,7 @@ fi
 PROJECT=${COMPOSE_PROJECT_NAME}
 
 # Find the image ID for the latest build
-DESIRED_IMAGE="${PROJECT}-${IMAGE}"
+DESIRED_IMAGE="${PROJECT}_${IMAGE}"
 IMAGE_ID=$(docker images "${DESIRED_IMAGE}:latest" --format "{{.ID}}")
 if [[ -z "${IMAGE_ID}" ]]; then
   exitmsg "[Error] project ${PROJECT} missing image ${DESIRED_IMAGE}: please build the image"

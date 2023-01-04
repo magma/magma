@@ -20,7 +20,7 @@ export CERTS_DIR
 build_controller() {
     cd "$MAGMA_ROOT/orc8r/cloud/docker" || exit 1
     python3 build.py -b controller &&
-    docker tag orc8r-controller:latest "$IMAGE"
+    docker tag orc8r_controller:latest "$IMAGE"
     if $PUSH_IMAGE; then
         docker push "$IMAGE"
     fi
@@ -29,7 +29,7 @@ build_controller() {
 build_nginx() {
     cd "$MAGMA_ROOT/orc8r/cloud/docker" || exit 1
     python3 build.py -b nginx &&
-    docker tag orc8r-nginx:latest "$IMAGE"
+    docker tag orc8r_nginx:latest "$IMAGE"
     if $PUSH_IMAGE; then
         docker push "$IMAGE"
     fi
@@ -37,8 +37,8 @@ build_nginx() {
 
 build_magmalte() {
     cd "$MAGMA_ROOT/nms" || exit 1
-    COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte &&
-    docker tag magmalte-magmalte:latest "$IMAGE"
+    COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte &&
+    docker tag magmalte_magmalte:latest "$IMAGE"
     if $PUSH_IMAGE; then
         docker push "$IMAGE"
     fi
