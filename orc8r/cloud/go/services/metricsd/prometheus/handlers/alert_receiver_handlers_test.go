@@ -227,7 +227,7 @@ func TestGetUpdateAlertReceiverHandler(t *testing.T) {
 		{
 			Name:                 "server error",
 			ClientExpectedReturn: []interface{}{empty500Response, nil},
-			ExpectedError:        "code=500, message=code=500, message=error writing config: <nil>",
+			ExpectedError:        "code=500, message=error writing config: <nil>",
 		},
 	}
 	for i := range tests {

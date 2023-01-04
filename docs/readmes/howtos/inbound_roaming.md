@@ -313,7 +313,7 @@ Federated Gateway can reach PGW using this command
 
 ```bash
 $ cd /var/opt/magma/docker
-$ sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server
+$ sudo docker compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server
 
 192.168.32.118:2123 123456789012345
 # where 192.168.32.118:2123 is the ip and port of the PGW-C
@@ -351,9 +351,9 @@ For better details Federated Gateway logs:
       MAGMA_PRINT_GRPC_PAYLOAD: 1
 ```
 
-- Restart docker process, so the vars are taken `sudo docker-compose down` and
-  `sudo docker-compose up -d`
-- Display the logs using for example`sudo docker-compose logs -f s8_proxy`
+- Restart docker process, so the vars are taken `sudo docker compose down` and
+  `sudo docker compose up -d`
+- Display the logs using for example`sudo docker compose logs -f s8_proxy`
 
 ### Test with s6a_cli and s8_cli
 
@@ -365,14 +365,14 @@ either on FeG or AGW.
 
 ```bash
 # Use FeG s6a_proxy
-sudo docker-compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -remote_s6a 001002000000810
+sudo docker compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -remote_s6a 001002000000810
 # Use s6a_porxy that runs on the cli
-sudo docker-compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -use_builtincli false  -remote_s6a 001002000000810
+sudo docker compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -use_builtincli false  -remote_s6a 001002000000810
 
 # use FeG s8_proxy
-sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
+sudo docker compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
 # use s8_proxy that runs on the cli
-sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -use_builtincli false -delete 3
+sudo docker compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -use_builtincli false -delete 3
 ```
 
 - Run from AGW
