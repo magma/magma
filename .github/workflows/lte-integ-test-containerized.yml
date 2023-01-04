@@ -28,7 +28,7 @@ on:
         required: true
       test_targets:
         type: choice
-        options: [ precommit, extended_tests ]
+        options: [ precommit, extended_tests, extended_tests_long ]
         required: true
   workflow_call:
     inputs:
