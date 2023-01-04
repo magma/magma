@@ -95,10 +95,10 @@ subscriberDB for your local subscribers, you will not need that FeG Gateway,
 but you will still need the Neutral Host Network.</p>
 <div class="mermaid">graph LR
 
-AGW_G --Any_PLMN--> NH_Network
-NH_Network --PLMN1--> FeG_Gateway_1
-NH_Network --PLMN2--> FeG_Gateway_2
-NH_Network --PLMN3--> FeG_Gateway_3
+AGW_G --Any_PLMN--> Orc8r
+Orc8r --PLMN1--> FeG_Gateway_1
+Orc8r --PLMN2--> FeG_Gateway_2
+Orc8r --PLMN3--> FeG_Gateway_3
 Optional_FeG_gateway --Other_PLMN--> Local_HSS
 FeG_Gateway_1 --> HSS_1
 FeG_Gateway_2 --> HSS_2
@@ -110,7 +110,7 @@ AGW_G
 end
 
 subgraph Neutral_Host_Network
-NH_Network & Optional_FeG_gateway
+Orc8r & Optional_FeG_gateway
 
 end
 
