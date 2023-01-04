@@ -60,7 +60,7 @@ jobs:
       - name: Build FEG docker images
         run: |
           cd feg/gateway/docker
-          docker-compose build --force-rm --parallel
+          docker compose --compatibility build
           docker images
       - name: Export docker images to deploy them
         run: |

@@ -27,7 +27,7 @@ jobs:
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
-          docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build --force-rm  --parallel
+          docker compose --compatibility -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build
       - name: Export docker images to deploy them
         run: |
           mkdir images
