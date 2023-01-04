@@ -95,7 +95,7 @@ extended_tests_long: prepare_environment
 integ_test: precommit precommit_tests_noncontainer extended_tests extended_tests_noncontainer extended_tests_long
 
 .PHONY: integ_test_containerized
-integ_test_containerized: precommit extended_tests
+integ_test_containerized: precommit extended_tests extended_tests_long
 
 .PHONY: federated_integ_test
 federated_integ_test: prepare_environment prepare_federation
