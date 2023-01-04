@@ -1038,7 +1038,7 @@ class MagmadUtil(object):
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
                 "cd /home/vagrant/magma/lte/gateway/docker "
-                "&& docker-compose restart",
+                "&& docker compose restart",
             )
             self.wait_for_restart_to_finish(wait_time=30)
             self._wait_for_pipelined_to_initialize()
