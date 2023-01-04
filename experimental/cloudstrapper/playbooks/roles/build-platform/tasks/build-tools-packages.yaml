@@ -17,9 +17,6 @@
     update_cache: yes
   become: yes
 
-- name: install docker compose
-  script: 02-docker-compose.bash
-
 - name: install aws components
   script: 05-aws-tools.bash
 
