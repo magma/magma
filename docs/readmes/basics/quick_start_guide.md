@@ -185,7 +185,7 @@ We have a fabric command set up to do this:
 
 ```bash
 HOST [magma]$ cd lte/gateway
-HOST [magma/lte/gateway]$ fab -f dev_tools.py register_vm
+HOST [magma/lte/gateway]$ fab register-vm
 ```
 
 This command will seed your gateway and network on Orchestrator with some

@@ -41,11 +41,11 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    # IMPORTANT: close your terminal tab and open a new one before continuing
    pyenv install 3.8.10
    pyenv global 3.8.10
-   pip3 install ansible fabric3 jsonpickle requests PyYAML
+   pip3 install ansible fabric jsonpickle requests PyYAML
    vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
    ```
 
-   **Note**: In the case where installation of `fabric3` through pip was unsuccessful,
+   **Note**: In the case where installation of `fabric` through pip was unsuccessful,
    try switching to other package installers. Try running `brew install fabric`.
 
    You should start Docker Desktop and increase the memory
@@ -144,7 +144,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    2. Install the following dependencies
 
       ```bash
-      pip3 install ansible fabric3 jsonpickle requests PyYAML
+      pip3 install ansible fabric jsonpickle requests PyYAML
       ```
 
 5. Install `vagrant` necessary plugin.

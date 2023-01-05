@@ -63,11 +63,11 @@ To execute the script, run:
 
 ```bash
 cd magma/lte/gateway
-fab federated_integ_test:build_all=True
+fab federated-integ-test --build-all
 
 # to run it again, you can skip the build_all
 # however, if you change code in Magma, you will need to build_all again
-fab federated_integ_test
+fab federated-integ-test
 ```
 
 You can access Orc8r adding to your keychain the `admin_operator.pfx` cert
@@ -92,7 +92,7 @@ FeG and Orc8r:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
-fab build_all_and_configure
+fab build-all-and-configure
 ```
 
 After this has run, you can check
@@ -101,7 +101,7 @@ command below will try to reach Orc8r from AGW and FeG, and FeG from AGW:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
-fab test_connectivity
+fab test-connectivity
 ```
 
 Once it has been built, start the `magma_trfserver` and `magma_test` VMs:
@@ -161,8 +161,8 @@ cd magma/orc8r/cloud/docker
 # return to agw folder
 cd magma/lte/gateway
 # register gateways
-fab --fabfile=dev_tools.py register_federated_vm
-fab --fabfile=dev_tools.py register_feg_gw
+fab register-federated-vm
+fab register-feg-gw
 ```
 
 - Test VM:
