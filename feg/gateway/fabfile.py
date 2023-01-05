@@ -18,48 +18,60 @@ import urllib3
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils  # NOQA
 import tools.fab.types as types
-from fabric.api import local
+from fabric import Connection, task
+from tools.fab.hosts import vagrant_connection
 
 SNOWFLAKE_FEG_FILE = '../../.cache/feg/snowflake'
 NETWORK_ID = 'feg_test'
 FEG_DOCKER_LOCATION = 'docker/'
+FEG_INTEG_DOCKER = "$MAGMA_ROOT/lte/gateway/python/integ_tests/federated_tests/docker"
+AGW_ROOT = '../../lte/gateway'
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def register_feg_gw(location_docker_compose: str = FEG_DOCKER_LOCATION):
+@task
+def register_feg_gw(c, location_docker_compose=FEG_DOCKER_LOCATION):
     """
     Add FEG gateway to orc8r
     Args:
+        c: fabric Connection
         location_docker_compose: location of docker compose. Default set to
         FEG_DOCKER_LOCATION
     """
     _register_federation_network()
-    _register_feg(location_docker_compose)
+    _register_feg(c, location_docker_compose)
 
 
-def deregister_feg_gw(location_docker_compose: str = FEG_DOCKER_LOCATION):
+@task
+def deregister_feg_gw(c, location_docker_compose=FEG_DOCKER_LOCATION):
     """
     Remove FEG gateway from orc8r and remove certs from FEG gateway
     Args:
+        c: fabric Connection
         location_docker_compose: location of docker compose. Default set to
         FEG_DOCKER_LOCATION
     """
-    _deregister_feg_gw(location_docker_compose)
-    dev_utils.delete_gateway_certs_from_docker(location_docker_compose)
+    _deregister_feg_gw(c, location_docker_compose)
+    dev_utils.delete_gateway_certs_from_docker(c, location_docker_compose)
 
 
-def check_feg_cloud_connectivity(timeout=5):
+@task
+def check_feg_cloud_connectivity(c, timeout=5):
     """
     Check connectivity of FEG with the cloud using checkin_cli.py
     Args:
+        c: fabric connection
         timeout: amount of time the command will retry
     """
-    local("cd docker")
-    local("pwd")
-    dev_utils.local_command_with_repetition(
-        "cd docker; docker compose exec magmad checkin_cli.py", timeout,
-    )
+    with c.cd(AGW_ROOT):
+        c_gw = vagrant_connection(c, 'magma')
+        with c_gw:
+            with c_gw.cd(FEG_INTEG_DOCKER):
+                c_gw.run("pwd")
+                dev_utils.run_remote_command_with_repetition(
+                    c_gw, "docker compose exec magmad checkin_cli.py", timeout,
+                )
 
 
 class RadiusConfig:
@@ -366,13 +378,13 @@ def _register_federation_network(payload: FederationNetwork = FederationNetwork(
     dev_utils.create_tier_if_not_exists(nid, 'default')
 
 
-def _register_feg(location_docker_compose: str):
+def _register_feg(c: Connection, location_docker_compose: str):
     with open(SNOWFLAKE_FEG_FILE) as f:
         hw_id = f.read().rstrip('\n')
     if not hw_id:
         print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
         hw_id = dev_utils.get_gateway_hardware_id_from_docker(
-            location_docker_compose=location_docker_compose,
+            c, location_docker_compose=location_docker_compose,
         )
 
     already_registered, registered_as = dev_utils.is_hw_id_registered(
@@ -432,13 +444,13 @@ def _register_feg(location_docker_compose: str):
     print('=====================================')
 
 
-def _deregister_feg_gw(location_docker_compose: str):
+def _deregister_feg_gw(c: Connection, location_docker_compose: str):
     with open(SNOWFLAKE_FEG_FILE) as f:
         hw_id = f.read().rstrip('\n')
     if not hw_id:
         print(f'Could not open test feg snowflake {SNOWFLAKE_FEG_FILE}')
         hw_id = dev_utils.get_gateway_hardware_id_from_docker(
-            location_docker_compose=location_docker_compose,
+            c, location_docker_compose=location_docker_compose,
         )
 
     already_registered, registered_as = dev_utils.is_hw_id_registered(

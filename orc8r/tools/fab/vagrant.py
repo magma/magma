@@ -12,61 +12,60 @@ limitations under the License.
 """
 import os
 import os.path
+from typing import Dict, Tuple
 
-from fabric.api import cd, env, local
+from fabric import Connection
 
 
-def __ensure_in_vagrant_dir():
+def _ensure_in_vagrant_dir(c: Connection) -> None:
     """
     Error out if there is not Vagrant instance associated with this directory
     """
-    pwd = local('pwd', capture=True)
+    pwd = c.run('pwd', hide=True).stdout.strip()
     if not os.path.isfile(pwd + '/Vagrantfile'):
         # check if we are on a vagrant subdirectory
-        with cd(pwd):
-            if not local('vagrant validate', capture=True):
-                print("Error: Vagrantfile not found")
-                exit(1)
+        ret_code = c.run('vagrant validate', hide=True, warn=True).return_code
+        if ret_code != 0:
+            print("Error: Vagrantfile not found or not valid")
+            exit(ret_code)
     return
 
 
-def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False):
+def setup_env_vagrant(
+    c: Connection, machine: str = 'magma', force_provision: bool = False,
+) -> Tuple[Connection, Dict[str, str]]:
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
     whenever we need to run commands on the vagrant machine.
     """
-    __ensure_in_vagrant_dir()
+    _ensure_in_vagrant_dir(c)
 
     # An empty local ssh config file stops warnings from being printed.
-    local('touch ~/.ssh/config')
+    c.run('touch ~/.ssh/config')
 
     # Ensure that VM is running
-    isUp = local('vagrant status %s' % machine, capture=True) \
+    down = c.run(f'vagrant status {machine}', hide=True).stdout \
         .find('running') < 0
-    if isUp:
+    if down:
         # The machine isn't running. Most likely it's just not up. Let's
         # first try the simple thing of bringing it up, and if that doesn't
         # work then we ask the user to fix it.
-        print(
-            "VM %s is not running... Attempting to bring it up."
-            % machine,
-        )
-        local('vagrant up %s' % machine)
-        isUp = local('vagrant status %s' % machine, capture=True) \
+        print(f"VM {machine} is not running... Attempting to bring it up.")
+        c.run(f'vagrant up {machine}')
+        down = c.run(f'vagrant status {machine}', hide=True).stdout \
             .find('running')
 
-        if isUp < 0:
+        if down < 0:
             print(
-                "Error: VM: %s is still not running...\n"
-                " Failed to bring up %s'"
-                % (machine, machine),
+                f"Error: VM: {machine} is still not running...\n"
+                f" Failed to bring up {machine}",
             )
             exit(1)
     elif force_provision:
-        local('vagrant provision %s' % machine)
+        c.run(f'vagrant provision {machine}')
 
-    ssh_config = local('vagrant ssh-config %s' % machine, capture=True)
+    ssh_config = c.run(f'vagrant ssh-config {machine}', hide=True).stdout.strip()
 
     ssh_lines = [line.strip() for line in ssh_config.split("\n")]
     ssh_params = {
@@ -78,32 +77,24 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
     port = ssh_params.get("Port", "").strip()
     # some installations seem to have quotes around the file location
     identity_file = ssh_params.get("IdentityFile", "").strip().strip('"')
-    host_string = 'vagrant@%s:%s' % (host, port)
+    host_string = f'vagrant@{host}:{port}'
 
-    if apply_to_env:
-        env.host_string = host_string
-        env.hosts = [env.host_string]
-        env.key_filename = identity_file
-        env.disable_known_hosts = True
-    else:
-        return {
-            "hosts": [host_string],
-            "host_string": host_string,
-            "key_filename": identity_file,
-            "disable_known_hosts": True,
-        }
+    return Connection(
+        host_string, connect_kwargs={"key_filename": identity_file},
+    ), {
+        "host_string": host_string,
+        "key_filename": identity_file,
+    }
 
 
-def teardown_vagrant(machine):
+def teardown_vagrant(c: Connection, machine: str) -> None:
     """ Destroy a vagrant machine so that we get a clean environment to work
         in
     """
+    _ensure_in_vagrant_dir(c)
 
-    __ensure_in_vagrant_dir()
-
-    # Destroy if vm if it exists
-    created = local('vagrant status %s' % machine, capture=True) \
-        .find('not created') < 0
+    # Destroy vm if it exists
+    created = c.run(f'vagrant status {machine}', hide=True).stdout.find('not created') < 0
 
     if created:
-        local('vagrant destroy -f %s' % machine)
+        c.run(f'vagrant destroy -f {machine}')
