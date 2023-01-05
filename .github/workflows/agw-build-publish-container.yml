@@ -194,6 +194,20 @@ jobs:
       test_targets: extended_tests
     secrets: inherit
 
+  test-containers-extended-long:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      digest_c: ${{ needs.build-containers.outputs.digest_c }}
+      digest_python: ${{ needs.build-containers.outputs.digest_python }}
+      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: extended_tests_long
+    secrets: inherit
+
   publish-container-test-results:
     runs-on: ubuntu-20.04
     if: always() && github.event_name == 'push'
@@ -227,11 +241,23 @@ jobs:
         with:
           name: test-status-extended_tests
 
+      - name: Download test results of long extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-results-extended_tests_long
+          path: "${{ github.workspace }}/lte/gateway/test-results"
+
+      - name: Download final status of of long extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-extended_tests_long
+
       - name: Determine end result for both tests
         run: |
           result_precommit=$(cat test_status_precommit.txt)
           result_extended=$(cat test_status_extended_tests.txt)
-          if [ $result_precommit == $result_extended ]
+          result_extended_long=$(cat test_status_extended_tests_long.txt)
+          if [ $result_precommit == $result_extended && $result_precommit == $result_extended_long ]
           then
             mv test_status_precommit.txt test_status.txt
           else
