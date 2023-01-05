@@ -51,7 +51,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -71,13 +71,13 @@ jobs:
             export MAGMA_PACKAGE=magma=${{ github.event.client_payload.magma_version }}
           fi
           echo "Starting integration tests using magma artifact \"${MAGMA_PACKAGE}\"."
-          fab integ_test_deb_installation
+          fab integ-test-deb-installation
 
       - name: Get test results
         if: always()
         working-directory: 'lte/gateway/'
         run: |
-          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+          fab get-test-summaries --integration-tests --dst-path="test-results" --dev-vm-name="magma_deb"
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
@@ -97,7 +97,7 @@ jobs:
         if: always()
         run: |
           cd lte/gateway
-          fab get_test_logs:gateway_host_name=magma_deb,dst_path=./logs.tar.gz
+          fab get-test-logs --gateway-host-name=magma_deb --dst-path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()

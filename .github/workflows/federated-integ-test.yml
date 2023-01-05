@@ -92,11 +92,11 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-scp vagrant-reload
       - name: Vagrant Host prerequisites for federated integ test
         run: |
-          cd ${{ env.AGW_ROOT }} && fab open_orc8r_port_in_vagrant
+          cd ${{ env.AGW_ROOT }} && fab open-orc8r-port-in-vagrant
           cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
           cd ${{ env.MAGMA_ROOT }}/.cache/feg/ && touch snowflake
       - name: Open up network interfaces for VM
@@ -131,14 +131,14 @@ jobs:
           fi
       - name: Build test vms
         run: |
-          cd ${{ env.AGW_ROOT }} && fab build_test_vms
+          cd ${{ env.AGW_ROOT }} && fab build-test-vms
           cd ${{ env.AGW_ROOT }} && vagrant halt magma_test && vagrant halt magma_trfserver
       - name: build_agw
         run: |
           cd lte/gateway/python/integ_tests/federated_tests
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
-          fab build_agw
+          fab build-agw
       # Download to local and delete artifacts from remote
       - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
@@ -169,12 +169,12 @@ jobs:
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
-          fab federated_integ_test:build_all=False,orc8r_on_vagrant=True
+          fab federated-integ-test --orc8r-on-vagrant
       - name: Get test results
         if: always()
         run: |
           cd lte/gateway
-          fab get_test_summaries:dst_path="test-results"
+          fab get-test-summaries --integration-tests --dst-path="test-results"
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
@@ -186,7 +186,7 @@ jobs:
         if: always()
         run: |
           cd lte/gateway
-          fab get_test_logs:dst_path=./logs.tar.gz
+          fab get-test-logs --dst-path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()

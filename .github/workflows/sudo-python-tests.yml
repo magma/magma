@@ -47,7 +47,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -59,7 +59,7 @@ jobs:
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
-          fab provision_magma_dev_vm
+          fab provision-magma-dev-vm
       - name: Run the sudo python tests
         run: |
           cd lte/gateway
@@ -68,7 +68,7 @@ jobs:
         if: always()
         run: |
           cd lte/gateway
-          fab get_test_summaries:dst_path="test-results",integration_tests=False
+          fab get-test-summaries --sudo-tests --dst-path="test-results"
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3

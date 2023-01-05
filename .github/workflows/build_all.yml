@@ -137,7 +137,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric jsonpickle requests PyYAML
           vagrant plugin install vagrant-disksize vagrant-vbguest vagrant-mutate vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -149,7 +149,7 @@ jobs:
         run: |
           export MAGMA_DEV_MEMORY_MB=4096
           cd lte/gateway
-          fab release package:destroy_vm=True
+          fab release package --destroy-vm
           mkdir magma-packages
           vagrant ssh -c "cp -r magma-packages /vagrant"
       - name: Setup JFROG CLI
