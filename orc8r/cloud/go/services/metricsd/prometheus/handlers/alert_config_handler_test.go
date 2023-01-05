@@ -70,12 +70,12 @@ func TestGetConfigurePrometheusAlertHandler(t *testing.T) {
 		{
 			Name:          "invalid rule",
 			Payload:       badLabelsRule,
-			ExpectedError: "code=400, message=invalid rule: [invalid label name: !labelName]\n",
+			ExpectedError: "code=400, message=invalid rule: [invalid label name: !labelName]",
 		},
 		{
 			Name:                 "server error",
 			ClientExpectedReturn: []interface{}{empty500Response, nil},
-			ExpectedError:        "code=500, message=code=500, message=error writing config: <nil>",
+			ExpectedError:        "code=500, message=error writing config: <nil>",
 		},
 		{
 			Name:          "bad payload",
@@ -205,7 +205,7 @@ func TestGetUpdateAlertRuleHandler(t *testing.T) {
 		{
 			Name:                 "server non-200 response",
 			ClientExpectedReturn: []interface{}{empty500Response, nil},
-			ExpectedError:        "code=500, message=code=500, message=error writing config: <nil>",
+			ExpectedError:        "code=500, message=error writing config: <nil>",
 		},
 		{
 			Name:          "bad payload",

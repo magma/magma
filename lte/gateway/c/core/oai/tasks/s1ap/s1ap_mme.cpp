@@ -65,7 +65,6 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg);
 static long epc_stats_timer_id;
 static size_t epc_stats_timer_sec = 60;
 
-static int indent = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 bool s1ap_congestion_control_enabled = true;

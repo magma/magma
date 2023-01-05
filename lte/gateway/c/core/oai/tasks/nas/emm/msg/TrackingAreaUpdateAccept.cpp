@@ -126,7 +126,7 @@ int decode_tracking_area_update_accept(
       case C_LOCATION_AREA_IDENTIFICATION_IEI:
         if ((decoded_result = decode_location_area_identification_ie(
                  &tracking_area_update_accept->locationareaidentification,
-                 C_LOCATION_AREA_IDENTIFICATION_IEI, buffer + decoded,
+                 C_LOCATION_AREA_IDENTIFICATION_IEI != 0, buffer + decoded,
                  len - decoded)) <= 0)
           return decoded_result;
 
@@ -141,8 +141,8 @@ int decode_tracking_area_update_accept(
       case TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI:
         if ((decoded_result = decode_mobile_identity_ie(
                  &tracking_area_update_accept->msidentity,
-                 TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+                 TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI != 0,
+                 buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -201,7 +201,7 @@ int decode_tracking_area_update_accept(
       case TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI:
         if ((decoded_result = decode_plmn_list_ie(
                  &tracking_area_update_accept->equivalentplmns,
-                 TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI,
+                 TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -216,7 +216,7 @@ int decode_tracking_area_update_accept(
       case TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
         if ((decoded_result = decode_emergency_number_list_ie(
                  &tracking_area_update_accept->emergencynumberlist,
-                 TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI,
+                 TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -346,7 +346,7 @@ int encode_tracking_area_update_accept(
       TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT) {
     if ((encode_result = encode_location_area_identification_ie(
              &tracking_area_update_accept->locationareaidentification,
-             C_LOCATION_AREA_IDENTIFICATION_IEI, buffer + encoded,
+             C_LOCATION_AREA_IDENTIFICATION_IEI != 0, buffer + encoded,
              len - encoded)) < 0)
       // Return in case of error
       return encode_result;
@@ -359,7 +359,7 @@ int encode_tracking_area_update_accept(
       TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT) {
     if ((encode_result = encode_mobile_identity_ie(
              &tracking_area_update_accept->msidentity,
-             TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI, buffer + encoded,
+             TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI != 0, buffer + encoded,
              len - encoded)) < 0)
       // Return in case of error
       return encode_result;
@@ -411,8 +411,8 @@ int encode_tracking_area_update_accept(
       TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT) {
     if ((encode_result = encode_plmn_list_ie(
              &tracking_area_update_accept->equivalentplmns,
-             TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI, buffer + encoded,
-             len - encoded)) < 0)
+             TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
+             buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -424,7 +424,7 @@ int encode_tracking_area_update_accept(
       TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT) {
     if ((encode_result = encode_emergency_number_list_ie(
              &tracking_area_update_accept->emergencynumberlist,
-             TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI,
+             TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0,
              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;

@@ -65,10 +65,10 @@ func listUsersHandler(c echo.Context) error {
 func createUserHandler(c echo.Context) error {
 	data := &models.User{}
 	if err := c.Bind(data); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := data.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	username := fmt.Sprintf("%v", *data.Username)
 	password := []byte(fmt.Sprintf("%v", *data.Password))
@@ -84,7 +84,7 @@ func getUserHandler(c echo.Context) error {
 	username := c.Param("username")
 	user, err := certifier.GetUser(c.Request().Context(), username)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, user)
 }
@@ -94,12 +94,12 @@ func updateUserHandler(c echo.Context) error {
 	var updatePassword string
 	err := json.NewDecoder(c.Request().Body).Decode(&updatePassword)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding request body for updating user: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding request body for updating user: %v", err))
 	}
 	newUser := &protos.User{Username: username, Password: []byte(updatePassword)}
 	err = certifier.UpdateUser(c.Request().Context(), newUser)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func deleteUserHandler(c echo.Context) error {
 	deleteUser := &protos.User{Username: username}
 	err := certifier.DeleteUser(c.Request().Context(), deleteUser)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error deleting user: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error deleting user: %v", err))
 	}
 	return nil
 }
@@ -118,7 +118,7 @@ func getUserTokensHandler(c echo.Context) error {
 	username := c.Param("username")
 	res, err := certifier.ListUserTokens(c.Request().Context(), &protos.User{Username: username})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to list user tokens: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to list user tokens: %v", err))
 	}
 	return c.JSON(http.StatusOK, protos.PolicyListProtoToModel(res.PolicyLists))
 }
@@ -128,10 +128,10 @@ func addUserTokenHandler(c echo.Context) error {
 
 	policies := &models.Policies{}
 	if err := c.Bind(policies); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := policies.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	policiesProto, err := protos.PoliciesModelToProto(policies)
@@ -160,10 +160,10 @@ func deleteUserTokenHandler(c echo.Context) error {
 func loginHandler(c echo.Context) error {
 	data := &models.User{}
 	if err := c.Bind(data); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := data.Validate(strfmt.Default); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	username := fmt.Sprintf("%v", *data.Username)
 	password := []byte(fmt.Sprintf("%v", *data.Password))

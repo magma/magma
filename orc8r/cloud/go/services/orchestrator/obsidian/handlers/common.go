@@ -33,11 +33,11 @@ import (
 func GetAndValidatePayload(c echo.Context, model interface{}) (serde.ValidatableModel, *echo.HTTPError) {
 	iModel := reflect.New(reflect.TypeOf(model).Elem()).Interface().(serde.ValidatableModel)
 	if err := c.Bind(iModel); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	// Run validations specified by the swagger spec
 	if err := iModel.ValidateModel(c.Request().Context()); err != nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, err)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return iModel, nil
 }

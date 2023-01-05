@@ -116,7 +116,7 @@ func GetObsidianHandlers(configMap *config.Map) []obsidian.Handler {
 
 func getInitErrorHandler(err error) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("initialization Error: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("initialization Error: %v", err))
 	}
 }
 
@@ -129,7 +129,7 @@ func pushHandler(c echo.Context) error {
 	var pushedMetrics []*protos.PushedMetric
 	err := json.NewDecoder(c.Request().Body).Decode(&pushedMetrics)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	metrics := &protos.PushedMetricsContainer{
@@ -138,7 +138,7 @@ func pushHandler(c echo.Context) error {
 	}
 	err = metricsd.PushMetrics(c.Request().Context(), metrics)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusOK)
 }

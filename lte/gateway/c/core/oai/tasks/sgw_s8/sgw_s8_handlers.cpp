@@ -116,7 +116,6 @@ bool is_sgw_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p);
 void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
                                                teid_t teid, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  int rc = 0;
 
   map_uint32_sgw_eps_bearer_context_t* state_teid_map = get_s8_state_teid_map();
   if (!state_teid_map) {
