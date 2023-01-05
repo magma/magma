@@ -12,10 +12,6 @@ build:production --define=production=1
 # a target to the actions' execution requirements.
 # See https://github.com/bazelbuild/bazel/issues/8830 for details.
 common --experimental_allow_tags_propagation
-# experimental_remote_cache_compression enables compression and decompression
-# of cache blocks with zstd. This reduces the remote cache traffic, local cache
-# size is not affected.
-common --experimental_remote_cache_compression
 
 # C/C++ CONFIGS
 build --cxxopt=-std=c++14
@@ -44,27 +40,8 @@ build:vm --config=specify_vm_cc
 # The locations of the disk_cache/repository_cache are symlinks in the
 # docker containers/magma-vm. They point to the correct cache locations
 # $MAGMA/.bazel-cache and $MAGMA/.bazel-cache-repo inside the magma repository.
-build:disk_cache --disk_cache=/var/cache/bazel-cache
-common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
-
-# REMOTE CACHING READ AND WRITE CONFIGS
-# The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
-# The full config is then written to bazel/bazelrcs/cache.bazelrc
-
-# REMOTE CACHING READ-ONLY CONFIGS
-# The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
-# The full config is then written to bazel/bazelrcs/cache.bazelrc
-build:remote_caching_ro --remote_upload_local_results=false
-
-# REMOTE DOWNLOAD OPTIMIZATION
-build:remote_download_optimization --remote_download_minimal
-# --remote_download_toplevel instead of --remote_download_minimal is
-# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
-run:remote_download_optimization --remote_download_toplevel
-
-# Import the bazel caching config, with default disk cache,
-# which in CI gets overwritten by the remote caching config. 
-import %workspace%/bazel/bazelrcs/cache.bazelrc
+build --disk_cache=/var/cache/bazel-cache
+common --repository_cache=/var/cache/bazel-cache-repo
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
