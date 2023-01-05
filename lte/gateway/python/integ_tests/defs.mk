@@ -119,13 +119,7 @@ s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
-s1aptests/test_attach_detach_with_non_nat_dhcp.py
-
-PRECOMMIT_TESTS_IPV6 = \
-s1aptests/test_enable_ipv6_iface.py \
-s1aptests/test_disable_ipv6_iface.py
-
-PRECOMMIT_TESTS_NOT_CONTAINER = \
+s1aptests/test_attach_detach_with_non_nat_dhcp.py \
 s1aptests/test_attach_detach_attach_dl_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
@@ -137,7 +131,9 @@ s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
-s1aptests/test_service_req_ul_udp_data_with_mme_restart.py
+s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
+s1aptests/test_enable_ipv6_iface.py \
+s1aptests/test_disable_ipv6_iface.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach_flaky_retry_success.py \
@@ -176,9 +172,6 @@ s1aptests/test_tau_mixed_partial_lists.py \
 s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
-s1aptests/test_restore_mme_config_after_sanity.py
-
-EXTENDED_TESTS_NOT_CONTAINER = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
