@@ -23,6 +23,22 @@ docutils==0.17
     # via restructuredtext-lint
 eradicate==2.0.0
     # via flake8-eradicate
+flake8==3.9.0
+    # via
+    #   flake8-bandit
+    #   flake8-broken-line
+    #   flake8-bugbear
+    #   flake8-commas
+    #   flake8-comprehensions
+    #   flake8-debugger
+    #   flake8-docstrings
+    #   flake8-eradicate
+    #   flake8-isort
+    #   flake8-polyfill
+    #   flake8-quotes
+    #   flake8-rst-docstrings
+    #   flake8-string-format
+    #   wemake-python-styleguide
 flake8-bandit==2.1.2
     # via wemake-python-styleguide
 flake8-broken-line==0.3.0
@@ -51,31 +67,10 @@ flake8-rst-docstrings==0.0.14
     # via wemake-python-styleguide
 flake8-string-format==0.3.0
     # via wemake-python-styleguide
-flake8==3.9.0
-    # via
-    #   flake8-bandit
-    #   flake8-broken-line
-    #   flake8-bugbear
-    #   flake8-commas
-    #   flake8-comprehensions
-    #   flake8-debugger
-    #   flake8-docstrings
-    #   flake8-eradicate
-    #   flake8-isort
-    #   flake8-polyfill
-    #   flake8-quotes
-    #   flake8-rst-docstrings
-    #   flake8-string-format
-    #   wemake-python-styleguide
 gitdb==4.0.2
     # via gitpython
-gitpython==3.1.0
+gitpython==3.1.30
     # via bandit
-importlib-metadata==4.5.0
-    # via
-    #   flake8
-    #   flake8-comprehensions
-    #   wemake-python-styleguide
 isort==5.8.0
     # via
     #   -r requirements.in
@@ -120,10 +115,6 @@ tokenize-rt==4.1.0
 toml==0.10.2
     # via autopep8
 typing-extensions==3.7.4.1
-    # via
-    #   importlib-metadata
-    #   wemake-python-styleguide
+    # via wemake-python-styleguide
 wemake-python-styleguide==0.15.2
     # via -r requirements.in
-zipp==3.4.1
-    # via importlib-metadata
