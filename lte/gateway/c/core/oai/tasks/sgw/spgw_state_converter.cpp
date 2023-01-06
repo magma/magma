@@ -385,7 +385,7 @@ void sgw_create_session_message_to_proto(
   }
 
   proto->set_teid(session_request->teid);
-  proto->set_imsi((char*)session_request->imsi.digit);
+  proto->set_imsi(reinterpret_cast<const char*>(session_request->imsi.digit));
   char msisdn[MSISDN_LENGTH + 1] = {};
   uint32_t msisdn_len = get_msisdn_from_session_req(session_request, msisdn);
   proto->set_msisdn(msisdn);

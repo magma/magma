@@ -127,22 +127,22 @@ func GetViewFiringAlertHandler(alertmanagerURL string, client HttpClient) func(c
 func configurePrometheusAlert(networkID, url string, c echo.Context, client HttpClient) error {
 	rule, err := buildRuleFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("misconfigured rule: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("misconfigured rule: %v", err))
 	}
 
 	err = alert.SecureRule(true, metrics.NetworkLabelName, networkID, &rule)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	errs := rule.Validate()
 	if len(errs) != 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid rule: %v\n", errs))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid rule: %v", errs))
 	}
 
 	sendErr := sendConfig(rule, url, http.MethodPost, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, sendErr)
+		return sendErr
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
@@ -150,23 +150,23 @@ func configurePrometheusAlert(networkID, url string, c echo.Context, client Http
 func sendConfig(payload interface{}, url string, method string, client HttpClient) *echo.HTTPError {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("create http request: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("create http request: %v", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make %s request: %w", method, err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("make %s request: %v", method, err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error writing config: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error writing config: %v", body.Message))
 	}
 	return nil
 }
@@ -186,13 +186,13 @@ func retrieveAlertRule(c echo.Context, url string, client HttpClient) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error reading rules: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error reading rules: %v", body.Message))
 	}
 
 	var rules []alert.RuleJSONWrapper
 	err = json.NewDecoder(resp.Body).Decode(&rules)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding server response: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding server response: %v", err))
 	}
 	return c.JSON(http.StatusOK, rules)
 }
@@ -200,13 +200,13 @@ func retrieveAlertRule(c echo.Context, url string, client HttpClient) error {
 func deleteAlertRule(c echo.Context, url string, client HttpClient) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
 	if alertName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("alert name not provided"))
+		return echo.NewHTTPError(http.StatusBadRequest, "alert name not provided")
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("could not form request: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("could not form request: %v", err))
 	}
 
 	resp, err := client.Do(req)
@@ -218,7 +218,7 @@ func deleteAlertRule(c echo.Context, url string, client HttpClient) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error deleting rule: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error deleting rule: %v", body.Message))
 	}
 	return c.JSON(http.StatusOK, nil)
 }
@@ -226,17 +226,17 @@ func deleteAlertRule(c echo.Context, url string, client HttpClient) error {
 func updateAlertRule(c echo.Context, url string, client HttpClient) error {
 	rule, err := buildRuleFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("misconfigured rule: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("misconfigured rule: %v", err))
 	}
 	alertName := c.Param(AlertNamePathParam)
 	if alertName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("alert name not provided"))
+		return echo.NewHTTPError(http.StatusBadRequest, "alert name not provided")
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
 	sendErr := sendConfig(rule, url, http.MethodPut, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, sendErr)
+		return sendErr
 	}
 	return c.JSON(http.StatusOK, nil)
 }
@@ -244,7 +244,7 @@ func updateAlertRule(c echo.Context, url string, client HttpClient) error {
 func bulkUpdateAlerts(c echo.Context, url string, client HttpClient) error {
 	rules, err := buildRuleListFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("error parsing rule payload: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error parsing rule payload: %v", err))
 	}
 
 	resp, err := sendBulkConfig(rules, url, client)
@@ -257,27 +257,27 @@ func bulkUpdateAlerts(c echo.Context, url string, client HttpClient) error {
 func sendBulkConfig(payload interface{}, url string, client HttpClient) (string, error) {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, err)
+		return "", echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBody))
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("create http request: %w", err))
+		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("create http request: %v", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make PUT request: %w", err))
+		return "", echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("make PUT request: %v", err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return "", echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error writing config: %v", body.Message))
+		return "", echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error writing config: %v", body.Message))
 	}
 	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", echo.NewHTTPError(http.StatusInternalServerError, err)
+		return "", echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return string(contents), nil
 }
@@ -290,14 +290,14 @@ func viewFiringAlerts(networkID, getAlertsURL string, c echo.Context, client Htt
 	if resp.StatusCode/100 != 2 {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("alertmanager error: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("alertmanager error: %v", body.Message))
 	}
 	defer resp.Body.Close()
 
 	var alerts []models.GettableAlert
 	err = json.NewDecoder(resp.Body).Decode(&alerts)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding alertmanager response: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding alertmanager response: %v", err))
 	}
 	networkAlerts := getAlertsForNetwork(networkID, alerts)
 	return c.JSON(http.StatusOK, networkAlerts)

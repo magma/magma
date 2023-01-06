@@ -59,7 +59,7 @@ int decode_security_mode_complete(
       case SECURITY_MODE_COMPLETE_IMEISV_IEI:
         if ((decoded_result = decode_mobile_identity_ie(
                  &security_mode_complete->imeisv,
-                 SECURITY_MODE_COMPLETE_IMEISV_IEI, buffer + decoded,
+                 SECURITY_MODE_COMPLETE_IMEISV_IEI != 0, buffer + decoded,
                  len - decoded)) <= 0)
           return decoded_result;
 
@@ -95,9 +95,10 @@ int encode_security_mode_complete(
   if ((security_mode_complete->presencemask &
        SECURITY_MODE_COMPLETE_IMEISV_PRESENT) ==
       SECURITY_MODE_COMPLETE_IMEISV_PRESENT) {
-    if ((encode_result = encode_mobile_identity_ie(
-             &security_mode_complete->imeisv, SECURITY_MODE_COMPLETE_IMEISV_IEI,
-             buffer + encoded, len - encoded)) < 0)
+    if ((encode_result =
+             encode_mobile_identity_ie(&security_mode_complete->imeisv,
+                                       SECURITY_MODE_COMPLETE_IMEISV_IEI != 0,
+                                       buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

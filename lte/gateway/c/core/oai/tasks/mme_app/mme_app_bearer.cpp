@@ -93,7 +93,7 @@ extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 static void handle_ics_failure(struct ue_mm_context_s* ue_context_p,
-                               char* error_msg);
+                               const char* error_msg);
 
 static void send_s11_modify_bearer_request(ue_mm_context_t* ue_context_p,
                                            pdn_context_t* pdn_context_p,
@@ -2903,7 +2903,7 @@ int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
  * In case of of MO CS call, send Service Reject to UE
  */
 status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
-                                                 char* failed_statement,
+                                                 const char* failed_statement,
                                                  uint8_t failed_procedure) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -4238,7 +4238,7 @@ void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
 
 // Fetch UE context based on mme_ue_s1ap_id and return pointer to UE context
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name) {
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, const char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP, "Expired- %s for ue_id " MME_UE_S1AP_ID_FMT "\n",
               timer_name, mme_ue_s1ap_id);
@@ -4607,7 +4607,7 @@ void mme_app_handle_modify_bearer_rsp(
 }
 
 static void handle_ics_failure(struct ue_mm_context_s* ue_context_p,
-                               char* error_msg) {
+                               const char* error_msg) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_ics_rsp_timer_started = 0;

@@ -15,7 +15,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -33,7 +32,7 @@ import (
 func listChannelsHandler(c echo.Context) error {
 	channelNames, err := configurator.ListInternalEntityKeys(c.Request().Context(), orc8r.UpgradeReleaseChannelEntityType)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	sort.Strings(channelNames)
 	return c.JSON(http.StatusOK, channelNames)
@@ -54,7 +53,7 @@ func createChannelHandler(c echo.Context) error {
 	}
 	_, err := configurator.CreateInternalEntity(c.Request().Context(), entity, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -71,10 +70,10 @@ func readChannelHandler(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, entity.Config)
 }
@@ -99,7 +98,7 @@ func updateChannelHandler(c echo.Context) error {
 	}
 	_, err := configurator.UpdateInternalEntity(c.Request().Context(), update, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -111,7 +110,7 @@ func deleteChannelHandler(c echo.Context) error {
 	}
 	err := configurator.DeleteInternalEntity(c.Request().Context(), orc8r.UpgradeReleaseChannelEntityType, channelID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -123,7 +122,7 @@ func listTiersHandler(c echo.Context) error {
 	}
 	tiers, err := configurator.ListEntityKeys(c.Request().Context(), networkID, orc8r.UpgradeTierEntityType)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	sort.Strings(tiers)
 	return c.JSON(http.StatusOK, tiers)
@@ -159,12 +158,12 @@ func updateTierHandler(c echo.Context) error {
 	tier := payload.(*models.Tier)
 
 	if string(tier.ID) != tierID {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("TierID in URL and payload do not match."))
+		return echo.NewHTTPError(http.StatusBadRequest, "TierID in URL and payload do not match.")
 	}
 	update := tier.ToUpdateCriteria()
 	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -181,10 +180,10 @@ func readTierHandler(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	tier := &models.Tier{}
 	return c.JSON(http.StatusOK, tier.FromBackendModel(entity))
@@ -197,7 +196,7 @@ func deleteTierHandler(c echo.Context) error {
 	}
 	err := configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -214,14 +213,14 @@ func createTierImage(c echo.Context) error {
 
 	updates, err := image.(*models.TierImage).ToUpdateCriteria(c.Request().Context(), networkID, tierID)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	_, err = configurator.UpdateEntities(c.Request().Context(), networkID, updates, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -238,14 +237,14 @@ func deleteImage(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	update, err := (&models.TierImage{}).ToDeleteImageUpdateCriteria(reqCtx, networkID, tierID, params[0])
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	_, err = configurator.UpdateEntity(reqCtx, networkID, update, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -257,7 +256,7 @@ func createTierGateway(c echo.Context) error {
 	}
 	var gatewayID string
 	if err := c.Bind(&gatewayID); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	update := (&models.TierGateways{}).ToAddGatewayUpdateCriteria(tierID, gatewayID)
@@ -280,7 +279,7 @@ func deleteTierGateway(c echo.Context) error {
 	update := (&models.TierGateways{}).ToDeleteGatewayUpdateCriteria(tierID, gatewayID)
 	_, err := configurator.UpdateEntity(c.Request().Context(), networkID, update, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
