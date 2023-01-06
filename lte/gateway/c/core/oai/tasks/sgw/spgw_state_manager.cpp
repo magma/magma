@@ -151,7 +151,7 @@ void SpgwStateManager::write_ue_state_to_db(
   redis_client->serialize(*ue_context, proto_str);
   std::size_t new_hash = std::hash<std::string>{}(proto_str);
   if (new_hash != this->ue_state_hash[imsi_str]) {
-    std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
+    std::string key = IMSI_STR_PREFIX + imsi_str + ":" + task_name;
     if (redis_client->write_proto_str(key, proto_str,
                                       ue_state_version[imsi_str]) != RETURNok) {
       OAILOG_ERROR(LOG_SPGW_APP, "Failed to write UE state to db for IMSI %s",
@@ -192,6 +192,36 @@ void SpgwStateManager::write_spgw_state_to_db(void) {
       this->task_state_hash = new_hash;
     }
   }
+}
+
+status_code_e SpgwStateManager::read_state_from_db() {
+#if !MME_UNIT_TEST
+  if (persist_state_enabled) {
+    state_cache_p->Clear();
+    if (redis_client->read_proto(table_key, *state_cache_p) != RETURNok) {
+      OAILOG_ERROR(LOG_MME_APP, "Failed to read state info from db \n");
+      return RETURNerror;
+    }
+
+    // Update the state version from redis
+    this->task_state_version = redis_client->read_version(table_key);
+  }
+#endif
+  return RETURNok;
+}
+
+oai::SpgwState* SpgwStateManager::get_state(bool read_from_db) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  AssertFatal(
+      is_initialized,
+      "SpgwStateManager init() function should be called to initialize state");
+  state_dirty = true;
+  AssertFatal(state_cache_p != nullptr, " spgw State cache is NULL");
+  if (persist_state_enabled && read_from_db) {
+    read_state_from_db();
+    read_ue_state_from_db();
+  }
+  OAILOG_FUNC_RETURN(LOG_S1AP, state_cache_p);
 }
 
 }  // namespace lte

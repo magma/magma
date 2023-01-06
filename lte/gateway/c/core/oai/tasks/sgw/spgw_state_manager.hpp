@@ -19,8 +19,7 @@
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
-#include "lte/gateway/c/core/oai/include/state_manager.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
+#include "lte/gateway/c/core/oai/include/state_utility.hpp"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
@@ -39,9 +38,7 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager
-    : public StateManager<oai::SpgwState, oai::SpgwUeContext, oai::SpgwState,
-                          oai::SpgwUeContext, SpgwStateConverter> {
+class SpgwStateManager : public StateUtility {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
@@ -67,15 +64,17 @@ class SpgwStateManager
   /**
    * Frees all memory allocated on SpgwState.
    */
-  void free_state() override;
+  void free_state();
 
-  status_code_e read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db();
 
   state_teid_map_t* get_state_teid_map();
   map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
   void write_ue_state_to_db(const oai::SpgwUeContext* ue_context,
-                            const std::string& imsi_str) override;
+                            const std::string& imsi_str);
   void write_spgw_state_to_db(void);
+  status_code_e read_state_from_db();
+  oai::SpgwState* get_state(bool read_from_db);
 
  private:
   SpgwStateManager();
@@ -85,15 +84,19 @@ class SpgwStateManager
    * Allocates a new SpgwState struct, and inits protobuf maps and state
    * structs to default values.
    */
-  void create_state() override;
+  void create_state();
 
   state_teid_map_t state_teid_map;
   const spgw_config_t* config_;
   map_uint64_spgw_ue_context_t state_ue_map;
-  std::unordered_map<std::string, uint64_t> ue_state_version;
   // Last written hash values for task and ue context
   std::size_t task_state_hash;
   std::unordered_map<std::string, std::size_t> ue_state_hash;
+
+  oai::SpgwState* state_cache_p;
+  // State version counters for task and ue context
+  uint64_t task_state_version;
+  std::unordered_map<std::string, uint64_t> ue_state_version;
 };
 
 }  // namespace lte

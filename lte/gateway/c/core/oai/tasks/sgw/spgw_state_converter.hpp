@@ -36,72 +36,22 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
-namespace magma {
-namespace lte {
+void eps_bearer_qos_to_proto(
+    const bearer_qos_t* eps_bearer_qos_state,
+    magma::lte::oai::SgwBearerQos* eps_bearer_qos_proto);
 
-/**
- * Class for SGW / PGW tasks state conversion helper functions.
- */
-class SpgwStateConverter : StateConverter {
- public:
-  /**
-   * Main function to convert SPGW state to proto definition
-   * @param spgw_state const pointer to spgw_state struct
-   * @param spgw_proto SpgwState proto object to be written to
-   * Memory is owned by the caller
-   */
-  static void state_to_proto(const magma::lte::oai::SpgwState* spgw_state,
-                             oai::SpgwState* spgw_proto);
+void traffic_flow_template_to_proto(
+    const traffic_flow_template_t* tft_state,
+    magma::lte::oai::TrafficFlowTemplate* tft_proto);
 
-  /**
-   * Main function to convert SPGW proto to state definition
-   * @param spgw_proto SpgwState proto object to be written to
-   * @param spgw_state const pointer to spgw_state struct
-   * Memory is owned by the caller
-   */
-  static void proto_to_state(const oai::SpgwState& proto,
-                             magma::lte::oai::SpgwState* spgw_state);
+void sgw_create_session_message_to_proto(
+    const itti_s11_create_session_request_t* session_request,
+    magma::lte::oai::CreateSessionMessage* proto);
 
-  static void ue_to_proto(const oai::SpgwUeContext* ue_state,
-                          oai::SpgwUeContext* ue_proto);
+void proto_to_packet_filter(
+    const magma::lte::oai::PacketFilter& packet_filter_proto,
+    packet_filter_t* packet_filter);
 
-  static void proto_to_ue(const oai::SpgwUeContext& ue_proto,
-                          oai::SpgwUeContext* ue_context_p);
-
-  /**
-   * Converts traffic flow template struct to proto, memory is owned by the
-   * caller
-   * @param tft_state
-   * @param tft_proto
-   */
- private:
-  SpgwStateConverter();
-  ~SpgwStateConverter();
-
-  /**
-   * Converts spgw bearer context struct to proto, memory is owned by the caller
-   * @param spgw_bearer_state
-   * @param spgw_bearer_proto
-   */
-  static void gtpv1u_data_to_proto(const gtpv1u_data_t* gtp_data,
-                                   oai::GTPV1uData* gtp_proto);
-
-  /**
-   * Converts proto to gtpv1u_data struct
-   * @param gtp_proto
-   * @param gtp_data
-   */
-  static void proto_to_gtpv1u_data(const oai::GTPV1uData& gtp_proto,
-                                   gtpv1u_data_t* gtp_data);
-
-  /**
-   * Converts port range struct to proto, memory is owned by the caller
-   * @param port_range
-   * @param port_range_proto
-   */
-};
-}  // namespace lte
-}  // namespace magma
 void proto_to_traffic_flow_template(
     const magma::lte::oai::TrafficFlowTemplate& tft_proto,
     traffic_flow_template_t* tft_state);

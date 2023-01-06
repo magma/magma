@@ -39,53 +39,6 @@ using magma::lte::oai::SpgwState;
 using magma::lte::oai::SpgwUeContext;
 using magma::lte::oai::TrafficFlowTemplate;
 
-namespace magma {
-namespace lte {
-
-SpgwStateConverter::SpgwStateConverter() = default;
-SpgwStateConverter::~SpgwStateConverter() = default;
-
-void SpgwStateConverter::state_to_proto(const SpgwState* spgw_state,
-                                        SpgwState* proto) {
-  proto->Clear();
-  proto->MergeFrom(*spgw_state);
-}
-
-void SpgwStateConverter::proto_to_state(const SpgwState& proto,
-                                        SpgwState* spgw_state) {
-  spgw_state->Clear();
-  spgw_state->MergeFrom(proto);
-}
-
-void SpgwStateConverter::gtpv1u_data_to_proto(const gtpv1u_data_t* gtp_data,
-                                              GTPV1uData* gtp_proto) {
-  gtp_proto->Clear();
-  gtp_proto->set_fd0(gtp_data->fd0);
-  gtp_proto->set_fd1u(gtp_data->fd1u);
-}
-
-void SpgwStateConverter::proto_to_gtpv1u_data(const oai::GTPV1uData& gtp_proto,
-                                              gtpv1u_data_t* gtp_data) {
-  gtp_data->fd0 = gtp_proto.fd0();
-  gtp_data->fd1u = gtp_proto.fd1u();
-}
-
-void SpgwStateConverter::ue_to_proto(const oai::SpgwUeContext* ue_state,
-                                     oai::SpgwUeContext* ue_proto) {
-  ue_proto->Clear();
-  ue_proto->MergeFrom(*ue_state);
-}
-
-void SpgwStateConverter::proto_to_ue(const oai::SpgwUeContext& ue_proto,
-                                     oai::SpgwUeContext* ue_context_p) {
-  OAILOG_FUNC_IN(LOG_SPGW_APP);
-  ue_context_p->Clear();
-  ue_context_p->MergeFrom(ue_proto);
-}
-
-}  // namespace lte
-}  // namespace magma
-
 void port_range_to_proto(const port_range_t* port_range,
                          magma::lte::oai::PortRange* port_range_proto) {
   port_range_proto->Clear();
