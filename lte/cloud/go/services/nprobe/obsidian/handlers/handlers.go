@@ -75,7 +75,7 @@ func listNetworkProbeTasks(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load existing NetworkProbeTasks: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to load existing NetworkProbeTasks: %v", err))
 	}
 
 	ret := make(map[string]*models.NetworkProbeTask, len(ents))
@@ -95,10 +95,10 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 
 		payload := &models.NetworkProbeTask{}
 		if err := c.Bind(payload); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		if err := payload.ValidateModel(reqCtx); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		// generate random correlation ID if not provided
@@ -115,7 +115,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 
 		taskID := string(payload.TaskID)
 		if err := storage.StoreNProbeData(networkID, taskID, data); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to store NetworkProbeData: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to store NetworkProbeData: %v", err))
 		}
 
 		_, err := configurator.CreateEntity(
@@ -129,7 +129,7 @@ func getCreateNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 			serdes.Entity,
 		)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusCreated)
 	}
@@ -154,7 +154,7 @@ func getNetworkProbeTask(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := (&models.NetworkProbeTask{}).FromBackendModels(ent)
@@ -170,10 +170,10 @@ func updateNetworkProbeTask(c echo.Context) error {
 
 	payload := &models.NetworkProbeTask{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
@@ -195,7 +195,7 @@ func getDeleteNetworkProbeTaskHandlerFunc(storage storage.NProbeStorage) echo.Ha
 		_ = storage.DeleteNProbeData(networkID, taskID)
 		err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeTaskEntityType, taskID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -214,7 +214,7 @@ func listNetworkProbeDestinations(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := make(map[string]*models.NetworkProbeDestination, len(ents))
@@ -233,10 +233,10 @@ func createNetworkProbeDestination(c echo.Context) error {
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.CreateEntity(
@@ -250,7 +250,7 @@ func createNetworkProbeDestination(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -274,7 +274,7 @@ func getNetworkProbeDestination(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := (&models.NetworkProbeDestination{}).FromBackendModels(ent)
@@ -290,10 +290,10 @@ func updateNetworkProbeDestination(c echo.Context) error {
 
 	payload := &models.NetworkProbeDestination{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.UpdateEntity(reqCtx, networkID, payload.ToEntityUpdateCriteria(), serdes.Entity)
@@ -313,7 +313,7 @@ func deleteNetworkProbeDestination(c echo.Context) error {
 	networkID, destinationID := values[0], values[1]
 	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.NetworkProbeDestinationEntityType, destinationID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }

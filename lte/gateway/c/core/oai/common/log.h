@@ -322,7 +322,7 @@ void log_message_add_async(struct shared_log_queue_item_s* contextP,
                            char* format, ...)
     __attribute__((format(printf, 2, 3)));
 
-void log_message_add_sync(log_queue_item_t* messageP, char* format, ...);
+void log_message_add_sync(log_queue_item_t* messageP, const char* format, ...);
 
 void log_message_finish(void* contextP);
 
@@ -338,8 +338,8 @@ void log_message_start_sync(log_thread_ctxt_t* const thread_ctxtP,
                             const log_proto_t protoP,
                             log_queue_item_t** messageP,  // Out parameter
                             const char* const source_fileP,
-                            const unsigned int line_numP, char* format, ...)
-    __attribute__((format(printf, 7, 8)));
+                            const unsigned int line_numP, const char* format,
+                            ...) __attribute__((format(printf, 7, 8)));
 
 void log_func(bool is_entering, const log_proto_t protoP,
               const char* const source_fileP, const unsigned int line_numP,

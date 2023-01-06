@@ -31,14 +31,14 @@ so that it can be mounted into the appropriate containers from there.
 Follow these steps to run the FeG services:
 
 1. `cd magma/feg/gateway/docker`
-2. `docker-compose build`
-3. `docker-compose up -d`
+2. `docker compose build`
+3. `docker compose up -d`
 
 Each service should now be running in each of its containers.
 By default, both production and development services should be running.
 To place a shell into the test container, run the command:
 
-`docker-compose exec test /bin/bash`
+`docker compose exec test /bin/bash`
 
 The test container contains the mounted source code and configuration settings.
 The mounted source code and configuration settings can be changed externally
@@ -47,16 +47,16 @@ Run the command `make precommit` in the container before submitting a patch.
 
 To make changes to currently running FeG services, the containers must be rebuilt and restarted:
 
-1. `docker-compose down`
-2. `docker-compose build`
-3. `docker-compose up -d`
+1. `docker compose down`
+2. `docker compose build`
+3. `docker compose up -d`
 
 To manage the containers, the following commands are useful:
 
-- `docker-compose ps` (get status of each container)
-- `docker-compose logs -f` (tail logs of all containers)
-- `docker-compose logs -f <service name>` (tail logs of a particular service)
-- `docker-compose down` (stop all services)
+- `docker compose ps` (get status of each container)
+- `docker compose logs -f` (tail logs of all containers)
+- `docker compose logs -f <service name>` (tail logs of a particular service)
+- `docker compose down` (stop all services)
 
 ## Publishing the images
 

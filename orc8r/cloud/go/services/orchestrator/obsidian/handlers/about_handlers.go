@@ -14,7 +14,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"os"
 
@@ -26,11 +25,11 @@ import (
 func getVersionHandler(c echo.Context) error {
 	version, ok := os.LookupEnv("VERSION_TAG")
 	if !ok {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("Failed to get Orc8r version"))
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get Orc8r version")
 	}
 	chartVersion, ok := os.LookupEnv("HELM_VERSION_TAG")
 	if !ok {
-		return echo.NewHTTPError(http.StatusInternalServerError, errors.New("Failed to get Helm chart version"))
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to get Helm chart version")
 	}
 	versionInfo := models.VersionInfo{
 		ContainerImageVersion: version,

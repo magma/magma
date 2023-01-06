@@ -51,7 +51,6 @@ status_code_e amf_handle_service_request(
   uint16_t pdu_session_status = 0;
   uint32_t tmsi_stored;
   paging_context_t* paging_ctx = nullptr;
-  guti_and_amf_id_t guti_and_amf_id;
 
   OAILOG_DEBUG(LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
                msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
@@ -568,8 +567,8 @@ status_code_e amf_handle_registration_request(
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
-    if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
-         M5GSMobileIdentityMsg_GUTI)) {
+    if (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+        M5GSMobileIdentityMsg_GUTI) {
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
           msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
@@ -700,8 +699,6 @@ status_code_e amf_handle_identity_response(
       // accept message
 
       amf_ctx_guti = reinterpret_cast<guti_m5_t*>(&amf_guti);
-
-      imsi64_t imsi64 = amf_imsi_to_imsi64(&imsi);
 
       if (ue_context) {
         ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;

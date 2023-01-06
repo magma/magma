@@ -78,7 +78,7 @@ status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, const char* timer_name);
 
 void mme_app_handle_detach_req(mme_ue_s1ap_id_t ue_id);
 
@@ -290,7 +290,7 @@ void mme_app_notify_service_reject_to_nas(mme_ue_s1ap_id_t ue_id,
                                           uint8_t failed_procedure);
 
 status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
-                                                 char* failed_statement,
+                                                 const char* failed_statement,
                                                  uint8_t failed_procedure);
 
 status_code_e mme_app_handle_sgsap_service_abort_request(
