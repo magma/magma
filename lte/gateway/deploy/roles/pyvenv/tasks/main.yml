@@ -22,9 +22,9 @@
 
 - name: Install virtualenvwrapper
   apt:
+    name: virtualenvwrapper
     state: present
     update_cache: yes
-    name: virtualenvwrapper
   when: preburn
 
 - name: Configure login shell for virtualenv

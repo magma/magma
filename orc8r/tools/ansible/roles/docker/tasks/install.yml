@@ -27,6 +27,6 @@
 
 - name: Install python docker module
   pip:
-    executable: pip3
     name: docker
+    executable: pip3
   when: preburn

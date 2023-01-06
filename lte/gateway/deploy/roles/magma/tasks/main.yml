@@ -146,7 +146,7 @@
     dest: /usr/local/bin/configure_envoy_namespace.sh
   when: full_provision
 
-- name: Create symlink binaries
+- name: Create symlinks for binaries
   file:
     src: "{{ item.src }}"
     path: /usr/local/{{ item.path }}
@@ -220,11 +220,7 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
-  retries: 5
-  when: preburn
   apt:
-    state: present
-    update_cache: yes
     name:
       - check
       - libgtest-dev
@@ -241,13 +237,17 @@
       - libczmq-dev
       - libczmq-dev
       - libsqlite3-dev
-
-- name: Install LI Agent dependencies
-  retries: 5
-  apt:
     state: present
     update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Install LI Agent dependencies
+  apt:
     name: uuid-dev
+    state: present
+    update_cache: yes
+  retries: 5
   when: preburn
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
@@ -259,19 +259,15 @@
       ignore_errors: yes
 
 - name: Install Ubuntu Magma gateway dev dependencies
-  retries: 5
-  when: preburn
   apt:
+    name: libconfig-dev
     state: present
     update_cache: no
-    name: libconfig-dev
-
-- name: Install common Magma dependencies
   retries: 5
   when: preburn
+
+- name: Install common Magma dependencies
   apt:
-    state: present
-    update_cache: yes
     name:
       # install openvswitch
       - libopenvswitch
@@ -302,25 +298,29 @@
       - tshark
       - getenvoy-envoy
       - bcc-tools
-
-- name: Install ubuntu Magma dependencies
-  retries: 5
-  when: preburn
-  apt:
     state: present
     update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Install ubuntu Magma dependencies
+  apt:
     name:
       - nlohmann-json3-dev
       # managing gtp interface
       - ifupdown
-
-- name: Install scapy
-  retries: 5
-  when: preburn
-  apt:
     state: present
     update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Install scapy
+  apt:
     name: python3-scapy
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
 
 - name: Copy the gtp interface initialization definition
   copy:
@@ -343,17 +343,20 @@
   when: full_provision
 
 - name: Specific Magma dependencies from backports
-  apt: pkg=cmake state=present update_cache=yes
+  apt:
+    name: cmake
+    state: present
+    update_cache: yes
   retries: 5
   when: preburn
 
 - name: Install gmock and gtest for C++ testing
   become: yes
-  ignore_errors: yes
   shell: cmake . && cmake --build . --target install
   args:
     chdir: /usr/src/googletest
   when: preburn
+  ignore_errors: yes
 
 - name: Download golang tar
   get_url:
@@ -381,9 +384,9 @@
 
 - name: Install dnsmasq
   apt:
+    name: dnsmasq
     state: present
     update_cache: yes
-    name: dnsmasq
   retries: 5
   when: preburn
 
@@ -396,9 +399,9 @@
 
 - name: Install lighttpd
   apt:
+    name: lighttpd
     state: present
     update_cache: yes
-    name: lighttpd
   retries: 5
   when: preburn
 
@@ -448,13 +451,13 @@
     recurse: yes
 
 - name: Install dev requirements only used for Magma VM
-  retries: 5
   apt:
-    state: latest
     name:
       - clangd-12
       - lld
       - clang-format-11
+    state: latest
+  retries: 5
   when: preburn
 
 - name: Create a symlink for clangd
@@ -470,10 +473,10 @@
 
 # TODO: Fix magma-dev VM box and remove this step.
 - name: Install Magma dependencies
-  retries: 5
   apt:
-    state: latest
     name: magma-libfluid
+    state: latest
+  retries: 5
   when: preburn
 
 - name: Create eBPF code dir
@@ -482,9 +485,9 @@
 
 - name: Prepare AGW for eBPF
   apt:
+    name: linux-headers-5.4.0-74-generic
     state: present
     update_cache: yes
-    name: linux-headers-5.4.0-74-generic
   when: preburn
 
 - name: Copy eBPF code

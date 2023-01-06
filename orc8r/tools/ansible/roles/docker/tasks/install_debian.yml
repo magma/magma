@@ -17,8 +17,6 @@
 
 - name: Install packages to allow apt to use a repository over HTTPS
   apt:
-    state: present
-    update_cache: true
     name:
       - apt-transport-https
       - ca-certificates
@@ -27,6 +25,8 @@
       - software-properties-common
       - python3-pip
       - lsb-release
+    state: present
+    update_cache: true
 
 - name: Copy docker gpg key from codebase
   copy:
@@ -38,17 +38,17 @@
     file: /tmp/docker.key
     state: present
 
-- name: Add the focal repository for Docker
+- name: Add the stable repository for Docker
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ docker_host_distribution }} stable
     state: present
 
 - name: Install the latest version of Docker CE
   apt:
-    state: present
-    update_cache: true
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
+    state: present
+    update_cache: true

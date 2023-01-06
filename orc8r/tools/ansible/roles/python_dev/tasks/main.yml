@@ -51,7 +51,7 @@
 # Add common convenience aliases
 #################################
 
-- name: Set a convenience functions for virtualenv
+- name: Set convenience functions for virtualenv
   lineinfile:
     path: /home/{{ ansible_user }}/.bashrc
     state: present

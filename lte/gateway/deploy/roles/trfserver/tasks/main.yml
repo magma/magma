@@ -43,8 +43,6 @@
 
 - name: Install common Magma dev dependencies
   apt:
-    state: present
-    update_cache: yes
     name:
       - python3-pip
       - git
@@ -52,6 +50,8 @@
       - net-tools
       # install ethtool for disabling TCP checksumming
       - ethtool
+    state: present
+    update_cache: yes
   when: preburn
 
 - name: Rename interfaces to ethx-scheme
@@ -69,20 +69,20 @@
 
 - name: Install the trfgen-server python dependencies
   pip:
-    executable: pip3
     name:
       - pyroute2
       - scapy-python3
       - git+https://github.com/thiezn/iperf3-python#egg=iperf3-python
+    executable: pip3
   when: preburn
 
 - name: Remove preinstalled iperf3 and libiperf0
   apt:
-    state: absent
-    update_cache: yes
     name:
       - iperf3
       - libiperf0
+    state: absent
+    update_cache: yes
     purge: yes
   when: preburn
 

@@ -17,13 +17,13 @@
 
 - name: Install utilities
   yum:
-    state: present
     name:
       - ca-certificates
       - curl
       - python3-pip
       - python3-setuptools
       - yum-utils
+    state: present
 
 - name: Add Docker's official GPG key
   rpm_key:
@@ -35,10 +35,10 @@
 
 - name: Install the latest version of Docker CE
   yum:
-    state: present
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
+    state: present
 

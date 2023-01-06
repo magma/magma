@@ -18,11 +18,11 @@
   when: preburn
 
 - name: Install ansible for Ubuntu systems
-  when: preburn
   apt:
-    state: present
     name: ansible
+    state: present
   retries: 5
+  when: preburn
 
 - name: Copy over the timesyncd config
   become: yes
@@ -115,12 +115,12 @@
 
 - name: Install convenience packages for development
   apt:
-    state: present
-    update_cache: no
     name:
       - byobu
       - vim
       - aptitude
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
@@ -134,27 +134,25 @@
 
 - name: Install monitoring packages
   apt:
-    state: present
-    update_cache: no
     name:
       - htop
       - iotop
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
 # TODO: remove this after migrating magma_test box image to plain Debian
 - name: Install lxml
   apt:
+    name: python3-lxml
     state: present
     update_cache: no
-    name: python3-lxml
   when: preburn
 
 - name: Install prereqs for FPM
   tags: dev
   apt:
-    state: present
-    update_cache: no
     name:
       - ruby
       - ruby-dev
@@ -165,6 +163,8 @@
       - python-setuptools
       - libssl-dev
       - apt-transport-https
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
@@ -176,8 +176,6 @@
 - name: Common install dependencies for building and shipping client release
   tags: dev
   apt:
-    state: present
-    update_cache: no
     name:
       - autogen
       - autoconf
@@ -193,21 +191,23 @@
       - net-tools # ifconfig
       - tcpdump
       - curl
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
 - name: Install build requirements for Ubuntu systems
   # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
   # due to upstream versioning bug
-  when: preburn
   apt:
-    state: present
     name:
       - clang
       - cmake
       - make
       - python3-aioeventlet
+    state: present
   retries: 5
+  when: preburn
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
@@ -253,8 +253,6 @@
 
 - name: Install common Magma gateway dev dependencies
   apt:
-    state: present
-    update_cache: yes
     name:
       # install gRPC
       - grpc-dev
@@ -275,31 +273,33 @@
       - libtins-dev
       - libmnl-dev
       - libcurl4-openssl-dev
+    state: present
+    update_cache: yes
   retries: 5
   when: preburn
 
 - name: Install Ubuntu Magma gateway dev dependencies
   retries: 5
-  when: preburn
   apt:
-    state: present
-    update_cache: no
     name:
       - libprotobuf17
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
+    state: present
+    update_cache: no
+  when: preburn
 
 ###############################################
 # Download and build sentry-native
 ###############################################
 
 - name: Install Sentry Native SDK
-  vars:
-    sentry_native_version: "0.4.12"
   get_url:
     url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
     dest: "{{ tmp_directory }}/sentry-native.zip"
+  vars:
+    sentry_native_version: "0.4.12"
   when: preburn
 
 - name: Create a directory for Sentry Native
@@ -380,11 +380,11 @@
   when: preburn
 
 - name: Patch multipath conf
-  when: preburn
+  become: yes
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
-  become: yes
+  when: preburn
   ignore_errors: true
 
 - name: Copy Interface file.
