@@ -79,8 +79,8 @@ class SPGWAppProcedureTest : public ::testing::Test {
       magma::lte::oai::SpgwState* spgw_state,
       magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
       teid_t ue_sgw_teid);
-  void deactivate_dedicated_bearer(magma::lte::oai::SpgwState* spgw_state, teid_t ue_sgw_teid,
-                                   ebi_t ded_eps_bearer_id);
+  void deactivate_dedicated_bearer(magma::lte::oai::SpgwState* spgw_state,
+                                   teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id);
 };
 
 MATCHER_P2(check_params_in_actv_bearer_req, lbi, tft, "") {

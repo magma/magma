@@ -102,5 +102,6 @@ class SpgwStateConverter : StateConverter {
 };
 }  // namespace lte
 }  // namespace magma
-void proto_to_traffic_flow_template(const magma::lte::oai::TrafficFlowTemplate& tft_proto,
-                                    traffic_flow_template_t* tft_state);
+void proto_to_traffic_flow_template(
+    const magma::lte::oai::TrafficFlowTemplate& tft_proto,
+    traffic_flow_template_t* tft_state);

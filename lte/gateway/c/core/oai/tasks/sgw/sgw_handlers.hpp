@@ -78,8 +78,8 @@ uint32_t spgw_get_new_s1u_teid(magma::lte::oai::SpgwState* state);
 bool is_enb_ip_address_same(const fteid_t* fte_p, struct in_addr ipv4,
                             struct in6_addr ipv6);
 status_code_e sgw_handle_sgi_endpoint_created(
-    magma::lte::oai::SpgwState* state, itti_sgi_create_end_point_response_t* const resp_p,
-    imsi64_t imsi64);
+    magma::lte::oai::SpgwState* state,
+    itti_sgi_create_end_point_response_t* const resp_p, imsi64_t imsi64);
 status_code_e send_mbr_failure(
     log_proto_t module,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
@@ -122,9 +122,8 @@ status_code_e sgw_build_and_send_s11_create_bearer_request(
 status_code_e create_temporary_dedicated_bearer_context(
     magma::lte::oai::SgwEpsBearerContextInfo* sgw_ctxt_p,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
-    pdn_type_t pdn_type,
-    magma::lte::oai::IpTupple* sgw_s1u_ip_addr, teid_t s1_u_sgw_fteid,
-    uint32_t sequence_number, log_proto_t module);
+    pdn_type_t pdn_type, magma::lte::oai::IpTupple* sgw_s1u_ip_addr,
+    teid_t s1_u_sgw_fteid, uint32_t sequence_number, log_proto_t module);
 // TODO(rsarwad): shall be removed while porting sgw_s8 context to protobuf
 // github issue: 11191
 void handle_failed_s8_create_bearer_response(
