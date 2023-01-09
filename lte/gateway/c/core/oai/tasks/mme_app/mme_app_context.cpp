@@ -373,23 +373,20 @@ struct ue_mm_context_s* mme_ue_context_exists_s11_teid(
 //------------------------------------------------------------------------------
 ue_mm_context_t* mme_ue_context_exists_guti(
     mme_ue_context_t* const mme_ue_context_p, const guti_t* const guti_p) {
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-  uint64_t mme_ue_s1ap_id64 = 0;
+  uint32_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
 
   char guti_str[GUTI_STRING_LEN] = {0};
   convert_guti_to_string(guti_p, &guti_str);
-  h_rc = obj_hashtable_uint64_ts_get(mme_ue_context_p->guti_ue_context_htbl,
-                                     (const void*)guti_str, strlen(guti_str),
-                                     &mme_ue_s1ap_id64);
 
-  if (HASH_TABLE_OK == h_rc) {
-    return mme_ue_context_exists_mme_ue_s1ap_id(
-        (mme_ue_s1ap_id_t)mme_ue_s1ap_id64);
+  mme_ue_context_p->mme_app_guti2mme_ue_id_map.get(guti_str, &mme_ue_s1ap_id);
+  if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
+    return mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   } else {
-    OAILOG_WARNING(LOG_MME_APP, " No GUTI hashtable for GUTI ");
+    OAILOG_WARNING(LOG_MME_APP,
+                   "Failed to get mme ue s1ap id for GUTI: " GUTI_FMT,
+                   guti_str);
   }
-
-  return NULL;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -526,30 +523,25 @@ void mme_ue_context_update_coll_keys(
       // may check guti_p with a kind of instanceof()?
       char guti_str[GUTI_STRING_LEN] = {0};
       convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
-      h_rc = obj_hashtable_uint64_ts_remove(
-          mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
-          strlen(guti_str));
-      if (INVALID_MME_UE_S1AP_ID != mme_ue_s1ap_id) {
-        char guti_str[GUTI_STRING_LEN] = {0};
+      mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str);
+      if (mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
+        memset(&guti_str[0], 0, GUTI_STRING_LEN);
         convert_guti_to_string(guti_p, &guti_str);
-        h_rc = obj_hashtable_uint64_ts_insert(
-            mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
-            strlen(guti_str), (uint64_t)mme_ue_s1ap_id);
-      } else {
-        h_rc = HASH_TABLE_KEY_NOT_EXISTS;
+        magma::proto_map_rc_t map_rc =
+            mme_ue_context_p->mme_app_guti2mme_ue_id_map.insert(guti_str,
+                                                                mme_ue_s1ap_id);
+        if (map_rc != magma::PROTO_MAP_OK) {
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, imsi,
+              "Insert operation failed for mme_app_guti2mme_ue_id_map, "
+              "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT,
+              ", GUTI: " GUTI_FMT " (Error Code: %s)",
+              ue_context_p->mme_ue_s1ap_id, guti_str,
+              map_rc_code2string(map_rc));
+        } else {
+          ue_context_p->emm_context._guti = *guti_p;
+        }
       }
-
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_ERROR_UE(LOG_MME_APP, imsi,
-                        "Error could not update this ue context %p "
-                        "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-                        " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " guti " GUTI_FMT
-                        " %s\n",
-                        ue_context_p, ue_context_p->enb_ue_s1ap_id,
-                        ue_context_p->mme_ue_s1ap_id, GUTI_ARG(guti_p),
-                        hashtable_rc_code2string(h_rc));
-      }
-      ue_context_p->emm_context._guti = *guti_p;
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -566,6 +558,14 @@ static bool display_proto_map_uint32_uint32(
     uint32_t keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
     __attribute__((unused)) void** resultP) {
   OAILOG_DEBUG(LOG_MME_APP, "key=%u, data=%u", keyP, dataP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
+}
+
+static bool display_proto_mme_app_guti2mme_ue_id_map_string_uint32(
+    std::string keyP, const uint32_t dataP, __attribute__((unused)) void* argP,
+    __attribute__((unused)) void** resultP) {
+  OAILOG_DEBUG(LOG_MME_APP, "mme_app_guti2mme_ue_id_map: key=%s, data=%u", keyP,
+               dataP);
   OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
@@ -593,12 +593,12 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
   enb_ue_s1ap_key2mme_ueid_map.map_apply_callback_on_all_elements(
       display_proto_map_uint64_uint32, nullptr, nullptr);
 
-  btrunc(tmp, 0);
-  obj_hashtable_uint64_ts_dump_content(mme_ue_contexts_p->guti_ue_context_htbl,
-                                       tmp);
-  OAILOG_DEBUG(LOG_MME_APP, "guti_ue_context_htbl %s", bdata(tmp));
-
   bdestroy_wrapper(&tmp);
+
+  magma::proto_map_string_uint32_t mme_app_guti2mme_ue_id_map =
+      mme_ue_contexts_p->mme_app_guti2mme_ue_id_map;
+  mme_app_guti2mme_ue_id_map.map_apply_callback_on_all_elements(
+      display_proto_mme_app_guti2mme_ue_id_map_string_uint32, nullptr, nullptr);
 }
 
 //------------------------------------------------------------------------------
@@ -709,17 +709,15 @@ status_code_e mme_insert_ue_context(
         (0 != ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
       char guti_str[GUTI_STRING_LEN] = {0};
       convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
-      h_rc = obj_hashtable_uint64_ts_insert(
-          mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
-          strlen(guti_str), ue_context_p->mme_ue_s1ap_id);
 
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_WARNING(LOG_MME_APP,
-                       "Error could not register this ue context %p "
-                       "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " guti " GUTI_FMT
-                       "\n",
-                       ue_context_p, ue_context_p->mme_ue_s1ap_id,
-                       GUTI_ARG(&ue_context_p->emm_context._guti));
+      if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.insert(
+              guti_str, ue_context_p->mme_ue_s1ap_id) != magma::PROTO_MAP_OK) {
+        OAILOG_WARNING_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
+                          "Failed to insert guti key to ue context map, "
+                          "ue context: %p, "
+                          "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT
+                          ", GUTI: " GUTI_FMT,
+                          ue_context_p, ue_context_p->mme_ue_s1ap_id, guti_str);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
     }
@@ -775,16 +773,16 @@ void mme_remove_ue_context(mme_ue_context_t* const mme_ue_context_p,
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
     char guti_str[GUTI_STRING_LEN] = {0};
     convert_guti_to_string(&ue_context_p->emm_context._guti, &guti_str);
-    hash_rc = obj_hashtable_uint64_ts_remove(
-        mme_ue_context_p->guti_ue_context_htbl, (const void* const)guti_str,
-        strlen(guti_str));
-    if (HASH_TABLE_OK != hash_rc)
-      OAILOG_ERROR(LOG_MME_APP,
-                   "UE Context not found!\n"
-                   " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-                   " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-                   ", GUTI  not in GUTI collection\n",
-                   ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
+
+    if (mme_ue_context_p->mme_app_guti2mme_ue_id_map.remove(guti_str) !=
+        magma::PROTO_MAP_OK) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Failed to remove guti from mme_app_guti2mme_ue_id_map,"
+          " enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT
+          ", mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT ", GUTI:  " GUTI_FMT,
+          ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id, guti_str);
+    }
   }
 
   /*

@@ -99,59 +99,6 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   }
 }
 
-void MmeNasStateConverter::guti_table_to_proto(
-    const obj_hash_table_uint64_t* guti_htbl,
-    google::protobuf::Map<std::string, unsigned long>* proto_map) {
-  void*** key_array_p = (void***)calloc(1, sizeof(void**));
-  unsigned int size = 0;
-
-  hashtable_rc_t ht_rc =
-      obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
-  if ((!*key_array_p) || (ht_rc != HASH_TABLE_OK)) {
-    FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
-    return;
-  }
-  for (unsigned int i = 0; i < size; i++) {
-    uint64_t mme_ue_id;
-
-    std::string guti_str((char*)(*key_array_p)[i], (GUTI_STRING_LEN - 1));
-    OAILOG_INFO(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
-                (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
-    hashtable_rc_t ht_rc =
-        obj_hashtable_uint64_ts_get(guti_htbl, (const void*)(*key_array_p)[i],
-                                    (GUTI_STRING_LEN - 1), &mme_ue_id);
-    if (ht_rc == HASH_TABLE_OK) {
-      (*proto_map)[guti_str] = mme_ue_id;
-    } else {
-      OAILOG_ERROR(LOG_MME_APP, "Key %s not in guti_ue_context_htbl",
-                   guti_str.c_str());
-    }
-  }
-  FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
-}
-
-void MmeNasStateConverter::proto_to_guti_table(
-    const google::protobuf::Map<std::string, unsigned long>& proto_map,
-    obj_hash_table_uint64_t* guti_htbl) {
-  for (auto const& kv : proto_map) {
-    mme_ue_s1ap_id_t mme_ue_id = kv.second;
-    std::unique_ptr<guti_t> guti = std::make_unique<guti_t>();
-    memset(guti.get(), 0, sizeof(guti_t));
-
-    char guti_str[GUTI_STRING_LEN] = {};
-    snprintf(guti_str, GUTI_STRING_LEN, "%s",
-             reinterpret_cast<const char*>(kv.first.c_str()));
-    hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
-        guti_htbl, guti_str, strlen(guti_str), mme_ue_id);
-    if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to insert mme_ue_s1ap_id %u in GUTI table, error: %s\n",
-          mme_ue_id, hashtable_rc_code2string(ht_rc));
-    }
-  }
-}
-
 /*********************************************************
  *                UE Context <-> Proto                    *
  * Functions to serialize/desearialize UE context         *
@@ -714,8 +661,10 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   OAILOG_DEBUG(LOG_MME_APP, "enb_ue_s1ap_key map to proto");
   *mme_ue_ctxts_proto->mutable_enb_ue_s1ap_key_ue_id_map() =
       *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map);
-  guti_table_to_proto(mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
-                      mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Copy in-memory mme_app_guti2mme_ue_id_map to proto");
+  *mme_ue_ctxts_proto->mutable_guti_ue_id_map() =
+      *(mme_nas_state_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -752,8 +701,10 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   OAILOG_INFO(LOG_MME_APP, "Copy enb_ue_s1ap_key2mme_ueid map to protobuf map");
   *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map) =
       mme_ue_ctxts_proto.enb_ue_s1ap_key_ue_id_map();
-  proto_to_guti_table(mme_ue_ctxts_proto.guti_ue_id_htbl(),
-                      mme_ue_ctxt_state->guti_ue_context_htbl);
+  OAILOG_DEBUG(LOG_MME_APP,
+               "Copy proto to in-memory mme_app_guti2mme_ue_id_map");
+  *(mme_nas_state_p->mme_ue_contexts.mme_app_guti2mme_ue_id_map.map) =
+      mme_ue_ctxts_proto.guti_ue_id_map();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
