@@ -490,14 +490,21 @@ typedef struct ue_mm_context_s {
 } ue_mm_context_t;
 
 typedef struct mme_ue_context_s {
-  magma::proto_map_uint64_uint32_t
-      imsi2mme_ueid_map;  // data is mme_ue_s1ap_id_t
-  magma::proto_map_uint32_uint32_t
-      s11_teid2mme_ueid_map;  // data is mme_ue_s1ap_id_t
-  magma::proto_map_uint64_uint32_t
-      enb_ue_s1ap_key2mme_ueid_map;               // data is mme_ue_s1ap_id_t
+  // Map- Key:imsi of type uint64_t, Data:mme_ue_s1ap_id of type uint32_t
+  magma::proto_map_uint64_uint32_t imsi2mme_ueid_map;
+  // Map- Key:mme_s11_teid of type uint32_t, Data:mme_ue_s1ap_id of type
+  // uint32_t
+  magma::proto_map_uint32_uint32_t s11_teid2mme_ueid_map;
+  // Map- Key:enb_ue_s1ap_key of type uint64_t, Data:mme_ue_s1ap_id of type
+  // uint32_t
+  magma::proto_map_uint64_uint32_t enb_ue_s1ap_key2mme_ueid_map;
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
+
+// Map- Key:mme_ue_s1ap_id of type uint32_t, Data:pointer to protobuf object,
+// ue_mm_context_s
+typedef magma::proto_map_s<uint32_t, struct ue_mm_context_s*>
+    proto_map_uint32_ue_context_t;
 
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
@@ -578,9 +585,8 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  * \param ue_context_p The UE context to insert
  * @returns 0 in case of success, -1 otherwise
  **/
-status_code_e mme_insert_ue_context(
-    mme_ue_context_t* const mme_ue_context,
-    const struct ue_mm_context_s* const ue_context_p);
+status_code_e mme_insert_ue_context(mme_ue_context_t* const mme_ue_context,
+                                    struct ue_mm_context_s* ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove

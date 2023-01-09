@@ -37,7 +37,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -614,10 +613,11 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
-    if (hashtable_ts_is_key_exists(mme_state_ue_id_ht,
-                                   (const hash_key_t)ue_id) == HASH_TABLE_OK) {
+  if (ue_id != INVALID_MME_UE_S1AP_ID) {
+    proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+    if ((mme_app_state_ue_map) &&
+        (mme_app_state_ue_map->get(ue_id, &ue_context_p) ==
+         magma::PROTO_MAP_OK)) {
       imsi64 = ue_context_p->emm_context._imsi64;
     }
   }
