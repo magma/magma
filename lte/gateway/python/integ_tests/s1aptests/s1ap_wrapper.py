@@ -80,9 +80,6 @@ class TestWrapper(object):
             "[Start time: " + str(current_time) + "]",
         )
 
-        self._s1_util = S1ApUtil()
-        self._enBConfig(ip_version)
-
         federated_mode = (os.environ.get("FEDERATED_MODE") == "True")
         print(
             f"\n *** Running the test in {'Non-' if not federated_mode else ''}"
@@ -110,6 +107,15 @@ class TestWrapper(object):
         self._magmad_util.config_stateless(stateless_mode)
         self._magmad_util.config_apn_correction(apn_correction)
         self._magmad_util.config_health_service(health_service)
+
+        if not self._magmad_util.is_nat_enabled():
+            self._magmad_util.enable_nat()
+
+        self._magmad_util._wait_for_pipelined_to_initialize()
+
+        self._s1_util = S1ApUtil()  # calls get_datapath, i.e., should run after we ensured pipelined is started
+        self._enBConfig(ip_version)
+
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
         if not self.wait_gateway_healthy:

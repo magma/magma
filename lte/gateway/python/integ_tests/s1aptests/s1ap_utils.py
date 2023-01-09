@@ -96,7 +96,6 @@ class S1ApUtil(object):
     MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
-    datapath = get_datapath()
     SPGW_TABLE = 0
     LOCAL_PORT = "LOCAL"
     LOCAL_PORT_NON_NAT_IPV6 = 2
@@ -126,6 +125,8 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
+        self.datapath = get_datapath()
+
         # Clear the message queue to delete already stored response messages
         S1ApUtil._msg.queue.clear()
         self._imsi_idx = 1
@@ -1696,6 +1697,18 @@ class MagmadUtil(object):
 
         self.restart_services(['sctpd'], wait_time=30)
         self.restart_magma_services()
+
+    def is_nat_enabled(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+
+        in_mme_enabled = data["configs_by_key"]["mme"]["natEnabled"] == True
+        in_pipelined_enabled = data["configs_by_key"]["pipelined"]["natEnabled"] == True
+
+        return in_mme_enabled and in_pipelined_enabled
 
     def _validate_non_nat_datapath(self, ip_version: int = 4):
         # validate SGi interface is part of uplink-bridge.
