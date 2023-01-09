@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import unittest
 
 import s1ap_types
@@ -22,7 +23,8 @@ class TestAttachDetachSecurityAlgoEea1Eia1(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
 
     def tearDown(self):
         """Cleanup after test case execution"""
@@ -56,7 +58,7 @@ class TestAttachDetachSecurityAlgoEea1Eia1(unittest.TestCase):
             config_list[i].ueNwCap_pr.eia2_128 = 0
             config_list[i].ueNwCap_pr.eia1_128 = 1
             config_list[i].ueNwCap_pr.eia0 = 0
-        self._s1ap_wrapper.configUEDevice(num_ues, req_data=config_list)
+        self._s1ap_wrapper.configUEDevice(num_ues, req_data=config_list, mock_pcrf=self.mock_pcrf)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req

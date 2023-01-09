@@ -107,7 +107,7 @@ def register_federated_vm():
                 lte_auth_amf='gAA=',
                 lte_auth_op='EREREREREREREREREREREQ==',
                 mcc='001', mnc='01', tac=1,
-                gx_gy_relay_enabled=False,
+                gx_gy_relay_enabled=True,
                 hss_relay_enabled=True,
                 network_services=['dpi', 'policy_enforcement'],
                 mobility=MobilityConfig(

@@ -41,6 +41,20 @@ def get_hss_rpc_channel():
     return get_feg_rpc_channel('9204', 'hss')
 
 
+def get_ocs_rpc_channel():
+    """
+    Returns RPC channel to ocs
+    """
+    return get_feg_rpc_channel('9201', 'ocs')
+
+
+def get_pcrf_rpc_channel():
+    """
+    Returns RPC channel to pcrf
+    """
+    return get_feg_rpc_channel('9202', 'pcrf')
+
+
 def get_feg_rpc_channel(port, service):
     """
     Returns RPC channel to the service in the gateway.

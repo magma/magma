@@ -18,6 +18,30 @@ services:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=9
 
+  pcrf:
+    container_name: pcrf
+    image: feg_gateway_go
+    network_mode: host
+    volumes:
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/pcrf -logtostderr=true -v=2
+
+  ocs:
+    container_name: ocs
+    image: feg_gateway_go
+    network_mode: host
+    volumes:
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=2
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
+
   control_proxy:
     extra_hosts:
       # Use 127.0.0.1 when running FEG on the host itself

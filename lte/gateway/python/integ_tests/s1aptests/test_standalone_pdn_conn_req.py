@@ -10,8 +10,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import ctypes
+import os
 import unittest
 
 import s1ap_types
@@ -21,7 +21,8 @@ import s1ap_wrapper
 class TestStandAlonePdnConnReq(unittest.TestCase):
 
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()

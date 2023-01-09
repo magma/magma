@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import ipaddress
+import os
 import time
 import unittest
 
@@ -25,7 +26,8 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
 
     def setUp(self):
         """Initialize"""
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self.mock_pcrf = os.environ.get("FEDERATED_MODE") == "True"
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(mock_pcrf=self.mock_pcrf)
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):

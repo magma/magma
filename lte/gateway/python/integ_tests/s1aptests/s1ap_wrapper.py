@@ -19,6 +19,7 @@ import time
 from typing import List
 
 import s1ap_types
+from integ_tests.common.gx_client import PCRFGrpc
 from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
@@ -64,6 +65,7 @@ class TestWrapper(object):
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
         health_service=MagmadUtil.health_service_cmds.DISABLE,
         federated_mode=False,
+        mock_pcrf=False,
         ip_version=4,
     ):
         """
@@ -82,6 +84,7 @@ class TestWrapper(object):
 
         self._s1_util = S1ApUtil()
         self._enBConfig(ip_version)
+        self.mock_pcrf = mock_pcrf
 
         federated_mode = (os.environ.get("FEDERATED_MODE") == "True")
         print(
@@ -90,18 +93,22 @@ class TestWrapper(object):
         )
 
         if self._test_oai_upstream:
-            subscriber_client = SubscriberDbCassandra()
+            subscriber_client_hss = SubscriberDbCassandra()
             self.wait_gateway_healthy = False
         elif federated_mode:
-            subscriber_client = HSSGrpc()
+            subscriber_client_hss = HSSGrpc()
+            if self.mock_pcrf:
+                self.subscriber_client_pcrf = PCRFGrpc()
+                self.subscriber_client_pcrf.clear_subscribers()
+
             self.wait_gateway_healthy = True
         else:
-            subscriber_client = SubscriberDbGrpc()
+            subscriber_client_hss = SubscriberDbGrpc()
             self.wait_gateway_healthy = True
 
         mobility_client = MobilityServiceGrpc()
         magmad_client = MagmadServiceGrpc()
-        self._sub_util = SubscriberUtil(subscriber_client)
+        self._sub_util = SubscriberUtil(subscriber_client_hss)
         # Remove existing subscribers to start
         self._sub_util.cleanup()
         self._mobility_util = MobilityUtil(mobility_client)
@@ -241,6 +248,11 @@ class TestWrapper(object):
                 "************************* UE device config for ue_id ",
                 reqs[i].ue_id,
             )
+
+            imsi = "IMSI" + "".join([str(j) for j in reqs[i].imsi])
+            if self.mock_pcrf:
+                self.subscriber_client_pcrf.add_subscriber(imsi)
+
             if req_data and bool(req_data[i]):
                 if req_data[i].ueNwCap_pr.pres:
                     reqs[i].ueNwCap_pr.pres = req_data[i].ueNwCap_pr.pres
@@ -275,7 +287,7 @@ class TestWrapper(object):
             else:
                 ue_ip = None
             self.configAPN(
-                imsi="IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                imsi=imsi,
                 apn_list=None,
                 default=True,
                 static_ip=ue_ip,
@@ -340,6 +352,11 @@ class TestWrapper(object):
                 "************************* UE device config for ue_id ",
                 reqs[i].ue_id,
             )
+
+            imsi = "IMSI" + "".join([str(j) for j in reqs[i].imsi])
+            if self.mock_pcrf:
+                self.subscriber_client_pcrf.add_subscriber(imsi)
+
             assert (
                 self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
                 == 0
@@ -352,7 +369,7 @@ class TestWrapper(object):
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
-                "IMSI" + "".join([str(j) for j in reqs[i].imsi]),
+                imsi,
                 None,
             )
             self._configuredUes.append(reqs[i])
@@ -531,6 +548,8 @@ class TestWrapper(object):
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
         self._magmad_util.print_redis_state()
+        if self.mock_pcrf:
+            self.subscriber_client_pcrf.clear_subscribers()
 
         if not is_test_successful:
             print("The test has failed. Restarting Sctpd for cleanup")
