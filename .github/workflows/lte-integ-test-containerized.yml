@@ -14,17 +14,13 @@ name: AGW Test LTE Integration With Make Containerized Build
 on:
   workflow_dispatch:
     inputs:
-      digest_c:
+      image_tag:
         type: string
-        required: true
-      digest_python:
-        type: string
-        required: true
-      digest_go:
-        type: string
+        default: 'latest'
         required: true
       registry:
         type: string
+        default: 'linuxfoundation.jfrog.io/magma-docker-agw-test'
         required: true
       test_targets:
         type: choice
@@ -32,13 +28,7 @@ on:
         required: true
   workflow_call:
     inputs:
-      digest_c:
-        type: string
-        required: true
-      digest_python:
-        type: string
-        required: true
-      digest_go:
+      image_tag:
         type: string
         required: true
       registry:
@@ -54,11 +44,9 @@ jobs:
     steps:
       - name: Show inputs
         run: |
-          echo Docker image digest C      ${{ inputs.digest_c }}
-          echo Docker image digest Python ${{ inputs.digest_python }}
-          echo Docker image digest Go     ${{ inputs.digest_go }}
-          echo Docker registry            ${{ inputs.registry }}
-          echo test targets               ${{ inputs.test_targets }}
+          echo Docker image tag ${{ inputs.image_tag }}
+          echo Docker registry  ${{ inputs.registry }}
+          echo test targets     ${{ inputs.test_targets }}
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - id: set-registry
         name: Set registry and image_prefix
@@ -69,12 +57,12 @@ jobs:
           then
             echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
           fi
-      - name: Write image digest to docker-compose.yaml
+      - name: Write image tag to docker-compose.yaml
         working-directory: lte/gateway/docker
         run: |
-          sed -i '' "s#image:.*gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c@${{ inputs.digest_c }}#" docker-compose.yaml
-          sed -i '' "s#image:.*gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python@${{ inputs.digest_python }}#" docker-compose.yaml
-          sed -i '' "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go@${{ inputs.digest_go }}#" docker-compose.yaml
+          sed -i '' "s#image:.*gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i '' "s#image:.*gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i '' "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ inputs.image_tag }}#" docker-compose.yaml
       - name: Show docker-compose yaml to verify correct docker images hashes
         run: cat lte/gateway/docker/docker-compose.yaml
       - name: Cache magma-dev-box
