@@ -9,6 +9,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This workflow utilizes a composite action and a second workflow to build
+# and test containers in CI
+#
+# - The 'build-containers' job sets the first eight digits of the commit hash
+#   (plus 'latest') as a image tag and calls the 'docker-builder-agw.yml'
+#   workflow for the C, Python, and go images.
+# - The three containers are built and uploaded with the 3rd party
+#   'docker/build-push-action' using their respective docker file, the tags,
+#   and the artifactory credentials.
+# - The 'lte-integ-test-containerized.yml' is executed for the 'precommit',
+#   'extended', and 'extended_long' test targets. These run in parallel and use
+#   the 8-char commit hash as a tag to pull the newly created Docker images
+#   from the artifactory to test them. Each returns their test reports and
+#   individual final status.
+# - The 'publish-container-test-results' job collects the results and uploads
+#   them with a combined pass/fail verdict to Firebase.
+
+
 name: AGW Build, Publish & Test Container
 
 on:
@@ -31,9 +49,7 @@ jobs:
 
   build-containers:
     outputs:
-      digest_c: ${{ steps.docker-builder-c.outputs.digest }}
-      digest_python: ${{ steps.docker-builder-python.outputs.digest }}
-      digest_go: ${{ steps.docker-builder-go.outputs.digest }}
+      image_tag: ${{ steps.get-short-git-sha.outputs.commit_hash }}
       registry: ${{ steps.set-registry.outputs.registry }}
     runs-on: ubuntu-20.04
     steps:
@@ -51,17 +67,17 @@ jobs:
 
       - name: verify registry output
         run: |
-          echo Registry is ${{ steps.set-registry.outputs.registry }}
-          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
       - id: get-short-git-sha
         name: Set short git sha output
         run: |
           echo ${GITHUB_SHA:0:8}
-          echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+          echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
 
       - name: verify git sha output
-        run: echo git sha is ${{ steps.get-short-git-sha.outputs.sha }}
+        run: echo "Git SHA is ${{ steps.get-short-git-sha.outputs.commit_hash }}"
 
       - name: Set agwc tags
         id: set-agwc-tags
@@ -70,7 +86,7 @@ jobs:
           python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
           go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
 
-          commit_hash=${{ steps.get-short-git-sha.outputs.sha }}
+          commit_hash=${{ steps.get-short-git-sha.outputs.commit_hash }}
           if [[ ${{ github.ref_name }} = master ]]
           then
             echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
@@ -97,7 +113,6 @@ jobs:
           FILE: lte/gateway/docker/services/c/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.c_image_tags }}
           TARGET: gateway_c
-      - run: echo "C container image digest is ${{ steps.docker-builder-c.outputs.digest }}"
       - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
 
       - uses: ./.github/workflows/composite/docker-builder-agw
@@ -109,7 +124,6 @@ jobs:
           FILE: lte/gateway/docker/services/python/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
           TARGET: gateway_python
-      - run: echo "Python container image digest is ${{ steps.docker-builder-python.outputs.digest }}"
       - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
 
       - uses: ./.github/workflows/composite/docker-builder-agw
@@ -121,7 +135,6 @@ jobs:
           FILE: feg/gateway/docker/go/Dockerfile
           TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
           TARGET: gateway_go
-      - run: echo "Go container image digest is ${{ steps.docker-builder-go.outputs.digest }}"
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
   build-containers-ghz:
@@ -142,18 +155,18 @@ jobs:
 
       - name: verify registry output
         run: |
-          echo Registry is ${{ steps.set-registry.outputs.registry }}
-          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
       - id: get-short-git-sha
-        run: echo sha=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+        run: echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
 
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.sha }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.commit_hash }}
           TARGET: agw_c_ghz
           CONTEXT: lte/gateway/docker/ghz
 
@@ -162,7 +175,7 @@ jobs:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.sha }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.commit_hash }}
           TARGET: agw_python_ghz
           CONTEXT: lte/gateway/docker/ghz
 
@@ -173,9 +186,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/lte-integ-test-containerized.yml
     with:
-      digest_c: ${{ needs.build-containers.outputs.digest_c }}
-      digest_python: ${{ needs.build-containers.outputs.digest_python }}
-      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
       registry: ${{ needs.build-containers.outputs.registry }}
       test_targets: precommit
     secrets: inherit
@@ -187,9 +198,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/lte-integ-test-containerized.yml
     with:
-      digest_c: ${{ needs.build-containers.outputs.digest_c }}
-      digest_python: ${{ needs.build-containers.outputs.digest_python }}
-      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
       registry: ${{ needs.build-containers.outputs.registry }}
       test_targets: extended_tests
     secrets: inherit
@@ -201,9 +210,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/lte-integ-test-containerized.yml
     with:
-      digest_c: ${{ needs.build-containers.outputs.digest_c }}
-      digest_python: ${{ needs.build-containers.outputs.digest_python }}
-      digest_go: ${{ needs.build-containers.outputs.digest_go }}
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
       registry: ${{ needs.build-containers.outputs.registry }}
       test_targets: extended_tests_long
     secrets: inherit

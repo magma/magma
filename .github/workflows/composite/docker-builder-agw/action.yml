@@ -37,11 +37,6 @@ inputs:
     description: Docker context
     default: .
 
-outputs:
-  digest:
-    description: Docker image digest
-    value: ${{ steps.build-docker.outputs.digest }}
-
 runs:
   using: composite
   steps:
