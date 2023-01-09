@@ -101,13 +101,6 @@ jobs:
           name: test-logs
           path: lte/gateway/logs.tar.gz
 
-      - name: Upload test logs
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: always()
-        with:
-          name: test-logs
-          path: lte/gateway/logs.tar.gz
-
       - name: Publish results to Firebase
         if: always() && github.event_name == 'repository_dispatch'
         env:
