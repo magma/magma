@@ -67,8 +67,8 @@ jobs:
 
       - name: verify registry output
         run: |
-          echo Registry is ${{ steps.set-registry.outputs.registry }}
-          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
       - id: get-short-git-sha
         name: Set short git sha output
@@ -77,7 +77,7 @@ jobs:
           echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
 
       - name: verify git sha output
-        run: echo git sha is ${{ steps.get-short-git-sha.outputs.commit_hash }}
+        run: echo "Git SHA is ${{ steps.get-short-git-sha.outputs.commit_hash }}"
 
       - name: Set agwc tags
         id: set-agwc-tags
@@ -155,8 +155,8 @@ jobs:
 
       - name: verify registry output
         run: |
-          echo Registry is ${{ steps.set-registry.outputs.registry }}
-          echo Image prefix is ${{ steps.set-registry.outputs.image_prefix }}
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
       - id: get-short-git-sha
         run: echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
