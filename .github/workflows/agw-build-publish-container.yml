@@ -9,6 +9,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This workflow utilizes a composite action and a second workflow to build
+# and test containers in CI
+#
+# - The 'build-containers' job sets the first eight digits of the commit hash
+#   (plus 'latest') as a image tag and calls the 'docker-builder-agw.yml'
+#   workflow for the C, Python, and go images.
+# - The three containers are built and uploaded with the 3rd party
+#   'docker/build-push-action' using their respective docker file, the tags,
+#   and the artifactory credentials.
+# - The 'lte-integ-test-containerized.yml' is executed for the 'precommit',
+#   'extended', and 'extended_long' test targets. These run in parallel and use
+#   the 8-char commit hash as a tag to pull the newly created Docker images
+#   from the artifactory to test them. Each returns their test reports and
+#   individual final status.
+# - The 'publish-container-test-results' job collects the results and uploads
+#   them with a combined pass/fail verdict to Firebase.
+
+
 name: AGW Build, Publish & Test Container
 
 on:
