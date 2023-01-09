@@ -198,8 +198,10 @@ void sgw_free_ue_context(void** ptr) {
                  "sgw_free_ue_context received invalid pointer for deletion");
     return;
   }
+  ue_context_p->clear_s11_bearer_context();
   ue_context_p->Clear();
-  free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+  delete ue_context_p;
+  *ptr = nullptr;
   return;
 }
 
