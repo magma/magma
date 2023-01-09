@@ -15,7 +15,7 @@ set -e
 
 function exit_timeout() {
   echo ''
-  docker-compose logs docusaurus
+  docker compose logs docusaurus
   echo ''
   echo "Timed out after ${1}s waiting for Docusaurus container to build. See logs above for more info."
   echo "Possible remedies:"
@@ -38,15 +38,15 @@ function spin() {
   printf "\r \n"
 }
 
-docker-compose down
+docker compose down
 docker build -t magma_docusaurus .
-docker-compose up -d
+docker compose --compatibility up -d
 
 echo ''
 echo 'NOTE: README changes will live-reload. Sidebar changes require re-running this script.'
 echo ''
 echo 'Waiting for Docusaurus site to come up...'
-echo 'If you want to follow the build logs, run docker-compose logs -f docusaurus'
+echo 'If you want to follow the build logs, run docker compose logs -f docusaurus'
 spin
 echo 'Navigate to http://localhost:3000/ to see the docs.'
 
