@@ -46,5 +46,6 @@ bazel test ...
 To format all bazel related files run the following
 
 ```bash
-$MAGMA_ROOT/bazel/scripts/run_buildifier.sh format
+cd $MAGMA_ROOT
+./bazel/scripts/run_buildifier.sh format
 ```

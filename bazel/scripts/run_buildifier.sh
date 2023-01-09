@@ -54,14 +54,8 @@ else
     echo "Download successful."
 fi
 
-if [[ -z "${MAGMA_ROOT:-}" ]];
-then
-  echo "Warning: 'MAGMA_ROOT' is not set, defaulting to current directory."
-  echo "This script should be run from the base of the magma repository."
-  WORKING_DIR="./"
-else
-  WORKING_DIR="$MAGMA_ROOT"
-fi
+WORKING_DIR="./"
+echo "Info: Only the subfolders of the current directory are checked or formatted."
 
 echo "Running bazel buildifier with the following command:"
 set -x
