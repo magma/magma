@@ -117,6 +117,13 @@ jobs:
         working-directory: lte/gateway
         run: |
           fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: LTE containerizes integ test results - ${{ inputs.test_targets }}
+          junit_files: lte/gateway/test-results/**/*.xml
+          check_run_annotations: all tests
       - name: Adapt name of file containing final status
         if: always()
         run: |
