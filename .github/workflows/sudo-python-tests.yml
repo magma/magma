@@ -98,4 +98,4 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
-          args: "Sudo python tests failed in run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
+          args: "Sudo python tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
