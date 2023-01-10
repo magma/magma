@@ -2307,13 +2307,7 @@ static void add_tunnel_helper(
     magma::lte::oai::S11BearerContext* spgw_context,
     magma::lte::oai::SgwEpsBearerContext* eps_bearer_ctxt_entry_p,
     imsi64_t imsi64) {
-  uint32_t rc = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
-  const char* apn = reinterpret_cast<const char*>(
-      spgw_context->mutable_sgw_eps_bearer_context()
-          ->mutable_pdn_connection()
-          ->apn_in_use()
-          .c_str());
   struct in6_addr enb_ipv6 = {};
 
   convert_proto_ip_to_standard_ip_fmt(
@@ -2354,6 +2348,13 @@ static void add_tunnel_helper(
     }
 
 #if !MME_UNIT_TEST
+    uint32_t rc = RETURNerror;
+    const char* apn = reinterpret_cast<const char*>(
+        spgw_context->mutable_sgw_eps_bearer_context()
+            ->mutable_pdn_connection()
+            ->apn_in_use()
+            .c_str());
+
     rc = gtpv1u_add_tunnel(ue_ipv4, &ue_ipv6, vlan, enb, &enb_ipv6,
                            eps_bearer_ctxt_entry_p->sgw_teid_s1u_s12_s4_up(),
                            eps_bearer_ctxt_entry_p->enb_teid_s1u(), imsi,
