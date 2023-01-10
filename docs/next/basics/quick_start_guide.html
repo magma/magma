@@ -205,8 +205,8 @@ Sep 27 22:57:55 magma-dev control_proxy[6418]: 2018-09-27T22:57:55.683Z [127.0.0
 <p>Magma provides an UI for configuring and monitoring the networks. To set up
 the NMS to talk to your local Orchestrator:</p>
 <pre><code class="hljs css language-bash">HOST [magma]$ <span class="hljs-built_in">cd</span> nms
-HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
-HOST [magma/nms] $ docker compose up -d
+HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+HOST [magma/nms] $ docker-compose up -d
 HOST [magma/nms] $ ./scripts/dev_setup.sh
 </code></pre>
 <p>After this, you will be able to access the UI by visiting
