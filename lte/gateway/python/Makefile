@@ -68,12 +68,6 @@ $(BIN)/pylint: install_virtualenv
 
 # Disable W0511: todo warnings
 # Disable R0903: Too few public methods
-CHECK_CMD_PYLINT := -find . -name '*.py' -exec $(BIN)/pylint --disable=R0903,W0511 {} +;
-# ’-’ ignores the exit 1 and the script is not terminated by a linter error,
-# see https://www.gnu.org/software/make/manual/make.html#Errors
-
-pylint: buildenv $(BIN)/pylint
-	$(CHECK_CMD_PYLINT)
 
 check:
 	./precommit.py --format --diff
