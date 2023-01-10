@@ -457,6 +457,8 @@ def _start_gateway_containerized():
     with cd(AGW_ROOT):
         run('for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done')
 
+    run('sudo systemctl start magma_dp@envoy')
+
     with cd(AGW_ROOT + "/docker"):
         # The `docker compose up` times are machine dependent, such that a retry is needed here for resilience.
         run_with_retry('DOCKER_REGISTRY=%s docker compose -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
