@@ -74,4 +74,4 @@ This is still high-risk and should be used with extreme care. One potential exam
 
 For high-priority work: if the PR author is a codeowner for the code they changed, and all other codeowners for that part of the codebase are OOO ("out of office") for an extended period, the codeowner can request a force-merge once all CI checks have passed.
 
-This guideline circumvents the quirk that a PR author can't approve their own PR, even if they are a codeowner for part of the PR's changes. The author *must* be a codeowner, and *must* share permissions with the OOO codeowner (e.g. they're both on the `orc8r-approvers` codeowner team).
+This guideline circumvents the quirk that a PR author can't approve their own PR, even if they are a codeowner for part of the PR's changes. The author *must* be a codeowner, and *must* share permissions with the OOO codeowner (e.g. they're both on the `approvers-gw` codeowner team).
