@@ -12,7 +12,6 @@ dockerPackages:
   - docker-ce-cli
   - containerd.io
   - python3-docker
-  - docker-compose-plugin
 pyenvDeps:
   - build-essential
   - libssl-dev

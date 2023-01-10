@@ -25,12 +25,12 @@ x-generic-service: &service
 # Generic python anchor to avoid repetition for agw python services
 x-ghz-agw-python-service: &pyservice
   <<: *service
-  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}/ghz_gateway_python:${IMAGE_VERSION}
 
 # Generic anchor for lte c services
 x-ghz-lte-cservice: &ltecservice
   <<: *service
-  image: ${DOCKER_REGISTRY}gateway_c:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}/ghz_gateway_c:${IMAGE_VERSION}
 
 services:
   redis:

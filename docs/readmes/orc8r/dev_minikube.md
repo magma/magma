@@ -71,7 +71,7 @@ If you haven't already, the easiest way to generate these secrets is temporarily
 
 ```bash
 export CERTS_DIR=${MAGMA_ROOT}/.cache/test_certs
-cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py && ./run.py && sleep 30 && docker compose down && ls -l ${CERTS_DIR} && cd -
+cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py && ./run.py && sleep 30 && docker-compose down && ls -l ${CERTS_DIR} && cd -
 ```
 
 ### Apply secrets

@@ -17,18 +17,18 @@ The binaries of the CLI can be found on all pods running in FeG under
 
 You have different options to obtain and run the CLI:
 
-- Using `docker compose` from the host:
+- Using `docker-compose` from the host:
 
 ```bash
 cd /var/opt/magma/docker
-sudo docker compose exec s6a_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
+sudo docker-compose exec s6a_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
 ```
 
 - Using the binary from inside the pod:
 
 ```bash
 cd /var/opt/magma/docker
-docker compose exec s6a_proxy bash
+docker-compose exec s6a_proxy bash
 #inside pod
 cd /var/opt/magma/bin/
 ./s8_cli cs -server 192.168.32.118:2123 -delete 3
@@ -49,8 +49,8 @@ chmod +x s8_cli
 ```bash
 #after cloning magma from github
 cd ~/magma/feg/gateway/docker
-docker compose up -d test
-docker compose exec test bash
+docker-compose up -d test
+docker-compose exec test bash
 #inside pod
 cd /tools/s6a_cli
 go build

@@ -308,14 +308,14 @@ jobs:
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
-          python3 build.py --all --nocache
+          python3 build.py --all --nocache --parallel
       - name: Export docker images to deploy them
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save orc8r-nginx | gzip > nginx.tar.gz
-          docker save orc8r-controller  | gzip > controller.tar.gz
+          docker save orc8r_nginx | gzip > nginx.tar.gz
+          docker save orc8r_controller  | gzip > controller.tar.gz
       - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
         with:
@@ -421,19 +421,19 @@ jobs:
         continue-on-error: true
         # yamllint disable rule:line-length
         env:
-          DOCKER_REGISTRY: cwf-
+          DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker compose --file docker-compose.yml --file docker-compose.override.yml build
+          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
       - name: Retry docker compose on failure
         id: retry-cwag-docker-compose
         continue-on-error: true
         if: steps.cwag-docker-compose.outcome=='failure'
         env:
-          DOCKER_REGISTRY: cwf-
+          DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker compose --file docker-compose.yml --file docker-compose.override.yml build
+          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
       - name: Set the job status
         if: always()
         run: |
@@ -448,11 +448,11 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save cwf-cwag_go | gzip > cwag_go.tar.gz
-          docker save cwf-gateway_go | gzip > gateway_go.tar.gz
-          docker save cwf-gateway_sessiond | gzip > gateway_sessiond.tar.gz
-          docker save cwf-gateway_python | gzip > gateway_python.tar.gz
-          docker save cwf-gateway_pipelined | gzip > gateway_pipelined.tar.gz
+          docker save cwf_cwag_go | gzip > cwag_go.tar.gz
+          docker save cwf_gateway_go | gzip > gateway_go.tar.gz
+          docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
+          docker save cwf_gateway_python | gzip > gateway_python.tar.gz
+          docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -526,16 +526,16 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run docker compose build
         env:
-          DOCKER_REGISTRY: cwf-
+          DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
-          DOCKER_REGISTRY=cwf- docker compose build
+          DOCKER_REGISTRY=cwf_ docker-compose build --parallel
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save cwf-operator | gzip > operator.tar.gz
+          docker save cwf_operator | gzip > operator.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -623,13 +623,13 @@ jobs:
           cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
       - name: Build docker images
         env:
-          DOCKER_REGISTRY: feg-
+          DOCKER_REGISTRY: feg_
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py
       - name: run docker containers and check health
         env:
-          DOCKER_REGISTRY: feg-
+          DOCKER_REGISTRY: feg_
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
@@ -638,8 +638,8 @@ jobs:
         run: |
           mkdir images
           cd images
-          docker save feg-gateway_go | gzip > feg_gateway_go.tar.gz
-          docker save feg-gateway_python | gzip > feg_gateway_python.tar.gz
+          docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
+          docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'
@@ -708,13 +708,13 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           cd ${MAGMA_ROOT}/nms
-          COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
+          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
           mkdir images
           cd images
-          docker save magmalte-magmalte | gzip > magmalte.tar.gz
+          docker save magmalte_magmalte | gzip > magmalte.tar.gz
       - name: Upload docker images as artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: github.event_name == 'pull_request'

@@ -84,7 +84,7 @@ Build and publish NMS images
 
 ```bash
 cd ${MAGMA_ROOT}/nms
-COMPOSE_PROJECT_NAME=magmalte docker compose build magmalte
+COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
 ```
 

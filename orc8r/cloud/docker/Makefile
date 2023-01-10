@@ -1,6 +1,6 @@
 build:
-	./build.py --all
+	./build.py --all --parallel
 run:
-	./build.py --all && ./run.py
+	./build.py --all --parallel && ./run.py
 dev:
-	docker compose down ; ./build.py --all && ./run.py ; docker compose logs --follow controller
+	docker-compose down ; ./build.py --all --parallel && ./run.py ; docker-compose logs --follow controller

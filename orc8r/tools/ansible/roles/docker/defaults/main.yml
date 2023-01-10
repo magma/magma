@@ -11,6 +11,7 @@
 # limitations under the License.
 
 ansible_python_interpreter: /usr/bin/python3
+docker_compose_version: 1.29.1
 
 working_dir: /var/opt/magma/docker
 
@@ -20,11 +21,11 @@ registry_password: "{{ lookup('env','DOCKER_PASSWORD') }}"
 
 image_version: "{{ lookup('file','image_version') }}"
 
-docker_host_distribution: focal
+docker_host_distribution: xenial
 
 systemd_stdout: null
 systemd_stderr: syslog
-# will run as "docker compose {{ systemd_start_args_pre }} up {{ systemd_start_args_post }}"
+# will run as "docker-compose {{ systemd_start_args_pre }} up {{ systemd_start_args_post }}"
 # use to specify alternate compose files (pre) or service options (post)
 systemd_start_args_pre: ""
 systemd_start_args_post: ""
