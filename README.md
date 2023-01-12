@@ -21,7 +21,6 @@ Magma is an open-source software platform that gives network operators an open, 
 - Enabling federation between existing MNOs and new infrastructure providers for expanding rural infrastructure
 - Allowing operators who are constrained with licensed spectrum to add capacity and reach by using Wi-Fi and CBRS
 
-
 ## Magma Architecture
 
 The figure below shows the high-level Magma architecture. Magma is 3GPP generation (2G, 3G, 4G or upcoming 5G networks) and access network agnostic (cellular or WiFi). It can flexibly support a radio access network with minimal development and deployment effort.
