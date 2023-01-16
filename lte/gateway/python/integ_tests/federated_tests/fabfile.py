@@ -99,20 +99,6 @@ def start_orc8r(on_vagrant='False'):
             run(command)
 
 
-def stop_orc8r(on_vagrant='False'):
-    """
-    Start orc8r locally on Docker
-    """
-    on_vagrant = strtobool(on_vagrant)
-    command = './run.py --down'
-    if not on_vagrant:
-        subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
-    else:
-        vagrant_setup('magma', destroy_vm=False)
-        with cd(orc8r_vagrant_path):
-            run(command)
-
-
 def configure_orc8r(on_vagrant='False'):
     """
     Configure orc8r with a federated AGW and FEG
@@ -130,19 +116,6 @@ def configure_orc8r(on_vagrant='False'):
             run(command_agw)
         with cd(feg_vagrant_path):
             run(command_feg)
-
-
-def clear_gateways():
-    """
-    Delete AGW and FEG gateways from orc8r
-    """
-    print('#### Removing federated agw from orc8r and deleting certs ####')
-    subprocess.check_call(
-        'fab --fabfile=dev_tools.py deregister_federated_agw',
-        shell=True, cwd=agw_path,
-    )
-    print('#### Removing feg gw from orc8r and deleting certs####')
-    subprocess.check_call('fab deregister_feg_gw', shell=True, cwd=feg_path)
 
 
 def clear_orc8r_db():
@@ -181,16 +154,6 @@ def start_agw(provision_vm='False'):
     )
 
 
-def stop_agw():
-    """
-    stop AGW on Vagrant VM
-    """
-    subprocess.check_call(
-        'vagrant halt magma', shell=True,
-        cwd=agw_path,
-    )
-
-
 def build_feg():
     """
     build FEG on magma Vagrant vm using docker running in Vagrant
@@ -204,25 +167,6 @@ def build_feg():
         run('./run.py')
 
 
-def _build_feg_on_host():
-    """
-    build FEG on current Host using local docker
-    """
-    print('#### Building FEG ####')
-    subprocess.check_call(
-        'docker-compose down', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-    subprocess.check_call(
-        'docker-compose build', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-    subprocess.check_call(
-        './run.py', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-
-
 def start_feg():
     """
     start FEG on magma Vagrant vm using docker running in Vagrant
@@ -230,35 +174,6 @@ def start_feg():
     vagrant_setup('magma', destroy_vm=False)
     with cd(feg_docker_integ_test_path_vagrant):
         run('./run.py')
-
-
-def _start_feg_on_host():
-    """
-    start FEG locally on Docker
-    """
-    subprocess.check_call(
-        './run.py', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-
-
-def stop_feg():
-    """
-    stop FEG on magma Vagrant vm using docker running in Vagrant
-    """
-    vagrant_setup('magma', destroy_vm=False)
-    with cd(feg_docker_integ_test_path_vagrant):
-        run('docker-compose down')
-
-
-def _stop_feg_on_host():
-    """
-    stop FEG locally on Docker
-    """
-    subprocess.check_call(
-        'docker-compose down', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
 
 
 def build_test_vm(provision_vm='False'):
@@ -290,15 +205,6 @@ def start_all(provision_vm='False', orc8r_on_vagrant='False'):
     start_feg()
 
 
-def stop_all(orc8r_on_vagrant='False'):
-    """
-    stop AGW, FEG and Orc8r
-    """
-    stop_orc8r(on_vagrant=orc8r_on_vagrant)
-    stop_agw()
-    stop_feg()
-
-
 def test_connectivity(timeout=10):
     """
     Check if all running gateways have connectivity
@@ -328,20 +234,3 @@ def test_connectivity(timeout=10):
         f'check_agw_feg_connectivity:timeout={timeout}',
         shell=True, cwd=agw_path,
     )
-
-
-def build_and_test_all(
-    clear_orc8r='False', provision_vm='False', timeout=10,
-    orc8r_on_vagrant='False',
-):
-    """
-    Build, start and test connectivity of all elements
-    Args:
-        clear_orc8r: removes all contents from orc8r database like gw configs
-        provision_vm: forces the re-provision of the magma VM
-        timeout: amount of time the command will retry
-    """
-    build_all(clear_orc8r, provision_vm, orc8r_on_vagrant=orc8r_on_vagrant)
-    start_all(orc8r_on_vagrant=orc8r_on_vagrant)
-    configure_orc8r()
-    test_connectivity(timeout=timeout)
