@@ -137,7 +137,6 @@ def build_agw(provision_vm='False'):
        provision_vm: forces the reprovision of the magma VM
     """
     print('#### Building AGW ####')
-    subprocess.check_call('vagrant up magma', shell=True, cwd=agw_path)
     subprocess.check_call(
         'fab build_and_start_magma:provision_vm=%s'
         % provision_vm, shell=True, cwd=agw_path,

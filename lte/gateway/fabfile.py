@@ -560,13 +560,9 @@ def build_and_start_magma(gateway_host=None, destroy_vm='False', provision_vm='F
     """
     provision_vm = strtobool(provision_vm)
     destroy_vm = strtobool(destroy_vm)
-    if gateway_host:
-        ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
-    else:
-        vagrant_setup('magma', destroy_vm, provision_vm)
-    sudo('service magma@* stop')
+    _setup_gateway(gateway_host, "magma", "dev", "magma_dev.yml", destroy_vm, provision_vm)
     execute(_build_magma)
-    sudo('service magma@magmad start')
+    execute(_start_gateway)
 
 
 def make_integ_tests(test_host=None, destroy_vm='False', provision_vm='False'):
@@ -597,19 +593,6 @@ def start_magma(test_host=None, destroy_vm='False', provision_vm='False'):
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
     sudo('service magma@magmad start')
-
-
-def build_test_vms(provision_vm='False', destroy_vm='False'):
-    destroy_vm = strtobool(destroy_vm)
-    provision_vm = strtobool(provision_vm)
-    vagrant_setup(
-        'magma_trfserver', destroy_vm, force_provision=provision_vm,
-    )
-
-    vagrant_setup(
-        'magma_test', destroy_vm, force_provision=provision_vm,
-    )
-    execute(_make_integ_tests)
 
 
 def _copy_out_c_execs_in_magma_vm():

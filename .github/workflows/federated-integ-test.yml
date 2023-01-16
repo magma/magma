@@ -125,13 +125,9 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
-      - name: Build test vms
-        run: |
-          cd ${{ env.AGW_ROOT }} && fab build_test_vms
-          cd ${{ env.AGW_ROOT }} && vagrant halt magma_test && vagrant halt magma_trfserver
       - name: build_agw
         run: |
-          cd lte/gateway/python/integ_tests/federated_tests
+          cd ${{ env.AGW_ROOT }}/python/integ_tests/federated_tests
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab build_agw
@@ -162,14 +158,14 @@ jobs:
           done
       - name: Run the federated integ test
         run: |
-          cd lte/gateway
+          cd ${{ env.AGW_ROOT }}
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
           fab federated_integ_test:build_all=False,orc8r_on_vagrant=True
       - name: Get test results
         if: always()
         run: |
-          cd lte/gateway
+          cd ${{ env.AGW_ROOT }}
           fab get_test_summaries:dst_path="test-results"
           ls -R
       - name: Upload test results
@@ -181,7 +177,7 @@ jobs:
       - name: Get test logs
         if: always()
         run: |
-          cd lte/gateway
+          cd ${{ env.AGW_ROOT }}
           fab get_test_logs:dst_path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
