@@ -59,7 +59,7 @@ func TestSendOdsCounters(t *testing.T) {
 			panic(err)
 		}
 	}()
-	// wait for server to start
+	// Wait for server to start
 	time.Sleep(1 * time.Millisecond)
 
 	// Act
