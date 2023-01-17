@@ -29,7 +29,7 @@ func WaitForRadiusServerToBeReady(secret []byte, addr string) (err error) {
 	defer func() {
 		os.Stdout = temp
 	}()
-	MaxRetries := 10
+	MaxRetries := 20
 	for r := 0; r < MaxRetries; r++ {
 		_, err = radius.Exchange(
 			context.Background(),
