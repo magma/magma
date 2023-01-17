@@ -102,11 +102,6 @@ RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \
     rm /tmp/get_docker.sh
 
-# Install docker-compose for upgrades
-RUN curl -L "https://github.com/docker/compose/releases/download/1.25.0-rc1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
-RUN chmod 755 /usr/bin/docker-compose
-
-
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
 RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
