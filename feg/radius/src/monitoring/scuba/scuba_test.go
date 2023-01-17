@@ -14,11 +14,12 @@ limitations under the License.
 package scuba
 
 import (
-	"fbc/cwf/radius/config"
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
+
+	"fbc/cwf/radius/config"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -26,7 +27,6 @@ import (
 
 // TestAnalyticsModulesAuthenticate tests the Analytics module handling of the Authenticate RADIUS packet
 func TestSendOdsCounters(t *testing.T) {
-	t.Skip("Skipped due to flakiness") // TODO GH14659
 
 	// Arrange
 	logger, _ := zap.NewDevelopment()
@@ -59,6 +59,8 @@ func TestSendOdsCounters(t *testing.T) {
 			panic(err)
 		}
 	}()
+	// wait for server to start
+	time.Sleep(1 * time.Millisecond)
 
 	// Act
 	logger, err := NewLogger("some_table")
