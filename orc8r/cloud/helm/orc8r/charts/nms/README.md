@@ -5,7 +5,7 @@ Install NMS which includes nginx and magmalte subcomponents.
 ## Install charts
 
 ```
-$ helm upgrade --install nms ./nms --namespace=magma
+helm upgrade --install nms ./nms --namespace=magma
 ```
 
 ## Overview
@@ -20,9 +20,7 @@ This chart installs the magma NMS. The NMS is the UI for managing, configuring, 
 
 3. MySql Database created for NMS
 
-4. magmalte image ( build using Docker file https://github.com/magma/magma/blob/master/nms/Dockerfile )
-
-
+4. magmalte image ( build using Docker file <https://github.com/magma/magma/blob/master/nms/Dockerfile> )
 
 ## Configuration
 
@@ -90,14 +88,16 @@ magmalte:
 $ helm upgrade --install nms ./nms --namespace=magma
 
 ```
+
 - Create Admin user:
+
 ```bash
 kubectl exec -it -n magma $(kubectl get pod -n magma  \
 -l app.kubernetes.io/component=magmalte -o jsonpath="{.items[0].metadata.name}") \
 -- yarn run setAdminPassword admin@magma.test password1234
 ```
 
-- NMS Dashboard should be reachable via https://<nginx_svc>
+- NMS Dashboard should be reachable via `https://<nginx_svc>`.
 
 Get nginx_svc with following command
 

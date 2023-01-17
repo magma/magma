@@ -172,6 +172,7 @@ yarn run tsc
 ```
 
 ### Unit Tests
+
 Run from [`nms/`](../nms/)
 
 ```
@@ -234,10 +235,10 @@ Run the following command from [`nms/`](../nms/) and make sure to substitute `AD
 docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
-Access the `host` (http://host.localhost:8081/host) portal to create your first organization.
+Access the `host` (<http://host.localhost:8081/host>) portal to create your first organization.
 Create a new super user for that organization, and then you can login as that user for your new organization.
 
-For example, if you created an organization called `magma-test`, you can access the NMS at http://magma-test.localhost:8081/nms
+For example, if you created an organization called `magma-test`, you can access the NMS at <http://magma-test.localhost:8081/nms>
 
 ### First-time Setup (Fast)
 

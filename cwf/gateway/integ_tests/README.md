@@ -116,6 +116,7 @@ and what can be deleted. To remove these images, run
 `docker image prune --filter until=12h`.
 
 #### All traffic hang and then fail
+
 &rightarrow; This is an issue we've observed occasionally. We have not found
 the root cause yet. Assuming the issue is not with the CWAG services, one
 remedy you can try is to destroy all VMs and start them again.

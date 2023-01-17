@@ -6,22 +6,22 @@ Please read also the [DCO](./DCO.md) for details regarding regarding the
 sign-off rules for a contribution.
 
 1. **TSC Responsibilities**
-    1. As outlined in the [Magma Technical Charter](https://github.com/magma/magma/blob/master/Magma_Technical_Charter_Final_1-26-2021.docx.pdf), the TSC will be responsible for all aspects of oversight relating to the Project, which may include: 
-        1. coordinating the technical direction of the Project; 
-        2. approving project or system proposals (including, but not limited to, incubation, deprecation, and changes to a sub-project’s scope); 
-        3. organizing sub-projects and removing sub-projects; 
-        4. creating sub-committees or working groups to focus on cross-project technical issues and requirements; 
-        5. appointing representatives to work with other open source or open standards communities; 
-        6. establishing community norms, workflows, issuing releases, and security issue reporting policies; 
-        7. approving and implementing policies and processes for contributing (to be published in the CONTRIBUTING file) and coordinating with the series manager of the Project (as provided for in the Series Agreement, the “Series Manager”) to resolve matters or concerns that may arise as set forth in Section 7 of this Charter; 
-        8. discussions, seeking consensus, and where necessary, voting on technical matters relating to the code base that affect multiple projects; and 
-        9. coordinating any marketing, events, or communications regarding the Project. 
+    1. As outlined in the [Magma Technical Charter](https://github.com/magma/magma/blob/master/Magma_Technical_Charter_Final_1-26-2021.docx.pdf), the TSC will be responsible for all aspects of oversight relating to the Project, which may include:
+        1. coordinating the technical direction of the Project;
+        2. approving project or system proposals (including, but not limited to, incubation, deprecation, and changes to a sub-project’s scope);
+        3. organizing sub-projects and removing sub-projects;
+        4. creating sub-committees or working groups to focus on cross-project technical issues and requirements;
+        5. appointing representatives to work with other open source or open standards communities;
+        6. establishing community norms, workflows, issuing releases, and security issue reporting policies;
+        7. approving and implementing policies and processes for contributing (to be published in the CONTRIBUTING file) and coordinating with the series manager of the Project (as provided for in the Series Agreement, the “Series Manager”) to resolve matters or concerns that may arise as set forth in Section 7 of this Charter;
+        8. discussions, seeking consensus, and where necessary, voting on technical matters relating to the code base that affect multiple projects; and
+        9. coordinating any marketing, events, or communications regarding the Project.
     2. Allocations recommendations to the Linux Foundation as per approved budgets.
 
 2. **TSC Voting Members**
     1. The TSC will be composed of seven (7) members.
     2. Each TSC member will be elected to a one year term.
-        1. If a TSC member is inactive, the other TSC members have the authority to vote the inactive member off the TSC with a two thirds vote. 
+        1. If a TSC member is inactive, the other TSC members have the authority to vote the inactive member off the TSC with a two thirds vote.
         2. In the case that a TSC member resigns or is removed, a special election to fill the open seat would occur following the same election process outlined in section 3.
     3.There will be an annual election to determine the composition of the TSC.
     4. Employees from the same organization/company should not hold more than one TSC seat.
