@@ -131,9 +131,8 @@ vagrant up magma
 vagrant ssh magma
 
 # inside vagrant vm
-cd magma/lte/gateway
-make run
-
+cd magma
+./bazel/scripts/build_and_run_bazelified_agw.sh
 # exit from vagrant vm
 exit
 ```

@@ -15,13 +15,6 @@ import os
 
 from fabric import Connection
 
-# Local changes are only allowed in files specified in the EXCLUDE_FILE_LIST
-EXCLUDE_FILE_LIST = [
-    os.path.realpath(x) for x in [
-        'release/build-magma.sh',
-    ]
-]
-
 
 def check_commit_changes(c: Connection):
     """ Compare against remote/master, ensure there is no local modifications or
@@ -39,19 +32,8 @@ def check_commit_changes(c: Connection):
         hide=True, warn=True,
     ).stdout.split()[0]
     if uncommitted_change:
-        changes = [
-            os.path.realpath(x.split()[1])
-            for x in c.run('hg status', capture=True).split('\n')
-        ]
-        if set(changes) <= set(EXCLUDE_FILE_LIST):
-            print(
-                "Local changes detected in the following files from the "
-                "EXCLUDE_FILE_LIST are ignored:\n%s" % '\n'.join(changes),
-            )
-            return False
-        else:
-            print("Warning: uncommitted changes found!!!")
-            return True
+        print("Warning: uncommitted changes found!!!")
+        return True
     elif local_commit_hash != remote_commit_hash:
         print("Warning: local commits found compared against remote/master\
                !!!")
@@ -100,41 +82,6 @@ def download_all_pkgs(c_gw: Connection):
             # Some of the packages aren't available on the repo, so
             # download them one at a time so we can swallow errors
             c_gw.run(f'sudo aptitude download -q2 {p} || true')
-
-
-def upload_pkgs_to_aws(c_gw: Connection):
-    """
-    Upload the dependencies in the apt cache to aws. This allows us to record
-    and retrieve the versions of the dependencies a specific version of magma
-    was tested against.
-
-    This creates three files:
-       - VERSION.deps.tar.gz -- A tar ball of all installed packages on the
-                                machine
-       - VERSION.deplist     -- Text metadata of the packages in the tar
-                                ball, formatted as:
-
-                                package_name package_version package_file_name
-
-       - VERSION.lockfile    -- A python lock file listing the installed python
-                                dependencies
-    """
-
-    # Get the version of magma we are releasing
-    magma_version = get_magma_version(c_gw)
-    copy_packages(c_gw)
-
-    # Upload to AWS
-    s3_path = 's3://magma-images/gateway/' + magma_version
-    c_gw.run('aws s3 cp /tmp/packages.txt ' + s3_path + '.deplist')
-    c_gw.run('aws s3 cp release/magma.lockfile.debian ' + s3_path + '.lockfile.debian')
-    c_gw.run('aws s3 cp /tmp/packages.tar.gz ' + s3_path + '.deps.tar.gz')
-
-    # Clean up
-    c_gw.run('rm -r /tmp/packages')
-    c_gw.run('rm /tmp/packages.tar.gz')
-    c_gw.local('rm /tmp/packages.tar.gz')
-    c_gw.local('rm /tmp/packages.txt')
 
 
 def get_magma_version(c: Connection):
