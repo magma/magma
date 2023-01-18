@@ -37,5 +37,5 @@ args:
   - python3
   - -m
   - magma.ctraced.main
-image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}
