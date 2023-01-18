@@ -97,6 +97,11 @@ dp_protos = [
     "//dp/protos:cbsd_python_proto",
 ]
 
+swagger_models = [
+    # List generated with bazel query 'kind(py_swagger, //...:*)' | sed 's/.*/    "&",/'
+    "//orc8r/swagger:magmad_events_v1",
+]
+
 all_protos = lte_protos + lte_oai_protos + orc8r_protos + feg_protos + dp_protos
 
 external_python_libs = [
@@ -136,5 +141,5 @@ py_venv(
     # We still also depend directly on the respective py_librarys in order to ensure that
     # they are built and present at the expected locations.
     name = "python_env",
-    deps = all_requirements + all_protos + external_python_libs + [":external_deps_wrapper"],
+    deps = all_requirements + all_protos + swagger_models + external_python_libs + [":external_deps_wrapper"],
 )
