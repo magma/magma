@@ -9,6 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# See https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+# for an introduction to bazel for the Magma AGW
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("//bazel:third_party_repositories.bzl", "grpc")
 
