@@ -56,7 +56,15 @@ if [ "$FORCE" = false ] && [ -d "${OUTPUT}"  ] ; then
     fi
 fi
 
-(set -x; yarn --silent openapi-generator-cli version-manager set 6.0.0)
+if ! (set -x && yarn --silent openapi-generator-cli version-manager set 6.0.0) ;
+then
+  echo "Info: If this yarn command fails due to 'Request failed with status code 504'"
+  echo "the availability of search.maven.org may be responsible, see https://status.maven.org/#month"
+  echo "For more information see https://github.com/OpenAPITools/openapi-generator-cli/issues/680"
+  echo "or the issue https://github.com/magma/magma/issues/14860"
+  exit 1
+fi
+
 (set -x;
 yarn --silent openapi-generator-cli generate -i "${INPUT}" --output "${OUTPUT}" --skip-validate-spec --additional-properties=useSingleRequestParameter=true -g typescript-axios)
 
