@@ -4856,7 +4856,7 @@ void s1ap_mme_generate_erab_modification_confirm(
     ie = (S1ap_E_RABModificationConfirmIEs_t*)calloc(
         1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
     ie->id = S1ap_ProtocolIE_ID_id_E_RABModifyListBearerModConf;
-    ie->criticality = S1ap_Criticality_reject;
+    ie->criticality = S1ap_Criticality_ignore;
     ie->value.present =
         S1ap_E_RABModificationConfirmIEs__value_PR_E_RABModifyListBearerModConf;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
@@ -4870,7 +4870,7 @@ void s1ap_mme_generate_erab_modification_confirm(
               calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t)));
 
       item->id = S1ap_ProtocolIE_ID_id_E_RABModifyItemBearerModConf;
-      item->criticality = S1ap_Criticality_reject;
+      item->criticality = S1ap_Criticality_ignore;
       item->value.present =
           S1ap_E_RABModifyItemBearerModConfIEs__value_PR_E_RABModifyItemBearerModConf;
 
