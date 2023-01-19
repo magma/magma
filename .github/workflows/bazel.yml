@@ -572,8 +572,8 @@ jobs:
             mkdir packages
             mv /tmp/packages/*.deb packages
 
-            # Move the service executables, which are needed for the
-            # Sentry release, to a mounted folder in the repository.
+            echo "Moving the service executables, which are needed for the" 1>&2
+            echo "Sentry release, to a mounted folder 'sentry_services' in the repository..." 1>&2
             mkdir sentry_services
             mv ./bazel-bin/lte/gateway/c/connection_tracker/src/connectiond ./sentry_services/connectiond
             mv ./bazel-bin/lte/gateway/c/li_agent/src/liagentd ./sentry_services/liagentd
@@ -581,6 +581,13 @@ jobs:
             mv ./bazel-bin/lte/gateway/c/core/agw_of ./sentry_services/mme
             mv ./bazel-bin/lte/gateway/c/sctpd/src/sctpd ./sentry_services/sctpd
             mv ./bazel-bin/lte/gateway/c/session_manager/sessiond ./sentry_services/sessiond
+
+      - name: Upload services for sentry_release job
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: github.repository_owner == 'magma' && github.ref_name == 'master'
+        with:
+          name: sentry_services
+          path: sentry_services
 
       - name: Get magma version
         run: |
@@ -648,79 +655,69 @@ jobs:
           echo "Available storage:"
           df -h
 
-      # Create Sentry.io release with the services connectiond, liagentd, mme, sctpd and sessiond.
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Package Job"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  # Create Sentry.io release with the services connectiond, liagentd, mme, sctpd and sessiond.
+  sentry_release:
+    needs: [bazel_package]
+    if: github.repository_owner == 'magma' && github.ref_name == 'master'
+    name: Sentry release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 0
+      - run: mkdir sentry_services
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: sentry_services
+          path: sentry_services
+      - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
+        with:
+          name: sentry_services
+      - run: ls -l ./sentry_services
       - run: curl --silent --location https://sentry.io/get-cli/ | bash
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
-      # Change ownership of the executables from the Docker container 'root'
-      # to the GitHub 'runner' user and give write permissions.
-      - name: Modify owner and permissions of the service executables
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
-        run: |
-          ls -la ./sentry_services
-          sudo chown --recursive $USER ./sentry_services
-          chmod --recursive u+w ./sentry_services
-          ls -la ./sentry_services
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         with:
           EXECUTABLE_NAME: connectiond
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./sentry_services"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         with:
           EXECUTABLE_NAME: liagentd
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./sentry_services"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         with:
           EXECUTABLE_NAME: mme
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./sentry_services"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         with:
           EXECUTABLE_NAME: sctpd
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./sentry_services"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         with:
           EXECUTABLE_NAME: sessiond
           SENTRY_ORG: lf-9c
           PATH_TO_EXEC: "./sentry_services"
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
       - name: Create a release in Sentry.io with the commit hash
-        if: |
-          github.event_name == 'push' &&
-          github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
         env:
           SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
           # The 'SENTRY_ORG' environment variable is implicitly used by the sentry-cli.
@@ -730,13 +727,12 @@ jobs:
           sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
           sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
           sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
-
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Bazel Package Job"
+          SLACK_TITLE: "Sentry Release Job"
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
