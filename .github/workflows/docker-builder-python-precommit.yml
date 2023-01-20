@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Check if the python precommit image can be build
+# remediation: -
+
 name: AGW Build Docker Image Python Precommit
 on:
   push:

@@ -22,6 +22,10 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 
+# owner: any
+# purpose: CodeQL security analysis
+# remediation: -
+
 name: Magma Analyze With CodeQL
 
 on:

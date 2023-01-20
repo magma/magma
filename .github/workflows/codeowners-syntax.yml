@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Validate changes to the CODEOWNERS file
+# remediation: -
+
 name: PR Check Codeowners
 
 on:

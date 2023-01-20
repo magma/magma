@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Run sudo python tests (pipelined tests that need OVS, mobilityd tests that need a certain network setup)
+# remediation: -
+
 name: AGW Test Sudo Python
 
 on:

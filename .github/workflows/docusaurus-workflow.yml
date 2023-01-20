@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Building and deploying the docusaurus documentation
+# remediation: -
+
 name: Docs Build & Deploy
 
 on:

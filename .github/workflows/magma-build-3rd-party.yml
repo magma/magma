@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Test if 3rd party dependencies can be build - publish if manually triggered
+# remediation: -
+
 name: Magma Build & Publish 3rd Party Dependencies
 on:
   push:

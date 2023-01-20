@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: Check if helm dependencies are up to date
+# remediation: -
+
 name: Magma Check Helm Dependencies
 
 on:

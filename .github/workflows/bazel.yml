@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw, @magma/approvers-infra
+# purpose: Running unit tests and packaging the AGW with bazel
+# remediation: https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+
 name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy

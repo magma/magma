@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Manual workflow for publishing helm charts
+# remediation: -
+
 name: Magma Build & Publish Helm Charts
 
 # Temporary on demand Job until we refactor helm build job in build-all

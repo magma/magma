@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Generate message with general information for a new PR
+# remediation: -
+
 name: PR Generate Hello
 on:
   # Use pull_request_target to gain write permissions.

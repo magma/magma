@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Centralized workflow to add a comment on a PR based on results of other workflows
+# remediation: -
+
 name: PR Generate Comment On Workflow Failure
 on:
   workflow_run:

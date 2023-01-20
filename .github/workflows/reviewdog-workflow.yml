@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: any
+# purpose: Linting various components
+# remediation: -
+
 name: PR Lint Reviewdog
 on:
   pull_request_target:
