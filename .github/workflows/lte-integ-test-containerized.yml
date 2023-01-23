@@ -20,7 +20,7 @@ on:
         required: true
       registry:
         type: string
-        default: 'linuxfoundation.jfrog.io/magma-docker-agw-test'
+        default: 'linuxfoundation.jfrog.io/magma-docker-test'
         required: true
       test_targets:
         type: choice
