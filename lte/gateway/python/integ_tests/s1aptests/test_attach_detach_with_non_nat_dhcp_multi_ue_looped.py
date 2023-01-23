@@ -19,7 +19,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
-class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
+class TestAttachDetachWithNonNatDhcpMultiUeLooped(unittest.TestCase):
 
     def setUp(self):
         """Initialize before test case execution"""
@@ -35,13 +35,12 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_with_non_nat_dhcp(self):
-        """ Basic attach/detach test with two UEs and DHCP"""
-        num_ues = 2
+        """ looped attach/detach test with 32 UEs and DHCP"""
+        num_ues = 32
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
         ]
-        wait_for_s1 = [True, False]
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for i in range(num_ues):
@@ -59,13 +58,14 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
+
+            # Now detach the UE
             print(
                 "************************* Running UE detach for UE id ",
                 req.ue_id,
             )
-            # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i],
+                req.ue_id, detach_type[i % 2], True,
             )
 
         wait_interval = 5
