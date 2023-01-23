@@ -22,10 +22,6 @@ CWAG="cwag"
 FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
 
-# TODO: Update docker-compose to stable version
-
-DOCKER_COMPOSE_VERSION=1.29.1
-
 DIR="."
 echo "Setting working directory as: $DIR"
 cd "$DIR"
@@ -102,13 +98,14 @@ cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 
-# Install Docker
+# Install Docker Engine (incl. Docker Compose)
 sudo apt-get update
 sudo apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
     gnupg-agent \
+    lsb-release \
     software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository \
@@ -116,11 +113,7 @@ sudo add-apt-repository \
    $(lsb_release -cs) \
    stable"
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Install Docker-Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # Create snowflake to be mounted into containers
 touch /etc/snowflake
@@ -166,14 +159,14 @@ if [ ! -z "$DOCKER_USERNAME" ] && [ ! -z "$DOCKER_PASSWORD" ] && [ ! -z "$DOCKER
  echo "Logging into docker registry at $DOCKER_REGISTRY"
  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$DOCKER_REGISTRY"
 fi
-docker-compose pull
-docker-compose -f docker-compose.yml up -d
+docker compose --compatibility pull
+docker compose --compatibility -f docker-compose.yml up -d
 
 # Pull and Run DPI container
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
   cd /var/opt/magma/docker
-  docker-compose -f docker-compose-dpi.override.yml pull
-  docker-compose -f docker-compose-dpi.override.yml up -d
+  docker compose --compatibility -f docker-compose-dpi.override.yml pull
+  docker compose --compatibility -f docker-compose-dpi.override.yml up -d
 fi
 
 echo "Installed successfully!!"

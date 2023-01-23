@@ -147,7 +147,7 @@ vagrant ssh magma
 
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests/federated_tests/docker
-docker-compose build
+docker compose --compatibility build
 ./run.py
 ```
 

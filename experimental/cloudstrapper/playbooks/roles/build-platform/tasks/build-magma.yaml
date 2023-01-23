@@ -14,8 +14,5 @@
 - name: primary build to generate orc8r artifacts
   command: "chdir={{ magmaBuildDir }} {{ dirShim }}/python3.7 build.py --all"
 
-
 - name: primary build to generate NMS artifacts
-  command: "chdir={{ magmaNmsDir }} COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte"
-
-
+  command: "chdir={{ magmaNmsDir }} COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte"

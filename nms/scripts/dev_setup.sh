@@ -14,13 +14,13 @@
 set -e
 
 # Add the test admin user
-docker-compose exec magmalte yarn migrate
-docker-compose exec magmalte yarn setAdminPassword magma-test admin@magma.test password1234
-docker-compose exec magmalte yarn setAdminPassword host admin@magma.test password1234
+docker compose exec magmalte yarn migrate
+docker compose exec magmalte yarn setAdminPassword magma-test admin@magma.test password1234
+docker compose exec magmalte yarn setAdminPassword host admin@magma.test password1234
 # Make sure that magma-test has access to the test network
-docker-compose exec magmalte yarn createOrganization magma-test test
+docker compose exec magmalte yarn createOrganization magma-test test
 
 # Docker run in a Linux host doesn't resolve host.docker.internal to the host IP.
 # See https://github.com/docker/for-linux/issues/264
 # Add an entry for the host. This is a no-op for Mac.
-docker-compose exec magmalte /bin/sh -c "ip -4 route list match 0/0 | awk '{print \$3 \" host.docker.internal\"}' >> /etc/hosts"
+docker compose exec magmalte /bin/sh -c "ip -4 route list match 0/0 | awk '{print \$3 \" host.docker.internal\"}' >> /etc/hosts"

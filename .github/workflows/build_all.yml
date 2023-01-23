@@ -243,7 +243,7 @@ jobs:
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
-          python3 build.py --all --nocache --parallel
+          python3 build.py --all --nocache
       - name: Export docker images to deploy them
         if: github.event_name == 'pull_request'
         run: |
@@ -359,7 +359,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
       - name: Retry docker compose on failure
         id: retry-cwag-docker-compose
         continue-on-error: true
@@ -368,7 +368,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
       - name: Set the job status
         if: always()
         run: |
@@ -464,7 +464,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
-          DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+          DOCKER_REGISTRY=cwf_ docker compose --compatibility build
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |
@@ -643,7 +643,7 @@ jobs:
         # yamllint disable rule:line-length
         run: |
           cd ${MAGMA_ROOT}/nms
-          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+          COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
       - name: Export docker images to deploy them on pull_request
         if: github.event_name == 'pull_request'
         run: |

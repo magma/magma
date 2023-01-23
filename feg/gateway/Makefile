@@ -78,13 +78,13 @@ cover: tools
 		mv $(COVER_FILE).tmp $(COVER_FILE)
 
 docker_build:
-	cd ${DOCKER_DIR}; docker-compose build --parallel
+	cd ${DOCKER_DIR}; docker compose --compatibility build
 
 docker_start:
-	cd ${DOCKER_DIR}; docker-compose up -d
+	cd ${DOCKER_DIR}; docker compose --compatibility up -d
 
 docker_stop:
-	cd  ${DOCKER_DIR}; docker-compose down
+	cd  ${DOCKER_DIR}; docker compose down
 
 docker_healthcheck: docker_start
 	cd ${DOCKER_DIR}/tools/; ./docker_ps_healthcheck.sh ${DOCKER_DIR}
