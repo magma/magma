@@ -70,9 +70,9 @@ git checkout master
 <p>Once you are on a proper version of Magma, make sure your Docker daemon is running.
 Then go run those commands to build FeG.</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/feg/gateway/docker
-docker-compose build --parallel
+docker compose --compatibility build
 <span class="hljs-comment"># if build fails try with sudo and without parallelization</span>
-sudo docker-compose build
+sudo docker compose --compatibility build
 </code></pre>
 <p>Note that you are building FeG from your local repository. There is no need to
 change content <code>.env</code></p>
