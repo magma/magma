@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-cloud
-# purpose: Check if helm dependencies are up to date
+# purpose: Check if Helm dependencies are up to date
 # remediation: -
 
 name: Magma Check Helm Dependencies

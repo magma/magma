@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-infra
-# purpose: Manual workflow to promote docker images for releases
+# purpose: Manual workflow to promote Docker images for releases
 # remediation: -
 
 name: Magma Promote Docker Images

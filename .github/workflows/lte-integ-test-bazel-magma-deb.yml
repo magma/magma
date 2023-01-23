@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-gw
-# purpose: Run integration tests vs an environment based on a debian AGW artifact build with Bazel
+# purpose: Run LTE integration tests against the AGW services from the Bazel-built Debian package
 # remediation: -
 
 name: AGW Test LTE Integration With Bazel Debian Build

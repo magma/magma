@@ -27,8 +27,8 @@
 #   them with a combined pass/fail verdict to Firebase.
 
 # owner: @magma/approvers-gw
-# purpose: Building AGW docker container and run integration tests
-# remediation: -
+# purpose: Building the AGW Docker containers and run the integration tests
+# remediation: see lte/gateway/docker/README.md
 
 name: AGW Build, Publish & Test Container
 

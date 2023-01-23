@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-gw
-# purpose: FED building and integration testing
+# purpose: FeG building and integration testing
 # remediation: https://magma.github.io/magma/docs/feg/s1ap_federated_tests
 
 name: Magma Build, Publish & Test Federated Integration

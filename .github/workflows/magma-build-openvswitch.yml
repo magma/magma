@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-infra
-# purpose: Test if patched OVS can be build - publish if manually triggered
+# purpose: Test if patched OVS can be built - publish if manually triggered
 # remediation: -
 
 name: Magma Build & Publish Open vSwitch Artifacts

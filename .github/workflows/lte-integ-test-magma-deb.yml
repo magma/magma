@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-gw
-# purpose: Run integration tests vs an environment based on a debian AGW artifact build with Make
+# purpose: Run LTE integration tests against the AGW services from the Make-built Debian package
 # remediation: -
 
 name: AGW Test LTE Integration With Make Debian Build

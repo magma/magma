@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-infra
-# purpose: Generate message with general information for a new PR
+# purpose: Generate comment with general information for a new PR
 # remediation: -
 
 name: PR Generate Hello

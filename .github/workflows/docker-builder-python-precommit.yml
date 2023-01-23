@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-gw
-# purpose: Check if the python precommit image can be build
+# purpose: Check if the Python precommit image can be built
 # remediation: -
 
 name: AGW Build Docker Image Python Precommit

@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-infra
-# purpose: Building Bazel Base and DevContainer images
+# purpose: Building the bazel-base and devcontainer Docker images
 # remediation: -
 
 name: Magma Build Docker Image Bazel Base & DevContainer

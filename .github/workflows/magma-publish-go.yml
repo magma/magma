@@ -10,7 +10,7 @@
 # limitations under the License.
 
 # owner: @magma/approvers-infra
-# purpose: Manual workflow to publish a new go version to the artifactory blob storage (for caching)
+# purpose: Manual workflow to publish a new Go version to the artifactory blob storage (for caching)
 # remediation: -
 
 name: Magma Publish Go Package
