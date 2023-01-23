@@ -429,11 +429,11 @@ class IPAllocatorDHCP(IPAllocator):
         )
 
     def _release_dhcp_ip(self, ip_desc: IPDesc) -> None:
-        logging.info(f"Releasing: {ip_desc}")
+        logging.info("Releasing: %s", ip_desc)
         mac = create_mac_from_sid(ip_desc.sid)
         vlan = ip_desc.vlan_id
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
-        logging.info(f"Releasing dhcp desc: {dhcp_desc}")
+        logging.info("Releasing dhcp desc: %s", dhcp_desc)
         if dhcp_desc:
             subprocess.Popen(
                 [
