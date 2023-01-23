@@ -168,6 +168,9 @@ int main(int argc, char* argv[]) {
 
   sd_notify(0, "READY=1");
 
+  /*
+   * OAI does not use EMBEDDED_SGW
+   */
 #if EMBEDDED_SGW
   /*
    * Display the configuration
