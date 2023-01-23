@@ -307,7 +307,7 @@ int openflow_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
                         struct in_addr enb, struct in6_addr* enb_ipv6,
                         uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
                         struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
-                        char* apn) {
+                        const char* apn) {
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
 
   if (spgw_config.sgw_config.ebpf_enabled) {

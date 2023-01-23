@@ -277,7 +277,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMultiUe(unittest.TestCase):
 
         # 1 UL flow is created per bearer
         # 4 UEs * 4 bearers per UE = 16 UL flows
-        num_ul_flows = 16
+        num_ul_flows = num_ues * 4
 
         for i in range(num_ues):
             dl_flow_rules = {

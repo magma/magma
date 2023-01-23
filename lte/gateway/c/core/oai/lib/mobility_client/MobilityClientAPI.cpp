@@ -27,7 +27,6 @@
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
@@ -65,15 +64,13 @@ int get_assigned_ipv4_block(int index, struct in_addr* netaddr,
   return status;
 }
 
-int pgw_handle_allocate_ipv4_address(const char* subscriber_id, const char* apn,
-                                     const char* pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id) {
+int pgw_handle_allocate_ipv4_address(const std::string subscriber_id_str,
+                                     const std::string apn_str,
+                                     const std::string pdn_type_str,
+                                     teid_t context_teid, ebi_t eps_bearer_id) {
 #if MME_UNIT_TEST
   return RETURNok;  // skip this call for unit testing
 #endif
-  auto subscriber_id_str = std::string(subscriber_id);
-  auto apn_str = std::string(apn);
-  auto pdn_type_str = std::string(pdn_type);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn_str,
       [subscriber_id_str, apn_str, pdn_type_str, context_teid, eps_bearer_id](
@@ -150,8 +147,8 @@ static void handle_allocate_ipv4_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void release_ipv4_address(const char* subscriber_id, const char* apn,
-                          const struct in_addr* addr) {
+void release_ipv4_address(const std::string subscriber_id,
+                          const std::string apn, const struct in_addr* addr) {
 #if !MME_UNIT_TEST
   MobilityServiceClient::getInstance().ReleaseIPv4Address(subscriber_id, apn,
                                                           *addr);
@@ -176,15 +173,13 @@ int get_subscriber_id_from_ipv4(const struct in_addr* addr,
   return status;
 }
 
-int pgw_handle_allocate_ipv6_address(const char* subscriber_id, const char* apn,
-                                     const char* pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id) {
+int pgw_handle_allocate_ipv6_address(const std::string subscriber_id_str,
+                                     const std::string apn_str,
+                                     const std::string pdn_type_str,
+                                     teid_t context_teid, ebi_t eps_bearer_id) {
 #if MME_UNIT_TEST
   return RETURNok;
 #endif
-  auto subscriber_id_str = std::string(subscriber_id);
-  auto apn_str = std::string(apn);
-  auto pdn_type_str = std::string(pdn_type);
   // Make an RPC call to Mobilityd
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
       subscriber_id_str, apn_str,
@@ -269,16 +264,14 @@ static void handle_allocate_ipv6_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-int pgw_handle_allocate_ipv4v6_address(const char* subscriber_id,
-                                       const char* apn, const char* pdn_type,
+int pgw_handle_allocate_ipv4v6_address(const std::string subscriber_id_str,
+                                       const std::string apn_str,
+                                       const std::string pdn_type_str,
                                        teid_t context_teid,
                                        ebi_t eps_bearer_id) {
 #if MME_UNIT_TEST
   return RETURNok;
 #endif
-  auto subscriber_id_str = std::string(subscriber_id);
-  auto apn_str = std::string(apn);
-  auto pdn_type_str = std::string(pdn_type);
   // Get IPv4v6 address
   MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
       subscriber_id_str, apn_str,
@@ -373,13 +366,14 @@ static void handle_allocate_ipv4v6_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void release_ipv6_address(const char* subscriber_id, const char* apn,
-                          const struct in6_addr* addr) {
+void release_ipv6_address(const std::string subscriber_id,
+                          const std::string apn, const struct in6_addr* addr) {
   MobilityServiceClient::getInstance().ReleaseIPv6Address(subscriber_id, apn,
                                                           *addr);
 }
 
-void release_ipv4v6_address(const char* subscriber_id, const char* apn,
+void release_ipv4v6_address(const std::string subscriber_id,
+                            const std::string apn,
                             const struct in_addr* ipv4_addr,
                             const struct in6_addr* ipv6_addr) {
   MobilityServiceClient::getInstance().ReleaseIPv4v6Address(
