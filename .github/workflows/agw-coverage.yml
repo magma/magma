@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Generate code coverage for AGW components
+# remediation: -
+
 name: AGW Generate Coverage
 
 on:

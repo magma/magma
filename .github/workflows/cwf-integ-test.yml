@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: CWAG building and integration testing
+# remediation: https://magma.github.io/magma/docs/cwf/dev_testing
+
 name: CWAG Build & Test Integration
 
 on:

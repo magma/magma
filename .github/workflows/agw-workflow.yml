@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Linting various components in AGW
+# remediation: https://magma.github.io/magma/docs/next/lte/dev_unit_testing#format-agw
+
 name: AGW Lint
 
 on:

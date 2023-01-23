@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw (agw-build, cwf-operator-build, feg-build), @magma/approvers-cloud (nms-build, orc8r-build)
+# purpose: Building and publishing cloud and gateway components
+# remediation: https://magma.github.io/magma/docs/next/basics/quick_start_guide#terminal-tab-2-build-orchestrator (orc8r), https://magma.github.io/magma/docs/next/basics/quick_start_guide#using-the-nms-ui (nms-build), https://magma.github.io/magma/docs/next/feg/deploy_build (feg-build)
+
 name: Magma Build & Publish
 
 on:
