@@ -39,7 +39,6 @@ RUN echo "Install general purpose packages" && \
         libczmq-dev \
         libgcrypt-dev \
         libgmp3-dev \
-        libidn11-dev \
         libsctp1 \
         libsqlite3-dev \
         libsctp-dev `# dependency of sctpd` \
@@ -84,7 +83,6 @@ RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-p
         libfolly-dev \
         liblfds710 \
         oai-asn1c \
-        oai-gnutls \
         oai-nettle \
         oai-freediameter
 

@@ -60,7 +60,6 @@ MAGMA_DEPS = [
 OAI_DEPS = [
     "libconfig9",
     "oai-asn1c",
-    "oai-gnutls (>= 3.1.23)",
     "oai-nettle (>= 1.0.1)",
     "prometheus-cpp-dev (>= 1.0.2)",
     "liblfds710",

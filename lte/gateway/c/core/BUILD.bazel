@@ -1068,8 +1068,6 @@ MME_DEPS = [
     "@liblfds//:lfds710",
     "@system_libraries//:czmq",
     "@system_libraries//:libconfig",
-    "@system_libraries//:libfd",
-    "@system_libraries//:libgnutls",
     "@system_libraries//:libnettle",
     "@system_libraries//:libsqlite3-dev",
     "@system_libraries//:libsystemd",

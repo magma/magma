@@ -102,7 +102,6 @@ RUN apt-get update && apt-get install -y \
   magma-libfluid \
   oai-asn1c \
   oai-freediameter \
-  oai-gnutls \
   oai-nettle \
   prometheus-cpp-dev \
   && rm -rf /var/lib/apt/lists/* \
@@ -234,7 +233,6 @@ COPY --from=builder /usr/local/lib/libgrpc.so /usr/local/lib/
 COPY --from=builder /usr/local/lib/libgpr.so /usr/local/lib/
 COPY --from=builder /usr/lib/libnettle.so  /usr/local/lib/
 COPY --from=builder /usr/lib/libfluid* /usr/local/lib/
-COPY --from=builder /usr/lib/libgnutls.so.* /usr/local/lib/
 COPY --from=builder /usr/lib/libhogweed.so.2 /usr/local/lib/
 
 COPY --from=builder /usr/local/lib/libfdproto.so.6 /usr/local/lib/
