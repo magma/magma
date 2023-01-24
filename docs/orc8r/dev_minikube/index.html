@@ -87,7 +87,7 @@ helm upgrade --install \
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="build-and-publish-images"></a><a href="#build-and-publish-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Build and publish images</h3>
 <blockquote>
-<p>NOTE: skip this step if you want to use the official container images at <a href="https://artifactory.magmacore.org/">artifactory.magmacore.org</a>.</p>
+<p>NOTE: skip this step if you want to use the official container images at <a href="https://linuxfoundation.jfrog.io/">linuxfoundation.jfrog.io</a>.</p>
 </blockquote>
 <p>There are 2 ways you can publish your own images: to a private registry, or to a localhost registry. Choose an option, then complete the relevant prerequisites:</p>
 <ol>
@@ -115,7 +115,7 @@ helm upgrade --install \
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="apply-secrets"></a><a href="#apply-secrets" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Apply secrets</h3>
 <p>Create the K8s secrets</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> IMAGE_REGISTRY_URL=docker.artifactory.magmacore.org  <span class="hljs-comment"># or replace with your registry</span>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> IMAGE_REGISTRY_URL=linuxfoundation.jfrog.io/magma-docker  <span class="hljs-comment"># or replace with your registry</span>
 <span class="hljs-built_in">export</span> IMAGE_REGISTRY_USERNAME=<span class="hljs-string">''</span>
 <span class="hljs-built_in">export</span> IMAGE_REGISTRY_PASSWORD=<span class="hljs-string">''</span>
 
@@ -165,8 +165,8 @@ helm template orc8r charts/secrets \
 <h3><a class="anchor" aria-hidden="true" id="install-charts"></a><a href="#install-charts" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Install charts</h3>
 <p>This section describes how to install based on local charts. However, you can also install charts from the official chart repositories</p>
 <ul>
-<li>Stable: <a href="https://artifactory.magmacore.org/artifactory/helm/">https://artifactory.magmacore.org/artifactory/helm/</a></li>
-<li>Test: <a href="https://artifactory.magmacore.org/artifactory/helm-test/">https://artifactory.magmacore.org/artifactory/helm-test/</a></li>
+<li>Stable: <a href="https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/">https://linuxfoundation.jfrog.io/artifactory/magma-helm-prod/</a></li>
+<li>Test: <a href="https://linuxfoundation.jfrog.io/artifactory/magma-helm-test/">https://linuxfoundation.jfrog.io/artifactory/magma-helm-test/</a></li>
 </ul>
 <p>Install base <code>orc8r</code> chart</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/helm/orc8r
