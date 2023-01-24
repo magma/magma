@@ -51,7 +51,7 @@ function pretty {
 }
 
 function test {
-    go clean -testcache
+    # Run tests sequentially to avoid radius server cross-talk between tests.
     gotestsum -- -p 1 ./...
 }
 
