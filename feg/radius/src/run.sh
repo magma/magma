@@ -51,7 +51,8 @@ function pretty {
 }
 
 function test {
-    gotestsum ./...
+    go clean -testcache
+    gotestsum -- -p 1 ./...
 }
 
 function e2e {
