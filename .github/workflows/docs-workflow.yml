@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Ensure documentation changes are formatted and in sync
+# remediation: https://magma.github.io/magma/docs/docs/docs_overview#precommit
+
 name: Docs Lint & Check Generated Files In Sync
 
 on:

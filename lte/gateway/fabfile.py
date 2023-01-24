@@ -460,8 +460,8 @@ def _start_gateway_containerized():
     run('sudo systemctl start magma_dp@envoy')
 
     with cd(AGW_ROOT + "/docker"):
-        # The `docker-compose up` times are machine dependent, such that a retry is needed here for resilience.
-        run_with_retry('DOCKER_REGISTRY=%s docker-compose -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
+        # The `docker compose up` times are machine dependent, such that a retry is needed here for resilience.
+        run_with_retry('DOCKER_REGISTRY=%s docker compose --compatibility -f docker-compose.yaml up -d --quiet-pull' % (env.DOCKER_REGISTRY))
 
 
 def run_with_retry(command, retries=10):
@@ -475,7 +475,7 @@ def run_with_retry(command, retries=10):
             fastprint(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
             sleep(3)
     else:
-        run("docker ps")  # It is _not_ docker-compose by intention to see the container ID.
+        run("docker ps")  # It is _not_ docker compose by intention to see the container ID.
         raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
 
 

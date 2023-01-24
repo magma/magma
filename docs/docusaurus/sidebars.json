@@ -3,7 +3,8 @@
     "Getting Started": [
       "basics/introduction",
       "basics/prerequisites",
-      "basics/quick_start_guide"
+      "basics/quick_start_guide",
+      "bazel/agw_with_bazel"
     ],
     "Tutorials": [],
     "Usage": [

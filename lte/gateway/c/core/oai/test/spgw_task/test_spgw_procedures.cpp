@@ -21,7 +21,6 @@
 
 namespace magma {
 namespace lte {
-
 TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
   status_code_e return_code = RETURNerror;
 
@@ -102,7 +101,7 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // trigger suspend notification to SPGW task
@@ -115,8 +114,8 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
   EXPECT_CALL(*mme_app_handler,
               mme_app_handle_suspend_acknowledge(check_params_in_suspend_ack(
                   REQUEST_ACCEPTED,
-                  spgw_eps_bearer_ctxt_info_p
-                      ->sgw_eps_bearer_context_information.mme_teid_S11)))
+                  spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context()
+                      .mme_teid_s11())))
       .Times(1);
   return_code = sgw_handle_suspend_notification(&sample_suspend_notification,
                                                 test_imsi64);
@@ -134,13 +133,8 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
-
-  sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
 
   // Activate dedicated bearer
   ebi_t ded_eps_bearer_id = activate_dedicated_bearer(
@@ -181,6 +175,5 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-
 }  // namespace lte
 }  // namespace magma

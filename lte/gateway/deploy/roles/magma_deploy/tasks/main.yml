@@ -64,19 +64,6 @@
     - agwc
     - base
 
-- name: Ignore server ssl cert
-  copy:
-    dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
-    content: |
-      Acquire::https::{{ magma_pkgrepo_host }} {
-      Verify-Peer "false";
-      Verify-Host "false";
-      };
-  become: true
-  tags:
-    - agwc
-    - base
-
 - name: Configuring the registry in sources.list.d
   ansible.builtin.apt_repository:
     repo: "deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }} {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}"

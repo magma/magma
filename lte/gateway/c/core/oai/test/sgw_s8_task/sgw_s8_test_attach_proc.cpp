@@ -121,7 +121,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
             RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -248,7 +248,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -358,7 +358,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -376,8 +376,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   sgw_s8_handle_modify_bearer_request(sgw_state, &mbr_req, imsi64);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
-  bearer_ctx_p = sgw_cm_get_eps_bearer_entry(&sgw_pdn_session->pdn_connection,
-                                             csresp.eps_bearer_id);
+  bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
+      &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
   EXPECT_TRUE(bearer_ctx_p->enb_teid_S1u ==

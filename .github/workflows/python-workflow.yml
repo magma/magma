@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Ensure Python changes are formatted correctly
+# remediation: https://magma.github.io/magma/docs/next/lte/dev_unit_testing#format-agw
+
 name: AGW Build & Format Python
 on:
   push:

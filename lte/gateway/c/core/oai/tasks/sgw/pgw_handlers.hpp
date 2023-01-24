@@ -37,7 +37,7 @@ extern "C" {
 
 void handle_s5_create_session_request(
     spgw_state_t* spgw_state,
-    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id);
 
 void spgw_handle_pcef_create_session_response(

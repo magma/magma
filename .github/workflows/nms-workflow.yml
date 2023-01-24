@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: NMS linting and testing
+# remediation: https://magma.github.io/magma/docs/next/nms/dev_testing
+
 name: NMS Lint & Test
 
 on:

@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: FeG building and integration testing
+# remediation: https://magma.github.io/magma/docs/feg/s1ap_federated_tests
+
 name: Magma Build, Publish & Test Federated Integration
 
 on:  # yamllint disable-line rule:truthy
@@ -60,7 +64,7 @@ jobs:
       - name: Build FEG docker images
         run: |
           cd feg/gateway/docker
-          docker-compose build --force-rm --parallel
+          docker compose --compatibility build
           docker images
       - name: Export docker images to deploy them
         run: |

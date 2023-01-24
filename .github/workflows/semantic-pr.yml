@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: any
+# purpose: PR format checker
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
 name: PR Check Title Or Commit Message
 
 on:

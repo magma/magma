@@ -52,7 +52,7 @@ def main() -> None:
 
     if args.clear_db:
         try:
-            cmd = ['docker-compose', 'down']
+            cmd = ['docker', 'compose', 'down']
             subprocess.run(cmd, check=True)
             cmd = ['docker', 'volume', 'rm', '--force', 'orc8r_pgdata']
             subprocess.run(cmd, check=True)
@@ -60,12 +60,12 @@ def main() -> None:
             exit(err.returncode)
         return
 
-    # Ensure build context exists, otherwise docker-compose throws an error
+    # Ensure build context exists, otherwise docker compose throws an error
     pathlib.Path(HOST_BUILD_CTX).mkdir(parents=True, exist_ok=True)
 
-    cmd = ['docker-compose', 'up', '-d']
+    cmd = ['docker', 'compose', '--compatibility', 'up', '-d']
     if args.down:
-        cmd = ['docker-compose', 'down']
+        cmd = ['docker', 'compose', 'down']
 
     print("Running '%s'..." % ' '.join(cmd))
     try:

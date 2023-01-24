@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: CWAG building and integration testing
+# remediation: https://magma.github.io/magma/docs/cwf/dev_testing
+
 name: CWAG Build & Test Integration
 
 on:
@@ -27,7 +31,7 @@ jobs:
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
-          docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build --force-rm  --parallel
+          docker compose --compatibility -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build
       - name: Export docker images to deploy them
         run: |
           mkdir images

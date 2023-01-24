@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Run integration tests (utilized by agw-build-publish-container.yml)
+# remediation: -
+
 name: AGW Test LTE Integration With Make Containerized Build
 
 on:

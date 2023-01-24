@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: FeG linting and testing
+# remediation: https://magma.github.io/magma/docs/next/feg/dev_testing
+
 name: FeG Lint & Test
 
 on:
