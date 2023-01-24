@@ -32,7 +32,7 @@ import pathlib
 import ssl
 import time
 import urllib.request  # TODO: Figure out how to get aiohttp
-from typing import NamedTuple, NewType, Set
+from typing import NamedTuple, NewType, Optional, Set
 
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
@@ -55,7 +55,7 @@ class UpgraderGauges(NamedTuple):
     idle: Gauge
 
 
-_GAUGES = None  # type: typing.Optional[UpgraderGauges]
+_GAUGES = None  # type: Optional[UpgraderGauges]
 
 
 def get_gauges() -> UpgraderGauges:
@@ -168,7 +168,7 @@ class Upgrader2(Upgrader, metaclass=abc.ABCMeta):
 
     def __init__(self, service: MagmaService) -> None:
         self.service = service
-        self.upgrade_task = None  # type: typing.Optional[asyncio.Task]
+        self.upgrade_task = None  # type: Optional[asyncio.Task]
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

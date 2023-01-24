@@ -16,7 +16,7 @@ import queue
 import random
 import threading
 import time
-from typing import List
+from typing import Dict, Iterator
 
 import grpc
 import magma.magmad.events as magmad_events
@@ -43,7 +43,7 @@ class SyncRPCClient(threading.Thread):
     ):
         threading.Thread.__init__(self)
         # a synchronized queue
-        self._response_queue = queue.Queue()
+        self._response_queue: queue.Queue = queue.Queue()
         self._loop = loop
         asyncio.set_event_loop(self._loop)
         # seconds to wait for an actual SyncRPCResponse to become available
@@ -52,8 +52,8 @@ class SyncRPCClient(threading.Thread):
         self._proxy_client = ControlProxyHttpClient()
         self.daemon = True
         self._current_delay = 0
-        self._last_conn_time = 0
-        self._conn_closed_table = {}  # mapping of req id -> conn closed
+        self._last_conn_time = 0.0
+        self._conn_closed_table: Dict[int, bool] = {}  # mapping of req id -> conn closed
         self._print_grpc_payload = print_grpc_payload
 
     def run(self):
@@ -143,7 +143,7 @@ class SyncRPCClient(threading.Thread):
 
     def forward_requests(
         self,
-        sync_rpc_requests: List[SyncRPCRequest],
+        sync_rpc_requests: Iterator[SyncRPCRequest],
     ) -> None:
         """
         Send requests in the sync_rpc_requests iterator.
