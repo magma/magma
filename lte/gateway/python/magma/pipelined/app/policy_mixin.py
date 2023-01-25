@@ -12,7 +12,7 @@ limitations under the License.
 """
 from abc import ABCMeta, abstractmethod
 from logging import Logger
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
@@ -160,7 +160,7 @@ class PolicyMixin(metaclass=ABCMeta):
         self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
         priority, qos, hard_timeout, rule_id, app_name,
         app_service_type, next_table, version, qos_mgr,
-        copy_table, _, urls: List[str] = None, local_f_teid_ng: int = 0,
+        copy_table, _, urls: Optional[List[str]] = None, local_f_teid_ng: int = 0,
     ):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow

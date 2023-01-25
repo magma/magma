@@ -27,11 +27,10 @@ import fakeredis
 from freezegun import freeze_time
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
-from magma.mobilityd.ip_descriptor import IPDesc, IPState
+from magma.mobilityd.ip_descriptor import IPState
 from magma.mobilityd.mac import MacAddress, create_mac_from_sid
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.pipelined.bridge_util import BridgeTools
-from scapy.layers.dhcp import DHCP
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
 LOG.isEnabledFor(logging.DEBUG)
@@ -60,7 +59,6 @@ class IpAllocatorDhcp(unittest.TestCase):
 
         self.dhcp_wait = threading.Condition()
         self.pkt_list_lock = threading.Condition()
-        self._ip_allocator = None
 
     def tearDown(self) -> None:
         BridgeTools.destroy_bridge(self._br)

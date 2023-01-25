@@ -205,7 +205,7 @@ class S1ApUtil(object):
 
     def get_response(
         self,
-        timeout: int = None,
+        timeout: Optional[int] = None,
     ) -> Msg:
         """Return the response message invoked by S1APTester TFW callback
 
@@ -1512,8 +1512,8 @@ class MagmadUtil(object):
                     "/etc/magma/mme.yml"
                 )
 
-        ret_code = self.exec_command("sudo " + ha_config_cmd)
-        if ret_code == 0:
+        ret_code = str(self.exec_command("sudo " + ha_config_cmd))
+        if ret_code == "0":
             print("Ha service configured successfully")
             return 1
 

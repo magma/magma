@@ -14,7 +14,7 @@ limitations under the License.
 
 import logging
 import pprint
-from typing import Union
+from typing import Optional, Union
 
 from pyroute2 import IPRoute, NetlinkError  # pylint: disable=no-name-in-module
 
@@ -39,7 +39,7 @@ class TcOpsPyRoute2(TcOpsBase):
 
     def create_htb(
         self, iface: str, qid: str, max_bw: int, rate: str,
-        parent_qid: str = None,
+        parent_qid: Optional[str] = None,
     ) -> int:
         """
         Create HTB class for a UE session.
@@ -141,7 +141,7 @@ class TcOpsPyRoute2(TcOpsBase):
 
     def create(
         self, iface: str, qid: str, max_bw: int, rate=None,
-        parent_qid: str = None, proto=PROTOCOL,
+        parent_qid: Optional[str] = None, proto=PROTOCOL,
     ) -> int:
         err = self.create_htb(iface, qid, max_bw, rate, parent_qid)
         if err:
