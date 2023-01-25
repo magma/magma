@@ -50,6 +50,10 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
 
 class IPAllocatorDHCP(IPAllocator):
+
+    MAX_DHCP_PROCS: int = 3
+    dhcp_helper_procs: List[subprocess.Popen] = []
+
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300, start: bool = True,
             iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
@@ -435,7 +439,11 @@ class IPAllocatorDHCP(IPAllocator):
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
         logging.info("Releasing dhcp desc: %s", dhcp_desc)
         if dhcp_desc:
-            subprocess.Popen(
+            if len(self.dhcp_helper_procs) == self.MAX_DHCP_PROCS:
+                oldest_proc = self.dhcp_helper_procs.pop()
+                if oldest_proc.poll() is None:
+                    oldest_proc.wait(timeout=10)
+            proc = subprocess.Popen(
                 [
                     DHCP_HELPER_CLI,
                     "--mac", str(mac),
@@ -446,7 +454,7 @@ class IPAllocatorDHCP(IPAllocator):
                     "--server-ip", str(dhcp_desc.server_ip),
                 ],
             )
-
+            self.dhcp_helper_procs.insert(0, proc)
             key = mac.as_redis_key(vlan)
             with self.dhcp_wait:
                 del self._store.dhcp_store[key]
