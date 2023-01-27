@@ -125,7 +125,6 @@ RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
 RUN apt-get install -y --no-install-recommends \
         libtins-dev \
         magma-cpp-redis \
-        magma-libfluid \
         python3-aioeventlet
 
 ##### libgtpnl

@@ -83,6 +83,7 @@ RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-p
         bcc-tools \
         libfolly-dev \
         liblfds710 \
+        magma-libfluid \
         oai-asn1c \
         oai-gnutls \
         oai-nettle \
