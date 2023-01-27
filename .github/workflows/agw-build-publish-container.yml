@@ -262,12 +262,12 @@ jobs:
         with:
           name: test-status-extended_tests_long
 
-      - name: Determine end result for both tests
+      - name: Determine end result for all test targets
         run: |
           result_precommit=$(cat test_status_precommit.txt)
           result_extended=$(cat test_status_extended_tests.txt)
           result_extended_long=$(cat test_status_extended_tests_long.txt)
-          if [ $result_precommit == $result_extended && $result_precommit == $result_extended_long ]
+          if [ $result_precommit == $result_extended ] && [ $result_precommit == $result_extended_long ]
           then
             mv test_status_precommit.txt test_status.txt
           else
