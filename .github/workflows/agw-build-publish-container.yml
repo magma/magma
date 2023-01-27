@@ -263,6 +263,7 @@ jobs:
           name: test-status-extended_tests_long
 
       - name: Determine end result for all test targets
+        id: determine_end_result
         run: |
           result_precommit=$(cat test_status_precommit.txt)
           result_extended=$(cat test_status_extended_tests.txt)
@@ -270,8 +271,10 @@ jobs:
           if [ $result_precommit == $result_extended ] && [ $result_precommit == $result_extended_long ]
           then
             mv test_status_precommit.txt test_status.txt
+            echo "result=$result_precommit" >> $GITHUB_OUTPUT
           else
             echo fail > test_status.txt
+            echo "result=fail" >> $GITHUB_OUTPUT
           fi
           rm test_status_*.txt
 
@@ -297,7 +300,7 @@ jobs:
           python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} containerized_lte --url $URL
 
       - name: Notify failure to slack
-        if: failure()
+        if: ${{ steps.determine_end_result.outputs.result == 'fail' }}
         env:
           SLACK_WEBHOOK: "${{ secrets.SLACK_WEBHOOK }}"
           SLACK_USERNAME: "${{ github.workflow }}"
