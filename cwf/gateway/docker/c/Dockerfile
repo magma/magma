@@ -17,46 +17,7 @@
 
 ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-test
 
-FROM $OS_DIST:$OS_RELEASE AS builder
-ARG OS_DIST OS_RELEASE EXTRA_REPO
-
-RUN apt-get update && \
-  # Setup necessary tools for adding the Magma repository
-  apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
-  # Download Bazel
-  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
-  chmod +x /usr/sbin/bazelisk-linux-amd64 && \
-  ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
-
-# Add the magma apt repo
-COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb ${EXTRA_REPO} focal-ci main"
-
-# Install dependencies required for building
-RUN apt-get -y update && apt-get -y install \
-  sudo \
-  curl \
-  unzip \
-  cmake \
-  git \
-  gcc \
-  g++ \
-  build-essential \
-  # folly deps
-  libfolly-dev \
-  libgoogle-glog-dev \
-  libgflags-dev \
-  libevent-dev \
-  libdouble-conversion-dev \
-  libiberty-dev \
-  libdouble-conversion-dev \
-  libboost-chrono-dev \
-  libboost-context-dev \
-  libboost-program-options-dev \
-  libboost-filesystem-dev \
-  libboost-regex-dev \
-  libsystemd-dev \
-  python3-distutils
+FROM ghcr.io/magma/magma/bazel-cache-plain:latest as builder
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
@@ -64,14 +25,6 @@ WORKDIR /magma
 # Copy Bazel files at root and third_party
 COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
 COPY bazel/ ${MAGMA_ROOT}/bazel
-
-# Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
-RUN bazel build \
-  @com_github_grpc_grpc//:grpc++ \
-  @com_google_protobuf//:protobuf \
-  @prometheus_cpp//:prometheus-cpp \
-  @yaml-cpp//:yaml-cpp \
-  @github_nlohmann_json//:json
 
 # Copy proto files
 COPY feg/protos ${MAGMA_ROOT}/feg/protos
@@ -84,7 +37,7 @@ COPY protos ${MAGMA_ROOT}/protos
 COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
 COPY lte/gateway/c/session_manager ${MAGMA_ROOT}/lte/gateway/c/session_manager
 
-RUN bazel --bazelrc=${MAGMA_ROOT}/bazel/bazelrcs/cwag.bazelrc build //lte/gateway/c/session_manager:sessiond
+RUN bazel build //lte/gateway/c/session_manager:sessiond --define=disable_sentry_native=1
 
 # -----------------------------------------------------------------------------
 # Dev/Production image

@@ -248,18 +248,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --all --nocache
-      - name: Export docker images to deploy them
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save orc8r_nginx | gzip > nginx.tar.gz
-          docker save orc8r_controller  | gzip > controller.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-orc8r
-          path: images
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
@@ -382,22 +370,6 @@ jobs:
              echo "Docker compose failed"
              exit 1
           fi
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save cwf_cwag_go | gzip > cwag_go.tar.gz
-          docker save cwf_gateway_go | gzip > gateway_go.tar.gz
-          docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
-          docker save cwf_gateway_python | gzip > gateway_python.tar.gz
-          docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-cwag
-          path: images
       # Need to save PR number as Github action does not propagate it with workflow_run event
       # Used as version for PR builds
       - name: Save PR number
@@ -469,18 +441,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
           DOCKER_REGISTRY=cwf_ docker compose --compatibility build
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save cwf_operator | gzip > operator.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-cwf
-          path: images
       # Need to save PR number as Github action does not propagate it with workflow_run event
       # Used as version for PR builds
       - name: Save PR number
@@ -572,19 +532,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
-          docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-feg
-          path: images
       - name: Create release Tag
         run: |
           if [ "$GITHUB_REF" = "refs/heads/master" ]; then
@@ -648,18 +595,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/nms
           COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save magmalte_magmalte | gzip > magmalte.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-nms
-          path: images
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
