@@ -68,6 +68,24 @@ cc_library(
 )
 
 cc_library(
+    name = "libfluid_base",
+    srcs = ["usr/lib/libfluid_base.so"],
+    linkopts = ["-lfluid_base"],
+)
+
+cc_library(
+    name = "libfluid_msg",
+    srcs = ["usr/lib/libfluid_msg.so"],
+    linkopts = ["-lfluid_msg"],
+)
+
+cc_library(
+    name = "liblfds710",
+    srcs = ["usr/local/lib/liblfds710.so"],
+    linkopts = ["-llfds710"],
+)
+
+cc_library(
     name = "libnettle",
     srcs = ["usr/lib/libnettle.so"],
     linkopts = ["-lnettle"],
@@ -76,9 +94,10 @@ cc_library(
 cc_library(
     name = "libglog",
     srcs = glob(
-        ["usr/lib/*-linux-gnu/libglog.so.0"],
+        ["usr/lib/*-linux-gnu/libglog.so"],
         allow_empty = False,
     ),
+    linkopts = ["-lglog"],
 )
 
 cc_library(

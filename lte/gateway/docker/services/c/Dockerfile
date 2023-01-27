@@ -114,7 +114,6 @@ WORKDIR /magma
 # Copy Bazel files at root and third_party
 COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
 COPY bazel/ ${MAGMA_ROOT}/bazel
-COPY third_party/build/patches/libfluid/ ${MAGMA_ROOT}/third_party/build/patches/libfluid/
 
 # Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
 RUN bazel build \

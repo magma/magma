@@ -1031,8 +1031,8 @@ AGW_OF_DEPS = [
     "//lte/protos:pipelined_cpp_grpc",
     "//lte/protos/oai:sgw_state_cpp_proto",
     "//orc8r/gateway/c/common/ebpf",
-    "@libfluid_base//:fluid_base",
-    "@libfluid_msg//:fluid_msg",
+    "@system_libraries//:libfluid_base",
+    "@system_libraries//:libfluid_msg",
 ]
 
 MME_DEPS = [
@@ -1065,7 +1065,7 @@ MME_DEPS = [
     "//orc8r/gateway/c/common/service303",
     "//orc8r/protos:redis_cpp_proto",
     "@cpp_redis",
-    "@liblfds//:lfds710",
+    "@system_libraries//:liblfds710",
     "@system_libraries//:czmq",
     "@system_libraries//:libconfig",
     "@system_libraries//:libfd",
