@@ -43,7 +43,7 @@ class MetricsCollector(object):
     """
     Polls magma services periodicaly for metrics and posts them to cloud
     """
-    _services = []
+    _services: List[str] = []
 
     def __init__(
         self, services: List[str],
@@ -53,7 +53,7 @@ class MetricsCollector(object):
         grpc_max_msg_size_mb: Union[int, float],
         loop: Optional[asyncio.AbstractEventLoop] = None,
         post_processing_fn: Optional[Callable] = None,
-        scrape_targets: [ScrapeTarget] = None,
+        scrape_targets: Optional[List[ScrapeTarget]] = None,
     ):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
@@ -61,7 +61,7 @@ class MetricsCollector(object):
         self.grpc_max_msg_size_bytes = grpc_max_msg_size_mb * 1024 * 1024
         self._services = services
         self._loop = loop if loop else asyncio.get_event_loop()
-        self._samples_for_service = {}
+        self._samples_for_service: Dict[str, List] = {}
         for s in self._services:
             self._samples_for_service[s] = []
         self._grpc_options = _get_metrics_chan_grpc_options(
@@ -258,7 +258,7 @@ class MetricsCollector(object):
             )
 
     def _package_and_send_metrics(
-            self, metrics: [metrics_pb2.MetricFamily],
+            self, metrics: List[metrics_pb2.MetricFamily],
             target: ScrapeTarget,
     ) -> None:
         """
@@ -311,7 +311,7 @@ class MetricsCollector(object):
             )
 
 
-def _parse_metrics_response(response_text: str) -> [metrics_pb2.MetricFamily]:
+def _parse_metrics_response(response_text: str) -> List[metrics_pb2.MetricFamily]:
     parsed_families = list(text_string_to_metric_families(response_text))
     metrics_to_send = list(map(core_metric_to_proto, parsed_families))
     # Flatten list
@@ -319,7 +319,7 @@ def _parse_metrics_response(response_text: str) -> [metrics_pb2.MetricFamily]:
 
 
 def _add_scrape_label_to_metrics(
-        metrics: [metrics_pb2.MetricFamily],
+        metrics: List[metrics_pb2.MetricFamily],
         scrape_label: str,
 ) -> None:
     for family in metrics:
@@ -425,7 +425,7 @@ _METRIC_TYPES = ('counter', 'gauge', 'summary', 'histogram', 'untyped')
 
 def core_metric_to_proto(
         metric: prometheus_client.core.Metric,
-) -> [metrics_pb2.MetricFamily]:
+) -> List[metrics_pb2.MetricFamily]:
     """
     Converts metrics from the prometheus client parser format to protobuf for
     sending to cloud
@@ -471,7 +471,7 @@ def _gauge_to_proto(
 
 def _summary_to_proto(
         metric: prometheus_client.core.Metric,
-) -> [metrics_pb2.MetricFamily]:
+) -> List[metrics_pb2.MetricFamily]:
     """
     1. Get metrics by unique labelset ignoring quantile
     2. convert to proto separately for each one
@@ -519,7 +519,7 @@ def _summary_to_proto(
 
 def _histogram_to_proto(
         metric: prometheus_client.core.Metric,
-) -> [metrics_pb2.MetricFamily]:
+) -> List[metrics_pb2.MetricFamily]:
     """
     1. Get metrics by unique labelset ignoring quantile
     2. convert to proto separately for each one
