@@ -113,6 +113,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             set -euo pipefail
+            apt update
             apt install -y python3.8-venv
             cd /workspaces/magma
             bazel run //dev_tools:python_env ${{ env.PY_ENV_PATH }}
