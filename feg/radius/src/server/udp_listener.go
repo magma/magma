@@ -15,9 +15,12 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
+	"net"
 	"sync/atomic"
+	"time"
 
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
@@ -82,11 +85,34 @@ func (l *UDPListener) ListenAndServe() error {
 		err := l.Server.ListenAndServe()
 		serverError <- err
 	}()
+	dialError := make(chan error, 1)
+	waitTime := 100 * time.Millisecond
+	deadline := time.Now().Add(waitTime)
+	go func() {
+		for time.Now().Before(deadline) {
+			_, err := net.DialUDP("udp", nil, &net.UDPAddr{Port: 1812})
+			if err == nil {
+				dialError <- nil
+				return
+			}
+		}
+		dialError <- errors.New("timeout for UDPListener server to come up")
+		return
+	}()
 
-	if err := <-serverError; err != nil {
+	select {
+	case err := <-serverError:
+		l.ready <- false
 		return err
+	case err := <-dialError:
+		if err == nil {
+			l.ready <- true
+			return nil
+		} else {
+			l.ready <- false
+			return err
+		}
 	}
-	return nil
 }
 
 // GetHandleRequest override
