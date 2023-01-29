@@ -55,7 +55,6 @@ type FullRADIUSSessiontWithAnalyticsModulesTestParam struct {
 
 // TestAnalyticsModulesAuthenticate tests the Analytics module handling of the Authenticate RADIUS packet
 func TestAnalyticsModulesAuthenticate(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -66,7 +65,6 @@ func TestAnalyticsModulesAuthenticate(t *testing.T) {
 
 // TestAnalyticsModulesAccountingStart test the processing of Accounting-Start RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingStart(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -84,7 +82,6 @@ func TestAnalyticsModulesAccountingStart(t *testing.T) {
 
 // TestAnalyticsModulesAccountingUpdate test the processing of Accounting-Update RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingUpdate(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -102,7 +99,6 @@ func TestAnalyticsModulesAccountingUpdate(t *testing.T) {
 
 // TestAnalyticsModulesAccountingStop test the processing of Accounting-Stop RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingStop(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -121,7 +117,6 @@ func TestAnalyticsModulesAccountingStop(t *testing.T) {
 
 // full session lifetime test of Analytics module.
 func TestFullRADIUSSessiontWithAnalyticsModules(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	// Arrange
 	logger, err := zap.NewDevelopment()
@@ -143,7 +138,6 @@ func TestFullRADIUSSessiontWithAnalyticsModules(t *testing.T) {
 }
 
 func TestRequestWithModules(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	// Arrange
 	logger, err := zap.NewDevelopment()
@@ -249,7 +243,6 @@ func TestModuleFailsToInit(t *testing.T) {
 }
 
 func TestModuleFailsToHandle(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	// Arrange
 	logger, err := zap.NewDevelopment()
@@ -309,7 +302,6 @@ func TestFilterFailsToInit(t *testing.T) {
 }
 
 func TestFilterFailsToProcess(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	// Arrange
 	config := getConfigWithFilters(t, []string{"filter.1"})
@@ -349,7 +341,6 @@ func TestFilterFailsToProcess(t *testing.T) {
 }
 
 func TestDedup(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
 
 	// Arrange
 	logger, err := zap.NewDevelopment()
