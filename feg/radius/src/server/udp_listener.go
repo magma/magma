@@ -86,18 +86,29 @@ func (l *UDPListener) ListenAndServe() error {
 		serverError <- err
 	}()
 	dialError := make(chan error, 1)
-	waitTime := 100 * time.Millisecond
-	deadline := time.Now().Add(waitTime)
 	go func() {
+		udpAddr := ":1812" // default port for radius packetServer
+		if l.Server.Addr != "" {
+			udpHostString, udpPortString, err := net.SplitHostPort(l.Server.Addr)
+			if err != nil {
+				dialError <- err
+				return
+			}
+			udpAddr = net.JoinHostPort(udpHostString, udpPortString)
+		}
+		deadline := time.Now().Add(20 * time.Millisecond)
+		retryBkp := radius.DefaultClient.Retry
+		radius.DefaultClient.Retry = 0
+		defer func() { radius.DefaultClient.Retry = retryBkp }()
 		for time.Now().Before(deadline) {
-			_, err := net.DialUDP("udp", nil, &net.UDPAddr{Port: 1812})
+			secret, _ := l.Server.SecretSource.RADIUSSecret(context.Background(), net.Addr(nil))
+			_, err := radius.Exchange(context.Background(), radius.New(radius.CodeAccessRequest, secret), udpAddr)
 			if err == nil {
 				dialError <- nil
 				return
 			}
 		}
-		dialError <- errors.New("timeout for UDPListener server to come up")
-		return
+		dialError <- errors.New("timeout for UDP listener server to come up")
 	}()
 
 	select {
