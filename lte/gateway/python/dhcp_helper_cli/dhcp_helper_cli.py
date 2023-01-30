@@ -83,7 +83,7 @@ class DhcpHelperCli:
         self, mac: MacAddress, vlan: int, iface: str, ip: Optional[str] = None,
             server_ip: Optional[str] = None, router_ip: Optional[str] = None,
     ) -> None:
-        self._lease_expiration_time = None
+        self._lease_expiration_time: Optional[str] = None
         self._iface = iface
         self._mac = mac
         self._vlan = vlan

@@ -242,7 +242,7 @@ def _run_allocator_and_assert(
 
 def _assert_calls_and_deadlines(
         advance_time: int, call_args: List[str], ip_allocator: IPAllocatorDHCP,
-        reference_time: datetime.date, subprocess_mock: MagicMock,
+        reference_time: datetime, subprocess_mock: MagicMock,
 ) -> None:
     subprocess_mock.assert_called_once()
     subprocess_mock.assert_called_with(

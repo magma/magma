@@ -49,11 +49,11 @@ class IPDesc:
     """
 
     def __init__(
-        self, ip: IPAddress = None, state: IPState = None,
-        sid: str = None, ip_block: IPNetwork = None,
-        ip_type: IPType = None, vlan_id: int = 0,
+        self, ip: Optional[IPAddress] = None, state: Optional[IPState] = None,
+        sid: Optional[str] = None, ip_block: Optional[IPNetwork] = None,
+        ip_type: Optional[IPType] = None, vlan_id: int = 0,
     ):
-        self.ip: Optional[IPAddress] = ip
+        self.ip = ip
         self.ip_block = ip_block
         self.state = state
         self.sid = sid

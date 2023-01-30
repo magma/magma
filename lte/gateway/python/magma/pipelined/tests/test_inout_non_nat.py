@@ -144,7 +144,7 @@ class InOutNonNatTest(unittest.TestCase):
 
     def setUpNetworkAndController(
         self, vlan: str = "",
-        non_nat_arp_egress_port: str = None,
+        non_nat_arp_egress_port: Optional[str] = None,
         gw_mac_addr="ff:ff:ff:ff:ff:ff",
     ):
         """
