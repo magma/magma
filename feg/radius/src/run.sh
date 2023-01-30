@@ -51,7 +51,8 @@ function pretty {
 }
 
 function test {
-    gotestsum ./...
+    # Run tests sequentially to avoid radius server cross-talk between tests.
+    gotestsum -- -p 1 ./...
 }
 
 function e2e {
