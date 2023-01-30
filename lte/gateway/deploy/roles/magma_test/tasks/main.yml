@@ -24,14 +24,17 @@
   when: full_provision
 
 - name: Set up S1AP tester build directory
-  file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
+  file:
+    path: "{{ s1ap_tester_root }}/bin"
+    state: directory
+    recurse: yes
   when: preburn
 
 - name: Set a convenience function for starting the S1AP tester
-  lineinfile: >
-    dest=/home/{{ ansible_user }}/.bashrc
-    state=present
-    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    state: present
+    line: "alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
   when: preburn
 
 - name: Add integ test scripts to path
@@ -65,16 +68,11 @@
     S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
-- name: Install pyparsing
+- name: Install pyparsing and flaky
   pip:
-    name: pyparsing
-    extra_args: --cache-dir $PIP_CACHE_HOME
-    executable: pip3
-  when: full_provision
-
-- name: Install flaky
-  pip:
-    name: flaky
+    name:
+      - pyparsing
+      - flaky
     extra_args: --cache-dir $PIP_CACHE_HOME
     executable: pip3
   when: full_provision
@@ -87,7 +85,10 @@
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
-  apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
+  apt:
+    name: default-libmysqlclient-dev
+    state: present
+    update_cache: yes
   when: preburn
 
 - name: Check whether swagger.yml exists
@@ -99,7 +100,7 @@
 - name: Add the test controller DNS entry
   become: yes
   lineinfile:
-    dest: /etc/hosts
+    path: /etc/hosts
     regexp: '.*controller.magma.test$'
     line: "10.0.2.2 controller.magma.test"
     state: present

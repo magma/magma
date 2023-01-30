@@ -51,7 +51,6 @@
           "4"
         ]
       ],
-      "name": "magma",
       "memory": 8192,
       "cpus": 4,
       "hard_drive_interface": "scsi",
@@ -88,6 +87,7 @@
       "playbook_file": "../../../lte/gateway/deploy/magma_dev.yml",
       "role_paths": [
         "../../../lte/gateway/deploy/roles/bazel",
+        "../../../lte/gateway/deploy/roles/bazel_aliases",
         "../../../lte/gateway/deploy/roles/dev_common",
         "../../../lte/gateway/deploy/roles/gai_config",
         "../../../lte/gateway/deploy/roles/magma",

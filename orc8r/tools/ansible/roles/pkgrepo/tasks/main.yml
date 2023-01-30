@@ -10,34 +10,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO move to preburn
+# These steps are executed in preburn and full_provision to make
+# registry switches e.g. for upcoming releases easier.
+
 - name: Collect all registries
   ansible.builtin.find:
     paths: /etc/apt/sources.list.d/
     patterns: "*.list*"
   register: registries_to_be_delete
-  when: full_provision
 
-# TODO move to preburn
 - name: Remove all old registries
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
   with_items: "{{ registries_to_be_delete.files }}"
 
-# TODO move to preburn
 - name: Adding the key for the registry
   ansible.builtin.copy:
     src: linux_foundation_registry_key.asc
     dest: /etc/apt/trusted.gpg.d/magma.asc
   become: true
-  when: full_provision
 
-# TODO move to preburn
 - name: Configuring the registry in sources.list.d
   ansible.builtin.apt_repository:
     repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main
     filename: magma
     state: present
     update_cache: true
-  when: full_provision
