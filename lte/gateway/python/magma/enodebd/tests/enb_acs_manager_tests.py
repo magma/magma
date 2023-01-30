@@ -157,7 +157,7 @@ class StateMachineManagerTests(TestCase):
         )
         req2 = Tr069MessageBuilder.get_fault()
         resp2 = manager.handle_tr069_message(ctx2, req2)
-        self.assertTrue(
+        self.assertFalse(
             isinstance(resp2, models.GetParameterValues),
             'State machine should be requesting param values',
         )

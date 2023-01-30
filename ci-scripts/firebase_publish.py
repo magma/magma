@@ -19,6 +19,8 @@ from typing import Dict
 import pyrebase
 
 
+# some change :)
+
 def main():
     """Publish builds and workloads to Firebase realtime database"""
     # Read db config

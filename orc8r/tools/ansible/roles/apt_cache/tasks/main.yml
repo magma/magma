@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# some change :)
+
 - name: Check if role variables are defined
   fail: msg="distribution is undefined for the role"
   when: distribution is undefined
