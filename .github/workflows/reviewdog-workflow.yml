@@ -49,7 +49,7 @@ jobs:
             javascript:
               - ["nms/**", "**/*.js"]
             python:
-              - ["lte/gateway/python/**", "orc8r/gateway/python/**"]
+              - ["**/*.py"]
             terraform:
               - ["**/*.tf"]
 
@@ -208,8 +208,9 @@ jobs:
         uses: tsuyoshicho/action-mypy@176f65a2ad781202baffaf870e5715d768d799a8 # pin@v3.9.2
         with:
           github_token: ${{ secrets.github_token }}
-          filter_mode: added
+          filter_mode: file
           reporter: github-pr-review
+          fail_on_error: true
 
   shellcheck:
     name: shellcheck
