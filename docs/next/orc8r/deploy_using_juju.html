@@ -55,10 +55,11 @@
               }
             });
         </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="deploy-orchestrator-using-juju-beta"></a><a href="#deploy-orchestrator-using-juju-beta" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy Orchestrator using Juju (Beta)</h1>
-<p>This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment. It contains
-steps to set up a Kubernetes cluster, bootstrap a Juju controller, deploy charmed operators for
-Magma Orchestrator and configure DNS A records. For more information on Charmed Magma, please visit
-the project's <a href="https://github.com/canonical/charmed-magma">homepage</a>.</p>
+<p>This how-to guide can be used to deploy Magma's Orchestrator on any cloud
+environment. It contains steps to set up a Kubernetes cluster, bootstrap
+a Juju controller, deploy charmed operators for Magma Orchestrator
+and configure DNS A records. For more information on Charmed Magma, please
+visit the project's <a href="https://canonical.github.io/charmed-magma">homepage</a>.</p>
 <blockquote>
 <p>Charmed-Magma is in Beta and is not yet production ready or feature complete.</p>
 </blockquote>
@@ -74,8 +75,8 @@ the project's <a href="https://github.com/canonical/charmed-magma">homepage</a>.
 <li><a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/">kubectl</a></li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="create-a-kubernetes-cluster-and-bootstrap-a-juju-controller"></a><a href="#create-a-kubernetes-cluster-and-bootstrap-a-juju-controller" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create a Kubernetes cluster and bootstrap a Juju controller</h2>
-<p>Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
-a Juju controller on it.</p>
+<p>Select a Kubernetes environment and follow the guide to create the cluster
+and bootstrap a Juju controller on it.</p>
 <ol>
 <li><a href="https://juju.is/docs/olm/microk8s">MicroK8s</a></li>
 <li><a href="https://juju.is/docs/olm/google-kubernetes-engine-(gke)">Google Cloud (GKE)</a></li>
@@ -83,11 +84,19 @@ a Juju controller on it.</p>
 <li><a href="https://juju.is/docs/olm/azure-kubernetes-service-(azure-aks)">Microsoft Azure (AKS)</a></li>
 </ol>
 <h2><a class="anchor" aria-hidden="true" id="deploy-charmed-magma-orchestrator"></a><a href="#deploy-charmed-magma-orchestrator" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Deploy charmed Magma Orchestrator</h2>
-<p>From your Ubuntu machine, create an <code>overlay.yaml</code> file that contains the following content:</p>
+<p>From your Ubuntu machine, create an <code>overlay.yaml</code> file that contains
+the following content:</p>
 <pre><code class="hljs css language-yaml"><span class="hljs-attr">applications:</span>
+  <span class="hljs-attr">fluentd:</span>
+    <span class="hljs-attr">options:</span>
+    <span class="hljs-attr">domain:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">domain</span> <span class="hljs-string">name&gt;</span>
+    <span class="hljs-attr">elasticsearch-url:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">elasticsearch</span> <span class="hljs-string">https</span> <span class="hljs-string">url&gt;</span>
   <span class="hljs-attr">orc8r-certifier:</span>
     <span class="hljs-attr">options:</span>
       <span class="hljs-attr">domain:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">domain</span> <span class="hljs-string">name&gt;</span>
+  <span class="hljs-attr">orc8r-eventd:</span>
+    <span class="hljs-attr">options:</span>
+      <span class="hljs-attr">elasticsearch-url:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">elasticsearch</span> <span class="hljs-string">http</span> <span class="hljs-string">url&gt;</span>
   <span class="hljs-attr">orc8r-nginx:</span>
     <span class="hljs-attr">options:</span>
       <span class="hljs-attr">domain:</span> <span class="hljs-string">&lt;your</span> <span class="hljs-string">domain</span> <span class="hljs-string">name&gt;</span>
@@ -100,6 +109,10 @@ a Juju controller on it.</p>
 <p><strong>Warning</strong>: This configuration is unsecure because it uses self-signed certificates.</p>
 </blockquote>
 <p>Deploy Orchestrator:</p>
+<blockquote>
+<p><strong>Note</strong>: Elasticsearch is not part of magma-orc8r bundle and needs to be deployed prior
+to deploying the bundle. Elasticsearch needs to support both <code>http</code> and <code>https</code> requests.</p>
+</blockquote>
 <pre><code class="hljs css language-bash">juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
 </code></pre>
 <p>The deployment is completed when all services are in the <code>Active-Idle</code> state.</p>
@@ -125,13 +138,14 @@ juju run-action orc8r-certifier/leader get-pfx-package-password --<span class="h
 <tr><td><code>&lt;orc8r-nginx-proxy External IP&gt;</code></td><td><code>api.&lt;your domain&gt;</code></td></tr>
 <tr><td><code>&lt;orc8r-clientcert-nginx External IP&gt;</code></td><td><code>controller.&lt;your domain&gt;</code></td></tr>
 <tr><td><code>&lt;nginx-proxy External IP&gt;</code></td><td><code>*.nms.&lt;your domain&gt;</code></td></tr>
+<tr><td><code>&lt;fluentd External IP&gt;</code></td><td><code>fluentd.&lt;your domain&gt;</code></td></tr>
 </tbody>
 </table>
 <h2><a class="anchor" aria-hidden="true" id="verify-the-deployment"></a><a href="#verify-the-deployment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verify the deployment</h2>
 <p>Get the host organization's username and password:</p>
 <pre><code class="hljs css language-bash">juju run-action nms-magmalte/leader get-master-admin-credentials --<span class="hljs-built_in">wait</span>
 </code></pre>
-<p>Confirm successful deployment by visiting <code>https://host.nms.&lt;your domain&gt;</code> and logging in
+<p>Confirm successful deployment by visiting <code>https://master.nms.&lt;your domain&gt;</code> and logging in
 with the <code>admin-username</code> and <code>admin-password</code> outputted here.</p>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_install"><span class="arrow-prev">← </span><span>Install Orchestrator</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_terraform_options"><span>Terraform Options</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#pre-requisites">Pre-requisites</a></li><li><a href="#set-up-your-management-environment">Set up your management environment</a></li><li><a href="#create-a-kubernetes-cluster-and-bootstrap-a-juju-controller">Create a Kubernetes cluster and bootstrap a Juju controller</a></li><li><a href="#deploy-charmed-magma-orchestrator">Deploy charmed Magma Orchestrator</a></li><li><a href="#import-the-admin-operator-https-certificate">Import the admin operator HTTPS certificate</a></li><li><a href="#setup-dns">Setup DNS</a></li><li><a href="#verify-the-deployment">Verify the deployment</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="copyright">Copyright © 2023 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
