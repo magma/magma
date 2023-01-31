@@ -76,7 +76,8 @@ class Channel;
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define POLICYDB_SERVICE "policydb"
-#define SESSIOND_VERSION "1.0"
+
+#define  SESSIOND_VERSION "1.0"
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
 #define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
@@ -88,13 +89,14 @@ class Channel;
 extern "C" void __gcov_flush(void);
 #endif
 
-static magma::mconfig::SessionD get_default_mconfig() {
-  magma::mconfig::SessionD mconfig;
-  mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  mconfig.set_gx_gy_relay_enabled(false);
-  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
-  wallet_config->set_terminate_on_exhaust(false);
-  return mconfig;
+static   magma::mconfig::SessionD get_default_mconfig() 
+{
+        magma::mconfig::SessionD mconfig;
+          mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
+        mconfig.set_gx_gy_relay_enabled(false);
+        auto  wallet_config = mconfig.mutable_wallet_exhaust_detection();
+        wallet_config->set_terminate_on_exhaust(false);
+        return mconfig;
 }
 
 static magma::mconfig::SessionD load_mconfig() {
@@ -172,7 +174,9 @@ void set_consts(const YAML::Node& config) {
         config["cleanup_all_dangling_flows"].as<bool>();
   }
   if (config["enable_ipfix"].IsDefined()) {
-    magma::LocalEnforcer::SEND_IPFIX = config["enable_ipfix"].as<bool>();
+    magma::LocalEnforcer::SEND_IPFIX = config["enable_ipfix"].as<bool>()
+    ;
+
   }
 
   // log all configs on startup
@@ -191,13 +195,15 @@ void set_consts(const YAML::Node& config) {
   MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
 }
 
-magma::SessionStore* create_session_store(
+magma::SessionStore*   create_session_store(
     const YAML::Node& config,
     std::shared_ptr<magma::StaticRuleStore> rule_store,
     std::shared_ptr<magma::MeteringReporter> metering_reporter) {
   bool is_stateless = config["support_stateless"].IsDefined() &&
                       config["support_stateless"].as<bool>();
-  if (is_stateless) {
+  if 
+  (is_stateless)    
+  {
     auto store_client = std::make_shared<magma::lte::RedisStoreClient>(
         std::make_shared<cpp_redis::client>(),
         config["sessions_table"].as<std::string>(), rule_store);

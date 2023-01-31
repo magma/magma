@@ -16,6 +16,8 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 #include <gtest/gtest.h>
+
+
 #include <lte/protos/sctpd.pb.h>
 #include <memory>
 #include <string>
@@ -23,8 +25,10 @@
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
 
-namespace grpc {
-class Channel;
+namespace grpc   
+{
+class Channel
+;
 }  // namespace grpc
 
 using ::testing::_;
@@ -35,13 +39,23 @@ using ::testing::Property;
 using ::testing::Return;
 using ::testing::Test;
 
-namespace magma {
-namespace sctpd {
+namespace magma 
+{
+namespace sctpd 
+
+
+
+
+
+
+{
 
 class MockSctpdUplinkClient final : public SctpdUplinkClient {
  public:
   MockSctpdUplinkClient(std::shared_ptr<Channel> channel)
-      : SctpdUplinkClient(channel) {
+      : SctpdUplinkClient(channel) 
+      
+      {
     ON_CALL(*this, sendUl(_, _)).WillByDefault(Return(0));
     ON_CALL(*this, newAssoc(_, _)).WillByDefault(Return(0));
     ON_CALL(*this, closeAssoc(_, _)).WillByDefault(Return(0));

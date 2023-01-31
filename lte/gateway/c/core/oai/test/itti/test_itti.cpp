@@ -15,7 +15,13 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-extern "C" {
+
+
+extern "C"
+
+{
+
+
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"

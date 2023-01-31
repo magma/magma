@@ -56,8 +56,11 @@ status_code_e s6a_fd_init_dict_objs(void) {
   /*
    * Pre-loading vendor object
    */
-  CHECK_FD_FCT(fd_dict_search(fd_g_config->cnf_dict, DICT_VENDOR, VENDOR_BY_ID,
+  CHECK_FD_FCT(
+    fd_dict_search(fd_g_config->cnf_dict, DICT_VENDOR, VENDOR_BY_ID,
+
                               (void*)&vendor_3gpp,
+
                               &s6a_fd_cnf.dataobj_s6a_vendor, ENOENT));
   /*
    * Pre-loading application object
@@ -102,6 +105,8 @@ status_code_e s6a_fd_init_dict_objs(void) {
    * Pre-loading base avps
    */
   CHECK_FD_FCT(fd_dict_search(
+
+    
       fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME, "Destination-Host",
       &s6a_fd_cnf.dataobj_s6a_destination_host, ENOENT));
   CHECK_FD_FCT(fd_dict_search(

@@ -18,8 +18,13 @@
 #include <stdint.h>
 #include <memory>
 
-namespace grpc {
-class Channel;
+namespace grpc 
+
+
+{
+class Channel
+
+;
 }  // namespace grpc
 
 namespace magma {
