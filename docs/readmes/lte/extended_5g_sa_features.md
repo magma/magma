@@ -1,19 +1,19 @@
 ---
-id: extended_5G_sa_features
+id: extended_5g_sa_features
 title: Extended 5G SA Features
 hide_title: true
 ---
 
 # Extended Features of 5G SA FWA
 
-This document gives an overview of the Extended features added on top of the [integrated 5G SA FWA](https://docs.magmacore.org/docs/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access) such as
+This document gives an overview of the Extended features added on top of the [integrated 5G SA FWA](https://magma.github.io/magma/docs/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access) such as
 
-- [5G QoS](/docs/next/lte/extended_5G_sa_features#5g-qos)
-- [IPv6 & Dual IPv4v6 support](/docs/next/lte/extended_5G_sa_features#ipv6--dual-ipv4v6-support)
-- [Network initiated Session Modification](/docs/next/lte/extended_5G_sa_features#network-initiated-session-modification)
-- [SUCI Extensions](/docs/next/lte/extended_5G_sa_features#suci-extensions)
-- [Stateless feature](/docs/next/lte/extended_5G_sa_features#stateless-feature)
-- [GTP extension header support](/docs/next/lte/extended_5G_sa_features#gtp-extension-header-support).
+- [5G QoS](/docs/next/lte/extended_5g_sa_features#5g-qos)
+- [IPv6 & Dual IPv4v6 support](/docs/next/lte/extended_5g_sa_features#ipv6--dual-ipv4v6-support)
+- [Network initiated Session Modification](/docs/next/lte/extended_5g_sa_features#network-initiated-session-modification)
+- [SUCI Extensions](/docs/next/lte/extended_5g_sa_features#suci-extensions)
+- [Stateless feature](/docs/next/lte/extended_5g_sa_features#stateless-feature)
+- [GTP extension header support](/docs/next/lte/extended_5g_sa_features#gtp-extension-header-support).
 
 ## 5G QoS
 

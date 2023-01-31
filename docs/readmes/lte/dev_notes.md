@@ -253,7 +253,7 @@ print_grpc_payload: true
 
 Many services have a command line interface (CLI) that can be used for
 debugging and configuration. Check the [AGW
-Readme](README_AGW.md#command-line-interfaces) for more details.
+Readme](readme_agw.md#command-line-interfaces) for more details.
 
 ### Analyzing raw network packets
 

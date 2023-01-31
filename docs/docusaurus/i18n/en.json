@@ -201,7 +201,7 @@
       "lte/eventd": {
         "title": "Event Reporting"
       },
-      "lte/extended_5G_sa_features": {
+      "lte/extended_5g_sa_features": {
         "title": "Extended 5G SA Features"
       },
       "lte/configure_agw_ha": {
@@ -210,7 +210,7 @@
       "lte/HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
       },
-      "lte/integrated_5G_sa": {
+      "lte/integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
       "lte/ipfix": {
@@ -1730,7 +1730,7 @@
       "version-1.7.0/lte/version-1.7.0-HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
       },
-      "version-1.7.0/lte/version-1.7.0-integrated_5G_sa": {
+      "version-1.7.0/lte/version-1.7.0-integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
       "version-1.7.0/lte/version-1.7.0-ipfix": {
@@ -2021,7 +2021,7 @@
       "version-1.8.0/lte/version-1.8.0-dev_unit_testing": {
         "title": "Test AGW"
       },
-      "version-1.8.0/lte/version-1.8.0-extended_5G_sa_features": {
+      "version-1.8.0/lte/version-1.8.0-extended_5g_sa_features": {
         "title": "Extended 5G SA Features"
       },
       "version-1.8.0/lte/version-1.8.0-pipelined": {
