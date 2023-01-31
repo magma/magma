@@ -20,6 +20,9 @@ list_files = subprocess.check_output(cmd, shell=True, universal_newlines=True)  
 mme_is_impacted = False
 
 for line in list_files.split('\n'):
+    res = re.search('lte/gateway/c/core/BUILD.bazel', line)
+    if res is not None:
+        mme_is_impacted = True
     res = re.search('lte/gateway/Makefile', line)
     if res is not None:
         mme_is_impacted = True
