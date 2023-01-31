@@ -10,7 +10,7 @@ This how-to guide can be used to deploy Magma's Orchestrator on any cloud
 environment. It contains steps to set up a Kubernetes cluster, bootstrap
 a Juju controller, deploy charmed operators for Magma Orchestrator
 and configure DNS A records. For more information on Charmed Magma, please
-visit the project's [homepage](https://github.com/canonical/charmed-magma).
+visit the project's [homepage](https://canonical.github.io/charmed-magma).
 
 > Charmed-Magma is in Beta and is not yet production ready or feature complete.
 
@@ -21,7 +21,7 @@ visit the project's [homepage](https://github.com/canonical/charmed-magma).
 
 ## Set up your management environment
 
-From an Ubuntu 20.04 machine, install the following tools:
+From a Ubuntu 20.04 machine, install the following tools:
 
 - [Juju](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
@@ -47,8 +47,6 @@ applications:
     options:
     domain: <your domain name>
     elasticsearch-url: <your elasticsearch https url>
-    fluentd-chunk-limit-size: "2M"
-    fluentd-queue-limit-length: 8
   orc8r-certifier:
     options:
       domain: <your domain name>
@@ -68,14 +66,8 @@ applications:
 
 Deploy Orchestrator:
 
-<!-- markdownlint-disable MD028 -->
-
-> **Note**: The magma-orc8r bundle is available on edge and beta channels.
-
 > **Note**: Elasticsearch is not part of magma-orc8r bundle and needs to be deployed prior
 to deploying the bundle. Elasticsearch needs to support both `http` and `https` requests.
-
-<!-- markdownlint-enable MD028 -->
 
 ```bash
 juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
