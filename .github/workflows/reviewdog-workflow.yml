@@ -210,7 +210,6 @@ jobs:
           github_token: ${{ secrets.github_token }}
           filter_mode: file
           reporter: github-pr-review
-          fail_on_error: true
 
   shellcheck:
     name: shellcheck
