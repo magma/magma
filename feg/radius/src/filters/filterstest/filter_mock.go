@@ -35,6 +35,9 @@ func (m *MockFilter) Init(c *config.ServerConfig) error {
 // Process ...
 func (m *MockFilter) Process(c *modules.RequestContext, l string, r *radius.Request) error {
 	args := m.Called(c, l, r)
-	err := args.Get(0).(error)
-	return err
+	err := args.Get(0)
+	if err == nil {
+		return nil
+	}
+	return err.(error)
 }
