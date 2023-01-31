@@ -67,12 +67,16 @@ applications:
 > **Warning**: This configuration is unsecure because it uses self-signed certificates.
 
 Deploy Orchestrator:
+
 <!-- markdownlint-disable MD028 -->
+
 > **Note**: The magma-orc8r bundle is available on edge and beta channels.
 
 > **Note**: Elasticsearch is not part of magma-orc8r bundle and needs to be deployed prior
 to deploying the bundle. Elasticsearch needs to support both `http` and `https` requests.
+
 <!-- markdownlint-enable MD028 -->
+
 ```bash
 juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
 ```
