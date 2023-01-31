@@ -6,10 +6,11 @@ hide_title: true
 
 # Deploy Orchestrator using Juju (Beta)
 
-This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment. It contains
-steps to set up a Kubernetes cluster, bootstrap a Juju controller, deploy charmed operators for
-Magma Orchestrator and configure DNS A records. For more information on Charmed Magma, please visit
-the project's [homepage](https://github.com/canonical/charmed-magma).
+This how-to guide can be used to deploy Magma's Orchestrator on any cloud
+environment. It contains steps to set up a Kubernetes cluster, bootstrap
+a Juju controller, deploy charmed operators for Magma Orchestrator
+and configure DNS A records. For more information on Charmed Magma, please
+visit the project's [homepage](https://github.com/canonical/charmed-magma).
 
 > Charmed-Magma is in Beta and is not yet production ready or feature complete.
 
@@ -20,15 +21,15 @@ the project's [homepage](https://github.com/canonical/charmed-magma).
 
 ## Set up your management environment
 
-From a Ubuntu 20.04 machine, install the following tools:
+From an Ubuntu 20.04 machine, install the following tools:
 
 - [Juju](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 
 ## Create a Kubernetes cluster and bootstrap a Juju controller
 
-Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
-a Juju controller on it.
+Select a Kubernetes environment and follow the guide to create the cluster
+and bootstrap a Juju controller on it.
 
 1. [MicroK8s](https://juju.is/docs/olm/microk8s)
 2. [Google Cloud (GKE)](https://juju.is/docs/olm/google-kubernetes-engine-(gke))
@@ -37,13 +38,23 @@ a Juju controller on it.
 
 ## Deploy charmed Magma Orchestrator
 
-From your Ubuntu machine, create an `overlay.yaml` file that contains the following content:
+From your Ubuntu machine, create an `overlay.yaml` file that contains
+the following content:
 
 ```yaml
 applications:
+  fluentd:
+    options:
+    domain: <your domain name>
+    elasticsearch-url: <your elasticsearch https url>
+    fluentd-chunk-limit-size: "2M"
+    fluentd-queue-limit-length: 8
   orc8r-certifier:
     options:
       domain: <your domain name>
+  orc8r-eventd:
+    options:
+      elasticsearch-url: <your elasticsearch http url>
   orc8r-nginx:
     options:
       domain: <your domain name>
@@ -56,6 +67,11 @@ applications:
 > **Warning**: This configuration is unsecure because it uses self-signed certificates.
 
 Deploy Orchestrator:
+
+> **Note**: The magma-orc8r bundle is available on edge and beta channels.
+
+> **Note**: Elasticsearch is not part of magma-orc8r bundle and needs to be deployed prior
+to deploying the bundle. Elasticsearch needs to support both `http` and `https` requests.
 
 ```bash
 juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
@@ -90,6 +106,7 @@ In your domain registrar, create A records for the following Kubernetes services
 | `<orc8r-nginx-proxy External IP>`      | `api.<your domain>`                     |
 | `<orc8r-clientcert-nginx External IP>` | `controller.<your domain>`              |
 | `<nginx-proxy External IP>`            | `*.nms.<your domain>`                   |
+| `<fluentd External IP>`                | `fluentd.<your domain>`                 |
 
 ## Verify the deployment
 
@@ -99,5 +116,5 @@ Get the host organization's username and password:
 juju run-action nms-magmalte/leader get-master-admin-credentials --wait
 ```
 
-Confirm successful deployment by visiting `https://host.nms.<your domain>` and logging in
+Confirm successful deployment by visiting `https://master.nms.<your domain>` and logging in
 with the `admin-username` and `admin-password` outputted here.
