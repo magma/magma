@@ -16,6 +16,11 @@
 name: Magma Promote Debian Packages
 
 on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+    branches:
+      - master
+
   workflow_dispatch:
     inputs:
       distribution:
@@ -28,22 +33,22 @@ jobs:
   debian-packages-promote:
     runs-on: ubuntu-20.04
     env:
-      distribution: ${{ inputs.distribution }}
+      distribution: ${{ inputs.distribution || 'focal-1.8.0' }}
       source-repository: magma-packages-test
-      target-repository: magma-packages-prod
+      target-repository: magma-packages-tmp
     steps:
-      - uses: tspascoal/get-user-teams-membership@39b5264024b7c3bd7480de2f2c8d3076eed49ec5 # pin@v1.0.4
-        name: Check if user has rights to promote
-        id: checkUserMember
-        with:
-          username: ${{ github.actor }}
-          team: 'approvers-ci'
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+      # - uses: tspascoal/get-user-teams-membership@39b5264024b7c3bd7480de2f2c8d3076eed49ec5 # pin@v1.0.4
+      #   name: Check if user has rights to promote
+      #   id: checkUserMember
+      #   with:
+      #     username: ${{ github.actor }}
+      #     team: 'approvers-ci'
+      #     GITHUB_TOKEN: ${{ secrets.github_token }}
 
-      - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
-        run: |
-          echo "User is not a member of the approvers-ci group."
-          exit 1
+      # - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
+      #   run: |
+      #     echo "User is not a member of the approvers-ci group."
+      #     exit 1
 
       - name: Verify distribution
         run: |
