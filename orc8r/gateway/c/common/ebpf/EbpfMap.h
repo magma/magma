@@ -18,12 +18,17 @@
 
 // UE sessions map definitions.
 struct ul_map_key {
-  __u32 ue_ip;
+
+  __u32 ue_ip
+  ;
+
 };
 
 struct ul_map_info {
   __u32 mark;
-  __u32 e_if_index;
+
+  __u32 e_if_index
+  ;
   uint64_t bytes;
   __u8 mac_src[ETH_ALEN];
   __u8 mac_dst[ETH_ALEN];
@@ -46,7 +51,10 @@ struct gtp1_header { /* According to 3GPP TS 29.060. */
   __u8 type;
   __be16 length;
   __be32 tid;
-} __attribute__((packed));
+} __attribute__((packed))
+;
 
-static const int GTP_PORT_NO = 2152;
+static const int 
+GTP_PORT_NO = 2152
+;
 static const int gtp_hdr_size = 8;

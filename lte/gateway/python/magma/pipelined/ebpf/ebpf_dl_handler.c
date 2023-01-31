@@ -21,7 +21,15 @@
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
 // to examine datapath state.
-BPF_TABLE_PINNED("hash", struct dl_map_key, struct dl_map_info, dl_map,
+
+ BPF_TABLE_PINNED(
+  
+  "hash", 
+
+struct dl_map_key, 
+
+
+struct dl_map_info, dl_map,
                  1024 * 512, "/sys/fs/bpf/dl_map");
 
 struct cfg_array_info {
@@ -69,15 +77,23 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
 
   ret = bpf_skb_set_tunnel_key(skb, &tun_info, sizeof(tun_info),
                                BPF_F_ZERO_CSUM_TX);
-  if (ret < 0) {
+  if (ret < 0)
+   {
+
     bpf_trace_printk("ERR: bpf_skb_set_tunnel_key failed with %d", ret);
     return TC_ACT_SHOT;
+
   }
-  bpf_trace_printk("INFO: set: key %d remote ip 0x%x ret = %d\n",
+
+  bpf_trace_printk(
+    "INFO: set: key %d remote ip 0x%x ret = %d\n",
                    tun_info.tunnel_id, tun_info.remote_ipv4, ret);
 
-  u32 cfg_key = 0;
-  struct cfg_array_info* cfg = cfg_array.lookup(&cfg_key);
+  u32 cfg_key = 0
+  ;
+  struct cfg_array_info* 
+  cfg =
+   cfg_array.lookup(&cfg_key);
   if (!cfg) {
     bpf_trace_printk("ERR: Config array lookup failed\n");
     return TC_ACT_OK;
