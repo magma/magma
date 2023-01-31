@@ -439,18 +439,7 @@ class IPAllocatorDHCP(IPAllocator):
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
         logging.info("Releasing dhcp desc: %s", dhcp_desc)
         if dhcp_desc:
-            while len(self.dhcp_helper_procs) >= self.MAX_DHCP_PROCS:
-                oldest_proc = self.dhcp_helper_procs.pop()
-                if oldest_proc.poll() is None:
-                    try:
-                        oldest_proc.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        logging.warning(
-                            "Unable to release IP %s."
-                            "Killing release process "
-                            "and moving on.", ip_desc.ip,
-                        )
-                        oldest_proc.kill()
+            self._deque_old_process(ip_desc)
             proc = subprocess.Popen(
                 [
                     DHCP_HELPER_CLI,
@@ -468,6 +457,20 @@ class IPAllocatorDHCP(IPAllocator):
                 del self._store.dhcp_store[key]
         else:
             LOG.error("Unallocated DHCP release for MAC: %s", mac)
+
+    def _deque_old_process(self, ip_desc: IPDesc) -> None:
+        while len(self.dhcp_helper_procs) >= self.MAX_DHCP_PROCS:
+            oldest_proc = self.dhcp_helper_procs.pop()
+            if oldest_proc.poll() is None:
+                try:
+                    oldest_proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    logging.warning(
+                        "Unable to release IP %s."
+                        "Killing release process "
+                        "and moving on.", ip_desc.ip,
+                    )
+                    oldest_proc.kill()
 
 
 def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
