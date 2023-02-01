@@ -17,6 +17,7 @@ import unittest
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
+from util.traffic_util import TrafficUtil
 
 
 class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
@@ -25,6 +26,7 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
         """Initialize before test case execution"""
         self.magma_utils = MagmadUtil(None)
         self.magma_utils.enable_dhcp_config()
+        self.trf_util = TrafficUtil()
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self.magma_utils.disable_nat()
 
@@ -32,6 +34,7 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
         """Cleanup after test case execution"""
         self.magma_utils.disable_dhcp_config()
         self.magma_utils.enable_nat()
+        self.trf_util.clear_leases()
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_with_non_nat_dhcp(self):
@@ -56,6 +59,8 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            n_leases = len(self.trf_util.dump_leases().decode("utf-8").split("\n")) - 2
+            assert n_leases == i + 1, "IP not assigned to UE"
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -80,6 +85,15 @@ class TestAttachDetachWithNonNatDhcp(unittest.TestCase):
             time.sleep(wait_interval)
             if i == max_iterations - 1:
                 assert False, f"IPs not released after {max_iterations * wait_interval} seconds"
+
+        dump_lease_timeout = 5
+        for i in range(dump_lease_timeout):
+            time.sleep(1)
+            res = self.trf_util.dump_leases()
+            if num_ues == res.decode("utf-8").count("expired"):
+                break
+            if i == dump_lease_timeout - 1:
+                assert False, "Not all IPs released"
 
 
 if __name__ == "__main__":

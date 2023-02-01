@@ -112,55 +112,65 @@ class TrafficUtil(object):
         self.ue_ipv6_block = "fdee:0005:006c::/64"
         self.agw_ipv6 = "3001::10"
 
-    def exec_command(self, command):
+    def exec_command(self, command, capture_output=False):
         """
         Run a command remotely on magma_trfserver VM.
 
         Args:
             command: command (str) to be executed on remote host
                 e.g. 'sed -i \'s/str1/str2/g\' /usr/local/bin/traffic_server.py'
+            capture_output: Sets the `capture_output` flag in `subprocess.run`
 
         Returns:
-            Shell command execution output
+            Shell command return code and stdout
         """
-        data = self._cmd_data
-        data["command"] = '"' + command + '"'
-        param_list = shlex.split(self._command.format(**data))
-        return subprocess.call(
+        self._cmd_data["command"] = f'"{command}"'
+        param_list = shlex.split(self._command.format(**self._cmd_data))
+        return subprocess.run(
             param_list,
             shell=False,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            capture_output=capture_output,
         )
+
+    def dump_leases(self):
+        """Dump DHCP leases in TRF server VM"""
+        return self.exec_command("dumpleases", capture_output=True).stdout
+
+    def clear_leases(self):
+        """Remove all DHCP leases in TRF server VM"""
+        cmd = 'systemctl stop udhcpd.service && ' \
+              'rm -f /var/lib/misc/udhcpd.leases && ' \
+              'systemctl start udhcpd.service'
+        return self.exec_command(f"sudo bash -c '{cmd}'").returncode
 
     def update_dl_route(self, ue_ip_block):
         """Update downlink route in TRF server"""
         ret_code_ipv4 = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
             "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
-        )
+        ).returncode
         ret_code_ipv6 = self.exec_command(
             "sudo ip -6 route flush via " + self.agw_ipv6 + " && sudo ip -6 route "
             "replace " + self.ue_ipv6_block + " via " + self.agw_ipv6 + " dev eth3",
-        )
+        ).returncode
         return ret_code_ipv4 == 0 and ret_code_ipv6 == 0
 
     def close_running_iperf_servers(self):
         """Close running Iperf3 servers in TRF server VM"""
         ret_code = self.exec_command(
             "pidof iperf3 && pidof iperf3 | xargs sudo kill -9",
-        )
+        ).returncode
         return ret_code == 0
 
     def update_mtu_size(self, set_mtu=False):
         """ Update MTU size in TRF server """
         # Set MTU size to 1400 for ipv6
         if set_mtu == True:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400")
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400").returncode
             if ret_code != 0:
                 return False
         else:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500")
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500").returncode
             if ret_code != 0:
                 return False
         return True
