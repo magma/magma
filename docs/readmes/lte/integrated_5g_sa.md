@@ -1,5 +1,5 @@
 ---
-id: integrated_5G_sa
+id: integrated_5g_sa
 title: Integrated 5G SA
 hide_title: true
 ---

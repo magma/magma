@@ -299,8 +299,8 @@
           "lte/sessiond",
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
-          "lte/integrated_5G_sa",
-          "lte/extended_5G_sa_features",
+          "lte/integrated_5g_sa",
+          "lte/extended_5g_sa_features",
           "lte/suci_extensions"
         ]
       },

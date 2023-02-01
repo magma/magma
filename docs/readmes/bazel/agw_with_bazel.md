@@ -420,7 +420,7 @@ The `py_binary` targets tagged as either `service` or `util_script` should not b
 
 The AGW services are running on the magma-dev VM as systemd services, therefore the Bazel-built executables need to be wrapped in a systemd service file. The file templates can be found in the folder `$MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/systemd_bazel/`.
 
-To learn more about the services, go to the page [AGW Services/Sub-Components](../lte/README_AGW.md).
+To learn more about the services, go to the page [AGW Services/Sub-Components](../lte/readme_agw.md).
 
 ### Utility scripts
 

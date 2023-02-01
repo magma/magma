@@ -1,5 +1,5 @@
 ---
-id: version-1.7.0-integrated_5G_sa
+id: version-1.7.0-integrated_5g_sa
 title: Integrated 5G SA
 hide_title: true
 original_id: integrated_5G_sa

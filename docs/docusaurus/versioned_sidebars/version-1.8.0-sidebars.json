@@ -307,8 +307,8 @@
           "version-1.8.0-lte/eventd",
           "version-1.8.0-lte/access_service_restrictions",
           "version-1.8.0-lte/dev_teid_allocation",
-          "version-1.8.0-lte/integrated_5G_sa",
-          "version-1.8.0-lte/extended_5G_sa_features",
+          "version-1.8.0-lte/integrated_5g_sa",
+          "version-1.8.0-lte/extended_5g_sa_features",
           "version-1.8.0-lte/suci_extensions"
         ]
       },
