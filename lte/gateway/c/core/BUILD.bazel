@@ -1180,6 +1180,8 @@ cc_library(
     deps = MME_DEPS,
 )
 
+# This is the default version of the MME service,
+# with OpenFlow and gRPC over S6a.
 cc_binary(
     name = "agw_of",
     srcs = ["oai/oai_mme/oai_mme.c"],
@@ -1193,6 +1195,7 @@ cc_binary(
     deps = [":lib_agw_of"],
 )
 
+# This is the OAI version of the MME service.
 cc_binary(
     name = "mme_oai",
     srcs = ["oai/oai_mme/oai_mme.c"],
