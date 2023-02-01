@@ -2063,9 +2063,6 @@
       "version-1.8.0/orc8r/version-1.8.0-deploy_intro": {
         "title": "Introduction"
       },
-      "version-1.8.0/orc8r/version-1.8.0-deploy_using_juju": {
-        "title": "Deploy Orchestrator using Juju (Beta)"
-      },
       "version-1.8.0/orc8r/version-1.8.0-dev_build": {
         "title": "Build Orchestrator"
       },
