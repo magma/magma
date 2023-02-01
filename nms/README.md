@@ -6,7 +6,7 @@ The Magma NMS provides an enterprise grade GUI for provisioning and operating ma
 >
 > This document is written to help with development of the Magma NMS
 >
-> See the [**docs**](https://docs.magmacore.org/docs/next/nms/overview) for a user-focused guide.
+> See the [**docs**](https://magma.github.io/magma/docs/next/nms/overview) for a user-focused guide.
 
 ## Project Layout
 

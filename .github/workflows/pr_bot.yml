@@ -46,7 +46,7 @@ jobs:
             - [Contributing Conventions](https://github.com/magma/magma/wiki/Contributing-Code-Conventions) for norms around contributed code
 
             If this is your first Magma PR, also consider reading
-            - [Developer Onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
+            - [Developer Onboarding](https://github.com/magma/magma/wiki/Contributor-Guide) for onboarding as a new Magma developer
             - [Development Workflow](https://github.com/magma/magma/wiki/Contributing-Code#developing-workflow) for guidance on your first pull request
             - [CI Checks](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd) for points of contact for failing or flaky CI checks
             - [GitHub-to-Slack mappings for Magma maintainers](https://github.com/magma/magma/wiki/Overview-of-the-Community-Structure-and-Governance) for guidance on how to contact maintainers on Slack`

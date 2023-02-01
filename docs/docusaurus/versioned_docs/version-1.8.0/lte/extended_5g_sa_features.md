@@ -7,7 +7,7 @@ original_id: extended_5g_sa_features
 
 # Extended Features of 5G SA FWA
 
-This document gives an overview of the Extended features added on top of the [integrated 5G SA FWA](https://docs.magmacore.org/docs/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access) such as
+This document gives an overview of the Extended features added on top of the [integrated 5G SA FWA](https://magma.github.io/magma/docs/next/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access) such as
 
 - [5G QoS](/docs/next/lte/extended_5g_sa_features#5g-qos)
 - [IPv6 & Dual IPv4v6 support](/docs/next/lte/extended_5g_sa_features#ipv6--dual-ipv4v6-support)
@@ -80,7 +80,7 @@ Here, Rule 1 is the default QoS policy and Rule 2 is the QoS policy configured a
 
 In compliance with 5G standards and to provide enhanced security, SUCI based registration has been introduced in the current release supporting both Profile-A and Profile-B configuration using ECIES-based protection scheme. With this feature end devices (UE/CPE) can encrypt the identifiers (IMSI) during the registration request using the pre-shared keys which will be then decrypted and processed by AMF.
 
-In this release AGW supports two different profiles of [SUCI Extensions](https://docs.magmacore.org/docs/next/lte/suci_extensions).
+In this release AGW supports two different profiles of [SUCI Extensions](https://magma.github.io/magma/docs/next/lte/suci_extensions).
 
 ## Stateless feature
 

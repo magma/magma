@@ -9,7 +9,7 @@ hide_title: true
 This page walks through a full, vanilla Orchestrator install using Ansible on bare metal or a virtual machine.
 
 If you want to install a specific release version, see the notes in the
-[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
+[deployment intro](https://magma.github.io/magma/docs/orc8r/deploy_intro).
 
 ## Advanced users
 
@@ -19,7 +19,7 @@ deployment, refer to the [advanced deployment notes](docs/advanced_notes.md).
 ## Prerequisites
 
 We assume `MAGMA_ROOT` is set as described in the
-[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
+[deployment intro](https://magma.github.io/magma/docs/orc8r/deploy_intro).
 
 This walkthrough assumes you already have the following
 

@@ -125,7 +125,7 @@ installation process to get an IP using DHCP.
 
   ``` bash
   #Clone magma repository on Ansible host
-  git clone https://github.com/facebookincubator/magma.git ~/
+  git clone https://github.com/magma/magma.git ~/
   ```
 
 - Prepare for deployment
