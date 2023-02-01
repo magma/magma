@@ -71,4 +71,4 @@ docker compose --compatibility up
 ```
 
 The test VM can then be set up and the tests executed by following
-[these instructions](https://docs.magmacore.org/docs/next/lte/s1ap_tests#test-vm-setup).
+[these instructions](https://magma.github.io/magma/docs/next/lte/s1ap_tests#test-vm-setup).

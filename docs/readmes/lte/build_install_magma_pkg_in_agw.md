@@ -25,7 +25,7 @@ Note that the following is supported starting with magma v1.9. For older version
     ```
 
 2. **Install prerequisites**.
-    Make sure you have installed all the tools specified in the prerequisites <https://magma.github.io/magma/docs/basics/prerequisites#prerequisites>
+    Make sure you have installed all the tools specified in the [prerequisites](https://magma.github.io/magma/docs/basics/prerequisites#prerequisites)
 
 3. **Build and create deb package**.
     To build an AGW package spin up a vagrant machine and then build and create a deb package.

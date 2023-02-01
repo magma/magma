@@ -7,8 +7,7 @@ hide_title: true
 # FeG CLI
 
 Some Go services on FeG include a cli to run commands against the
-3GPP core. The different clients source code can be seen at
-[here](https://github.com/magma/magma/tree/master/feg/gateway/tools)
+3GPP core. The different clients source code can be seen in the [`feg/gateway/tools`](https://github.com/magma/magma/tree/master/feg/gateway/tools) folder.
 
 ## CLI binaries
 
