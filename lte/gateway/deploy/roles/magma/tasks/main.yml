@@ -159,7 +159,7 @@
     - { src: '{{ c_build }}/li_agent/src/liagentd', path: bin/liagentd }
     - { src: '{{ c_build }}/session_manager/sessiond', path: bin/sessiond }
     - { src: '{{ c_build }}/sctpd/src/sctpd', path: sbin/sctpd }
-    - { src: '{{ go_build }}/envoy_controller', path: envoy_controller }
+    - { src: '{{ go_build }}/envoy_controller', path: bin/envoy_controller }
     - { src: '{{ oai_build }}/oai_mme/mme', path: bin/mme }
   when: full_provision
 
