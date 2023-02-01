@@ -123,12 +123,12 @@ under consideration.</li>
 </ol>
 <p>To connect a physical UE to the gateway VM,</p>
 <ol>
-<li><p>Use a programmable SIM which is provisioned with the LTE auth key that you
-will use in the EPC.</p></li>
-<li><p>On the gateway VM, add the subscriber using the CLI:</p></li>
-<li><p><code>magtivate</code></p></li>
-<li><p><code>subscriber_cli.py add --lte-auth-key &lt;base64 LTE auth key&gt; IMSI&lt;15 digit IMSI&gt;</code></p></li>
-<li><p>On the UE, turn airplane mode on, then off, to trigger a fresh attach</p></li>
+<li>Use a programmable SIM which is provisioned with the LTE auth key that you
+will use in the EPC.</li>
+<li>On the gateway VM, add the subscriber using the CLI:</li>
+<li><code>magtivate</code></li>
+<li><code>subscriber_cli.py add --lte-auth-key &lt;base64 LTE auth key&gt; IMSI&lt;15 digit IMSI&gt;</code></li>
+<li>On the UE, turn airplane mode on, then off, to trigger a fresh attach</li>
 </ol>
 <h3><a class="anchor" aria-hidden="true" id="connecting-a-physical-agw-to-s1ap-test-vm"></a><a href="#connecting-a-physical-agw-to-s1ap-test-vm" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Connecting a physical AGW to S1AP test VM</h3>
 <p>Another useful combination is to run the <a href="/magma/docs/1.6.X/lte/s1ap_tests">S1ap integration tests</a>
