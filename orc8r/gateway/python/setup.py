@@ -58,7 +58,7 @@ setup(
         'scripts/traffic_cli.py',
     ],
     install_requires=[
-        'setuptools==49.6.0',
+        'setuptools==65.5.1',
         'Cython>=0.29.32',
         'pystemd>=0.10.0',
         'docker==4.1.0',
