@@ -147,10 +147,11 @@ To connect a physical eNodeB to the gateway VM:
 3. In gateway VM, modify the `nat_iface` in `/etc/magma/pipelined.yml` from
 `eth2` to `eth0`. Restart all services.
 4. In the gateway VM, follow the steps in [EnodeB
-Configuration](enodebd#basic-troubleshooting). Make sure the `earfcn` set in the
-enodebd section of `gateway.mconfig` is the one that is supported by the eNodeB
-under consideration. Use this [calculator](https://www.sqimway.com/lte_band.php) to
-get the `earfcn` corresponding to the frequency range listed on the eNodeB.
+Configuration](deploy_config_enodebd.md#basic-troubleshooting). Make sure the
+`earfcn` set in the enodebd section of `gateway.mconfig` is the one that is
+supported by the eNodeB under consideration. Use this
+[calculator](https://www.sqimway.com/lte_band.php) to get the `earfcn`
+corresponding to the frequency range listed on the eNodeB.
 
 To connect a physical UE to the gateway VM,
 
