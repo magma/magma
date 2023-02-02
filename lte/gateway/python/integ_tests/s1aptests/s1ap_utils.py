@@ -1141,6 +1141,31 @@ class MagmadUtil(object):
 
         self.wait_for_restart_to_finish(wait_time)
 
+    def restart_single_service(self, service: str, wait_time: int = 0):
+        """
+        Restart a sigle magmad services.
+        This separate restart function is a result of the interdependencies
+        mentioned in the `restart_services` fct. Since multiple services/
+        docker containers are restarted, some race condition between these
+        restarts and 3GPP spec timers occur. Especially in the docker init
+        mode, this leads to failing tests in CI due to performance issues.
+        Since we hard code these intedependent container restarts for testing
+        only, one test is executed with only a MME restart to keep it green;
+        Test3485TimerForDefaultBearerWithMmeRestart.
+
+        Args:
+            service: (str) service name
+            wait_time: (int) max wait time for restart of the services
+        """
+
+        service_name = self.map_service_to_init_system_service_name(service)
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command(f"sudo systemctl --no-block restart {service_name}")
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command(f"docker restart --time 1 {service_name}")
+
+        self.wait_for_restart_to_finish(wait_time)
+
     def wait_for_restart_to_finish(self, wait_time: int):
         """wait for started services to become active or until timeout
 
