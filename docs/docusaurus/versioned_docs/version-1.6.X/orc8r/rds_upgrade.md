@@ -1,5 +1,5 @@
 ---
-id: version-1.6.X-RDS_upgrade
+id: version-1.6.X-rds_upgrade
 title: Orchestrator DB Upgrade
 hide_title: true
 original_id: RDS_upgrade
