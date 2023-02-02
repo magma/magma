@@ -67,7 +67,7 @@ def build_all(clear_orc8r='False', provision_vm='False', orc8r_on_vagrant='False
         clear_orc8r_db()
 
     # build other VMs
-    build_test_vm(provision_vm=provision_vm)
+    build_test_vm()
     build_magma_trf(provision_vm=provision_vm)
 
 
@@ -261,13 +261,9 @@ def _stop_feg_on_host():
     )
 
 
-def build_test_vm(provision_vm='False'):
+def build_test_vm():
     print('#### Building test vm ####')
     subprocess.check_call('vagrant up magma_test', shell=True, cwd=agw_path)
-    subprocess.check_call(
-        'fab make_integ_tests:provision_vm=%s'
-        % provision_vm, shell=True, cwd=agw_path,
-    )
 
 
 def build_magma_trf(provision_vm='False'):
