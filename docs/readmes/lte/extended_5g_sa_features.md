@@ -79,7 +79,7 @@ Here, Rule 1 is the default QoS policy and Rule 2 is the QoS policy configured a
 
 In compliance with 5G standards and to provide enhanced security, SUCI based registration has been introduced in the current release supporting both Profile-A and Profile-B configuration using ECIES-based protection scheme. With this feature end devices (UE/CPE) can encrypt the identifiers (IMSI) during the registration request using the pre-shared keys which will be then decrypted and processed by AMF.
 
-In this release AGW supports two different profiles of [SUCI Extensions](https://docs.magmacore.org/docs/next/lte/suci_extensions).
+In this release AGW supports two different profiles of [SUCI Extensions](https://magma.github.io/magma/docs/next/lte/suci_extensions).
 
 ## Stateless feature
 

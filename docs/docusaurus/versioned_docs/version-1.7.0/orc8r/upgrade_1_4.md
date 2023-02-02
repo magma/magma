@@ -19,7 +19,7 @@ The v1.4 upgrade follows a standard procedure:
 ## Prerequisites
 
 Build and publish the application containers and Helm charts on the head of the
-release branch by following the [Build Orchestrator](https://docs.magmacore.org/docs/orc8r/deploy_build)
+release branch by following the [Build Orchestrator](https://magma.github.io/magma/docs/orc8r/deploy_build)
 documentation.
 
 If you are using local Terraform state (the default), ensure all Terraform
