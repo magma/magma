@@ -433,7 +433,7 @@ bazel/scripts/link_scripts_for_bazel_integ_tests.sh
 
 ### How to run services and scripts
 
-The process for building and running the services and scripts is already automated and documented in the [Quick Start Guide](../lte/quick_start_guide.md). To build all services, on the magma-dev VM, you can use the alias `magma-build-agw`. For the detailed commands, you can look at the script `$MAGMA_ROOT/bazel/scripts/build_and_run_bazelified_agw.sh`.
+The process for building and running the services and scripts is already automated and documented in the [Quick Start Guide](../basics/quick_start_guide.md). To build all services, on the magma-dev VM, you can use the alias `magma-build-agw`. For the detailed commands, you can look at the script `$MAGMA_ROOT/bazel/scripts/build_and_run_bazelified_agw.sh`.
 
 To run an individual utility script, after it was built and linked, execute the name of the file on the magma-dev VM in any directory.
 
