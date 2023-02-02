@@ -116,10 +116,10 @@ To connect a physical eNodeB to the gateway VM:</p>
 <code>Host-only</code> to <code>Bridged</code> mode and bridge it to interface <code>en9</code> from above.</li>
 <li>In gateway VM, modify the <code>nat_iface</code> in <code>/etc/magma/pipelined.yml</code> from
 <code>eth2</code> to <code>eth0</code>. Restart all services.</li>
-<li>In the gateway VM, follow the steps in <a href="enodebd#basic-troubleshooting">EnodeB
-Configuration</a>. Make sure the <code>earfcn</code> set in the
-enodebd section of <code>gateway.mconfig</code> is the one that is supported by the eNodeB
-under consideration.</li>
+<li>In the gateway VM, follow the steps in <a href="deploy_config_enodebd#basic-troubleshooting">EnodeB
+Configuration</a>. Make sure the
+<code>earfcn</code> set in the enodebd section of <code>gateway.mconfig</code> is the one that is
+supported by the eNodeB under consideration.</li>
 </ol>
 <p>To connect a physical UE to the gateway VM,</p>
 <ol>
