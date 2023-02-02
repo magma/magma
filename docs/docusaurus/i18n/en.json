@@ -1498,7 +1498,7 @@
       "version-1.6.X/orc8r/version-1.6.X-dev_minikube": {
         "title": "Deploy on Minikube"
       },
-      "version-1.6.X/orc8r/version-1.6.X-RDS_upgrade": {
+      "version-1.6.X/orc8r/version-1.6.X-rds_upgrade": {
         "title": "Orchestrator DB Upgrade"
       },
       "version-1.6.X/orc8r/version-1.6.X-upgrade_1_5": {
