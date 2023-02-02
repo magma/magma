@@ -19,6 +19,7 @@ import shlex
 import socket
 import subprocess
 import threading
+import time
 
 import iperf3
 import pyroute2
@@ -142,6 +143,34 @@ class TrafficUtil(object):
               'rm -f /var/lib/misc/udhcpd.leases && ' \
               'systemctl start udhcpd.service'
         return self.exec_command(f"sudo bash -c '{cmd}'").returncode
+
+    @property
+    def n_leases(self):
+        """Count the total number of leases in TRF server VM"""
+        return len(self.dump_leases().decode("utf-8").split("\n")) - 2
+
+    @property
+    def n_expired_leases(self):
+        """Count number of expired leases in TRF server VM"""
+        return self.dump_leases().decode("utf-8").count("expired")
+
+    def check_attached_leases(self, expected_leases, timeout=5):
+        """Wait for up to timeout seconds for expected number of leases"""
+        i = 0
+        while expected_leases != self.n_leases:
+            if i == timeout - 1:
+                assert False, "IP not assigned to UE"
+            time.sleep(1)
+            i += 1
+
+    def check_detached_leases(self, expected_leases, timeout=5):
+        """Wait for up to timeout seconds for expected number of leases"""
+        i = 0
+        while expected_leases != self.n_expired_leases:
+            if i == timeout - 1:
+                assert False, "Not all IPs released"
+            time.sleep(1)
+            i += 1
 
     def update_dl_route(self, ue_ip_block):
         """Update downlink route in TRF server"""
