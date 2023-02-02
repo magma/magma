@@ -156,6 +156,6 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 }
 ```
 
-Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
+Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
 
 ![Grafana Explore UI](assets/nms/grafana_query.png)
