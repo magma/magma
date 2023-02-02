@@ -85,4 +85,4 @@ Suggested Solution:
 
 1. Double check with the Auth Key and OPC are correctly set for this user
 2. Verify the Auth Key and OPC values with the SIM vendor
-3. If issue still persists, please  file github issues or ask in our support channels <https://www.magmacore.org/community/>
+3. If issue still persists, please  file github issues or ask in our support channels <https://magmacore.org/join-the-open-source-community/>
