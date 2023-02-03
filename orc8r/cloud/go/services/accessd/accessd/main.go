@@ -30,6 +30,8 @@ import (
 )
 
 func main() {
+	// test comment
+
 	// Create the service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, accessd.ServiceName)
 	if err != nil {

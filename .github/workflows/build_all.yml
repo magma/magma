@@ -23,6 +23,7 @@ on:
       - 'v1.*'
     types: [ opened, reopened, synchronize ]
 
+# test comment
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'

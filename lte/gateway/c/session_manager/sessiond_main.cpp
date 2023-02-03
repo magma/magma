@@ -72,6 +72,8 @@ namespace grpc {
 class Channel;
 }  // namespace grpc
 
+// test comment
+
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define POLICYDB_SERVICE "policydb"

@@ -13,6 +13,7 @@
 
 load("@bazel_gazelle//:deps.bzl", "go_repository")
 
+# test comment
 def go_repositories():
     """ Declares all go dependencies. """
 

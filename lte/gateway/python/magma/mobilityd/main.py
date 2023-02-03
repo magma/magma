@@ -35,6 +35,7 @@ from magma.mobilityd.utils import IPNetwork
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 RETRY_LIMIT = 300
 
+# test comment
 
 def _get_ipv4_allocator(
     store: MobilityStore, allocator_type: int,

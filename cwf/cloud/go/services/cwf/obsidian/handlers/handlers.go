@@ -125,6 +125,7 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
+	// test comment
 	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}

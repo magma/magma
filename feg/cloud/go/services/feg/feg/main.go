@@ -28,6 +28,7 @@ import (
 )
 
 func main() {
+	// test comment
 	srv, err := service.NewOrchestratorService(feg.ModuleName, feg_service.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating feg service %s", err)
