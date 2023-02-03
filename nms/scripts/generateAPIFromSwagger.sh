@@ -56,14 +56,24 @@ if [ "$FORCE" = false ] && [ -d "${OUTPUT}"  ] ; then
     fi
 fi
 
-if ! (set -x && yarn --silent openapi-generator-cli version-manager set 6.0.0) ;
-then
-  echo "Info: If this yarn command fails due to 'Request failed with status code 504'"
-  echo "the availability of search.maven.org may be responsible, see https://status.maven.org/#month"
-  echo "For more information see https://github.com/OpenAPITools/openapi-generator-cli/issues/680"
-  echo "or the issue https://github.com/magma/magma/issues/14860"
-  exit 1
-fi
+# Originally the following code was used to set the version of the
+# openapi-generator-cli to 6.0.0
+# (set -x; yarn --silent openapi-generator-cli version-manager set 6.0.0)
+# This call causes a maven search api call that seems to be very flaky
+# the last couple of weeks (as of 02/2023). See also
+# https://github.com/OpenAPITools/openapi-generator-cli/issues/680
+# This workaround sets the version to 6.0.0 without the maven search api
+# call and is taken over from the issue above.
+openapiGeneratorVersion=6.0.0
+cat <<EOF >| openapitools.json
+{
+  "\$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "${openapiGeneratorVersion}"
+  }
+}
+EOF
 
 (set -x;
 yarn --silent openapi-generator-cli generate -i "${INPUT}" --output "${OUTPUT}" --skip-validate-spec --additional-properties=useSingleRequestParameter=true -g typescript-axios)
