@@ -182,7 +182,7 @@ def _send_packet_and_receive_response(pkt: dpkt.arp.ARP, vlan: str, non_nat_arp_
     packet_aux_data = 8
     with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(0x0003)) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, buffsize)
-        s.settimeout(10)
+        s.settimeout(50)
         if vlan.isdigit():
             s.setsockopt(sol_packet, packet_aux_data, 1)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_MARK, 1)

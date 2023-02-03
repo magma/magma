@@ -75,7 +75,7 @@ class MacAddress:
 class DhcpHelperCli:
     _SNIFFER_FILTER = "udp and (port 67 or 68)"
     _SNIFFER_STARTUP_WAIT = 0.5
-    _TIMEOUT = 10
+    _TIMEOUT = 50
     _state = DHCPState.DISCOVER
     _vlan = None
 
@@ -199,7 +199,7 @@ class DhcpHelperCli:
             else:
                 self._pkt_queue.task_done()
 
-        raise TimeoutError(f"Timed out while waiting for {handler}.")
+        raise TimeoutError(f"Timed out while waiting for {handler} after {start_time}.")
 
     def receive_dhcp_offer(
             self, dhcp_state_code: int, pkt: scapy.packet.Packet,

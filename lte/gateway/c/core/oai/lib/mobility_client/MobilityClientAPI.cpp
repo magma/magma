@@ -133,8 +133,9 @@ static void handle_allocate_ipv4_address_status(
                         "result", "failure");
       OAILOG_ERROR(LOG_UTIL,
                    "Failed to allocate IPv4 PAA for PDN type IPv4 for "
-                   "imsi <%s> and apn <%s>\n",
-                   imsi, apn);
+                   "imsi <%s> and apn <%s>, error_code=%d\n",
+                   imsi, apn, status.error_code());
+
       ip_allocation_response_p->status =
           SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
     }
