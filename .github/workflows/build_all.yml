@@ -112,7 +112,7 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    if: github.event_name == 'push' && github.repository_owner == 'magma'
+    if: always()
     runs-on: macos-12
     outputs:
       artifacts: ${{ steps.publish_packages.outputs.artifacts }}
@@ -216,7 +216,7 @@ jobs:
         with:
           args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
   sentry_release:
-    if: always() && github.event_name == 'push'
+    if: always()
     needs: [ agw-build ]
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
@@ -458,7 +458,7 @@ jobs:
   cloud-upload:
     name: cloud upload job
     runs-on: ubuntu-20.04
-    if: github.event_name == 'push' && github.repository_owner == 'magma'
+    if: always()
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Install SwaggerHub CLI

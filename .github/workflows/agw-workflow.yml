@@ -135,10 +135,7 @@ jobs:
 
   c_cpp_unit_tests:
     needs: path_filter
-    if: |
-      needs.path_filter.outputs.should_not_skip == 'true' &&
-      github.repository_owner == 'magma' &&
-      github.ref_name == 'master'
+    if: always()
     name: C/C++ unit tests with Bazel
     runs-on: ubuntu-20.04
     steps:
