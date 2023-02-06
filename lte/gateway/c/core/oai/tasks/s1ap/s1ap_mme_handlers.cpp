@@ -4406,7 +4406,7 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_Reset;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_ResetAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.ResetAcknowledge;
