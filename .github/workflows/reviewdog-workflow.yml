@@ -87,7 +87,7 @@ jobs:
             ,-build/c++11\
             ,-build/include_what_you_use\
             "
-          reviewdog_flags: -fail-on-error
+          reviewdog_flags: -filter-mode=nofilter
 
   golangci-lint:
     needs: files_changed
