@@ -133,7 +133,7 @@ class TrafficUtil(object):
             capture_output=capture_output,
         )
 
-    def dump_leases(self):
+    def _dump_leases(self):
         """Dump DHCP leases in TRF server VM"""
         return self.exec_command("dumpleases", capture_output=True).stdout
 
@@ -144,29 +144,31 @@ class TrafficUtil(object):
               'systemctl start udhcpd.service'
         return self.exec_command(f"sudo bash -c '{cmd}'").returncode
 
-    @property
-    def n_leases(self):
+    def _count_leases(self):
         """Count the total number of leases in TRF server VM"""
-        return len(self.dump_leases().decode("utf-8").split("\n")) - 2
+        # Subtract 2 to account for the table header
+        # and the empty line at the end
+        return len(self._dump_leases().decode("utf-8").split("\n")) - 2
 
-    @property
-    def n_expired_leases(self):
+    def _count_expired_leases(self):
         """Count number of expired leases in TRF server VM"""
-        return self.dump_leases().decode("utf-8").count("expired")
+        return self._dump_leases().decode("utf-8").count("expired")
 
-    def check_attached_leases(self, expected_leases, timeout=5):
+    def check_attached_leases(self, expected_leases):
         """Wait for up to timeout seconds for expected number of leases"""
         i = 0
-        while expected_leases != self.n_leases:
+        timeout = 5
+        while expected_leases != self._count_leases():
             if i == timeout - 1:
                 assert False, "IP not assigned to UE"
             time.sleep(1)
             i += 1
 
-    def check_detached_leases(self, expected_leases, timeout=5):
+    def check_detached_leases(self, expected_leases):
         """Wait for up to timeout seconds for expected number of leases"""
         i = 0
-        while expected_leases != self.n_expired_leases:
+        timeout = 5
+        while expected_leases != self._count_expired_leases():
             if i == timeout - 1:
                 assert False, "Not all IPs released"
             time.sleep(1)
