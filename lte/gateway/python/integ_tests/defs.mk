@@ -178,6 +178,8 @@ s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_detach_with_he_policy.py \
 s1aptests/test_paging_after_mme_restart.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 EXTENDED_TESTS_LONG = s1aptests/test_modify_mme_config_for_sanity.py \

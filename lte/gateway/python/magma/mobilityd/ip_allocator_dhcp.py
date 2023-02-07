@@ -50,6 +50,10 @@ DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
 
 class IPAllocatorDHCP(IPAllocator):
+
+    MAX_DHCP_PROCS: int = 3
+    dhcp_helper_procs: List[subprocess.Popen] = []
+
     def __init__(
         self, store: MobilityStore, retry_limit: int = 300, start: bool = True,
             iface: str = "eth2", lease_renew_wait_min: float = LEASE_RENEW_WAIT_MIN,  # TODO read this from config file
@@ -435,35 +439,38 @@ class IPAllocatorDHCP(IPAllocator):
         dhcp_desc = self.get_dhcp_desc_from_store(mac, vlan)
         logging.info("Releasing dhcp desc: %s", dhcp_desc)
         if dhcp_desc:
-            call_args = [
-                DHCP_HELPER_CLI,
-                "--mac", str(mac),
-                "--vlan", str(vlan),
-                "--interface", self._iface,
-                "--json",
-                "release",
-                "--ip", str(ip_desc.ip),
-                "--server-ip", str(dhcp_desc.server_ip),
-            ]
-            ret = subprocess.run(
-                call_args,
-                capture_output=True,
-                check=False,
+            self._deque_old_process(ip_desc)
+            proc = subprocess.Popen(
+                [
+                    DHCP_HELPER_CLI,
+                    "--mac", str(mac),
+                    "--vlan", str(vlan),
+                    "--interface", self._iface,
+                    "release",
+                    "--ip", str(ip_desc.ip),
+                    "--server-ip", str(dhcp_desc.server_ip),
+                ],
             )
-
-            if ret.returncode != 0:
-                call_str = " ".join(call_args)
-                logging.error(
-                    "CLI call '%s' failed with return code %s and error %s",
-                    call_str, ret.returncode, ret.stderr,
-                )
-                raise NoAvailableIPError('Failed to call dhcp_helper_cli.')
-
+            self.dhcp_helper_procs.insert(0, proc)
             key = mac.as_redis_key(vlan)
             with self.dhcp_wait:
                 del self._store.dhcp_store[key]
         else:
             LOG.error("Unallocated DHCP release for MAC: %s", mac)
+
+    def _deque_old_process(self, ip_desc: IPDesc) -> None:
+        while len(self.dhcp_helper_procs) >= self.MAX_DHCP_PROCS:
+            oldest_proc = self.dhcp_helper_procs.pop()
+            if oldest_proc.poll() is None:
+                try:
+                    oldest_proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    logging.warning(
+                        "Unable to release IP %s."
+                        "Killing release process "
+                        "and moving on.", ip_desc.ip,
+                    )
+                    oldest_proc.kill()
 
 
 def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
