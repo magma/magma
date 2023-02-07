@@ -71,7 +71,7 @@ jobs:
         if: always()
         working-directory: 'lte/gateway/'
         run: |
-          fab get-test-summaries --integration-tests --dst-path="test-results" --dev-vm-name="magma_deb"
+          fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
