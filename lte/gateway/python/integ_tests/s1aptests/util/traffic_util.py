@@ -142,7 +142,7 @@ class TrafficUtil(object):
         cmd = 'systemctl stop udhcpd.service && ' \
               'rm -f /var/lib/misc/udhcpd.leases && ' \
               'systemctl start udhcpd.service'
-        return self.exec_command(f"sudo bash -c '{cmd}'").returncode
+        self.exec_command(f"sudo bash -c '{cmd}'")
 
     def _count_leases(self):
         """Count the total number of leases in TRF server VM"""
