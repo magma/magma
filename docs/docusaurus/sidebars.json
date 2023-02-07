@@ -121,7 +121,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "nms/deploy_setup"
+          "nms/deploy_config"
         ]
       },
       {
