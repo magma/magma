@@ -58,15 +58,14 @@
         "ids": [
           "version-1.7.0-orc8r/architecture_overview",
           "version-1.7.0-orc8r/architecture_modularity",
-          "version-1.7.0-orc8r/architecture_security",
-          "version-1.7.0-nms/nms_arch_overview"
+          "version-1.7.0-orc8r/architecture_security"
         ]
       },
       {
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.7.0-nms/nms_arch_overview"
+          "version-1.7.0-nms/architecture_overview"
         ]
       },
       {
