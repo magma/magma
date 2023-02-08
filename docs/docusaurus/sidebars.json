@@ -60,8 +60,7 @@
         "ids": [
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
-          "orc8r/architecture_security",
-          "nms/nms_arch_overview"
+          "orc8r/architecture_security"
         ]
       },
       {
