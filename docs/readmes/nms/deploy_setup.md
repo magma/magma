@@ -1,5 +1,5 @@
 ---
-id: deploy_config
+id: deploy_setup
 title: Set Up NMS
 hide_title: true
 ---
