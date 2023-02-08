@@ -46,3 +46,12 @@ typedef struct application_s1ap_stats_msg {
   uint32_t nb_enb_connected;
   uint32_t nb_s1ap_last_msg_latency;
 } application_s1ap_stats_msg_t;
+
+typedef struct application_amf_app_stats_msg {
+  uint32_t nb_ue_connected;
+} application_amf_app_stats_msg_t;
+
+typedef struct application_ngap_stats_msg {
+  uint32_t nb_gnb_connected;
+  // uint32_t nb_ngap_last_msg_latency;
+} application_ngap_stats_msg_t;

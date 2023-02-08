@@ -135,6 +135,33 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
         ],
       },
       {
+        title: '5G Connections',
+        panels: [
+          {
+            title: 'Number of Connected UEs',
+            targets: [
+              {
+                expr:
+                  'sum(ue_connected_5g{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            aggregates: {avg: true, max: true},
+          },
+          {
+            title: 'Number of Connected gNBs',
+            targets: [
+              {
+                expr:
+                  'sum(gnb_connected{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            aggregates: {avg: true, max: true},
+          },
+        ],
+      },
+      {
         title: 'S1',
         panels: [
           {

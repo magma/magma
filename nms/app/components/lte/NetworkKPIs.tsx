@@ -40,11 +40,33 @@ export default function () {
       unit: '',
     },
     {
+      label: 'Number of Connected gNBs',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(gnb_connected)',
+        },
+      ],
+      legendLabels: ['Connected'],
+      unit: '',
+    },
+    {
       label: 'Number of Connected UEs',
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
           resolveQuery: () => 'sum(ue_connected)',
+        },
+      ],
+      legendLabels: ['Connected'],
+      unit: '',
+    },
+    {
+      label: 'Number of Connected UEs 5G',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(ue_connected_5g)',
         },
       ],
       legendLabels: ['Connected'],

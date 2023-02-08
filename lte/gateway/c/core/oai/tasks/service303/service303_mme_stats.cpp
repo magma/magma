@@ -70,3 +70,15 @@ void service303_statistics_display(void) {
                "======================================= STATISTICS "
                "============================================\n\n");
 }
+
+void service303_amf_app_statistics_read(
+    application_amf_app_stats_msg_t* stats_msg_p) {
+  size_t label = 0;
+  set_gauge("ue_connected_5g", stats_msg_p->nb_ue_connected, label);
+}
+
+void service303_ngap_statistics_read(
+    application_ngap_stats_msg_t* stats_msg_p) {
+  size_t label = 0;
+  set_gauge("gnb_connected", stats_msg_p->nb_gnb_connected, label);
+}

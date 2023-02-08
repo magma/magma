@@ -45,6 +45,15 @@ const CONFIGS: Array<MetricGraphConfig> = [
     label: 'Connected Subscribers',
   },
   {
+    basicQueryConfigs: [
+      {
+        metric: 'ue_connected_5g',
+        filters: [{name: 'service', value: 'amf'}],
+      },
+    ],
+    label: 'Connected Subscribers 5G',
+  },
+  {
     customQueryConfigs: [
       {
         resolveQuery: gw =>
