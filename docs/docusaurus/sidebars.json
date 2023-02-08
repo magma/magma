@@ -25,11 +25,6 @@
       },
       {
         "type": "subcategory",
-        "label": "Access Gateway",
-        "ids": []
-      },
-      {
-        "type": "subcategory",
         "label": "NMS",
         "ids": [
           "nms/overview",

@@ -24,11 +24,6 @@
       },
       {
         "type": "subcategory",
-        "label": "Access Gateway",
-        "ids": []
-      },
-      {
-        "type": "subcategory",
         "label": "NMS",
         "ids": [
           "version-1.8.0-nms/overview",
