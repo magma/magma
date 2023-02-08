@@ -67,7 +67,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "nms/nms_arch_overview"
+          "nms/architecture_overview"
         ]
       },
       {

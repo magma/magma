@@ -281,7 +281,7 @@
       "nms/alerts_troubleshooting": {
         "title": "Alerts"
       },
-      "nms/nms_arch_overview": {
+      "nms/architecture_overview": {
         "title": "Overview"
       },
       "nms/dashboard": {
@@ -1282,7 +1282,7 @@
       "version-1.5.X/nms/version-1.5.X-alerts": {
         "title": "Alerts"
       },
-      "version-1.5.X/nms/version-1.5.X-nms_arch_overview": {
+      "version-1.5.X/nms/version-1.5.X-architecture_overview": {
         "title": "Overview"
       },
       "version-1.5.X/nms/version-1.5.X-deploy_config": {
@@ -1784,7 +1784,7 @@
       "version-1.7.0/nms/version-1.7.0-alerts_troubleshooting": {
         "title": "Alerts"
       },
-      "version-1.7.0/nms/version-1.7.0-nms_arch_overview": {
+      "version-1.7.0/nms/version-1.7.0-architecture_overview": {
         "title": "Overview"
       },
       "version-1.7.0/nms/version-1.7.0-dashboard": {
@@ -2033,7 +2033,7 @@
       "version-1.8.0/lte/version-1.8.0-suci_extensions": {
         "title": "SUCI Extensions"
       },
-      "version-1.8.0/nms/version-1.8.0-nms_arch_overview": {
+      "version-1.8.0/nms/version-1.8.0-architecture_overview": {
         "title": "Overview"
       },
       "version-1.8.0/nms/version-1.8.0-deploy_setup": {

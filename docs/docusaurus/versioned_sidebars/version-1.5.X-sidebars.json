@@ -78,7 +78,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.5.X-nms/nms_arch_overview"
+          "version-1.5.X-nms/architecture_overview"
         ]
       }
     ],

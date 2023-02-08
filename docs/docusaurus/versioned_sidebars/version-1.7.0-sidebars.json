@@ -65,7 +65,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.7.0-nms/nms_arch_overview"
+          "version-1.7.0-nms/architecture_overview"
         ]
       },
       {
