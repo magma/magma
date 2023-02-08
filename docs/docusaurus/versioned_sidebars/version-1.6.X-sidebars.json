@@ -94,7 +94,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.6.X-nms/deploy_config"
+          "version-1.6.X-nms/deploy_setup"
         ]
       },
       {

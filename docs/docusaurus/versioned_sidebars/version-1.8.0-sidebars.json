@@ -120,7 +120,7 @@
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.8.0-nms/deploy_config"
+          "version-1.8.0-nms/deploy_setup"
         ]
       },
       {
