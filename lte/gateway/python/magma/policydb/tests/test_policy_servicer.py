@@ -125,6 +125,7 @@ class PolicyRpcServicerTest(unittest.TestCase):
             'After a successful update, Redis should be tracking '
             '5 active rules.',
         )
+        self.assertTrue(False)
 
     def test_FailOrc8r(self):
         """ Check that nothing is updated if orc8r is unreachable """
