@@ -20,6 +20,11 @@ on:
   repository_dispatch:
     types: [magma-debian-artifact]
 
+env:
+  BAZEL_CACHE: bazel-cache
+  BAZEL_CACHE_REPO: bazel-cache-repo
+  BAZEL_ENV: magma_test
+
 jobs:
   lte-integ-test-bazel-magma-deb:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
@@ -44,6 +49,40 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v1.3.20221230
+
+      - name: Bazel Cache
+        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE }}
+          key: ${{ env.BAZEL_ENV }}-${{ env.BAZEL_CACHE }}-${{ github.sha }}
+          restore-keys: |
+            ${{ env.BAZEL_ENV }}-${{ env.BAZEL_CACHE }}-
+
+      - name: Bazel Cache Repo
+        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+        with:
+          path: ${{ github.workspace }}/.${{ env.BAZEL_CACHE_REPO }}
+          key: ${{ env.BAZEL_ENV }}-${{ env.BAZEL_CACHE_REPO }}-${{ github.sha }}
+          restore-keys: |
+            ${{ env.BAZEL_ENV }}-${{ env.BAZEL_CACHE_REPO }}-
+
+      # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+      # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+      # thereby only ever using the last successful cache version. This solution will result in a
+      # few slower CI actions around the time cache is detected to be too large, but it should
+      # incrementally improve thereafter.
+      - name: Ensure cache size BAZEL_CACHE
+        env:
+          BAZEL_CACHE_DIR: .${{ env.BAZEL_CACHE }}
+          BAZEL_CACHE_CUTOFF_MB: 500
+        run: |
+          ./.github/workflows/scripts/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_DIR" "$BAZEL_CACHE_CUTOFF_MB"
+      - name: Ensure cache size BAZEL_CACHE_REPO
+        env:
+          BAZEL_CACHE_REPO_DIR: .${{ env.BAZEL_CACHE_REPO }}
+          BAZEL_CACHE_REPO_CUTOFF_MB: 500
+        run: |
+          ./.github/workflows/scripts/check-bazel-cache-dir-size.sh "$BAZEL_CACHE_REPO_DIR" "$BAZEL_CACHE_REPO_CUTOFF_MB"
 
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
