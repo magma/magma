@@ -66,8 +66,8 @@ jobs:
       - name: Cache ubuntu generic box for CWF VMs
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
-          path: ~/.vagrant.d/boxes/generic-VAGRANTSLASH-ubuntu2004
-          key: vagrant-box-generic-ubuntu2004-v4.0.2
+          path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
+          key: vagrant-box-ubuntu-focal64-v20230207.0.0
       - name: Cache magma-trfserver-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:

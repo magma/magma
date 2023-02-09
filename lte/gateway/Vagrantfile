@@ -215,7 +215,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :magma_deb, autostart: false do |magma_deb|
 
     magma_deb.vm.box = "ubuntu/focal64"
-    magma_deb.vm.box_version = "20220804.0.0"
+    magma_deb.vm.box_version = "20230207.0.0"
     magma_deb.vm.hostname = "magma-deb"
     magma_deb.vbguest.auto_update = false
 

@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
-          key: vagrant-box-magma-deb-focal64-20220804.0.0
+          key: vagrant-box-ubuntu-focal64-v20230207.0.0
       - name: Cache magma-test-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
