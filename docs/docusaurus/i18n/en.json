@@ -470,7 +470,7 @@
       "proposals/p015_tech_debt_week": {
         "title": "Tech Debt Week Processes"
       },
-      "proposals/p016_nms_regression_test": {
+      "proposals/p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "proposals/p017_apn_refactoring": {
@@ -1513,7 +1513,7 @@
       "version-1.6.X/proposals/version-1.6.X-p010_vendor_neutral_dp": {
         "title": "Vendor Neutral CBSD Domain Proxy"
       },
-      "version-1.6.X/proposals/version-1.6.X-p016_nms_regression_test": {
+      "version-1.6.X/proposals/version-1.6.X-p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "version-1.6.X/proposals/version-1.6.X-p017_apn_refactoring": {
@@ -1946,7 +1946,7 @@
       "version-1.7.0/proposals/version-1.7.0-p015_tech_debt_week": {
         "title": "Tech Debt Week Processes"
       },
-      "version-1.7.0/proposals/version-1.7.0-p016_nms_regression_test": {
+      "version-1.7.0/proposals/version-1.7.0-p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "version-1.7.0/proposals/version-1.7.0-p017_apn_refactoring": {

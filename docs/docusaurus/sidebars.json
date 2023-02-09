@@ -358,7 +358,7 @@
         "label": "Access Gateway",
         "ids": [
           "proposals/p003_qos_enforcement",
-          "proposals/p004_fua-restrict-feature",
+          "proposals/p004_fua_restrict_feature",
           "proposals/p007_header_enrichment",
           "proposals/p008_apn_correction",
           "proposals/p013_Ubuntu_upgrade",

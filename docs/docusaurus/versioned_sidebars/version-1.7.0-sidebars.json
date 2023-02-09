@@ -360,7 +360,7 @@
         "label": "Access Gateway",
         "ids": [
           "version-1.7.0-proposals/p003_qos_enforcement",
-          "version-1.7.0-proposals/p004_fua-restrict-feature",
+          "version-1.7.0-proposals/p004_fua_restrict_feature",
           "version-1.7.0-proposals/p007_header_enrichment",
           "version-1.7.0-proposals/p008_apn_correction",
           "version-1.7.0-proposals/p013_Ubuntu_upgrade",
