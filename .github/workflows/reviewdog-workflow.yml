@@ -45,7 +45,7 @@ jobs:
         with:
           filters: |
             cpp:
-              - ["lte/gateway/c/**", "orc8r/gateway/c/**"]
+              - ["lte/gateway/c/**", "orc8r/gateway/c/**", "lte/gateway/python/**"]
             javascript:
               - ["nms/**", "**/*.js"]
             python:
@@ -65,7 +65,7 @@ jobs:
     #  'NOLINT(category)' comment to the line.  NOLINT or NOLINT(*)
     #  suppresses errors of all categories on that line.
     ##
-    #  For details on cpplint optinos see the detailed comments in
+    #  For details on cpplint options see the detailed comments in
     #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
     ##
     runs-on: ubuntu-20.04
