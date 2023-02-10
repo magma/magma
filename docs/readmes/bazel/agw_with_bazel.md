@@ -118,13 +118,15 @@ The following Magma environments currently support Bazel:
 
 ### Caching
 
-Bazel has a very extensive and granular system of caching intermediate build outputs, artifacts and even test results. Builds that have many cache hits are much faster than builds without cache hits. The number of cache hits is reported at the end of each build, e.g. as `INFO: 4449 processes: 703 disk cache hit, 2377 internal, 1367 processwrapper-sandbox, 2 worker.`.
+Bazel has a very extensive and granular system of caching intermediate build outputs, artifacts and even test results. Builds that have many cache hits are much faster than builds without cache hits.
 
-Whenever cacheable results are produced, a local cache entry is generated in the disk cache. Some of the cache locations can be found by running `bazel info` and looking e.g. at the `repository_cache` entry.
+The number of cache hits is reported at the end of each build, e.g. as `INFO: 4449 processes: 703 disk cache hit, 2377 internal, 1367 processwrapper-sandbox, 2 worker.`. Without code changes it should be possible to cache essentially all processes.
+
+Whenever cacheable results are produced, a local cache entry is generated in the [disk cache](https://bazel.build/remote/caching#disk-cache). Some of the cache locations can be found by running `bazel info` and looking e.g. at the `repository_cache` entry.
 
 > Info: A useful guide on [Bazel cache analysis](https://github.com/magma/magma/wiki/Bazel-cache-analysis) can be found on the GitHub Wiki pages.
 
-In CI, caches have to be downloaded from elsewhere, this can be done either via [Docker images that contain pre-built caches](#docker-bazel-cache) or by using a [remote cache](#bazel-remote-cache).
+In CI, caches have to be downloaded from elsewhere, this can be done either via [Docker images that contain pre-built caches](#docker-bazel-cache), [GitHub caching](#github-cache) or by using a [remote cache](#bazel-remote-cache). [Remote caching](#bazel-remote-cache) is the recommended way of caching for Bazel in CI. Remote caches can be used in any environment (Docker, Vagrant, etc.) and the remote cache is always up-to-date, as cache entries are constantly being uploaded. Remote caching can also be simpler than other caching approaches, in particular when using the [Google cloud backend](#google-cloud-storage).
 
 #### Docker Bazel cache
 
@@ -136,13 +138,27 @@ The Docker Bazel caches are Docker containers that contain pre-built Bazel cache
 
 The Docker Bazel caches were introduced in [#14562](https://github.com/magma/magma/issues/14562) - this issue also contains a detailed slide with information on the Docker Bazel cache setup.
 
+#### GitHub cache
+
+GitHub Actions provides a generic [built-in caching solution](https://github.com/actions/cache), which can be used to store the Bazel disk cache. Possible downsides of this caching approach, as with the [Docker caches](#docker-bazel-cache), are that the cache is not managed by Bazel and has to be kept up-to-date and below a reasonable cache size. The GitHub cache has a 10GB limit and is also used for other purposes at Magma, such as caching Vagrant base images.
+
 #### Bazel remote cache
 
-> Info: As of the 4th of January 2023 the Bazel remote cache for Magma is **deprecated**. The tear-down is documented in the issue [#14796](https://github.com/magma/magma/issues/14796). In CI, only [Docker images containing pre-built Bazel caches](#docker-bazel-cache) are used.
+[Remote caching](https://bazel.build/remote/caching) is an integrated caching mechanism that is part of Bazel. Cache entries are up-/downloaded to/from a backend server. There are many different backends that can be used, such as [Google Cloud Storage](#google-cloud-storage) or the [buchgr/bazel-remote](#buchgrbazel-remote). Various backends are also documented in the [official documentation](https://bazel.build/remote/caching). To optimize the build times, the backend should be as close as possible to the CI runners, ideally in the same data center.
 
-Information on the Bazel remote caching infrastructure for Magma can be found in the [magma/ci-infra/bazel/remote_caching](https://github.com/magma/ci-infra/blob/master/bazel/remote_caching/Readme.md) repository (CI codeowner access only). This information in particular details how the remote cache can be deployed on AWS using Terraform. General information on Bazel remote caching can be found in the [official Bazel documentation](https://bazel.build/remote/caching).
+##### Google Cloud Storage
 
-Furthermore, there are GitHub Wiki pages with information on [how to use a deployment of the remote cache](https://github.com/magma/magma/wiki/Bazel-remote-caching) and on [how to recover from a remote cache failure](https://github.com/magma/magma/wiki/Bazel-remote-caching-disaster-recovery-plan).
+The simplest and best supported backend for Bazel remote caching is Google Cloud Storage. With Google Cloud Storage a simple storage bucket is sufficient to operate the remote cache - for details see the [official documentation](https://bazel.build/remote/caching#cloud-storage).
+
+##### buchgr/bazel-remote
+
+The [buchgr/bazel-remote](https://github.com/buchgr/bazel-remote/) is a self-hosted Bazel remote caching backend that runs as a Docker container.
+
+> Info: As of the 4th of January 2023 the bazel-remote cache for Magma is **deprecated**. The tear-down is documented in the issue [#14796](https://github.com/magma/magma/issues/14796).
+
+Information on the bazel-remote caching infrastructure for Magma can be found in the [magma/ci-infra/bazel/remote_caching](https://github.com/magma/ci-infra/blob/master/bazel/remote_caching/Readme.md) repository (CI codeowner access only). This information in particular details how the bazel-remote cache can be deployed on AWS using Terraform. General information on Bazel remote caching can be found in the [official Bazel documentation](https://bazel.build/remote/caching).
+
+Furthermore, there are GitHub Wiki pages with information on [how to use a deployment of the bazel-remote cache](https://github.com/magma/magma/wiki/Bazel-remote-caching) and on [how to recover from a bazel-remote cache failure](https://github.com/magma/magma/wiki/Bazel-remote-caching-disaster-recovery-plan).
 
 ### Commands
 
