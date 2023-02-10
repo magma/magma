@@ -48,6 +48,9 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
+      - uses: ./.github/workflows/composite/bazel-gh-cache
+        with:
+          cache-key-prefix: magma_test
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
