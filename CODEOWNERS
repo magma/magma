@@ -46,7 +46,6 @@
 */cloud/ @magma/approvers-cloud
 
 # Generated code excluded from code ownership
-**/go.mod @ghost
 **/go.sum @ghost
 **/*.pb.go @ghost
 **/*_swaggergen.go @ghost
