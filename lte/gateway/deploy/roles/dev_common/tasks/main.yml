@@ -403,7 +403,7 @@
 
 - name: Copy Resolve file.
   copy:
-    src: magma_resolv.conf
+    src: magma_resolve.conf
     dest: /etc/systemd/resolved.conf
 
 - name: Install LLDB debugger
