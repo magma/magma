@@ -129,6 +129,9 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
+      - uses: ./.github/workflows/composite/bazel-gh-cache
+        with:
+          cache-key-prefix: magma_test
       - name: Build test vms
         run: |
           cd ${{ env.AGW_ROOT }} && fab build_test_vms
