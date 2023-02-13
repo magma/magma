@@ -1,20 +1,14 @@
-FROM python:3.8-alpine as builder
-
-RUN addgroup -S linter && adduser -S -G linter linter
-RUN apk add --no-cache git gcc musl-dev # temp
-
-COPY lte/gateway/docker/python-precommit/requirements.txt /
-RUN pip wheel -r /requirements.txt --wheel-dir=/wheelhouse/
-
-
-FROM python:3.8-alpine as runner
+FROM python:3.9.10-alpine
 
 RUN addgroup -S linter && adduser -S -G linter linter
 
-RUN apk add --no-cache jq
-
-COPY --from=builder /wheelhouse/ /wheelhouse/
-RUN pip install /wheelhouse/*
+# Installing wemake-python-styleguide==0.17.0 is not
+# working with a requirements.in file.
+# hadolint ignore=DL3013
+RUN pip install --no-cache-dir wemake-python-styleguide==0.17.0 \
+                add-trailing-comma \
+                isort \
+                autopep8
 
 USER linter
 WORKDIR /code/
