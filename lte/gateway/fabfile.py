@@ -51,8 +51,6 @@ Magma packages released to different channels have different version schemes.
 in `release/magma.lockfile`
 
     fab dev package
-    # optionally upload to aws (if you are configured for it)
-    fab dev package upload_to_aws
 """
 
 GATEWAY_IP_ADDRESS = "192.168.60.142"
@@ -156,53 +154,6 @@ def package(
 
             # Copy out C executables into magma-packages as well
             _copy_out_c_execs_in_magma_vm(c_gw)
-
-
-@task
-def openvswitch(c, destroy_vm=False, destdir='~/magma-packages/'):
-    # If a host list isn't specified, default to the magma vagrant vm
-    with vagrant_connection(c, 'magma', destroy_vm=destroy_vm) as c_gw:
-        c_gw.run('~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/build.sh ' + destdir)
-
-
-@task
-def depclean(c):
-    '''Remove all generated packaged for dependencies'''
-    # If a host list isn't specified, default to the magma vagrant vm
-    with vagrant_connection(c, 'magma') as c_gw:
-        c_gw.run('rm -rf ~/magma-deps')
-
-
-@task
-def upload_to_aws(c):
-    # If a host list isn't specified, default to the magma vagrant vm
-    with vagrant_connection(c, 'magma') as c_gw:
-        pkg.upload_pkgs_to_aws(c_gw)
-
-
-@task
-def copy_packages(c):
-    with vagrant_connection(c, 'magma') as c_gw:
-        pkg.copy_packages(c_gw)
-
-
-@task
-def s1ap_setup_cloud(c):
-    """ Prepare VMs for s1ap tests touching the cloud. """
-    # Use the local cloud for integ tests
-    with vagrant_connection(c, "magma") as c_gw:
-        connect_gateway_to_cloud(c_gw, None, DEFAULT_CERT)
-
-        # Update the gateway's streamer timeout and restart services
-        c_gw.run("sudo mkdir -p /var/opt/magma/configs")
-        _set_service_config_var(c_gw, 'streamer', 'reconnect_sec', 3)
-
-        # Update the gateway's metricsd collect/sync intervals
-        _set_service_config_var(c_gw, 'metricsd', 'collect_interval', 5)
-        _set_service_config_var(c_gw, 'metricsd', 'sync_interval', 5)
-
-        c_gw.run("sudo systemctl stop magma@*")
-        c_gw.run("sudo systemctl restart magma@magmad")
 
 
 @task
@@ -502,14 +453,13 @@ def _start_gateway_containerized(c_gw, docker_registry=None):
     with c_gw.cd(AGW_ROOT + "/docker"):
         # The `docker-compose up` times are machine dependent, such that a
         # retry is needed here for resilience.
-        run_with_retry(
+        _run_with_retry(
             c_gw, f'DOCKER_REGISTRY={docker_registry} docker compose'
             f' --compatibility -f docker-compose.yaml up -d --quiet-pull',
         )
 
 
-@task
-def run_with_retry(c_gw, command, retries=10):
+def _run_with_retry(c_gw, command, retries=10):
     iteration = 0
     while iteration < retries:
         iteration += 1
@@ -728,14 +678,6 @@ def _build_magma(c_gw):
 def _start_gateway(c_gw):
     """ Starts the gateway """
     c_gw.run('sudo service magma@magmad start')
-
-
-def _set_service_config_var(c_gw, service, var_name, value):
-    """ Sets variable in config file by value """
-    c_gw.run(
-        f"echo '{var_name}: {str(value)}'"
-        f" | sudo tee -a /var/opt/magma/configs/{service}.yml",
-    )
 
 
 def _start_trfserver(c_trf):
