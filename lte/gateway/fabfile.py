@@ -159,21 +159,29 @@ def package(
 @task
 def open_orc8r_port_in_vagrant(c):
     """
-    Add a line to Vagrantfile file to open 9445 port on Vagrant.
-    Note that localhost request to 9443 will be sent to Vagrant vm.
-    Remove this line manually if you intend to run orc8r on your host
+    Add a line to the Vagrantfile file to open port 9443 on the magma_deb VM.
+    Note that localhost request to 9443 will be sent to a Vagrant vm.
+    Remove this line manually if you intend to run orc8r on your host.
     """
-    cmd_yes_if_exists = """grep -q 'guest: 9443, host: 9443' Vagrantfile"""
+    is_port_open = "grep -q 'guest: 9443, host: 9443' Vagrantfile"
 
-    # Insert line after a specific line
-    cmd_insert_line = \
-        "awk '/config.vm.define :magma,/{print;print " \
-        "\"    magma.vm.network \\\"forwarded_port\\\", " \
-        "guest: 9443, host: 9443\"" \
-        ";next}1' Vagrantfile >> Vagrantfile.bak00 && " \
-        "cp Vagrantfile.bak00 Vagrantfile && rm Vagrantfile.bak00"
+    pattern_template = "^  config.vm.define :{},.*$"
+    open_port_template = '    {}.vm.network \"forwarded_port\", guest: 9443, host: 9443'
+    # workaround:
+    # 1. duplicate line ("p") and then override - because "a" (append text
+    #    after line) works different on linux and macos (but would be more elegant)
+    # 2. don't use -i (inline replace), but copy .bak file - because syntax
+    #    differs between linux and macos
+    cmd_open_port_template = "sed '/{}/p; s/{}/{}/' Vagrantfile > v.bak && cp v.bak Vagrantfile && rm v.bak"
 
-    c.run(f"{cmd_yes_if_exists} || ({cmd_insert_line})")
+    def create_cmd(machine):
+        pattern = pattern_template.format(machine)
+        open_port_line = open_port_template.format(machine)
+        return cmd_open_port_template.format(pattern, pattern, open_port_line)
+
+    cmd_open_port = create_cmd('magma_deb')
+
+    c.run(f"{is_port_open} || ({cmd_open_port})")
 
 
 def _redirect_feg_agw_to_vagrant_orc8r(c_gw):
@@ -208,7 +216,7 @@ def federated_integ_test(
     if orc8r_on_vagrant:
         start_all_cmd += " --orc8r-on-vagrant"
         # modify dns entries to find Orc8r from inside Vagrant
-        with vagrant_connection(c, 'magma') as c_gw:
+        with vagrant_connection(c, 'magma_deb') as c_gw:
             _redirect_feg_agw_to_vagrant_orc8r(c_gw)
 
     with c.cd(FEG_INTEG_TEST_ROOT):
@@ -603,37 +611,12 @@ def _get_folder(c_vm, folder_name, remote_path, local_path):
 
 
 @task
-def build_and_start_magma(c, destroy_vm=False, provision_vm=False):
-    """
-    Build Magma AGW and starts magma
-    Args:
-        destroy_vm: if set to True it will destroy Magma Vagrant VM
-        provision_vm: if set to true it will reprovision Magma VM
-
-    Returns:
-
-    """
-    with vagrant_connection(
-        c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
-    ) as c_gw:
-        _build_magma(c_gw)
-
-
-@task
 def build_and_start_magma_trf(c, destroy_vm=False, provision_vm=False):
     c_trf = vagrant_connection(
         c, 'magma_trfserver', destroy_vm=destroy_vm, force_provision=provision_vm,
     )
     with c_trf:
         _start_trfserver(c_trf)
-
-
-@task
-def start_magma(c, destroy_vm=False, provision_vm=False):
-    with vagrant_connection(
-        c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
-    ) as c_gw:
-        c_gw.run('sudo service magma@magmad start')
 
 
 def _copy_out_c_execs_in_magma_vm(c_gw):

@@ -105,11 +105,11 @@ jobs:
           sudo touch /etc/vbox/networks.conf
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
-      - name: Cache magma-dev-box
+      - name: Cache magma-deb-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
-          key: vagrant-box-magma-dev-v1.3.20221230
+          path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
+          key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
@@ -132,12 +132,12 @@ jobs:
       - uses: ./.github/workflows/composite/bazel-gh-cache
         with:
           cache-key-prefix: magma_test
-      - name: build_agw
+      - name: Install AGW
         run: |
           cd lte/gateway/python/integ_tests/federated_tests
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
-          fab build-agw
+          fab install-agw
       # Download to local and delete artifacts from remote
       - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
@@ -160,7 +160,7 @@ jobs:
           do
             echo Image being loaded $IMAGE
             gzip -cd $IMAGE > image.tar
-            vagrant ssh magma -c 'cat magma/lte/gateway/image.tar | docker load'
+            vagrant ssh magma_deb -c 'cat magma/lte/gateway/image.tar | docker load'
             rm image.tar
           done
       - name: Run the federated integ test
@@ -185,7 +185,7 @@ jobs:
         if: always()
         run: |
           cd lte/gateway
-          fab get-test-logs --dst-path=./logs.tar.gz
+          fab get-test-logs --gateway-host-name=magma_deb --dst-path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()

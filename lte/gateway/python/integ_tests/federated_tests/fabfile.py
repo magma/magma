@@ -62,7 +62,7 @@ def build_all(c, clear_orc8r=False, provision_vm=False, orc8r_on_vagrant=False):
     # need to start orc8r to generate certificates
     start_orc8r(c, on_vagrant=orc8r_on_vagrant)
     build_feg(c)
-    build_agw(c, provision_vm=provision_vm)
+    install_agw(c, provision_vm=provision_vm)
 
     if clear_orc8r:
         clear_orc8r_db(c)
@@ -95,7 +95,7 @@ def _run_orc8r_command(c, command, on_vagrant):
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
     else:
         with c.cd(agw_path):
-            with vagrant_connection(c, 'magma') as c_gw:
+            with vagrant_connection(c, 'magma_deb') as c_gw:
                 with c_gw.cd(orc8r_vagrant_path):
                     c_gw.run(command)
 
@@ -112,7 +112,7 @@ def configure_orc8r(c, on_vagrant=False):
         subprocess.check_call(command_agw, shell=True, cwd=agw_path)
         subprocess.check_call(command_feg, shell=True, cwd=feg_path)
     else:
-        with vagrant_connection(c, 'magma') as c_gw:
+        with vagrant_connection(c, 'magma_deb') as c_gw:
             with c_gw.cd(agw_vagrant_path):
                 c_gw.run(command_agw)
             with c_gw.cd(feg_vagrant_path):
@@ -136,17 +136,15 @@ def clear_orc8r_db(c):
 
 
 @task
-def build_agw(c, provision_vm=False):
+def install_agw(c, provision_vm=False):
     """
-    Build magma on AGW on magma Vagrant VM
+    Install a magma AGW debian package on the magma_deb Vagrant VM.
 
        provision_vm: forces the reprovision of the magma VM
     """
-    print('#### Building AGW ####')
-    cmd = 'fab build-and-start-magma'
-    if provision_vm:
-        cmd += ' --provision-vm'
-    subprocess.check_call(cmd, shell=True, cwd=agw_path)
+    print('#### Installing AGW ####')
+    with c.prefix("export INSTALL_DOCKER=true SETUP_TEST_CERTS=true"):
+        vagrant_connection(c, 'magma_deb', force_provision=provision_vm)
 
 
 @task
@@ -154,19 +152,17 @@ def start_agw(c, provision_vm=False):
     """
     start AGW on Vagrant VM
     """
-    cmd = 'fab start-magma'
-    if provision_vm:
-        cmd += ' --provision-vm'
-    subprocess.check_call(cmd, shell=True, cwd=agw_path)
+    with vagrant_connection(c, 'magma_deb', force_provision=provision_vm) as c_gw:
+        c_gw.run('sudo service magma@magmad start')
 
 
 @task
 def build_feg(c):
     """
-    build FEG on magma Vagrant vm using docker running in Vagrant
+    build FEG on magma_deb Vagrant vm using docker running in Vagrant
     """
-    print('#### Building FEG on Magma Vagrant VM ####')
-    with vagrant_connection(c, 'magma') as c_gw:
+    print('#### Building FEG on magma_deb Vagrant VM ####')
+    with vagrant_connection(c, 'magma_deb') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('docker compose down')
             c_gw.run('docker compose --compatibility build')
@@ -176,9 +172,9 @@ def build_feg(c):
 @task
 def start_feg(c):
     """
-    start FEG on magma Vagrant vm using docker running in Vagrant
+    start FEG on magma_deb Vagrant vm using docker running in vm
     """
-    with vagrant_connection(c, 'magma') as c_gw:
+    with vagrant_connection(c, 'magma_deb') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('./run.py')
 
@@ -229,7 +225,7 @@ def test_connectivity(c, timeout=10):
 
     # check FEG-cloud connectivity
     print("\n### Checking FEG-Cloud connectivity ###")
-    with vagrant_connection(c, 'magma') as c_gw:
+    with vagrant_connection(c, 'magma_deb') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             dev_utils.run_remote_command_with_repetition(
                 c_gw, 'docker compose exec -t magmad checkin_cli.py', timeout,

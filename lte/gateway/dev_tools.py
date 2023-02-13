@@ -134,7 +134,7 @@ def register_federated_vm(c):
     )
     _register_network(FEG_LTE_NETWORK_TYPE, network_payload)
     # registering gateway with LTE type. FEG_LTE doesn't have gateway endpoint
-    _register_agw(c, FEG_LTE_NETWORK_TYPE)
+    _register_agw(c, FEG_LTE_NETWORK_TYPE, vm_name='magma_deb')
 
 
 @task
@@ -183,8 +183,8 @@ def check_agw_cloud_connectivity(c, timeout=10):
         c: fabric connection
         timeout: amount of time the command will retry
     """
-    with vagrant_connection(c, "magma") as c_gw:
-        with c_gw.cd("/home/vagrant/build/python/bin/"):
+    with vagrant_connection(c, "magma_deb") as c_gw:
+        with c_gw.cd("/usr/local/bin/"):
             dev_utils.run_remote_command_with_repetition(c_gw, "./checkin_cli.py", timeout)
 
 
@@ -196,8 +196,8 @@ def check_agw_feg_connectivity(c, timeout=10):
         c: fabric connection
         timeout: amount of time the command will retry
     """
-    with vagrant_connection(c, "magma") as c_gw:
-        with c_gw.cd("/home/vagrant/build/python/bin/"):
+    with vagrant_connection(c, "magma_deb") as c_gw:
+        with c_gw.cd("/usr/local/bin/"):
             dev_utils.run_remote_command_with_repetition(c_gw, "./feg_hello_cli.py m 0", timeout)
 
 
@@ -214,6 +214,7 @@ def _register_agw(
         url: Optional[str] = None,
         admin_cert: Optional[types.ClientCert] = None,
         network_id: Optional[str] = None,
+        vm_name: str = 'magma',
 ):
     network_id = network_id or NIDS_BY_TYPE[network_type]
 
@@ -224,7 +225,7 @@ def _register_agw(
         admin_cert=admin_cert,
     )
 
-    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(c, vm_name='magma')
+    hw_id = dev_utils.get_gateway_hardware_id_from_vagrant(c, vm_name=vm_name)
     already_registered, registered_as = dev_utils.is_hw_id_registered(
         network_id,
         hw_id,
