@@ -528,7 +528,6 @@ def run_with_retry(c_gw, command, retries=10):
 def get_test_summaries(c, sudo_tests=False, integration_tests=False):
     results_folder = "test_results"
     results_dir = "/var/tmp/"
-    dst_path = "test-results"
 
     c.run('mkdir -p ' + results_folder)
 
