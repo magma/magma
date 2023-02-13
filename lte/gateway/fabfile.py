@@ -100,8 +100,7 @@ def package(
     hash = pkg.get_commit_hash(c)
     commit_count = pkg.get_commit_count(c)
 
-    c_gw = vagrant_connection(c, vm, destroy_vm=destroy_vm)
-    with c_gw:
+    with vagrant_connection(c, vm, destroy_vm=destroy_vm) as c_gw:
         print('Uninstalling dev dependencies of the VM')
         c_gw.run('sudo pip uninstall --yes mypy-protobuf grpcio-tools grpcio protobuf')
 
@@ -162,8 +161,7 @@ def package(
 @task
 def openvswitch(c, destroy_vm=False, destdir='~/magma-packages/'):
     # If a host list isn't specified, default to the magma vagrant vm
-    c_gw = vagrant_connection(c, 'magma', destroy_vm=destroy_vm)
-    with c_gw:
+    with vagrant_connection(c, 'magma', destroy_vm=destroy_vm) as c_gw:
         c_gw.run('~/magma/third_party/gtp_ovs/ovs-gtp-patches/2.15/build.sh ' + destdir)
 
 
@@ -171,23 +169,20 @@ def openvswitch(c, destroy_vm=False, destdir='~/magma-packages/'):
 def depclean(c):
     '''Remove all generated packaged for dependencies'''
     # If a host list isn't specified, default to the magma vagrant vm
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         c_gw.run('rm -rf ~/magma-deps')
 
 
 @task
 def upload_to_aws(c):
     # If a host list isn't specified, default to the magma vagrant vm
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         pkg.upload_pkgs_to_aws(c_gw)
 
 
 @task
 def copy_packages(c):
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         pkg.copy_packages(c_gw)
 
 
@@ -195,8 +190,7 @@ def copy_packages(c):
 def s1ap_setup_cloud(c):
     """ Prepare VMs for s1ap tests touching the cloud. """
     # Use the local cloud for integ tests
-    c_gw = vagrant_connection(c, "magma")
-    with c_gw:
+    with vagrant_connection(c, "magma") as c_gw:
         connect_gateway_to_cloud(c_gw, None, DEFAULT_CERT)
 
         # Update the gateway's streamer timeout and restart services
@@ -263,8 +257,7 @@ def federated_integ_test(
     if orc8r_on_vagrant:
         start_all_cmd += " --orc8r-on-vagrant"
         # modify dns entries to find Orc8r from inside Vagrant
-        c_gw = vagrant_connection(c, 'magma')
-        with c_gw:
+        with vagrant_connection(c, 'magma') as c_gw:
             _redirect_feg_agw_to_vagrant_orc8r(c_gw)
 
     with c.cd(FEG_INTEG_TEST_ROOT):
@@ -550,8 +543,7 @@ def get_test_summaries(
 def _get_test_summaries_from_vm(c, dst_path, vm_name):
     results_folder = "test_results"
     results_dir = "/var/tmp/"
-    c_gw = vagrant_connection(c, vm_name)
-    with c_gw:
+    with vagrant_connection(c, vm_name) as c_gw:
         if c_gw.run(
             f"test -e {results_dir}{results_folder}", warn=True,
         ).ok:
@@ -672,10 +664,9 @@ def build_and_start_magma(c, destroy_vm=False, provision_vm=False):
     Returns:
 
     """
-    c_gw = vagrant_connection(
+    with vagrant_connection(
         c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
-    )
-    with c_gw:
+    ) as c_gw:
         c_gw.run('sudo service magma@* stop')
         _build_magma(c_gw)
         c_gw.run('sudo service magma@magmad start')
@@ -692,10 +683,9 @@ def build_and_start_magma_trf(c, destroy_vm=False, provision_vm=False):
 
 @task
 def start_magma(c, destroy_vm=False, provision_vm=False):
-    c_gw = vagrant_connection(
+    with vagrant_connection(
         c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
-    )
-    with c_gw:
+    ) as c_gw:
         c_gw.run('sudo service magma@magmad start')
 
 

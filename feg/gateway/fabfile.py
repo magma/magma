@@ -65,8 +65,7 @@ def check_feg_cloud_connectivity(c, timeout=5):
         timeout: amount of time the command will retry
     """
     with c.cd(AGW_ROOT):
-        c_gw = vagrant_connection(c, 'magma')
-        with c_gw:
+        with vagrant_connection(c, 'magma') as c_gw:
             with c_gw.cd(FEG_INTEG_DOCKER):
                 c_gw.run("pwd")
                 dev_utils.run_remote_command_with_repetition(

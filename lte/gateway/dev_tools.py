@@ -183,8 +183,7 @@ def check_agw_cloud_connectivity(c, timeout=10):
         c: fabric connection
         timeout: amount of time the command will retry
     """
-    c_gw = vagrant_connection(c, "magma")
-    with c_gw:
+    with vagrant_connection(c, "magma") as c_gw:
         with c_gw.cd("/home/vagrant/build/python/bin/"):
             dev_utils.run_remote_command_with_repetition(c_gw, "./checkin_cli.py", timeout)
 
@@ -197,8 +196,7 @@ def check_agw_feg_connectivity(c, timeout=10):
         c: fabric connection
         timeout: amount of time the command will retry
     """
-    c_gw = vagrant_connection(c, "magma")
-    with c_gw:
+    with vagrant_connection(c, "magma") as c_gw:
         with c_gw.cd("/home/vagrant/build/python/bin/"):
             dev_utils.run_remote_command_with_repetition(c_gw, "./feg_hello_cli.py m 0", timeout)
 
