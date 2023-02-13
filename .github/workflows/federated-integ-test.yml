@@ -154,7 +154,7 @@ jobs:
       - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
         with:
           name: |
-            docker-build-orc8r-images |
+            docker-build-orc8r-images
             docker-build-feg-images
       - name: Load Docker images from tar files
         run: |
