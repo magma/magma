@@ -90,15 +90,6 @@ def start_orc8r(c, on_vagrant=False):
     _run_orc8r_command(c, command, on_vagrant)
 
 
-@task
-def stop_orc8r(c, on_vagrant=False):
-    """
-    Start orc8r locally on Docker
-    """
-    command = './run.py --down'
-    _run_orc8r_command(c, command, on_vagrant)
-
-
 def _run_orc8r_command(c, command, on_vagrant):
     if not on_vagrant:
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
@@ -126,20 +117,6 @@ def configure_orc8r(c, on_vagrant=False):
                 c_gw.run(command_agw)
             with c_gw.cd(feg_vagrant_path):
                 c_gw.run(command_feg)
-
-
-@task
-def clear_gateways(c):
-    """
-    Delete AGW and FEG gateways from orc8r
-    """
-    print('#### Removing federated agw from orc8r and deleting certs ####')
-    subprocess.check_call(
-        'fab deregister-federated-agw',
-        shell=True, cwd=agw_path,
-    )
-    print('#### Removing feg gw from orc8r and deleting certs####')
-    subprocess.check_call('fab deregister-feg-gw', shell=True, cwd=feg_path)
 
 
 @task
@@ -185,14 +162,6 @@ def start_agw(c, provision_vm=False):
 
 
 @task
-def stop_agw(c):
-    """
-    stop AGW on Vagrant VM
-    """
-    subprocess.check_call('vagrant halt magma', shell=True, cwd=agw_path)
-
-
-@task
 def build_feg(c):
     """
     build FEG on magma Vagrant vm using docker running in Vagrant
@@ -205,25 +174,6 @@ def build_feg(c):
             c_gw.run('./run.py')
 
 
-def _build_feg_on_host(c):
-    """
-    build FEG on current Host using local docker
-    """
-    print('#### Building FEG ####')
-    subprocess.check_call(
-        'docker compose down', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-    subprocess.check_call(
-        'docker compose --compatibility build', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-    subprocess.check_call(
-        './run.py', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-
-
 @task
 def start_feg(c):
     """
@@ -232,36 +182,6 @@ def start_feg(c):
     with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('./run.py')
-
-
-def _start_feg_on_host(c):
-    """
-    start FEG locally on Docker
-    """
-    subprocess.check_call(
-        './run.py', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
-
-
-@task
-def stop_feg(c):
-    """
-    stop FEG on magma Vagrant vm using docker running in Vagrant
-    """
-    with vagrant_connection(c, 'magma') as c_gw:
-        with c_gw.cd(feg_docker_integ_test_path_vagrant):
-            c_gw.run('docker compose down')
-
-
-def _stop_feg_on_host(c):
-    """
-    stop FEG locally on Docker
-    """
-    subprocess.check_call(
-        'docker compose down', shell=True,
-        cwd=feg_docker_integ_test_path,
-    )
 
 
 @task
@@ -295,16 +215,6 @@ def start_all(c, provision_vm=False, orc8r_on_vagrant=False):
 
 
 @task
-def stop_all(c, orc8r_on_vagrant=False):
-    """
-    stop AGW, FEG and Orc8r
-    """
-    stop_orc8r(c, on_vagrant=orc8r_on_vagrant)
-    stop_agw(c)
-    stop_feg(c)
-
-
-@task
 def test_connectivity(c, timeout=10):
     """
     Check if all running gateways have connectivity
@@ -332,23 +242,3 @@ def test_connectivity(c, timeout=10):
         f'fab check-agw-feg-connectivity --timeout={timeout}',
         shell=True, cwd=agw_path,
     )
-
-
-@task
-def build_and_test_all(
-    c, clear_orc8r=False, provision_vm=False, timeout=10,
-    orc8r_on_vagrant=False,
-):
-    """
-    Build, start and test connectivity of all elements
-    Args:
-        c: fabric context
-        clear_orc8r: removes all contents from orc8r database like gw configs
-        provision_vm: forces the re-provision of the magma VM
-        timeout: amount of time the command will retry
-        orc8r_on_vagrant: flag to run orc8r on vagrant or on host machine
-    """
-    build_all(c, clear_orc8r, provision_vm, orc8r_on_vagrant=orc8r_on_vagrant)
-    start_all(c, orc8r_on_vagrant=orc8r_on_vagrant)
-    configure_orc8r(c)
-    test_connectivity(c, timeout=timeout)
