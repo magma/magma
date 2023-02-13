@@ -101,11 +101,11 @@ debug any intermediate step should the automation fail.</p>
 </ul>
 <p>To execute the script, run:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/lte/gateway
-fab federated_integ_test:build_all=True
+fab federated-integ-test --build-all
 
 <span class="hljs-comment"># to run it again, you can skip the build_all</span>
 <span class="hljs-comment"># however, if you change code in Magma, you will need to build_all again</span>
-fab federated_integ_test
+fab federated-integ-test
 </code></pre>
 <p>You can access Orc8r adding to your keychain the <code>admin_operator.pfx</code> cert
 you will find at <code>/magma/.cache/test_certs</code>. Then you can check your
@@ -122,13 +122,13 @@ certain automation. If you want to build the environment manually instead, go to
 <p>On your host machine, execute these commands to build, start and configure the AGW,
 FeG and Orc8r:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/lte/gateway/python/integ_tests/federated_tests
-fab build_all_and_configure
+fab build-all-and-configure
 </code></pre>
 <p>After this has run, you can check
 whether your gateways have been bootstrapped using the magmad logs on the AGW and FeG. The
 command below will try to reach Orc8r from AGW and FeG, and FeG from AGW:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/lte/gateway/python/integ_tests/federated_tests
-fab test_connectivity
+fab <span class="hljs-built_in">test</span>-connectivity
 </code></pre>
 <p>Once it has been built, start the <code>magma_trfserver</code> and <code>magma_test</code> VMs:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/lte/gateway
@@ -178,8 +178,8 @@ docker compose --compatibility build
 <span class="hljs-comment"># return to agw folder</span>
 <span class="hljs-built_in">cd</span> magma/lte/gateway
 <span class="hljs-comment"># register gateways</span>
-fab --fabfile=dev_tools.py register_federated_vm
-fab --fabfile=dev_tools.py register_feg_gw
+fab register-federated-vm
+fab register-feg-gw
 </code></pre>
 <ul>
 <li>Test VM:</li>

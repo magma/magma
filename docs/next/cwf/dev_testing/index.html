@@ -86,22 +86,22 @@ See <code>cwf/gateway/docker-compose.integ-test.yml</code> for the complete list
 <p>Runs an iperf3 server to drive traffic through CWAG.</p>
 <h4><a class="anchor" aria-hidden="true" id="entire-test-suite"></a><a href="#entire-test-suite" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Entire test suite</h4>
 <p>To run all setup work and the entire CWF integration test suite, run</p>
-<pre><code class="hljs css language-bash">[HOST] fab integ_test
+<pre><code class="hljs css language-bash">[HOST] fab integ-test
 </code></pre>
 <p>Once the above command has been executed, which means that the set-up of the VMs etc. has been
 performed, command-line options can be utilized to rerun the tests without redoing the set-up</p>
-<pre><code class="hljs css language-bash">[HOST] fab integ_test:provision_vm=False,no_build=True
+<pre><code class="hljs css language-bash">[HOST] fab integ-test --no-provision-vm --no-build
 </code></pre>
 <h4><a class="anchor" aria-hidden="true" id="individual-tests"></a><a href="#individual-tests" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Individual tests</h4>
 <p>The command above can be further modified to run one integration test at a time</p>
-<pre><code class="hljs css language-bash">[HOST] fab integ_test:provision_vm=False,no_build=True,skip_unit_tests=True,test_re=&lt;TEST_TO_RUN&gt;
+<pre><code class="hljs css language-bash">[HOST] fab integ-test --no-provision-vm --no-build --skip_unit_tests --test_re=&lt;TEST_TO_RUN&gt;
 </code></pre>
 <p>where <code>&lt;TEST_TO_RUN&gt;</code> is to be replaced by the desired test, e.g. <code>TestGyReAuth</code>. Run
-<code>fab --display integ_test</code> to see more available options.</p>
+<code>fab --help integ-test</code> to see more available options.</p>
 <p>Note that running a test can be further expedited by running it directly on the CWAG test VM using
 <code>gotestsum</code>, which echoes how it is run by the <code>fab</code> command. In particular, the above command can
-be run with <code>run_tests=False</code> to do the required set-up</p>
-<pre><code class="hljs css language-bash">[HOST] fab integ_test:run_tests=False,provision_vm=False,no_build=True,skip_unit_tests=True,test_re=&lt;TEST_TO_RUN&gt;
+be run with the <code>--no-run-tests</code> flag to only do the required set-up</p>
+<pre><code class="hljs css language-bash">[HOST] fab integ-test --no-run-tests --no-provision-vm --no-build --skip-unit-tests --skip-integ-tests
 </code></pre>
 <p>before logging into the CWAG test VM, navigating to the gateway folder and running the test directly</p>
 <pre><code class="hljs css language-bash">[HOST] vagrant ssh cwag_test
