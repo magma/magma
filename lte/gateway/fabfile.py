@@ -616,9 +616,7 @@ def build_and_start_magma(c, destroy_vm=False, provision_vm=False):
     with vagrant_connection(
         c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
     ) as c_gw:
-        c_gw.run('sudo service magma@* stop')
         _build_magma(c_gw)
-        c_gw.run('sudo service magma@magmad start')
 
 
 @task
@@ -636,17 +634,6 @@ def start_magma(c, destroy_vm=False, provision_vm=False):
         c, 'magma', destroy_vm=destroy_vm, force_provision=provision_vm,
     ) as c_gw:
         c_gw.run('sudo service magma@magmad start')
-
-
-@task
-def build_test_vms(c, provision_vm=False, destroy_vm=False):
-    vagrant_connection(
-        c, 'magma_trfserver', destroy_vm=destroy_vm, force_provision=provision_vm,
-    )
-
-    c_test = vagrant_connection(
-        c, 'magma_test', destroy_vm=destroy_vm, force_provision=provision_vm,
-    )
 
 
 def _copy_out_c_execs_in_magma_vm(c_gw):

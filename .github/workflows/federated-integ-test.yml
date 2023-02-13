@@ -132,10 +132,6 @@ jobs:
       - uses: ./.github/workflows/composite/bazel-gh-cache
         with:
           cache-key-prefix: magma_test
-      - name: Build test vms
-        run: |
-          cd ${{ env.AGW_ROOT }} && fab build-test-vms
-          cd ${{ env.AGW_ROOT }} && vagrant halt magma_test && vagrant halt magma_trfserver
       - name: build_agw
         run: |
           cd lte/gateway/python/integ_tests/federated_tests
