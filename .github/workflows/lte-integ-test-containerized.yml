@@ -92,7 +92,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
+          pip3 install ansible fabric jsonpickle PyYAML requests
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -105,12 +105,12 @@ jobs:
           MAGMA_DEV_MEMORY_MB: 9216
         working-directory: lte/gateway
         # the image is directly concatenated to the registry, so we need the slash as delimiter
-        run: fab --show=debug --set DOCKER_REGISTRY=${{ inputs.registry }}/ integ_test_containerized:test_mode=${{ inputs.test_targets }}
+        run: fab --debug integ-test-containerized --test-mode=${{ inputs.test_targets }} --docker-registry=${{ inputs.registry }}/
       - name: Get test results
         if: always()
         working-directory: lte/gateway
         run: |
-          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+          fab get-test-summaries --integration-tests --dst-path="test-results" --dev-vm-name="magma_deb"
       - name: Publish Unit Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
