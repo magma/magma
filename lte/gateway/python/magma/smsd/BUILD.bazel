@@ -47,7 +47,10 @@ py_library(
     srcs = ["relay.py"],
     visibility = ["//visibility:public"],
     deps = [
+        "//lte/protos:sms_orc8r_python_grpc",
+        "//orc8r/gateway/python/magma/common:job",
         "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
         "//orc8r/protos:directoryd_python_grpc",
     ],
 )
