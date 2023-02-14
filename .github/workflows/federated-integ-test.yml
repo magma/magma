@@ -17,10 +17,8 @@ name: Magma Build, Publish & Test Federated Integration
 
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch: null
-  push:
-    branches:
-      - master
-      - 'v1.*'
+  repository_dispatch:
+    types: [magma-debian-artifact]
 
 jobs:
   # Build images on ubuntu which is faster than MacOs.
@@ -133,10 +131,16 @@ jobs:
         with:
           cache-key-prefix: magma_test
       - name: Install AGW
+        env:
+          MAGMA_DEV_CPUS: 3
+          MAGMA_DEV_MEMORY_MB: 9216
+        working-directory: 'lte/gateway/python/integ_tests/federated_tests/'
         run: |
-          cd lte/gateway/python/integ_tests/federated_tests
-          export MAGMA_DEV_CPUS=3
-          export MAGMA_DEV_MEMORY_MB=9216
+          if [[ -z "${{ github.event.client_payload.magma_version }}" ]]; then
+            export MAGMA_PACKAGE=magma
+          else
+            export MAGMA_PACKAGE=magma=${{ github.event.client_payload.magma_version }}
+          fi
           fab install-agw
       # Download to local and delete artifacts from remote
       - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1

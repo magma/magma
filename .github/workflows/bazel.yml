@@ -632,7 +632,7 @@ jobs:
             --target-props="${DEBIAN_META_INFO}" \
             "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb
 
-      - name: Trigger debian integ test workflow
+      - name: Trigger debian integ test workflows
         uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
         if: |
           github.event_name == 'push' &&
