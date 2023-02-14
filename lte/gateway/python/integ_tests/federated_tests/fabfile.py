@@ -104,8 +104,7 @@ def _run_orc8r_command(c, command, on_vagrant):
         subprocess.check_call(command, shell=True, cwd=orc8_docker_path)
     else:
         with c.cd(agw_path):
-            c_gw = vagrant_connection(c, 'magma')
-            with c_gw:
+            with vagrant_connection(c, 'magma') as c_gw:
                 with c_gw.cd(orc8r_vagrant_path):
                     c_gw.run(command)
 
@@ -122,8 +121,7 @@ def configure_orc8r(c, on_vagrant=False):
         subprocess.check_call(command_agw, shell=True, cwd=agw_path)
         subprocess.check_call(command_feg, shell=True, cwd=feg_path)
     else:
-        c_gw = vagrant_connection(c, 'magma')
-        with c_gw:
+        with vagrant_connection(c, 'magma') as c_gw:
             with c_gw.cd(agw_vagrant_path):
                 c_gw.run(command_agw)
             with c_gw.cd(feg_vagrant_path):
@@ -200,8 +198,7 @@ def build_feg(c):
     build FEG on magma Vagrant vm using docker running in Vagrant
     """
     print('#### Building FEG on Magma Vagrant VM ####')
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('docker compose down')
             c_gw.run('docker compose --compatibility build')
@@ -232,8 +229,7 @@ def start_feg(c):
     """
     start FEG on magma Vagrant vm using docker running in Vagrant
     """
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('./run.py')
 
@@ -253,8 +249,7 @@ def stop_feg(c):
     """
     stop FEG on magma Vagrant vm using docker running in Vagrant
     """
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             c_gw.run('docker compose down')
 
@@ -325,8 +320,7 @@ def test_connectivity(c, timeout=10):
 
     # check FEG-cloud connectivity
     print("\n### Checking FEG-Cloud connectivity ###")
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(feg_docker_integ_test_path_vagrant):
             dev_utils.run_remote_command_with_repetition(
                 c_gw, 'docker compose exec -t magmad checkin_cli.py', timeout,

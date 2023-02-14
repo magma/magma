@@ -196,8 +196,7 @@ def get_gateway_hardware_id_from_vagrant(c: Connection, vm_name: str) -> str:
     Returns:
         Hardware snowflake from the VM
     """
-    c_gw = vagrant_connection(c, vm_name)
-    with c_gw:
+    with vagrant_connection(c, vm_name) as c_gw:
         hardware_id = c_gw.run('cat /etc/snowflake', hide=True).stdout
     return str(hardware_id).strip()
 
@@ -213,8 +212,7 @@ def get_gateway_hardware_id_from_docker(c: Connection, location_docker_compose: 
     Returns:
         Hardware snowflake from the VM
     """
-    c_gw = vagrant_connection(c, 'magma')
-    with c_gw:
+    with vagrant_connection(c, 'magma') as c_gw:
         with c_gw.cd(location_docker_compose):
             hardware_id = c_gw.run(
                 'docker compose exec magmad bash -c "cat /etc/snowflake"',
@@ -232,8 +230,7 @@ def delete_gateway_certs_from_vagrant(c: Connection, vm_name: str):
         vm_name: Name of the vagrant machine to use
     """
     with c.cd(AGW_ROOT):
-        c_gw = vagrant_connection(c, vm_name)
-        with c_gw:
+        with vagrant_connection(c, vm_name) as c_gw:
             with c_gw.cd('/var/opt/magma/certs'):
                 c_gw.run('sudo rm gateway.*', hide=True, warn=True)
                 c_gw.run('sudo rm gw_challenge.key', hide=True, warn=True)
@@ -248,8 +245,7 @@ def delete_gateway_certs_from_docker(c: Connection, location_docker_compose: str
         location_docker_compose: location of docker compose used to run FEG
     """
     with c.cd(AGW_ROOT):
-        c_gw = vagrant_connection(c, 'magma')
-        with c_gw:
+        with vagrant_connection(c, 'magma') as c_gw:
             with c_gw.cd(FEG_INTEG_TEST_ROOT + location_docker_compose):
                 c_gw.run('echo "delete_feg_certs is running on directory $PWD"')
                 c_gw.run(
