@@ -95,7 +95,7 @@ def package(
             "\tfab [dev|release] package",
         )
 
-    hash = pkg.get_commit_hash(c)
+    commit_hash = pkg.get_commit_hash(c)
     commit_count = pkg.get_commit_count(c)
 
     with vagrant_connection(c, vm, destroy_vm=destroy_vm) as c_gw:
@@ -115,11 +115,11 @@ def package(
                 + f' {ORC8R_AGW_PYTHON_ROOT}/setup.py',
             )
 
-            print(f'Building magma package, picking up commit {hash}...')
+            print(f'Building magma package, picking up commit {commit_hash}...')
             c_gw.run('make clean')
             build_type = "Debug" if debug_mode else "RelWithDebInfo"
 
-            build_cmd = f'./release/build-magma.sh --hash {hash}' \
+            build_cmd = f'./release/build-magma.sh --commit_hash {commit_hash}' \
                         f' --commit-count {commit_count} --type {build_type}' \
                         f' --cert {cert_file} --proxy {proxy_config} --os {os}'
             # set '/usr/bin/' in PATH to ensure that the correct version of
@@ -190,7 +190,7 @@ def _redirect_feg_agw_to_vagrant_orc8r(c_gw):
     to point to localhost when Orc8r runs inside Vagrant
     """
     # This is only run in CI:
-    # on macos
+    # on macOS
     c_gw.local(
         f"sed -i '' 's/:10.0.2.2/:127.0.0.1/' "
         f"{FEG_INTEG_TEST_DOCKER_ROOT}/docker-compose.override.yml",
@@ -206,7 +206,7 @@ def federated_integ_test(
 ):
 
     if orc8r_on_vagrant:
-        # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
+        # Modify Vagrantfile to allow access to orc8r running inside Vagrant
         open_orc8r_port_in_vagrant(c)
 
     if build_all:
@@ -314,8 +314,8 @@ def integ_test(
         services on. Formatted as "host:port". If not specified, defaults to
         the `magma` vagrant box.
 
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
+    test_host: The ssh address string of the machine to run the tests on.
+        Formatted as "host:port". If not specified, defaults to the
         `magma_test` vagrant box.
 
     trf_host: The ssh address string of the machine to run the TrafficServer
@@ -366,8 +366,8 @@ def integ_test_deb_installation(
         services on. Formatted as "host:port". If not specified, defaults to
         the `magma_deb` vagrant box.
 
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
+    test_host: The ssh address string of the machine to run the tests on.
+        Formatted as "host:port". If not specified, defaults to the
         `magma_test` vagrant box.
 
     trf_host: The ssh address string of the machine to run the TrafficServer
@@ -525,6 +525,7 @@ def get_test_logs(
     "/tmp/build_logs.tar.gz" by default.
 
     Args:
+        c: fabric connection
         gateway_host_name: name of the gateway machine
         gateway_host: The ssh address string of the gateway machine formatted
             as "host:port". If not specified, defaults to the `magma` vagrant box.
