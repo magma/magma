@@ -64,12 +64,12 @@ def integ_test(
         services on. Formatted as "host:port". If not specified, defaults to
         the `cwag` vagrant box
 
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
+    test_host: The ssh address string of the machine to run the tests on.
+        Formatted as "host:port". If not specified, defaults to the
         `cwag_test` vagrant box
 
-    trf_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
+    trf_host: The ssh address string of the machine to run the tests on.
+        Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box
 
     destroy_vm: When set to true, all VMs will be destroyed before running the
@@ -114,7 +114,7 @@ def integ_test(
         )
         return
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     c_cwf = _set_up_vm(
         c,
@@ -150,7 +150,7 @@ def integ_test(
 
         _run_gateway(c_cwf)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to
+    # Set up the trfserver: use the provided trfserver if given, else default to
     # the vagrant machine
     with c.cd(LTE_AGW_ROOT):
         c_trf = _set_up_vm(
@@ -176,7 +176,7 @@ def integ_test(
         _set_cwag_configs(c_test, "gateway.mconfig")
         _start_ipfix_controller(c_test)
 
-    # Get back to the gateway vm to setup static arp
+    # Get back to the gateway vm to set up static arp
     with c_cwf:
         _set_cwag_networking(c_cwf, cwag_test_br_mac)
 
@@ -199,12 +199,12 @@ def integ_test(
     # HSSLESS tests are to be executed from gateway_host VM
     if tests_to_run.value == SubTests.HSSLESS.value:
         _run_integ_tests(
-            c, gateway_host, trf_host, tests_to_run, test_re, count,
+            gateway_host, trf_host, tests_to_run, test_re, count,
             test_result_xml, rerun_fails, c_cwf, c_trf,
         )
     else:
         _run_integ_tests(
-            c, test_host, trf_host, tests_to_run, test_re, count,
+            test_host, trf_host, tests_to_run, test_re, count,
             test_result_xml, rerun_fails, c_test, c_trf,
         )
 
@@ -217,6 +217,7 @@ def transfer_artifacts(
     """
     Fetches service logs from Docker and optionally gets core dumps
     Args:
+        c: Fabric connection
         gateway_vm: VM to fetch logs from
         gateway_ansible_file: Ansible file to use for VM
         services: A list of services for which services logs are requested
@@ -451,7 +452,7 @@ def _add_docker_host_remote_network_envvar(c_test):
 
 
 def _run_integ_tests(
-    c, test_host, trf_host, tests_to_run: SubTests, test_re, count,
+    test_host, trf_host, tests_to_run: SubTests, test_re, count,
     test_result_xml, rerun_fails, c_test_vm, c_trf,
 ):
     """ Run the integration tests """
