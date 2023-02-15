@@ -525,32 +525,31 @@ def run_with_retry(c_gw, command, retries=10):
 
 
 @task
-def get_test_summaries(
-        c,
-        dst_path="/tmp",
-        integration_tests=False,
-        sudo_tests=False,
-        dev_vm_name="magma",
-):
-    c.run('mkdir -p ' + dst_path)
-
-    if sudo_tests:
-        _get_test_summaries_from_vm(c, dst_path, dev_vm_name)
-    if integration_tests:
-        _get_test_summaries_from_vm(c, dst_path, "magma_test")
-
-
-def _get_test_summaries_from_vm(c, dst_path, vm_name):
+def get_test_summaries(c, sudo_tests=False, integration_tests=False):
     results_folder = "test_results"
     results_dir = "/var/tmp/"
-    with vagrant_connection(c, vm_name) as c_gw:
-        if c_gw.run(
+
+    c.run('mkdir -p ' + results_folder)
+
+    if not (sudo_tests and integration_tests):
+        print(
+            "Specify either \'sudo-tests\' or \'integration-tests\'"
+            "to get test summaries",
+        )
+        return
+    if sudo_tests:
+        vm_name = "magma"
+    if integration_tests:
+        vm_name = "magma_test"
+
+    with vagrant_connection(c, vm_name) as c_vm:
+        if c_vm.run(
             f"test -e {results_dir}{results_folder}", warn=True,
         ).ok:
             # Fix the permissions on the files -- they have permissions 000
             # otherwise
-            c_gw.run(f'sudo chmod 755 {results_dir}{results_folder}')
-            _get_folder(c_gw, results_folder, results_dir, dst_path)
+            c_vm.run(f'sudo chmod 755 {results_dir}{results_folder}')
+            _get_folder(c_vm, results_folder, results_dir, results_folder)
 
 
 @task

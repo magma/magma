@@ -177,14 +177,14 @@ jobs:
         if: always()
         run: |
           cd lte/gateway
-          fab get-test-summaries --integration-tests --dst-path="test-results"
+          fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results
-          path: lte/gateway/test-results/**/*.xml
+          name: test_results
+          path: lte/gateway/test_results/**/*.xml
       - name: Get test logs
         if: always()
         run: |
@@ -201,7 +201,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: FEG integration test results
-          junit_files: lte/gateway/test-results/**/*.xml
+          junit_files: lte/gateway/test_results/**/*.xml
           check_run_annotations: all tests
       - name: Publish results to Firebase
         if: always() && github.event_name == 'push'
@@ -210,7 +210,7 @@ jobs:
           REPORT_FILENAME: "feg_integ_test_${{ github.sha }}.html"
         run: |
           npm install -g xunit-viewer
-          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} feg --url $URL
