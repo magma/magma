@@ -133,6 +133,15 @@
         "ids": [
           "dp/deploy_build"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "cwf/deploy_intro",
+          "cwf/deploy_build",
+          "cwf/deploy_install"
+        ]
       }
     ],
     "Configure": [
@@ -235,6 +244,7 @@
         "type": "subcategory",
         "label": "Carrier WiFi",
         "ids": [
+          "cwf/healthchecker",
           "cwf/pipelined_packet_tracer_debugging"
         ]
       },
