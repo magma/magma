@@ -337,6 +337,7 @@
         "label": "Federation Gateway",
         "ids": [
           "version-1.8.0-feg/dev_testing",
+          "version-1.8.0-feg/docker",
           "version-1.8.0-feg/s1ap_federated_tests"
         ]
       },

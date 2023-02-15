@@ -1,5 +1,5 @@
 ---
-id: docker_setup
+id: docker
 title: FeG Docker Setup
 hide_title: true
 ---

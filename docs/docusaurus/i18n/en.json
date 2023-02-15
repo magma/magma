@@ -81,7 +81,7 @@
       "feg/dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "feg/docker_setup": {
+      "feg/docker": {
         "title": "FeG Docker Setup"
       },
       "feg/s1ap_federated_tests": {
@@ -1610,7 +1610,7 @@
       "version-1.7.0/feg/version-1.7.0-dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "version-1.7.0/feg/version-1.7.0-docker_setup": {
+      "version-1.7.0/feg/version-1.7.0-docker": {
         "title": "FeG Docker Setup"
       },
       "version-1.7.0/feg/version-1.7.0-s1ap_federated_test": {
