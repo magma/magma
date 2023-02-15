@@ -22,7 +22,7 @@
     - role: apt_cache
     - role: pkgrepo
       vars:
-        distribution: "bionic"
+        distribution: "focal"
         repo: "cwf-prod"
         preburn: true
     - role: ovs

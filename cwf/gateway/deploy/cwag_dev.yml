@@ -18,12 +18,12 @@
     - magma_root: /home/{{ ansible_user }}/magma
     - user: "{{ ansible_user }}"
     - full_provision: yes
-    - docker_host_distribution: bionic
+    - docker_host_distribution: focal
   roles:
     - role: gomod_cache
     - role: distro_snapshot
       vars:
-        distro: bionic
+        distro: focal
         distro_root: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') | regex_replace('(^.*/+|)([^/]+)\\.tar\\.gz$', '\\2') }}"
         distro_archive: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') }}"
         distro_sha256: "{{ lookup('env', 'CWAG_DISTRO_SHA256') }}"
@@ -31,9 +31,11 @@
       vars:
         override_nameserver: 8.8.8.8
     - role: apt_cache
+      vars:
+        distribution: focal
     - role: pkgrepo
       vars:
-        distribution: "bionic"
+        distribution: "focal"
         repo: "cwf-prod"
         preburn: true
     - role: test_certs
