@@ -531,7 +531,7 @@ def get_test_summaries(c, sudo_tests=False, integration_tests=False):
 
     c.run('mkdir -p ' + results_folder)
 
-    if not (sudo_tests and integration_tests):
+    if sudo_tests == integration_tests:
         print(
             "Specify either \'sudo-tests\' or \'integration-tests\'"
             "to get test summaries",
