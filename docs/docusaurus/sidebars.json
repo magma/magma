@@ -329,6 +329,7 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing",
+          "feg/docker",
           "feg/s1ap_federated_tests",
           "feg/session_proxy"
         ]
