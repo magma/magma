@@ -29,7 +29,7 @@ LINT_DOCKER_PATH = os.path.join(
 IMAGE_NAME = 'magma/py-lint'
 ORC8R_PYTHON_PATH = 'orc8r/gateway/python/magma'
 LTE_PYTHON_PATH = 'lte/gateway/python/magma'
-GITHUB_IMAGE_NAME = 'ghcr.io/magma/magma/python-precommit:sha-b22d512'
+GITHUB_IMAGE_NAME = 'ghcr.io/magma/magma/python-precommit:latest'
 
 
 def main() -> None:
