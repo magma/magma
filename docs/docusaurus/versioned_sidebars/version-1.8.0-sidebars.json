@@ -132,6 +132,15 @@
         "ids": [
           "version-1.8.0-dp/deploy_build"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.8.0-cwf/deploy_intro",
+          "version-1.8.0-cwf/deploy_build",
+          "version-1.8.0-cwf/deploy_install"
+        ]
       }
     ],
     "Configure": [
@@ -228,6 +237,13 @@
         "label": "Federated Gateway",
         "ids": [
           "version-1.8.0-feg/debug_cli"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.8.0-cwf/healthchecker"
         ]
       },
       {
