@@ -20,11 +20,9 @@
   roles:
     - role: gomod_cache
     - role: apt_cache
-    - role: pkgrepo
       vars:
-        distribution: "focal"
-        repo: "cwf-prod"
-        preburn: true
+        distribution: focal
+    - role: pkgrepo
     - role: ovs
     - role: resolv_conf
       vars:

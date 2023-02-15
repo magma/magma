@@ -110,6 +110,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :cwag_test, primary: true do |cwag_test|
     cwag_test.vm.box = "generic/ubuntu2004"
     cwag_test.vm.box_version = "4.0.2"
+    cwag_test.vbguest.auto_update = false
     cwag_test.vm.hostname = "cwag-test"
     cwag_test.vm.network "private_network", ip: "192.168.70.102", nic_type: "82540EM"
     cwag_test.vm.network "private_network", ip: "192.168.40.12", nic_type: "82540EM"
