@@ -206,7 +206,7 @@ def federated_integ_test(
 ):
 
     if orc8r_on_vagrant:
-        # Modify Vagrantfile to allow access to orc8r running inside Vagrant
+        # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
         open_orc8r_port_in_vagrant(c)
 
     if build_all:
