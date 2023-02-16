@@ -207,8 +207,6 @@ def integ_test(
             c, test_host, trf_host, tests_to_run, test_re, count,
             test_result_xml, rerun_fails, c_test, c_trf,
         )
-    print(f'Integration Test Passed for "{tests_to_run.value}"!')
-    sys.exit(0)
 
 
 @task
@@ -486,7 +484,7 @@ def _run_integ_tests(
                 # Clean up only for now when running locally
                 _clean_up(c_test_vm, c_trf)
 
-        print("Integration Test returned ", result.return_code)
+        print("Integration Test returned exit code ", result.return_code)
         sys.exit(result.return_code)
 
 
