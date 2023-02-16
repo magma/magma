@@ -60,49 +60,44 @@ def integ_test(
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
     passing "address:port" as arguments
 
-    gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `cwag` vagrant box
-
-    test_host: The ssh address string of the machine to run the tests on.
-        Formatted as "host:port". If not specified, defaults to the
-        `cwag_test` vagrant box
-
-    trf_host: The ssh address string of the machine to run the tests on.
-        Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box
-
-    destroy_vm: When set to true, all VMs will be destroyed before running the
-     tests
-
-    provision_vm: When set to false, this script will not provision the VMs
-     before running the tests
-
-    build: When set to false, this script will skip rebuilding all docker images
-        in the CWAG VM
-
-    transfer_images: When set to true, the script will transfer all cwf_* docker
-        images from the host machine to the CWAG VM to use in the test
-
-    skip_docker_load: When set to true, /tmp/cwf_* will be copied into the CWAG VM
-        instead of loading the docker images then copying. This option only is
-        valid if transfer_images is set.
-
-    tar_path: The location where the tarred docker images will be copied from.
-        Only valid if transfer_images is set.
-
-    skip_unit_tests: When set to true, only integration tests will be run
-
-    run_tests: When set to false, no integration tests will be run
-
-    test_re: When set to a value, integrations tests that match the expression will be run.
-        (Ex: test_re=TestAuth will run all tests that start with TestAuth)
-
-    count: When set to a number, the integrations tests will be run that many times
-
-    test_result_xml: When set to a path, a JUnit style test summary in XML will be produced at the path
-
-    rerun_fails: Number of times to re-run a test on failure
+    Args:
+        c: Fabric connection.
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port". If not specified, defaults
+            to the `cwag` vagrant box.
+        test_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `cwag_test` vagrant box.
+        trf_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `magma_trfserver` vagrant box.
+        gateway_vm: The name of the vagrant VM to use as the gateway.
+        gateway_ansible_file: The ansible file to use to provision the gateway.
+        destroy_vm: When set to true, all VMs will be destroyed before running
+            the tests.
+        provision_vm: When set to False, this script will not provision the VMs
+            before running the tests.
+        build: When set to false, this script will skip rebuilding all docker images
+            in the CWAG VM
+        tests_to_run: The tests to run. Valid values are in the SubTests enum.
+        transfer_images: When set to true, the script will transfer all cwf_*
+            docker images from the host machine to the CWAG VM to use in the
+            test.
+        skip_docker_load: When set to true, /tmp/cwf_* will be copied into the
+            CWAG VM instead of loading the docker images then copying.
+            This option only is valid if transfer_images is set.
+        tar_path: The location where the tarred docker images will be copied
+            from. Only valid if transfer_images is set.
+        skip_unit_tests: When set to true, only integration tests will be run.
+        run_tests: When set to false, no integration tests will be run.
+        test_re: When set to a value, integrations tests that match the
+            expression will be run.
+            (Ex: test_re=TestAuth will run all tests that start with TestAuth)
+        count: When set to a number, the integrations tests will be run that
+            many times.
+        test_result_xml: When set to a path, a JUnit style test summary in XML
+            will be produced at the path.
+        rerun_fails: Number of times to re-run a test on failure.
     """
     try:
         tests_to_run = SubTests(tests_to_run)

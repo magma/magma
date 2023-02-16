@@ -310,17 +310,20 @@ def integ_test(
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
     passing "address:port" as arguments
 
-    gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `magma` vagrant box.
-
-    test_host: The ssh address string of the machine to run the tests on.
-        Formatted as "host:port". If not specified, defaults to the
-        `magma_test` vagrant box.
-
-    trf_host: The ssh address string of the machine to run the TrafficServer
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box.
+    Args:
+        c: Fabric connection.
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port". If not specified, defaults to
+            the `magma` vagrant box.
+        test_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `magma_test` vagrant box.
+        trf_host: The ssh address string of the machine to run the TrafficServer
+            on. Formatted as "host:port". If not specified, defaults to the
+            `magma_trfserver` vagrant box.
+        destroy_vm: If True, destroy the magma VM before running the tests.
+        provision_vm: When set to false, this script will not provision the VMs
+            before running the tests.
     """
 
     # Set up the gateway: use the provided gateway if given, else default to the
@@ -362,17 +365,20 @@ def integ_test_deb_installation(
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
     passing "address:port" as arguments
 
-    gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `magma_deb` vagrant box.
-
-    test_host: The ssh address string of the machine to run the tests on.
-        Formatted as "host:port". If not specified, defaults to the
-        `magma_test` vagrant box.
-
-    trf_host: The ssh address string of the machine to run the TrafficServer
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box.
+    Args:
+        c: Fabric connection.
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port". If not specified, defaults to
+            the `magma_deb` vagrant box.
+        test_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `magma_test` vagrant box.
+        trf_host: The ssh address string of the machine to run the TrafficServer
+            on. Formatted as "host:port". If not specified, defaults to the
+            `magma_trfserver` vagrant box.
+        destroy_vm: If True, destroy the magma deb VM before running the tests.
+        provision_vm: If True, provision the magma deb VM before running the
+            tests.
     """
 
     # Set up the gateway: use the provided gateway if given, else default to the
