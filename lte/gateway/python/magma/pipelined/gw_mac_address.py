@@ -108,7 +108,6 @@ def _get_gw_mac_address_v4(gw_ip: str, vlan: str, non_nat_arp_egress_port: str) 
         )
         eth_mac_src, psrc = _get_addresses(non_nat_arp_egress_port)
         pkt = _create_arp_packet(eth_mac_src, psrc, gw_ip, vlan)
-        logging.debug("ARP Req pkt:\n%s", pkt.pprint())
 
         res = _send_packet_and_receive_response(pkt, vlan, non_nat_arp_egress_port)
         if res is None:
