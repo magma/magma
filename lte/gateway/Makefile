@@ -112,14 +112,6 @@ build_oai: ## Build OAI
 	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
-format_all:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/python/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-
 build_sctpd:
 	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
