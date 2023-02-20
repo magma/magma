@@ -599,7 +599,7 @@
           "version": "2022.6.15"
         },
         "charset-normalizer": {
-          "root": false,
+          "root": true,
           "source": "apt",
           "sysdep": "python3-charset-normalizer",
           "version": "2.0.0"

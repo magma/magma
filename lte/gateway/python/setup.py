@@ -122,7 +122,7 @@ setup(
         'python-dateutil>=2.8.2',
         'six>=1.16.0',
         'eventlet==0.30.2',
-        'h2==3.2.0',
+        'h2<4',
         'hpack>=3.0.0,<4.0.0',
         'freezegun>=1.2.1',
         'pycryptodome>=3.15.0',
@@ -134,6 +134,8 @@ setup(
         'prometheus-client>=0.3.1',
         'aioeventlet @ git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619',
         'sdnotify>=0.3.2',
+        'typing-extensions<4',
+        'jsonref==0.2',
     ],
     extras_require={
         'dev': [
