@@ -14,6 +14,7 @@ limitations under the License.
 import sys
 from time import sleep
 
+import invoke
 # import fab tasks from dev_tools, so they can be called via fab in the command line
 from dev_tools import (  # noqa: F401
     check_agw_cloud_connectivity,
@@ -90,10 +91,11 @@ def package(
 
     global debug_mode
     if debug_mode is None:
-        raise RuntimeError(
+        print(
             "Error: The Deploy target isn't specified. Specify one with\n\n" +
             "\tfab [dev|release] package",
         )
+        sys.exit(1)
 
     hash = pkg.get_commit_hash(c)
     commit_count = pkg.get_commit_count(c)
@@ -474,12 +476,18 @@ def _run_with_retry(c_gw, command, retries=10):
         try:
             c_gw.run(command)
             break
-        except:
+        except (
+                invoke.exceptions.UnexpectedExit,
+                invoke.exceptions.Failure,
+                invoke.exceptions.ThreadException,
+        ) as e:
             print(f"ERROR: Failed on retry {iteration} of \n$ {command}\n")
+            print(f"ERROR: {e}\n")
             sleep(3)
     else:
         c_gw.run("docker ps")  # It is _not_ docker compose by intention to see the container ID.
-        raise Exception(f"ERROR: Failed after {retries} retries of \n$ {command}")
+        print(f"ERROR: Failed after {retries} retries of \n$ {command}")
+        sys.exit(1)
 
 
 @task
