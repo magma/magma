@@ -37,7 +37,7 @@ def register_feg_gw(c, location_docker_compose=FEG_DOCKER_LOCATION):
     Args:
         c: fabric Connection
         location_docker_compose: location of docker compose. Default set to
-            FEG_DOCKER_LOCATION.
+        FEG_DOCKER_LOCATION
     """
     _register_federation_network()
     _register_feg(c, location_docker_compose)
@@ -50,7 +50,7 @@ def deregister_feg_gw(c, location_docker_compose=FEG_DOCKER_LOCATION):
     Args:
         c: fabric Connection
         location_docker_compose: location of docker compose. Default set to
-            FEG_DOCKER_LOCATION.
+        FEG_DOCKER_LOCATION
     """
     _deregister_feg_gw(c, location_docker_compose)
     dev_utils.delete_gateway_certs_from_docker(c, location_docker_compose)
@@ -76,13 +76,13 @@ def check_feg_cloud_connectivity(c, timeout=5):
 class RadiusConfig:
     def __init__(
         self,
-        dae_addr: str = '127.0.0.1:3799',
+        DAE_addr: str = '127.0.0.1:3799',
         acct_addr: str = '127.0.0.1:1813',
         auth_addr: str = '127.0.0.1:1812',
         network: str = 'udp',
         secret: str = 'MTIzNDU2',
     ):
-        self.dae_addr = dae_addr
+        self.DAE_addr = DAE_addr
         self.acct_addr = acct_addr
         self.auth_addr = auth_addr
         self.network = network
@@ -164,10 +164,10 @@ class DiamServerConfig:
 class GxConfig:
     def __init__(
         self,
-        disable_gx: bool = False,
+        disableGx: bool = False,
         servers: List[DiamServerConfig] = None,
     ):
-        self.disable_gx = disable_gx
+        self.disableGx = disableGx
         if servers is None:
             servers = [DiamServerConfig()]
         self.servers = servers
@@ -176,11 +176,11 @@ class GxConfig:
 class GyConfig:
     def __init__(
         self,
-        disable_gy: bool = False,
+        disableGy: bool = False,
         init_method: int = 2,
         servers: List[DiamServerConfig] = None,
     ):
-        self.disable_gy = disable_gy
+        self.disableGy = disableGy
         self.init_method = init_method
         if servers is None:
             servers = [DiamServerConfig()]
@@ -262,7 +262,7 @@ class HssConfigs:
 class S6aConfigs:
     def __init__(
         self,
-        plmn_ids: List[str] = None,
+        plmn_ids: List[str] = list(),
         server: DiamServerConfig = DiamServerConfig(),
     ):
         if plmn_ids is None:
@@ -274,14 +274,14 @@ class S6aConfigs:
 class SwxConfigs:
     def __init__(
         self,
-        cache_ttl_seconds: int = 10800,
+        cache_TTL_seconds: int = 10800,
         derive_unregister_realm: bool = False,
         hlr_plmn_ids: List[str] = None,
         register_on_auth: bool = False,
         servers: List[DiamServerConfig] = None,
         verify_authorization: bool = False,
     ):
-        self.cache_ttl_seconds = cache_ttl_seconds
+        self.cache_TTL_seconds = cache_TTL_seconds
         self.derive_unregister_realm = derive_unregister_realm
         if hlr_plmn_ids is None:
             hlr_plmn_ids = ['00101']
@@ -336,14 +336,14 @@ class FederationNetworkConfigs:
 class FederationNetwork:
     def __init__(
         self,
-        network_id: str = NETWORK_ID,
+        id: str = NETWORK_ID,
         name: str = 'Testing',
         description: str = 'Test federation network',
         federation: FederationNetworkConfigs = FederationNetworkConfigs(),
         dns: types.NetworkDNSConfig = types.NetworkDNSConfig(),
         subscriber_config: SubConfig = SubConfig(),
     ):
-        self.id = network_id
+        self.id = id
         self.name = name
         self.description = description
         self.dns = dns
@@ -354,13 +354,13 @@ class FederationNetwork:
 class FederationGateway:
     def __init__(
         self,
-        network_id: str, name: str, description: str,
+        id: str, name: str, description: str,
         device: types.GatewayDevice,
         magmad: types.MagmadGatewayConfigs,
         tier: str = 'default',
         federation: FederationNetworkConfigs = FederationNetworkConfigs(),
     ):
-        self.id = network_id
+        self.id = id
         self.name = name
         self.description = description
         self.device = device
@@ -399,7 +399,7 @@ def _register_feg(c: Connection, location_docker_compose: str):
     gw_id = dev_utils.get_next_available_gateway_id(NETWORK_ID)
     md_gw = dev_utils.construct_magmad_gateway_payload(gw_id, hw_id)
     gw_payload = FederationGateway(
-        network_id=md_gw.id,
+        id=md_gw.id,
         name=md_gw.name,
         description=md_gw.description,
         device=md_gw.device,
