@@ -39,7 +39,7 @@ containerized AGW by running the following steps inside the VM:
 
 ```
 sudo rm -rf /etc/snowflake && sudo touch /etc/snowflake
-cd $MAGMA_ROOT && bazel/scripts/link_scripts_for_bazel_integ_tests.sh
+cd $MAGMA_ROOT && bazel/scripts/link_executables_for_bazel_integ_tests.sh
 bazel build `bazel query "attr(tags, util_script, kind(.*_binary, //orc8r/... union //lte/... union //feg/... except //lte/gateway/c/core:mme_oai))"`
 for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"/{orc8r,lte}/gateway/configs/templates/${component}.conf.template; done
 sed -i 's/init_system: systemd/init_system: docker/' "${MAGMA_ROOT}"/lte/gateway/configs/magmad.yml

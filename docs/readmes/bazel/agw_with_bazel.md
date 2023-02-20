@@ -444,7 +444,7 @@ The AGW utility scripts can be executed independently and they are sometimes cal
 
 ```bash
 cd $MAGMA_ROOT
-bazel/scripts/link_scripts_for_bazel_integ_tests.sh
+bazel/scripts/link_executables_for_bazel_integ_tests.sh
 ```
 
 ### How to run services and scripts

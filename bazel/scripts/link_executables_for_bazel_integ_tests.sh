@@ -37,11 +37,19 @@ format_targets_to_paths() {
 }
 
 create_links() {
-    echo "Linking bazel-built script executables to '/usr/local/bin/'..."
+    echo "Linking bazel-built executables to '/usr/local/bin/'... and '/usr/local/sbin/'..."
     for PYTHON_SCRIPT in "${PYTHON_SCRIPTS[@]}"
     do
         sudo ln -sf "/home/vagrant/magma/bazel-bin/${PYTHON_SCRIPT}" "/usr/local/bin/$(basename "${PYTHON_SCRIPT}").py"
     done
+
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/lte/gateway/c/core/agw_of" "/usr/local/bin/mme"
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/lte/gateway/c/connection_tracker/src/connectiond" "/usr/local/bin/connectiond"
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/lte/gateway/c/li_agent/src/liagentd" "/usr/local/bin/liagentd"
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/lte/gateway/c/sctpd/src/sctpd" "/usr/local/sbin/sctpd"
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/lte/gateway/c/session_manager/sessiond" "/usr/local/bin/sessiond"
+    sudo ln -sf "/home/vagrant/magma/bazel-bin/feg/gateway/services/envoy_controller/envoy_controller_/envoy_controller" "/usr/local/bin/envoy_controller"
+
     echo "Linking finished."
 }
 

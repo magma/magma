@@ -18,9 +18,9 @@ set -euo pipefail
 # Bazel commands have to be executed inside the repository.
 cd "${MAGMA_ROOT}"
 printf "\n###############################################################################\n"
-printf "Linking the Python scripts needed for the integration tests."
+printf "Linking the executables (services and scripts) needed for the integration tests."
 printf "\n###############################################################################\n"
-"${MAGMA_ROOT}"/bazel/scripts/link_scripts_for_bazel_integ_tests.sh
+"${MAGMA_ROOT}"/bazel/scripts/link_executables_for_bazel_integ_tests.sh
 
 printf "\n###############################################################################\n"
 printf "Copying Bazel specific systemd files to '/etc/systemd/system/'."
@@ -35,7 +35,7 @@ printf "\n######################################################################
 bazel build $(bazel query "attr(tags, 'service|util_script', kind(.*_binary, //orc8r/... union //lte/... union //feg/... except //lte/gateway/c/core:mme_oai))")
 
 printf "\n###############################################################################\n"
-printf "Restarting the Magma AGW services." 
+printf "Restarting the Magma AGW services."
 printf "\n###############################################################################\n"
 sudo service "magma@*" stop && sudo service sctpd stop && sudo service magma_dp@envoy stop
 sudo service magma@magmad start
