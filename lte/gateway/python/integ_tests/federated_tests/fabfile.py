@@ -139,8 +139,7 @@ def clear_orc8r_db(c):
 def install_agw(c, provision_vm=False):
     """
     Install a magma AGW debian package on the magma_deb Vagrant VM.
-    Args:
-        c: fabric connection.
+
        provision_vm: forces the reprovision of the magma VM
     """
     print('#### Installing AGW ####')
