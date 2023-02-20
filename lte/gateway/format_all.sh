@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The Magma Authors.
+# Copyright 2023 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -9,6 +9,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set -eou pipefail
 
 for dir in /orc8r/gateway/c/ /lte/gateway/c/ /lte/gateway/python/;
 do
