@@ -21,5 +21,10 @@ fi
 
 for dir in /orc8r/gateway/c/ /lte/gateway/c/ /lte/gateway/python/;
 do
-  find "${MAGMA_ROOT}/${dir}" \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec $CLANG_FILE -i {} \;
+  FILES=$(find "${MAGMA_ROOT}/${dir}" \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -print)
+  for FILE in $FILES;
+  do
+    echo "Formatting $FILE"
+    $CLANG_FILE -i "$FILE"
+  done
 done
