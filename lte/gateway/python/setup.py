@@ -131,6 +131,9 @@ setup(
         'ovs>=2.13,<2.17.0',
         'prometheus-client>=0.3.1',
         'aioeventlet==0.5.1',  # aioeventlet-build.sh
+        'pylint==2.6.0',  # should remove platformdirs and tomli dependency
+        'typing-extensions<4',
+        'jsonref==0.2',
     ],
     extras_require={
         'dev': [
