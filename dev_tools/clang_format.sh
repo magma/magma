@@ -10,6 +10,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This script formats all C/C++ files in the magma repo using clang-format-11.
+# The script can be executed on the dev VM or on the
+# host machine if clang-format-11 is installed.
+
 set -eou pipefail
 
 CLANG_FILE=/usr/bin/clang-format-11

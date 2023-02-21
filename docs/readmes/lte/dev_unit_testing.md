@@ -113,8 +113,8 @@ cd $MAGMA/lte/gateway/python
 To run formatting for each C/C++ service, run the following from inside the magma-dev VM
 
 ```bash
-[VM] cd magma/lte/gateway
-[VM] ./format_all.sh
+[VM] cd magma/dev_tools
+[VM] ./clang_format.sh
 ```
 
 #### Apply IWYU
