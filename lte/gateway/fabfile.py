@@ -121,7 +121,7 @@ def package(
             c_gw.run('make clean')
             build_type = "Debug" if debug_mode else "RelWithDebInfo"
 
-            build_cmd = f'./release/build-magma.sh --commit_hash {commit_hash}' \
+            build_cmd = f'./release/build-magma.sh --hash {commit_hash}' \
                         f' --commit-count {commit_count} --type {build_type}' \
                         f' --cert {cert_file} --proxy {proxy_config} --os {os}'
             # set '/usr/bin/' in PATH to ensure that the correct version of
