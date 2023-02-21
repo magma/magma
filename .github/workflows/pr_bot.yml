@@ -32,8 +32,8 @@ jobs:
             var msg = `Thanks for opening a PR! :100:
 
             [A couple initial guidelines](https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines)
-            - All commits must be signed off. This is [enforced by \`PR DCO check\`](https://github.com/magma/magma/blob/master/.github/workflows/dco-check.yml).
-            - All PR titles must follow the semantic commits format. This is [enforced by \`Semantic PR\`](https://github.com/magma/magma/blob/master/.github/workflows/semantic-pr.yml).
+            - All commits must be signed off. This is enforced by [\`PR DCO check\`](https://github.com/magma/magma/blob/master/.github/workflows/dco-check.yml).
+            - All PR titles must follow the semantic commits format. This is enforced by [\`PR Check Title Or Commit Message\`](https://github.com/magma/magma/blob/master/.github/workflows/semantic-pr.yml).
 
             ### Howto
             - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
@@ -47,9 +47,9 @@ jobs:
 
             If this is your first Magma PR, also consider reading
             - [Developer Onboarding](https://github.com/magma/magma/wiki/Contributor-Guide) for onboarding as a new Magma developer
-            - [Development Workflow](https://github.com/magma/magma/wiki/Contributing-Code#developing-workflow) for guidance on your first pull request
+            - [Development Workflow](https://github.com/magma/magma/wiki/Contributing-Code#developing-workflow) for guidance on your first PR
             - [CI Checks](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd) for points of contact for failing or flaky CI checks
-            - [GitHub-to-Slack mappings for Magma maintainers](https://github.com/magma/magma/wiki/Overview-of-the-Community-Structure-and-Governance) for guidance on how to contact maintainers on Slack`
+            - [Code Review Process](https://github.com/magma/magma/wiki/Contributing-Code#code-review-process) for information on requesting reviews and contacting maintainers`
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
