@@ -20,7 +20,7 @@ from typing import List
 if os.getenv('MAGMA_ROOT'):
     MAGMA_ROOT = os.environ["MAGMA_ROOT"]
 else:
-    raise Exception("'MAGMA_ROOT' needs to be set and point to the Magma root directory!")
+    raise KeyError("'MAGMA_ROOT' needs to be set and point to the Magma root directory!")
 
 LINT_DOCKER_PATH = os.path.join(
     MAGMA_ROOT,
