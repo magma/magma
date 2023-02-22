@@ -18,7 +18,7 @@ from enum import Enum
 from fabric import Connection, task
 
 sys.path.append('../../orc8r')
-from tools.fab.hosts import ansible_setup, vagrant_connection, vagrant_setup
+from tools.fab.hosts import ansible_setup, vagrant_connection
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
@@ -60,49 +60,44 @@ def integ_test(
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
     passing "address:port" as arguments
 
-    gateway_host: The ssh address string of the machine to run the gateway
-        services on. Formatted as "host:port". If not specified, defaults to
-        the `cwag` vagrant box
-
-    test_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
-        `cwag_test` vagrant box
-
-    trf_host: The ssh address string of the machine to run the tests on
-        on. Formatted as "host:port". If not specified, defaults to the
-        `magma_trfserver` vagrant box
-
-    destroy_vm: When set to true, all VMs will be destroyed before running the
-     tests
-
-    provision_vm: When set to false, this script will not provision the VMs
-     before running the tests
-
-    build: When set to false, this script will skip rebuilding all docker images
-        in the CWAG VM
-
-    transfer_images: When set to true, the script will transfer all cwf_* docker
-        images from the host machine to the CWAG VM to use in the test
-
-    skip_docker_load: When set to true, /tmp/cwf_* will be copied into the CWAG VM
-        instead of loading the docker images then copying. This option only is
-        valid if transfer_images is set.
-
-    tar_path: The location where the tarred docker images will be copied from.
-        Only valid if transfer_images is set.
-
-    skip_unit_tests: When set to true, only integration tests will be run
-
-    run_tests: When set to false, no integration tests will be run
-
-    test_re: When set to a value, integrations tests that match the expression will be run.
-        (Ex: test_re=TestAuth will run all tests that start with TestAuth)
-
-    count: When set to a number, the integrations tests will be run that many times
-
-    test_result_xml: When set to a path, a JUnit style test summary in XML will be produced at the path
-
-    rerun_fails: Number of times to re-run a test on failure
+    Args:
+        c: Fabric connection.
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port". If not specified, defaults
+            to the `cwag` vagrant box.
+        test_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `cwag_test` vagrant box.
+        trf_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `magma_trfserver` vagrant box.
+        gateway_vm: The name of the vagrant VM to use as the gateway.
+        gateway_ansible_file: The ansible file to use to provision the gateway.
+        destroy_vm: When set to true, all VMs will be destroyed before running
+            the tests.
+        provision_vm: When set to False, this script will not provision the VMs
+            before running the tests.
+        build: When set to false, this script will skip rebuilding all docker images
+            in the CWAG VM
+        tests_to_run: The tests to run. Valid values are in the SubTests enum.
+        transfer_images: When set to true, the script will transfer all cwf_*
+            docker images from the host machine to the CWAG VM to use in the
+            test.
+        skip_docker_load: When set to true, /tmp/cwf_* will be copied into the
+            CWAG VM instead of loading the docker images then copying.
+            This option only is valid if transfer_images is set.
+        tar_path: The location where the tarred docker images will be copied
+            from. Only valid if transfer_images is set.
+        skip_unit_tests: When set to true, only integration tests will be run.
+        run_tests: When set to false, no integration tests will be run.
+        test_re: When set to a value, integrations tests that match the
+            expression will be run.
+            (Ex: test_re=TestAuth will run all tests that start with TestAuth)
+        count: When set to a number, the integrations tests will be run that
+            many times.
+        test_result_xml: When set to a path, a JUnit style test summary in XML
+            will be produced at the path.
+        rerun_fails: Number of times to re-run a test on failure.
     """
     try:
         tests_to_run = SubTests(tests_to_run)
@@ -114,7 +109,7 @@ def integ_test(
         )
         return
 
-    # Setup the gateway: use the provided gateway if given, else default to the
+    # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     c_cwf = _set_up_vm(
         c,
@@ -150,7 +145,7 @@ def integ_test(
 
         _run_gateway(c_cwf)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to
+    # Set up the trfserver: use the provided trfserver if given, else default to
     # the vagrant machine
     with c.cd(LTE_AGW_ROOT):
         c_trf = _set_up_vm(
@@ -176,7 +171,7 @@ def integ_test(
         _set_cwag_configs(c_test, "gateway.mconfig")
         _start_ipfix_controller(c_test)
 
-    # Get back to the gateway vm to setup static arp
+    # Get back to the gateway vm to set up static arp
     with c_cwf:
         _set_cwag_networking(c_cwf, cwag_test_br_mac)
 
@@ -199,12 +194,12 @@ def integ_test(
     # HSSLESS tests are to be executed from gateway_host VM
     if tests_to_run.value == SubTests.HSSLESS.value:
         _run_integ_tests(
-            c, gateway_host, trf_host, tests_to_run, test_re, count,
+            gateway_host, trf_host, tests_to_run, test_re, count,
             test_result_xml, rerun_fails, c_cwf, c_trf,
         )
     else:
         _run_integ_tests(
-            c, test_host, trf_host, tests_to_run, test_re, count,
+            test_host, trf_host, tests_to_run, test_re, count,
             test_result_xml, rerun_fails, c_test, c_trf,
         )
 
@@ -217,6 +212,7 @@ def transfer_artifacts(
     """
     Fetches service logs from Docker and optionally gets core dumps
     Args:
+        c: Fabric connection
         gateway_vm: VM to fetch logs from
         gateway_ansible_file: Ansible file to use for VM
         services: A list of services for which services logs are requested
@@ -451,7 +447,7 @@ def _add_docker_host_remote_network_envvar(c_test):
 
 
 def _run_integ_tests(
-    c, test_host, trf_host, tests_to_run: SubTests, test_re, count,
+    test_host, trf_host, tests_to_run: SubTests, test_re, count,
     test_result_xml, rerun_fails, c_test_vm, c_trf,
 ):
     """ Run the integration tests """
