@@ -37,12 +37,7 @@ def main() -> None:
     print("Magma root is " + MAGMA_ROOT)
     args = _parse_args()
 
-    if args.local:
-        print("If you are using the local Dockerfile, please make sure to run `precommit.py --build` to build the image!")
-
-    if args.build_image:
-        _build_docker_image()
-        return
+    _build_docker_image()
 
     # If no paths are specified, default to magma services
     if args.diff:
@@ -51,9 +46,9 @@ def main() -> None:
         print("Please specify at least one path for format/lint!")
         return
     if args.format:
-        _format_diff(args.paths, args.local)
+        _format_diff(args.paths)
     if args.lint:
-        _run_flake8(args.paths, args.local)
+        _run_flake8(args.paths)
 
 
 def _build_docker_image():
@@ -66,18 +61,18 @@ def _build_docker_image():
     _run(cmd)
 
 
-def _format_diff(paths: List[str], use_local_image: bool):
+def _format_diff(paths: List[str]):
     for path in paths:
         # when changing any of these commands,
         # make sure to change the corresponding github action
-        _run_docker_cmd(['isort', path], use_local_image)
-        _run_add_trailing_comma(path, use_local_image)
+        _run_docker_cmd(['isort', path])
+        _run_add_trailing_comma(path)
         # This should be consistent with .github/workflows/python-workflow.yml
         autopep8_checks = 'W191,W291,W292,W293,W391,E131,E1,E2,E3'
-        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path], use_local_image)
+        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
 
 
-def _run_add_trailing_comma(path: str, use_local_image: bool):
+def _run_add_trailing_comma(path: str):
     abs_path = os.path.join(os.path.abspath(MAGMA_ROOT), path)
     if os.path.isfile(abs_path):
         # TODO upgrade to --py36-plus eventually
@@ -85,21 +80,18 @@ def _run_add_trailing_comma(path: str, use_local_image: bool):
             [
                 'add-trailing-comma', '--py35-plus',
                 '--exit-zero-even-if-changed', path,
-            ], use_local_image,
+            ],
         )
 
 
-def _run_flake8(paths: List[str], use_local_image: bool):
+def _run_flake8(paths: List[str]):
     for path in paths:
-        _run_docker_cmd(['flake8', '--exit-zero', path], use_local_image)
+        _run_docker_cmd(['flake8', '--exit-zero', path])
 
 
-def _run_docker_cmd(commands: List[str], use_local_image: bool):
+def _run_docker_cmd(commands: List[str]):
     volume_cmd = ['-v', os.path.abspath(MAGMA_ROOT) + ':/code']
-    if use_local_image:
-        docker_image = IMAGE_NAME + ':latest'
-    else:
-        docker_image = GITHUB_IMAGE_NAME
+    docker_image = IMAGE_NAME + ':latest'
     cmd_prefix = 'docker run -it -u 0'.split(' ')
     cmd = cmd_prefix + volume_cmd + [docker_image] + commands
     _run(cmd)
@@ -133,16 +125,6 @@ def _parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(description='Python lint/format tool')
 
-    parser.add_argument(
-        '--local',
-        action='store_true',
-        help='Build the base image from local Dockerfile and use it',
-    )
-    parser.add_argument(
-        '--build_image', '-b',
-        action='store_true',
-        help='Build the linting Docker image',
-    )
     parser.add_argument(
         '--format', '-f',
         action='store_true',
