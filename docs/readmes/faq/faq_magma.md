@@ -79,7 +79,7 @@ This section lists some of the commonly asked questions related to Magma operati
     - From the popup window, select tab **COMMANDS**. Then, check section **Reboot**.
     - Click on **Reboot** to reboot the AGW node.
 
-### Does AGW support IPv6?
+### Does the AGW support IPv6?
 
 - IPv6 and dual stack IPv4v6 session support is implemented for Magma v1.7 and later.
 
