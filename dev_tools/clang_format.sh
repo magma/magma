@@ -18,12 +18,16 @@ set -eou pipefail
 
 CLANG_FILE=/usr/bin/clang-format-11
 if test ! -f "$CLANG_FILE"; then
-  echo "clang-format-11 not found. You should execute the script on the dev VM
-    or install clang-format-11 on your host machine."
+  echo "clang-format-11 not found. You should execute the script on the dev VM or install clang-format-11 on your host machine."
   exit 1
 fi
 
-for dir in /orc8r/gateway/c/ /lte/gateway/c/ /lte/gateway/python/;
+if [ -z ${MAGMA_ROOT+x} ]; then
+  echo "MAGMA_ROOT variable is not set. Please set MAGMA_ROOT to the root of the magma repository."
+  exit 1
+fi
+
+for dir in orc8r/gateway/c/ lte/gateway/c/ lte/gateway/python/;
 do
   FILES=$(find "${MAGMA_ROOT}/${dir}" \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -print)
   for FILE in $FILES;
