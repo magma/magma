@@ -32,6 +32,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -813,8 +814,9 @@ void amf_ue_context_update_ue_sig_connection_state(
     }
 
     ue_context_p->cm_state = M5GCM_IDLE;
-
     // Update Stats
+    update_amf_app_stats_connected_ue_sub();
+
     OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - IDLE.\n");
 
@@ -830,7 +832,7 @@ void amf_ue_context_update_ue_sig_connection_state(
     // Set PPF flag to true whenever UE moves from M5GCM_IDLE to M5GCM_CONNECTED
     // state
     ue_context_p->ppf = true;
-
+    update_amf_app_stats_connected_ue_add();
     OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - CONNECTED.\n");
   } else if (ue_context_p->cm_state == M5GCM_IDLE &&

@@ -36,6 +36,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -234,12 +235,16 @@ void* amf_app_thread(void* args) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   application_amf_app_stats_msg_t stats_msg;
-  stats_msg.nb_ue_connected = 80;  // amf_app_desc_p->nb_ue_connected;
+  // amf_app_desc_p->nb_ue_connected =15;
+
+  // update_amf_app_stats_connected_ue_add();
+  stats_msg.nb_ue_connected = amf_app_desc_p->nb_ue_connected;
   return send_amf_app_stats_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP,
                                           &stats_msg);
 }
 
 static void start_stats_timer(void) {
+  update_amf_app_stats_connected_ue_add();
   amf_stats_timer_id =
       start_timer(&amf_app_task_zmq_ctx, 1000 * amf_stats_timer_sec,
                   TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);

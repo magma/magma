@@ -408,13 +408,16 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   ngap_state_t* ngap_state_p = get_ngap_state(false);
   application_ngap_stats_msg_t stats_msg;
-  stats_msg.nb_gnb_connected = 4;  // ngap_state_p->num_gnbs;
+
+  stats_msg.nb_gnb_connected = ngap_state_p->num_gnbs;
   // stats_msg.nb_ngap_last_msg_latency = ngap_last_msg_latency;
   return send_ngap_stats_to_service303(&ngap_task_zmq_ctx, TASK_NGAP,
                                        &stats_msg);
 }
 
 static void start_stats_timer(void) {
+  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  ngap_state_p->num_gnbs = 7;
   ngap_stats_timer_id =
       start_timer(&ngap_task_zmq_ctx, 1000 * ngap_stats_timer_sec,
                   TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);

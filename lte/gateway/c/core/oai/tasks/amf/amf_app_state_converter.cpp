@@ -156,7 +156,8 @@ void AmfNasStateConverter::state_to_proto(const amf_app_desc_t* amf_nas_state_p,
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_proto->set_mme_app_ue_s1ap_id_generator(
       amf_nas_state_p->amf_app_ue_ngap_id_generator);
-
+  //   state_proto->set_nb_ue_connected(amf_nas_state_p->nb_ue_connected);
+  state_proto->set_nb_ue_connected(25);
   // These Functions are to be removed as part of the stateless enhancement
   // maps to proto
   auto amf_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
@@ -187,6 +188,7 @@ void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
   }
   OAILOG_INFO(LOG_AMF_APP, "Done reading AMF statistics from data store");
 
+  amf_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
       state_proto.mme_ue_contexts();
 
