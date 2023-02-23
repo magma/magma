@@ -150,6 +150,22 @@ helm dep update
 helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml orc8r .
 ```
 
+Optionally, install the `cwf-orc8r`, `feg-orc8r`, and `lte-orc8r` charts by modifying the file templates similarly to the `orc8r` values file.
+Move the value file to `${MAGMA_ROOT}/orc8r/cloud/helm/{component}.values.yaml`.
+For `lte-orc8r` you can find a `minikube.values.yaml` template file in the `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/examples/` directory.
+For the other charts, you can find a `values.yaml` file in the main `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/{component}-orc8r` directory.
+
+Add the following to the `{component}.values.yaml` file:
+
+```yaml
+image:
+# ...
+  env:
+      orc8r_domain_name: "magma.test"
+```
+
+
+```bash
 Optionally install other charts, like the `lte` charts, similarly
 
 ```bash
