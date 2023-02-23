@@ -71,7 +71,7 @@ cd ${MAGMA_ROOT}/orc8r/cloud/docker
 for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} -u '' -p '' ; done
 ```
 
-Optionally, to build fluentd images for the Orchestrator, uncomment the line `docker-compose.logging.yaml` in `build.py`.
+Optionally, to build fluentd images for the Orchestrator, uncomment the line `docker-compose.logging.yml` in `build.py`.
 Build and publish fluentd images
 
 ```bash
