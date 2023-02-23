@@ -165,7 +165,6 @@ image:
       orc8r_domain_name: "magma.test"
 ```
 
-
 ```bash
 Optionally install other charts, like the `lte` charts, similarly
 
@@ -284,7 +283,7 @@ storage-provisioner                1/1     Running   0          3d
 Optionally, start the elasticsearch and kibana containers which handle the logs aggregated by fluentd
 
 ```bash
-cd ${MAGMA_ROOT}/cloud/docker
+cd ${MAGMA_ROOT}/orc8r/cloud/docker
 ./run.py
 ```
 
