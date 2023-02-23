@@ -85,7 +85,7 @@ Build and publish NMS images
 ```bash
 cd ${MAGMA_ROOT}/nms
 COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
-COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
+COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG} -u '' -p ''
 ```
 
 ## Build and publish Helm charts
