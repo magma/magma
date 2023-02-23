@@ -122,6 +122,7 @@ Apply the secrets
 cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
 helm template orc8r charts/secrets \
   --namespace orc8r \
+  --set-string secret.certs.enabled=true \
   --set-file 'secret.certs.files.fluentd\.pem'=${CERTS_DIR}/fluentd.pem \
   --set-file 'secret.certs.files.fluentd\.key'=${CERTS_DIR}/fluentd.key |
   kubectl apply -f -
