@@ -290,11 +290,13 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/readme_agw",
           "lte/dev_notes",
           "lte/openvswitch",
           "lte/pipelined",
           "lte/ebpf_datapath",
           "lte/ipfix",
+          "lte/pipelined_tests",
           "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
@@ -304,7 +306,8 @@
           "lte/dev_teid_allocation",
           "lte/integrated_5g_sa",
           "lte/extended_5g_sa_features",
-          "lte/suci_extensions"
+          "lte/suci_extensions",
+          "lte/redirectd"
         ]
       },
       {
