@@ -204,7 +204,7 @@ jobs:
           junit_files: lte/gateway/test_results/**/*.xml
           check_run_annotations: all tests
       - name: Publish results to Firebase
-        if: always() && github.event_name == 'push'
+        if: always() && github.event_name == 'repository_dispatch'
         env:
           FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
           REPORT_FILENAME: "feg_integ_test_${{ github.sha }}.html"
@@ -215,7 +215,7 @@ jobs:
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} feg --url $URL
       - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
+        if: failure() && github.repository_owner == 'magma'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: ${{ github.workflow }}
