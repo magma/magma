@@ -1489,6 +1489,9 @@
       "version-1.6.X/orc8r/version-1.6.X-deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "version-1.6.X/orc8r/version-1.6.X-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
+      },
       "version-1.6.X/orc8r/version-1.6.X-dev_aws_stack": {
         "title": "AWS Stack"
       },
