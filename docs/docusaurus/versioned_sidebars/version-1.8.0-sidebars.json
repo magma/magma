@@ -305,11 +305,13 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "version-1.8.0-lte/readme_agw",
           "version-1.8.0-lte/dev_notes",
           "version-1.8.0-lte/openvswitch",
           "version-1.8.0-lte/pipelined",
           "version-1.8.0-lte/ebpf_datapath",
           "version-1.8.0-lte/ipfix",
+          "version-1.8.0-lte/pipelined_tests",
           "version-1.8.0-lte/dev_unit_testing",
           "version-1.8.0-lte/tr069",
           "version-1.8.0-lte/s1ap_tests",
@@ -318,7 +320,8 @@
           "version-1.8.0-lte/dev_teid_allocation",
           "version-1.8.0-lte/integrated_5g_sa",
           "version-1.8.0-lte/extended_5g_sa_features",
-          "version-1.8.0-lte/suci_extensions"
+          "version-1.8.0-lte/suci_extensions",
+          "version-1.8.0-lte/redirectd"
         ]
       },
       {
