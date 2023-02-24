@@ -45,8 +45,8 @@ the following content:
 applications:
   fluentd:
     options:
-    domain: <your domain name>
-    elasticsearch-url: <your elasticsearch https url>
+      domain: <your domain name>
+      elasticsearch-url: <your elasticsearch https url>
   orc8r-certifier:
     options:
       domain: <your domain name>

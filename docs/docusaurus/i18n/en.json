@@ -1853,6 +1853,9 @@
       "version-1.7.0/orc8r/version-1.7.0-deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "version-1.7.0/orc8r/version-1.7.0-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
+      },
       "version-1.7.0/orc8r/version-1.7.0-dev_aws_stack": {
         "title": "AWS Stack"
       },
@@ -2067,7 +2070,7 @@
         "title": "Introduction"
       },
       "version-1.8.0/orc8r/version-1.8.0-deploy_using_juju": {
-        "title": "Deploy Orchestrator using Juju (Beta)"
+        "title": "Deploy Orchestrator using Juju"
       },
       "version-1.8.0/orc8r/version-1.8.0-dev_build": {
         "title": "Build Orchestrator"
