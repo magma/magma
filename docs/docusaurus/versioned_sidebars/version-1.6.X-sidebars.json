@@ -81,6 +81,7 @@
           "version-1.6.X-orc8r/deploy_install",
           "version-1.6.X-orc8r/deploy_orcl",
           "version-1.6.X-orc8r/deploy_terraform_options",
+          "version-1.6.X-orc8r/deploy_using_juju",
           "version-1.6.X-orc8r/deploy_faq"
         ]
       },
