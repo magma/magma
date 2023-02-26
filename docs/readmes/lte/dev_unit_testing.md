@@ -92,8 +92,6 @@ Refer to the script at `lte/gateway/python/precommit.py` for all available comma
 
 ```bash
 cd $MAGMA/lte/gateway/python
-# build the base image
-./precommit.py --build
 
 # run the flake8 linter by specifying paths
 ./precommit.py --lint -p PATH1 PATH2
