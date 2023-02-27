@@ -1,8 +1,8 @@
 ---
-id: version-1.7.0-readme_package
+id: version-1.7.0-package
 title: Packaging
 hide_title: true
-original_id: readme_package
+original_id: package
 ---
 
 # Packaging
