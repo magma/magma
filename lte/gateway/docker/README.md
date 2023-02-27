@@ -35,7 +35,14 @@ On an Arm architecture with the 5.4 kernel, the images can be built with `cd $MA
 ## Running the containerized AGW locally on the magma VM
 
 The magma VM defined in [../Vagrantfile](../Vagrantfile) can be used to run the
-containerized AGW by running the following steps inside the VM:
+containerized AGW by either using a fabric command on the host machine:
+
+```
+cd ${MAGMA_ROOT}/lte/gateway
+fab start-gateway-containerized
+```
+
+or by running the following steps inside the VM:
 
 ```
 sudo rm -rf /etc/snowflake && sudo touch /etc/snowflake
