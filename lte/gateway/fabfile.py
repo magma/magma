@@ -452,6 +452,16 @@ def integ_test_containerized(
     _run_integ_tests(c, test_host_data, gateway_ip=gateway_ip, test_mode=test_mode, tests=tests)
 
 
+@task
+def start_gateway_containerized(c, docker_registry=None):
+    """
+    Start the containerized AGW.
+    """
+    with vagrant_connection(c, "magma") as c_gw:
+        c_gw.run("sudo systemctl stop magma@*")
+        _start_gateway_containerized(c_gw, docker_registry)
+
+
 def _start_gateway_containerized(c_gw, docker_registry=None):
     """ Starts the containerized AGW """
 
@@ -469,12 +479,17 @@ def _start_gateway_containerized(c_gw, docker_registry=None):
     c_gw.run('sudo systemctl start magma_dp@envoy')
 
     with c_gw.cd(AGW_ROOT + "/docker"):
+        docker_cmd = 'docker compose --compatibility -f docker-compose.yaml ' \
+                     'up -d --quiet-pull'
+        if docker_registry:
+            docker_cmd = f'DOCKER_REGISTRY={docker_registry} {docker_cmd}'
+        else:
+            # build the containers locally if no registry to pull the images is
+            # given
+            c_gw.run('docker compose --compatibility build')
         # The `docker-compose up` times are machine dependent, such that a
         # retry is needed here for resilience.
-        _run_with_retry(
-            c_gw, f'DOCKER_REGISTRY={docker_registry} docker compose'
-            f' --compatibility -f docker-compose.yaml up -d --quiet-pull',
-        )
+        _run_with_retry(c_gw, docker_cmd)
 
 
 def _run_with_retry(c_gw, command, retries=10):
