@@ -123,8 +123,21 @@ cd ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r
 helm template orc8r charts/secrets \
   --namespace orc8r \
   --set-string secret.certs.enabled=true \
+  --set-file 'secret.certs.files.rootCA\.pem'=${CERTS_DIR}/rootCA.pem \
+  --set-file 'secret.certs.files.bootstrapper\.key'=${CERTS_DIR}/bootstrapper.key \
+  --set-file 'secret.certs.files.controller\.crt'=${CERTS_DIR}/controller.crt \
+  --set-file 'secret.certs.files.controller\.key'=${CERTS_DIR}/controller.key \
+  --set-file 'secret.certs.files.admin_operator\.pem'=${CERTS_DIR}/admin_operator.pem \
+  --set-file 'secret.certs.files.admin_operator\.key\.pem'=${CERTS_DIR}/admin_operator.key.pem \
+  --set-file 'secret.certs.files.certifier\.pem'=${CERTS_DIR}/certifier.pem \
+  --set-file 'secret.certs.files.certifier\.key'=${CERTS_DIR}/certifier.key \
+  --set-file 'secret.certs.files.nms_nginx\.pem'=${CERTS_DIR}/controller.crt \
+  --set-file 'secret.certs.files.nms_nginx\.key\.pem'=${CERTS_DIR}/controller.key \
   --set-file 'secret.certs.files.fluentd\.pem'=${CERTS_DIR}/fluentd.pem \
-  --set-file 'secret.certs.files.fluentd\.key'=${CERTS_DIR}/fluentd.key |
+  --set-file 'secret.certs.files.fluentd\.key'=${CERTS_DIR}/fluentd.key \
+  --set=docker.registry=${IMAGE_REGISTRY_URL} \
+  --set=docker.username=${IMAGE_REGISTRY_USERNAME} \
+  --set=docker.password=${IMAGE_REGISTRY_PASSWORD} |
   kubectl apply -f -
 ```
 
@@ -153,8 +166,8 @@ helm upgrade --install --namespace orc8r --values ${MAGMA_ROOT}/orc8r/cloud/helm
 
 Optionally, install the `cwf-orc8r`, `feg-orc8r`, and `lte-orc8r` charts by modifying the file templates similarly to the `orc8r` values file.
 Move the value file to `${MAGMA_ROOT}/orc8r/cloud/helm/{component}.values.yaml`.
-For `lte-orc8r` you can find a `minikube.values.yaml` template file in the `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/examples/` directory.
-For the other charts, you can find a `values.yaml` file in the main `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/` directory.
+For `lte-orc8r` charts you can find a `minikube.values.yaml` template file in the `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/examples/` directory.
+For the other charts you can find a `values.yaml` file in the main `${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/` directory.
 
 Add the following to the `{component}.values.yaml` file:
 
@@ -165,8 +178,7 @@ image:
       orc8r_domain_name: "magma.test"
 ```
 
-```bash
-Optionally install other charts, like the `lte` charts, similarly
+And install the helm charts like this:
 
 ```bash
 cd ${MAGMA_ROOT}/lte/cloud/helm/lte-orc8r
@@ -324,15 +336,16 @@ curl \
 
 ### Access NMS
 
-Follow the instructions to [create an NMS admin user](./deploy_install.md#create-an-nms-admin-user)
+Follow the instructions to [create an NMS admin user](./deploy_install.md#create-an-nms-admin-user).
+Substitute the `host` organization with `magma-test` and choose some values for the user email and password, e.g. `admin@magma.test` and `password1234`.
 
-Port-forward Nginx
+Start port-forward for Nginx (this tab will hang):
 
 ```bash
 kubectl --namespace orc8r port-forward svc/nginx-proxy 8081:443
 ```
 
-Log in to NMS at <https://magma-test.localhost:8081> using credentials: `admin@magma.test/password1234`
+Log in to NMS at <https://magma-test.localhost:8081> using credentials you chose when creating the admin user.
 
 ## Appendix
 
