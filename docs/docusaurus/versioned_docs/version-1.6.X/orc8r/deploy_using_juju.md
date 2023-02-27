@@ -1,18 +1,16 @@
 ---
-id: deploy_using_juju
-title: Deploy Orchestrator using Juju (Beta)
+id: version-1.6.X-deploy_using_juju
+title: Deploy Orchestrator using Juju
 hide_title: true
+original_id: deploy_using_juju
 ---
 
-# Deploy Orchestrator using Juju (Beta)
+# Deploy Orchestrator using Juju
 
-This how-to guide can be used to deploy Magma's Orchestrator on any cloud
-environment. It contains steps to set up a Kubernetes cluster, bootstrap
-a Juju controller, deploy charmed operators for Magma Orchestrator
-and configure DNS A records. For more information on Charmed Magma, please
-visit the project's [homepage](https://canonical.github.io/charmed-magma).
-
-> Charmed-Magma is in Beta and is not yet production ready or feature complete.
+This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment. It contains
+steps to set up a Kubernetes cluster, bootstrap a Juju controller, deploy charmed operators for
+Magma Orchestrator and configure DNS A records. For more information on Charmed Magma, please visit
+the project's [homepage](https://canonical.github.io/charmed-magma/1.6/).
 
 ## Pre-requisites
 
@@ -23,13 +21,13 @@ visit the project's [homepage](https://canonical.github.io/charmed-magma).
 
 From a Ubuntu 20.04 machine, install the following tools:
 
-- [Juju](https://juju.is/docs/olm/installing-juju)
+- [Juju 2.9](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
 
 ## Create a Kubernetes cluster and bootstrap a Juju controller
 
-Select a Kubernetes environment and follow the guide to create the cluster
-and bootstrap a Juju controller on it.
+Select a Kubernetes environment and follow the guide to create the cluster and bootstrap
+a Juju controller on it.
 
 1. [MicroK8s](https://juju.is/docs/olm/microk8s)
 2. [Google Cloud (GKE)](https://juju.is/docs/olm/google-kubernetes-engine-(gke))
@@ -38,8 +36,7 @@ and bootstrap a Juju controller on it.
 
 ## Deploy charmed Magma Orchestrator
 
-From your Ubuntu machine, create an `overlay.yaml` file that contains
-the following content:
+From your Ubuntu machine, create an `overlay.yaml` file that contains the following content:
 
 ```yaml
 applications:
@@ -66,11 +63,8 @@ applications:
 
 Deploy Orchestrator:
 
-> **Note**: Elasticsearch is not part of magma-orc8r bundle and needs to be deployed prior
-to deploying the bundle. Elasticsearch needs to support both `http` and `https` requests.
-
 ```bash
-juju deploy magma-orc8r --overlay overlay.yaml --trust --channel=edge
+juju deploy magma-orc8r --overlay overlay.yaml --channel=1.6/stable
 ```
 
 The deployment is completed when all services are in the `Active-Idle` state.

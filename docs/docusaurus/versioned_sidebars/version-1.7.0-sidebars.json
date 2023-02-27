@@ -104,6 +104,7 @@
           "version-1.7.0-orc8r/deploy_intro",
           "version-1.7.0-orc8r/deploy_install",
           "version-1.7.0-orc8r/deploy_terraform_options",
+          "version-1.7.0-orc8r/deploy_using_juju",
           "version-1.7.0-orc8r/deploy_faq"
         ]
       },
