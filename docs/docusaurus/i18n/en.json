@@ -120,7 +120,7 @@
       "howtos/network_probe": {
         "title": "Network Probe"
       },
-      "howtos/readme_package": {
+      "howtos/package": {
         "title": "Packaging"
       },
       "howtos/troubleshooting/agw_healthcheck": {
@@ -1649,7 +1649,7 @@
       "version-1.7.0/howtos/version-1.7.0-network_probe": {
         "title": "Network Probe"
       },
-      "version-1.7.0/howtos/version-1.7.0-readme_package": {
+      "version-1.7.0/howtos/version-1.7.0-package": {
         "title": "Packaging"
       },
       "version-1.7.0/howtos/troubleshooting/version-1.7.0-agw_healthcheck": {
