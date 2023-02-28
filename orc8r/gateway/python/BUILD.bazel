@@ -37,3 +37,14 @@ pkg_filegroup(
     tags = ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
 )
+
+# This target is only needed for the FEG integration tests.
+pkg_filegroup(
+    name = "feg_python_services",
+    srcs = ["{py_service}_expanded".format(py_service = py_service) for py_service in [
+        "eventd",
+        "magmad",
+    ]],
+    tags = ["no-cache"],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
