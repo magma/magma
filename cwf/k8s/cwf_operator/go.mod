@@ -29,7 +29,7 @@ module magma/cwf/k8s/cwf_operator
 go 1.19
 
 require (
-	github.com/go-logr/glogr v0.1.0
+	github.com/go-logr/glogr v0.2.0
 	github.com/operator-framework/operator-sdk v0.19.4
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.1
