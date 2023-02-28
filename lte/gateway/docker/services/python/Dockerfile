@@ -77,7 +77,7 @@ COPY ./lte/gateway/release/BUILD.bazel $MAGMA_ROOT/lte/gateway/release/BUILD.baz
 COPY ./lte/gateway/release/deb_dependencies.bzl $MAGMA_ROOT/lte/gateway/release/deb_dependencies.bzl
 
 WORKDIR /magma
-RUN bazel build //lte/gateway/release:python_executables_tar
+RUN bazel build //lte/gateway/release:python_executables_tar //lte/gateway/release:dhcp_helper_cli_tar
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -141,5 +141,10 @@ COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma_python_executable
                     /tmp/magma_python_executables.tar.gz
 RUN tar -xf /tmp/magma_python_executables.tar.gz --directory / && \
     rm /tmp/magma_python_executables.tar.gz
+
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz \
+                    /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
+RUN tar -xf /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz --directory / && \
+    rm /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
 
 WORKDIR /usr/local/bin
