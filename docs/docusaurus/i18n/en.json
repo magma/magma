@@ -238,10 +238,6 @@
       "lte/sessiond": {
         "title": "Session Management in Magma"
       },
-      "lte/setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
       "lte/suci_extensions": {
         "title": "SUCI Extensions"
       },
