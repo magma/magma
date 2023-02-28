@@ -319,7 +319,8 @@
           "version-1.7.0-lte/access_service_restrictions",
           "version-1.7.0-lte/dev_teid_allocation",
           "version-1.7.0-lte/integrated_5g_sa",
-          "version-1.7.0-lte/redirectd"
+          "version-1.7.0-lte/redirectd",
+          "version-1.7.0-lte/readme_callflow"
         ]
       },
       {
