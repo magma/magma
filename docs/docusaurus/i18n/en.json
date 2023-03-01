@@ -238,10 +238,6 @@
       "lte/sessiond": {
         "title": "Session Management in Magma"
       },
-      "lte/setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
       "lte/suci_extensions": {
         "title": "SUCI Extensions"
       },
@@ -1757,10 +1753,6 @@
       },
       "version-1.7.0/lte/version-1.7.0-s1ap_tests": {
         "title": "S1AP Integration Tests"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
       },
       "version-1.7.0/lte/version-1.7.0-setup": {
         "title": "AGW Setup (With Vagrant)",
