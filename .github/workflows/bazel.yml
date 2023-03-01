@@ -31,6 +31,7 @@ on:
   push:
     branches:
       - master
+      - 'v1.*'
 
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
@@ -588,7 +589,9 @@ jobs:
 
       - name: Upload services for sentry_release job
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.repository_owner == 'magma' && github.ref_name == 'master'
+        if: |
+          github.repository_owner == 'magma' &&
+          ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
         with:
           name: sentry_services
           path: sentry_services
@@ -614,7 +617,9 @@ jobs:
         uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
 
       - name: Set dry run environment variable
-        if: ${{ github.event_name != 'push' || github.repository_owner != 'magma' || github.ref_name != 'master' }}
+        if: |
+          ${{ github.event_name != 'push' || github.repository_owner != 'magma' ||
+          ( github.ref_name != 'master' && ! startsWith(github.ref_name, 'v1.') ) }}
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
@@ -637,7 +642,7 @@ jobs:
         if: |
           github.event_name == 'push' &&
           github.repository_owner == 'magma' &&
-          github.ref_name == 'master'
+          ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
@@ -674,7 +679,9 @@ jobs:
   # Create Sentry.io release with the services connectiond, liagentd, mme, sctpd and sessiond.
   sentry_release:
     needs: [bazel_package]
-    if: github.repository_owner == 'magma' && github.ref_name == 'master'
+    if: |
+      github.repository_owner == 'magma' &&
+      ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
     name: Sentry release
     runs-on: ubuntu-20.04
     steps:
