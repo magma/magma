@@ -322,7 +322,8 @@
           "version-1.8.0-lte/integrated_5g_sa",
           "version-1.8.0-lte/extended_5g_sa_features",
           "version-1.8.0-lte/suci_extensions",
-          "version-1.8.0-lte/redirectd"
+          "version-1.8.0-lte/redirectd",
+          "version-1.8.0-lte/readme_callflow"
         ]
       },
       {

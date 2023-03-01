@@ -308,7 +308,8 @@
           "lte/integrated_5g_sa",
           "lte/extended_5g_sa_features",
           "lte/suci_extensions",
-          "lte/redirectd"
+          "lte/redirectd",
+          "lte/readme_callflow"
         ]
       },
       {

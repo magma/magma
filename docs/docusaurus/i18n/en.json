@@ -224,7 +224,7 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "lte/readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "lte/redirectd": {
         "title": "Redirection"
@@ -1743,7 +1743,7 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "version-1.7.0/lte/version-1.7.0-readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "version-1.7.0/lte/version-1.7.0-redirectd": {
         "title": "Redirection"
