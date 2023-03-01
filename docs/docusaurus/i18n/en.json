@@ -207,9 +207,6 @@
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },
-      "lte/HIL_AGW_tests": {
-        "title": "Hardware In Loop Testing"
-      },
       "lte/integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
