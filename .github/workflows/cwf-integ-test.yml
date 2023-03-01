@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Run docker compose
         run: |
           cd cwf/gateway/docker
@@ -46,6 +48,11 @@ jobs:
         with:
           name: docker-images
           path: images
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
       - name: Notify failure to slack
         if: failure() && github.event_name == 'push'
         env:

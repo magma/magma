@@ -59,11 +59,13 @@ COPY ./lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
 COPY ./orc8r/gateway/configs/templates $MAGMA_ROOT/orc8r/gateway/configs/templates
 
 COPY ./protos $MAGMA_ROOT/protos
+COPY ./cwf/protos $MAGMA_ROOT/cwf/protos
 COPY ./lte/protos $MAGMA_ROOT/lte/protos
 COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY ./feg/protos $MAGMA_ROOT/feg/protos
 COPY ./dp/protos $MAGMA_ROOT/dp/protos
 
+COPY ./cwf/swagger $MAGMA_ROOT/cwf/swagger
 COPY ./feg/swagger $MAGMA_ROOT/feg/swagger
 COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
 COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
