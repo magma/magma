@@ -118,7 +118,7 @@ func (s *GRPCPushExporterServicer) pushFamilies(families []*io_prometheus_client
 }
 ```
 
-[Prometheus Edge Hub](https://github.com/facebookincubator/prometheus-edge-hub) is a Facebook project that replaces the Prometheus Pushgateway. Orc8r's Prometheus service [scrapes](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/helm/orc8r/charts/metrics/templates/prometheus.deployment.yaml#L160-L168) and drains the Edge Hub so metrics finally arrive at their home in the Prometheus server. [On a dev environment](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/docker/docker-compose.metrics.yml?L14-24), the Prometheus server runs at [localhost:9090](http://localhost:9090).
+[Prometheus Edge Hub](https://github.com/facebookincubator/prometheus-edge-hub) is a Facebook project that replaces the Prometheus Pushgateway. Orc8r's Prometheus service [scrapes](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/helm/orc8r/charts/metrics/templates/prometheus.deployment.yaml#L160-L168) and drains the Edge Hub so metrics finally arrive at their home in the Prometheus server. [On a dev environment](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/orc8r/cloud/docker/docker-compose.metrics.yml?L14-24), the Prometheus server runs at [localhost:9090](https://localhost:9090).
 
 ## Phase 3: NMS and Grafana
 
