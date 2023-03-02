@@ -454,15 +454,17 @@ def integ_test_containerized(
 
 def _start_gateway_containerized(c_gw, docker_registry=None):
     """ Starts the containerized AGW """
-    with c_gw.cd(AGW_PYTHON_ROOT):
-        c_gw.run('make buildenv')
 
-    with c_gw.cd(AGW_ROOT):
-        c_gw.run(
-            'for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"'
-            '/{orc8r,lte}/gateway/configs/templates/${component}.conf.template;'
-            ' done',
-        )
+    c_gw.run('sudo rm -rf /etc/snowflake && sudo touch /etc/snowflake')
+    with c_gw.cd("${MAGMA_ROOT}"):
+        c_gw.run('bazel/scripts/link_scripts_for_bazel_integ_tests.sh')
+        c_gw.run('bazel build `bazel query "attr(tags, util_script, kind(.*_binary,//orc8r/... union //lte/...))"`')
+    c_gw.run(
+        'for component in redis nghttpx td-agent-bit; do cp "${MAGMA_ROOT}"'
+        '/{orc8r,lte}/gateway/configs/templates/${component}.conf.template;'
+        ' done',
+    )
+    c_gw.run('sed -i \'s/init_system: systemd/init_system: docker/\' "${MAGMA_ROOT}"/lte/gateway/configs/magmad.yml')
 
     c_gw.run('sudo systemctl start magma_dp@envoy')
 

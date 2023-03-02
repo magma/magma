@@ -338,3 +338,23 @@ sh_binary(
         "no-cache",
     ],
 )
+
+# CONTAINERIZED ACCESS GATEWAY
+# This target is used to bundle the Python services and scripts,
+# including all runfiles and pip dependencies. The tar file can
+# be copied between builder and runtime Docker images.
+pkg_tar(
+    name = "python_executables_tar",
+    srcs = [
+        ":magma_configs",
+        ":magma_ebpf",
+        ":magma_python_scripts",
+        ":magma_python_services",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "magma_python_executables",
+    ),
+    tags = ["no-cache"],
+)
