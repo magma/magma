@@ -109,7 +109,7 @@ jobs:
       - name: Check for de-referenced links
         run: |
           LINKS=$(find "${MAGMA_ROOT}" -xtype l)
-          if [ -n "$FILES" ]; then
+          if [ -n "$LINKS" ]; then
             echo "Found de-referenced links: $LINKS"
             exit 1
           fi
