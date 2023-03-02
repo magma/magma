@@ -74,7 +74,7 @@ fab federated_integ_test
 You can access Orc8r adding to your keychain the `admin_operator.pfx` cert
 you will find at `/magma/.cache/test_certs`. Then you can check your
 provisioned gateways using
-[swagger interface](https://127.0.0.1:9443/apidocs/v1/?docExpansion=none)
+[swagger interface](https://localhost:9443/apidocs/v1/?docExpansion=none)
 that will be running on your Orc8r
 
 Please, for more detail, check the following sections which provide more
