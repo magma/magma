@@ -97,18 +97,19 @@ jobs:
           git diff-index --quiet HEAD
 
   # Fail if there are de-referenced links in the repository
-    check-de-referenced-links:
-        needs: path_filter
-        if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
-        name: Check for de-referenced links
-        runs-on: ubuntu-20.04
-        env:
-          MAGMA_ROOT: "${{ github.workspace }}"
-        steps:
-        - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-          run: |
-            LINKS=$(find "${MAGMA_ROOT}" -xtype l)
-            if [ -n "$FILES" ]; then
-              echo "Found de-referenced links: $LINKS"
-              exit 1
-            fi
+  check-de-referenced-links:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Check for de-referenced links
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check for de-referenced links
+        run: |
+          LINKS=$(find "${MAGMA_ROOT}" -xtype l)
+          if [ -n "$FILES" ]; then
+            echo "Found de-referenced links: $LINKS"
+            exit 1
+          fi
