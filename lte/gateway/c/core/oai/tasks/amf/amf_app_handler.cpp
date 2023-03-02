@@ -1363,9 +1363,8 @@ static void amf_app_handle_ngap_ue_context_release(
       amf_nas_proc_implicit_deregister_ue_ind(ue_context_p->amf_ue_ngap_id);
     }
   } else {
-    if (cause == NGAP_RADIO_NR_GENERATED_REASON || 
+    if (cause == NGAP_RADIO_NR_GENERATED_REASON ||
         cause == NGAP_SCTP_SHUTDOWN_OR_RESET) {
-
       int rc = RETURNerror;
       rc = ue_state_handle_message_initial(
           ue_context_p->mm_state, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
