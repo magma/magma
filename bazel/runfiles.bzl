@@ -35,6 +35,7 @@ load("@rules_pkg//:providers.bzl", "PackageFilesInfo")
 STRIP_PATHS = [
     "lte/gateway/python/",
     "orc8r/gateway/python/",
+    "feg/swagger/specs_root/",
     "lte/swagger/specs_root/",
     "orc8r/swagger/specs_root/",
 ]

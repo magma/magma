@@ -64,6 +64,7 @@ COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY ./feg/protos $MAGMA_ROOT/feg/protos
 COPY ./dp/protos $MAGMA_ROOT/dp/protos
 
+COPY ./feg/swagger $MAGMA_ROOT/feg/swagger
 COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
 COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 
