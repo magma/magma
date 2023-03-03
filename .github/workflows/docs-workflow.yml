@@ -46,6 +46,7 @@ jobs:
       # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
         if: always()
+        shell: bash
         run: |
           mkdir -p ./pr
           echo -n ${{ github.event.number }} > ./pr/pr_number
@@ -71,6 +72,7 @@ jobs:
         with:
           python-version: '3.8.10'
       - name: Run docs precommit
+        shell: bash
         run: |
           cd ${MAGMA_ROOT}/docs
           make precommit
@@ -88,10 +90,12 @@ jobs:
         with:
           python-version: '3.8.10'
       - name: Run docs `make`
+        shell: bash
         run: |
           cd ${MAGMA_ROOT}/docs
           make
       - name: Check all generated files are checked in after running `make -C $MAGMA_ROOT/docs`
+        shell: bash
         run: |
           git status
           git diff-index --quiet HEAD
@@ -107,6 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Check for de-referenced links
+        shell: bash
         run: |
           LINKS=$(find "${MAGMA_ROOT}" -xtype l)
           if [ -n "$LINKS" ]; then
