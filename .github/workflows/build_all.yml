@@ -746,4 +746,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
           event-type: build-all-artifact
-          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}", "trigger_sha": "${{ github.sha }}", "commit_message": "${{ github.event.head_commit.message }}" }'
+          client-payload: '{ "artifact": "${{ needs.agw-build.outputs.magma_package }}", "trigger_sha": "${{ github.sha }}" }'
