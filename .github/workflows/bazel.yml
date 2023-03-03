@@ -647,7 +647,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: magma/magma
           event-type: magma-debian-artifact
-          client-payload: '{ "magma_version": "${{ env.MAGMA_VERSION }}", "trigger_sha": "${{ github.sha }}", "commit_message": ${{ github.event.head_commit.message }} }'
+          client-payload: '{ "magma_version": "${{ env.MAGMA_VERSION }}", "trigger_sha": "${{ github.sha }}" }'
 
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3

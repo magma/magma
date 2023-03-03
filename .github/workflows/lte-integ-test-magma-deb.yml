@@ -99,4 +99,4 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
-          args: "LTE Debian integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.client_payload.commit_message }}"
+          args: "LTE Debian integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
