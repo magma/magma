@@ -276,6 +276,11 @@ jobs:
           path: ${{ steps.py-changes.outputs.py_files_list }}
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
+      - name: Info for local execution
+        if: failure()
+        run: |
+          echo "Running linting tools failed. This should be equivalent to running './lte/gateway/python/precommit.py --lint --diff' locally."
+          exit 1
 
   yamllint:
     name: yamllint
