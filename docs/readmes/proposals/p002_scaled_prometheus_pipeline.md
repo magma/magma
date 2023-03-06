@@ -12,7 +12,7 @@ hide_title: true
 
 Details:
 
-- I use the term pushgateway to reference [prometheus-edge-hub](https://github.com/facebookincubator/prometheus-edge-hub)
+- I use the term pushgateway to reference [prometheus-edge-hub](https://github.com/facebookarchive/prometheus-edge-hub)
 - "Prod" and "Staging" refer to FB-hosted deployments of Orchestrator which are currently our largest deployments and our source of performance data.
 
 ## Goal: Improve metrics query speed on large deployments
