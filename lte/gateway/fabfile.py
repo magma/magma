@@ -30,8 +30,12 @@ from dev_tools import (  # noqa: F401
 from fabric import Connection, task
 
 sys.path.append('../../orc8r')
-import tools.fab.pkg as pkg
-from tools.fab.hosts import ansible_setup, vagrant_connection, vagrant_setup
+from tools.fab import pkg  # noqa: E402
+from tools.fab.hosts import (  # noqa: E402
+    ansible_setup,
+    vagrant_connection,
+    vagrant_setup,
+)
 
 """
 Magma Gateway packaging tool:
