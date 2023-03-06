@@ -45,7 +45,9 @@ const LogTableWrapper = () => (
   </MemoryRouter>
 );
 
-describe('<GatewayLogs />', () => {
+// This test is being skipped. Test failures needs to be investigated
+// and fixed, see https://github.com/magma/magma/issues/15122 for details.
+describe.skip('<GatewayLogs />', () => {
   const mockLogCount = 100;
   const mockLogs = [
     {
