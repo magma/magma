@@ -618,8 +618,8 @@ jobs:
 
       - name: Set dry run environment variable
         if: |
-          ${{ github.event_name != 'push' || github.repository_owner != 'magma' ||
-          ( github.ref_name != 'master' && ! startsWith(github.ref_name, 'v1.') ) }}
+          github.event_name != 'push' || github.repository_owner != 'magma' ||
+          ( github.ref_name != 'master' && ! startsWith(github.ref_name, 'v1.') )
         run: |
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
