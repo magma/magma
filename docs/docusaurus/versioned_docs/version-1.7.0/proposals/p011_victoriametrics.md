@@ -22,7 +22,7 @@ Magma is getting to the point where scaling is a primary concern. One of the
 areas that could be most impacted by larger scale is metrics, since there is a
 direct correlation with the number of subscribers/gateways and the amount of
 data coming through the system. We’ve been relying on a single Prometheus
-server coupled to our [prometheus-edge-hub](github.com/facebookincubator/prometheus-edge-hub)
+server coupled to our [prometheus-edge-hub](github.com/facebookarchive/prometheus-edge-hub)
 which has worked for all of the small and medium deployments so far, but we’re
 getting pretty close to the limit where this setup would not be able to ingest
 more data. In addition to this, partners have been wanting to run magma at a
