@@ -151,8 +151,22 @@ openssl x509 -req -<span class="hljs-keyword">in</span> fluentd.csr -CA certifie
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/helm/orc8r
 helm template orc8r charts/secrets \
   --namespace orc8r \
+  --<span class="hljs-built_in">set</span>-string secret.certs.enabled=<span class="hljs-literal">true</span> \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.rootCA\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/rootCA.pem \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.bootstrapper\.key'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/bootstrapper.key \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.controller\.crt'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/controller.crt \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.controller\.key'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/controller.key \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.admin_operator\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/admin_operator.pem \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.admin_operator\.key\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/admin_operator.key.pem \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.certifier\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/certifier.pem \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.certifier\.key'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/certifier.key \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.nms_nginx\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/controller.crt \
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.nms_nginx\.key\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/controller.key \
   --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.fluentd\.pem'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/fluentd.pem \
-  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.fluentd\.key'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/fluentd.key |
+  --<span class="hljs-built_in">set</span>-file <span class="hljs-string">'secret.certs.files.fluentd\.key'</span>=<span class="hljs-variable">${CERTS_DIR}</span>/fluentd.key \
+  --<span class="hljs-built_in">set</span>=docker.registry=<span class="hljs-variable">${IMAGE_REGISTRY_URL}</span> \
+  --<span class="hljs-built_in">set</span>=docker.username=<span class="hljs-variable">${IMAGE_REGISTRY_USERNAME}</span> \
+  --<span class="hljs-built_in">set</span>=docker.password=<span class="hljs-variable">${IMAGE_REGISTRY_PASSWORD}</span> |
   kubectl apply -f -
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="create-values-file"></a><a href="#create-values-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create values file</h3>
@@ -173,7 +187,17 @@ helm template orc8r charts/secrets \
 helm dep update
 helm upgrade --install --namespace orc8r --values <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/helm/orc8r.values.yaml orc8r .
 </code></pre>
-<p>Optionally install other charts, like the <code>lte</code> charts, similarly</p>
+<p>Optionally, install the <code>cwf-orc8r</code>, <code>feg-orc8r</code>, and <code>lte-orc8r</code> charts by modifying the file templates similarly to the <code>orc8r</code> values file.
+Move the value file to <code>${MAGMA_ROOT}/orc8r/cloud/helm/{component}.values.yaml</code>.
+For <code>lte-orc8r</code> charts you can find a <code>minikube.values.yaml</code> template file in the <code>${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/examples/</code> directory.
+For the other charts you can find a <code>values.yaml</code> file in the main <code>${MAGMA_ROOT}/{component}/cloud/helm/{component}-orc8r/</code> directory.</p>
+<p>Add the following to the <code>{component}.values.yaml</code> file:</p>
+<pre><code class="hljs css language-yaml"><span class="hljs-attr">image:</span>
+<span class="hljs-comment"># ...</span>
+  <span class="hljs-attr">env:</span>
+      <span class="hljs-attr">orc8r_domain_name:</span> <span class="hljs-string">"magma.test"</span>
+</code></pre>
+<p>And install the helm charts like this:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/lte/cloud/helm/lte-orc8r
 helm dep update
 helm upgrade --install --namespace orc8r --values <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/helm/lte.values.yaml lte .
@@ -269,7 +293,7 @@ registry-proxy-n6kml               1/1     Running   0          3d
 storage-provisioner                1/1     Running   0          3d
 </code></pre>
 <p>Optionally, start the elasticsearch and kibana containers which handle the logs aggregated by fluentd</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/cloud/docker
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker
 ./run.py
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="access-logs-through-kibana"></a><a href="#access-logs-through-kibana" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access logs through Kibana</h3>
@@ -298,11 +322,12 @@ curl \
 <span class="hljs-comment"># Should output: "hello"</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="access-nms"></a><a href="#access-nms" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Access NMS</h3>
-<p>Follow the instructions to <a href="/magma/docs/next/orc8r/deploy_install#create-an-nms-admin-user">create an NMS admin user</a></p>
-<p>Port-forward Nginx</p>
+<p>Follow the instructions to <a href="/magma/docs/next/orc8r/deploy_install#create-an-nms-admin-user">create an NMS admin user</a>.
+Substitute the <code>host</code> organization with <code>magma-test</code> and choose some values for the user email and password, e.g. <code>admin@magma.test</code> and <code>password1234</code>.</p>
+<p>Start port-forward for Nginx (this tab will hang):</p>
 <pre><code class="hljs css language-bash">kubectl --namespace orc8r port-forward svc/nginx-proxy 8081:443
 </code></pre>
-<p>Log in to NMS at <a href="https://magma-test.localhost:8081">https://magma-test.localhost:8081</a> using credentials: <code>admin@magma.test/password1234</code></p>
+<p>Log in to NMS at <a href="https://magma-test.localhost:8081">https://magma-test.localhost:8081</a> using credentials you chose when creating the admin user.</p>
 <h2><a class="anchor" aria-hidden="true" id="appendix"></a><a href="#appendix" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Appendix</h2>
 <h3><a class="anchor" aria-hidden="true" id="minikube-configs"></a><a href="#minikube-configs" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Minikube configs</h3>
 <p>We use the <a href="https://minikube.sigs.k8s.io/docs/drivers/hyperkit/">HyperKit driver</a> on macOS instead of the default <a href="https://minikube.sigs.k8s.io/docs/drivers/docker/">Docker driver</a> because the former is more performant in supporting <a href="https://github.com/kubernetes/minikube/issues/1568">hairpin mode</a> (via the <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/">CNI network plugin</a>). I.e., Orc8r has some services that make requests to themselves, which requires K8s support.</p>
