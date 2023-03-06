@@ -82,7 +82,7 @@ All metrics go through the controller (which is already scalable and placed behi
 
 All metrics are stored for 30 days in the Prometheus TSDB storage. This means that all queries have to go through the prometheus server itself, which is the main cause of slow queries.
 
-[Object storage](https://thanos.io/storage.md/) will allow us to only store a few hours of metrics on the server itself (potentially keeping everything in-memory) and then exporting older metrics to object storage elsewhere. For example on an AWS deployment metrics would be stored in S3.
+[Object storage](https://thanos.io/tip/thanos/storage.md/) will allow us to only store a few hours of metrics on the server itself (potentially keeping everything in-memory) and then exporting older metrics to object storage elsewhere. For example on an AWS deployment metrics would be stored in S3.
 
 Options for Object Storage
 
