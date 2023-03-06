@@ -233,7 +233,7 @@ def foo(arg1: str) -> int:
 
 - For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services
   - On CI, the check gets run as part of the `lte-test` job
-- Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
+- Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://github.com/wemake-services/wemake-python-styleguide) enabled to aid the code review process
   - To run the linter locally, use the [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py)
 
 **Formatters**
