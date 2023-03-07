@@ -107,8 +107,8 @@ const alertLinksJsonData = fs.readFileSync(
   path.join(__dirname, '..', 'api/data/AlertLinks.json'),
   'utf-8',
 );
-app.get('api/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
-app.get('api/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
+app.get('/api/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+app.get('/api/data/AlertLinks', (req, res) => res.send(alertLinksJsonData));
 
 // Trigger syncing of automatically generated alerts
 app.use('/sync_alerts', access(AccessRoles.USER), alertRoutes);
