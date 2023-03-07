@@ -31,10 +31,10 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    4. [Vagrant](https://vagrantup.com)
 
    ```bash
-   brew install go@1.19 pyenv
+   brew install go@1.20 pyenv
    # NOTE: this assumes you're using zsh.
    # See the above pyenv install instructions if using alternative shells.
-   echo 'export PATH="/usr/local/opt/go@1.19/bin:$PATH"' >> ~/.zshrc
+   echo 'export PATH="/usr/local/opt/go@1.20/bin:$PATH"' >> ~/.zshrc
    echo 'eval "$(pyenv init --path)"' >> ~/.zprofile
    echo 'eval "$(pyenv init -)"' >> ~/.zshrc
    exec $SHELL
@@ -61,7 +61,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    1. [Docker and Docker Compose](https://docs.docker.com/engine/install/ubuntu/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
    3. [Vagrant](https://www.vagrantup.com/downloads)
-2. Install golang version 19.
+2. Install golang version 1.20.1.
 
    1. Download the tar file.
 
