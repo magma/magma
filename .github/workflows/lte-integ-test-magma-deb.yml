@@ -15,10 +15,11 @@
 
 name: AGW Test LTE Integration With Make Debian Build
 
+# WARNING: This workflow is deprecated and has been replaced by the
+# "AGW Test LTE Integration With Bazel Debian Build" workflow,
+# see .github/workflows/lte-integ-test-bazel-magma-deb.yml
 on:
   workflow_dispatch: null
-  repository_dispatch:
-    types: [build-all-artifact]
 
 jobs:
   lte-integ-test-magma-deb:
