@@ -105,7 +105,7 @@ We should make this as easy to configure as possible. Some goals include:
 
 ### Improving prometheus-edge-hub performance
 
-With the goal of handling 10 million datapoints per minute, the [prometheus-edge-hub](github.com/facebookincubator/prometheus-edge-hub) will probably need some improvements to handle that load. First we'll do benchmark tests on specific AWS hardware options. Then, profile the code to find the bottlenecks and improve them. It's not clear what exactly needs to be done, but I'm confident we can find significant improvements as this component hasn't gone through much optimization yet.
+With the goal of handling 10 million datapoints per minute, the [prometheus-edge-hub](https://github.com/facebookincubator/prometheus-edge-hub) will probably need some improvements to handle that load. First we'll do benchmark tests on specific AWS hardware options. Then, profile the code to find the bottlenecks and improve them. It's not clear what exactly needs to be done, but I'm confident we can find significant improvements as this component hasn't gone through much optimization yet.
 
 In the end if we can't get enough performance out of a single edge-hub, we will have to investigate scaling this horizontally.
 
