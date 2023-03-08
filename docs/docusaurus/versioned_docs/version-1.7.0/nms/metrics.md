@@ -36,8 +36,8 @@ The simple way is to just click on the “+” icon on the left sidebar, then cr
 
 ![Grafana new dashboard](assets/nms/grafana_new_dashboard.png)
 
-- Grafana documentation on creating dashboards: [Grafana Dashboards](_https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/_)
-- Prometheus documentation on writing queries: [Prometheus Querying](_https://prometheus.io/docs/prometheus/latest/querying/basics/_)
+- Grafana documentation on creating dashboards: [Grafana Dashboards](https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/)
+- Prometheus documentation on writing queries: [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/basics/)
 
 If you want to replicate the networkID or gatewayID variables that you find in the preconfigured dashboards, we provide a “template” dashboard to make that easy. Simply open the Template dashboard, and click on the gear icon near the
 top right. From there, click “Save As” and enter the name you want. Your new dashboard will now have the gatewayID and networkID variables. An example of how to use these variables in your queries:
