@@ -550,6 +550,57 @@ status_code_e amf_handle_registration_request(
           (msg->m5gs_mobile_identity.mobile_identity.guti.tmsi1
            << BIT_SHIFT_TMSI1);
     }
+  } else if ((is_amf_ctx_new == false) &&
+             (params->m5gsregistrationtype ==
+              AMF_REGISTRATION_TYPE_MOBILITY_UPDATING)) {
+    OAILOG_DEBUG(
+        LOG_NAS_AMF,
+        "amf_registration_type_mobility_updating processing"
+        " is_amf_ctx_new = %d and identity type = %d ",
+        is_amf_ctx_new,
+        msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
+    if (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+        M5GSMobileIdentityMsg_GUTI) {
+      /* Copying PLMN to local supi which is imsi*/
+      supi_imsi.plmn.mcc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
+      supi_imsi.plmn.mcc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit2;
+      supi_imsi.plmn.mcc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit3;
+      supi_imsi.plmn.mnc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit1;
+      supi_imsi.plmn.mnc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit2;
+      supi_imsi.plmn.mnc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit3;
+
+      amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+
+      OAILOG_DEBUG(LOG_NAS_AMF,
+                   "In process of registration mobility update"
+                   " new 5G-TMSI value 0x%08" PRIx32 "\n",
+                   amf_guti.m_tmsi);
+
+      amf_ue_context_on_new_guti(ue_context,
+                                 reinterpret_cast<guti_m5_t*>(&amf_guti));
+      ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+
+      params->guti = new (guti_m5_t)();
+      memcpy(params->guti, &(ue_context->amf_context.m5_guti),
+             sizeof(guti_m5_t));
+
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+
+    } else {
+      // UE context is new and/or UE identity type is not GUTI
+      // add log message.
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "UE context was not existing or UE identity type is not GUTI "
+          "Mobility Registration Update failed and sending reject message\n");
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
   } else if (params->m5gsregistrationtype ==
              AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
