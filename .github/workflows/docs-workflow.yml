@@ -130,5 +130,5 @@ jobs:
       - uses: gaurav-nelson/github-action-markdown-link-check@d53a906aa6b22b8979d33bc86170567e619495ec # pin@v1.0.15
         with:
           use-verbose-mode: 'yes'
-          config-file: '.github/workflows/markdown_link_check_config.json'
+          config-file: '.github/workflows/config/markdown_link_check_config.json'
           folder-path: '.'
