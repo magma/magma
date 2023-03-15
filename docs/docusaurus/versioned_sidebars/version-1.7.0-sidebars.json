@@ -19,6 +19,7 @@
           "version-1.7.0-howtos/he_api",
           "version-1.7.0-howtos/inbound_roaming",
           "version-1.7.0-howtos/l3_transport",
+          "version-1.7.0-howtos/network_probe",
           "version-1.7.0-howtos/package"
         ]
       },
@@ -320,7 +321,8 @@
           "version-1.7.0-lte/dev_teid_allocation",
           "version-1.7.0-lte/integrated_5g_sa",
           "version-1.7.0-lte/redirectd",
-          "version-1.7.0-lte/readme_callflow"
+          "version-1.7.0-lte/readme_callflow",
+          "version-1.7.0-lte/HIL_AGW_tests"
         ]
       },
       {
