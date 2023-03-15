@@ -370,10 +370,12 @@ def integ_test_deb_installation(
 
     # Set up the gateway: use the provided gateway if given, else default to the
     # vagrant machine
-    gateway_ip = _build_and_start_magma(
-        c, destroy_vm, provision_vm, gateway_host=gateway_host,
-        build_magma=False,
+    c_gw, gateway_ip = _setup_gateway(
+        c, gateway_host, "magma_deb", "deb", "magma_deb.yml", destroy_vm,
+        provision_vm, max_retries=3,
     )
+    with c_gw:
+        _start_gateway(c_gw)
 
     test_vm_data = _build_test_vms(
         c, destroy_vm, provision_vm, start_trfserver=True, test_host=test_host,
