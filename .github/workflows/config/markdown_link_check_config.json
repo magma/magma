@@ -43,6 +43,9 @@
       "pattern" : "^https://www.etsi.org.*pdf"
     },
     {
+      "pattern" : "https://core.ac.uk/download/pdf/322886318.pdf"
+    },
+    {
       "pattern" : "http://automation.fbmagma.ninja/"
     },
     {
