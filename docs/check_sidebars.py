@@ -15,6 +15,8 @@ import json
 import os
 from typing import Set
 
+from common import extract_doc_id, get_readme_path, get_version_prefix
+
 exceptions = {
     "proposals/README",
     "proposals/p004_fua-restrict-feature",
@@ -46,7 +48,7 @@ def get_implemented_sidebar_pages(version: str = "latest") -> Set[str]:
     Returns:
         Set[str]: A set of sidebar pages that are implemented.
     """
-    version_prefix = _get_version_prefix(version)
+    version_prefix = get_version_prefix(version)
     implemented_sidebar_pages = _extract_sidebar_pages(
         sidebar_json_path=_get_sidebar_json_path(version),
         version_prefix=version_prefix,
@@ -68,12 +70,12 @@ def get_all_pages(version: str = "latest") -> Set[str]:
     Returns:
         Set[str]: A set of all pages that are available for this version.
     """
-    readme_path = _get_readme_path(version)
+    readme_path = get_readme_path(version)
     all_pages = set()
     for root, _, filenames in os.walk(readme_path):
         for filename in filenames:
             if filename.endswith('.md'):
-                doc_id = _extract_doc_id(filename, root, _get_version_prefix(version))
+                doc_id = extract_doc_id(filename, root, get_version_prefix(version))
                 all_pages.add(root.replace(f'{readme_path}/', '') + '/' + doc_id)
     return all_pages
 
@@ -99,37 +101,10 @@ def _remove_version_prefix(implemented_sidebar_pages, version_prefix):
     return implemented_sidebar_pages
 
 
-def _get_readme_path(version):
-    if version == 'latest':
-        return 'readmes'
-    return f'docusaurus/versioned_docs/version-{version}'
-
-
 def _get_sidebar_json_path(version):
     if version == 'latest':
         return 'docusaurus/sidebars.json'
     return f'docusaurus/versioned_sidebars/version-{version}-sidebars.json'
-
-
-def _get_version_prefix(version):
-    if version == 'latest':
-        return ''
-    return f'version-{version}-'
-
-
-def _extract_doc_id(filename, root, version_prefix):
-    path = os.path.join(root, filename)
-    doc_id = ""
-    with open(path) as f:
-        lines = f.readlines()
-        if lines and lines[0].startswith('---'):
-            for line in lines:
-                if line.startswith('id: '):
-                    doc_id = line.replace(f'id: {version_prefix}', '').rstrip('\n')
-                    break
-        else:
-            doc_id = filename.replace('.md', '')
-    return doc_id
 
 
 def main():
