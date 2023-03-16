@@ -17,7 +17,7 @@ function lint {
     if [ -z "$LINTER" ]; then
         echo "-> installing golangci " && \
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-        | sudo sh -s -- -b /usr/sbin/ v1.50.1;
+        | sudo sh -s -- -b /usr/sbin/ v1.51.2;
     fi
 
     golangci-lint run -c "$MAGMA_ROOT"/.golangci.yml
