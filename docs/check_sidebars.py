@@ -133,6 +133,9 @@ def _extract_doc_id(filename, root, version_prefix):
 
 
 def main():
+    """
+    Check if all pages are implemented in the sidebar.
+    """
     versions = ("latest", "1.8.0", "1.7.0")
     pages_not_implemented = {v: set() for v in versions}
     for v in versions:
