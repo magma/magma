@@ -184,13 +184,6 @@ SctpStatus SctpConnection::HandleSendFailure(
   return SctpStatus::FAILURE;
 }
 
-SctpStatus SctpConnection::HandleDryEvent(
-    int sd, struct sctp_sender_dry_event* dry_event) {
-  MLOG(MDEBUG) << "Received SCTP_SENDER_DRY_EVENT for sd: " << sd
-               << " assoc_id:" << dry_event->sender_dry_assoc_id;
-  return SctpStatus::OK;
-}
-
 SctpStatus SctpConnection::HandleClientSock(int sd) {
   assert(sd >= 0);
 
@@ -222,10 +215,6 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
       case SCTP_SEND_FAILED: {
         MLOG(MDEBUG) << "SCTP send failed event received";
         return HandleSendFailure(sd, &notif->sn_send_failed);
-      }
-      case SCTP_SENDER_DRY_EVENT: {
-        MLOG(MDEBUG) << "SCTP sender dry event received";
-        return HandleDryEvent(sd, &notif->sn_sender_dry_event);
       }
       default: {
         MLOG(MWARNING) << "Unhandled notification type "

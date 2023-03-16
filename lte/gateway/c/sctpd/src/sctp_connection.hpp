@@ -24,7 +24,6 @@
 
 struct sctp_assoc_change;
 struct sctp_send_failed;
-struct sctp_sender_dry_event;
 
 namespace magma {
 namespace sctpd {
@@ -78,8 +77,6 @@ class SctpConnection {
   SctpStatus HandleAssocChange(int sd, struct sctp_assoc_change* change);
   // Handle a send failed event
   SctpStatus HandleSendFailure(int sd, struct sctp_send_failed* change);
-  // Handle sender dry event
-  SctpStatus HandleDryEvent(int sd, struct sctp_sender_dry_event* change);
   // Handle a comup event on an association sd/change
   SctpStatus HandleComUp(int sd, struct sctp_assoc_change* change);
   // Handle a comdown event on an association keyed by assoc_id
