@@ -116,6 +116,21 @@ jobs:
           make -C ${MAGMA_ROOT}/docs sidebar_check
 
   # Fail if there are broken symlinks in the repository
+  check-docs-ids:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Check if docs ids match the file name
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check if docs ids match the file name
+        shell: bash
+        run: |
+          make -C ${MAGMA_ROOT}/docs docs_id_check
+
+  # Fail if there are broken symlinks in the repository
   check-for-broken-symlinks:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
