@@ -29,19 +29,22 @@ def get_all_pages(version: str = "latest") -> Dict[str, str]:
         Set[str]: A set of all pages that are available for this version.
     """
     readme_path = get_readme_path(version)
-    all_pages = dict()
+    all_pages = {}
     for root, _, filenames in os.walk(readme_path):
         for filename in filenames:
             if filename.endswith('.md'):
                 doc_id = extract_doc_id(filename, root, get_version_prefix(version))
-                filename_key = os.path.join(root.replace(readme_path + '/', ''), filename.replace('.md', ''))
+                filename_key = os.path.join(root.replace(f'{readme_path}/', ''), filename.replace('.md', ''))
                 all_pages[filename_key] = root.replace(f'{readme_path}/', '') + '/' + doc_id
     return all_pages
 
 
 def main():
-    versions = ['latest', '1.8.0', '1.7.0', '1.6.X', '1.5.X',
-                '1.4.X', '1.3.X', '1.2.X', '1.1.X', '1.0.X', '1.0.0']
+    """Check the doc ids against the filenames."""
+    versions = [
+        'latest', '1.8.0', '1.7.0', '1.6.X', '1.5.X',
+        '1.4.X', '1.3.X', '1.2.X', '1.1.X', '1.0.X', '1.0.0',
+    ]
     flag = False
     print("Checking docs id against docs filenames...")
     for version in versions:
