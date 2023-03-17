@@ -16,7 +16,7 @@ simple, extensible, multi-language interfaces based on GRPC which allow develope
 complexities of 3GPP protocols. Implementing these RPC interfaces allows networks running on Magma to integrate
 with traditional 3GPP core components.
 
-![Federated Gateway architecture diagram](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/federated_gateway_diagram.png?raw=true "FeG Architecture")
+![Federated Gateway architecture diagram](https://github.com/magma/magma/blob/master/docs/readmes/assets/federated_gateway_diagram.png?raw=true "FeG Architecture")
 
 The Federated Gateway supports the following features and functionalities:
 
