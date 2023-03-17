@@ -27,6 +27,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./dp/cloud/python/magma"
   "./dp/tools"
   "./dev_tools"
+  "./docs"
   "./example"
   "./feg/gateway/docker"
   "./lte/gateway/dev_tools.py"
