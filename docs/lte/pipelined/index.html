@@ -64,7 +64,7 @@
 <li>Main table (Table 1 - 20)</li>
 <li>Scratch table (Table 21 - 254)</li>
 </ul>
-<p><img src="https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true" alt="OpenFlow Pipeline"></p>
+<p><img src="https://github.com/magma/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true" alt="OpenFlow Pipeline"></p>
 <p><a href="https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf"><em>Source: OpenFlow Specification</em></a></p>
 <p>Each service is associated with a main table, which is used to forward traffic between different services. Services can claim scratch tables optionally, which are used for complex flow matching and processing within the same service. See <a href="#services">Services</a> for a detailed breakdown of each Pipelined services.</p>
 <p>Each flow table is programmed by a single service through OpenFlow and it can contain multiple flow entries. When a packet is forwarded to a table, it is matched against the flow entries installed in the table and the highest-priority matching flow entry is selected. The actions defined in the selected flow entry will be applied to the packet.</p>

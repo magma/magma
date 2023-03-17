@@ -214,7 +214,7 @@ the left sidebar, then edit the feature flag named &quot;Include tab for Grafana
 <p>On the gateways, magmad service collects metrics from all the services and pushes them to Orc8r.
 In Orc8r, metricsd receives the metrics and pushes them to registered metric exporters. Prometheus
 is one the main metric exporters. Specifically, Orc8r pushes the metrics to the
-<a href="https://github.com/facebookincubator/prometheus-edge-hub">edge-hub</a>, which later scraped by prometheus instance.</p>
+<a href="https://github.com/facebookarchive/prometheus-edge-hub">edge-hub</a>, which later scraped by prometheus instance.</p>
 <p>On the query side, When we make queries through NMS or swagger, the Orc8r queries the prometheus
 instance directly.</p>
 <p>We can effectively troubleshoot the metrics by looking at the logs in all these components involved.
