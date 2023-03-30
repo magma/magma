@@ -349,6 +349,9 @@
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "orc8r/deploy_using_ansible": {
+        "title": "Deploy Orchestrator using Ansible (Beta)"
+      },
       "orc8r/deploy_using_juju": {
         "title": "Deploy Orchestrator using Juju (Beta)"
       },
