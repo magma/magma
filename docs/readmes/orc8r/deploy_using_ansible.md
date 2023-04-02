@@ -90,7 +90,7 @@ cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
 ```
 
-## Setup DNS
+## DNS Setup
 
 Update `/etc/hosts` file with the following entries:
 ```
@@ -100,15 +100,19 @@ Update `/etc/hosts` file with the following entries:
 10.86.113.153 controller.magma.local
 10.86.113.153 bootstrapper-controller.magma.local
 ```
-> Replace the IP address with the one you see in `kubectl get nodes -o wide`
+> Replace the External IP address with the one you see in `kubectl get svc haproxy`
 
+```
+NAME      TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                     AGE
+haproxy   LoadBalancer   10.43.177.100   10.86.113.153   80:31192/TCP,443:32665/TCP,1024:30097/TCP   10m
+```
 
-You can access NMS at the following URL:
+You can access NMS dashboard at the following URL:
 
 https://magma-test.nms.magma.local
 
 
-## Access Gateway
+## Access Gateway Setup
 
 You can get your `rootCA.pem` file from the following location for connecting your Access Gateway:
 ```
@@ -125,4 +129,11 @@ fluentd_address: fluentd.magma.local
 fluentd_port: 443
 
 rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
+```
+
+Update `/etc/hosts` file in Access Gateway with the following entries:
+```
+10.86.113.153 fluentd.magma.local
+10.86.113.153 controller.magma.local
+10.86.113.153 bootstrapper-controller.magma.local
 ```
