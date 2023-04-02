@@ -27,7 +27,29 @@ Quick Install:
 sudo bash -c "$(curl -sL https://github.com/magma/magma-deployer/raw/main/deploy-orc8r.sh)"
 ```
 
-Switch to `magma` user after deployment has finsished:
+Following roles will be installed:
+```
+Sunday 02 April 2023  10:22:34 +0530 (0:00:00.044)       0:08:41.557 ********** 
+=============================================================================== 
+kubernetes ------------------------------------------------------------ 197.79s
+orc8r ----------------------------------------------------------------- 141.46s
+prerequisites ---------------------------------------------------------- 99.03s
+docker ----------------------------------------------------------------- 41.85s
+secrets ---------------------------------------------------------------- 11.68s
+openebs ----------------------------------------------------------------- 8.10s
+fluentd ----------------------------------------------------------------- 4.20s
+postgresql -------------------------------------------------------------- 3.82s
+metallb ----------------------------------------------------------------- 3.70s
+haproxy ----------------------------------------------------------------- 2.99s
+prometheus_cache_cleanup ------------------------------------------------ 2.61s
+elasticsearch ----------------------------------------------------------- 2.57s
+gather_facts ------------------------------------------------------------ 1.66s
+dns --------------------------------------------------------------------- 0.04s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+total ----------------------------------------------------------------- 521.51s
+```
+
+Switch to `magma` user after deployment has finished:
 ```
 sudo su - magma
 ```
@@ -92,6 +114,16 @@ ansible-playbook config-orc8r.yml
 
 ## DNS Setup
 
+Get the External IP address of the `haproxy` service:
+```
+kubectl get svc haproxy
+```
+
+```
+NAME      TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                     AGE
+haproxy   LoadBalancer   10.43.177.100   10.86.113.153   80:31192/TCP,443:32665/TCP,1024:30097/TCP   10m
+```
+
 Update `/etc/hosts` file with the following entries:
 ```
 10.86.113.153 api.magma.local
@@ -100,12 +132,7 @@ Update `/etc/hosts` file with the following entries:
 10.86.113.153 controller.magma.local
 10.86.113.153 bootstrapper-controller.magma.local
 ```
-> Replace the External IP address with the one you see in `kubectl get svc haproxy`
-
-```
-NAME      TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                     AGE
-haproxy   LoadBalancer   10.43.177.100   10.86.113.153   80:31192/TCP,443:32665/TCP,1024:30097/TCP   10m
-```
+> Replace the External IP with the one you got from the previous step.
 
 You can access NMS dashboard at the following URL:
 
