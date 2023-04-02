@@ -43,6 +43,8 @@ cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
 ```
 
+## Setup DNS
+
 Update `/etc/hosts` file with the following entries:
 ```
 10.86.113.153 api.magma.local
@@ -59,7 +61,21 @@ You can access NMS at the following URL:
 https://magma-test.nms.magma.local
 
 
-You can get your `rootCA.pem` file from the following location:
+## Access Gateway
+
+You can get your `rootCA.pem` file from the following location for connecting your Access Gateway:
 ```
 cat ~/magma-deployer/secrets/rootCA.pem
+```
+
+Update `/var/opt/magma/configs/control_proxy.yml` file with the following content:
+```
+cloud_address: controller.magma.local
+cloud_port: 443
+bootstrap_address: bootstrapper-controller.magma.local
+bootstrap_port: 443
+fluentd_address: fluentd.magma.local
+fluentd_port: 443
+
+rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 ```
