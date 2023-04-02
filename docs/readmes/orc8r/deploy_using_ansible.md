@@ -37,7 +37,54 @@ Check if all pods are ready
 kubectl get pods
 ```
 
-setup NMS login:
+```
+NAME                                            READY   STATUS    RESTARTS   AGE
+elasticsearch-master-0                          1/1     Running   0          10m
+fluentd-7b5ffff8f8-5rr8c                        1/1     Running   0          10m
+haproxy-f9c95678b-dndcj                         1/1     Running   0          10m
+nms-magmalte-56495b6ff4-668kn                   1/1     Running   0          10m
+nms-nginx-proxy-65bc67cd44-9pbrh                1/1     Running   0          10m
+orc8r-accessd-7fcd7dc9b7-gg9tz                  1/1     Running   0          10m
+orc8r-alertmanager-67c59fc8fd-bh9hx             1/1     Running   0          10m
+orc8r-alertmanager-configurer-b47b95b69-m7vkc   1/1     Running   0          10m
+orc8r-analytics-848557ccdf-jwr4f                1/1     Running   0          10m
+orc8r-base-acct-7f7f6c5577-9667d                1/1     Running   0          10m
+orc8r-bootstrapper-6d44bb55b-cpntw              1/1     Running   0          10m
+orc8r-certifier-65fdd4776b-qxpq9                1/1     Running   0          10m
+orc8r-configurator-76df9f4b9b-bxqp9             1/1     Running   0          10m
+orc8r-ctraced-5c7f5496cc-5p2l7                  1/1     Running   0          10m
+orc8r-cwf-6bc574bdbd-dqqx8                      1/1     Running   0          10m
+orc8r-device-6cf589fc5d-7vrcz                   1/1     Running   0          10m
+orc8r-directoryd-54d6975897-9j28t               1/1     Running   0          10m
+orc8r-dispatcher-6b794c95b9-fccxn               1/1     Running   0          10m
+orc8r-eventd-58b6dd8c5-8zjgh                    1/1     Running   0          10m
+orc8r-feg-7dffff9cb5-zx7c7                      1/1     Running   0          10m
+orc8r-feg-relay-65c8c68f6-9974l                 1/1     Running   0          10m
+orc8r-ha-5d8d565b6f-g5m9v                       1/1     Running   0          10m
+orc8r-health-54f67d778c-mfzfn                   1/1     Running   0          10m
+orc8r-lte-658b4ff8fc-4npc5                      1/1     Running   0          10m
+orc8r-metricsd-7f56b47d98-llwcr                 1/1     Running   0          10m
+orc8r-nginx-7fb49b4489-h545t                    1/1     Running   0          10m
+orc8r-nprobe-5d86b4f99f-m9424                   1/1     Running   0          10m
+orc8r-obsidian-7bfd89d4fb-ndq69                 1/1     Running   0          10m
+orc8r-orc8r-worker-545d669cc4-6k72z             1/1     Running   0          10m
+orc8r-orchestrator-686cf7bc6f-8k4q5             1/1     Running   0          10m
+orc8r-policydb-5d584fd576-mr8kp                 1/1     Running   0          10m
+orc8r-prometheus-6d77968679-5pf9t               1/1     Running   0          10m
+orc8r-prometheus-cache-5d679b8847-gnqz5         1/1     Running   0          10m
+orc8r-prometheus-configurer-5d54d6556-sdfsr     1/1     Running   0          10m
+orc8r-service-registry-6755f7f8f6-hznwq         1/1     Running   0          10m
+orc8r-smsd-659f9d4c4d-7qz9t                     1/1     Running   0          10m
+orc8r-state-97bb66f49-mjhhz                     1/1     Running   0          10m
+orc8r-streamer-7744c46486-pbw5l                 1/1     Running   0          10m
+orc8r-subscriberdb-5cdc7c599d-qv9sp             1/1     Running   0          10m
+orc8r-subscriberdb-cache-7d7d5fff78-65fpl       1/1     Running   0          10m
+orc8r-tenants-6cd4888466-hsh5r                  1/1     Running   0          10m
+orc8r-user-grafana-597dfff79-cnzdx              1/1     Running   0          10m
+postgresql-0                                    1/1     Running   0          12m
+```
+
+Now setup NMS login:
 ```
 cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
