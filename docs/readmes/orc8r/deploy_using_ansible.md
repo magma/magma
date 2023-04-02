@@ -20,24 +20,46 @@ For more information on Magma Deployer, please visit the project's
 - CPU: 4 cores
 - Storage: 100GB
 
+## Deploy Orchestrator
 
 Quick Install:
-```bash
+```
 sudo bash -c "$(curl -sL https://github.com/magma/magma-deployer/raw/main/deploy-orc8r.sh)"
 ```
 
 Switch to `magma` user after deployment has finsished:
-```bash
+```
 sudo su - magma
 ```
 
-Once all pods are ready, setup NMS login:
-```bash
+Check if all pods are ready
+```
+kubectl get pods
+```
+
+setup NMS login:
+```
 cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
 ```
 
+Update `/etc/hosts` file with the following entries:
+```
+10.86.113.153 api.magma.local
+10.86.113.153 magma-test.nms.magma.local
+10.86.113.153 fluentd.magma.local
+10.86.113.153 controller.magma.local
+10.86.113.153 bootstrapper-controller.magma.local
+```
+> Replace the IP address with the one you see in `kubectl get nodes -o wide`
+
+
+You can access NMS at the following URL:
+
+https://magma-test.nms.magma.local
+
+
 You can get your `rootCA.pem` file from the following location:
-```bash
+```
 cat ~/magma-deployer/secrets/rootCA.pem
 ```
