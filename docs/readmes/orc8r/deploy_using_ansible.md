@@ -32,7 +32,7 @@ Switch to `magma` user after deployment has finsished:
 sudo su - magma
 ```
 
-Check if all pods are ready
+Check if all pods are ready:
 ```
 kubectl get pods
 ```
