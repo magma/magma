@@ -703,11 +703,13 @@ class RestartResilienceTest(unittest.TestCase):
         self.enforcement_stats_controller.delete_all_flows(RestartResilienceTest.enforcement_stats_controller._datapath)
         self.enforcement_controller.is_stateless = True
         self.enforcement_stats_controller._rule_mapper = RuleIDToNumMapper()
+
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
             startup_flow_controller=self.startup_flows_contoller,
         )
+
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
@@ -718,6 +720,7 @@ class RestartResilienceTest(unittest.TestCase):
 
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
+        
         flow_list = [
             FlowDescription(
                 match=FlowMatch(
@@ -727,6 +730,7 @@ class RestartResilienceTest(unittest.TestCase):
                 action=FlowDescription.PERMIT,
             ),
         ]
+        
         policies = [
             VersionedPolicy(
                 rule=PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list),
