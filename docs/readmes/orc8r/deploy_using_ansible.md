@@ -23,11 +23,13 @@ For more information on Magma Deployer, please visit the project's
 ## Deploy Orchestrator
 
 Quick Install:
+
 ```
 sudo bash -c "$(curl -sL https://github.com/magma/magma-deployer/raw/main/deploy-orc8r.sh)"
 ```
 
 Following roles will be installed:
+
 ```
 Sunday 02 April 2023  10:22:34 +0530 (0:00:00.044)       0:08:41.557 ********** 
 =============================================================================== 
@@ -50,11 +52,13 @@ total ----------------------------------------------------------------- 521.51s
 ```
 
 Switch to `magma` user after deployment has finished:
+
 ```
 sudo su - magma
 ```
 
 Check if all pods are ready:
+
 ```
 kubectl get pods
 ```
@@ -107,6 +111,7 @@ postgresql-0                                    1/1     Running   0          12m
 ```
 
 Now setup NMS login:
+
 ```
 cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
@@ -115,6 +120,7 @@ ansible-playbook config-orc8r.yml
 ## DNS Setup
 
 Get the External IP address of the `haproxy` service:
+
 ```
 kubectl get svc haproxy
 ```
@@ -125,6 +131,7 @@ haproxy   LoadBalancer   10.43.177.100   10.86.113.153   80:31192/TCP,443:32665/
 ```
 
 Update `/etc/hosts` file with the following entries:
+
 ```
 10.86.113.153 api.magma.local
 10.86.113.153 magma-test.nms.magma.local
@@ -132,6 +139,7 @@ Update `/etc/hosts` file with the following entries:
 10.86.113.153 controller.magma.local
 10.86.113.153 bootstrapper-controller.magma.local
 ```
+
 > Replace the External IP with the one you got from the previous step.
 
 You can access NMS dashboard at the following URL:
@@ -142,11 +150,13 @@ https://magma-test.nms.magma.local
 ## Access Gateway Setup
 
 You can get your `rootCA.pem` file from the following location for connecting your Access Gateway:
+
 ```
 cat ~/magma-deployer/secrets/rootCA.pem
 ```
 
 Update `/var/opt/magma/configs/control_proxy.yml` file with the following content:
+
 ```
 cloud_address: controller.magma.local
 cloud_port: 443
@@ -159,6 +169,7 @@ rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 ```
 
 Update `/etc/hosts` file in Access Gateway with the following entries:
+
 ```
 10.86.113.153 fluentd.magma.local
 10.86.113.153 controller.magma.local
