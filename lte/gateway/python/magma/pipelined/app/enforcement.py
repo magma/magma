@@ -359,7 +359,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
 
-    def _skip_extra_flows_removal(self):
+    def _skip_extra_flows_removal_stateless(self):
         """
         Returns redis_enabled flag value
         Traffic is not getting resumed on service restart in case of stateless.
