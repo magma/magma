@@ -115,8 +115,8 @@ void MmeNasStateConverter::guti_table_to_proto(
     uint64_t mme_ue_id;
 
     std::string guti_str((char*)(*key_array_p)[i], (GUTI_STRING_LEN - 1));
-    OAILOG_INFO(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
-                (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
+    OAILOG_DEBUG(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
+                 (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
     hashtable_rc_t ht_rc =
         obj_hashtable_uint64_ts_get(guti_htbl, (const void*)(*key_array_p)[i],
                                     (GUTI_STRING_LEN - 1), &mme_ue_id);
