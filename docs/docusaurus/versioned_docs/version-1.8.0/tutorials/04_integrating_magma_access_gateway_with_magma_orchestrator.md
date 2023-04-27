@@ -69,9 +69,9 @@ unit-magma-access-gateway-operator-0:
 1. Login to the `host` Orchestrator organization at this address: `https://host.nms.<your domain>`.
 2. Click on the :fontawesome-solid-user-plus: icon next to the `magma-test` organization
 3. Add a user with the following attributes:
-    * email: `admin@juju.com`
-    * password: `password123`
-    * role: `Super User`
+   - email: `admin@juju.com`
+   - password: `password123`
+   - role: `Super User`
 
 ### Create a network in the `magma-test` organization:
 
@@ -80,10 +80,10 @@ Use the credentials from the previous step.
 2. On the left pane, click on "Networks"
 3. Click on "Add Network"
 4. Fill in the following values:
-    * Network ID: `my-network`
-    * Network Name: `my-network`
-    * Description: `my-network`
-    * Network Type: `lte`
+   - Network ID: `my-network`
+   - Network Name: `my-network`
+   - Description: `my-network`
+   - Network Type: `lte`
 5. Refresh the page. You should now see your network dashboard
 
 ### Change the Network configuration
@@ -91,9 +91,9 @@ Use the credentials from the previous step.
 1. Click on the "Networks" tab on the left pane
 2. Next to the "EPC" box, click on "Edit"
 3. Change the following values:
-    * MCC: `001`
-    * MNC: `01`
-    * TAC: `7`
+   - MCC: `001`
+   - MNC: `01`
+   - TAC: `7`
 4. Click on "Save"
 
 ### Add the Access Gateway to the network
@@ -101,11 +101,11 @@ Use the credentials from the previous step.
 1. Navigate to "Equipment" via the left pane
 2. Click on "Add New"
 3. Fill in the following values:
-    * Gateway Name: `my-gateway`
-    * Gateway ID: `my-gateway`
-    * Hardware UUID: `<Access Gateway Hardware ID>`
-    * Gateway Description: `my-gateway`
-    * Challenge Key: `<Access Gateway Challenge Key>`
+   - Gateway Name: `my-gateway`
+   - Gateway ID: `my-gateway`
+   - Hardware UUID: `<Access Gateway Hardware ID>`
+   - Gateway Description: `my-gateway`
+   - Challenge Key: `<Access Gateway Challenge Key>`
 4. Click on "Save and Continue". You should ignore the next tabs and continue clicking on "Save and Continue".
 5. Click on "my-gateway"
 6. You should see your gateway's health go to "Good" after a few minutes

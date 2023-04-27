@@ -55,6 +55,7 @@ juju ssh <Your instance ID>
 ```
 
 Retrieve the mac address used by `eth1`:
+
 ```console
 ip a show eth1
 ```
