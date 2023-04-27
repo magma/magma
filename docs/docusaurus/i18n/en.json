@@ -175,7 +175,7 @@
         "title": "User Control Plane trace CLI"
       },
       "lte/deploy_agw_using_juju": {
-        "title": "Deploy AGW using Juju (Beta)"
+        "title": "Deploy AGW using Juju"
       },
       "lte/deploy_config_agw": {
         "title": "Configure AGW"

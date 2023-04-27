@@ -14,12 +14,12 @@ the project's [homepage](https://canonical.github.io/charmed-magma/1.8/).
 
 ## Pre-requisites
 
-- Ubuntu 20.04 machine with internet access
+- A machine with internet access
 - A public domain
 
 ## Set up your management environment
 
-From a Ubuntu 20.04 machine, install the following tools:
+From your machine, install the following tools:
 
 - [Juju 2.9](https://juju.is/docs/olm/installing-juju)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
@@ -36,7 +36,7 @@ a Juju controller on it.
 
 ## Deploy charmed Magma Orchestrator
 
-From your Ubuntu machine, create an `overlay.yaml` file that contains the following content:
+From your machine, create an `overlay.yaml` file that contains the following content:
 
 ```yaml
 applications:

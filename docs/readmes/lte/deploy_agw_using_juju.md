@@ -1,10 +1,10 @@
 ---
 id: deploy_agw_using_juju
-title: Deploy AGW using Juju (Beta)
+title: Deploy AGW using Juju
 hide_title: true
 ---
 
-# Deploy Charmed Magma Access Gateway (Beta)
+# Deploy Charmed Magma Access Gateway
 
 ## Requirements
 
@@ -30,15 +30,11 @@ The Access Gateway must be installed on an Ubuntu machine with the following spe
 
     Some clouds like AWS use newer kernel versions by default. If you want to downgrade your kernel, please refer to the following [guide](https://discourse.ubuntu.com/t/how-to-downgrade-the-kernel-on-ubuntu-20-04-to-the-5-4-lts-version/26459).
 
-!!! info
-
-    For small networks (i.e. 10 eNBs, 10 active subscribers), Magma can produce around 1 GB of logs per week. Most of these logs will go to /var/log/journal. To avoid problems with insufficient disk space, it is recommended to configure log rotation for systemd-journald.  For more information please visit [Ubuntu manuals](https://manpages.ubuntu.com/manpages/focal/man5/journald.conf.5.html).
-
 ## Set up your management environment
 
 - Install [Juju 2.9](https://juju.is/docs/olm/installing-juju) on your management machine
 - Create and bootstrap a [manual cloud](https://juju.is/docs/olm/manual-setup)
-- [Add AGW host](https://juju.is/docs/olm/manual-setup#heading--add-machines-to-a-manual-cloud) to your manual cloud
+- [Add the Ubuntu machine](https://juju.is/docs/olm/manual-setup#heading--add-machines-to-a-manual-cloud) to your manual cloud
 
 ## Install Magma Access Gateway
 
