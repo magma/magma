@@ -22,7 +22,6 @@ The Access Gateway must be installed on an Ubuntu machine with the following spe
 - **Storage**: 32GB or greater SSD
 - **Networking**: At least two ethernet interfaces using two different subnets (**SGi** for internet connectivity and **S1** for enodeB connectivity)
 
-
 !!! danger
 
     Installing this charm will affect the target computer's networking configuration. Make sure it is installed on designated hardware (personal computers are strongly discouraged).
@@ -53,7 +52,6 @@ The Access Gateway must be installed on an Ubuntu machine with the following spe
     !!! info
         The interface names will need to be adjusted based on your specific machine.
 
-
 === "Option 2: Static network configuration"
 
     Create a file called `agw_config.yaml` that contains the following content:
@@ -80,4 +78,3 @@ The Access Gateway must be installed on an Ubuntu machine with the following spe
     ```bash
     juju deploy magma-access-gateway-operator --config agw_config.yaml --channel=edge --to <AGW machine ID>
     ```
-

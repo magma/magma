@@ -173,7 +173,6 @@ The hostnames associated to each service will differ from those shown here.
     | `<orc8r-clientcert-nginx FQDN>`  | `controller.<your domain name>`              |
     | `<nginx-proxy FQDN>`             | `*.nms.<your domain name>`                   |
 
-
 Create a file named `dns.json` with the following content:
 
 ```json title="dns.json" hl_lines="7 12 20 25 33 38 46 51"
