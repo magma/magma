@@ -10,13 +10,13 @@ In this tutorial, we will use Juju to deploy and run Magma's 4G core network on 
 We will also deploy a radio and cellphone simulator from the [srsRAN](https://www.srslte.com/)
 project to simulate usage of this network. You will need:
 
-* An AWS account[^1]
-* A public domain
-* A computer[^2] with the following software installed:
-    * [juju 2.9](https://juju.is/docs/olm/install-juju)
-    * [kubectl](https://kubernetes.io/docs/tasks/tools/)
-    * [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-    * [eksctl](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html)
+- An AWS account[^1]
+- A public domain
+- A computer[^2] with the following software installed:
+    - [juju 2.9](https://juju.is/docs/olm/install-juju)
+    - [kubectl](https://kubernetes.io/docs/tasks/tools/)
+    - [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+    - [eksctl](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html)
 
 ## Table of contents
 

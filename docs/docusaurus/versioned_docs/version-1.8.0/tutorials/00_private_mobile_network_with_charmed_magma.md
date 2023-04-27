@@ -14,10 +14,10 @@ project to simulate usage of this network. You will need:
 - An AWS account[^1]
 - A public domain
 - A computer[^2] with the following software installed:
-  - [juju 2.9](https://juju.is/docs/olm/install-juju)
-  - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-  - [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-  - [eksctl](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html)
+    - [juju 2.9](https://juju.is/docs/olm/install-juju)
+    - [kubectl](https://kubernetes.io/docs/tasks/tools/)
+    - [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+    - [eksctl](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html)
 
 ## Table of contents
 
