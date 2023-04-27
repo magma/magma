@@ -10,8 +10,8 @@ original_id: deploy_using_juju
 [Charmed Magma](https://canonical.github.io/charmed-magma/) doesn't
 support release 1.7.
 
-To use officially released Charmed Magma 1.6, please refer to the
-[official Charmed Magma 1.6 docs](https://canonical.github.io/charmed-magma/1.6/).
+To use officially released Charmed Magma 1.8, please refer to the
+[official Charmed Magma 1.8 docs](https://canonical.github.io/charmed-magma/1.8/).
 
 To try out the latest version of Charmed Magma please follow instructions
 from the [official docs](https://canonical.github.io/charmed-magma/main/).
