@@ -166,12 +166,14 @@ The hostnames associated to each service will differ from those shown here.
 !!! note
     We will need to create CNAME DNS entries using the following mapping:
 
-    | Kubernetes LoadBalancer Service  | CNAME Entry                                  |
-    |----------------------------------|----------------------------------------------|
-    | `<orc8r-bootstrap-nginx FQDN>`   | `bootstrapper-controller.<your domain name>` |
-    | `<orc8r-nginx-proxy FQDN>`       | `api.<your domain name>`                     |
-    | `<orc8r-clientcert-nginx FQDN>`  | `controller.<your domain name>`              |
-    | `<nginx-proxy FQDN>`             | `*.nms.<your domain name>`                   |
+```console
+| Kubernetes LoadBalancer Service  | CNAME Entry                                  |
+|----------------------------------|----------------------------------------------|
+| `<orc8r-bootstrap-nginx FQDN>`   | `bootstrapper-controller.<your domain name>` |
+| `<orc8r-nginx-proxy FQDN>`       | `api.<your domain name>`                     |
+| `<orc8r-clientcert-nginx FQDN>`  | `controller.<your domain name>`              |
+| `<nginx-proxy FQDN>`             | `*.nms.<your domain name>`                   |
+```
 
 Create a file named `dns.json` with the following content:
 
@@ -235,7 +237,7 @@ Create a file named `dns.json` with the following content:
 }
 ```
 
-Each <mark>highlighted line</mark> needs to be modified using the mapping presented in the note
+Each highlighted line needs to be modified using the mapping presented in the note
 above.
 
 Create the CNAME records in Route53:
