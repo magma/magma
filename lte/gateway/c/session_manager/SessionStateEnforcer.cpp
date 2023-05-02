@@ -931,7 +931,6 @@ void SessionStateEnforcer::set_pdr_attributes(
       }
     }
   }
-  
   rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
   rule->mutable_pdi()->set_ue_ipv6(ue_ipv6);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);
