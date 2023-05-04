@@ -18,11 +18,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 #define CONTROLLER_ADDR "127.0.0.1"
 #define CONTROLLER_PORT 6654
@@ -71,7 +68,3 @@ int openflow_controller_del_gtp_s8_tunnel(struct in_addr ue,
                                           uint32_t i_tei, uint32_t pgw_o_tei,
                                           uint32_t enb_gtp_port,
                                           uint32_t pgw_gtp_port);
-
-#ifdef __cplusplus
-}
-#endif

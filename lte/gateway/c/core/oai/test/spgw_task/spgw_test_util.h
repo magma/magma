@@ -54,7 +54,7 @@ bool is_num_s1_bearers_valid(teid_t context_teid,
                              int expected_num_active_bearers);
 
 int get_num_pending_create_bearer_procedures(
-    sgw_eps_bearer_context_information_t* ctxt_p);
+    magma::lte::oai::SgwEpsBearerContextInfo* ctxt_p);
 
 void fill_create_session_request(
     itti_s11_create_session_request_t* session_request_p,

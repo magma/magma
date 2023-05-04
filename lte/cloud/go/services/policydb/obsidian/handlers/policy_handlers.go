@@ -55,7 +55,7 @@ func ListBaseNames(c echo.Context) error {
 			serdes.Entity,
 		)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		ret := map[string]*models.BaseNameRecord{}
@@ -66,7 +66,7 @@ func ListBaseNames(c echo.Context) error {
 	} else {
 		names, err := configurator.ListEntityKeys(reqCtx, networkID, lte.BaseNameEntityType)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		sort.Strings(names)
 		return c.JSON(http.StatusOK, names)
@@ -80,7 +80,7 @@ func CreateBaseName(c echo.Context) error {
 	}
 	bnr := &models.BaseNameRecord{}
 	if err := c.Bind(bnr); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	bnrEnt := bnr.ToEntity()
 	reqCtx := c.Request().Context()
@@ -109,7 +109,7 @@ func CreateBaseName(c echo.Context) error {
 		}
 	}
 	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create base name: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to create base name: %v", err))
 	}
 
 	return c.JSON(http.StatusCreated, string(bnr.Name))
@@ -128,10 +128,10 @@ func GetBaseName(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, (&models.BaseNameRecord{}).FromEntity(ret))
@@ -146,7 +146,7 @@ func UpdateBaseName(c echo.Context) error {
 
 	bnr := &models.BaseNameRecord{}
 	if err := c.Bind(bnr); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if string(bnr.Name) != baseName {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("base name in body does not match URL param"))
@@ -160,10 +160,10 @@ func UpdateBaseName(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to check if base name exists: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to check if base name exists: %v", err))
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Verify that associated subscribers and policies exist
@@ -199,7 +199,7 @@ func UpdateBaseName(c echo.Context) error {
 	}
 
 	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update base name: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to update base name: %v", err))
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -213,7 +213,7 @@ func DeleteBaseName(c echo.Context) error {
 
 	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.BaseNameEntityType, baseName)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -236,7 +236,7 @@ func ListRules(c echo.Context) error {
 			serdes.Entity,
 		)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		ret := map[string]*models.PolicyRule{}
@@ -247,7 +247,7 @@ func ListRules(c echo.Context) error {
 	} else {
 		ruleIDs, err := configurator.ListEntityKeys(reqCtx, networkID, lte.PolicyRuleEntityType)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		sort.Strings(ruleIDs)
 		return c.JSON(http.StatusOK, ruleIDs)
@@ -263,10 +263,10 @@ func CreateRule(c echo.Context) error {
 
 	rule := &models.PolicyRule{}
 	if err := c.Bind(rule); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := rule.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	updateToNewIPModel(rule.FlowList)
@@ -297,7 +297,7 @@ func CreateRule(c echo.Context) error {
 	}
 
 	if err := configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create policy: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to create policy: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -318,7 +318,7 @@ func GetRule(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, (&models.PolicyRule{}).FromEntity(ent))
@@ -333,10 +333,10 @@ func UpdateRule(c echo.Context) error {
 
 	rule := &models.PolicyRule{}
 	if err := c.Bind(rule); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := rule.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if ruleID != string(*rule.ID) {
 		return echo.NewHTTPError(http.StatusBadRequest, errors.New("rule ID in body does not match URL param"))
@@ -352,7 +352,7 @@ func UpdateRule(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if policy exists: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to check if policy exists: %v", err))
 	}
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -399,7 +399,7 @@ func UpdateRule(c echo.Context) error {
 	}
 
 	if err = configurator.WriteEntities(reqCtx, networkID, writes, serdes.Entity); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update policy rule: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to update policy rule: %v", err))
 	}
 
 	return c.NoContent(http.StatusNoContent)

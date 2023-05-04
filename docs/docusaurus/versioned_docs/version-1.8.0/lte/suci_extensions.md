@@ -71,7 +71,7 @@ This flow diagram represents the network create/update flow and the modules invo
 
 ## Prerequisites
 
-Prior to configuring the SUCI extensions, you must first support [integrated 5G SA FWA](https://docs.magmacore.org/docs/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access).
+Prior to configuring the SUCI extensions, you must first support [integrated 5G SA FWA](https://magma.github.io/magma/docs/lte/integrated_5g_sa) (5G Standalone Architecture Fixed Wireless Access).
 
 ## High Level Call Flow
 

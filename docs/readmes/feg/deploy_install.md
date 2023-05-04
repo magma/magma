@@ -131,8 +131,7 @@ After installation, the next step is to register the gateway with the Orchestrat
 To do so:
 
 ```console
-INSTALL_HOST [~/]$ cd /var/opt/magma/docker
-INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/show_gateway_info.py
+INSTALL_HOST [~/]$ docker compose exec magmad /usr/local/bin/show_gateway_info.py
 ```
 
 This will output a hardware ID and a challenge key. This information must be
@@ -152,8 +151,7 @@ from the previous step.
 To verify that the gateway was correctly registered, run:
 
 ```console
-INSTALL_HOST [~/]$ cd /var/opt/magma/docker
-INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/checkin_cli.py
+INSTALL_HOST [~/]$ docker compose exec magmad /usr/local/bin/checkin_cli.py
 ```
 
 ## Upgrades

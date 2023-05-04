@@ -7,7 +7,7 @@ Requirements.txt holds all Python dependencies which are required by Python-base
  1. Add, remove or modify dependencies in requirements.in
 
  2. Generate a new version of requirements.txt, including required hashes
-    
+
        `cd $MAGMA/bazel/external`
 
        `pip-compile --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in`

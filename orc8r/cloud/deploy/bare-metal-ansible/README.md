@@ -9,7 +9,7 @@ hide_title: true
 This page walks through a full, vanilla Orchestrator install using Ansible on bare metal or a virtual machine.
 
 If you want to install a specific release version, see the notes in the
-[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
+[deployment intro](https://magma.github.io/magma/docs/orc8r/deploy_intro).
 
 ## Advanced users
 
@@ -19,7 +19,7 @@ deployment, refer to the [advanced deployment notes](docs/advanced_notes.md).
 ## Prerequisites
 
 We assume `MAGMA_ROOT` is set as described in the
-[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
+[deployment intro](https://magma.github.io/magma/docs/orc8r/deploy_intro).
 
 This walkthrough assumes you already have the following
 
@@ -34,7 +34,7 @@ The Ansible install of the Orchestrator is designed to automate as much of the d
 
 First let's prepare the server itself. We're assuming that you are running a stock install of Ubuntu 18.04 or 20.04, so you'll want to begin by installing some basic tools that we'll need.
 
-1. Enable password-less sudo on the server. To do this, use 
+1. Enable password-less sudo on the server. To do this, use
 
    ```bash
    sudo visudo /etc/sudoers
@@ -46,30 +46,41 @@ First let's prepare the server itself. We're assuming that you are running a sto
    ubuntu ALL=(ALL) NOPASSWD: ALL
    ```
 
-   Obviously you'll want to substitute your own user for `ubuntu`. 
+   Obviously you'll want to substitute your own user for `ubuntu`.
 
    To save and exit, press `<ctrl>-x` then `y` and `<enter>`.
 1. Set up passwordless login for the deployment user.  If you don't have a private key, create that first.
+
    ```bash
    ssh-keygen -t rsa -b 4096 -C "your_email@domain.com"
    ```
+
    Then copy the key to `authorized_keys` for this server:
+
    ```bash
    ssh-copy-id yourusername@localhost
    ```
+
 1. Clone the Orchestrator repository:
+
    ```bash
    git clone https://github.com/magma/magma.git
    ```
+
 1. Set the `MAGMA_ROOT` variable:
+
    ```bash
    export MAGMA_ROOT=PATH_TO_YOUR_MAGMA_CLONE
    ```
+
 1. If you're running a VirtualBox VM, you need to set the network as Bridged, and edit netplan. Open the appropriate file with
+
    ```bash
    sudo vi /etc/netplan/01-netcfg.yaml
    ```
+
    Then add the following content:
+
    ```bash
    network:
      version: 2
@@ -78,34 +89,41 @@ First let's prepare the server itself. We're assuming that you are running a sto
        enp0s4:
          dhcp4: yes
    ```
+
    and apply the changes with
+
    ```bash
    sudo netplan apply
    ```
+
 Now we're ready to configure the deployment itself.
+
 ## Configure Orchestrator
 
 While the deployment script takes care of all the work in doing the actual deployment, you do need to provide it with the various pieces of information it will need to do its job. You'll specify these values in the
+
 ```bash
 $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/ansible_vars.yaml
 ```
+
 file.
 
 Values in this file you will need to check and/or set to make sure they match your own values include:
 
-* `ansible_user`: The Linux user that will be running Ansible. This is the user your set up for passwordless sudo and passwordless ssh earlier.
-* `orc8r_image_repo`: The repository that hosts the docker containers that make up your Orchestrator. 
-* `orc8r_helm_repo`: The repository that hosts the helm charts that explain how to deploy your Orchestrator. This can be a public repo, or it can be a Github repo protected by a username and password.
-* `orc8r_domain`: Your domain name. Can be `username.local` for test installations.
-* `orc8r_nms_admin_email`: The email address for the Orchestrator administrator.
-* `docker_insecure_registries`: Ansible is assuming your Docker registry has trusted SSL or https: support, so if that's not the case, add your image repository here. Should match your value for orc8r_image_repo
-* `orc8r_chart_version`: Helm chart tag in the repo. In this exmple, we used v1.4.37.
-* `orc8r_image_tag`: Orchestrator Docker image tag in the repo. In this example, we used v1.4.37.
-* `orc8r_nms_image_tag`: ??? image chart tag in the repo. In this example, we used v1.3.7.
-* `orc8r_nginx_image_tag`: Image tag for the Nginx container image in the repo. In this example, we used version v1.3.7.
-* `metallb_addresses`: LoadBalancer settings for Magma services publicly exposed. These must be at least 4 sequential IP addresses on the same network as the ansible host. You should ping each of them to ensure there are no other hosts using them. 
+- `ansible_user`: The Linux user that will be running Ansible. This is the user your set up for passwordless sudo and passwordless ssh earlier.
+- `orc8r_image_repo`: The repository that hosts the docker containers that make up your Orchestrator.
+- `orc8r_helm_repo`: The repository that hosts the helm charts that explain how to deploy your Orchestrator. This can be a public repo, or it can be a Github repo protected by a username and password.
+- `orc8r_domain`: Your domain name. Can be `username.local` for test installations.
+- `orc8r_nms_admin_email`: The email address for the Orchestrator administrator.
+- `docker_insecure_registries`: Ansible is assuming your Docker registry has trusted SSL or https: support, so if that's not the case, add your image repository here. Should match your value for orc8r_image_repo
+- `orc8r_chart_version`: Helm chart tag in the repo. In this exmple, we used v1.4.37.
+- `orc8r_image_tag`: Orchestrator Docker image tag in the repo. In this example, we used v1.4.37.
+- `orc8r_nms_image_tag`: ??? image chart tag in the repo. In this example, we used v1.3.7.
+- `orc8r_nginx_image_tag`: Image tag for the Nginx container image in the repo. In this example, we used version v1.3.7.
+- `metallb_addresses`: LoadBalancer settings for Magma services publicly exposed. These must be at least 4 sequential IP addresses on the same network as the ansible host. You should ping each of them to ensure there are no other hosts using them.
 
 There are a number of values that can usually be left with their default values:
+
 ```bash
 # Change these to your private nameservers if needed
 nameservers:
@@ -139,15 +157,19 @@ Once you've configured the Ansible vars file, it's time to run the deployment.
 ## Deploy the Orchestrator
 
 We're almost ready to deploy the orchestrator. The last step is to set the IP for the target host(s), as in:
+
 ```bash
 export IPS=192.168.1.180
 ```
+
 or if you have multiple hosts:
+
 ```bash
 export IPS=192.168.1.180 192.168.181 192.168.1.182
 ```
 
 Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible' directory, execute:
+
 ```bash
 ./deploy.sh
 ```
@@ -155,15 +177,18 @@ Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deplo
 ## Cleaning up
 
 Once you've begun a deployment, if you find that you need to go back and start again, it's best to completely reset the environment with:
+
 ```bash
 cd $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/
 ansible-playbook -i inventory/cluster.local/hosts.yaml -b kubespray/reset.yml
 ```
 
 ## DNS setup concerns
+
 The above steps assume you are using something like external-dns + AWS Route53 to publish your DNS records or are doing so manually.
 An alternative is to manually set /etc/hosts on every layer (yes, it's inconvenient). A quick way to fetch the IPs and hostnames
 can be achieved with this command:
+
 ```bash
 kubectl -n magma get svc -ojsonpath='{range .items[?(@.spec.type=="LoadBalancer")]}{.status.loadBalancer.ingress[0].ip}{" "}{.metadata.annotations.external-dns\.alpha\.kubernetes\.io/hostname}{"\n"}{end}'
 ```
@@ -172,4 +197,4 @@ Note that the wildcard entry *.nms.DOMAIN should be renamed to the organization 
 
 In the default deployment, nodelocaldns is used. To add hosts entry there, edit the configmap for it in kube-system namespace and restart the Kubernetes pods for nodelocaldns.
 You will want to add records for your domain suffix so that nms can reach orc8r API.
-Here is an example of a CoreDNS config with hosts entries: https://www.programmersought.com/article/81022887882/
+Here is an example of a CoreDNS config with hosts entries: <https://www.programmersought.com/article/81022887882/>

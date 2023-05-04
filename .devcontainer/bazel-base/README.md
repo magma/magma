@@ -14,12 +14,12 @@ export MAGMA_ROOT=PATH_TO_YOUR_MAGMA_CLONE
 
 ## Build magma-builder Docker image
 
-All docker-compose commands below are to be run from `$MAGMA_ROOT/.devcontainer/bazel-base`.
+All `docker compose` commands below are to be run from `$MAGMA_ROOT/.devcontainer/bazel-base`.
 
 To build magma-builder base image, run the following.
 
 ```bash
-docker-compose build magma-builder
+docker compose --compatibility build magma-builder
 ```
 
 ## Run bazel commands
@@ -27,7 +27,7 @@ docker-compose build magma-builder
 To run bazel commands, exec into a magma-builder container,
 
 ```bash
-docker-compose run magma-builder bash
+docker compose --compatibility run magma-builder bash
 ```
 
 Once insider the container, bazel can be run like this,
@@ -43,8 +43,9 @@ bazel test ...
 
 ## Format bazel files
 
-To format all bazel related files, exec into a bazel container and run the following
+To format all bazel related files run the following
 
 ```bash
-bazel run //:buildifier
+cd $MAGMA_ROOT
+./bazel/scripts/run_buildifier.sh format
 ```

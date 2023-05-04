@@ -121,16 +121,9 @@ Status AmfServiceImpl::SetSmfSessionContext(
 bool AmfServiceImpl::SetSmfSessionContext_itti(
     const SetSMSessionContextAccess* request,
     itti_n11_create_pdu_session_response_t* itti_msg_p) {
-  struct in_addr ip_addr = {0};
-  char ip_str[INET_ADDRSTRLEN] = {0};
-  uint32_t ip_int = 0;
   uint32_t i = 0;
-  uint32_t index1 = 0;
-  uint32_t index2 = 0;
   traffic_flow_template_t* ul_tft = NULL;
-  traffic_flow_template_t* dl_tft = NULL;
   int ul_count_packetfilters = 0;
-  int dl_count_packetfilters = 0;
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 

@@ -5,6 +5,7 @@ Orchestrator Certificates is used to apply a set of secrets required by magma or
 ## Prerequisite
 
 Install cert-manager:
+
 ```bash
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
@@ -18,6 +19,7 @@ helm install cert-manager jetstack/cert-manager \
 ## Install certs
 
 Install certs:
+
 ```bash
 helm install certs .
 ```

@@ -2,7 +2,8 @@
 
 The federated gateway provides remote procedure call (GRPC) based interfaces to standard 3GPP components, such as HSS (S6a, SWx), OCS (Gy), and PCRF (Gx). The exposed RPC interface provides versioning & backward compatibility, security (HTTP2 & TLS) as well as support for multiple programming languages. The Remote Procedures below provide simple, extensible, multi-language interfaces based on GRPC which allow developers to avoid dealing with the complexities of 3GPP protocols. Implementing these RPC interfaces allows networks running on Magma to integrate with traditional 3GPP core components
 
-## TL;DR;
+## TL;DR
+
 ```bash
 $ cd magma/feg/gateway/helm
 
@@ -26,6 +27,7 @@ $ helm upgrade --install feg --namespace magma ./feg --values=vals.yaml
 This chart installs the Magma FeG Gateway.
 
 ## Prerequisites
+
 1. We will first need the orc8r to be setup
 
 2. Check if rootCA.pem is present under secrets named `orc8r-secrets-certs`
@@ -38,15 +40,16 @@ This chart installs the Magma FeG Gateway.
    ====
    rootCA.key:              1675 bytes
 ```
+
 3. Install Kubevirt to run Virtual Machine in POD (VMI)
 
-	https://kubevirt.io/user-guide/#/installation/installation
+ <https://kubevirt.io/user-guide/#/installation/installation>
 
 4. Install Multus to support multiple interfaces for POD (VMI)
 
         https://github.com/intel/multus-cni/blob/master/doc/quickstart.md
 
-5. Build kubevirt base image 
+5. Build kubevirt base image
 
 ```shell
    a. Download ubuntu qcow2 image 
@@ -78,7 +81,7 @@ This chart installs the Magma FeG Gateway.
 
    source .prod_env
 
-   docker-compose build
+   docker compose --compatibility build
 
    ./magma/orc8r/tools/docker/publish.sh -r REGISTRY -i gateway_c -u USERNAME -p passwordfile
 
@@ -121,15 +124,15 @@ The following table list the configurable parameters of the orchestrator chart a
 | `kubevirt.ssh_pwauth` | To Enable/Disable password auth. | `True` |
 | `kubevirt.user` | Add New user. | `` |
 
-
 ## Installation steps
 
 1. Create persistent gateway info (optional)
 
-    If you want your gateway pod to have the same gwinfo on pod 
+    If you want your gateway pod to have the same gwinfo on pod
     recreation, first follow the steps below.
-    
-    #### Creating Gateway Info
+
+#### Creating Gateway Info
+
     If creating a gateway for the first time, you'll need to create a snowflake
     and challenge key before installing the gateway. To do so:
 
@@ -145,16 +148,16 @@ The following table list the configurable parameters of the orchestrator chart a
     $ docker cp <container ID>:/etc/snowflake charts/secrets/.secrets/gwinfo
     $ docker cp <container ID>:/var/opt/magma/certs/gw_challenge.key /charts/secrets/.secrets/gwinfo
     ```
-   
+
     If you're instead upgrading your gateway to have persistent gwinfo,
-    copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from 
+    copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from
     your gateway to `charts/secrets/.secrets/gwinfo` of where this chart is stored.
 
     Ensure that `secrets.create` is set to true in your vals.yaml override
 
 2. Install FeG
 
-	`helm upgrade --install feg --namespace magma ./feg --values=vals.yaml`
+ `helm upgrade --install feg --namespace magma ./feg --values=vals.yaml`
 
 3. Register the gateway with the orchestrator
 
@@ -169,7 +172,7 @@ The following table list the configurable parameters of the orchestrator chart a
     
    b. SSH into VM
    
-         ssh -t testuser@${feg_ip} "cd /var/opt/magma/docker ; sudo docker-compose exec magmad /usr/local/bin/show_gateway_info.py"
+         ssh -t testuser@${feg_ip} "docker compose exec magmad /usr/local/bin/show_gateway_info.py"
       
    c. Note down the H/w Id and Challenge Key: 
   
@@ -184,4 +187,3 @@ The following table list the configurable parameters of the orchestrator chart a
    ```
 
 4. Login to NMS Dahsboard and register New Gateway
-

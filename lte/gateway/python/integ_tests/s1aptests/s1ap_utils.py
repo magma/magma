@@ -96,7 +96,6 @@ class S1ApUtil(object):
     MAX_RESP_WAIT_TIME = 180
 
     MAX_NUM_RETRIES = 5
-    datapath = get_datapath()
     SPGW_TABLE = 0
     LOCAL_PORT = "LOCAL"
     LOCAL_PORT_NON_NAT_IPV6 = 2
@@ -126,6 +125,8 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
+        self.datapath = get_datapath()
+
         # Clear the message queue to delete already stored response messages
         S1ApUtil._msg.queue.clear()
         self._imsi_idx = 1
@@ -204,7 +205,7 @@ class S1ApUtil(object):
 
     def get_response(
         self,
-        timeout: int = None,
+        timeout: Optional[int] = None,
     ) -> Msg:
         """Return the response message invoked by S1APTester TFW callback
 
@@ -1037,7 +1038,7 @@ class MagmadUtil(object):
         elif self._init_system == InitMode.DOCKER:
             self.exec_command(
                 "cd /home/vagrant/magma/lte/gateway/docker "
-                "&& docker-compose restart",
+                "&& docker compose restart",
             )
             self.wait_for_restart_to_finish(wait_time=30)
             self._wait_for_pipelined_to_initialize()
@@ -1137,6 +1138,31 @@ class MagmadUtil(object):
                     )
                 else:
                     self.exec_command(f"docker restart --time 1 {service_name}")
+
+        self.wait_for_restart_to_finish(wait_time)
+
+    def restart_single_service(self, service: str, wait_time: int = 0):
+        """
+        Restart a sigle magmad services.
+        This separate restart function is a result of the interdependencies
+        mentioned in the `restart_services` fct. Since multiple services/
+        docker containers are restarted, some race condition between these
+        restarts and 3GPP spec timers occur. Especially in the docker init
+        mode, this leads to failing tests in CI due to performance issues.
+        Since we hard code these intedependent container restarts for testing
+        only, one test is executed with only a MME restart to keep it green;
+        Test3485TimerForDefaultBearerWithMmeRestart.
+
+        Args:
+            service: (str) service name
+            wait_time: (int) max wait time for restart of the services
+        """
+
+        service_name = self.map_service_to_init_system_service_name(service)
+        if self._init_system == InitMode.SYSTEMD:
+            self.exec_command(f"sudo systemctl --no-block restart {service_name}")
+        elif self._init_system == InitMode.DOCKER:
+            self.exec_command(f"docker restart --time 1 {service_name}")
 
         self.wait_for_restart_to_finish(wait_time)
 
@@ -1511,8 +1537,8 @@ class MagmadUtil(object):
                     "/etc/magma/mme.yml"
                 )
 
-        ret_code = self.exec_command("sudo " + ha_config_cmd)
-        if ret_code == 0:
+        ret_code = str(self.exec_command("sudo " + ha_config_cmd))
+        if ret_code == "0":
             print("Ha service configured successfully")
             return 1
 
@@ -1651,6 +1677,36 @@ class MagmadUtil(object):
         self._set_agw_nat(False)
         self._validate_non_nat_datapath(ip_version)
 
+    def enable_dhcp_config(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+            data["configs_by_key"]["mobilityd"]["ip_allocator_type"] = "DHCP"
+            data["configs_by_key"]["mobilityd"]["static_ip_enabled"] = False
+            data["configs_by_key"]["mobilityd"]["ipBlock"] = None
+            data["configs_by_key"]["mobilityd"]["ipv6Block"] = None
+            data["configs_by_key"]["mobilityd"]["ipv6PrefixAllocationType"] = None
+
+        with open(mconfig_conf, "w") as json_file:
+            json.dump(data, json_file, sort_keys=True, indent=2)
+
+    def disable_dhcp_config(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+            data["configs_by_key"]["mobilityd"]["ip_allocator_type"] = "IP_POOL"
+            data["configs_by_key"]["mobilityd"]["static_ip_enabled"] = True
+            data["configs_by_key"]["mobilityd"]["ipBlock"] = "192.168.128.0/24"
+            data["configs_by_key"]["mobilityd"]["ipv6Block"] = "fdee:5:6c::/48"
+            data["configs_by_key"]["mobilityd"]["ipv6PrefixAllocationType"] = "RANDOM"
+
+        with open(mconfig_conf, "w") as json_file:
+            json.dump(data, json_file, sort_keys=True, indent=2)
+
     def _set_agw_nat(self, enable: bool):
         mconfig_conf = (
             "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
@@ -1666,6 +1722,18 @@ class MagmadUtil(object):
 
         self.restart_services(['sctpd'], wait_time=30)
         self.restart_magma_services()
+
+    def is_nat_enabled(self):
+        mconfig_conf = (
+            "/home/vagrant/magma/lte/gateway/configs/gateway.mconfig"
+        )
+        with open(mconfig_conf, "r") as json_file:
+            data = json.load(json_file)
+
+        in_mme_enabled = data["configs_by_key"]["mme"]["natEnabled"] == True
+        in_pipelined_enabled = data["configs_by_key"]["pipelined"]["natEnabled"] == True
+
+        return in_mme_enabled and in_pipelined_enabled
 
     def _validate_non_nat_datapath(self, ip_version: int = 4):
         # validate SGi interface is part of uplink-bridge.
@@ -1758,7 +1826,7 @@ class MobilityUtil(object):
             removed_blocks: (tuple(ip_network)): tuple of ipaddress.ip_netework
                 objects representing the removed IP blocks.
         """
-        removed_blocks = self._mobility_client.remove_ip_blocks(blocks)
+        removed_blocks = self._mobility_client.remove_ip_blocks(blocks, force=True)
         return removed_blocks
 
     def cleanup(self):

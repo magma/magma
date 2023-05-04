@@ -39,6 +39,7 @@ haproxy:
 ```
 
 Given these values, the helm chart can be deployed with:
+
 ```console
 helm upgrade --install redis-ha stable/redis-ha --namespace magma --values=vals-redis-ha.yml
 ```
@@ -82,6 +83,7 @@ succeeded for both gateways. To do this:
 ```
 
 You should see all of the containers running:
+
 ```console
 2bff32bb9787        docker.io/gateway_sessiond:tag    "/usr/local/bin/sess…"   1 hour ago        Up 1 hour (healthy)                       sessiond
 912626ef88fa        docker.io/gateway_python:tag      "python3.5 -m magma.…"   1 hour ago        Up 1 hour                                 state
@@ -101,9 +103,9 @@ e6f78db3d8ad        docker.io/gateway_go:tag          "/bin/bash -c 'envsu…"  
 ```
 
 Then register each gateway:
+
 ```console
-[user@cwf01:~/] cd /var/opt/magma/docker
-[user@cwf01:/var/opt/magma/docker] sudo docker-compose exec magmad /usr/local/bin/show_gateway_info.py
+[user@cwf01:~/] docker compose exec magmad /usr/local/bin/show_gateway_info.py
 ```
 
 You should see output similar to:
@@ -156,27 +158,28 @@ controller node.
 Then run the following on the node:
 
 ```console
-$ kubectl -n magma create -f deploy/crds/magma.cwf.k8s_haclusters_crd.yaml
-$ kubectl -n magma create -f deploy/service_account.yaml
-$ kubectl -n magma create -f deploy/role.yaml
-$ kubectl -n magma create -f deploy/role_binding.yaml
+kubectl -n magma create -f deploy/crds/magma.cwf.k8s_haclusters_crd.yaml
+kubectl -n magma create -f deploy/service_account.yaml
+kubectl -n magma create -f deploy/role.yaml
+kubectl -n magma create -f deploy/role_binding.yaml
 ```
 
 Before creating the operator pod, the `operator.yaml` file will need to be
 modified. The following fields should be updated:
- * `imagePullSecrets` - update to the correct secrets to pull the operator
+
+- `imagePullSecrets` - update to the correct secrets to pull the operator
  image
- * `image` - update to the correct image (e.g. `docker.io/operator:latest`)
- * `REDIS_ADDR` - update to the deployed redis addr for the redis-ha helm chart
+- `image` - update to the correct image (e.g. `docker.io/operator:latest`)
+- `REDIS_ADDR` - update to the deployed redis addr for the redis-ha helm chart
  (e.g. `redis-ha-haproxy:6380`)
 
 Now, create the operator pod:
+
 ```console
-$ kubectl -n magma create -f deploy/operator.yaml
+kubectl -n magma create -f deploy/operator.yaml
 ```
 
 After this, `kubectl -n magma get pods` should display the operator running:
-
 
 ```console
 cwf-operator-6b568c447d-hvgg8                 1/1     Running            0          2m45s
@@ -189,13 +192,15 @@ Lastly, we need to modify
 CWAGs. To do this, modify `gatewayResources` to the name of 2 CWAG resources
 that will be configured in the active/standby cluster. For each resource,
 define:
- * `gatewayID` - the gateway ID created in the NMS
- * `helmReleaseName` - the release name of the gateway helm deployment
+
+- `gatewayID` - the gateway ID created in the NMS
+- `helmReleaseName` - the release name of the gateway helm deployment
 
 If you are unsure what the helm release name should be, run `helm ls -n magma`
 to check the list of releases.
 
 After making this change, the yaml file should something like:
+
 ```console
 apiVersion: magma.cwf.k8s/v1alpha1
 kind: HACluster
@@ -211,12 +216,14 @@ spec:
 ```
 
 Create this custom resource by running:
+
 ```console
-$ kubectl -n magma create -f deploy/crds/magma.cwf.k8s_v1alpha1_hacluster_cr.yaml
+kubectl -n magma create -f deploy/crds/magma.cwf.k8s_v1alpha1_hacluster_cr.yaml
 ```
 
 To verify that the operator is configured properly,
 `kubectl -n magma logs -f <cwf_operator_pod>` should show:
+
 ```console
 I0708 08:21:48.704915       1 main.go:65] cmd "level"=0 "msg"="Operator Version: 0.0.1"
 I0708 08:21:48.705194       1 main.go:66] cmd "level"=0 "msg"="Go Version: go1.13.4"

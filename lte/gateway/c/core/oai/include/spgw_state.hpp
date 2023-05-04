@@ -22,12 +22,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.
@@ -74,12 +75,18 @@ void spgw_free_s11_bearer_context_information(void**);
  * Frees pdn connection and its contained objects
  * @param pdn_connection_p
  */
-void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p);
+void sgw_free_pdn_connection(
+    magma::lte::oai::SgwPdnConnection* pdn_connection_p);
 /**
  * Frees sgw_eps_bearer_ctxt entry
  * @param sgw_eps_bearer_ctxt
  */
-void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
+// TODO(rsarwad): Need to be removed while porting bearer contexts for s8 task
+void sgw_s8_free_eps_bearer_context(
+    sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
+
+void sgw_remove_eps_bearer_context(
+    magma::lte::oai::SgwPdnConnection* pdn_connection_p, uint32_t ebi);
 /**
  * Callback function for freeing the ue context while removing an entry from
  * state_ue_map

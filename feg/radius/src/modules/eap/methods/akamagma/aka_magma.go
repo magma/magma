@@ -107,10 +107,10 @@ func (m EapAkaMagmaMethod) Handle(
 			MacAddr:   clientMac,
 			Apn:       apn,
 		}
-		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", eapContext))
+		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", &eapContext))
 	} else {
 		eapContext.SessionId = sessionID // Always get the session id from RADIUS
-		eapLogger.Debug("EAP state unmarshaled successfully", zap.Any("state", eapContext))
+		eapLogger.Debug("EAP state unmarshaled successfully", zap.Any("state", &eapContext))
 		UnmarshalProtocolState.Success()
 
 		// Verify & warn if MAC address was already set on session but now changed

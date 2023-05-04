@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: Ensure generated files are committed
+# remediation: https://magma.github.io/magma/docs/next/orc8r/dev_testing
+
 name: Orc8r Check Generated Files In Sync
 
 on:
@@ -46,12 +50,6 @@ jobs:
           echo GIT_STATUS=$(git status) >> $GITHUB_ENV
           git status
           git diff-index --quiet HEAD
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -59,15 +57,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action insync-checkin failed"
           SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: "COMMIT TITLE:
-
-            \ ${{steps.commit.outputs.title}}
-
-
-
-            \ GIT STATUS OUTPUT:
-
-            \ ${{env.GIT_STATUS}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

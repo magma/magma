@@ -16,7 +16,6 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "magmad_client",
-    testonly = True,
     srcs = ["magmad_client.py"],
     deps = [
         "//lte/gateway/python/integ_tests/gateway:rpc",
@@ -26,7 +25,6 @@ py_library(
 
 py_library(
     name = "mobility_service_client",
-    testonly = True,
     srcs = ["mobility_service_client.py"],
     deps = [
         "//lte/protos:mobilityd_python_grpc",
@@ -35,7 +33,6 @@ py_library(
 
 py_library(
     name = "service303_utils",
-    testonly = True,
     srcs = ["service303_utils.py"],
     deps = [
         "//orc8r/protos:metrics_python_proto",
@@ -45,7 +42,6 @@ py_library(
 
 py_library(
     name = "subscriber_db_client",
-    testonly = True,
     srcs = ["subscriber_db_client.py"],
     deps = [
         "//feg/protos:hss_service_python_grpc",

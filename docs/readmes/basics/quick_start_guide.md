@@ -75,8 +75,7 @@ We will kick off the initial build of the AGW from source here.
 
 ```bash
 HOST [magma/lte/gateway]$ vagrant ssh magma
-MAGMA-VM [/home/vagrant]$ cd magma/lte/gateway
-MAGMA-VM [/home/vagrant/magma/lte/gateway]$ make run
+MAGMA-VM [/home/vagrant]$ cd $MAGMA_ROOT && bazel/scripts/build_and_run_bazelified_agw.sh
 ```
 
 **Note**: If you encounter unexpected errors during this process, try running
@@ -85,8 +84,8 @@ information.
 
 This will take a while (we have a lot of CXX files to build). With 2 extensive
 build jobs running, now is a good time to grab a coffee or lunch. The first
-build ever from source will take a while, but afterwards, a persistent ccache
-and Docker's native layer caching will speed up subsequent builds
+build ever from source will take a while, but afterwards, a persistent Bazel
+cache and Docker's native layer caching will speed up subsequent builds
 significantly.
 
 You can monitor what happens in the other tab now:
@@ -186,7 +185,7 @@ We have a fabric command set up to do this:
 
 ```bash
 HOST [magma]$ cd lte/gateway
-HOST [magma/lte/gateway]$ fab -f dev_tools.py register_vm
+HOST [magma/lte/gateway]$ fab register-vm
 ```
 
 This command will seed your gateway and network on Orchestrator with some
@@ -214,8 +213,8 @@ the NMS to talk to your local Orchestrator:
 
 ```bash
 HOST [magma]$ cd nms
-HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
-HOST [magma/nms] $ docker-compose up -d
+HOST [magma/nms] $ COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
+HOST [magma/nms] $ docker compose --compatibility up -d
 HOST [magma/nms] $ ./scripts/dev_setup.sh
 ```
 

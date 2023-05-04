@@ -437,8 +437,6 @@ void clean_stale_enb_state(oai::S1apState* state,
 static status_code_e s1ap_clear_ue_ctxt_for_unknown_mme_ue_s1ap_id(
     oai::S1apState* state, sctp_assoc_id_t sctp_assoc_id) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  unsigned int i = 0;
-  unsigned int num_elements = 0;
   map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
 
   if (!s1ap_ue_state) {
@@ -2393,7 +2391,6 @@ status_code_e s1ap_mme_handle_handover_cancel(oai::S1apState* state,
   S1ap_HandoverCancelAcknowledge_t* out;
   S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
   oai::UeDescription* ue_ref_p = nullptr;
-  e_rab_admitted_list_t e_rab_admitted_list = {0};
   mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
   S1ap_Cause_PR cause_type;
@@ -4409,7 +4406,7 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_Reset;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_ResetAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.ResetAcknowledge;
@@ -4495,7 +4492,6 @@ status_code_e s1ap_handle_paging_request(
   uint16_t tai_list_count = paging_request->tai_list_count;
 
   bool is_tai_found = false;
-  uint32_t idx = 0;
   uint8_t* buffer_p = NULL;
   uint32_t length = 0;
   S1ap_S1AP_PDU_t pdu = {S1ap_S1AP_PDU_PR_NOTHING, {0}};
@@ -4860,7 +4856,7 @@ void s1ap_mme_generate_erab_modification_confirm(
     ie = (S1ap_E_RABModificationConfirmIEs_t*)calloc(
         1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
     ie->id = S1ap_ProtocolIE_ID_id_E_RABModifyListBearerModConf;
-    ie->criticality = S1ap_Criticality_reject;
+    ie->criticality = S1ap_Criticality_ignore;
     ie->value.present =
         S1ap_E_RABModificationConfirmIEs__value_PR_E_RABModifyListBearerModConf;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
@@ -4874,7 +4870,7 @@ void s1ap_mme_generate_erab_modification_confirm(
               calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t)));
 
       item->id = S1ap_ProtocolIE_ID_id_E_RABModifyItemBearerModConf;
-      item->criticality = S1ap_Criticality_reject;
+      item->criticality = S1ap_Criticality_ignore;
       item->value.present =
           S1ap_E_RABModifyItemBearerModConfIEs__value_PR_E_RABModifyItemBearerModConf;
 
@@ -4919,7 +4915,6 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
   uint32_t target_enb_id = 0;
   uint8_t* buffer = NULL;
   uint32_t length = 0;
-  uint32_t idx = 0;
   status_code_e rc = RETURNok;
 
   // Not done according to Rel-15 (Target TAI and Source TAI)
@@ -5037,7 +5032,7 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container) {
                              true);
   if (!ie) {
     OAILOG_ERROR(LOG_S1AP, "Incorrect IE \n");
-    return RETURNerror;
+    return false;
   }
   S1ap_E_RABToBeSwitchedDLList_t* e_rab_to_be_switched_dl_list =
       &ie->value.choice.E_RABToBeSwitchedDLList;

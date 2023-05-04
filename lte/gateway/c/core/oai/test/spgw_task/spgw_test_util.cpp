@@ -62,20 +62,21 @@ bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {
 
 bool is_num_s1_bearers_valid(teid_t context_teid,
                              int expected_num_active_bearers) {
-  s_plus_p_gw_eps_bearer_context_information_t* ctxt_p =
+  magma::lte::oai::S11BearerContext* ctxt_p =
       sgw_cm_get_spgw_context(context_teid);
   if (ctxt_p == nullptr) {
     return false;
   }
-  sgw_eps_bearer_context_information_t sgw_context_p =
-      ctxt_p->sgw_eps_bearer_context_information;
+  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+      ctxt_p->mutable_sgw_eps_bearer_context();
   int num_active_bearers = 0;
-  for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
-        sgw_context_p.pdn_connection.sgw_eps_bearers_array[ebx];
-    if ((eps_bearer_ctxt) &&
-        (eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr !=
-         0)) {
+  map_uint32_spgw_eps_bearer_context_t eps_bearer_map;
+  eps_bearer_map.map =
+      sgw_context_p->mutable_pdn_connection()->mutable_eps_bearer_map();
+  for (auto itr = eps_bearer_map.map->begin(); itr != eps_bearer_map.map->end();
+       itr++) {
+    magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt = itr->second;
+    if (eps_bearer_ctxt.enb_s1u_ip_addr().ipv4_addr().size()) {
       num_active_bearers++;
     }
   }
@@ -86,23 +87,11 @@ bool is_num_s1_bearers_valid(teid_t context_teid,
 }
 
 int get_num_pending_create_bearer_procedures(
-    sgw_eps_bearer_context_information_t* ctxt_p) {
+    magma::lte::oai::SgwEpsBearerContextInfo* ctxt_p) {
   if (ctxt_p == nullptr) {
     return 0;
   }
-
-  int num_pending_create_procedures = 0;
-  if (ctxt_p->pending_procedures) {
-    pgw_base_proc_t* base_proc = NULL;
-
-    LIST_FOREACH(base_proc, ctxt_p->pending_procedures, entries) {
-      if (PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST ==
-          base_proc->type) {
-        num_pending_create_procedures++;
-      }
-    }
-  }
-  return num_pending_create_procedures;
+  return ctxt_p->pending_procedures_size();
 }
 
 void fill_create_session_request(
@@ -374,7 +363,7 @@ void fill_nw_initiated_deactivate_bearer_response(
     nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;
   } else {
-    for (int i = 0; i < num_bearer_context; i++) {
+    for (unsigned int i = 0; i < num_bearer_context; i++) {
       nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[i].eps_bearer_id =
           ebi[i];
       nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[i]

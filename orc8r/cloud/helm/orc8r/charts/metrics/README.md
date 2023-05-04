@@ -10,12 +10,12 @@ created.
 
 ### Create S3 Bucket and IAM User
 
-- Create a bucket here: https://s3.console.aws.amazon.com/s3/home
+- Create a bucket here: <https://s3.console.aws.amazon.com/s3/home>
 
-  - Make sure it is in the same region as your orchestrator deployment, and disable public access.
+    - Make sure it is in the same region as your orchestrator deployment, and disable public access.
 
 - Create an IAM user that has full s3 access permissions
-  - Save the access code and secret key
+    - Save the access code and secret key
 
 > NOTE: You can also reuse and existing IAM user as long as they have s3 access.
 
@@ -26,8 +26,8 @@ You will need to set some values and regenerate secret configs to enable thanos.
 ### Download Thanos Chart
 
 ```
-$ cd MAGMA_ROOT/orc8r/cloud/helm/orc8r/charts/metrics
-$ helm dep update
+cd MAGMA_ROOT/orc8r/cloud/helm/orc8r/charts/metrics
+helm dep update
 ```
 
 ### Set values file
@@ -49,7 +49,7 @@ metrics:
 
 ### Generate and configure secrets
 
-Similar to the instructions at TODO Get the right URL HERE!!! https://magma.github.io/magma/docs/orc8r/deploy_intro, configure the necessary secrets but this time add a value to enable Thanos configurations:
+Similar to the instructions at TODO Get the right URL HERE!!! <https://magma.github.io/magma/docs/orc8r/deploy_intro>, configure the necessary secrets but this time add a value to enable Thanos configurations:
 
 ```
 helm template orc8r-secrets charts/secrets \

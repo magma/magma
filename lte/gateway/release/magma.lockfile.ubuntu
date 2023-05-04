@@ -420,12 +420,6 @@
       "sysdep": "python3-ryu",
       "version": "4.30"
     },
-    "scapy": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-scapy",
-      "version": "2.4.4"
-    },
     "sentry-sdk": {
       "root": true,
       "source": "pypi",
@@ -633,6 +627,12 @@
           "source": "apt",
           "sysdep": "python3-docker",
           "version": "4.1.0"
+        },
+        "dpkt": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-dpkt",
+          "version": "1.9.8"
         },
         "envoy": {
           "root": true,
@@ -1000,11 +1000,11 @@
           "sysdep": "python3-ryu",
           "version": "4.34"
         },
-        "scapy": {
+        "sdnotify": {
           "root": true,
-          "source": "pypi",
-          "sysdep": "python3-scapy",
-          "version": "2.4.5"
+          "source": "apt",
+          "sysdep": "python3-sdnotify",
+          "version": "0.3.2"
         },
         "sentry-sdk": {
           "root": true,
@@ -1088,7 +1088,7 @@
           "root": false,
           "source": "apt",
           "sysdep": "python3-websocket-client",
-          "version": "1.3.3"
+          "version": "1.4.2"
         },
         "werkzeug": {
           "root": false,
@@ -1145,6 +1145,9 @@
         },
         "docker": {
           "version": "4.1.0"
+        },
+        "dpkt": {
+          "version": "1.9.8"
         },
         "eventlet": {
           "version": "0.30.2"
@@ -1242,8 +1245,8 @@
         "ryu": {
           "version": "4.34"
         },
-        "scapy": {
-          "version": "2.4.5"
+        "sdnotify": {
+          "version": "0.3.2"
         },
         "sentry-sdk": {
           "version": "1.5.4"
@@ -1413,9 +1416,6 @@
     },
     "ryu": {
       "version": "4.30"
-    },
-    "scapy": {
-      "version": "2.4.4"
     },
     "sentry-sdk": {
       "version": "1.0.0"

@@ -90,7 +90,7 @@ func GetPrometheusTargetsMetadata(api PrometheusAPI) func(c echo.Context) error 
 			c.QueryParam(utils.ParamLimit),
 		)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, res)
 	}
@@ -104,7 +104,7 @@ func GetPrometheusQueryHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return prometheusQuery(c, restrictedQuery, api)
 	}
@@ -114,13 +114,13 @@ func prometheusQuery(c echo.Context, query string, apiClient PrometheusAPI) erro
 	defaultTime := time.Now()
 	queryTime, err := utils.ParseTime(c.QueryParam(utils.ParamTime), &defaultTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamTime, err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamTime, err))
 	}
 
 	// TODO: catch the warnings replacing _
 	res, _, err := apiClient.Query(c.Request().Context(), query, queryTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, wrapPrometheusResult(res))
 }
@@ -133,7 +133,7 @@ func GetPrometheusQueryRangeHandler(api PrometheusAPI) func(c echo.Context) erro
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, networkQueryRestrictorProvider(nID))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return prometheusQueryRange(c, restrictedQuery, api)
 	}
@@ -142,25 +142,25 @@ func GetPrometheusQueryRangeHandler(api PrometheusAPI) func(c echo.Context) erro
 func prometheusQueryRange(c echo.Context, query string, apiClient PrometheusAPI) error {
 	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeStart, err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamRangeStart, err))
 	}
 
 	defaultTime := time.Now()
 	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &defaultTime)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err))
 	}
 
 	step, err := utils.ParseDuration(c.QueryParam(utils.ParamStepWidth), defaultStepWidth)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamStepWidth, err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamStepWidth, err))
 	}
 	timeRange := v1.Range{Start: startTime, End: endTime, Step: step}
 
 	// TODO: catch the warnings replacing _
 	res, _, err := apiClient.QueryRange(c.Request().Context(), query, timeRange)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, wrapPrometheusResult(res))
 }
@@ -177,7 +177,7 @@ func GetTenantQueryHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, tenantRestrictor)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return prometheusQuery(c, restrictedQuery, api)
 	}
@@ -195,11 +195,11 @@ func GetTenantQueryRangeHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		orgRestrictor, err := tenantQueryRestrictorProvider(c.Request().Context(), tID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		restrictedQuery, err := preparePrometheusQuery(c, orgRestrictor)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return prometheusQueryRange(c, restrictedQuery, api)
 	}
@@ -254,7 +254,7 @@ func GetPrometheusSeriesHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		seriesMatches, err := getSeriesMatches(c, paramMatch, networkQueryRestrictorProvider(nID))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing series matchers: %v", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error parsing series matchers: %v", err))
 		}
 		series, err := prometheusSeries(c, seriesMatches, api)
 		if err != nil {
@@ -272,11 +272,11 @@ func TenantSeriesHandlerProvider(api PrometheusAPI) func(c echo.Context) error {
 		}
 		queryRestrictor, err := tenantQueryRestrictorProvider(c.Request().Context(), oID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		seriesMatches, err := getSeriesMatches(c, paramMatch, queryRestrictor)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing series matchers: %v", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error parsing series matchers: %v", err))
 		}
 
 		series, err := prometheusSeries(c, seriesMatches, api)
@@ -319,11 +319,11 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 		reqCtx := c.Request().Context()
 		queryRestrictor, err := tenantQueryRestrictorProvider(reqCtx, oID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		seriesMatches, err := getSeriesMatches(c, paramPromMatch, queryRestrictor)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Error parsing series matchers: %v", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Error parsing series matchers: %v", err))
 		}
 
 		// Check the cache for stored responses
@@ -339,17 +339,17 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 		startStr := c.QueryParam(utils.ParamRangeStart)
 		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse start time: %s: %w", startStr, err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("parse start time: %s: %v", startStr, err))
 		}
 		endStr := c.QueryParam(utils.ParamRangeEnd)
 		endTime, err := utils.ParseTime(endStr, &defaultEndTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse end time: %s: %w", endStr, err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("parse end time: %s: %v", endStr, err))
 		}
 
 		res, _, err := api.Series(reqCtx, seriesMatches, startTime, endTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		if seriesCache != nil {
 			seriesCache.Set(seriesMatches, res)
@@ -361,18 +361,18 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 func prometheusSeries(c echo.Context, seriesMatches []string, apiClient PrometheusAPI) ([]model.LabelSet, error) {
 	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
 	if err != nil {
-		return []model.LabelSet{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeStart, err))
+		return []model.LabelSet{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamRangeStart, err))
 	}
 
 	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 	if err != nil {
-		return []model.LabelSet{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err))
+		return []model.LabelSet{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err))
 	}
 
 	// TODO: catch the warnings replacing _
 	res, _, err := apiClient.Series(c.Request().Context(), seriesMatches, startTime, endTime)
 	if err != nil {
-		return []model.LabelSet{}, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return []model.LabelSet{}, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return res, nil
 }
@@ -387,7 +387,7 @@ func getSeriesMatches(c echo.Context, matchParam string, queryRestrictor restric
 		}
 		restricted, err := queryRestrictor.RestrictQuery(match)
 		if err != nil {
-			return []string{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("unable to secure match parameter: %v", err))
+			return []string{}, echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("unable to secure match parameter: %v", err))
 		}
 		seriesMatchers = append(seriesMatchers, restricted)
 	}
@@ -410,18 +410,18 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 		}
 		labelName := c.Param("label_name")
 		if labelName == "" {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("label_name is required"))
+			return echo.NewHTTPError(http.StatusBadRequest, "label_name is required")
 		}
 
 		reqCtx := c.Request().Context()
 		queryRestrictor, err := tenantQueryRestrictorProvider(reqCtx, oID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		restrictedQuery, err := queryRestrictor.RestrictQuery(fmt.Sprintf("{%s=~\".+\"}", labelName))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		seriesMatchers := []string{restrictedQuery}
@@ -434,16 +434,16 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 		endStr := c.QueryParam(utils.ParamRangeEnd)
 		startTime, err := utils.ParseTime(startStr, &defaultStartTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse start time: %s: %w", startStr, err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("parse start time: %s: %v", startStr, err))
 		}
 		endTime, err := utils.ParseTime(endStr, &maxTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("parse end time: %s: %w", endStr, err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("parse end time: %s: %v", endStr, err))
 		}
 
 		res, _, err := api.Series(reqCtx, seriesMatchers, startTime, endTime)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		data := getSetOfValuesFromLabel(res, model.LabelName(labelName))
 

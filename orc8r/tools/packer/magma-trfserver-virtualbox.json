@@ -4,7 +4,7 @@
       "type": "virtualbox-iso",
       "guest_os_type": "Ubuntu_64",
       "headless": true,
-      "vm_name": "magma-dev",
+      "vm_name": "magma-trfserver",
       "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
       "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
       "ssh_password": "vagrant",
@@ -37,7 +37,6 @@
         " -- <wait>",
         "<enter><wait>"
       ],
-      "name": "magma",
       "memory": 2048,
       "ssh_handshake_attempts": "20",
       "boot_wait": "5s",
@@ -81,6 +80,7 @@
     {
       "type": "shell",
       "scripts": [
+        "scripts/cleanup.sh",
         "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
         "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
       ],

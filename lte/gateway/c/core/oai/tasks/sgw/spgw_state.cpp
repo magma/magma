@@ -86,42 +86,102 @@ void delete_spgw_ue_state(imsi64_t imsi64) {
 }
 
 void spgw_free_s11_bearer_context_information(void** ptr) {
-  if (ptr) {
-    s_plus_p_gw_eps_bearer_context_information_t* context_p =
-        reinterpret_cast<s_plus_p_gw_eps_bearer_context_information_t*>(*ptr);
+  if (!ptr) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Received null pointer");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+
+  if (*ptr) {
+    magma::lte::oai::S11BearerContext* context_p =
+        reinterpret_cast<magma::lte::oai::S11BearerContext*>(*ptr);
     if (context_p) {
-      sgw_free_pdn_connection(
-          &(context_p->sgw_eps_bearer_context_information.pdn_connection));
-      clear_protocol_configuration_options(
-          &(context_p->sgw_eps_bearer_context_information.saved_message.pco));
-      delete_pending_procedures(
-          &(context_p->sgw_eps_bearer_context_information));
+      magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+          context_p->mutable_sgw_eps_bearer_context();
+      if (sgw_context_p) {
+        sgw_free_pdn_connection(sgw_context_p->mutable_pdn_connection());
+        if (sgw_context_p->saved_message().has_pco()) {
+          if (sgw_context_p->saved_message().pco().pco_protocol_size()) {
+            sgw_context_p->mutable_saved_message()
+                ->mutable_pco()
+                ->clear_pco_protocol();
+          }
+          sgw_context_p->mutable_saved_message()->clear_pco();
+        }
+        if (sgw_context_p->pending_procedures_size()) {
+          sgw_context_p->clear_pending_procedures();
+        }
+        if (sgw_context_p->has_mme_cp_ip_address_s11()) {
+          sgw_context_p->clear_mme_cp_ip_address_s11();
+        }
+      }  // end of sgw_context_p
+      context_p->clear_sgw_eps_bearer_context();
+      context_p->clear_pgw_eps_bearer_context();
+    }  // end of s11_bearer_context_p
+  }    // end of ptr
+  free_cpp_wrapper(ptr);
+}
 
-      free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+void free_eps_bearer_context(
+    magma::lte::oai::SgwEpsBearerContext* bearer_context_p) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  if (!bearer_context_p) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Received nullptr for bearer context");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+  if (bearer_context_p->has_eps_bearer_qos()) {
+    if (bearer_context_p->eps_bearer_qos().has_mbr()) {
+      bearer_context_p->mutable_eps_bearer_qos()->clear_mbr();
     }
+    if (bearer_context_p->eps_bearer_qos().has_gbr()) {
+      bearer_context_p->mutable_eps_bearer_qos()->clear_gbr();
+    }
+    bearer_context_p->clear_eps_bearer_qos();
+  }
+  if (bearer_context_p->has_tft()) {
+    if (bearer_context_p->tft().has_packet_filter_list()) {
+      bearer_context_p->mutable_tft()->clear_packet_filter_list();
+    }
+    if (bearer_context_p->tft().has_parameters_list()) {
+      bearer_context_p->mutable_tft()->clear_parameters_list();
+    }
+  }
+  if (bearer_context_p->sdf_ids_size()) {
+    bearer_context_p->clear_sdf_ids();
+  }
+  if (bearer_context_p->has_enb_s1u_ip_addr()) {
+    bearer_context_p->clear_enb_s1u_ip_addr();
+  }
+  if (bearer_context_p->has_ue_ip_paa()) {
+    bearer_context_p->clear_ue_ip_paa();
   }
 }
 
-void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
+void sgw_free_pdn_connection(
+    magma::lte::oai::SgwPdnConnection* pdn_connection_p) {
   if (pdn_connection_p) {
-    if (pdn_connection_p->apn_in_use) {
-      free_wrapper((void**)&pdn_connection_p->apn_in_use);
+    if (pdn_connection_p->eps_bearer_map_size()) {
+      map_uint32_spgw_eps_bearer_context_t eps_bearer_map;
+      eps_bearer_map.map = pdn_connection_p->mutable_eps_bearer_map();
+      for (auto itr = eps_bearer_map.map->begin();
+           itr != eps_bearer_map.map->end(); itr++) {
+        magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt = itr->second;
+        free_eps_bearer_context(&eps_bearer_ctxt);
+      }
+      eps_bearer_map.clear();
     }
-
-    for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {
-      sgw_free_eps_bearer_context(&ebix);
-    }
+    pdn_connection_p->Clear();
   }
 }
 
-void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
-  if (*sgw_eps_bearer_ctxt) {
-    if ((*sgw_eps_bearer_ctxt)->pgw_cp_ip_port) {
-      free_wrapper(
-          reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
-    }
-    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
+void sgw_remove_eps_bearer_context(
+    magma::lte::oai::SgwPdnConnection* pdn_connection_p, uint32_t ebi) {
+  magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
+  map_uint32_spgw_eps_bearer_context_t eps_bearer_map;
+  eps_bearer_map.map = pdn_connection_p->mutable_eps_bearer_map();
+  if (eps_bearer_map.get(ebi, &eps_bearer_ctxt) == magma::PROTO_MAP_OK) {
+    free_eps_bearer_context(&eps_bearer_ctxt);
   }
+  eps_bearer_map.remove(ebi);
 }
 
 void sgw_free_ue_context(void** ptr) {

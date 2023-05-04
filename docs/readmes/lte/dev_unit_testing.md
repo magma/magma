@@ -68,7 +68,7 @@ We have several C/C++ services that live in `lte/gateway/c/`. We will list some 
 From inside the repository, run
 
 ```bash
-bazel test //lte/gateway/c/session_manager/...:* # to test all targets under lte/gateway/c/session_manager 
+bazel test //lte/gateway/c/session_manager/...:* # to test all targets under lte/gateway/c/session_manager
 bazel test //orc8r/gateway/c/...:* //lte/gateway/c/...:* # to test all C/C++ targets
 ```
 
@@ -92,8 +92,6 @@ Refer to the script at `lte/gateway/python/precommit.py` for all available comma
 
 ```bash
 cd $MAGMA/lte/gateway/python
-# build the base image
-./precommit.py --build
 
 # run the flake8 linter by specifying paths
 ./precommit.py --lint -p PATH1 PATH2
@@ -113,8 +111,8 @@ cd $MAGMA/lte/gateway/python
 To run formatting for each C/C++ service, run the following from inside the magma-dev VM
 
 ```bash
-[VM] cd magma/lte/gateway
-[VM] make format_all
+[VM] cd magma/dev_tools
+[VM] ./clang_format.sh
 ```
 
 #### Apply IWYU
@@ -140,6 +138,6 @@ To use the script, run
 To format all Bazel related files, run
 
 ```bash
-cd magma # or any subdirectory inside magma
-bazel run //:buildifier
+cd $MAGMA_ROOT
+./bazel/scripts/run_buildifier.sh format
 ```

@@ -14,23 +14,20 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "bazel/agw_with_bazel": {
+        "title": "AGW with Bazel"
+      },
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
       "contributing/contribute_github": {
         "title": "Community"
       },
-      "contributing/contribute_onboarding": {
-        "title": "Developer Onboarding"
-      },
       "contributing/contribute_proposals": {
         "title": "Proposals Process"
       },
       "contributing/contribute_tsc_norms": {
         "title": "TSC Processes"
-      },
-      "contributing/contribute_workflow": {
-        "title": "Development Workflow"
       },
       "cwf/deploy_build": {
         "title": "Building Carrier Wifi Gateway"
@@ -48,8 +45,8 @@
         "title": "Health Checker",
         "sidebar_label": "Health Checker"
       },
-      "cwf/troubleshooting": {
-        "title": "cwf/troubleshooting"
+      "cwf/pipelined_packet_tracer_debugging": {
+        "title": "Pipelined Packet Tracer Debugging"
       },
       "dp/architecture_overview": {
         "title": "Overview"
@@ -84,14 +81,14 @@
       "feg/dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "feg/docker_setup": {
+      "feg/docker": {
         "title": "FeG Docker Setup"
       },
       "feg/s1ap_federated_tests": {
         "title": "S1AP Federated Integration Tests"
       },
       "feg/session_proxy": {
-        "title": "feg/session_proxy"
+        "title": "Session Proxy"
       },
       "general/aws_cloudstrapper": {
         "title": "AWS Cloudstrapper Install"
@@ -123,7 +120,7 @@
       "howtos/network_probe": {
         "title": "Network Probe"
       },
-      "howtos/readme_package": {
+      "howtos/package": {
         "title": "Packaging"
       },
       "howtos/troubleshooting/agw_healthcheck": {
@@ -204,16 +201,13 @@
       "lte/eventd": {
         "title": "Event Reporting"
       },
-      "lte/extended_5G_sa_features": {
+      "lte/extended_5g_sa_features": {
         "title": "Extended 5G SA Features"
       },
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },
-      "lte/HIL_AGW_tests": {
-        "title": "Hardware In Loop Testing"
-      },
-      "lte/integrated_5G_sa": {
+      "lte/integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
       "lte/ipfix": {
@@ -230,7 +224,7 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "lte/readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "lte/redirectd": {
         "title": "Redirection"
@@ -239,15 +233,7 @@
         "title": "S1AP Integration Tests"
       },
       "lte/sessiond": {
-        "title": "lte/sessiond"
-      },
-      "lte/setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
-      "lte/setup": {
-        "title": "AGW Setup (With Vagrant)",
-        "sidebar_label": "Setup (With Vagrant)"
+        "title": "Session Management in Magma"
       },
       "lte/suci_extensions": {
         "title": "SUCI Extensions"
@@ -288,13 +274,13 @@
       "nms/alerts_troubleshooting": {
         "title": "Alerts"
       },
-      "nms/nms_arch_overview": {
+      "nms/architecture_overview": {
         "title": "Overview"
       },
       "nms/dashboard": {
         "title": "Dashboard"
       },
-      "nms/deploy_config": {
+      "nms/deploy_setup": {
         "title": "Set Up NMS"
       },
       "nms/dev_components": {
@@ -362,6 +348,9 @@
       },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
+      },
+      "orc8r/deploy_using_ansible": {
+        "title": "Deploy Orchestrator using Ansible (Beta)"
       },
       "orc8r/deploy_using_juju": {
         "title": "Deploy Orchestrator using Juju (Beta)"
@@ -477,7 +466,7 @@
       "proposals/p015_tech_debt_week": {
         "title": "Tech Debt Week Processes"
       },
-      "proposals/p016_nms_regression_test": {
+      "proposals/p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "proposals/p017_apn_refactoring": {
@@ -1289,7 +1278,7 @@
       "version-1.5.X/nms/version-1.5.X-alerts": {
         "title": "Alerts"
       },
-      "version-1.5.X/nms/version-1.5.X-nms_arch_overview": {
+      "version-1.5.X/nms/version-1.5.X-architecture_overview": {
         "title": "Overview"
       },
       "version-1.5.X/nms/version-1.5.X-deploy_config": {
@@ -1469,7 +1458,7 @@
       "version-1.6.X/nms/version-1.6.X-alerts_troubleshooting": {
         "title": "Alerts"
       },
-      "version-1.6.X/nms/version-1.6.X-deploy_config": {
+      "version-1.6.X/nms/version-1.6.X-deploy_setup": {
         "title": "Set Up NMS"
       },
       "version-1.6.X/nms/version-1.6.X-federation": {
@@ -1496,6 +1485,9 @@
       "version-1.6.X/orc8r/version-1.6.X-deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "version-1.6.X/orc8r/version-1.6.X-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
+      },
       "version-1.6.X/orc8r/version-1.6.X-dev_aws_stack": {
         "title": "AWS Stack"
       },
@@ -1505,7 +1497,7 @@
       "version-1.6.X/orc8r/version-1.6.X-dev_minikube": {
         "title": "Deploy on Minikube"
       },
-      "version-1.6.X/orc8r/version-1.6.X-RDS_upgrade": {
+      "version-1.6.X/orc8r/version-1.6.X-rds_upgrade": {
         "title": "Orchestrator DB Upgrade"
       },
       "version-1.6.X/orc8r/version-1.6.X-upgrade_1_5": {
@@ -1520,7 +1512,7 @@
       "version-1.6.X/proposals/version-1.6.X-p010_vendor_neutral_dp": {
         "title": "Vendor Neutral CBSD Domain Proxy"
       },
-      "version-1.6.X/proposals/version-1.6.X-p016_nms_regression_test": {
+      "version-1.6.X/proposals/version-1.6.X-p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "version-1.6.X/proposals/version-1.6.X-p017_apn_refactoring": {
@@ -1617,7 +1609,7 @@
       "version-1.7.0/feg/version-1.7.0-dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "version-1.7.0/feg/version-1.7.0-docker_setup": {
+      "version-1.7.0/feg/version-1.7.0-docker": {
         "title": "FeG Docker Setup"
       },
       "version-1.7.0/feg/version-1.7.0-s1ap_federated_test": {
@@ -1653,7 +1645,7 @@
       "version-1.7.0/howtos/version-1.7.0-network_probe": {
         "title": "Network Probe"
       },
-      "version-1.7.0/howtos/version-1.7.0-readme_package": {
+      "version-1.7.0/howtos/version-1.7.0-package": {
         "title": "Packaging"
       },
       "version-1.7.0/howtos/troubleshooting/version-1.7.0-agw_healthcheck": {
@@ -1737,7 +1729,7 @@
       "version-1.7.0/lte/version-1.7.0-HIL_AGW_tests": {
         "title": "Hardware In Loop Testing"
       },
-      "version-1.7.0/lte/version-1.7.0-integrated_5G_sa": {
+      "version-1.7.0/lte/version-1.7.0-integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
       "version-1.7.0/lte/version-1.7.0-ipfix": {
@@ -1754,21 +1746,13 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "version-1.7.0/lte/version-1.7.0-readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "version-1.7.0/lte/version-1.7.0-redirectd": {
         "title": "Redirection"
       },
       "version-1.7.0/lte/version-1.7.0-s1ap_tests": {
         "title": "S1AP Integration Tests"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup": {
-        "title": "AGW Setup (With Vagrant)",
-        "sidebar_label": "Setup (With Vagrant)"
       },
       "version-1.7.0/lte/version-1.7.0-dev_teid_allocation": {
         "title": "TEID Allocation"
@@ -1791,13 +1775,13 @@
       "version-1.7.0/nms/version-1.7.0-alerts_troubleshooting": {
         "title": "Alerts"
       },
-      "version-1.7.0/nms/version-1.7.0-nms_arch_overview": {
+      "version-1.7.0/nms/version-1.7.0-architecture_overview": {
         "title": "Overview"
       },
       "version-1.7.0/nms/version-1.7.0-dashboard": {
         "title": "Dashboard"
       },
-      "version-1.7.0/nms/version-1.7.0-deploy_config": {
+      "version-1.7.0/nms/version-1.7.0-deploy_setup": {
         "title": "Set Up NMS"
       },
       "version-1.7.0/nms/version-1.7.0-dev_components": {
@@ -1856,6 +1840,9 @@
       },
       "version-1.7.0/orc8r/version-1.7.0-deploy_terraform_options": {
         "title": "Terraform Options"
+      },
+      "version-1.7.0/orc8r/version-1.7.0-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
       },
       "version-1.7.0/orc8r/version-1.7.0-dev_aws_stack": {
         "title": "AWS Stack"
@@ -1953,7 +1940,7 @@
       "version-1.7.0/proposals/version-1.7.0-p015_tech_debt_week": {
         "title": "Tech Debt Week Processes"
       },
-      "version-1.7.0/proposals/version-1.7.0-p016_nms_regression_test": {
+      "version-1.7.0/proposals/version-1.7.0-p016_nms_regression_testing": {
         "title": "NMS Regression Testing"
       },
       "version-1.7.0/proposals/version-1.7.0-p017_apn_refactoring": {
@@ -2028,7 +2015,7 @@
       "version-1.8.0/lte/version-1.8.0-dev_unit_testing": {
         "title": "Test AGW"
       },
-      "version-1.8.0/lte/version-1.8.0-extended_5G_sa_features": {
+      "version-1.8.0/lte/version-1.8.0-extended_5g_sa_features": {
         "title": "Extended 5G SA Features"
       },
       "version-1.8.0/lte/version-1.8.0-pipelined": {
@@ -2040,10 +2027,10 @@
       "version-1.8.0/lte/version-1.8.0-suci_extensions": {
         "title": "SUCI Extensions"
       },
-      "version-1.8.0/nms/version-1.8.0-nms_arch_overview": {
+      "version-1.8.0/nms/version-1.8.0-architecture_overview": {
         "title": "Overview"
       },
-      "version-1.8.0/nms/version-1.8.0-deploy_config": {
+      "version-1.8.0/nms/version-1.8.0-deploy_setup": {
         "title": "Set Up NMS"
       },
       "version-1.8.0/nms/version-1.8.0-dev_components": {
@@ -2071,7 +2058,7 @@
         "title": "Introduction"
       },
       "version-1.8.0/orc8r/version-1.8.0-deploy_using_juju": {
-        "title": "Deploy Orchestrator using Juju (Beta)"
+        "title": "Deploy Orchestrator using Juju"
       },
       "version-1.8.0/orc8r/version-1.8.0-dev_build": {
         "title": "Build Orchestrator"
@@ -2099,7 +2086,6 @@
     },
     "categories": {
       "Getting Started": "Getting Started",
-      "Tutorials": "Tutorials",
       "Usage": "Usage",
       "Architecture": "Architecture",
       "Deploy": "Deploy",

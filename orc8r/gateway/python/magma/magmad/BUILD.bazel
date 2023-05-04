@@ -33,6 +33,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/magmad/generic_command:command_executor",
+        "//orc8r/gateway/python/magma/magmad/upgrade:docker_upgrader",
         "//orc8r/gateway/python/magma/magmad/upgrade:magma_upgrader",
         "//orc8r/gateway/python/magma/magmad/upgrade:upgrader",
     ],

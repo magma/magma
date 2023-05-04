@@ -36,8 +36,8 @@ The simple way is to just click on the “+” icon on the left sidebar, then cr
 
 ![Grafana new dashboard](assets/nms/grafana_new_dashboard.png)
 
-- Grafana documentation on creating dashboards: [Grafana Dashboards](_https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/_)
-- Prometheus documentation on writing queries: [Prometheus Querying](_https://prometheus.io/docs/prometheus/latest/querying/basics/_)
+- Grafana documentation on creating dashboards: [Grafana Dashboards](https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/)
+- Prometheus documentation on writing queries: [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/basics/)
 
 If you want to replicate the networkID or gatewayID variables that you find in the preconfigured dashboards, we provide a “template” dashboard to make that easy. Simply open the Template dashboard, and click on the gear icon near the
 top right. From there, click “Save As” and enter the name you want. Your new dashboard will now have the gatewayID and networkID variables. An example of how to use these variables in your queries:
@@ -175,8 +175,8 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 
 On the gateways, magmad service collects metrics from all the services and pushes them to Orc8r.
 In Orc8r, metricsd receives the metrics and pushes them to registered metric exporters. Prometheus
-is one the main metric exporters. Specifically, Orc8r pushes the metrics to the [edge-hub]
-(<https://github.com/facebookincubator/prometheus-edge-hub>), which later scraped by prometheus instance.
+is one the main metric exporters. Specifically, Orc8r pushes the metrics to the
+[edge-hub](<https://github.com/facebookarchive/prometheus-edge-hub>), which later scraped by prometheus instance.
 
 On the query side, When we make queries through NMS or swagger, the Orc8r queries the prometheus
 instance directly.

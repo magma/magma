@@ -78,7 +78,7 @@ status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, const char* timer_name);
 
 void mme_app_handle_detach_req(mme_ue_s1ap_id_t ue_id);
 
@@ -263,10 +263,9 @@ status_code_e mme_app_handle_sgsap_reset_indication(
 
 status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
 
-bool mme_app_handle_reset_indication(const hash_key_t keyP,
-                                     void* const ue_context_pP,
-                                     void* unused_param_pP,
-                                     void** unused_result_pP);
+bool mme_app_handle_reset_indication(
+    const uint32_t unused_keyP, struct ue_mm_context_s* const ue_context_pP,
+    void* unused_param_pP, void** unused_result_pP);
 
 status_code_e mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
@@ -290,7 +289,7 @@ void mme_app_notify_service_reject_to_nas(mme_ue_s1ap_id_t ue_id,
                                           uint8_t failed_procedure);
 
 status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
-                                                 char* failed_statement,
+                                                 const char* failed_statement,
                                                  uint8_t failed_procedure);
 
 status_code_e mme_app_handle_sgsap_service_abort_request(

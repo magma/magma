@@ -2351,7 +2351,6 @@ status_code_e ngap_handle_gnb_initiated_reset_ack(
   Ngap_NGAP_PDU_t pdu;
   /** NGReset Acknowledgment. */
   Ngap_NGResetAcknowledge_t* out;
-  Ngap_NGResetAcknowledgeIEs_t* ie = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NGAP);

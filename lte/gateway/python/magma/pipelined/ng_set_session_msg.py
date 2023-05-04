@@ -190,7 +190,7 @@ class CreateSessionUtil:
     def CreateSession(
         self, imsi_val: str, pdr_state: str = "ADD", in_teid: int = 0,
         out_teid: int = 0, ue_ip_addr: str = "", gnb_ip_addr: str = "",
-        del_rule_id: str = '', add_rule_id: str = '', ipv4_dst: str = None, allow: str = "YES",
+        del_rule_id: str = '', add_rule_id: str = '', ipv4_dst: str = '', allow: str = "YES",
         priority: int = 10, hard_timeout: int = 0, apn_ambr: AggregatedMaximumBitrate = None,
     ):
 

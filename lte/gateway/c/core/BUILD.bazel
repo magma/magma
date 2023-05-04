@@ -11,7 +11,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//bazel:asn1c.bzl", "cc_asn1_library")
-load("//bazel:test_constants.bzl", "TAG_SERVICE")
+load("//bazel:test_constants.bzl", "TAG_MME_OAI", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/core:__subpackages__"])
 
@@ -514,9 +514,9 @@ MME_HDRS = [
     "oai/include/async_system_messages_def.h",
     "oai/include/async_system_messages_types.h",
     "oai/include/grpc_service.hpp",
-    "oai/include/gtpv1_u_messages_def.h",
-    "oai/include/gtpv1_u_messages_types.h",
-    "oai/include/gtpv1u_types.h",
+    "oai/include/gtpv1_u_messages_def.hpp",
+    "oai/include/gtpv1_u_messages_types.hpp",
+    "oai/include/gtpv1u_types.hpp",
     "oai/include/gx_messages_def.h",
     "oai/include/gx_messages_types.h",
     "oai/include/ha_messages_def.hpp",
@@ -987,10 +987,10 @@ MME_HDRS = [
     "oai/lib/pipelined_client/PipelinedClientAPI.hpp",
     "oai/lib/pipelined_client/PipelinedServiceClient.hpp",
     "oai/lib/pipelined_client/proto_converters.hpp",
-    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.h",
-    "oai/tasks/gtpv1-u/gtp_tunnel_upf.h",
-    "oai/tasks/gtpv1-u/gtpv1u.h",
-    "oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h",
+    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.hpp",
+    "oai/tasks/gtpv1-u/gtp_tunnel_upf.hpp",
+    "oai/tasks/gtpv1-u/gtpv1u.hpp",
+    "oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp",
     "oai/tasks/sgw/pgw_handlers.hpp",
     "oai/tasks/sgw/pgw_pco.hpp",
     "oai/tasks/sgw/pgw_procedures.hpp",
@@ -1094,9 +1094,9 @@ PIPELINED_CLIENT_C = [
 ]
 
 GTPV1_U_C = [
-    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.c",
-    "oai/tasks/gtpv1-u/gtp_tunnel_upf.c",
-    "oai/tasks/gtpv1-u/gtpv1u_task.c",
+    "oai/tasks/gtpv1-u/gtp_tunnel_openflow.cpp",
+    "oai/tasks/gtpv1-u/gtp_tunnel_upf.cpp",
+    "oai/tasks/gtpv1-u/gtpv1u_task.cpp",
 ]
 
 SGW_C = [
@@ -1176,25 +1176,33 @@ cc_library(
         "-DEMBEDDED_SGW=0",
         "-DS6A_OVER_GRPC=0",
     ],
+    tags = TAG_MME_OAI,
     deps = MME_DEPS,
 )
 
+# This is the default version of the MME service,
+# with OpenFlow and gRPC over S6a.
 cc_binary(
     name = "agw_of",
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=1"],
     linkstatic = True,
     tags = TAG_SERVICE + ["no-cache"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [":lib_agw_of"],
 )
 
+# This is the OAI version of the MME service.
 cc_binary(
     name = "mme_oai",
     srcs = ["oai/oai_mme/oai_mme.c"],
     copts = ["-DEMBEDDED_SGW=0"],
     linkstatic = True,
-    tags = TAG_SERVICE + ["no-cache"],
+    tags = TAG_SERVICE + TAG_MME_OAI + ["no-cache"],
+    visibility = ["//:__pkg__"],
     deps = [":lib_mme_oai"],
 )
 

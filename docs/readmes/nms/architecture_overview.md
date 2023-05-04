@@ -1,5 +1,5 @@
 ---
-id: nms_arch_overview
+id: architecture_overview
 title: Overview
 hide_title: true
 ---

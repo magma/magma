@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: any
+# purpose: Check PR is signed off
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
 name: PR Check DCO
 on:
   pull_request:

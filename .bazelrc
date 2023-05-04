@@ -1,3 +1,17 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# See https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+# for an introduction to bazel for the Magma AGW 
+
 startup --output_base=/var/tmp/bazel
 startup --host_jvm_args="-Xmx8g"
 
@@ -23,6 +37,10 @@ build --cxxopt=-std=c++14
 # https://bazel.build/docs/user-manual#strip
 build --strip=never
 build --per_file_copt=^lte/gateway/c/.*$@-g
+# Exclude a couple of warnings from compiling external libraries (note: the external folder
+# does not belong to the magma repo, only exists for a build and contains the external
+# c/c++ libraries)
+build --per_file_copt=^external/.*$@-Wno-all,-Wno-format-security,-Wno-deprecated-declarations
 
 # DEFAULT TEST CONFIGURATION
 # Please read the GH issue #13073 before adding "test" options.
@@ -36,27 +54,8 @@ build:vm --config=specify_vm_cc
 # The locations of the disk_cache/repository_cache are symlinks in the
 # docker containers/magma-vm. They point to the correct cache locations
 # $MAGMA/.bazel-cache and $MAGMA/.bazel-cache-repo inside the magma repository.
-build:disk_cache --disk_cache=/var/cache/bazel-cache
-common:disk_cache --repository_cache=/var/cache/bazel-cache-repo
-
-# REMOTE CACHING READ AND WRITE CONFIGS
-# The file bazel/bazelrcs/remote_caching_rw.bazelrc is templated in CI
-# The full config is then written to bazel/bazelrcs/cache.bazelrc
-
-# REMOTE CACHING READ-ONLY CONFIGS
-# The file bazel/bazelrcs/remote_caching_ro.bazelrc is templated in CI
-# The full config is then written to bazel/bazelrcs/cache.bazelrc
-build:remote_caching_ro --remote_upload_local_results=false
-
-# REMOTE DOWNLOAD OPTIMIZATION
-build:remote_download_optimization --remote_download_minimal
-# --remote_download_toplevel instead of --remote_download_minimal is
-# needed for 'bazel run' due to https://github.com/bazelbuild/bazel/issues/11920
-run:remote_download_optimization --remote_download_toplevel
-
-# Import the bazel caching config, with default disk cache,
-# which in CI gets overwritten by the remote caching config. 
-import %workspace%/bazel/bazelrcs/cache.bazelrc
+build --disk_cache=/var/cache/bazel-cache
+common --repository_cache=/var/cache/bazel-cache-repo
 
 # TEST CONFIGS
 # Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
@@ -104,9 +103,6 @@ build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-poi
 # see https://bazel.build/docs/memory-saving-mode
 # This is helpful for builds on the VM on github runners where only 14g are available.
 build:limit_mem --discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state
-
-# Config for turning up more GCC warnings
-build:max_gcc_warnings --per_file_copt=^.*/gateway/c/.*$@-Wextra,-Wshadow,-Wimplicit-fallthrough,-Wduplicated-cond,-Wduplicated-branches,-Wlogical-op,-Wnull-dereference,-Wformat=2,-Wstrict-overflow=4,-Wuninitialized,-Wshift-overflow=2
 
 # system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
 try-import /etc/bazelrc

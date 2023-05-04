@@ -49,8 +49,8 @@ void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
 
-  state_teid_map.map = new google::protobuf::Map<
-      uint32_t, struct s_plus_p_gw_eps_bearer_context_information_s*>();
+  state_teid_map.map =
+      new google::protobuf::Map<uint32_t, magma::lte::oai::S11BearerContext*>();
   state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_teid_map.bind_callback(spgw_free_s11_bearer_context_information);
 

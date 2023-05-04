@@ -70,6 +70,8 @@ class MmeNasStateManager
   void write_mme_ueip_imsi_map_to_db();
   // Returns a reference to UeIpImsiMap
   UeIpImsiMap& get_mme_ueip_imsi_map(void);
+  // Returns mme_ue_state map
+  proto_map_uint32_ue_context_t* get_ue_state_map();
 
  private:
   // Constructor for MME NAS state manager
@@ -83,8 +85,8 @@ class MmeNasStateManager
   // Initialize state that is non-persistent, e.g. mutex locks and timers
   void mme_nas_state_init_local_state();
 
-  // Create in-memory hashtables for MME NAS state
-  void create_hashtables();
+  // Create in-memory protobuf maps for MME NAS state
+  void create_protomaps();
 
   // Write an empty value to data store, if needed for debugging
   void clear_db_state();
@@ -96,8 +98,8 @@ class MmeNasStateManager
    */
   void create_state() override;
 
-  // Clean-up the in-memory hashtables
-  void clear_mme_nas_hashtables();
+  // Clean-up the in-memory protobuf maps
+  void clear_mme_nas_protomaps();
 
   // creates map of ue_ip addresses
   void create_mme_ueip_imsi_map();
@@ -107,6 +109,7 @@ class MmeNasStateManager
    * having same ue_ip
    */
   UeIpImsiMap ueip_imsi_map;  // ueip => list of imsi64
+  proto_map_uint32_ue_context_t mme_app_state_ue_map;
 };
 }  // namespace lte
 }  // namespace magma

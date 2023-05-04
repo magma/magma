@@ -29,6 +29,7 @@ import (
 )
 
 func TestProxy(t *testing.T) {
+
 	// Arrange
 	var sessionID = "sessionID"
 	randomPort := (rand.Int63() % 0xFFF) << 4
@@ -57,6 +58,9 @@ func TestProxy(t *testing.T) {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
+	addr := fmt.Sprintf(":%d", randomPort)
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
 	fmt.Println("Server listening")
 
 	// Act

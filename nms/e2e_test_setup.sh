@@ -16,12 +16,12 @@ mkdir -p .cache
 mkdir -p /tmp/nms_artifacts
 
 openssl req -nodes -new -x509 -batch -keyout .cache/mock_server.key -out .cache/mock_server.cert -subj "/"
-docker-compose --env-file .env.mock -f docker-compose-e2e.yml up -d
+docker compose --env-file .env.mock -f docker-compose-e2e.yml up -d
 
 i=0
 while [ $i -lt 60 ]
 do
-    val=$(docker-compose -f docker-compose-e2e.yml logs magmalte 2>&1 | grep 'Production server started on port 8081' | wc -l)
+    val=$(docker compose -f docker-compose-e2e.yml logs magmalte 2>&1 | grep 'Production server started on port 8081' | wc -l)
     if [ $val -eq 1 ]
     then
         break
@@ -31,17 +31,17 @@ do
     i=$[$i+1]
 done
 
-docker-compose exec -T magmalte yarn setAdminPassword magma-test admin@magma.test password1234
-docker-compose exec -T magmalte yarn createOrganization magma-test test,test_feg_lte_network
+docker compose exec -T magmalte yarn setAdminPassword magma-test admin@magma.test password1234
+docker compose exec -T magmalte yarn createOrganization magma-test test,test_feg_lte_network
 
 # run the end to end test
 set +e
 yarn test:e2e
 exit_code=$?
 
-docker-compose -f docker-compose-e2e.yml logs magmalte &> /tmp/nms_artifacts/magmalte.log
-docker-compose -f docker-compose-e2e.yml logs mock_server &> /tmp/nms_artifacts/mock_server.log
+docker compose -f docker-compose-e2e.yml logs magmalte &> /tmp/nms_artifacts/magmalte.log
+docker compose -f docker-compose-e2e.yml logs mock_server &> /tmp/nms_artifacts/mock_server.log
 
-docker-compose -f docker-compose-e2e.yml --env-file .env.mock down
+docker compose -f docker-compose-e2e.yml --env-file .env.mock down
 
 exit $exit_code

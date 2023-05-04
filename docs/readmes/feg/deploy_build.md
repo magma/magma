@@ -27,9 +27,9 @@ Then go run those commands to build FeG.
 
 ```bash
 cd magma/feg/gateway/docker
-docker-compose build --parallel
+docker compose --compatibility build
 # if build fails try with sudo and without parallelization
-sudo docker-compose build
+sudo docker compose --compatibility build
 ```
 
 Note that you are building FeG from your local repository. There is no need to

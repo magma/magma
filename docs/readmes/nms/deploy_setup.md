@@ -1,5 +1,5 @@
 ---
-id: deploy_config
+id: deploy_setup
 title: Set Up NMS
 hide_title: true
 ---
@@ -25,7 +25,7 @@ has access to the host organization. Run the command
 - Docker (development environment)
 
     ```bash
-    docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+    docker compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
     ```
 
 - Kubernetes (production environment)

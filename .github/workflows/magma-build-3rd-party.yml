@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Test if 3rd party dependencies can be built - publish if manually triggered
+# remediation: -
+
 name: Magma Build & Publish 3rd Party Dependencies
 on:
   push:
@@ -27,19 +31,9 @@ on:
       - third_party/**
       - .github/workflows/magma-build-3rd-party.yml
   schedule:
-    - cron: 0 4 * * 0
+    - cron: 36 4 * * 0
   workflow_dispatch:
     inputs:
-      production:
-        description: Is production build?
-        type: boolean
-        default: false
-      repository:
-        description: Repository to push to?
-        type: choice
-        default: magma-packages-test
-        options: [ magma-packages-test, magma-packages-prod ]
-        required: true
       distribution:
         description: Distribution to set?
         default: 'focal-ci'
@@ -50,8 +44,9 @@ jobs:
     runs-on: ubuntu-20.04
     container: ghcr.io/magma/magma/devcontainer:sha-84cfceb
     env:
-      repository: ${{ inputs.repository || 'magma-packages-test' }}
+      repository: magma-packages-test
       distribution: ${{ inputs.distribution || 'focal-ci' }}
+      build-directory: third_party/build
 
     strategy:
       fail-fast: false
@@ -78,26 +73,22 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
       - name: Build debian package
-        working-directory: third_party/build
+        working-directory: ${{ env.build-directory }}
         run: ./build.py --no-install ${{ matrix.dependency }}
 
       - name: Test installability of the debian package built
-        working-directory: third_party/build
-        run: sudo apt-get install --yes --allow-downgrades ./*.deb
+        working-directory: ${{ env.build-directory }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --allow-downgrades ./*.deb
 
-      - run: echo "repository=debian-test" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/master' && github.event_name != 'workflow_dispatch'
-
-      - run: |
-          echo "You have chosen repository ${{ env.repository }} and 'is production' ${{ inputs.production }}."
-          echo "ERROR: Production deployment is protected. Abort!"
-          exit 1
-        if: |
-          env.repository == 'magma-packages-prod' &&
-          ! (
-            inputs.production &&
-            contains('["maxhbr", "nstng", "jheidbrink", "lkreutzer", "Neudrino", "MoritzThomasHuebner", "tmdzk", "wolfseb"]', github.actor)
-          )
+      - name: Verify distribution
+        run: |
+          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
+              echo "You have chosen 'distribution' ${{ env.distribution }} as input."
+              echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"
+              exit 1
+          fi
 
       - name: Setup JFrog CLI
         id: jfrog-setup
@@ -111,7 +102,7 @@ jobs:
 
       - name: Publish debian package
         if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
-        working-directory: third_party/build
+        working-directory: ${{ env.build-directory }}
         run: |
           file=$(ls *${{ matrix.dependency }}*.deb)
           name=${file%%.deb}

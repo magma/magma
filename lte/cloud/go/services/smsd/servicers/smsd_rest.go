@@ -43,7 +43,7 @@ func (s *SMSDRestServicer) listMessages(c echo.Context) error {
 
 	messages, err := s.store.GetSMSs(networkID, nil, nil, false, nil, nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	out := make([]*models.SmsMessage, 0, len(messages))
@@ -61,7 +61,7 @@ func (s *SMSDRestServicer) getMessage(c echo.Context) error {
 
 	msgs, err := s.store.GetSMSs(networkID, []string{pk}, nil, false, nil, nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if funk.IsEmpty(msgs) {
 		return echo.ErrNotFound
@@ -78,15 +78,15 @@ func (s *SMSDRestServicer) createMessage(c echo.Context) error {
 
 	payload := &models.MutableSmsMessage{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(context.Background()); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	pk, err := s.store.CreateSMS(networkID, payload.ToProto())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, pk)
 }
@@ -99,7 +99,7 @@ func (s *SMSDRestServicer) deleteMessage(c echo.Context) error {
 
 	err := s.store.DeleteSMSs(networkID, []string{pk})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 

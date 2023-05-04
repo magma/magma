@@ -11,6 +11,10 @@
 
 # Based on https://github.com/sqren/backport-github-action/blob/main/README.md under MIT license.
 
+# owner: @magma/approvers-infra
+# purpose: Apply backports based on PR labels
+# remediation: -
+
 name: PR Backport
 on:
   pull_request_target:

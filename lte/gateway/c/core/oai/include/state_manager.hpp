@@ -15,6 +15,9 @@
  *      contact@openairinterface.org
  */
 
+// TODO(pruthvihebbani) : Remove state_ue_ht after converting htables to
+// protomap in all the tasks
+
 #pragma once
 
 #ifdef __cplusplus

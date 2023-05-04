@@ -61,10 +61,6 @@ oai::S1apState* create_s1ap_state(void) {
   proto_map_uint32_enb_description_t enb_map;
 
   oai::S1apState* state_cache_p = new oai::S1apState();
-  if (!state_cache_p) {
-    OAILOG_CRITICAL(LOG_S1AP, "Failed allocate memory for S1apState");
-    return state_cache_p;
-  }
   enb_map.map = state_cache_p->mutable_enbs();
   enb_map.set_name(S1AP_ENB_COLL);
   enb_map.bind_callback(free_enb_description);

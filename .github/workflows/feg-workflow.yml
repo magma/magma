@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: FeG linting and testing
+# remediation: https://magma.github.io/magma/docs/next/feg/dev_testing
+
 name: FeG Lint & Test
 
 on:
@@ -64,7 +68,7 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
         with:
-          go-version: '1.19.3'
+          go-version: '1.20.1'
       - run: go version
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
@@ -86,11 +90,14 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - name: Install gotestsum
+        if: always()
+        run: |
+          go install gotest.tools/gotestsum@v1.8.0
       - name: Run precommit steps
         if: always()
         id: feg-precommit
         run: |
-          go install gotest.tools/gotestsum@v1.8.0
           make -C ${MAGMA_ROOT}/feg/gateway precommit
       - name: Upload Test Results
         id: feg-precommit-upload
@@ -99,21 +106,45 @@ jobs:
         with:
           name: Unit Test Results
           path: "/tmp/test-results"
-      - name: Extract commit title
-        if: failure() && github.event_name == 'push'
-        id: commit
+      - name: Lint radius src
+        if: always()
+        id: radius-src-lint
+        working-directory: feg/radius/src
         run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          ./run.sh lint
+      - name: Run radius src unit tests
+        if: always()
+        id: radius-src-unit-tests
+        working-directory: feg/radius/src
+        run: |
+          ./run.sh test
+      - name: Lint radius lib
+        if: always()
+        id: radius-lib-lint
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh lint); done
+      - name: Run radius lib unit tests
+        if: always()
+        id: radius-lib-unit-tests
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh test); done
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: ( steps.feg-lint-init.outcome=='failure' || steps.feg-lint.outcome=='failure' || steps.feg-lint-cov.outcome=='failure' || steps.feg-lint-codecov.outcome=='failure'  ) && github.event_name ==
-          'push'
+        if: |
+          ( steps.feg-lint-init.outcome=='failure' ||
+          steps.feg-lint.outcome=='failure' ||
+          steps.feg-lint-cov.outcome=='failure' ||
+          steps.feg-lint-codecov.outcome=='failure' ||
+          steps.radius-src-lint.outcome=='failure' ||
+          steps.radius-lib-lint.outcome=='failure' ) &&
+          github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_TITLE: "FeG-lint tests failed"
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
@@ -122,12 +153,17 @@ jobs:
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
-        if: ( steps.feg-precommit.outcome=='failure' || steps.feg-precommit-upload.outcome=='failure' ) && github.event_name == 'push'
+        if: |
+          ( steps.feg-precommit.outcome=='failure' ||
+          steps.feg-precommit-upload.outcome=='failure' ||
+          steps.radius-src-unit-tests.outcome=='failure' ||
+          steps.radius-lib-unit-tests.outcome=='failure' ) &&
+          github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"

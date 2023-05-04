@@ -7,7 +7,7 @@ original_id: contribute_id_mappings
 
 Here are the Github to Slack ID mappings for all [Magma maintainers](https://github.com/orgs/magma/teams/repo-magma-maintain).
 
-Instructions on joining our Slack workspace is provided in the [Magma community page](https://www.magmacore.org/community/).
+Instructions on joining our Slack workspace is provided in the [Magma community page](https://magmacore.org/join-the-open-source-community/).
 
 | GitHub           | Slack (email)                          | Slack (displayname)     |
 |------------------|----------------------------------------|-------------------------|

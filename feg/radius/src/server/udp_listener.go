@@ -15,9 +15,12 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
+	"net"
 	"sync/atomic"
+	"time"
 
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
@@ -82,11 +85,45 @@ func (l *UDPListener) ListenAndServe() error {
 		err := l.Server.ListenAndServe()
 		serverError <- err
 	}()
+	dialError := make(chan error, 1)
+	go func() {
+		udpAddr := ":1812" // default port for radius packetServer
+		if l.Server.Addr != "" {
+			udpHostString, udpPortString, err := net.SplitHostPort(l.Server.Addr)
+			if err != nil {
+				dialError <- err
+				return
+			}
+			udpAddr = net.JoinHostPort(udpHostString, udpPortString)
+		}
+		deadline := time.Now().Add(20 * time.Millisecond)
+		retryBkp := radius.DefaultClient.Retry
+		radius.DefaultClient.Retry = 0
+		defer func() { radius.DefaultClient.Retry = retryBkp }()
+		for time.Now().Before(deadline) {
+			secret, _ := l.Server.SecretSource.RADIUSSecret(context.Background(), net.Addr(nil))
+			_, err := radius.Exchange(context.Background(), radius.New(radius.CodeAccessRequest, secret), udpAddr)
+			if err == nil {
+				dialError <- nil
+				return
+			}
+		}
+		dialError <- errors.New("timeout for UDP listener server to come up")
+	}()
 
-	if err := <-serverError; err != nil {
+	select {
+	case err := <-serverError:
+		l.ready <- false
 		return err
+	case err := <-dialError:
+		if err == nil {
+			l.ready <- true
+			return nil
+		} else {
+			l.ready <- false
+			return err
+		}
 	}
-	return nil
 }
 
 // GetHandleRequest override
@@ -181,14 +218,6 @@ func generatePacketHandler(
 			return
 		}
 		listenerHandleCounter.GotResponse(response.Code)
-
-		if response == nil {
-			server.logger.Warn(
-				"Request failed to be handled, as no response returned",
-				correlationField,
-			)
-			return
-		}
 
 		// Build response
 		server.logger.Warn(

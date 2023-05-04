@@ -37,7 +37,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -93,7 +92,7 @@ extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 static void handle_ics_failure(struct ue_mm_context_s* ue_context_p,
-                               char* error_msg);
+                               const char* error_msg);
 
 static void send_s11_modify_bearer_request(ue_mm_context_t* ue_context_p,
                                            pdn_context_t* pdn_context_p,
@@ -614,10 +613,11 @@ imsi64_t update_ue_context_and_indicate_to_nas(
    * Before accessing ue_context_p, we shall validate whether UE context
    * exists or not
    */
-  if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    hash_table_ts_t* mme_state_ue_id_ht = get_mme_ue_state();
-    if (hashtable_ts_is_key_exists(mme_state_ue_id_ht,
-                                   (const hash_key_t)ue_id) == HASH_TABLE_OK) {
+  if (ue_id != INVALID_MME_UE_S1AP_ID) {
+    proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+    if ((mme_app_state_ue_map) &&
+        (mme_app_state_ue_map->get(ue_id, &ue_context_p) ==
+         magma::PROTO_MAP_OK)) {
       imsi64 = ue_context_p->emm_context._imsi64;
     }
   }
@@ -2903,7 +2903,7 @@ int mme_app_handle_ue_context_modification_timer_expiry(zloop_t* loop,
  * In case of of MO CS call, send Service Reject to UE
  */
 status_code_e handle_csfb_s1ap_procedure_failure(ue_mm_context_t* ue_context_p,
-                                                 char* failed_statement,
+                                                 const char* failed_statement,
                                                  uint8_t failed_procedure) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -3641,10 +3641,9 @@ void mme_app_handle_handover_notify(
 
   // update UE context
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    // Remove existing enb_s1ap_id_key which is mapped with source eNB
-    hashtable_uint64_ts_remove(
-        mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
+        ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   ue_context_p->enb_ue_s1ap_id = handover_notify_p->target_enb_ue_s1ap_id;
@@ -3790,10 +3789,9 @@ void mme_app_handle_path_switch_request(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
-    // Remove existing enb_s1ap_id_key which is mapped with suorce eNB
-    hashtable_uint64_ts_remove(
-        mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-        (const hash_key_t)ue_context_p->enb_s1ap_id_key);
+    // Remove existing enb_ue_s1ap_key which is mapped with source eNB
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.remove(
+        ue_context_p->enb_s1ap_id_key);
     ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
   }
   // Update MME UE context with new enb_ue_s1ap_id
@@ -4240,7 +4238,7 @@ void mme_app_update_paging_tai_list(paging_tai_list_t* p_tai_list,
 
 // Fetch UE context based on mme_ue_s1ap_id and return pointer to UE context
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
-    mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name) {
+    mme_ue_s1ap_id_t mme_ue_s1ap_id, const char* timer_name) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP, "Expired- %s for ue_id " MME_UE_S1AP_ID_FMT "\n",
               timer_name, mme_ue_s1ap_id);
@@ -4609,7 +4607,7 @@ void mme_app_handle_modify_bearer_rsp(
 }
 
 static void handle_ics_failure(struct ue_mm_context_s* ue_context_p,
-                               char* error_msg) {
+                               const char* error_msg) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_ics_rsp_timer_started = 0;

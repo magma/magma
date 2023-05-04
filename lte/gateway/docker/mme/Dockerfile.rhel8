@@ -1,3 +1,14 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
@@ -137,8 +148,8 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/cpp-redis/cpp_redis.git && \
      wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
      wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
-     git clone https://github.com/liblfds/liblfds.git && \
-     git clone https://git.osmocom.org/libgtpnl && \
+     git clone https://liblfds.org/git/liblfds && \
+     git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
      git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
      git clone https://github.com/nlohmann/json.git

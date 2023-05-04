@@ -25,9 +25,9 @@ add-apt-repository -y ppa:ansible/ansible
 apt-get update
 apt-get install -y ansible
 
-# Mark ca-certificates-java to not have it removed via autoremove;
+# Install ca-certificates-java;
 # needed for swagger_codegen_jar
-apt-mark manual ca-certificates-java 
+apt-get install -y ca-certificates-java
 
 # Mount the guest additions iso and run the install script
 mkdir -p /mnt/iso

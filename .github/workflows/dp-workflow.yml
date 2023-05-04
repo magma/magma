@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: Domain Proxy (DP) linting and testing
+# remediation: Check alembic migrations
+
 name: DP Lint & Test
 
 on:
@@ -153,8 +157,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install python3-aioeventlet from the magma apt repo
+        working-directory: "${{ github.workspace }}"
         run: |
-          wget -qO - https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public | sudo -E apt-key add -
+          sudo cp keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
           sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet

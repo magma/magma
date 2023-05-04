@@ -12,6 +12,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
+import logging
 from abc import ABCMeta, abstractmethod
 from asyncio import Future
 from logging import Logger
@@ -126,7 +127,11 @@ class RestartMixin(metaclass=ABCMeta):
                 tbl,
                 [flow.match for flow in startup_flows_map[tbl]],
             )
-        self._remove_extra_flows(startup_flows_map)
+
+        if self._skip_extra_flows_removal_stateless():
+            logging.info("skipping removal of enforcement flows since it is in stateless mode")
+        else:
+            self._remove_extra_flows(startup_flows_map)
 
         self.finish_init(requests)
         self.init_finished = True
@@ -151,6 +156,13 @@ class RestartMixin(metaclass=ABCMeta):
         if msg_list:
             chan = self._msg_hub.send(msg_list, self._datapath)
             self._wait_for_responses(chan, len(msg_list))
+
+    def _skip_extra_flows_removal_stateless(self):
+        """
+        This method can be overridden by controllers.
+        Skips removal of extra flows in case of stateless mode.
+        """
+        return False
 
     @abstractmethod
     def _get_ue_specific_flow_msgs(self, requests):

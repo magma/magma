@@ -1,8 +1,8 @@
 ---
-id: version-1.7.0-docker_setup
+id: version-1.7.0-docker
 title: FeG Docker Setup
 hide_title: true
-original_id: docker_setup
+original_id: docker
 ---
 # FeG Docker Setup
 

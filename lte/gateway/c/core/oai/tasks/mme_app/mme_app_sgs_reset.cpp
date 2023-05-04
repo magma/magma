@@ -38,7 +38,6 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
@@ -76,9 +75,16 @@ status_code_e mme_app_handle_sgsap_reset_indication(
               reset_indication_pP->vlr_name);
 
   /* Handle VLR Reset for each SGS associated UE */
-  hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
-  hashtable_ts_apply_callback_on_elements(
-      mme_state_imsi_ht, mme_app_handle_reset_indication, NULL, NULL);
+  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+
+  if (!mme_app_state_ue_map) {
+    OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_ue_state");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  mme_app_state_ue_map->map_apply_callback_on_all_elements(
+      mme_app_handle_reset_indication, nullptr, nullptr);
+
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -91,7 +97,7 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **              that a failure in the VLR has occurred and all the SGs    **
  **              associations to the VLR are to be marked as invalid.      **
  **                                                                        **
- ** Inputs:  keyP: Hash key                                                **
+ ** Inputs:  keyP: uint32_t key                                            **
  **          ue_context_pP: Pointer to UE context                          **
  **          unused_param_pP: Unused param list                            **
  **          unused_result_pP: Unused result                               **
@@ -99,10 +105,9 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **          Return:    true, false                                        **
  **                                                                        **
  ***************************************************************************/
-bool mme_app_handle_reset_indication(const hash_key_t keyP,
-                                     void* const ue_context_pP,
-                                     void* unused_param_pP,
-                                     void** unused_result_pP) {
+bool mme_app_handle_reset_indication(
+    const uint32_t unused_keyP, struct ue_mm_context_s* const ue_context_pP,
+    void* unused_param_pP, void** unused_result_pP) {
   status_code_e rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   OAILOG_FUNC_IN(LOG_MME_APP);

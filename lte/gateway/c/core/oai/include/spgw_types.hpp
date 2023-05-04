@@ -30,17 +30,19 @@
 
 #pragma once
 
+#include "lte/protos/oai/spgw_state.pb.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/gtpv1u_types.h"
+#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
-#include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/include/gtpv1u_types.hpp"
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 typedef struct s5_create_session_request_s {
@@ -82,9 +84,10 @@ typedef struct sgw_s11_teid_s {
 } sgw_s11_teid_t;
 
 // Map- Key:teid (uint32_t) ,
-// Data:s_plus_p_gw_eps_bearer_context_information_s*
-typedef magma::proto_map_s<uint32_t,
-                           struct s_plus_p_gw_eps_bearer_context_information_s*>
+// Data: S11BearerContext*
+// TODO (rsarwad): rename S11BearerContext to SpgwSessionContext and also
+// internal structures
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::S11BearerContext*>
     state_teid_map_t;
 
 typedef struct spgw_ue_context_s {
@@ -94,6 +97,10 @@ typedef struct spgw_ue_context_s {
 // Map- Key:imsi of uint64_t, Data:spgw_ue_context_s*
 typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
     map_uint64_spgw_ue_context_t;
+
+// Map- Key: eps_bearer_id(uint32), Data: SgwEpsBearerContext
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::SgwEpsBearerContext>
+    map_uint32_spgw_eps_bearer_context_t;
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
@@ -133,5 +140,5 @@ typedef struct spgw_state_s {
 
 void handle_s5_create_session_response(
     spgw_state_t* state,
-    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);

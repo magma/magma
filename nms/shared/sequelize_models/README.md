@@ -30,6 +30,7 @@ A log of all actions taken by users on the NMS.
 Used for migration of sequelize-models data from one DB to another
 
 **Example: Manual Usage**
+
 ```
 $ yarn dbDataMigrate
 
@@ -53,6 +54,7 @@ Completed data migration, importing from specified DB
 ```
 
 **Example: Automated Usage**
+
 ```
 $ npm dbDataMigrate -- --username=nms --password=nms --database=nms --host=mariadb --port=3306 --dialect=mariadb --export --confirm
 

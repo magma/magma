@@ -3,8 +3,8 @@ Advanced deployment with Ansible
 deploy.sh script has optional deployment modes for skipping Kubespray
 Kubernetes deployment. Here are the options:
 
-* ./deploy.sh magma-infra
-* ./deploy.sh magma
+- ./deploy.sh magma-infra
+- ./deploy.sh magma
 
 magma-infra.yml playbook deploys nfs-server-provisioner and metallb charts.
 Optionally, it could deploy kubevirt if you want to set up a virtualized

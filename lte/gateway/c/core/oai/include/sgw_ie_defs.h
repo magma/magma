@@ -174,6 +174,28 @@ typedef struct {
   uint8_t mnc[3];
 } ServingNetwork_t;
 
+#define FTEID_T_2_PROTO_IP(fte_p, ip_p)                            \
+  do {                                                             \
+    if ((fte_p)->ipv4) {                                           \
+      (ip_p)->set_pdn_type(IPv4);                                  \
+      char ip4_str[INET_ADDRSTRLEN];                               \
+      inet_ntop(AF_INET, (&(fte_p)->ipv4_address.s_addr), ip4_str, \
+                INET_ADDRSTRLEN);                                  \
+      (ip_p)->set_ipv4_addr(ip4_str);                              \
+    }                                                              \
+    if ((fte_p)->ipv6) {                                           \
+      if ((fte_p)->ipv4) {                                         \
+        (ip_p)->set_pdn_type(IPv4_AND_v6);                         \
+      } else {                                                     \
+        (ip_p)->set_pdn_type(IPv6);                                \
+      }                                                            \
+      char ip6_str[INET6_ADDRSTRLEN];                              \
+      inet_ntop(AF_INET6, &((fte_p)->ipv6_address), ip6_str,       \
+                INET6_ADDRSTRLEN);                                 \
+      (ip_p)->set_ipv6_addr(ip6_str);                              \
+    }                                                              \
+  } while (0)
+
 #define FTEID_T_2_IP_ADDRESS_T(fte_p, ip_p)                               \
   do {                                                                    \
     if ((fte_p)->ipv4) {                                                  \

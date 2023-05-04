@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw, @magma/approvers-cloud
+# purpose: Centralized workflow to publish test results for other workflows
+# remediation: -
+
 name: PR Generate Unit Test Results
 on:
   workflow_run:

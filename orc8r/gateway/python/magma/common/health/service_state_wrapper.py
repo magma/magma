@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Dict
+
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import (
@@ -70,7 +72,7 @@ class ServiceStateWrapper:
         """
         return self._flat_dict[service_name]
 
-    def get_all_services_status(self) -> [str, ServiceExitStatus]:
+    def get_all_services_status(self) -> Dict[str, ServiceExitStatus]:
         """
         Get a dict of service name to service status
         @return dict of service_name to service map

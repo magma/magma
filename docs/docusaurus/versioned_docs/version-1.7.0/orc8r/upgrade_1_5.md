@@ -21,7 +21,7 @@ Current Terraform scripts are *not* compatible with Terraform `0.15.0`.
 
 Have all application containers, and Helm charts built and published.
 These should be from the head of the release branch.
-You can follow the [Build Orchestrator](https://docs.magmacore.org/docs/orc8r/deploy_build)
+You can follow the [Build Orchestrator](https://magma.github.io/magma/docs/orc8r/deploy_build)
 guide for instructions on this process.
 
 ### Terraform State

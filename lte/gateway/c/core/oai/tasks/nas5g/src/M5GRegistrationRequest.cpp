@@ -115,27 +115,28 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
       case REGISTRATION_REQUEST_ALLOWED_PDU_SESSION_STATUS_TYPE:
       case REGISTRATION_REQUEST_UE_USAGE_SETTING_TYPE:
       case REGISTRATION_REQUEST_REQUESTED_DRX_PARAMETERS_TYPE:
-      case REGISTRATION_REQUEST_EPS_NAS_MESSAGE_CONTAINER_TYPE:
       case REGISTRATION_REQUEST_LADN_INDICATION_TYPE:
       case REGISTRATION_REQUEST_PAYLOAD_CONTAINER_TYPE_TYPE:
       case REGISTRATION_REQUEST_PAYLOAD_CONTAINER_TYPE:
       case REGISTRATION_REQUEST_NETWORK_SLICING_INDICATION_TYPE:
       case REGISTRATION_REQUEST_5GS_UPDATE_TYPE_TYPE:
-      case REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE:
       case REGISTRATION_REQUEST_EPS_BEARER_CONTEXT_STATUS_TYPE:
         // TLV Types. 1 byte for Type and 1 Byte for size
 
-        if (type == REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE) {
-          type_len = sizeof(uint8_t);
-          length_len = 2 * sizeof(uint8_t);
-          DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
-        } else {
-          type_len = sizeof(uint8_t);
-          length_len = sizeof(uint8_t);
-          DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
-        }
-
+        type_len = sizeof(uint8_t);
+        length_len = sizeof(uint8_t);
+        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
         decoded += (length_len + decoded_result);
+        break;
+
+      case REGISTRATION_REQUEST_EPS_NAS_MESSAGE_CONTAINER_TYPE:
+      case REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE:
+        // TLV Types. 1 byte for Type and 2 Byte for size
+        type_len = sizeof(uint8_t);
+        length_len = 2 * sizeof(uint8_t);
+        DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
+        decoded += (length_len + decoded_result);
+
         break;
 
       default:

@@ -1,5 +1,16 @@
 .PHONY: all build clean run test
 
+define DEPRECATION_WARNING
+
+Warning: As part of the Make to Bazel switch-over of the AGW this Makefile
+will be deprecated soon, see https://github.com/magma/magma/issues/14971.
+Do not add any new Make targets for the AGW!
+All new targets should be integrated with the Bazel build system,
+see https://magma.github.io/magma/docs/next/bazel/agw_with_bazel.
+
+endef
+export DEPRECATION_WARNING
+
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
@@ -57,15 +68,19 @@ all: build
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
 clean: clean_python clean_envoy_controller ## Clean all builds
+	@echo "$$DEPRECATION_WARNING"
 	rm -rf $(C_BUILD)
 
 clean_python: ## Clean Python-only builds
+	@echo "$$DEPRECATION_WARNING"
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
 
 clean_envoy_controller: ## Clean envoy controller build
+	@echo "$$DEPRECATION_WARNING"
 	rm -rf  $(GO_BUILD)/envoy_controller
 
 run: build ## Build and run all services
+	@echo "$$DEPRECATION_WARNING"
 	sudo service magma@* stop
 	sudo service magma@magmad start
 
@@ -85,39 +100,40 @@ cd $(2) && ctest --output-on-failure -R $(5)
 endef
 
 build_python: ## Build Python environment
+	@echo "$$DEPRECATION_WARNING"
 	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common: ## Build shared libraries
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
 build_oai: ## Build OAI
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
-format_all:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/python/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-
 build_sctpd:
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: build_common ## Build session manager
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 build_li_agent: ## Build li agent
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
 build_connection_tracker:
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
+	@echo "$$DEPRECATION_WARNING"
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )

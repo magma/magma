@@ -109,7 +109,10 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
 
         print('************************* Restarting MME service on gateway')
         wait_for_restart = 20
-        self._s1ap_wrapper.magmad_util.restart_services(
+
+        # MME is explicitly restarted as a single service here to avoid a race
+        # condition between the container restarts and the T3485 timer.
+        self._s1ap_wrapper.magmad_util.restart_single_service(
             ['mme'], wait_for_restart,
         )
 
