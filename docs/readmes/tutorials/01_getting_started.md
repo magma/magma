@@ -46,6 +46,8 @@ aws ec2 create-subnet --vpc-id <your VPC ID> --cidr-block 172.31.126.0/28 --avai
 
 Make sure to use a `cidr-block` that fits into your default VPC's block.
 
+Note the `SubnetId`. You will need it to complete this tutorial.
+
 ## Bootstrap a Juju controller on AWS
 
 Bootstrap a Juju controller on AWS:
