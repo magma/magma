@@ -10,7 +10,7 @@ This how-to guide can be used to deploy Magma's Orchestrator on any cloud
 environment. It contains steps to set up a Kubernetes cluster, bootstrap
 a Juju controller, deploy charmed operators for Magma Orchestrator
 and configure DNS A records. For more information on Charmed Magma, please
-visit the project's [homepage](https://canonical.github.io/charmed-magma).
+visit the project's [homepage](https://canonical-charmed-magma.readthedocs-hosted.com/en/latest/).
 
 > Charmed-Magma is in Beta and is not yet production ready or feature complete.
 
