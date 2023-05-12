@@ -15,7 +15,7 @@ original_id: deploy_agw_using_juju
 
 ### Access Gateway machine
 
-The Access Gateway must be installed on an Ubuntu machine with the following specifications:
+The Access Gateway must be installed on a machine with the following specifications:
 
 - **Operating System**: Ubuntu 20.04 LTS with Linux Kernel 5.4
 - **Processor**: x86-64 dual-core processor (around 2GHz clock speed or faster)
