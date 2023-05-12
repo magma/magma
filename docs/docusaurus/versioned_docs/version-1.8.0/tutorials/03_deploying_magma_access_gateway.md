@@ -36,7 +36,7 @@ Note this address, you will need it very soon.
 
 ### Attach a secondary network interface to the instance
 
-Note the `SubnetId` and create a network interface on this subnet:
+Using `SubnetId` of the **S1** subnet that was created during step 1, create a new network interface:
 
 ```console
 aws ec2 create-network-interface --subnet-id <your subnet ID> --group <your security group>

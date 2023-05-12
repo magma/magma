@@ -33,7 +33,7 @@ Add a subscriber to the network in Magma Orchestrator:
 1. Login to `https://magma-test.<your domain>`
 2. Click on "Subscriber" on the left panel
 3. Click on "Add Subscriber"
-4. Click on "Add"
+4. Click on "Add New Row"
 5. Fill in the following values:
     - Subscriber Name: `IMSI001010000000001`
     - IMSI: `IMSI001010000000001`
