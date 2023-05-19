@@ -2481,7 +2481,7 @@ status_code_e s1ap_mme_handle_handover_cancel(oai::S1apState* state,
       S1ap_ProcedureCode_id_HandoverCancel;
   out_pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_HandoverCancelAcknowledge;
-  out_pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  out_pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   out =
       &out_pdu.choice.successfulOutcome.value.choice.HandoverCancelAcknowledge;
 
