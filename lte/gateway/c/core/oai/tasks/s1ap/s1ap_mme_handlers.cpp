@@ -5099,7 +5099,7 @@ status_code_e s1ap_handle_path_switch_req_ack(
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_PathSwitchRequest;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_PathSwitchRequestAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.PathSwitchRequestAcknowledge;
