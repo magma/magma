@@ -27,6 +27,11 @@ on:
     outputs:
       artifacts:
         value: ${{ jobs.bazel_package.outputs.artifacts }}
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
