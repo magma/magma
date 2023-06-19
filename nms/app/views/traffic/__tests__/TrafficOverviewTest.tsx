@@ -318,6 +318,7 @@ describe('<TrafficDashboard APNs/>', () => {
   const networkId = 'test';
 
   beforeEach((): void => {
+    delete window.location;
     window.location = {
       pathname: '/nms/test/traffic/apn',
     } as Location;
