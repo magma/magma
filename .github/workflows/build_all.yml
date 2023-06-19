@@ -107,7 +107,8 @@ jobs:
         run: |
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
-
+  agw-build:
+    uses: ./.github/workflows/bazel.yml@master
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
@@ -527,6 +528,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
       [
+        agw-build,
         feg-build,
         orc8r-build,
         cwag-deploy,
@@ -549,6 +551,7 @@ jobs:
           ORC8R_ARTIFACTS: ${{ needs.orc8r-build.outputs.artifacts }}
           CWAG_ARTIFACTS: ${{ needs.cwag-deploy.outputs.artifacts }}
           NMS_ARTIFACTS: ${{ needs.nms-build.outputs.artifacts }}
+          AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
         run: |
           python -m pip install --upgrade pip
           pip install Pyrebase

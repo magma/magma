@@ -23,15 +23,15 @@ on:
         required: false
         default: false
         type: boolean
+  workflow_call:
+    outputs:
+      artifacts:
+        value: ${{ jobs.bazel_package.outputs.artifacts }}
   pull_request:
     types:
       - opened
       - reopened
       - synchronize
-  push:
-    branches:
-      - master
-      - 'v1.*'
 
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
@@ -541,6 +541,8 @@ jobs:
       (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.run_package_job == 'true')
     name: Bazel Package Job
     runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_agw_deb_pkg.outputs.artifacts }}
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -624,18 +626,26 @@ jobs:
           echo "IS_DRY=--dry-run" >> $GITHUB_ENV
 
       - name: Publish debian packages
+        id: publish_agw_deb_pkg
         env:
           DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
         run: |
-          jf rt upload \
-            --recursive=false \
-            --detailed-summary \
-            --url https://linuxfoundation.jfrog.io/artifactory/ \
-            --user ${{ secrets.LF_JFROG_USERNAME }} \
-            --password ${{ secrets.LF_JFROG_PASSWORD }} \
-            ${{ env.IS_DRY }} \
-            --target-props="${DEBIAN_META_INFO}" \
-            "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb
+          RESPONSE=$(jf rt upload \
+                      --recursive=false \
+                      --detailed-summary \
+                      --url https://linuxfoundation.jfrog.io/artifactory/ \
+                      --user ${{ secrets.LF_JFROG_USERNAME }} \
+                      --password ${{ secrets.LF_JFROG_PASSWORD }} \
+                      ${{ env.IS_DRY }} \
+                      --target-props="${DEBIAN_META_INFO}" \
+                      "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb)
+
+          echo "Response:"
+          echo $RESPONSE | jq
+          echo "Output (for firebase):"
+          ARTIFACTS=$(echo $RESPONSE | jq '{"valid": (.status=="success"), "packages": [.files[] | .target]}')
+          echo $ARTIFACTS | jq
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
 
       - name: Trigger debian integ test workflows
         uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
