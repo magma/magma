@@ -108,7 +108,7 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    uses: ./.github/workflows/bazel.yml@master
+    uses: ./.github/workflows/bazel.yml
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
