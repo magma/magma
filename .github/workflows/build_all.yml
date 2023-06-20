@@ -109,6 +109,7 @@ jobs:
           python ci-scripts/helm_repo_rotation.py
   agw-build:
     uses: ./.github/workflows/bazel.yml
+    secrets: inherit
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
