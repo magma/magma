@@ -554,7 +554,7 @@ jobs:
           AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
         run: |
           python -m pip install --upgrade pip
-          pip install Pyrebase
+          pip3 install pyrebase4
           python ci-scripts/firebase_publish.py
   domain-proxy-build:
     if: github.repository_owner == 'magma'
