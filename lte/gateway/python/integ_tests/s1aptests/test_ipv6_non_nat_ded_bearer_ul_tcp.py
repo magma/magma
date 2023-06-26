@@ -22,7 +22,7 @@ from s1ap_utils import MagmadUtil
 class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
     """Integration Test: TestIpv6NonNatDedBearerUlTcp"""
 
-    def __init__(self, method_name: str = ...) -> None:
+    def __init__(self, method_name: str) -> None:
         """Initialize unittest class"""
         super().__init__(methodName=method_name)
         self.magma_utils = MagmadUtil(None)
@@ -92,9 +92,7 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
         # Receive Router Advertisement message
         apn = "magma"
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
         router_adv = response.cast(s1ap_types.ueRouterAdv_t)
         print(
             "********** Received Router Advertisement for APN-%s"
@@ -135,9 +133,7 @@ class TestIpv6NonNatDedBearerUlTcp(unittest.TestCase):
             qos,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req_ims_apn = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )

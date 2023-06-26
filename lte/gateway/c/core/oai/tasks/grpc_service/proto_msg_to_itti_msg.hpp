@@ -21,7 +21,7 @@
 
 #include "feg/protos/csfb.grpc.pb.h"
 #include "lte/protos/sms_orc8r.grpc.pb.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"

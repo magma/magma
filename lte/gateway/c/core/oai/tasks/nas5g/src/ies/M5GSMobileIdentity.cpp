@@ -129,11 +129,13 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
      2  bytes for Routing indicator
      1  byte  for Protection scheme id
      1  byte  for Home network id
-     32 bytes for EPHEMERAL PUBLIC KEY LENGTH
+     32 bytes for EPHEMERAL PUBLIC KEY LENGTH for ProfileA
+     or
+     33 bytes for EPHEMERAL PUBLIC KEY LENGTH for ProfileB
      *  variable bytes for ciphertext
      8  bytes for MAC TAG LENGTH */
 
-  int cipherTextLen = ielen - 48;
+  int cipherTextLen = 0;
   imsi->spare2 = (*(buffer + decoded) >> 7) & 0x1;
   imsi->supi_format = (*(buffer + decoded) >> 4) & 0x7;
   imsi->spare1 = (*(buffer + decoded) >> 3) & 0x1;
@@ -192,12 +194,17 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
              EPHEMERAL_PUBLIC_KEY_LENGTH);
       decoded += EPHEMERAL_PUBLIC_KEY_LENGTH;
       imsi->empheral_public_key[EPHEMERAL_PUBLIC_KEY_LENGTH] = '\0';
+      cipherTextLen = ielen - 48;
+      OAILOG_DEBUG(LOG_NAS5G, "PROFILE-A ciphertext length: %d", cipherTextLen);
+
     } else {
       memcpy(&imsi->empheral_public_key, buffer + decoded,
              EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN);
       decoded += (EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN);
       imsi->empheral_public_key[EPHEMERAL_PUBLIC_KEY_LENGTH + PROFILE_B_LEN] =
           '\0';
+      cipherTextLen = ielen - 48 - PROFILE_B_LEN;
+      OAILOG_DEBUG(LOG_NAS5G, "PROFILE-B ciphertext length: %d", cipherTextLen);
     }
 
     imsi->ciphertext = blk2bstr(buffer + decoded, cipherTextLen);
@@ -318,8 +325,9 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
   } else if (type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) {
     decoded_rc = DecodeImsiMobileIdentityMsg(
         &mg5smobile_identity->mobile_identity.imsi, buffer + decoded, ielen);
+  } else if (type_of_identity == M5GSMobileIdentityMsg_NO_IDENTITY) {
+    decoded_rc = 1;
   }
-
   if (decoded_rc < 0) {
     OAILOG_ERROR(LOG_NAS5G, "Decode Error");
     return decoded_rc;

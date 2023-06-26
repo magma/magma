@@ -37,10 +37,6 @@
 			"name": "orc8r/lib"
 		},
 		{
-			"path": "../src/go",
-			"name": "src"
-		},
-		{
 			"path": "../feg/gateway",
 			"name": "feg/gateway"
 		}

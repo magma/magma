@@ -17,14 +17,21 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
+
 struct in_addr;
 
-void release_ue_ipv4_address(const char* imsi, const char* apn,
+void release_ue_ipv4_address(const std::string imsi, const std::string apn,
                              struct in_addr* addr) {
   increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result",
                     "ip_address_released");
@@ -32,7 +39,7 @@ void release_ue_ipv4_address(const char* imsi, const char* apn,
   release_ipv4_address(imsi, apn, addr);
 }
 
-void release_ue_ipv6_address(const char* imsi, const char* apn,
+void release_ue_ipv6_address(const std::string imsi, const std::string apn,
                              struct in6_addr* addr) {
   increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
                     "ip_address_released");

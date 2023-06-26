@@ -109,7 +109,6 @@ fbcinternal
 # Code coverage
 orc8r/cloud/coverage/
 feg/gateway/coverage/
-lte/gateway/c/oai/code_coverage/
 
 # Bazel
 bazel-bin

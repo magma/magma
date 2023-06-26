@@ -55,8 +55,7 @@ status_code_e mock_read_spgw_ue_state_db(
       return RETURNerror;
     }
 
-    spgw_ue_context_t* ue_context_p =
-        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;

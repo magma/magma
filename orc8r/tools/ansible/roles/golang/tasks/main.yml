@@ -15,7 +15,7 @@
 
 - name: Download Golang
   get_url:
-    url: "https://artifactory.magmacore.org/artifactory/generic/{{ golang_tar }}"
+    url: "https://linuxfoundation.jfrog.io/artifactory/magma-blob/{{ golang_tar }}"
     dest: "/home/{{ user }}/{{ golang_tar }}"
     checksum: "{{ golang_tar_checksum }}"
   when: full_provision
@@ -71,14 +71,4 @@
     GOBIN: "{{ gobin }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
   command: go install gotest.tools/gotestsum@v1.8.0
-  when: full_provision
-
-- name: Install buildifier
-  become: yes
-  become_user: '{{ user }}'
-  environment:
-    GOPATH: "{{ gopath }}"
-    GOBIN: "{{ gobin }}"
-    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
-  command: go install github.com/bazelbuild/buildtools/buildifier@c802c3b06ba6
   when: full_provision

@@ -164,9 +164,12 @@ message UeContext {
 // mme_ue_context_t
 message MmeUeContext {
   map<uint64, uint64> imsi_ue_id_htbl = 4;  // imsi -> mme_ue_id
-  map<uint64, uint64> tun11_ue_id_htbl = 5; // tun_id -> mme_ue_id
-  map<uint64, uint64> enb_ue_id_ue_id_htbl = 7; // enb_ue_id -> mme_ue_id
+  map<uint64, uint64> tun11_ue_id_htbl = 5 [deprecated=true]; // tun_id -> mme_ue_id
+  map<uint64, uint64> enb_ue_id_ue_id_htbl = 7 [deprecated=true]; // enb_ue_id -> mme_ue_id
   map<string, uint64> guti_ue_id_htbl = 8; // guti -> mme_ue_id
+  map<uint64, uint32> imsi_ue_id_map = 9;  // imsi -> mme_ue_id
+  map<uint32, uint32> s11_teid_ueid_map = 10; // tun_id -> mme_ue_id
+  map<uint64, uint32> enb_ue_s1ap_key_ue_id_map = 11; // enb_ue_id_key -> mme_ue_id
 }
 
 // mme_app_desc_t

@@ -1,8 +1,9 @@
 ## Carrier Wireless Gateway (cwf)
 
-This Chart helps in deploying CWF on Kubernetes as pods with help of Virtlet ( https://docs.virtlet.cloud/user-guide/real-cluster/ )
+This Chart helps in deploying CWF on Kubernetes as pods with help of Virtlet ( <https://docs.virtlet.cloud/user-guide/real-cluster/> )
 
-## TL;DR;
+## TL;DR
+
 ```bash
 $ cd magma/cwf/gateway/helm
 
@@ -26,6 +27,7 @@ $ helm upgrade --install cwf --namespace magma ./cwf --values=vals.yaml
 This chart installs the Magma CWF Gateway.
 
 ## Prerequisites
+
 1. We will first need the orc8r to be setup
 
 2. Check if rootCA.pem is present under secrets named `orc8r-secrets-certs`
@@ -38,9 +40,10 @@ This chart installs the Magma CWF Gateway.
    ====
    rootCA.key:              1675 bytes
 ```
+
 3. Install Virtlet to run Virtual Machine in POD
 
-	https://docs.virtlet.cloud/user-guide/real-cluster/ 
+ <https://docs.virtlet.cloud/user-guide/real-cluster/>
 
 4. Build images for cwf
 
@@ -51,7 +54,7 @@ This chart installs the Magma CWF Gateway.
 
    source .prod_env
 
-   docker-compose build
+   docker compose --compatibility build
 
    ./magma/orc8r/tools/docker/publish.sh -r REGISTRY -i gateway_c -u USERNAME -p passwordfile
 
@@ -100,15 +103,15 @@ The following table list the configurable parameters of the orchestrator chart a
 | `virtlet.ssh_pwauth` | To Enable/Disable password auth. | `True` |
 | `virtlet.user` | Add New user. | `` |
 
-
 ## Installation steps
 
 1. Create persistent gateway info (optional)
 
-    If you want your gateway pod to have the same gwinfo on pod 
+    If you want your gateway pod to have the same gwinfo on pod
     recreation, first follow the steps below.
-    
-    #### Creating Gateway Info
+
+#### Creating Gateway Info
+
     If creating a gateway for the first time, you'll need to create a snowflake
     and challenge key before installing the gateway. To do so:
 
@@ -124,16 +127,16 @@ The following table list the configurable parameters of the orchestrator chart a
     $ docker cp <container ID>:/etc/snowflake charts/secrets/.secrets/gwinfo
     $ docker cp <container ID>:/var/opt/magma/certs/gw_challenge.key /charts/secrets/.secrets/gwinfo
     ```
-   
+
     If you're instead upgrading your gateway to have persistent gwinfo,
-    copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from 
+    copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from
     your gateway to `charts/secrets/.secrets/gwinfo` of where this chart is stored.
 
     Ensure that `secrets.create` is set to true in your vals.yaml override
 
 2. Install CWF
 
-	`helm upgrade --install cwf --namespace magma ./cwf --values=vals.yaml`
+ `helm upgrade --install cwf --namespace magma ./cwf --values=vals.yaml`
 
 3. Register the gateway with the orchestrator
 
@@ -148,7 +151,7 @@ The following table list the configurable parameters of the orchestrator chart a
     
    b. SSH into VM
    
-         ssh -t testuser@${cwf_ip} "cd /var/opt/magma/docker ; sudo docker-compose exec magmad /usr/local/bin/show_gateway_info.py"
+         ssh -t testuser@${cwf_ip} "docker compose exec magmad /usr/local/bin/show_gateway_info.py"
       
    c. Note down the H/w Id and Challenge Key: 
   
@@ -163,4 +166,3 @@ The following table list the configurable parameters of the orchestrator chart a
    ```
 
 4. Login to NMS Dahsboard and register New Gateway
-

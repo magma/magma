@@ -86,10 +86,7 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(0.3)
         print(
@@ -102,18 +99,17 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
             print("************************ Received Paging Indication")
 
             print(
                 "************************* Restarting MME service on",
                 "gateway",
             )
-            self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
+            wait_for_restart = 30
+            self._s1ap_wrapper.magmad_util.restart_services(
+                ["mme"], wait_for_restart,
+            )
 
             # Send service request to reconnect UE
             ser_req = s1ap_types.ueserviceReq_t()
@@ -146,10 +142,7 @@ class TestPagingWithMmeRestart(unittest.TestCase):
                 else:
                     break
 
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             test.verify()
 
         time.sleep(0.5)

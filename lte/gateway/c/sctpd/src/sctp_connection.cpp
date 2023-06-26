@@ -85,9 +85,9 @@ void SctpConnection::Send(uint32_t assoc_id, uint32_t stream,
 
   auto buf = msg.c_str();
   auto n = msg.size();
-  // 100 indicates a timetolive of 100 ms
+  // timetolive of 250ms is set as the default sack_timeout is 200ms.
   auto rc = sctp_sendmsg(assoc.sd, buf, n, NULL, 0, htonl(assoc.ppid), 0,
-                         stream, 100, 0);
+                         stream, 250, 0);
 
   if (rc < 0) {
     MLOG_perror("sctp_sendmsg");
@@ -176,6 +176,14 @@ void SctpConnection::Listen() {
   }
 }
 
+SctpStatus SctpConnection::HandleSendFailure(
+    int sd, struct sctp_send_failed* send_failed) {
+  MLOG(MDEBUG) << "Received SCTP_SEND_FAILED for sd: " << sd
+               << " assoc_id:" << send_failed->ssf_assoc_id
+               << " with ssf_error: " << send_failed->ssf_error;
+  return SctpStatus::FAILURE;
+}
+
 SctpStatus SctpConnection::HandleClientSock(int sd) {
   assert(sd >= 0);
 
@@ -203,6 +211,10 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
       case SCTP_ASSOC_CHANGE: {
         MLOG(MDEBUG) << "SCTP association change event received";
         return HandleAssocChange(sd, &notif->sn_assoc_change);
+      }
+      case SCTP_SEND_FAILED: {
+        MLOG(MDEBUG) << "SCTP send failed event received";
+        return HandleSendFailure(sd, &notif->sn_send_failed);
       }
       default: {
         MLOG(MWARNING) << "Unhandled notification type "

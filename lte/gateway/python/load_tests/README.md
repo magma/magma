@@ -5,9 +5,9 @@ hide_title: true
 ---
 
 # Magma VM Load testing
+
 Current testing workflow for VM-only load tests for AGW stateless services
-(mobilityd, pipelined, sessiond, MME). Note: At the moment, only mobilityd
-and pipelined is supported, sessiond and MME load tets will be introduced soon.
+(directoryd, mobilityd, pipelined, policydb, sessiond, subscriberdb).
 
 This process makes use of a golang tool `gHZ` that will call a specific gRPC
 interface / function and retrieve the results of response time, success or
@@ -16,34 +16,25 @@ failure, and so on. The options for configuration and such can be looked
 
 ### Gateway VM setup
 
-Spin up and provision the gateway VM, then make and start its services:
+Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run `vagrant up magma && vagrant ssh magma`.
 
-1. From `magma/lte/gateway` on the host machine:
-   `vagrant up magma && vagrant ssh magma`
-2. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
+Next build and start the magma services. See the [integ test documentation](https://magma.github.io/magma/docs/next/lte/s1ap_tests#s1ap-integration-tests) for details.
 
 ### Run tests
 
-From `$MAGMA_ROOT/lte/gateway/python/load_tests` on the *magma* VM, run:
+On the gateway VM, run `$MAGMA_ROOT/bazel/scripts/run_load_tests.sh` from anywhere inside the magma folder.
 
-* All tests: `make load_test`
-
-This will run every load test script that is defined on
-`$MAGMA_ROOT/lte/gateway/python/load_tests/defs.mk`, the pattern to define a
-new load test follows `<name_of_load_test_script>.py:<name_of_grpc_function>`.
+This will run every load test that is defined inside the `LOAD_TEST_LIST` of the script.
 
 For example, for mobilityd's `AllocateIPRequest`, there is a
 `load_test_mobilityd.py` which contains an `allocate` command
 (run as `load_test_mobilityd.py allocate`).
 
-These can also be triggered from the host (laptop), under
-`$MAGMA_ROOT/lte/gateway/python/load_tests`, calling `fab load_test`.
-
 ### Results
 
 After running the load tests, the results for each of them will be saved under
-`/var/tmp` on *magma* VM, named as `result_<name_of_grpc_function>` as a JSON file,
-these can be uploaded to different monitoring tools, an example being
+`/var/tmp` on the gateway VM, named as `result_<name_of_grpc_function>` as a JSON file.
+These can be uploaded to different monitoring tools, an example being
 [gHZ-web](https://ghz.sh/docs/web/intro),
 which acts as a web server and contains an API to show results over time.
 

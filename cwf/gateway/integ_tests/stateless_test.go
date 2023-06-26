@@ -32,18 +32,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// - Set an expectation for a  CCR-I to be sent up to PCRF/OCS, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
-//   quota (both Gx and Gy)
-// - Assert that the authentication went through && CCR-I is received
-// - Restart SessionD
-// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
-// 	 PCRF/OCS, to which it will response with more quota
-// - Generate traffic
-// - Assert CCR-U is received
-// - Restart SessionD
-// - Assert that there's > 0 data usage in the rule
-// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received
+//   - Set an expectation for a  CCR-I to be sent up to PCRF/OCS, to which it will
+//     respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//     quota (both Gx and Gy)
+//   - Assert that the authentication went through && CCR-I is received
+//   - Restart SessionD
+//   - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+//     PCRF/OCS, to which it will response with more quota
+//   - Generate traffic
+//   - Assert CCR-U is received
+//   - Restart SessionD
+//   - Assert that there's > 0 data usage in the rule
+//   - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received
 func TestBasicEnforcementWithSessionDRestarts(t *testing.T) {
 	t.Skip()
 	fmt.Println("\nRunning TestBasicEnforcementWithSessionDRestarts...")

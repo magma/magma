@@ -75,27 +75,20 @@ class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
         )
         # Receive NW initiated detach request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value
         print("**************** Received NW initiated Detach Req")
         print(
             "************************* Restarting MME service on",
             "gateway",
         )
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Receive NW initiated detach request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value
         print("**************** Received second NW initiated Detach Req")
 
         print("**************** Sending Detach Accept")

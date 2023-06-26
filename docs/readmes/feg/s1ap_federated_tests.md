@@ -63,17 +63,17 @@ To execute the script, run:
 
 ```bash
 cd magma/lte/gateway
-fab federated_integ_test:build_all=True
+fab federated-integ-test --build-all
 
 # to run it again, you can skip the build_all
 # however, if you change code in Magma, you will need to build_all again
-fab federated_integ_test
+fab federated-integ-test
 ```
 
 You can access Orc8r adding to your keychain the `admin_operator.pfx` cert
 you will find at `/magma/.cache/test_certs`. Then you can check your
 provisioned gateways using
-[swagger interface](https://127.0.0.1:9443/apidocs/v1/?docExpansion=none)
+[swagger interface](https://localhost:9443/apidocs/v1/?docExpansion=none)
 that will be running on your Orc8r
 
 Please, for more detail, check the following sections which provide more
@@ -92,7 +92,7 @@ FeG and Orc8r:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
-fab build_all_and_configure
+fab build-all-and-configure
 ```
 
 After this has run, you can check
@@ -101,7 +101,7 @@ command below will try to reach Orc8r from AGW and FeG, and FeG from AGW:
 
 ```bash
 cd magma/lte/gateway/python/integ_tests/federated_tests
-fab test_connectivity
+fab test-connectivity
 ```
 
 Once it has been built, start the `magma_trfserver` and `magma_test` VMs:
@@ -118,9 +118,9 @@ You can then [run the tests manually](#run-tests-manually).
 
 If you want to build the environment manually, you can carry out the following steps.
 
-*Note that commands for the AGW have to be run inside the Vagrant VM. For this reason,
+*Note that commands for the AGW and FeG have to be run inside the Vagrant VM. For this reason,
 all such commands include the `vagrant ssh magma` command first. To leave
-Vagrant, just type `exit`. FeG and Orc8r will need to be run on the
+Vagrant, just type `exit`. Orc8r will need to be run on the
 host itself (no Vagrant involved).*
 
 - AGW:
@@ -147,8 +147,8 @@ vagrant ssh magma
 
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests/federated_tests/docker
-docker-compose build
-docker-compose up -d
+docker compose --compatibility build
+./run.py
 ```
 
 - Orc8r:
@@ -161,8 +161,8 @@ cd magma/orc8r/cloud/docker
 # return to agw folder
 cd magma/lte/gateway
 # register gateways
-fab --fabfile=dev_tools.py register_federated_vm
-fab --fabfile=dev_tools.py register_feg_gw
+fab register-federated-vm
+fab register-feg-gw
 ```
 
 - Test VM:
@@ -170,14 +170,6 @@ fab --fabfile=dev_tools.py register_feg_gw
 ```bash
 cd magma/lte/gateway
 vagrant up magma_test
-vagrant ssh magma_test
-
-# inside vagrant vm
-cd magma/lte/gateway/python
-make
-
-# exit from vagrant vm
-exit
 ```
 
 - Traffic VM:
@@ -201,10 +193,10 @@ vagrant ssh magma_test
 # inside vagrant vm
 cd magma/lte/gateway/python/integ_tests
 ## Individual test(s), e.g.:
-make fed_integ_test TESTS=s1aptests/test_attach_detach.py
+make prepare_federation selected_tests TESTS="<test(s)_to_run_space_separated>"
 
 ## All tests
-make fed_integ_test
+make federated_integ_test
 
 # once the tests are done, you can exit the vagrant vm
 exit

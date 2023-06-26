@@ -55,53 +55,22 @@
     - agwc
     - base
 
-- name: Configuring private package manager.
-  copy:
-    content: >
-      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }}
-      {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
-    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
+- name: Add key for magma registry
+  ansible.builtin.copy:
+    src: "{{ magma_pkgrepo_key }}"
+    dest: /etc/apt/trusted.gpg.d/magma.asc
   become: true
   tags:
     - agwc
     - base
 
-- name: Add unvalidated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint == ""
-  become: true
-  block:
-    - name: Download key
-      apt_key:
-        url: "{{ magma_pkgrepo_key }}"
-        state: present
-        validate_certs: no
-    - name: Ignore server ssl cert
-      copy:
-        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
-        content: |
-          Acquire::https::{{ magma_pkgrepo_host }} {
-          Verify-Peer "false";
-          Verify-Host "false";
-          };
-  tags:
-    - agwc
-    - base
-
-- name: Add validated Apt signing key.
-  when: magma_pkgrepo_key_fingerprint != ""
-  become: true
-  apt_key:
-    url: "{{ magma_pkgrepo_key }}"
-    id: "{{ magma_pkgrepo_key_fingerprint }}"
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.apt_repository:
+    repo: "deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }} {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}"
+    filename: magma
     state: present
-  tags:
-    - agwc
-    - base
-
-- name: Update and upgrade apt packages
-  become: true
-  apt:
     update_cache: true
+  become: true
   tags:
     - agwc
     - base
@@ -121,7 +90,6 @@
   become: true
   apt:
     name: "{{ packages }}"
-    only_upgrade: yes
   vars:
     packages:
       - graphviz
@@ -130,6 +98,17 @@
       - openssl
       - dkms
       - uuid-runtime
+  tags:
+    - agwc
+    - base
+
+- name: Ensure ca-certificates is up to date
+  become: true
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
       - ca-certificates
   tags:
     - agwc
@@ -143,14 +122,23 @@
     - agwc
     - base
 
-- name: Installing magma.
+- name: Set magma package variable
+  set_fact:
+    magma_package: "{{ MAGMA_PACKAGE | default('magma=1.8.0*', true) }}"
+
+- name: Installing magma from local debian package
   become: true
   apt:
-    name: "{{ packages }}"
+    deb: "/home/vagrant/magma/{{ magma_package }}"
     dpkg_options: 'force-confold,force-confdef,force-overwrite'
-  vars:
-    packages:
-      - magma
+  when: magma_package is match(".*\.deb")
+
+- name: Installing magma from artifactory
+  become: true
+  apt:
+    name: "{{ magma_package }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+  when: magma_package is not match(".*\.deb")
 
 # Install openvswitch in containerized agw only
 - name: Install prebuilt openvswitch packages

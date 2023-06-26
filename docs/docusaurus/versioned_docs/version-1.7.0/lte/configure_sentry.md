@@ -13,7 +13,7 @@ As part of v1.5, we have integrated Sentry's [Native](https://docs.sentry.io/pla
 
 ## Connect to the Linux Foundation Sentry Account
 
-The first step to setting up your account is to request access to Linux Foundation [Sentry.io](http://Sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update a CI job in the next section.
+The first step to setting up your account is to request access to Linux Foundation [Sentry.io](https://sentry.io) instance by submitting your email address and company through the [community form](https://docs.google.com/forms/d/e/1FAIpQLSeJMWecw9An5-aYv0US8Fc_PDO7kUMx4Pky13S_3LhFJkge_g/viewform). You should also create a team for your company on the Sentry site. This team name should match your company and will be used to enable group access to your project. Once you are granted access, you will need to login and navigate to the “Projects” tab and locate your team’s project name. You will need this information to update a CI job in the next section.
 
 ## Configuration
 

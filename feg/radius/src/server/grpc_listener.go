@@ -16,18 +16,19 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand"
+	"net"
+
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fmt"
-	"math/rand"
-	"net"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2866"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"

@@ -20,7 +20,7 @@ services:
 
   magmad:
     build:
-      context: ${BUILD_CONTEXT} # TODO: Move feg/gateway/docker/python to magma/orc8r/gateway/docker
+      context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/python/Dockerfile
     extra_hosts:
       - controller.magma.test:10.0.2.2

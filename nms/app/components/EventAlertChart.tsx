@@ -18,7 +18,6 @@ import DataUsageIcon from '@mui/icons-material/DataUsage';
 import LoadingFiller from './LoadingFiller';
 import MagmaAPI from '../api/MagmaAPI';
 import React from 'react';
-import moment from 'moment';
 import nullthrows from '../../shared/util/nullthrows';
 import {
   CustomLineChart,
@@ -28,6 +27,7 @@ import {
 } from './CustomMetrics';
 import {TimeUnit} from 'chart.js';
 import {colors} from '../theme/default';
+import {getUnixTime} from 'date-fns';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
@@ -36,13 +36,13 @@ import type {NetworkId} from '../../shared/types/network';
 import type {OptionsObject} from 'notistack';
 
 type Props = {
-  startEnd: [moment.Moment, moment.Moment];
+  startEnd: [Date, Date];
 };
 
 type DatasetFetchProps = {
   networkId: NetworkId;
-  start: moment.Moment;
-  end: moment.Moment;
+  start: Date;
+  end: Date;
   delta: number;
   unit: TimeUnit;
   enqueueSnackbar: (
@@ -82,13 +82,13 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
 
         if (r === null || r === undefined) {
           return {
-            t: e.unix() * 1000,
+            x: getUnixTime(e) * 1000,
             y: 0,
           };
         }
 
         return {
-          t: e.unix() * 1000,
+          x: getUnixTime(e) * 1000,
           y: r,
         };
       });
@@ -98,7 +98,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       return [];
     });
 
-  const alertsData: Array<{t: number; y: number}> = [];
+  const alertsData: Array<{x: number; y: number}> = [];
 
   try {
     const alertPromResp = (
@@ -113,7 +113,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
     alertPromResp.data?.result.forEach(it =>
       it['values']?.map(i => {
         alertsData.push({
-          t: parseInt(i[0]) * 1000,
+          x: parseInt(i[0]) * 1000,
           y: parseFloat(i[1]),
         });
       }),
@@ -185,6 +185,7 @@ export default function EventAlertChart(props: Props) {
   });
 
   const [delta, unit] = getStep(start, end);
+
   useEffect(() => {
     // fetch queries
     const fetchAllData = async () => {

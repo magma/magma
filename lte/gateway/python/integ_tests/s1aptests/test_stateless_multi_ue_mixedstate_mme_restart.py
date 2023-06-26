@@ -57,10 +57,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received auth req ind ue-id", attach_req.ue_Id)
 
     def exec_auth_resp_step(self, ue_id):
@@ -77,10 +74,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("Received Security Mode Command ue-id", auth_res.ue_Id)
 
     def exec_sec_mode_complete_step(self, ue_id):
@@ -96,10 +90,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
             sec_mode_complete.ue_Id,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
         esm_info_req = response.cast(s1ap_types.ueEsmInformationReq_t)
         return esm_info_req.tId
 
@@ -210,10 +201,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                 ue_cntxt_rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         tid = {}
         # start attach procedures for the remaining UEs
@@ -235,7 +223,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                     attach_steps[step](req.ue_id)
 
         # Restart mme
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         # Post restart, complete the attach procedures that were cut in between
         for i in range(num_ues_attaching):
@@ -289,10 +277,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                 ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             self.dl_flow_rules[idle_session_ips[i]] = []
 
         # Verify default bearer rules
@@ -320,10 +305,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

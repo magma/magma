@@ -88,7 +88,7 @@ int decode_emm_information(emm_information_msg* emm_information,
       case EMM_INFORMATION_LOCAL_TIME_ZONE_IEI:
         if ((decoded_result =
                  decode_time_zone(&emm_information->localtimezone,
-                                  EMM_INFORMATION_LOCAL_TIME_ZONE_IEI,
+                                  EMM_INFORMATION_LOCAL_TIME_ZONE_IEI != 0,
                                   buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -103,7 +103,7 @@ int decode_emm_information(emm_information_msg* emm_information,
       case EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI:
         if ((decoded_result = decode_time_zone_and_time(
                  &emm_information->universaltimeandlocaltimezone,
-                 EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI,
+                 EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
@@ -118,7 +118,7 @@ int decode_emm_information(emm_information_msg* emm_information,
       case MM_DAYLIGHT_SAVING_TIME_IEI:
         if ((decoded_result = decode_daylight_saving_time_ie(
                  &emm_information->networkdaylightsavingtime,
-                 MM_DAYLIGHT_SAVING_TIME_IEI, buffer + decoded,
+                 MM_DAYLIGHT_SAVING_TIME_IEI != 0, buffer + decoded,
                  len - decoded)) <= 0)
           return decoded_result;
 
@@ -179,9 +179,10 @@ int encode_emm_information(emm_information_msg* emm_information,
   if ((emm_information->presencemask &
        EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) ==
       EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) {
-    if ((encode_result = encode_time_zone(&emm_information->localtimezone,
-                                          EMM_INFORMATION_LOCAL_TIME_ZONE_IEI,
-                                          buffer + encoded, len - encoded)) < 0)
+    if ((encode_result =
+             encode_time_zone(&emm_information->localtimezone,
+                              EMM_INFORMATION_LOCAL_TIME_ZONE_IEI != 0,
+                              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else
@@ -193,7 +194,7 @@ int encode_emm_information(emm_information_msg* emm_information,
       EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT) {
     if ((encode_result = encode_time_zone_and_time(
              &emm_information->universaltimeandlocaltimezone,
-             EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI,
+             EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI != 0,
              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;
@@ -206,7 +207,8 @@ int encode_emm_information(emm_information_msg* emm_information,
       EMM_INFORMATION_NETWORK_DAYLIGHT_SAVING_TIME_PRESENT) {
     if ((encode_result = encode_daylight_saving_time_ie(
              &emm_information->networkdaylightsavingtime,
-             MM_DAYLIGHT_SAVING_TIME_IEI, buffer + encoded, len - encoded)) < 0)
+             MM_DAYLIGHT_SAVING_TIME_IEI != 0, buffer + encoded,
+             len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

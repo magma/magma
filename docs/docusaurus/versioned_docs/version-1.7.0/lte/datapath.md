@@ -10,7 +10,7 @@ original_id: openvswitch
 
 Magma gateway is a software appliance. Magma Gateway uses linux networking stack and OVS to program packet pipeline on the gateway. OVS gives us tremendous programmability to classify and process packets on the gateway
 
-![datapath components](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/AGW-OVS.png?raw=true)
+![datapath components](https://github.com/magma/magma/blob/master/docs/readmes/assets/AGW-OVS.png?raw=true)
 
 OVS configuration has two major component.
 

@@ -15,10 +15,17 @@ limitations under the License.
 #include <czmq.h>
 
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+namespace magma {
+namespace lte {
 
 typedef struct s1ap_timer_arg_s {
   mme_ue_s1ap_id_t ue_id;
@@ -33,6 +40,5 @@ void s1ap_stop_timer(int timer_id);
 // These functions are supposed to be used only by expired timers.
 bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id);
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace lte
+}  // namespace magma

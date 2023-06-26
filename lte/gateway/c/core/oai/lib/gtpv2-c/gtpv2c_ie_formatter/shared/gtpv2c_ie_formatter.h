@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.hpp"
 //#include "mme_ie_defs.h"
 
 /* Imsi Information Element

@@ -15,23 +15,23 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN
-#define FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN
+#pragma once
+
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeRadioCapabilityInformationUpdateNeeded.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeRadioCapabilityInformationUpdateNeeded.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -182,4 +182,3 @@ int decode_tracking_area_update_request(
 int encode_tracking_area_update_request(
     tracking_area_update_request_msg* trackingareaupdaterequest,
     uint8_t* buffer, uint32_t len);
-#endif /* ! defined(FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN) */

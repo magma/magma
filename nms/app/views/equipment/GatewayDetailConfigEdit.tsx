@@ -20,6 +20,7 @@ import type {
   GatewayHeConfig,
   GatewayHeConfigHeEncodingTypeEnum,
   GatewayLoggingConfigs,
+  GatewayNgcConfigs,
   GatewayRanConfigs,
   LteGateway,
   MagmadGatewayConfigs,
@@ -85,6 +86,7 @@ const AGGREGATION_TITLE = 'Aggregation';
 const EPC_TITLE = 'Epc';
 const APN_RESOURCES_TITLE = 'APN Resources';
 const HEADER_ENRICHMENT_TITLE = 'Header Enrichment';
+const NGC_TITLE = 'NGC AMF';
 
 const useStyles = makeStyles({
   appBarBtn: {
@@ -127,6 +129,7 @@ const EditTableType = {
   ran: 3,
   apnResources: 4,
   headerEnrichment: 5,
+  ngc: 6,
 };
 
 export type EditProps = {
@@ -204,7 +207,7 @@ export function GatewayEditDialog(props: DialogProps) {
   }, [editProps, open]);
 
   return (
-    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
+    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="lg">
       <DialogTitle
         label={editProps ? 'Edit Gateway' : 'Add New Gateway'}
         onClose={onClose}
@@ -244,6 +247,12 @@ export function GatewayEditDialog(props: DialogProps) {
           data-testid="headerEnrichmentTab"
           disabled={!editProps}
           label={HEADER_ENRICHMENT_TITLE}
+        />
+        <Tab
+          key="ngc"
+          data-testid="ngcTab"
+          disabled={!editProps}
+          label={NGC_TITLE}
         />
         ;
       </Tabs>
@@ -331,7 +340,19 @@ export function GatewayEditDialog(props: DialogProps) {
             setGateway(gateway);
             if (editProps) {
               onClose();
+            } else {
+              setTabPos(tabPos + 1);
             }
+          }}
+        />
+      )}
+      {tabPos === 6 && (
+        <NextGenerationCoreConfig
+          isAdd={!editProps}
+          gateway={!editProps ? gateway : ctx.state[gatewayId]}
+          onClose={onClose}
+          onSave={(gateway: LteGateway) => {
+            setGateway(gateway);
             onClose();
           }}
         />
@@ -1301,6 +1322,147 @@ export function HeaderEnrichmentConfig(props: Props) {
               </AltFormField>
             </Grid>
           )}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
+          {props.isAdd ? 'Save And Continue' : 'Save'}
+        </Button>
+      </DialogActions>
+    </>
+  );
+}
+
+export function NextGenerationCoreConfig(props: Props) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const ctx = useContext(GatewayContext);
+
+  const [ngcConfig, setNgcConfig] = useState<GatewayNgcConfigs>(
+    props.gateway.cellular.ngc ?? {},
+  );
+
+  useEffect(() => {
+    setNgcConfig(props.gateway.cellular.ngc ?? {});
+    setError('');
+  }, [props.gateway.cellular.ngc]);
+
+  const handleNgcChange = <K extends keyof GatewayNgcConfigs>(
+    key: K,
+    val: GatewayNgcConfigs[K],
+  ) => {
+    setNgcConfig({
+      ...ngcConfig,
+      [key]: val !== '' ? val : undefined,
+    });
+  };
+
+  const onSave = async () => {
+    try {
+      const gateway = {
+        ...props.gateway,
+        cellular: {
+          ...props.gateway.cellular,
+          ngc: ngcConfig,
+        },
+      };
+      await ctx.updateGateway({
+        gatewayId: gateway.id,
+        cellularConfigs: gateway.cellular,
+      });
+
+      enqueueSnackbar('Gateway saved successfully', {
+        variant: 'success',
+      });
+      props.onSave(gateway);
+    } catch (error) {
+      setError(getErrorMessage(error));
+    }
+  };
+  return (
+    <>
+      <DialogContent data-testid="ngcEdit">
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
+          <AltFormField label={'Name'}>
+            <OutlinedInput
+              data-testid="amfName"
+              placeholder="amf.example.org"
+              type="string"
+              fullWidth={true}
+              value={ngcConfig.amf_name}
+              onChange={({target}) => handleNgcChange('amf_name', target.value)}
+            />
+          </AltFormField>
+          <AltFormField label={'Pointer'}>
+            <OutlinedInput
+              data-testid="amfPointer"
+              placeholder="1F"
+              type="string"
+              fullWidth={true}
+              value={ngcConfig.amf_pointer}
+              onChange={({target}) =>
+                handleNgcChange('amf_pointer', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Region ID'}>
+            <OutlinedInput
+              data-testid="amfRegionID"
+              placeholder="C1"
+              type="string"
+              fullWidth={true}
+              value={ngcConfig.amf_region_id}
+              onChange={({target}) =>
+                handleNgcChange('amf_region_id', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Set ID'}>
+            <OutlinedInput
+              data-testid="amfSetID"
+              placeholder="2A1"
+              type="string"
+              fullWidth={true}
+              value={ngcConfig.amf_set_id}
+              onChange={({target}) =>
+                handleNgcChange('amf_set_id', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Default Slice Service Type'}>
+            <OutlinedInput
+              data-testid="amfDefaultSliceServiceType"
+              placeholder="3"
+              type="number"
+              inputProps={{min: 0, max: 255}}
+              fullWidth={true}
+              value={ngcConfig.amf_default_sst}
+              onChange={({target}) =>
+                handleNgcChange('amf_default_sst', parseInt(target.value))
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Default Slice Descriptor'}>
+            <OutlinedInput
+              data-testid="amfDefaultSliceDescriptor"
+              placeholder="AFAF"
+              type="string"
+              fullWidth={true}
+              value={ngcConfig.amf_default_sd}
+              onChange={({target}) =>
+                handleNgcChange('amf_default_sd', target.value)
+              }
+            />
+          </AltFormField>
         </List>
       </DialogContent>
       <DialogActions>

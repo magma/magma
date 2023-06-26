@@ -12,14 +12,14 @@
  */
 
 import CircularProgress from '@mui/material/CircularProgress';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
+import {LayoutPosition, TimeUnit} from 'chart.js';
 import {Line} from 'react-chartjs-2';
-
-import MagmaAPI from '../../api/MagmaAPI';
-import {PositionType, TimeUnit} from 'chart.js';
 import {PromqlMetric, PromqlMetricValue} from '../../../generated';
+import {defaultTooltip} from '../CustomMetrics';
+import {differenceInDays, differenceInHours, getUnixTime, sub} from 'date-fns';
 import {makeStyles} from '@mui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -45,7 +45,7 @@ export type ChartStyle = {
     pointRadius: number;
   };
   legend: {
-    position: PositionType;
+    position: LayoutPosition;
     align: 'center' | 'end' | 'start';
   };
 };
@@ -56,7 +56,7 @@ type Props = {
   queries: Array<string>;
   legendLabels?: Array<string>;
   timeRange: TimeRange;
-  startEnd?: [moment.Moment, moment.Moment];
+  startEnd?: [Date, Date];
   networkId?: string;
   style?: ChartStyle;
   height?: number;
@@ -96,7 +96,7 @@ type Dataset = {
   borderWidth: number;
   backgroundColor: string;
   borderColor: string;
-  data: Array<{t: number; y: number | string}>;
+  data: Array<{x: number; y: number | string}>;
 };
 
 const RANGE_VALUES: Record<TimeRange, RangeValue> = {
@@ -187,10 +187,10 @@ function Progress() {
 
 function getStartEnd(timeRange: TimeRange) {
   const {days, hours, step} = RANGE_VALUES[timeRange];
-  const end = moment();
-  const endUnix = end.unix() * 1000;
-  const start = end.clone().subtract({days, hours});
-  const startUnix = start.unix() * 1000;
+  const end = new Date();
+  const endUnix = getUnixTime(end) * 1000;
+  const start = sub(end, {days, hours});
+  const startUnix = getUnixTime(start) * 1000;
   return {
     start: start.toISOString(),
     startUnix: startUnix,
@@ -204,34 +204,33 @@ function getUnit(timeRange: TimeRange) {
   return RANGE_VALUES[timeRange].unit;
 }
 
-function getStepUnit(
-  startEnd: [moment.Moment, moment.Moment],
-): [string, TimeUnit] {
+function getStepUnit(startEnd: [Date, Date]): [string, TimeUnit] {
   const [start, end] = startEnd;
-  const d = moment.duration(end.diff(start));
-  const hrs = d.asHours();
-  const days = d.asDays();
-  let r: RangeValue;
-  if (hrs <= 24) {
-    if (hrs <= 3) {
-      r = RANGE_VALUES['3_hours'];
-    } else if (hrs <= 6) {
-      r = RANGE_VALUES['6_hours'];
-    } else if (hrs <= 12) {
-      r = RANGE_VALUES['12_hours'];
+  const durationInHours = differenceInHours(end, start);
+  const durationInDays = differenceInDays(end, start);
+
+  let range: RangeValue;
+  if (durationInHours <= 24) {
+    if (durationInHours <= 3) {
+      range = RANGE_VALUES['3_hours'];
+    } else if (durationInHours <= 6) {
+      range = RANGE_VALUES['6_hours'];
+    } else if (durationInHours <= 12) {
+      range = RANGE_VALUES['12_hours'];
     } else {
-      r = RANGE_VALUES['24_hours'];
+      range = RANGE_VALUES['24_hours'];
     }
   } else {
-    if (days <= 7) {
-      r = RANGE_VALUES['7_days'];
-    } else if (days <= 14) {
-      r = RANGE_VALUES['14_days'];
+    if (durationInDays <= 7) {
+      range = RANGE_VALUES['7_days'];
+    } else if (durationInDays <= 14) {
+      range = RANGE_VALUES['14_days'];
     } else {
-      r = RANGE_VALUES['30_days'];
+      range = RANGE_VALUES['30_days'];
     }
   }
-  return [r.step, r.unit];
+
+  return [range.step, range.unit];
 }
 
 function getColorForIndex(index: number, customChartColors?: Array<string>) {
@@ -249,9 +248,9 @@ function useDatasetsFetcher(props: Props) {
       const [step] = getStepUnit(props.startEnd);
       return {
         start: start.toISOString(),
-        startUnix: start.unix() * 1000,
+        startUnix: getUnixTime(start) * 1000,
         end: end.toISOString(),
-        endUnix: end.unix() * 1000,
+        endUnix: getUnixTime(end) * 1000,
         step,
       };
     } else {
@@ -312,7 +311,7 @@ function useDatasetsFetcher(props: Props) {
                 backgroundColor: getColorForIndex(index, props.chartColors),
                 borderColor: getColorForIndex(index++, props.chartColors),
                 data: it[dbHelper.datapointFieldName]!.map(i => ({
-                  t: parseInt(i[0]) * 1000,
+                  x: parseInt(i[0]) * 1000,
                   y: parseFloat(i[1]),
                 })),
               }),
@@ -322,11 +321,11 @@ function useDatasetsFetcher(props: Props) {
         // Add "NaN" to the beginning/end of each dataset to force the chart to
         // display the whole time frame requested
         datasets.forEach(dataset => {
-          if (dataset.data[0].t > startEnd.startUnix) {
-            dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
+          if (dataset.data[0].x > startEnd.startUnix) {
+            dataset.data.unshift({x: startEnd.startUnix, y: 'NaN'});
           }
-          if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
-            dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
+          if (dataset.data[dataset.data.length - 1].x < startEnd.endUnix) {
+            dataset.data.push({x: startEnd.endUnix, y: 'NaN'});
           }
         });
         setAllDatasets(datasets);
@@ -366,56 +365,55 @@ export default function AsyncMetric(props: Props) {
   } else {
     unit = getUnit(props.timeRange);
   }
+
   return (
     <Line
       height={props.height}
       options={{
         maintainAspectRatio: false,
         scales: {
-          xAxes: [
-            {
-              gridLines: style ? style.options.xAxes.gridLines : {},
-              ticks: style ? style.options.xAxes.ticks : {},
-              type: 'time',
-              time: {
-                unit,
-                round: 'second',
-                tooltipFormat: ' YYYY/MM/DD h:mm:ss a',
-              },
-              scaleLabel: {
-                display: true,
-                labelString: 'Date',
-              },
+          x: {
+            grid: style ? style.options.xAxes.gridLines : {},
+            ticks: style ? style.options.xAxes.ticks : {},
+            type: 'time',
+            time: {
+              unit,
+              round: 'second',
+              tooltipFormat: ' yyyy/MM/dd h:mm:ss a',
             },
-          ],
-          yAxes: [
-            {
-              gridLines: style ? style.options.yAxes.gridLines : {},
-              ticks: style ? style.options.yAxes.ticks : {},
-              position: 'left',
-              scaleLabel: {
-                display: true,
-                labelString: props.unit,
-              },
+            title: {
+              display: true,
+              text: 'Date',
             },
-          ],
-        },
-        tooltips: {
-          enabled: true,
-          mode: 'nearest',
-          callbacks: {
-            label: (tooltipItem, data) =>
-              `${data.datasets![tooltipItem.datasetIndex!]
-                .label!}: ${tooltipItem.yLabel!} ${props.unit}`,
+          },
+          y: {
+            grid: style ? style.options.yAxes.gridLines : {},
+            ticks: style ? style.options.yAxes.ticks : {},
+            position: 'left',
+            title: {
+              display: true,
+              text: props.unit,
+            },
           },
         },
-      }}
-      legend={{
-        display: allDatasets.length < 5,
-        position: style ? style.legend.position : 'bottom',
-        align: style ? style.legend.align : 'center',
-        labels: {
-          boxWidth: 12,
+        plugins: {
+          tooltip: {
+            enabled: true,
+            mode: 'nearest',
+            callbacks: {
+              label(tooltipItem) {
+                return defaultTooltip(tooltipItem, props);
+              },
+            },
+          },
+          legend: {
+            display: allDatasets.length < 5,
+            position: style ? style.legend.position : 'bottom',
+            align: style ? style.legend.align : 'center',
+            labels: {
+              boxWidth: 12,
+            },
+          },
         },
       }}
       data={{datasets: allDatasets}}

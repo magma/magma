@@ -15,27 +15,27 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_CONNECTIVITY_REQUEST_H_
-#define PDN_CONNECTIVITY_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define PDN_CONNECTIVITY_REQUEST_MINIMUM_LENGTH (PDN_TYPE_MINIMUM_LENGTH)
@@ -92,5 +92,3 @@ int decode_pdn_connectivity_request(
 int encode_pdn_connectivity_request(
     pdn_connectivity_request_msg* pdnconnectivityrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(PDN_CONNECTIVITY_REQUEST_H_) */

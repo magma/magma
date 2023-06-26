@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
+// TODO(pruthvihebbani) : Remove state_ue_ht after converting htables to
+// protomap in all the tasks
+
 #pragma once
 
-#if MME_BENCHMARK
-#include <chrono>
-#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -167,42 +167,20 @@ class StateManager {
         is_initialized,
         "StateManager init() function should be called to initialize state");
 
-#if MME_BENCHMARK
-    auto start = std::chrono::high_resolution_clock::now();
-#endif
     std::string proto_str;
     ProtoUe ue_proto = ProtoUe();
     StateConverter::ue_to_proto(ue_context, &ue_proto);
     redis_client->serialize(ue_proto, proto_str);
     std::size_t new_hash = std::hash<std::string>{}(proto_str);
-#if MME_BENCHMARK
-    auto stop = std::chrono::high_resolution_clock::now();
-    std::cout << "TIME PROTOBUF CONVERSION : "
-              << (std::chrono::duration_cast<std::chrono::nanoseconds>(stop -
-                                                                       start))
-                     .count()
-              << std::endl;
-#endif
     if (new_hash != this->ue_state_hash[imsi_str]) {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
 
-#if MME_BENCHMARK
-      start = std::chrono::high_resolution_clock::now();
-#endif
       if (redis_client->write_proto_str(
               key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
         OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
                      imsi_str.c_str());
         return;
       }
-#if MME_BENCHMARK
-      stop = std::chrono::high_resolution_clock::now();
-      std::cout << "TIME PROTOBUF REDIS SERIALIZATION : "
-                << std::chrono::duration_cast<std::chrono::nanoseconds>(stop -
-                                                                        start)
-                       .count()
-                << std::endl;
-#endif
       this->ue_state_version[imsi_str]++;
       this->ue_state_hash[imsi_str] = new_hash;
       OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",

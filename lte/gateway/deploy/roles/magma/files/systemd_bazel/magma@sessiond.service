@@ -15,7 +15,7 @@ PartOf=magma@mme.service
 Before=magma@mme.service
 
 [Service]
-Type=simple
+Type=notify
 EnvironmentFile=/etc/environment
 ExecStart=/home/vagrant/magma/bazel-bin/lte/gateway/c/session_manager/sessiond
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sessiond

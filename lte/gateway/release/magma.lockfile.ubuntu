@@ -420,12 +420,6 @@
       "sysdep": "python3-ryu",
       "version": "4.30"
     },
-    "scapy": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-scapy",
-      "version": "2.4.4"
-    },
     "sentry-sdk": {
       "root": true,
       "source": "pypi",
@@ -599,14 +593,14 @@
           "version": "5.17.0"
         },
         "certifi": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-certifi",
           "version": "2022.6.15"
         },
         "charset-normalizer": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-charset-normalizer",
           "version": "2.0.0"
         },
@@ -633,6 +627,12 @@
           "source": "apt",
           "sysdep": "python3-docker",
           "version": "4.1.0"
+        },
+        "dpkt": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-dpkt",
+          "version": "1.9.8"
         },
         "envoy": {
           "root": true,
@@ -707,8 +707,8 @@
           "version": "5.2.0"
         },
         "idna": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-idna",
           "version": "3.3"
         },
@@ -725,7 +725,7 @@
           "version": "5.7.0"
         },
         "itsdangerous": {
-          "root": false,
+          "root": true,
           "source": "apt",
           "sysdep": "python3-itsdangerous",
           "version": "1.1.0"
@@ -836,7 +836,7 @@
           "root": true,
           "source": "pypi",
           "sysdep": "python3-protobuf",
-          "version": "3.19.0"
+          "version": "3.20.3"
         },
         "psutil": {
           "root": true,
@@ -977,8 +977,8 @@
           "version": "0.7"
         },
         "requests": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-requests",
           "version": "2.28.1"
         },
@@ -1000,11 +1000,11 @@
           "sysdep": "python3-ryu",
           "version": "4.34"
         },
-        "scapy": {
+        "sdnotify": {
           "root": true,
-          "source": "pypi",
-          "sysdep": "python3-scapy",
-          "version": "2.4.5"
+          "source": "apt",
+          "sysdep": "python3-sdnotify",
+          "version": "0.3.2"
         },
         "sentry-sdk": {
           "root": true,
@@ -1019,8 +1019,8 @@
           "version": "3.16.0"
         },
         "six": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-six",
           "version": "1.16.0"
         },
@@ -1073,8 +1073,8 @@
           "version": "3.7.4.3"
         },
         "urllib3": {
-          "root": true,
-          "source": "pypi",
+          "root": false,
+          "source": "apt",
           "sysdep": "python3-urllib3",
           "version": "1.26.11"
         },
@@ -1088,7 +1088,7 @@
           "root": false,
           "source": "apt",
           "sysdep": "python3-websocket-client",
-          "version": "1.3.3"
+          "version": "1.4.2"
         },
         "werkzeug": {
           "root": false,
@@ -1146,6 +1146,9 @@
         "docker": {
           "version": "4.1.0"
         },
+        "dpkt": {
+          "version": "1.9.8"
+        },
         "eventlet": {
           "version": "0.30.2"
         },
@@ -1198,7 +1201,7 @@
           "version": "0.3.1"
         },
         "protobuf": {
-          "version": "3.19.0"
+          "version": "3.20.3"
         },
         "psutil": {
           "version": "5.9.1"
@@ -1242,8 +1245,8 @@
         "ryu": {
           "version": "4.34"
         },
-        "scapy": {
-          "version": "2.4.5"
+        "sdnotify": {
+          "version": "0.3.2"
         },
         "sentry-sdk": {
           "version": "1.5.4"
@@ -1413,9 +1416,6 @@
     },
     "ryu": {
       "version": "4.30"
-    },
-    "scapy": {
-      "version": "2.4.4"
     },
     "sentry-sdk": {
       "version": "1.0.0"

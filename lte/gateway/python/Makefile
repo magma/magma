@@ -2,6 +2,17 @@ include $(MAGMA_ROOT)/lte/gateway/python/defs.mk
 # Contains common targets for gateway python development
 include $(MAGMA_ROOT)/orc8r/gateway/python/python.mk
 
+define DEPRECATION_WARNING
+
+Warning: As part of the Make to Bazel switch-over of the AGW this Makefile
+will be deprecated soon, see https://github.com/magma/magma/issues/14971.
+Do not add any new Make targets for the AGW!
+All new targets should be integrated with the Bazel build system,
+see https://magma.github.io/magma/docs/next/bazel/agw_with_bazel.
+
+endef
+export DEPRECATION_WARNING
+
 # Set up some pattern rules
 define setup_rules
 	$(eval PSRC := $1)
@@ -11,11 +22,17 @@ define setup_rules
 endef
 _ := $(foreach python_src, $(PYTHON_SRCS), $(eval $(call setup_rules,$(python_src))))
 
-buildenv: setupenv protos swagger $(BUILD_LIST) py_patches
+snowflake:
+	@echo "$$DEPRECATION_WARNING"
+	sudo env PATH=${PYTHON_BUILD}/bin:${PATH} snowflake --make-snowflake
+
+buildenv: setupenv protos swagger $(BUILD_LIST) py_patches snowflake
 $(BUILD_LIST): %_build:
+	@echo "$$DEPRECATION_WARNING"
 	make -C $* install_egg
 
 test_all: buildenv $(BIN)/pytest $(BIN)/pytest-cov $(TEST_LIST)
+	@echo "$$DEPRECATION_WARNING"
 $(TEST_LIST): %_test:
 	make -C $* .test
 
@@ -28,6 +45,7 @@ endef
 
 # unit_tests (UT_PATH=unit_test_path|MAGMA_SERVICE=service_name)[DONT_BUILD_ENV=1]
 unit_tests: $(TESTS)
+	@echo "$$DEPRECATION_WARNING"
 ifndef MAGMA_SERVICE
 ifndef UT_PATH
 	@echo "usage: make unit_tests (UT_PATH=unit_test_path|MAGMA_SERVICE=service_name)[DONT_BUILD_ENV=1]"
@@ -57,38 +75,21 @@ endif
 	$(if $(strip $(SEL_SUDO_TEST_PATH_LTE)),$(call run_sudo_unit_tests,$(SEL_SUDO_TEST_PATH_LTE), $(MAGMA_ROOT)/lte/gateway/python/))
 	$(if $(strip $(TEST_PATH_ORC8R)), $(call run_unit_tests, $(TEST_PATH_ORC8R), $(MAGMA_ROOT)/orc8r/gateway/python/))
 
-coverage: $(BIN)/coverage
-	$(BIN)/coverage report
-
-$(BIN)/coverage: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) coverage==6.4.1
-
 $(BIN)/pytest: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pytest==7.1.2
-
-$(BIN)/pytest-cov: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) pytest-cov==3.0.0
 
 $(BIN)/pylint: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) pylint==2.14.0
 
-$(BIN)/pycodestyle: install_virtualenv
-	# pylint doesn't cover all the pep8 style guidelines. Specifically,
-	# E203, E301, E303, W203, W291, W292
-	$(VIRT_ENV_PIP_INSTALL) pycodestyle==2.8.0
-
 # Disable W0511: todo warnings
 # Disable R0903: Too few public methods
-CHECK_CMD_PYLINT := -find . -name '*.py' -exec $(BIN)/pylint --disable=R0903,W0511 {} +;
-CHECK_CMD_PYCODESTYLE := -find . -name '*.py' -exec $(BIN)/pycodestyle {} +;
-# ’-’ ignores the exit 1 and the script is not terminated by a linter error,
-# see https://www.gnu.org/software/make/manual/make.html#Errors
-check: buildenv $(BIN)/pylint $(BIN)/pycodestyle
-	$(CHECK_CMD_PYCODESTYLE)
-	$(CHECK_CMD_PYLINT)
+
+check:
+	./precommit.py --format --diff
 
 clean: $(CLEAN_LIST)
-	sudo rm -rf $(PYTHON_BUILD)/ .coverage
+	@echo "$$DEPRECATION_WARNING"
+	sudo rm -rf $(PYTHON_BUILD)/
 	sudo find . -name '*.pyc' -o -name '__pycache__' -prune -exec rm -rf {} \;
 $(CLEAN_LIST): %_clean:
 	make -C $* remove_egg

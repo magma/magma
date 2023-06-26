@@ -18,13 +18,13 @@ import (
 	"reflect"
 	"testing"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2869"
 	"magma/cwf/gateway/services/uesim/servicers"
 	"magma/feg/gateway/services/eap"
 
 	"github.com/stretchr/testify/assert"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2869"
 )
 
 // Radius packets taken from cwf_2_aps.pcap.

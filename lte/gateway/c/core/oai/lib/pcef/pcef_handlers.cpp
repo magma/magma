@@ -15,28 +15,27 @@
  *      contact@openairinterface.org
  */
 
-#include <grpcpp/impl/codegen/status.h>
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
+
 #include <cstring>
 #include <string>
+
+#include <grpcpp/impl/codegen/status.h>
+#include "lte/protos/session_manager.pb.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/protos/session_manager.pb.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -132,10 +131,9 @@ status_code_e send_itti_pcef_create_session_response(
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
+void pcef_create_session(std::string imsi_str, const char* ip4, const char* ip6,
                          const pcef_create_session_data* session_data,
                          s5_create_session_request_t session_request) {
-  auto imsi_str = std::string(imsi);
   std::string ip4_str, ip6_str;
 
   if (ip4) {
@@ -161,9 +159,9 @@ void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
       });
 }
 
-bool pcef_end_session(char* imsi, char* apn) {
+bool pcef_end_session(const std::string imsi, const std::string apn) {
   magma::LocalEndSessionRequest request;
-  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.mutable_sid()->set_id("IMSI" + imsi);
   request.set_apn(apn);
   magma::PCEFClient::end_session(
       request,
@@ -256,36 +254,35 @@ char convert_digit_to_char(char digit) {
   }
 }
 
-static void get_plmn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req,
-    struct pcef_create_session_data* data) {
-  data->mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
-  data->mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
-  data->mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
-  data->mcc_mnc[3] = convert_digit_to_char(saved_req->serving_network.mnc[0]);
-  data->mcc_mnc[4] = convert_digit_to_char(saved_req->serving_network.mnc[1]);
-  data->mcc_mnc_len = 5;
+void get_plmn_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* mcc_mnc) {
+  mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  mcc_mnc[3] = convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  mcc_mnc[4] = convert_digit_to_char(saved_req->serving_network.mnc[1]);
+  int mcc_mnc_len = 5;
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
-    data->mcc_mnc[6] = '\0';
-    data->mcc_mnc_len += 1;
+    mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
+    mcc_mnc[6] = '\0';
+    mcc_mnc_len += 1;
   } else {
-    data->mcc_mnc[5] = '\0';
+    mcc_mnc[5] = '\0';
   }
 }
 
-static void get_imsi_plmn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req,
-    struct pcef_create_session_data* data) {
-  data->imsi_mcc_mnc[0] = convert_digit_to_char(saved_req->imsi.digit[0]);
-  data->imsi_mcc_mnc[1] = convert_digit_to_char(saved_req->imsi.digit[1]);
-  data->imsi_mcc_mnc[2] = convert_digit_to_char(saved_req->imsi.digit[2]);
-  data->imsi_mcc_mnc[3] = convert_digit_to_char(saved_req->imsi.digit[3]);
-  data->imsi_mcc_mnc[4] = convert_digit_to_char(saved_req->imsi.digit[4]);
+void get_imsi_plmn_from_session_req(const std::string imsi,
+                                    struct pcef_create_session_data* data) {
+  const char* imsi_digit = imsi.c_str();
+  data->imsi_mcc_mnc[0] = convert_digit_to_char(imsi_digit[0]);
+  data->imsi_mcc_mnc[1] = convert_digit_to_char(imsi_digit[1]);
+  data->imsi_mcc_mnc[2] = convert_digit_to_char(imsi_digit[2]);
+  data->imsi_mcc_mnc[3] = convert_digit_to_char(imsi_digit[3]);
+  data->imsi_mcc_mnc[4] = convert_digit_to_char(imsi_digit[4]);
   data->imsi_mcc_mnc_len = 5;
-  // Check if 2 or 3 digit by verifying mnc[2] has a valid value
-  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
+  // Check the mcc_mnc_len which is deocoded from serving network mnc value
+  if (data->mcc_mnc_len == 6) {
+    data->imsi_mcc_mnc[5] = convert_digit_to_char(imsi_digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
@@ -293,7 +290,7 @@ static void get_imsi_plmn_from_session_req(
   }
 }
 
-static int get_uli_from_session_req(
+bool get_uli_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* uli) {
   if (!saved_req->uli.present) {
     return 0;
@@ -387,40 +384,6 @@ int get_imeisv_from_session_req(
     return 1;
   }
   return 0;
-}
-
-void get_session_req_data(spgw_state_t* spgw_state,
-                          const itti_s11_create_session_request_t* saved_req,
-                          struct pcef_create_session_data* data) {
-  const bearer_qos_t* qos;
-
-  data->msisdn_len = get_msisdn_from_session_req(saved_req, data->msisdn);
-
-  data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
-  if (data->imeisv_exists) {
-    convert_imeisv_to_string(data->imeisv);
-  }
-  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
-  get_plmn_from_session_req(saved_req, data);
-  get_imsi_plmn_from_session_req(saved_req, data);
-  memcpy(&data->charging_characteristics, &saved_req->charging_characteristics,
-         sizeof(charging_characteristics_t));
-
-  memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
-  data->pdn_type = saved_req->pdn_type;
-
-  inet_ntop(AF_INET, &spgw_state->sgw_ip_address_S1u_S12_S4_up, data->sgw_ip,
-            INET_ADDRSTRLEN);
-
-  // QoS Info
-  data->ambr_dl = saved_req->ambr.br_dl;
-  data->ambr_ul = saved_req->ambr.br_ul;
-  qos = &saved_req->bearer_contexts_to_be_created.bearer_contexts[0]
-             .bearer_level_qos;
-  data->pl = qos->pl;
-  data->pci = qos->pci;
-  data->pvi = qos->pvi;
-  data->qci = qos->qci;
 }
 
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {

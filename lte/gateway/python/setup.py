@@ -28,7 +28,9 @@ setup(
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
         'magma.enodebd.devices',
+        'magma.enodebd.devices.baicells_qrtb',
         'magma.enodebd.devices.experimental',
+        'magma.enodebd.devices.freedomfi_one',
         'magma.enodebd.state_machines',
         'magma.enodebd.tr069',
         'magma.health',
@@ -103,7 +105,7 @@ setup(
         'lxml==4.9.1',
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
-        'scapy==2.4.5',
+        'dpkt==1.9.8',
         'flask==1.1.4',
         'sentry_sdk>=1.5.0,<1.9',
         'aiodns>=3.0.0',
@@ -131,15 +133,17 @@ setup(
         'ovs==2.16.0',
         'prometheus-client>=0.3.1',
         'aioeventlet @ git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619',
+        'sdnotify>=0.3.2',
     ],
     extras_require={
         'dev': [
-            'grpcio-tools>=1.46.3',
-            'coverage==6.4.2',
+            # Should be kept in sync with the version in python.mk
+            'grpcio-tools>=1.46.3,<1.49.0',
             'iperf3>=0.1.11',
             'parameterized==0.8.1',
             'pytest==7.1.2',
             'pytest-cov==3.0.0',
+            'scapy==2.4.5',
         ],
     },
 )

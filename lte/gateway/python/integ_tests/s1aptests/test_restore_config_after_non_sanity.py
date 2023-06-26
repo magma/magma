@@ -49,7 +49,7 @@ class TestRestoreConfigAfterNonSanity(unittest.TestCase):
         )
 
         print("Restarting services to apply configuration change")
-        self._magmad_util.restart_all_services()
+        self._magmad_util.restart_magma_services()
 
 
 if __name__ == "__main__":

@@ -11,14 +11,14 @@ Pipelined is the control application that programs rules in the Open vSwitch (OV
 
 ### Open vSwitch & OpenFlow
 
-[Open vSwitch (OVS)](http://docs.openvswitch.org/en/latest/intro/what-is-ovs/) is a virtual switch that implements the [OpenFlow](https://en.wikipedia.org/wiki/OpenFlow) protocol. Pipelined services program rules in OVS to implement basic PCEF functionality for user plane traffic.
+[Open vSwitch (OVS)](https://docs.openvswitch.org/en/latest/intro/what-is-ovs/) is a virtual switch that implements the [OpenFlow](https://en.wikipedia.org/wiki/OpenFlow) protocol. Pipelined services program rules in OVS to implement basic PCEF functionality for user plane traffic.
 
 The OpenFlow pipeline of OVS contains 255 flow tables. Pipelined splits the tables into two categories:
 
 - Main table (Table 1 - 20)
 - Scratch table (Table 21 - 254)
 
-![OpenFlow Pipeline](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true)
+![OpenFlow Pipeline](https://github.com/magma/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true)
 
 [*Source: OpenFlow Specification*](https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf)
 

@@ -46,12 +46,13 @@ func RetrieveGatewayIdentity(inCtx context.Context) (*protos.Identity_Gateway, e
 }
 
 // FindServingFeGHwId is the core of Neutral Host routing implementation, it
-// 1) fetches the request's Gateway Network configs,
-// 2) finds the serving Federation Gateway (FeG) Network,
-// 3) retrieves the FeG Network's configuration,
-// 4) if the FeG Network is a Neutral Host - FindServingFeGHwId finds the serving FeG network and the serving FeG ID
-// 5) if not Neutral Host or user PLMN ID doesn't match any configured NH route - FindServingFeGHwId finds the serving
-//    FeG ID of the serving FeG Network
+//  1. fetches the request's Gateway Network configs,
+//  2. finds the serving Federation Gateway (FeG) Network,
+//  3. retrieves the FeG Network's configuration,
+//  4. if the FeG Network is a Neutral Host - FindServingFeGHwId finds the serving FeG network and the serving FeG ID
+//  5. if not Neutral Host or user PLMN ID doesn't match any configured NH route - FindServingFeGHwId finds the serving
+//     FeG ID of the serving FeG Network
+//
 // Returns serving Federation Gateway ID or error
 func FindServingFeGHwId(ctx context.Context, agNwID, imsi string) (string, error) {
 	cfg, err := configurator.LoadNetworkConfig(ctx, agNwID, feg.FederatedNetworkType, serdes.Network)

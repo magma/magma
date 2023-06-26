@@ -134,7 +134,7 @@ func getSwxTestConfigs(verify bool) []*servicers.SwxProxyConfig {
 	}
 }
 
-//  ---- MockMultiplexor ----
+// ---- MockMultiplexor ----
 type MockMultiplexor struct {
 	mock.Mock
 	t           *testing.T

@@ -63,7 +63,7 @@ export default function () {
           drawBorder: true,
         },
         ticks: {
-          maxTicksLimit: 1,
+          maxTicksLimit: 3,
         },
       },
     },

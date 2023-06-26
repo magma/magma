@@ -65,21 +65,17 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
         print(
             "Received Identity req ind ",
             s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
         )
 
         print("********************** Restarting MME service on gateway ***")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Since UE has neither received Attach Reject nor Attach Accept,
         # assuming that both T3410 and T3411 timer expires at UE
@@ -109,27 +105,16 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         # part of configuraton file mme.conf.template. If MME restarts after
         # expiry of identity response timer, it will send the re-transmitted
         # identity request message
-        resp_count = 0
-        while True:
+        response = self._s1ap_wrapper.s1_util.get_response()
+        while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
+            print(
+                "******************** Ignoring re-transmitted "
+                "Identity request indication",
+            )
             response = self._s1ap_wrapper.s1_util.get_response()
-            if (
-                response.msg_type
-                == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
-            ):
-                resp_count += 1
-                print(
-                    "******************** Ignoring re-transmitted (",
-                    resp_count,
-                    ") Identity request indication",
-                )
-            else:
-                break
 
         # Context release
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("********** UE Context released **********")
 
         time.sleep(5)

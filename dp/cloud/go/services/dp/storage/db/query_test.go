@@ -40,7 +40,7 @@ func (s *QueryTestSuite) SetupSuite() {
 	database, err := sqorc.Open("sqlite3", ":memory:")
 	s.Require().NoError(err)
 	s.resourceManager = dbtest.NewResourceManager(s.T(), database, builder)
-	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{}, &modelWithUniqueFields{})
+	err = s.resourceManager.CreateTables(&someModel{}, &otherModel{}, &anotherModel{})
 	s.Require().NoError(err)
 }
 
@@ -626,6 +626,9 @@ func getOtherModel() *otherModel {
 		name:   db.MakeString("pqr"),
 		flag:   db.MakeBool(false),
 		date:   db.MakeTime(time.Unix(2e6, 0).UTC()),
+		list:   []int{1, 2, 3},
+		object: map[string]int{"a": 1, "b": 2},
+		custom: &customType{A: 123, B: "xyz"},
 	}
 }
 
@@ -636,6 +639,14 @@ type otherModel struct {
 	name   sql.NullString
 	flag   sql.NullBool
 	date   sql.NullTime
+	list   []int
+	object map[string]int
+	custom *customType
+}
+
+type customType struct {
+	A int    `json:"a"`
+	B string `json:"b"`
 }
 
 func (o *otherModel) GetMetadata() *db.ModelMetadata {
@@ -672,6 +683,21 @@ func (o *otherModel) GetMetadata() *db.ModelMetadata {
 				SqlType:  sqorc.ColumnTypeDatetime,
 				Nullable: true,
 			},
+			{
+				Name:     "list",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "object",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
+			{
+				Name:     "custom",
+				SqlType:  sqorc.ColumnTypeText,
+				Nullable: true,
+			},
 		},
 		CreateObject: func() db.Model {
 			return &otherModel{}
@@ -687,6 +713,9 @@ func (o *otherModel) Fields() []db.BaseType {
 		db.StringType{X: &o.name},
 		db.BoolType{X: &o.flag},
 		db.TimeType{X: &o.date},
+		db.JsonType{X: &o.list},
+		db.JsonType{X: &o.object},
+		db.JsonType{X: &o.custom},
 	}
 }
 
@@ -736,44 +765,5 @@ func (a *anotherModel) Fields() []db.BaseType {
 		db.IntType{X: &a.id},
 		db.IntType{X: &a.otherId},
 		db.IntType{X: &a.defaultValue},
-	}
-}
-
-type modelWithUniqueFields struct {
-	id                sql.NullInt64
-	uniqueField       sql.NullInt64
-	anotherUniqueFied sql.NullInt64
-}
-
-func (m *modelWithUniqueFields) GetMetadata() *db.ModelMetadata {
-	return &db.ModelMetadata{
-		Table: "unique_table",
-		Properties: []*db.Field{
-			{
-				Name:    "id",
-				SqlType: sqorc.ColumnTypeInt,
-			},
-			{
-				Name:    "unique_field",
-				SqlType: sqorc.ColumnTypeInt,
-				Unique:  true,
-			},
-			{
-				Name:    "another_unique_fied",
-				SqlType: sqorc.ColumnTypeInt,
-				Unique:  true,
-			},
-		},
-		CreateObject: func() db.Model {
-			return &modelWithUniqueFields{}
-		},
-	}
-}
-
-func (m *modelWithUniqueFields) Fields() []db.BaseType {
-	return []db.BaseType{
-		db.IntType{X: &m.id},
-		db.IntType{X: &m.uniqueField},
-		db.IntType{X: &m.anotherUniqueFied},
 	}
 }

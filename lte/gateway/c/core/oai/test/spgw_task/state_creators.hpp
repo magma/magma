@@ -21,7 +21,4 @@ gtpv1u_data_t make_gtpv1u_data(int fd0, int fd1u);
 
 spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u);
 
-s_plus_p_gw_eps_bearer_context_information_t* make_bearer_context(imsi64_t imsi,
-                                                                  teid_t teid);
-
 }  // namespace magma

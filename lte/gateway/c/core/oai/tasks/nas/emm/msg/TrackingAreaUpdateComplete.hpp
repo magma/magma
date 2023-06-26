@@ -15,12 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_TRACKING_AREA_UPDATE_COMPLETE_SEEN
-#define FILE_TRACKING_AREA_UPDATE_COMPLETE_SEEN
+#pragma once
+
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -53,5 +53,3 @@ int decode_tracking_area_update_complete(
 int encode_tracking_area_update_complete(
     tracking_area_update_complete_msg* trackingareaupdatecomplete,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(FILE_TRACKING_AREA_UPDATE_COMPLETE_SEEN) */

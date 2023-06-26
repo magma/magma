@@ -71,15 +71,15 @@ if [[ -z $DOCKER_REGISTRY ]]; then
   exitmsg "Environment variable DOCKER_REGISTRY must be set"
 fi
 
-if [[ -z $DOCKER_USERNAME ]]; then
-  exitmsg "Environment variable DOCKER_USERNAME must be set"
+if [[ -z $DOCKER_USER ]]; then
+  exitmsg "Environment variable DOCKER_USER must be set"
 fi
 
 if [[ -z $DOCKER_PASSWORD ]]; then
   exitmsg "Environment variable DOCKER_PASSWORD must be set"
 fi
 
-docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
 # shellcheck disable=SC2207
 # Docker images does not contains special characters so we can skip the check
 IMAGES_ARRAY=($(echo "$IMAGES" | tr "|" "\n"))

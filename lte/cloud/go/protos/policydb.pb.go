@@ -1095,7 +1095,7 @@ type FlowMatch struct {
 	IpSrc     *IPAddress          `protobuf:"bytes,10,opt,name=ip_src,json=ipSrc,proto3" json:"ip_src,omitempty"`
 	IpDst     *IPAddress          `protobuf:"bytes,11,opt,name=ip_dst,json=ipDst,proto3" json:"ip_dst,omitempty"`
 	// TODO deprecate these after safe move to ip_sr/ip_dst vars
-	//reserved 1, 2;
+	// reserved 1, 2;
 	Ipv4Src string `protobuf:"bytes,1,opt,name=ipv4_src,json=ipv4Src,proto3" json:"ipv4_src,omitempty"`
 	Ipv4Dst string `protobuf:"bytes,2,opt,name=ipv4_dst,json=ipv4Dst,proto3" json:"ipv4_dst,omitempty"`
 }
@@ -1696,7 +1696,7 @@ func (x *InstalledPolicies) GetInstalledPolicies() []string {
 // SubscriberPolicySet contains the base names and policy rules currently
 // assigned to a subscriber, keyed by APN
 // NOTE: This does not include the policy used to define the default bearer
-//       flow
+// flow
 type SubscriberPolicySet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1763,7 +1763,7 @@ func (x *SubscriberPolicySet) GetGlobalPolicies() []string {
 // ApnPolicySet contains the base names and policy rules currently assigned to
 // a (subscriber, APN) tuple
 // NOTE: This does not include the policy used to define the default bearer
-//       flow
+// flow
 type ApnPolicySet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2590,10 +2590,8 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PolicyAssignmentControllerClient interface {
 	// Associate the static rule with the IMSI
-	//
 	EnableStaticRules(ctx context.Context, in *EnableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
 	// Unassociate the static rule with the IMSI
-	//
 	DisableStaticRules(ctx context.Context, in *DisableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
@@ -2626,10 +2624,8 @@ func (c *policyAssignmentControllerClient) DisableStaticRules(ctx context.Contex
 // PolicyAssignmentControllerServer is the server API for PolicyAssignmentController service.
 type PolicyAssignmentControllerServer interface {
 	// Associate the static rule with the IMSI
-	//
 	EnableStaticRules(context.Context, *EnableStaticRuleRequest) (*protos.Void, error)
 	// Unassociate the static rule with the IMSI
-	//
 	DisableStaticRules(context.Context, *DisableStaticRuleRequest) (*protos.Void, error)
 }
 
@@ -2707,11 +2703,9 @@ var _PolicyAssignmentController_serviceDesc = grpc.ServiceDesc{
 type PolicyDBClient interface {
 	// Immediately install the static policy for the IMSI
 	// Also unassociate the static rule with the IMSI on orc8r
-	//
 	EnableStaticRules(ctx context.Context, in *EnableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
 	// Immediately uninstall the static policy for the IMSI
 	// Also unassociate the static rule with the IMSI on orc8r
-	//
 	DisableStaticRules(ctx context.Context, in *DisableStaticRuleRequest, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
@@ -2745,11 +2739,9 @@ func (c *policyDBClient) DisableStaticRules(ctx context.Context, in *DisableStat
 type PolicyDBServer interface {
 	// Immediately install the static policy for the IMSI
 	// Also unassociate the static rule with the IMSI on orc8r
-	//
 	EnableStaticRules(context.Context, *EnableStaticRuleRequest) (*protos.Void, error)
 	// Immediately uninstall the static policy for the IMSI
 	// Also unassociate the static rule with the IMSI on orc8r
-	//
 	DisableStaticRules(context.Context, *DisableStaticRuleRequest) (*protos.Void, error)
 }
 

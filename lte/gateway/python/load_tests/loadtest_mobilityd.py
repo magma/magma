@@ -173,7 +173,6 @@ def main():
         parser.print_usage()
         exit(1)
 
-    print('Preparing %s load test...' % args.cmd)
     client = MobilityServiceStub(
         ServiceRegistry.get_rpc_channel(
             MOBILITYD_SERVICE_NAME,
@@ -215,8 +214,6 @@ def main():
             address=MOBILITYD_PORT,
             import_path=args.import_path,
         )
-
-    print('Done')
 
 
 if __name__ == "__main__":

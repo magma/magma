@@ -485,6 +485,7 @@ type Reply struct {
 	// reply delaying time in sec
 	ReplyDelay int32 `protobuf:"varint,2,opt,name=reply_delay,json=replyDelay,proto3" json:"reply_delay,omitempty"`
 	// Types that are assignable to SgsMessage:
+	//
 	//	*Reply_AlertRequest
 	//	*Reply_DownlinkUnitdata
 	//	*Reply_EpsDetachAck
@@ -500,6 +501,7 @@ type Reply struct {
 	//	*Reply_Status
 	SgsMessage isReply_SgsMessage `protobuf_oneof:"sgs_message"`
 	// Types that are assignable to GxgyMessage:
+	//
 	//	*Reply_CreateSessionResponse
 	//	*Reply_UpdateSessionResponse
 	//	*Reply_SessionTerminateResponse
@@ -788,6 +790,7 @@ type ExpectedRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to SgsMessage:
+	//
 	//	*ExpectedRequest_AlertAck
 	//	*ExpectedRequest_AlertReject
 	//	*ExpectedRequest_EpsDetachIndication
@@ -804,6 +807,7 @@ type ExpectedRequest struct {
 	//	*ExpectedRequest_Status
 	SgsMessage isExpectedRequest_SgsMessage `protobuf_oneof:"sgs_message"`
 	// Types that are assignable to GxgyMessage:
+	//
 	//	*ExpectedRequest_CreateSessionRequest
 	//	*ExpectedRequest_UpdateSessionRequest
 	//	*ExpectedRequest_SessionTerminateRequest

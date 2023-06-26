@@ -45,6 +45,7 @@ type HelloRequest struct {
 	Greeting string `protobuf:"bytes,1,opt,name=greeting,proto3" json:"greeting,omitempty"`
 	// A grpc_err_code is an unsigned 32-bit error code as defined in the gRPC
 	// spec.
+	//
 	//	OK Code = 0
 	//	Canceled Code = 1
 	//	Unknown Code = 2
@@ -62,6 +63,7 @@ type HelloRequest struct {
 	//	Unavailable Code = 14
 	//	DataLoss Code = 15
 	//	Unauthenticated Code = 16
+	//
 	// See https://github.com/grpc/grpc-go/blob/master/codes/codes.go for details
 	// This field lets user request for a grpc err code, and expect server to
 	// successfully send back this err code. If something goes wrong in the path,
@@ -405,7 +407,6 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type HelloClient interface {
 	// Sample rpc for Hello service
-	//
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
 
@@ -429,7 +430,6 @@ func (c *helloClient) SayHello(ctx context.Context, in *HelloRequest, opts ...gr
 // HelloServer is the server API for Hello service.
 type HelloServer interface {
 	// Sample rpc for Hello service
-	//
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 }
 

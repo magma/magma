@@ -12,6 +12,7 @@
  */
 
 import './util/axiosConfig';
+import './util/chartjsSetup';
 import './util/polyfill';
 
 import ApplicationMain from './components/ApplicationMain';
@@ -19,13 +20,13 @@ import Main from './components/Main';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import nullthrows from '../shared/util/nullthrows';
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {BrowserRouter} from 'react-router-dom';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 
 ReactDOM.render(
   <BrowserRouter>
-    <LocalizationProvider dateAdapter={AdapterMoment}>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
       <ApplicationMain>
         <Main />
       </ApplicationMain>

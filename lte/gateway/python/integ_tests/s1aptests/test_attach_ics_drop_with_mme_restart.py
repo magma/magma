@@ -62,9 +62,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("******************** Received Authentiction Request Indication")
 
         # Send Authentication Response
@@ -78,9 +76,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("******************** Received Security Mode Command Indication")
 
         print(
@@ -107,16 +103,15 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
         print(
             "******************** Received Initial Context Setup Dropped "
             "Indication",
         )
 
         print("******************** Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"], wait_for_restart)
 
         print(
             "******************** Resetting flag to not drop next Initial "
@@ -128,10 +123,6 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req,
         )
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
 
         # It has been observed that despite getting the restart command on
         # time, MME sometimes restarts after a delay of 5-6 seconds. If MME
@@ -160,10 +151,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                     " with detach type ",
                     nw_init_detach_req.Type,
                 )
-                self.assertEqual(
-                    nw_init_detach_req.Type,
-                    s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value,
-                )
+                assert nw_init_detach_req.Type == s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value
 
                 if resp_count == 1:
                     # Send detach accept
@@ -186,9 +174,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
             else:
                 break
 
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("******************** Received UE Context Release indication")
 
         print(

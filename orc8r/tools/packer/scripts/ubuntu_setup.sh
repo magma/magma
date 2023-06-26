@@ -20,8 +20,14 @@ sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
 # Disable daily apt unattended updates.
 echo 'APT::Periodic::Enable "0";' >> /etc/apt/apt.conf.d/10periodic
 
-apt update
-apt install -y ansible
+apt-get install -y software-properties-common
+add-apt-repository -y ppa:ansible/ansible
+apt-get update
+apt-get install -y ansible
+
+# Install ca-certificates-java;
+# needed for swagger_codegen_jar
+apt-get install -y ca-certificates-java
 
 # Mount the guest additions iso and run the install script
 mkdir -p /mnt/iso

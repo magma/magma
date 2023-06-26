@@ -51,9 +51,7 @@ class TestSendErrorIndForDlNasWithAuthReq(unittest.TestCase):
         )
         print("************************* Sent attach request")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("************************* Received authentication request")
 
         # Send error indication
@@ -73,9 +71,7 @@ class TestSendErrorIndForDlNasWithAuthReq(unittest.TestCase):
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("************************* Received UE_CTX_REL_IND")
 
 

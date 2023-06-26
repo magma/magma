@@ -13,6 +13,7 @@ limitations under the License.
 
 import logging
 import os
+from typing import Any, Dict
 
 import grpc
 from magma.configuration.exceptions import LoadConfigError
@@ -30,9 +31,9 @@ class ServiceRegistry:
     params like ip/port, TLS, certs, etc based on service level configuration.
     """
 
-    _REGISTRY = {}
-    _PROXY_CONFIG = {}
-    _CHANNELS_CACHE = {}
+    _REGISTRY: Dict[str, Dict] = {}
+    _PROXY_CONFIG: Dict[str, Any] = {}
+    _CHANNELS_CACHE: Dict[str, Any] = {}
 
     LOCAL = 'local'
     CLOUD = 'cloud'

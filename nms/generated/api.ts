@@ -42062,7 +42062,7 @@ export const TenantsApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Create an tenant
+         * @summary Create a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {Tenant} tenant Tenant to be created
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42184,7 +42184,7 @@ export const TenantsApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Delete tenant
+         * @summary Delete a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42260,7 +42260,7 @@ export const TenantsApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Set tenant info
+         * @summary Set tenant info. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {Tenant} tenant Tenant to be updated
          * @param {*} [options] Override http request option.
@@ -42324,7 +42324,7 @@ export const TenantsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Create an tenant
+         * @summary Create a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {Tenant} tenant Tenant to be created
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42358,7 +42358,7 @@ export const TenantsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Delete tenant
+         * @summary Delete a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42380,7 +42380,7 @@ export const TenantsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Set tenant info
+         * @summary Set tenant info. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {Tenant} tenant Tenant to be updated
          * @param {*} [options] Override http request option.
@@ -42411,7 +42411,7 @@ export const TenantsApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
-         * @summary Create an tenant
+         * @summary Create a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {Tenant} tenant Tenant to be created
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42442,7 +42442,7 @@ export const TenantsApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
-         * @summary Delete tenant
+         * @summary Delete a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -42462,7 +42462,7 @@ export const TenantsApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
-         * @summary Set tenant info
+         * @summary Set tenant info. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
          * @param {number} tenantId Tenant ID
          * @param {Tenant} tenant Tenant to be updated
          * @param {*} [options] Override http request option.
@@ -42592,7 +42592,7 @@ export class TenantsApi extends BaseAPI {
 
     /**
      * 
-     * @summary Create an tenant
+     * @summary Create a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
      * @param {TenantsApiTenantsPostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -42628,7 +42628,7 @@ export class TenantsApi extends BaseAPI {
 
     /**
      * 
-     * @summary Delete tenant
+     * @summary Delete a tenant. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
      * @param {TenantsApiTenantsTenantIdDeleteRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -42652,7 +42652,7 @@ export class TenantsApi extends BaseAPI {
 
     /**
      * 
-     * @summary Set tenant info
+     * @summary Set tenant info. This should not be called manually, tenants and organizations are updated in NMS and synced to orc8r.
      * @param {TenantsApiTenantsTenantIdPutRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

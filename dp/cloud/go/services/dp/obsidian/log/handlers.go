@@ -100,7 +100,7 @@ func setInitErrorHandlers(err error) []obsidian.Handler {
 
 func getInitErrorHandler(err error) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("initialization Error: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("initialization Error: %v", err))
 	}
 }
 
@@ -217,10 +217,10 @@ func listLogs(c echo.Context, client *elastic.Client) error {
 	result, err := req.sendToElasticSearch(c, client)
 
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if result.Error != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))
 	}
 
 	resp := models.PaginatedLogs{

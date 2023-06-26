@@ -22,20 +22,21 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 void sgw_send_paging_request(const struct in_addr* dest_ipv4,

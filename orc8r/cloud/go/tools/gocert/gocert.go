@@ -385,7 +385,6 @@ var vulnerableSigAlgos = map[x509.SignatureAlgorithm]string{
 	x509.ECDSAWithSHA1: "ECDSA with SHA1",
 }
 
-//
 // verify - verefies given cert using caPool (or system CA pool if caPool is nil)
 // for given usage flags
 func verify(

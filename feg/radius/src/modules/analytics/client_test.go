@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"fbc/cwf/radius/modules/analytics/graphql"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,20 +54,4 @@ func TestIntegration(t *testing.T) {
 	})
 	require.NoError(t, c.Do(cop), "failed creating session")
 	t.Logf("radius_session_id:%d\n", cop.Response().FBID)
-
-	t.Logf("updating session with id %d\n", cop.Response().FBID)
-	uop := NewUpdateSessionOp(&RadiusSession{
-		FBID:                 cop.Response().FBID,
-		NASIPAddress:         "10.0.1.1",
-		NASIdentifier:        "10.0.1.2",
-		AcctSessionID:        "10.0.1.3:10.0.1.4",
-		CalledStationID:      "10.0.1.5",
-		FramedIPAddress:      "10.0.1.6",
-		CallingStationID:     "10.0.1.7",
-		NormalizedMacAddress: "10.0.1.8",
-		RADIUSServerID:       2,
-		UploadBytes:          1234,
-		Vendor:               int64(Ruckus),
-	})
-	require.NoError(t, c.Do(uop), "failed updating session")
 }

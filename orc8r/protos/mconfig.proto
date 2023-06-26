@@ -24,7 +24,7 @@ option go_package = "magma/orc8r/lib/go/protos";
 // one AG service config
 // --------------------------------------------------------------------------
 // NOTE: a service config field name (control_proxy, enodebd, etc.) must match
-//       the corresponding gateway service's name exactly
+// the corresponding gateway service's name exactly
 message GatewayConfigs {
     map<string, google.protobuf.Any> configs_by_key = 10;
 

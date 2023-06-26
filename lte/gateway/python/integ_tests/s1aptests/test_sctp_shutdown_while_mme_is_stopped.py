@@ -54,9 +54,9 @@ class TestSctpShutdownWhileMmeIsStopped(unittest.TestCase):
         # Wait for EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        print("Stopping MME service")
-        self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mme stop",
+        print("Stopping MME, mobilityd, pipelined, and sessiond service")
+        self._s1ap_wrapper.magmad_util.disable_services(
+            ['mme', 'mobilityd', 'pipelined', 'sessiond'],
         )
 
         print("send SCTP SHUTDOWN")
@@ -67,18 +67,9 @@ class TestSctpShutdownWhileMmeIsStopped(unittest.TestCase):
         print("Redis state after SCTP shutdown")
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
-        print("Starting MME service and waiting for 30 seconds")
-        self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mobilityd start",
-        )
-        self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@pipelined start",
-        )
-        self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@sessiond start",
-        )
-        self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mme start",
+        print("Starting the stopped services and waiting for 30 seconds")
+        self._s1ap_wrapper.magmad_util.enable_services(
+            ['mobilityd', 'pipelined', 'sessiond', 'mme'],
         )
         time.sleep(30)
 

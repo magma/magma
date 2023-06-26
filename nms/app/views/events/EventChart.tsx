@@ -10,27 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '../../components/LoadingFiller';
-import React from 'react';
-import moment from 'moment';
-import nullthrows from '../../../shared/util/nullthrows';
-
 import MagmaAPI from '../../api/MagmaAPI';
+import React from 'react';
+import nullthrows from '../../../shared/util/nullthrows';
 import {TimeUnit} from 'chart.js';
 import {colors} from '../../theme/default';
 import {getQueryRanges} from '../../components/CustomMetrics';
+import {getUnixTime} from 'date-fns';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useParams} from 'react-router-dom';
+import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 type Props = {
-  start: moment.Moment;
-  end: moment.Moment;
+  start: Date;
+  end: Date;
   delta: number;
   unit: TimeUnit;
   format: string;
@@ -84,12 +83,12 @@ export default function EventChart(props: Props) {
           const [, e] = queries[index];
           if (r === null || r === undefined) {
             return {
-              t: e.unix() * 1000,
+              x: getUnixTime(e) * 1000,
               y: 0,
             };
           }
           return {
-            t: e.unix() * 1000,
+            x: getUnixTime(e) * 1000,
             y: r,
           };
         });

@@ -98,9 +98,10 @@ func TestHomeSubscriberServer_handleSAR(t *testing.T) {
 
 // testDiameterMessage sends a message to a test diameter server and provides the
 // response in a callback function.
-// Inputs: t - test interface
-//         clientHandler - receives responses from the server
-//         msg - the message to send to the test server
+// Inputs:
+//   - t               -- test interface
+//   - clientHandler   -- receives responses from the server
+//   - msg             -- the message to send to the test server
 func testDiameterMessage(t *testing.T, clientHandler diam.HandlerFunc, msg *diam.Message) {
 	// Wrap the test client interface so we can signal that a message has been
 	// received.

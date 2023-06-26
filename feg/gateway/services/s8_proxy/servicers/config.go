@@ -52,7 +52,7 @@ func GetS8ProxyConfig() *S8ProxyConfig {
 	return conf
 }
 
-//parseAddress will parse an ip:port address. If parse fails it will just return nil
+// parseAddress will parse an ip:port address. If parse fails it will just return nil
 func ParseAddress(ipAndPort string) *net.UDPAddr {
 	if ipAndPort == "" {
 		return nil

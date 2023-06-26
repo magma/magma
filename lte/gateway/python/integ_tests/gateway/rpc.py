@@ -17,7 +17,9 @@ from magma.common.service_registry import create_grpc_channel
 from magma.configuration.mconfigs import unpack_mconfig_any
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
-from orc8r.protos.mconfig import mconfigs_pb2
+from orc8r.protos.mconfig import (
+    mconfigs_pb2,  # type: ignore[attr-defined] # mypy error when file not generated due to folder with same name
+)
 
 
 def get_rpc_channel(service):

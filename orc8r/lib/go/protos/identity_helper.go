@@ -219,18 +219,19 @@ func GetClientIdentity(ctx context.Context) *Identity {
 // GetClientGateway returns Identity of the Gateway caller retrieved from GRPC/HTTP
 // Context (if present) where it's set by the middleware
 // For use by all Gateway facing cloud services.
-//   Example:
-//      func (srv *MeteringdRecordsServer) UpdateFlows(
-//			ctx context.Context,
-//			tbl *protos.FlowTable) (*protos.Void, error) {
 //
-//          gw := protos.GetClientGateway(ctx)
-//			if gw == nil || !gw.Registered() {
-//              return &protos.Void{}, status.Errorf(
-//                  codes.PermissionDenied, "Gateway not registered")
-//          }
+//	  Example:
+//	     func (srv *MeteringdRecordsServer) UpdateFlows(
+//				ctx context.Context,
+//				tbl *protos.FlowTable) (*protos.Void, error) {
 //
-//		    ...
+//	         gw := protos.GetClientGateway(ctx)
+//				if gw == nil || !gw.Registered() {
+//	             return &protos.Void{}, status.Errorf(
+//	                 codes.PermissionDenied, "Gateway not registered")
+//	         }
+//
+//			    ...
 func GetClientGateway(ctx context.Context) *Identity_Gateway {
 	return GetClientIdentity(ctx).GetGateway()
 }

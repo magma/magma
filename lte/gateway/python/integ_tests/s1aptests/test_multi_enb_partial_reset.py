@@ -114,7 +114,7 @@ class TestMultiEnbPartialReset(unittest.TestCase):
             reset_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+        assert response.msg_type == s1ap_types.tfwCmd.RESET_ACK.value
 
         print(
             "Waiting for 3 seconds to ensure that MME has cleaned up all S1 "

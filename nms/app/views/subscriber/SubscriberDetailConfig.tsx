@@ -18,10 +18,13 @@ import DataGrid from '../../components/DataGrid';
 import Grid from '@mui/material/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@mui/material/Link';
+import LoadingFiller from '../../components/LoadingFiller';
+import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SubscriberContext from '../../context/SubscriberContext';
 import nullthrows from '../../../shared/util/nullthrows';
+import useMagmaAPI from '../../api/useMagmaAPI';
 import {EditSubscriberButton} from './SubscriberEditDialog';
 import {
   MutableSubscriber,
@@ -32,7 +35,7 @@ import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
-import {useContext, useState} from 'react';
+import {useCallback, useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import {useNavigate, useParams, useResolvedPath} from 'react-router-dom';
 import type {DataRows} from '../../components/DataGrid';
@@ -99,9 +102,35 @@ export default function SubscriberDetailConfig() {
   const params = useParams();
   const navigate = useNavigate();
   const subscriberId = nullthrows(params.subscriberId);
+  const networkId: string = nullthrows(params.networkId);
   const ctx = useContext(SubscriberContext);
-  const subscriberInfo = ctx.state?.[subscriberId];
+  const [subscriberConfig, setSubscriberConfig] = useState({} as Subscriber);
+  const {isLoading} = useMagmaAPI(
+    MagmaAPI.subscribers.lteNetworkIdSubscribersSubscriberIdGet,
+    {
+      networkId: networkId,
+      subscriberId: subscriberId,
+    },
+    useCallback(
+      (response: Subscriber) => {
+        setSubscriberConfig(response);
 
+        if (!ctx.state[subscriberId]) {
+          void ctx.setState?.('', undefined, {
+            ...ctx.state,
+            [subscriberId]: response,
+          });
+        }
+      },
+      [ctx, subscriberId],
+    ),
+  );
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  const subscriberInfo = ctx.state?.[subscriberId] || subscriberConfig;
   function ConfigFilter() {
     return (
       <Button className={classes.appBarBtn} onClick={() => navigate('json')}>

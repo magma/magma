@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
 
@@ -427,6 +428,11 @@ cc_binary(
     # From bazel doc: this flag makes it so all user libraries are linked statically (if a static version is available),
     #                 but where system libraries (excluding C/C++ runtime libraries) are linked dynamically
     linkstatic = True,
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [
         ":operational_states_handler",
         ":policy_loader",
@@ -436,5 +442,6 @@ cc_binary(
         "//orc8r/gateway/c/common/config:mconfig_loader",
         "//orc8r/gateway/c/common/sentry:sentry_wrapper",
         "//orc8r/protos:mconfigs_cpp_proto",
+        "@system_libraries//:libsystemd",
     ],
 )

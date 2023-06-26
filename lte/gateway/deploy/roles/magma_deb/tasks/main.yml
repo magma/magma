@@ -13,7 +13,12 @@
 ################################################################################
 
 - name: Enable IP forwarding
-  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
 
 - name: Set a convenience function for disabling TCP checksumming for traffic test
   lineinfile:
@@ -51,7 +56,9 @@
     force: yes
 
 - name: Copy preferences file for backports
-  copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
+  copy:
+    src: magma-preferences
+    dest: /etc/apt/preferences.d/magma-preferences
 
 - name: Change network settings
   ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_network_ubuntu.sh
@@ -61,7 +68,9 @@
     reboot_timeout: 180
 
 - name: Install magma
-  ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu_vm.sh
+  ansible.builtin.shell: |
+    export MAGMA_PACKAGE="{{ MAGMA_PACKAGE }}"
+    sudo -E bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu_vm.sh
 
 - name: Copy ssh configuration
   copy:
@@ -91,6 +100,16 @@
 
 - name: Create test certificates directory
   file:
+    path: /home/vagrant/magma/.cache/test_certs
+    state: directory
+
+- name: Generate the cloud VM's certs if they are not already generated
+  command: '/home/vagrant/magma/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca /home/vagrant/magma/.cache/test_certs'
+  args:
+    creates: '/home/vagrant/magma/.cache/test_certs/rootCA.pem'
+
+- name: Create test certificates directory
+  file:
     path: /var/opt/magma/certs/
     state: directory
     recurse: yes
@@ -103,7 +122,6 @@
   with_items:
     - .key
     - .pem
-    - .srl
 
 - name: Override pipelined and sessiond production configuration
   file:
@@ -124,9 +142,6 @@
   loop:
     - templates/mme.conf.template
     - gateway.mconfig
-
-- name: Clear existing service files
-  shell: rm -f /etc/systemd/system/magma*
 
 - name: Override production service configurations with test configurations
   copy:
@@ -153,6 +168,9 @@
     - { src: 'orc8r/tools/ansible/roles/fluent_bit/files/magma_td-agent-bit.service', dest: 'magma@td-agent-bit.service' }
     - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_dp_envoy.service', dest: 'magma_dp@envoy.service' }
 
-- name: Reboot the machine (Wait for 180s)
-  ansible.builtin.reboot:
-    reboot_timeout: 180
+- name: link python ipv6 config script that is only used for tests and not deployed
+  file:
+    src: /home/vagrant/magma/lte/gateway/python/scripts/config_iface_for_ipv6.py
+    dest: /usr/local/bin/config_iface_for_ipv6.py
+    state: link
+    force: yes

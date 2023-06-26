@@ -22,9 +22,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 /**
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway
@@ -43,7 +46,3 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* air_p);
  * Federation Gateway, if S6a Relay is enabled by mconfig
  */
 bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
-
-#ifdef __cplusplus
-}
-#endif

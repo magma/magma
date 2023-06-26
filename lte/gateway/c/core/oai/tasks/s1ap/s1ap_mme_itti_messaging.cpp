@@ -21,24 +21,29 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_itti_messaging.hpp"
 #include "S1ap_CauseRadioNetwork.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/nas/as_message.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
+
+namespace magma {
+namespace lte {
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
@@ -71,8 +76,9 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
   MessageDef* message_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.get(ue_id, &imsi64);
 
   OAILOG_INFO_UE(
       LOG_S1AP, imsi64,
@@ -114,8 +120,10 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  imsi_map->mme_ueid2imsi_map.get(ue_id, &imsi64);
+  magma::proto_map_uint32_uint64_t ueid_imsi_map;
+  get_s1ap_ueid_imsi_map(&ueid_imsi_map);
+  ueid_imsi_map.get(ue_id, &imsi64);
+
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64,
@@ -368,7 +376,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
 
 status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const s1ap_handover_state_t handover_state,
+    const oai::S1apHandoverState handover_state,
     const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
     const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
     imsi64_t imsi64) {
@@ -380,14 +388,29 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   }
 
   S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
-  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id = handover_state.target_enb_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id =
+      handover_state.target_enb_id();
   S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id = target_sctp_assoc_id;
   S1AP_HANDOVER_NOTIFY(message_p).ecgi = ecgi;
   S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = target_enb_ue_s1ap_id;
-  S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list =
-      handover_state.e_rab_admitted_list;
+  e_rab_admitted_list_t* e_rab_admitted_list =
+      &S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list;
+  e_rab_admitted_list->no_of_items =
+      handover_state.e_rab_admitted_list().no_of_items();
+  for (uint8_t idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
+    const oai::ERabAdmittedItem& proto_e_rab_item =
+        handover_state.e_rab_admitted_list().item(idx);
+    e_rab_admitted_list->item[idx].e_rab_id = proto_e_rab_item.e_rab_id();
+    e_rab_admitted_list->item[idx].transport_layer_address =
+        blk2bstr(proto_e_rab_item.transport_layer_address().c_str(),
+                 proto_e_rab_item.transport_layer_address().length());
+    e_rab_admitted_list->item[idx].gtp_teid = proto_e_rab_item.gtp_teid();
+  }
 
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
+
+}  // namespace lte
+}  // namespace magma

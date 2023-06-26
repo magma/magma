@@ -1,0 +1,193 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Generate code coverage for AGW components
+# remediation: -
+
+name: AGW Generate Coverage
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - '.github/workflows/agw-coverage.yml'
+              - 'orc8r/**'
+              - 'lte/**'
+              - '.bazelrc'
+              - 'WORKSPACE.bazel'
+              - 'bazel/**'
+
+  c-cpp-codecov:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: C / C++ code coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Setup Bazel Docker Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel docker image!"
+            bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
+      - name: Run C/C++ coverage with Bazel
+        if: always()
+        id: bazel-cc-codecoverage
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
+            bazel coverage \
+              --profile=Bazel_test_cc_coverage_profile \
+              //orc8r/gateway/c/...:* //lte/gateway/c/...:*
+            # copy out coverage information into magma so that it's accessible from the CI node
+            cp bazel-out/_coverage/_coverage_report.dat .
+      - name: Upload code coverage
+        if: always()
+        id: c-cpp-codecov-upload
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        with:
+          flags: c_cpp
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: |
+          always() &&
+          github.repository_owner == 'magma' &&
+          github.ref_name == 'master'
+        with:
+          name: Bazel test C and C++ coverage profile
+          path: Bazel_test_cc_coverage_profile
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify Bazel C/C++ coverage failure to slack
+        if: |
+          failure() &&
+          (steps.bazel-cc-codecoverage.conclusion == 'failure' ||
+          steps.c-cpp-codecov-upload.outcome == 'failure') &&
+          github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "C / C++ code coverage with Bazel"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  python-codecov:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Python code coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Setup Bazel Docker Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel docker image!"
+            bazel # pull down bazel, if bazel download fails we can fail before we do all the lengthy work below
+      - name: Run Python coverage with Bazel
+        if: always()
+        id: bazel-python-codecoverage
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            # Collecting coverage with Bazel can be slow. We can follow this thread to see if this can be improved: https://github.com/bazelbuild/bazel/issues/8178
+            bazel coverage \
+              --profile=Bazel_test_python_coverage_profile \
+              //orc8r/gateway/python/...:* //lte/gateway/python/...:*
+            # copy out coverage information into magma so that it's accessible from the CI node
+            cp bazel-out/_coverage/_coverage_report.dat .
+      - name: Upload code coverage
+        if: always()
+        id: python-codecov-upload
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        with:
+          flags: lte-test
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: |
+          always() &&
+          github.repository_owner == 'magma' &&
+          github.ref_name == 'master'
+        with:
+          name: Bazel test python coverage profile
+          path: Bazel_test_python_coverage_profile
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify Bazel Python coverage failure to slack
+        if: |
+          failure() &&
+          (steps.bazel-python-codecoverage.conclusion == 'failure' ||
+          steps.python-codecov-upload.outcome == 'failure') &&
+          github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Python code coverage with Bazel"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit

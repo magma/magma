@@ -15,22 +15,24 @@ package coafixedip
 
 import (
 	"context"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"fmt"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 func TestCoaFixed(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, _ := zap.NewDevelopment()
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"target": fmt.Sprintf("127.0.0.1:%d", 4799),
+		"target": fmt.Sprintf("127.0.0.1:%d", port),
 	})
 	require.Nil(t, err)
 
@@ -45,19 +47,16 @@ func TestCoaFixed(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-	}
-	fmt.Println("Server listenning")
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	res, err := Handle(

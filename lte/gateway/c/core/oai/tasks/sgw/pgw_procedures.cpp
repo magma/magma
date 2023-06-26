@@ -27,13 +27,8 @@
 #include <stdlib.h>
 
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#ifdef __cplusplus
-}
-#endif
 
 //------------------------------------------------------------------------------
 void delete_pending_procedures(
@@ -53,30 +48,26 @@ void delete_pending_procedures(
       base_proc1 = base_proc2;
     }
     LIST_INIT(ctx_p->pending_procedures);
-    free_wrapper((void**)&ctx_p->pending_procedures);
+    free_cpp_wrapper(reinterpret_cast<void**>(&ctx_p->pending_procedures));
   }
 }
 //------------------------------------------------------------------------------
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* ctx_p) {
-  pgw_ni_cbr_proc_t* s11_proc_create_bearer =
-      reinterpret_cast<pgw_ni_cbr_proc_t*>(
-          calloc(1, sizeof(pgw_ni_cbr_proc_t)));
+  pgw_ni_cbr_proc_t* s11_proc_create_bearer = new pgw_ni_cbr_proc_t();
   s11_proc_create_bearer->proc.type =
       PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST;
   pgw_base_proc_t* base_proc = (pgw_base_proc_t*)s11_proc_create_bearer;
 
   if (!ctx_p->pending_procedures) {
     ctx_p->pending_procedures =
-        (sgw_eps_bearer_context_information_s::pending_procedures_s*)calloc(
-            1, sizeof(ctx_p->pending_procedures));
+        new sgw_eps_bearer_context_information_s::pending_procedures_s();
     LIST_INIT(ctx_p->pending_procedures);
   }
   LIST_INSERT_HEAD((ctx_p->pending_procedures), base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
-      (pgw_ni_cbr_proc_s::pending_eps_bearers_s*)calloc(
-          1, sizeof(s11_proc_create_bearer->pending_eps_bearers));
+      new pgw_ni_cbr_proc_s::pending_eps_bearers_s();
   LIST_INIT(s11_proc_create_bearer->pending_eps_bearers);
 
   return s11_proc_create_bearer;
@@ -98,24 +89,6 @@ pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
   return NULL;
 }
 //------------------------------------------------------------------------------
-void pgw_delete_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* const ctx_p) {
-  if (ctx_p->sgw_eps_bearer_context_information.pending_procedures) {
-    pgw_base_proc_t* base_proc = NULL;
-
-    LIST_FOREACH(base_proc,
-                 ctx_p->sgw_eps_bearer_context_information.pending_procedures,
-                 entries) {
-      if (PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST ==
-          base_proc->type) {
-        LIST_REMOVE(base_proc, entries);
-        pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&base_proc);
-        return;
-      }
-    }
-  }
-}
-//------------------------------------------------------------------------------
 void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
   if (*ni_cbr_proc && (*ni_cbr_proc)->pending_eps_bearers) {
     sgw_eps_bearer_entry_wrapper_t* eps_bearer_entry_wrapper = NULL;
@@ -127,14 +100,16 @@ void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
           free_wrapper((void**)&eps_bearer_entry_wrapper->sgw_eps_bearer_entry
                            ->pgw_cp_ip_port);
         }
-        free_wrapper((void**)&eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
-        free_wrapper((void**)&eps_bearer_entry_wrapper);
+        free_cpp_wrapper(reinterpret_cast<void**>(
+            &eps_bearer_entry_wrapper->sgw_eps_bearer_entry));
+        free_cpp_wrapper(reinterpret_cast<void**>(&eps_bearer_entry_wrapper));
         if (LIST_EMPTY((*ni_cbr_proc)->pending_eps_bearers)) {
-          free_wrapper((void**)&(*ni_cbr_proc)->pending_eps_bearers);
+          free_cpp_wrapper(
+              reinterpret_cast<void**>(&(*ni_cbr_proc)->pending_eps_bearers));
           break;
         }
       }
     }
   }
-  free_wrapper((void**)ni_cbr_proc);
+  free_cpp_wrapper(reinterpret_cast<void**>(ni_cbr_proc));
 }

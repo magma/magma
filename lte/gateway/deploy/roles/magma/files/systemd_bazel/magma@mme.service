@@ -21,7 +21,7 @@ Requires=sctpd.service
 After=sctpd.service
 
 [Service]
-Type=simple
+Type=notify
 EnvironmentFile=/etc/environment
 ExecStart=/home/vagrant/magma/bazel-bin/lte/gateway/c/core/agw_of -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
 MemoryAccounting=yes

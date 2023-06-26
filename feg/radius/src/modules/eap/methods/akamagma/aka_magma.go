@@ -24,12 +24,12 @@ import (
 	"fbc/cwf/radius/modules/eap/packet"
 	aaa "fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // EapAkaMagmaMethod Implementation ofthe EAP-AKA method impl with Magma binding
@@ -107,10 +107,10 @@ func (m EapAkaMagmaMethod) Handle(
 			MacAddr:   clientMac,
 			Apn:       apn,
 		}
-		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", eapContext))
+		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", &eapContext))
 	} else {
 		eapContext.SessionId = sessionID // Always get the session id from RADIUS
-		eapLogger.Debug("EAP state unmarshaled successfully", zap.Any("state", eapContext))
+		eapLogger.Debug("EAP state unmarshaled successfully", zap.Any("state", &eapContext))
 		UnmarshalProtocolState.Success()
 
 		// Verify & warn if MAC address was already set on session but now changed
@@ -189,7 +189,7 @@ func (m EapAkaMagmaMethod) Handle(
 		result.ExtraAttributes = radius.Attributes{}
 
 		// Add MPPE keys
-		keyingMaterialAttrs, err := common.GetKeyingAttributes(
+		result.ExtraAttributes, err = common.GetKeyingAttributes(
 			postHandlerContext.GetMsk(),
 			radiusSecret,
 			radiusReqAuthenticator,
@@ -197,13 +197,12 @@ func (m EapAkaMagmaMethod) Handle(
 		if err != nil {
 			return nil, err
 		}
-		result.ExtraAttributes[rfc2865.VendorSpecific_Type] = keyingMaterialAttrs
 
 		// Add User-Name attribute, which is mandatory
-		result.ExtraAttributes[rfc2865.UserName_Type] =
-			[]radius.Attribute{
-				radius.Attribute(postHandlerContext.Identity),
-			}
+		result.ExtraAttributes.Add(
+			rfc2865.UserName_Type,
+			radius.Attribute(postHandlerContext.Identity),
+		)
 	}
 	return result, nil
 }

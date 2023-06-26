@@ -14,15 +14,17 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <iostream>
 
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
+
+#include <iostream>
+
 #include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sgs_service_handler.hpp"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/sgs_service_handler.h"
 
 namespace grpc {
 class ServerContext;

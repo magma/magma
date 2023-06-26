@@ -11,9 +11,12 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <iostream>
+
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 namespace magma5g {
 // api to mock handling s6a_update_location_ans

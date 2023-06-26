@@ -216,7 +216,7 @@ async def download_update(
         docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
                            "$DOCKER_REGISTRY"
         await run_command(docker_login_cmd, shell=True, check=True)
-    docker_pull_cmd = "IMAGE_VERSION={} docker-compose --project-directory " \
+    docker_pull_cmd = "IMAGE_VERSION={} docker compose --compatibility --project-directory " \
                       "/var/opt/magma/docker -f " \
                       "/var/opt/magma/docker/docker-compose.yml pull -q".\
         format(target_version)

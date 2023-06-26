@@ -107,9 +107,9 @@ def cpp_repositories():
     new_git_repository(
         name = "liblfds",
         build_file = "//bazel/external:liblfds.BUILD",
-        commit = "b813a0e546ed54e54b3873bdf180cf885c39bbca",
-        remote = "https://github.com/liblfds/liblfds.git",
-        shallow_since = "1464682027 +0300",
+        commit = "b36a48014574225723779c7e1e9fb8cb6fa8f7f4",
+        remote = "https://liblfds.org/git/liblfds",
+        shallow_since = "1657356839 +0000",
     )
 
     new_git_repository(

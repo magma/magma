@@ -27,10 +27,10 @@ func TestBasicSessionStorageInsertGet(t *testing.T) {
 	storage := NewSessionStorage(NewMultiSessionMemoryStorage(), sessionID)
 
 	// Act and Assert
-	performSignleSessionStorageTest(t, storage, sessionID)
+	performSingleSessionStorageTest(t, storage, sessionID)
 }
 
-func performSignleSessionStorageTest(t *testing.T, storage Storage, sessionID string) {
+func performSingleSessionStorageTest(t *testing.T, storage Storage, sessionID string) {
 	// Arrange
 	msisdn := fmt.Sprintf("+%d", rand.Intn(999999))
 

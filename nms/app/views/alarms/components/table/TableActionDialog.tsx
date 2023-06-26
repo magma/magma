@@ -68,7 +68,7 @@ export default function TableActionDialog<TRow>(props: Props<TRow>) {
         {additionalContent}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button variant="outlined" onClick={onClose} color="primary">
           {showDeleteButton ? 'Cancel' : 'Close'}
         </Button>
         {showCopyButton && (

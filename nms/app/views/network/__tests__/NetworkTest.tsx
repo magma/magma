@@ -529,6 +529,7 @@ describe('<NetworkDashboard />', () => {
         config: {
           cloud_subscriberdb_enabled: false,
           default_rule_id: 'default_rule_1',
+          enable5g_features: false,
           lte_auth_amf: 'gAA=',
           lte_auth_op: 'EREREREREREREREREREREQ==',
           mcc: '003',

@@ -25,6 +25,7 @@ executes a Python test. The wrapper is used for
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "PyInfo", "py_test")
+load("//bazel:test_constants.bzl", "TAG_INTEGRATION_TEST", "TAG_SUDO_TEST")
 
 CONTENT_PYTEST_RUNNER = """
 import sys
@@ -93,8 +94,28 @@ _pytest_runner = rule(
     },
 )
 
-def pytest_test(name, srcs, size, deps = [], args = [], data = [], imports = [], python_version = None, **kwargs):
+def pytest_test(name, srcs, size, deps = [], args = [], data = [], imports = [], python_version = None, tags = [], **kwargs):
+    """Function description.
+
+    Args:
+        name: unique name for the bazel test target.
+        srcs: list of source files that are processed to create the target.
+        size: specifies a test target's "heaviness": how much time/resources it needs to run.
+        deps: list of the dependencies of the bazel test target.
+        args: command line arguments that bazel passes to the target when it is executed with bazel test.
+        data: list of files that are needed by the py_test rule at runtime.
+        imports: list of import directories to be added to the PYTHONPATH.
+        python_version: whether to build this target (and its transitive deps) for Python 2 or Python 3.
+        tags: list of strings that are used to tag the test.
+        **kwargs: other keyword arguments that are not processed here, but will be passed on.
+    """
     runner_target = "%s-runner.py" % name
+
+    # If a test that requires root privileges is executed, then an extra source
+    # file is added, which will make the test fail and include a helpful
+    # error message if the current user id is not zero.
+    if TAG_SUDO_TEST[0] in tags or TAG_INTEGRATION_TEST[0] in tags:
+        srcs = srcs + ["//bazel/python_utils:conftest"]
 
     _pytest_runner(
         name = runner_target,
@@ -115,5 +136,6 @@ def pytest_test(name, srcs, size, deps = [], args = [], data = [], imports = [],
         legacy_create_init = False,
         imports = imports + ["."],
         size = size,
+        tags = tags,
         **kwargs
     )

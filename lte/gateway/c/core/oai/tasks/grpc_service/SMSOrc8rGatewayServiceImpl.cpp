@@ -14,16 +14,19 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <iostream>
 
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+
+#include <iostream>
+
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sms_orc8r_service_handler.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/sms_orc8r_service_handler.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+}
 
 namespace grpc {
 class ServerContext;
@@ -36,7 +39,6 @@ namespace orc8r {
 class Void;
 }  // namespace orc8r
 }  // namespace magma
-}
 
 using grpc::ServerContext;
 

@@ -1,8 +1,8 @@
 find_package(Protobuf REQUIRED)
 
 add_library(TASK_SMS_ORC8R
-    sms_orc8r_task.c
-    sms_orc8r_service_handler.c
+    sms_orc8r_task.cpp
+    sms_orc8r_service_handler.cpp
     )
 
 target_link_libraries(TASK_SMS_ORC8R

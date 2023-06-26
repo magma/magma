@@ -45,10 +45,6 @@
                 },
                 "modules": [
                     {
-                        "name": "adaptruckus",
-                        "config": {}
-                    },
-                    {
                         "name": "coadynamic",
                         "config": {
                             "Port": 3799

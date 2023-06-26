@@ -13,7 +13,7 @@
 
 import {isEqual, sortBy} from 'lodash';
 
-import OrchestartorAPI from '../api/OrchestratorAPI';
+import OrchestratorAPI from '../api/OrchestratorAPI';
 import Sequelize from 'sequelize';
 import logging from '../../shared/logging';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
@@ -392,7 +392,7 @@ export async function syncTenants(): Promise<{
   const completedTasks: Array<Task> = [];
   const tenantMap: Record<string, Tenant> = {};
   try {
-    const orc8rTenants = (await OrchestartorAPI.tenants.tenantsGet()).data;
+    const orc8rTenants = (await OrchestratorAPI.tenants.tenantsGet()).data;
     orc8rTenants.forEach(tenant => {
       tenantMap[tenant.id] = tenant;
     });
@@ -418,7 +418,7 @@ export async function syncTenants(): Promise<{
     try {
       // Update if tenant exists but is not equal to NMS Org
       if (orc8rTenant && !organizationsEqual(org, orc8rTenant)) {
-        await OrchestartorAPI.tenants.tenantsTenantIdPut({
+        await OrchestratorAPI.tenants.tenantsTenantIdPut({
           tenant: {id: org.id, name: org.name, networks: org.networkIDs},
           tenantId: org.id,
         });
@@ -429,7 +429,7 @@ export async function syncTenants(): Promise<{
         });
       } else if (!orc8rTenant) {
         // Create new orc8r tenant if it didn't exist before
-        await OrchestartorAPI.tenants.tenantsPost({
+        await OrchestratorAPI.tenants.tenantsPost({
           tenant: {id: org.id, name: org.name, networks: org.networkIDs},
         });
         completedTasks.push({
@@ -627,7 +627,7 @@ async function hasNetworkOfType(
   for (const networkId of networks) {
     try {
       const networkInfo = (
-        await OrchestartorAPI.networks.networksNetworkIdGet({
+        await OrchestratorAPI.networks.networksNetworkIdGet({
           networkId,
         })
       ).data;

@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
     - name: Set env
       shell: bash
@@ -32,7 +32,7 @@ runs:
         echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
 
     - name: Install Minikube
-      uses: manusa/actions-setup-minikube@cdef63c020a1c7b3d4787f30b3787ca1095ed9a7 # pin@v2.4.1
+      uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9 # pin@v2.7.1
       with:
         minikube version: 'v1.21.0'
         kubernetes version: 'v1.20.7'

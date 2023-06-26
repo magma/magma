@@ -1,3 +1,14 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
@@ -6,6 +17,9 @@ FROM ubuntu:focal as bazel_builder
 ARG DEB_PORT=amd64
 
 ARG PYTHON_VERSION=3.8
+
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
 ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -19,7 +33,6 @@ RUN echo "Install general purpose packages" && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
         apt-utils \
-        # dependencies of FreeDiameter
         bison \
         build-essential \
         ca-certificates \
@@ -29,39 +42,30 @@ RUN echo "Install general purpose packages" && \
         git \
         gnupg2 \
         g++ \
-        # dependency of mobilityd (tests)
-        iproute2 \
-        # dependency of python services (e.g. magmad)
-        iputils-ping \
+        iproute2 `# dependency of mobilityd (tests)` \
+        iputils-ping `# dependency of python services (e.g. magmad)` \
         flex \
         libconfig-dev \
-        # dependency of @sentry_native//:sentry
-        libcurl4-openssl-dev \
-        # dependencies of oai/mme
+        libcurl4-openssl-dev `# dependency of @sentry_native//:sentry` \
         libczmq-dev \
         libgcrypt-dev \
         libgmp3-dev \
         libidn11-dev \
         libsctp1 \
         libsqlite3-dev \
-        # dependency of sctpd
-        libsctp-dev \
+        libsctp-dev `# dependency of sctpd` \
         libssl-dev \
-        # dependency of pip systemd
-        libsystemd-dev \
-        lld \
-        # dependency of python services (e.g. magmad)
-        net-tools \
-        # dependency of python services (e.g. pipelined)
-        netbase \
+        libsystemd-dev `# dependency of pip systemd` \
+        lld-12 \
+        net-tools `# dependency of python services (e.g. magmad)` \
+        netbase `# dependency of python services (e.g. pipelined)` \
         python${PYTHON_VERSION} \
         python-is-python3 \
+        python3-distutils `# dependency of bazel pip_parse rule` \
         software-properties-common \
-        # dependency of python services (e.g. magmad)
-        systemd \
+        systemd `# dependency of python services (e.g. magmad)` \
         unzip \
-        # dependency of liagent
-        uuid-dev \
+        uuid-dev `# dependency of liagent` \
         vim \
         wget \
         zip
@@ -82,39 +86,15 @@ RUN apt-get install -y --no-install-recommends \
         libpcap-dev=1.9.1-3 \
         libmnl-dev=1.0.4-2
 
-## Install Fmt (Folly Dep)
-RUN git clone https://github.com/fmtlib/fmt.git && \
-    cd fmt && \
-    mkdir _build && \
-    cd _build && \
-    cmake -DBUILD_SHARED_LIBS=ON -DFMT_TEST=0 .. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && \
-    rm -rf fmt
-
-# Facebook Folly C++ lib
-# Note: "Because folly does not provide any ABI compatibility guarantees from
-#        commit to commit, we generally recommend building folly as a static library."
-# Here we checkout the hash for v2021.02.22.00 (arbitrary recent version)
-RUN git clone --depth 1 --branch v2021.02.15.00 https://github.com/facebook/folly && \
-    cd /folly && \
-    mkdir _build && \
-    cd _build && \
-    cmake -DBUILD_SHARED_LIBS=ON .. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && \
-    rm -rf folly
-
 # setup magma artifactories and install magma dependencies
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add - && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' && \
-    add-apt-repository 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-1.7.0 main' && \
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \
+        libfolly-dev \
         liblfds710 \
+        magma-libfluid \
         oai-asn1c \
         oai-gnutls \
         oai-nettle \
@@ -131,5 +111,8 @@ RUN ldconfig -v
 
 RUN ln -s /workspaces/magma/.bazel-cache /var/cache/bazel-cache
 RUN ln -s /workspaces/magma/.bazel-cache-repo /var/cache/bazel-cache-repo
+
+# Convenience alias to build AGW services
+RUN echo 'alias magma-build-agw="bazel build //... --build_tag_filters=service,util_script,-mme_oai"' >> ~/.bashrc
 
 WORKDIR /workspaces/magma

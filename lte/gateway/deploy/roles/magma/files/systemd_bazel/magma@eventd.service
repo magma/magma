@@ -15,7 +15,6 @@ Description=Magma eventd service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStartPre=/usr/sbin/ntpdate pool.ntp.org
 ExecStart=/home/vagrant/magma/bazel-bin/orc8r/gateway/python/magma/eventd/eventd
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py eventd
 StandardOutput=syslog

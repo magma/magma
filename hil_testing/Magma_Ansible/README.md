@@ -3,7 +3,8 @@
 This set of roles and playbook should be use and expanded to automate SUT operations
 
 Supported operations:
-   - upgrade SUT with latest sw version
+
+- upgrade SUT with latest sw version
 
 ## How to
 

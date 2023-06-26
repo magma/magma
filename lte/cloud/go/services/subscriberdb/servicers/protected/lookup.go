@@ -33,8 +33,9 @@ import (
 // MSISDN is stored as a blobstore table, MSISDN -> IMSI.
 //
 // IP is stored as a SQL table with two string columns:
-//	- IP
-//	- IMSI.APN
+//   - IP
+//   - IMSI.APN
+//
 // Each subscriber should have at most one IP per APN, so the IP+IMSI+APN
 // triplet is enforced to be unique.
 type lookupServicer struct {

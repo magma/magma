@@ -27,12 +27,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install for a pass-all dynamic rule and 250KB of
-//   quota.
-//   Trigger a authentication and assert the CCR-I is received.
-//   Wait for the Idle Timer to kick off and trigger a disconnect
-//   The Idle Timer length is set in AAA_service's mconfig
+//   - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install for a pass-all dynamic rule and 250KB of
+//     quota.
+//     Trigger a authentication and assert the CCR-I is received.
+//     Wait for the Idle Timer to kick off and trigger a disconnect
+//     The Idle Timer length is set in AAA_service's mconfig
 func TestIdleTimer(t *testing.T) {
 	fmt.Println("\nRunning TestIdleTimer...")
 	tr := NewTestRunner(t)

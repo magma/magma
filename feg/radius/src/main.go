@@ -65,7 +65,7 @@ func main() {
 	flag.Parse()
 
 	// Get a simple stdout logger
-	logger, err := createLogger(logEncoding)
+	logger, _ := createLogger(logEncoding)
 
 	config, err := config.Read(configFilename)
 	if err != nil {
@@ -144,7 +144,7 @@ func getHostIdentifier() string {
 		return macs[0]
 	}
 
-	// Just a random, unstable identifer
+	// Just a random, unstable identifier
 	return fmt.Sprintf("random:%d", rand.Intn(9999999))
 }
 

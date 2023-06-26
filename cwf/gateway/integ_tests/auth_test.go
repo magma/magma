@@ -54,9 +54,9 @@ func TestAuthenticateMultipleUEs(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-// - Initialize 2 UEs and initiate Authentication using diffrent APs.
-//   Assert that it is successful.
-// - Disconnect all UEs.
+//   - Initialize 2 UEs and initiate Authentication using different APs.
+//     Assert that it is successful.
+//   - Disconnect all UEs.
 func TestAuthenticateWithDifferentAPs(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateWithDifferentAPs...")
 	tr := NewTestRunner(t)
@@ -76,13 +76,13 @@ func TestAuthenticateWithDifferentAPs(t *testing.T) {
 	time.Sleep(1 * time.Second)
 }
 
-// - Expect a Gx CCR-I to come into PCRF, and return with Authentication Reject.
-// - Configure a UE and trigger an authentication. Assert that the expectation was
-//   met, and the authentication failed.
-// - Expect a Gx CCR-I to come into PCRF, and return with Success. Expect a Gy
-//   CCR-I to come into OCS, and return with Authentication Reject.
-// - Trigger an authentication. Assert that all expectations were met, and the
-//   authentication failed.
+//   - Expect a Gx CCR-I to come into PCRF, and return with Authentication Reject.
+//   - Configure a UE and trigger an authentication. Assert that the expectation was
+//     met, and the authentication failed.
+//   - Expect a Gx CCR-I to come into PCRF, and return with Success. Expect a Gy
+//     CCR-I to come into OCS, and return with Authentication Reject.
+//   - Trigger an authentication. Assert that all expectations were met, and the
+//     authentication failed.
 func TestAuthenticateFail(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateFail...")
 	tr := NewTestRunner(t)
@@ -137,11 +137,11 @@ func TestAuthenticateFail(t *testing.T) {
 	tr.AssertPolicyEnforcementRecordIsNil(imsi)
 }
 
-// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install for a pass-all dynamic rule and 250KB of
-//   quota.
-//   Trigger a authentication and assert the CCR-I is received.
-// - Generate traffic to put traffic through the newly installed rule.
+//   - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install for a pass-all dynamic rule and 250KB of
+//     quota.
+//     Trigger a authentication and assert the CCR-I is received.
+//   - Generate traffic to put traffic through the newly installed rule.
 func TestAuthenticateUplinkTraffic(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateUplinkTraffic...")
 	tr := NewTestRunner(t)
@@ -184,15 +184,15 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
-// - Authenticate a UE through a first AP then switch to use a second AP
-// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install for a pass-all dynamic rule and 250KB of quota.
-// - Trigger UE authentications through AP1 and generate traffic to  put it
-//   through the newly installed rule.
-// - Trigger UE authentications through AP2 and assert that
-//   only one CCR-I is received. Sessiond must re-use the same session
-//   during the handover.
-// - Generate traffic to put traffic through the newly installed rule.
+//   - Authenticate a UE through a first AP then switch to use a second AP
+//   - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//     respond with a rule install for a pass-all dynamic rule and 250KB of quota.
+//   - Trigger UE authentications through AP1 and generate traffic to  put it
+//     through the newly installed rule.
+//   - Trigger UE authentications through AP2 and assert that
+//     only one CCR-I is received. Sessiond must re-use the same session
+//     during the handover.
+//   - Generate traffic to put traffic through the newly installed rule.
 func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateMultipleAPsUplinkTraffic...")
 	tr := NewTestRunner(t)

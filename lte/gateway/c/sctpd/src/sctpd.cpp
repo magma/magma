@@ -13,6 +13,7 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
+#include <systemd/sd-daemon.h>
 #include <bits/types/siginfo_t.h>
 #include <glog/logging.h>
 #include <grpcpp/grpcpp.h>
@@ -139,6 +140,8 @@ int main() {
   builder.RegisterService(&service);
 
   std::unique_ptr<Server> sctpd_dl_server = builder.BuildAndStart();
+
+  sd_notify(0, "READY=1");
 
   int end = 0;
   while (end == 0) {

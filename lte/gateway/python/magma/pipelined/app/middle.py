@@ -16,11 +16,11 @@ from collections import namedtuple
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import PASSTHROUGH_REG_VAL, Direction
-from magma.pipelined.utils import get_virtual_iface_mac
 from magma.pipelined.vlan_utils import get_vlan_egress_flow_msgs
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -67,7 +67,7 @@ class MiddleController(RestartMixin, MagmaController):
             self._mtr_service_enabled = True
             mtr_ip = config_dict['mtr_ip']
             mtr_port = config_dict['ovs_mtr_port_number']
-            mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
+            mtr_mac = get_mac_address_from_iface(config_dict['mtr_interface'])
         else:
             mtr_ip = None
             mtr_mac = None

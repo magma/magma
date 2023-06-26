@@ -127,7 +127,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load federation gateway: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to load federation gateway: %v", err))
 	}
 
 	ret := &fegModels.FederationGateway{
@@ -217,14 +217,14 @@ func getClusterStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if network.Type != feg.FederationNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, feg.FederationNetworkType))
 	}
 	activeGw, err := health.GetActiveGateway(reqCtx, nid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	ret := &fegModels.FederationNetworkClusterStatus{
 		ActiveGateway: activeGw,
@@ -244,11 +244,11 @@ func getHealthStatusHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	res, err := health.GetHealth(reqCtx, nid, gid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, fegModels.ToFederationGatewayHealthStatusModel(res))
 }
@@ -257,5 +257,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 }

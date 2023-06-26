@@ -15,15 +15,16 @@ package lballocate
 
 import (
 	"errors"
+	"math/rand"
+	"time"
+
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"math/rand"
-	"time"
 
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 const errRequiredTierNotSpecifiedText = "required Tier or DefaultTier not specified"
@@ -45,6 +46,7 @@ var tierRoutings map[string]map[string]string
 var serviceTiers map[string][]string
 
 // Init module interface implementation
+//
 //nolint:unparam
 func Init(c *config.ServerConfig) error {
 	lbConfig = &c.LoadBalance

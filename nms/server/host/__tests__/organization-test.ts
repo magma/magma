@@ -11,12 +11,24 @@
  * limitations under the License.
  */
 
+import OrchestratorAPI from '../../api/OrchestratorAPI';
 import appMiddleware from '../../middleware/appMiddleware';
 import express from 'express';
 import request from 'supertest';
 import router from '../routes';
 import {AccessRoles} from '../../../shared/roles';
 import {Organization, User} from '../../../shared/sequelize_models';
+
+jest.mock('../../api/OrchestratorAPI', () => ({
+  tenants: {
+    tenantsTenantIdDelete: jest.fn(),
+    tenantsTenantIdGet: jest.fn(),
+    tenantsTenantIdPut: jest.fn(),
+    tenantsPost: jest.fn(),
+  },
+}));
+
+const newNetworks = ['aaa', 'bbb', 'ccc'];
 
 describe('Organization routes', () => {
   const app = express().use(appMiddleware()).use('', router);
@@ -40,11 +52,18 @@ describe('Organization routes', () => {
     });
   }
 
-  it('a new organization can be created', async () => {
+  it('a new organization can be created in NMS and orc8r', async () => {
     const orgName = 'new-org';
 
     let newOrganization = await Organization.findOne({where: {name: orgName}});
     expect(newOrganization).toBeNull();
+
+    // Tenant does not exist in orc8r yet
+    const mockedTenantIdGet = OrchestratorAPI.tenants
+      .tenantsTenantIdGet as jest.Mock<any>;
+    mockedTenantIdGet.mockImplementation(() =>
+      Promise.reject({isAxiosError: true, response: {status: 404}}),
+    );
 
     await request(app)
       .post('/organization/async')
@@ -56,22 +75,74 @@ describe('Organization routes', () => {
     expect(newOrganization).not.toBeNull();
     expect(newOrganization!.name).toBe(orgName);
     expect(newOrganization!.networkIDs).toEqual(['test']);
+    expect(OrchestratorAPI.tenants.tenantsPost).toBeCalledWith({
+      tenant: {
+        id: newOrganization?.id,
+        name: newOrganization?.name,
+        networks: newOrganization?.networkIDs,
+      },
+    });
   });
 
-  it('an organization can updated', async () => {
+  it('an existing organization can updated in NMS and orc8r', async () => {
     const organization = await Organization.create({name: 'test'});
     expect(organization.networkIDs).toEqual([]);
 
+    // Tenant already exists in orc8r
+    const mockedTenantIdGet = OrchestratorAPI.tenants
+      .tenantsTenantIdGet as jest.Mock<any>;
+    mockedTenantIdGet.mockImplementation(() =>
+      Promise.resolve({data: {id: organization.id}}),
+    );
+
     await request(app)
       .put(`/organization/async/${organization.name}`)
-      .send({name: 'test', networkIDs: ['aaa', 'bbb', 'ccc']})
+      .send({name: 'test', networkIDs: newNetworks})
       .expect(200);
 
     const updatedOrganization = await Organization.findOne({
       where: {id: organization.id},
     });
 
-    expect(updatedOrganization!.networkIDs).toEqual(['aaa', 'bbb', 'ccc']);
+    expect(updatedOrganization!.networkIDs).toEqual(newNetworks);
+    expect(OrchestratorAPI.tenants.tenantsTenantIdPut).toBeCalledWith({
+      tenant: {
+        id: organization.id,
+        name: organization.name,
+        networks: newNetworks,
+      },
+      tenantId: organization.id,
+    });
+  });
+
+  it('updating an organization in NMS creates it in orc8r if it does not exist', async () => {
+    const organization = await Organization.create({name: 'test'});
+    expect(organization.networkIDs).toEqual([]);
+
+    // Tenant does not exist in orc8r yet
+    const mockedTenantIdGet = OrchestratorAPI.tenants
+      .tenantsTenantIdGet as jest.Mock<any>;
+    mockedTenantIdGet.mockImplementation(() =>
+      Promise.reject({isAxiosError: true, response: {status: 404}}),
+    );
+
+    await request(app)
+      .put(`/organization/async/${organization.name}`)
+      .send({name: 'test', networkIDs: newNetworks})
+      .expect(200);
+
+    const updatedOrganization = await Organization.findOne({
+      where: {id: organization.id},
+    });
+
+    expect(updatedOrganization!.networkIDs).toEqual(newNetworks);
+    expect(OrchestratorAPI.tenants.tenantsPost).toBeCalledWith({
+      tenant: {
+        id: organization?.id,
+        name: organization?.name,
+        networks: newNetworks,
+      },
+    });
   });
 
   it('deleting an organization also deletes its users', async () => {
@@ -90,9 +161,15 @@ describe('Organization routes', () => {
     expect(organizations.map(org => org.id)).toEqual([otherOrganization.id]);
     const users = await User.findAll();
     expect(users.map(user => user.email)).toEqual([user3.email]);
+    expect(OrchestratorAPI.tenants.tenantsTenantIdDelete).toBeCalledWith({
+      tenantId: organization.id,
+    });
   });
 
-  it('deleting an unknown organization is a noop', async () => {
+  it('deleting an unknown organization forwards the deletion to orc8r', async () => {
     await request(app).delete(`/organization/async/4711`).expect(200);
+    expect(OrchestratorAPI.tenants.tenantsTenantIdDelete).toBeCalledWith({
+      tenantId: 4711,
+    });
   });
 });

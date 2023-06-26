@@ -19,7 +19,7 @@ buildAgwAmi: ami-0aac5cd08e351ff0f
 buildAgwAmiName: imgMagmaAgw15Delta
 buildAgwVersion: v1.6
 buildAgwPackage: 1.6.0
-packageRepoHost: artifactory.magmacore.org/artifactory/debian
+packageRepoHost: linuxfoundation.jfrog.io/artifactory/magma-packages
 taggedVersion: 1.6.0
 
 #Repo variables

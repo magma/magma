@@ -19,7 +19,6 @@ ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
 
 py_library(
     name = "rpc",
-    testonly = True,
     srcs = ["rpc.py"],
     imports = [ORC8R_ROOT],
     deps = [

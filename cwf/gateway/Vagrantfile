@@ -26,7 +26,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cwag.vbguest.auto_update = false
     cwag.vm.hostname = "cwag-dev"
     cwag.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
-    cwag.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM"
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    cwag.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
     cwag.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
     cwag.ssh.password = "vagrant"
     cwag.ssh.insert_key = true
@@ -37,26 +38,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-    end
-
-    config.vm.provider :libvirt do |domain, override|
-      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash'], mount_options: ['nolock']
-      domain.uri = "qemu+unix:///system"
-      domain.memory = 4096
-      domain.cpus = 4
-      domain.driver = "kvm"
-      domain.host = "localhost"
-      domain.connect_via_ssh = false
-      domain.username = $user
-      domain.storage_pool_name = "default"
-      domain.nic_model_type = "e1000"
-      domain.management_network_name = "magma-mgmt-net"
-      domain.management_network_address = "172.17.2.0/24"
-      domain.nested = true
-      domain.cpu_mode = "host-passthrough"
-      domain.volume_cache = "unsafe"
-      domain.disk_bus = "virtio"
-      domain.graphics_ip = "0.0.0.0"
     end
 
     cwag.vm.provision "ansible" do |ansible|
@@ -80,9 +61,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cwag_centos7.vbguest.auto_update = false
     cwag_centos7.vm.hostname = "cwag-dev-centos7"
     cwag_centos7.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
-    cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM"
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
     cwag_centos7.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
-#    cwag_centos7.ssh.password = "vagrant"
     cwag_centos7.ssh.insert_key = true
 
     cwag_centos7.vm.provider "virtualbox" do |vb|
@@ -109,6 +90,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :cwag_test, primary: true do |cwag_test|
     cwag_test.vm.box = "generic/ubuntu2004"
     cwag_test.vm.box_version = "4.0.2"
+    cwag_test.vbguest.auto_update = false
     cwag_test.vm.hostname = "cwag-test"
     cwag_test.vm.network "private_network", ip: "192.168.70.102", nic_type: "82540EM"
     cwag_test.vm.network "private_network", ip: "192.168.40.12", nic_type: "82540EM"
@@ -122,26 +104,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-    end
-
-    cwag_test.vm.provider :libvirt do |domain, override|
-      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash'], mount_options: ['nolock']
-      domain.uri = "qemu+unix:///system"
-      domain.memory = 4096
-      domain.cpus = 4
-      domain.driver = "kvm"
-      domain.host = "localhost"
-      domain.connect_via_ssh = false
-      domain.username = $user
-      domain.storage_pool_name = "default"
-      domain.nic_model_type = "e1000"
-      domain.management_network_name = "magma-mgmt-net"
-      domain.management_network_address = "172.17.2.0/24"
-      domain.nested = true
-      domain.cpu_mode = "host-passthrough"
-      domain.volume_cache = "unsafe"
-      domain.disk_bus = "virtio"
-      domain.graphics_ip = "0.0.0.0"
     end
 
     cwag_test.vm.provision "ansible" do |ansible|

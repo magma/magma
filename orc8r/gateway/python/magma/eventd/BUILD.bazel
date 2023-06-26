@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -29,7 +30,11 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//orc8r/gateway/python:__pkg__",
+    ],
     deps = [
         ":eventd_lib",
         "//orc8r/gateway/python/magma/common:sentry",
@@ -45,6 +50,8 @@ py_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//cwf/swagger:cwf_swagger_specs",
+        "//feg/swagger:feg_swagger_specs",
         "//lte/swagger:lte_swagger_specs",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/swagger:orc8r_swagger_specs",

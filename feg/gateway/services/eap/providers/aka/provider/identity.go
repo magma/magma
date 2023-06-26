@@ -21,7 +21,7 @@ var akaRe = regexp.MustCompile(`^0\d{6,15}@\w(?:\w|\.|-)*\w$`)
 // WillHandleIdentity returns true if the provider 1) recognizes the given Identity and 2) can hendle authentication
 // for this type of identity.
 // Note: a negative (false) result doesn't necessary mean that the provider cannot handle the auth for the client,
-//       it may also mean that the client did not pass enough information for the provider to recognize it
+// it may also mean that the client did not pass enough information for the provider to recognize it
 func (p *providerImpl) WillHandleIdentity(identityData []byte) bool {
 	return len(identityData) > 10 && akaRe.Match(identityData)
 }

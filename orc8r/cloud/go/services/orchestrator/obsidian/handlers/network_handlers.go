@@ -31,7 +31,7 @@ import (
 func listNetworks(c echo.Context) error {
 	networks, err := configurator.ListNetworkIDs(c.Request().Context())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if networks == nil {
 		networks = []string{}
@@ -51,7 +51,7 @@ func registerNetwork(c echo.Context) error {
 		serdes.Network,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusCreated, createdNetworks[0].ID)
 }
@@ -66,7 +66,7 @@ func getNetwork(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	ret := (&models.Network{}).FromConfiguratorNetwork(network)
 	return c.JSON(http.StatusOK, ret)
@@ -80,7 +80,7 @@ func updateNetwork(c echo.Context) error {
 	update := network.(*models.Network).ToUpdateCriteria()
 	err := configurator.UpdateNetworks(c.Request().Context(), []configurator.NetworkUpdateCriteria{update}, serdes.Network)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -92,7 +92,7 @@ func deleteNetwork(c echo.Context) error {
 	}
 	err := configurator.DeleteNetwork(c.Request().Context(), networkID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -117,7 +117,7 @@ func CreateDNSRecord(c echo.Context) error {
 	// check the domain is not already registered
 	for _, record := range dnsConfig.Records {
 		if record.Domain == domain {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("A record with domain:%s already exists", domain))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("A record with domain:%s already exists", domain))
 		}
 	}
 
@@ -218,7 +218,7 @@ func updateDNSConfig(ctx context.Context, networkID string, dnsConfig *models.Ne
 		serdes.Network,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return nil
 }
@@ -236,7 +236,7 @@ func getExistingDNSConfig(ctx context.Context, networkID string) (*models.Networ
 	if err == merrors.ErrNotFound {
 		return nil, echo.NewHTTPError(http.StatusNotFound)
 	} else if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return iDNSConfig.(*models.NetworkDNSConfig), nil
 }
@@ -249,7 +249,7 @@ func getRecordAndValidate(c echo.Context, domain string) (*models.DNSConfigRecor
 	record := payload.(*models.DNSConfigRecord)
 
 	if record.Domain != domain {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Domain name in param and record don't match"))
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Domain name in param and record don't match")
 	}
 	return record, nil
 }

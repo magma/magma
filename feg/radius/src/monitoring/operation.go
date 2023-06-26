@@ -126,7 +126,7 @@ func (o Operation) Start(instanceTags ...tag.Mutator) Operation {
 }
 
 // Success indicates the operation has completed successfully
-func (o Operation) Success(tags ...tag.Mutator) {
+func (o *Operation) Success(tags ...tag.Mutator) {
 	n := time.Now().UnixNano() / int64(time.Millisecond)
 	stats.RecordWithTags(
 		o.ctx,
@@ -141,7 +141,7 @@ func (o Operation) Success(tags ...tag.Mutator) {
 }
 
 // Failure indicates the operation has completed successfully
-func (o Operation) Failure(errorCode string, tags ...tag.Mutator) {
+func (o *Operation) Failure(errorCode string, tags ...tag.Mutator) {
 	n := time.Now().UnixNano() / int64(time.Millisecond)
 	stats.RecordWithTags(
 		o.ctx,

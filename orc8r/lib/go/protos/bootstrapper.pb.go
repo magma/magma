@@ -209,6 +209,7 @@ type Response struct {
 	HwId      *AccessGatewayID `protobuf:"bytes,1,opt,name=hw_id,json=hwId,proto3" json:"hw_id,omitempty"`
 	Challenge []byte           `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
 	// Types that are assignable to Response:
+	//
 	//	*Response_EchoResponse
 	//	*Response_RsaResponse
 	//	*Response_EcdsaResponse
@@ -584,6 +585,7 @@ type GetGatewayDeviceInfoResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Response:
+	//
 	//	*GetGatewayDeviceInfoResponse_GatewayDeviceInfo
 	//	*GetGatewayDeviceInfoResponse_Error
 	Response isGetGatewayDeviceInfoResponse_Response `protobuf_oneof:"response"`
@@ -733,6 +735,7 @@ type RegisterResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Response:
+	//
 	//	*RegisterResponse_ControlProxy
 	//	*RegisterResponse_Error
 	Response isRegisterResponse_Response `protobuf_oneof:"response"`

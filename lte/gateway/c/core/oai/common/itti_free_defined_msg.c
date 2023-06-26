@@ -29,9 +29,9 @@
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/async_system_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -222,6 +222,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(
           &message_p->ittiMsg.s1ap_handover_request_ack.tgt_src_container);
       break;
+    case S1AP_HANDOVER_NOTIFY: {
+      e_rab_admitted_list_t e_rab_admitted_list = {};
+      e_rab_admitted_list =
+          message_p->ittiMsg.s1ap_handover_notify.e_rab_admitted_list;
+      for (uint8_t idx = 0; idx < e_rab_admitted_list.no_of_items; idx++) {
+        bdestroy_wrapper(
+            &e_rab_admitted_list.item[idx].transport_layer_address);
+      }
+    } break;
     case S6A_UPDATE_LOCATION_REQ:
     case S6A_UPDATE_LOCATION_ANS:
     case S6A_AUTH_INFO_REQ:

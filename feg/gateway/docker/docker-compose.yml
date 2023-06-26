@@ -43,13 +43,11 @@ x-pyservice_base: &pyservice_base
 
 # Use generic python anchor with logging capabilities to avoid repetition for python services
 x-pyservice: &pyservice
-  <<: *pyservice_base
-  <<: *depends_on_logs
+  <<: [*pyservice_base, *depends_on_logs]
 
 # Use generic go anchor to avoid repetition for go services
 x-goservice: &goservice
-  <<: *service
-  <<: *depends_on_logs
+  <<: [*service, *depends_on_logs]
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
 
 

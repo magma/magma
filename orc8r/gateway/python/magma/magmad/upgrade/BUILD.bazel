@@ -18,6 +18,18 @@ py_library(
 )
 
 py_library(
+    name = "docker_upgrader",
+    srcs = ["docker_upgrader.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":upgrader",
+        ":upgrader2",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+    ],
+)
+
+py_library(
     name = "magma_upgrader",
     srcs = ["magma_upgrader.py"],
     visibility = ["//visibility:public"],

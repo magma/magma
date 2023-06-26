@@ -15,22 +15,22 @@
  *      contact@openairinterface.org
  */
 
-#ifndef PDN_DISCONNECT_REQUEST_H_
-#define PDN_DISCONNECT_REQUEST_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.h"
 #ifdef __cplusplus
 }
 #endif
 
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH \
   (LINKED_EPS_BEARER_IDENTITY_MINIMUM_LENGTH)
@@ -76,5 +76,3 @@ int decode_pdn_disconnect_request(
 int encode_pdn_disconnect_request(
     pdn_disconnect_request_msg* pdndisconnectrequest, uint8_t* buffer,
     uint32_t len);
-
-#endif /* ! defined(PDN_DISCONNECT_REQUEST_H_) */

@@ -16,7 +16,8 @@ package methods
 import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/eap/packet"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 )
 
 // MethodConfig An abstract for configuration method

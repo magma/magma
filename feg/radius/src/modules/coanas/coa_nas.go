@@ -3,14 +3,14 @@ package coanas
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"fmt"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
 
 	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // Config config has only one parameter which is the port to forward the request

@@ -15,6 +15,7 @@ add_subdirectory(s8_proxy) # LIB_S8_PROXY
 add_subdirectory(sms_orc8r_client) # LIB_SMS_OCR8R_CLIENT
 add_subdirectory(event_client) # LIB_EVENT_CLIENT
 add_subdirectory(n11) #LIB_N11
+add_subdirectory(store) #LIB_STORE
 
 if (EMBEDDED_SGW)
   add_subdirectory(openflow) # LIB_OPENFLOW

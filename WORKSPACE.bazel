@@ -9,7 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+# See https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+# for an introduction to bazel for the Magma AGW
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("//bazel:third_party_repositories.bzl", "grpc")
 
 http_archive(
@@ -18,10 +21,13 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/releases/download/0.5.0/rules_python-0.5.0.tar.gz",
 )
 
-### BUILDIFIER DEPENDENCIES
-# See https://github.com/bazelbuild/buildtools/blob/master/buildifier/README.md
-# buildifier is written in Go and hence needs rules_go to be built.
-# See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
+http_archive(
+    name = "rules_pyvenv",
+    sha256 = "216dd65adfd78a334e8ecb4f700ffcc3578351bfc89ca55127e5b656626f6916",
+    strip_prefix = "rules_pyvenv-1.0",
+    url = "https://github.com/cedarai/rules_pyvenv/archive/refs/tags/1.0.tar.gz",
+)
+
 http_archive(
     name = "io_bazel_rules_go",
     sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
@@ -56,16 +62,6 @@ gazelle_dependencies()
 # If you use WORKSPACE.bazel, use the following line instead of the bare gazelle_dependencies():
 # gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
-
-# protobuf dependency covered below
-
-http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    sha256 = "7f43df3cca7bb4ea443b4159edd7a204c8d771890a69a50a190dc9543760ca21",
-    strip_prefix = "buildtools-5.0.1",
-    url = "https://github.com/bazelbuild/buildtools/archive/refs/tags/5.0.1.tar.gz",
-)
-### BUILDIFIER DEPENDENCIES
 
 http_archive(
     name = "bazel_skylib",
@@ -152,13 +148,19 @@ python_repositories()
 
 http_archive(
     name = "rules_pkg",
-    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    sha256 = "eea0f59c28a9241156a47d7a8e32db9122f3d50b505fae0f33de6ce4d9b61834",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
     ],
 )
 
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
+
+http_jar(
+    name = "bazel_diff",
+    sha256 = "45761593a478d1e432e8cfa9629b9dbf08cd610bafd29b04305de77644470722",
+    urls = ["https://github.com/Tinder/bazel-diff/releases/download/4.1.0/bazel-diff_deploy.jar"],
+)

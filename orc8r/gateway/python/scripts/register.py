@@ -36,7 +36,7 @@ CONFIG_OVERRIDE_DIR = '/var/opt/magma/configs'
 CONTROL_PROXY = 'control_proxy.yml'
 
 
-def register_handler(client: RegistrationStub, args: List[str]) -> RegisterResponse:
+def register_handler(client: RegistrationStub, args: argparse.Namespace) -> RegisterResponse:
     """
     Register a device and retrieves its control proxy
     Args:

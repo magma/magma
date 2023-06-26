@@ -125,7 +125,7 @@ service magma@* status
 
 ### Access Gateway Configuration
 
-1. Follow the [configuration steps](https://docs.magmacore.org/docs/lte/config_agw) to register the new gateway.
+1. Follow the [configuration steps](https://magma.github.io/magma/docs/lte/config_agw) to register the new gateway.
 2. To configure the gateway to serve as a secondary use the Orc8r API (NMS does
 not currently support this functionality).
     1. Use the POST request endpoint `/lte/{network_id}/gateway_pools` to

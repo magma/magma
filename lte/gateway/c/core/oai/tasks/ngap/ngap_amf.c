@@ -10,6 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -24,7 +27,7 @@
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_decoder.h"
@@ -35,7 +38,7 @@
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #include "asn_internal.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_types.h"
+#include "lte/gateway/c/core/oai/include/sctp_messages_types.hpp"
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
@@ -45,7 +48,6 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 

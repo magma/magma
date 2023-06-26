@@ -26,6 +26,7 @@ charts_fn_map = {
     'feg-orc8r': 'feg/cloud/helm/feg-orc8r/Chart.yaml',
     'lte-orc8r': 'lte/cloud/helm/lte-orc8r/Chart.yaml',
     'cwf-orc8r': 'cwf/cloud/helm/cwf-orc8r/Chart.yaml',
+    'domain-proxy': 'dp/cloud/helm/dp/charts/domain-proxy/Chart.yaml',
 }
 
 

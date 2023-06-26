@@ -49,9 +49,11 @@ void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
   OAILOG_INFO_UE(
       LOG_AMF_APP, ue_context_p->amf_context.imsi64,
       "Sending UE Context Release Cmd to NGAP for (ue_id = " AMF_UE_NGAP_ID_FMT
-      ")\n"
-      "UE Context Release Cause = (%d)\n",
-      ue_context_p->amf_ue_ngap_id, n2_cause);
+      ")\n",
+      ue_context_p->amf_ue_ngap_id);
+
+  OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
+                 "UE Context Release Cause = (%d)\n", n2_cause);
 
   NGAP_UE_CONTEXT_RELEASE_COMMAND(message_p).amf_ue_ngap_id =
       ue_context_p->amf_ue_ngap_id;

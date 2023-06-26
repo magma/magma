@@ -53,19 +53,6 @@ cc_library(
 )
 
 cc_test(
-    name = "s1ap_state_converter_test",
-    size = "small",
-    srcs = [
-        "test_s1ap_state_converter.cpp",
-    ],
-    deps = [
-        "//lte/gateway/c/core:lib_agw_of",
-        "//lte/gateway/c/core/oai/test/mock_tasks",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "s1ap_state_manager_test",
     size = "small",
     srcs = [

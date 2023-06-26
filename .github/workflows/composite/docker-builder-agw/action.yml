@@ -1,0 +1,78 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Build Docker Image For AGW
+description: Build a docker image and push it to a registry
+
+inputs:
+  REGISTRY_USERNAME:
+    description: Registry login username
+    required: true
+  REGISTRY_PASSWORD:
+    description: Registry login password
+    required: true
+  REGISTRY:
+    description: Docker registry
+    required: true
+  TAGS:
+    description: Docker image stream tags
+    required: true
+  TARGET:
+    description: Target stage in the Docker file
+    required: false
+    default: ""
+  FILE:
+    description: Docker file
+    required: false
+    default: Dockerfile
+  CONTEXT:
+    description: Docker context
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - name: Show Inputs
+      run: |
+        echo "Registry:   ${{ inputs.REGISTRY }}"
+        echo "Tags:       ${{ inputs.TAGS }}"
+        echo "Target:     ${{ inputs.TARGET }}"
+        echo "Dockerfile: ${{ inputs.FILE }}"
+        echo "Context:    ${{ inputs.CONTEXT }}"
+      shell: bash
+
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+    - uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # pin@v2.2.1
+
+    - name: Login to Docker Hub
+      id: docker-login
+      # See unresolved bug https://github.com/actions/runner/issues/1483
+      if: ${{ inputs.REGISTRY_USERNAME != '' && inputs.REGISTRY_PASSWORD != '' }}
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # pin@v2.1.0
+      with:
+        registry: ${{ inputs.REGISTRY }}
+        username: ${{ inputs.REGISTRY_USERNAME }}
+        password: ${{ inputs.REGISTRY_PASSWORD }}
+
+    - name: Build and push docker image ${{ inputs.TAGS }}
+      id: build-docker
+      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
+      with:
+        context: ${{ inputs.CONTEXT }}
+        file: ${{ inputs.CONTEXT }}/${{ inputs.FILE }}
+        tags: ${{ inputs.TAGS }}
+        target: ${{ inputs.TARGET }}
+        push: ${{ steps.docker-login.conclusion == 'success' }}
+
+    - run: echo "Image digest for \`${{ inputs.TAGS }}\` is \`${{ steps.build-docker.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
+      if: steps.docker-login.conclusion == 'success'

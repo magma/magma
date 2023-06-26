@@ -1,3 +1,9 @@
+---
+id: session_proxy
+title: Session Proxy
+hide_title: true
+---
+
 # Session Proxy
 
 ## Overview of Session Proxy

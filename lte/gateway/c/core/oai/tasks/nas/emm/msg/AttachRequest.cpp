@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // encode_tmsi_status
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
 
 int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
                           uint32_t len) {
@@ -234,7 +234,7 @@ int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       case ATTACH_REQUEST_SUPPORTED_CODECS_IEI:
         if ((decoded_result = decode_supported_codec_list_ie(
                  &attach_request->supportedcodecs,
-                 ATTACH_REQUEST_SUPPORTED_CODECS_IEI, buffer + decoded,
+                 ATTACH_REQUEST_SUPPORTED_CODECS_IEI != 0, buffer + decoded,
                  len - decoded)) <= 0) {
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
         }
@@ -311,7 +311,7 @@ int decode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       case ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI:
         if ((decoded_result = decode_ms_network_feature_support_ie(
                  &attach_request->msnetworkfeaturesupport,
-                 ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI,
+                 ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI != 0,
                  buffer + decoded, len - decoded)) <= 0) {
           //         return decoded_result;
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
@@ -400,10 +400,10 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
   if ((attach_request->presencemask &
        ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT) ==
       ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_PRESENT) {
-    if ((encode_result =
-             encode_p_tmsi_signature_ie(attach_request->oldptmsisignature,
-                                        ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI,
-                                        buffer + encoded, len - encoded)) < 0) {
+    if ((encode_result = encode_p_tmsi_signature_ie(
+             attach_request->oldptmsisignature,
+             ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI != 0, buffer + encoded,
+             len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -440,9 +440,10 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
 
   if ((attach_request->presencemask & ATTACH_REQUEST_DRX_PARAMETER_PRESENT) ==
       ATTACH_REQUEST_DRX_PARAMETER_PRESENT) {
-    if ((encode_result = encode_drx_parameter_ie(
-             &attach_request->drxparameter, ATTACH_REQUEST_DRX_PARAMETER_IEI,
-             buffer + encoded, len - encoded)) < 0) {
+    if ((encode_result =
+             encode_drx_parameter_ie(&attach_request->drxparameter,
+                                     ATTACH_REQUEST_DRX_PARAMETER_IEI != 0,
+                                     buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -455,7 +456,7 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_MS_NETWORK_CAPABILITY_PRESENT) {
     if ((encode_result = encode_ms_network_capability_ie(
              &attach_request->msnetworkcapability,
-             ATTACH_REQUEST_MS_NETWORK_CAPABILITY_IEI, buffer + encoded,
+             ATTACH_REQUEST_MS_NETWORK_CAPABILITY_IEI != 0, buffer + encoded,
              len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
@@ -469,7 +470,7 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_PRESENT) {
     if ((encode_result = encode_location_area_identification_ie(
              &attach_request->oldlocationareaidentification,
-             ATTACH_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_IEI,
+             ATTACH_REQUEST_OLD_LOCATION_AREA_IDENTIFICATION_IEI != 0,
              buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
@@ -481,7 +482,7 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
   if ((attach_request->presencemask & ATTACH_REQUEST_TMSI_STATUS_PRESENT) ==
       ATTACH_REQUEST_TMSI_STATUS_PRESENT) {
     if ((encode_result = encode_tmsi_status(
-             &attach_request->tmsistatus, ATTACH_REQUEST_TMSI_STATUS_IEI,
+             &attach_request->tmsistatus, ATTACH_REQUEST_TMSI_STATUS_IEI != 0,
              buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
@@ -495,8 +496,8 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_2_PRESENT) {
     if ((encode_result = encode_mobile_station_classmark_2_ie(
              &attach_request->mobilestationclassmark2,
-             ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_2_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+             ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_2_IEI != 0,
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -509,8 +510,8 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_3_PRESENT) {
     if ((encode_result = encode_mobile_station_classmark_3_ie(
              &attach_request->mobilestationclassmark3,
-             ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_3_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+             ATTACH_REQUEST_MOBILE_STATION_CLASSMARK_3_IEI != 0,
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {
@@ -523,7 +524,7 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT) {
     if ((encode_result = encode_supported_codec_list_ie(
              &attach_request->supportedcodecs,
-             ATTACH_REQUEST_SUPPORTED_CODECS_IEI, buffer + encoded,
+             ATTACH_REQUEST_SUPPORTED_CODECS_IEI != 0, buffer + encoded,
              len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
@@ -576,8 +577,8 @@ int encode_attach_request(attach_request_msg* attach_request, uint8_t* buffer,
       ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT) {
     if ((encode_result = encode_ms_network_feature_support_ie(
              &attach_request->msnetworkfeaturesupport,
-             ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI, buffer + encoded,
-             len - encoded)) < 0) {
+             ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI != 0,
+             buffer + encoded, len - encoded)) < 0) {
       // Return in case of error
       return encode_result;
     } else {

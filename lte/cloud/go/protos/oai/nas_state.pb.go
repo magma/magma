@@ -617,6 +617,7 @@ type NasCnProc struct {
 
 	BaseProc *NasBaseProc `protobuf:"bytes,1,opt,name=base_proc,json=baseProc,proto3" json:"base_proc,omitempty"`
 	// Types that are assignable to MessageTypes:
+	//
 	//	*NasCnProc_AuthInfoProc
 	MessageTypes isNasCnProc_MessageTypes `protobuf_oneof:"MessageTypes"`
 }
@@ -1760,6 +1761,7 @@ type NasEmmProcWithType struct {
 
 	EmmProc *NasEmmProc `protobuf:"bytes,1,opt,name=emm_proc,json=emmProc,proto3" json:"emm_proc,omitempty"`
 	// Types that are assignable to MessageTypes:
+	//
 	//	*NasEmmProcWithType_AttachProc
 	//	*NasEmmProcWithType_DetachProc
 	//	*NasEmmProcWithType_SmcProc

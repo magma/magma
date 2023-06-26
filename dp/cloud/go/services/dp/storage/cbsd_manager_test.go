@@ -33,8 +33,10 @@ import (
 const (
 	registered          = "registered"
 	unregistered        = "unregistered"
+	idle                = "idle"
 	someCbsdIdStr       = "some_cbsd_id"
 	authorized          = "authorized"
+	granted             = "granted"
 	someNetwork         = "some_network"
 	otherNetwork        = "other_network_id"
 	someCbsdId          = 123
@@ -44,6 +46,7 @@ const (
 	someSerialNumber    = "some_serial_number"
 	anotherSerialNumber = "another_serial_number"
 	nowTimestamp        = 12345678
+	grant               = "grant"
 )
 
 func TestCbsdManager(t *testing.T) {
@@ -182,9 +185,10 @@ func (s *CbsdManagerTestSuite) TestUpdateCbsd() {
 		WithFccId(fmt.Sprintf("%snew2", cbsdBuilder.Cbsd.FccId.String)).
 		WithSerialNumber(fmt.Sprintf("%snew3", cbsdBuilder.Cbsd.CbsdSerialNumber.String)).
 		WithAntennaGain(1).
-		WithMaxPower(cbsdBuilder.Cbsd.MaxPower.Float64+2).
-		WithMinPower(cbsdBuilder.Cbsd.MinPower.Float64+3).
-		WithNumberOfPorts(cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
+		WithEirpCapabilities(
+			cbsdBuilder.Cbsd.MinPower.Float64+3,
+			cbsdBuilder.Cbsd.MaxPower.Float64+2,
+			cbsdBuilder.Cbsd.NumberOfPorts.Int64+4).
 		WithSingleStepEnabled(true).
 		WithIndoorDeployment(true).
 		WithCarrierAggregationEnabled(true).
@@ -1095,6 +1099,7 @@ func (s *CbsdManagerTestSuite) thenCbsdIs(expected *storage.DBCbsd) {
 		cbsd.IsDeleted = db.MakeBool(false)
 		cbsd.ShouldDeregister = db.MakeBool(false)
 		cbsd.ShouldRelinquish = db.MakeBool(false)
+		cbsd.Channels = []storage.Channel{}
 		expected := []db.Model{
 			cbsd,
 			&storage.DBCbsdState{Name: db.MakeString(unregistered)},

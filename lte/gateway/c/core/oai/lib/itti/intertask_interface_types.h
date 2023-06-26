@@ -67,8 +67,6 @@
 /* Extract the instance from a message */
 #define ITTI_MESSAGE_GET_INSTANCE(mESSAGE) ((mESSAGE)->ittiMsgHeader.instance)
 
-#include "lte/gateway/c/core/oai/include/messages_types.h"
-
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
 #define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,

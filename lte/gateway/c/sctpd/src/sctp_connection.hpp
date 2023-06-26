@@ -23,6 +23,7 @@
 #include "lte/gateway/c/sctpd/src/sctp_desc.hpp"
 
 struct sctp_assoc_change;
+struct sctp_send_failed;
 
 namespace magma {
 namespace sctpd {
@@ -74,6 +75,8 @@ class SctpConnection {
   SctpStatus HandleClientSock(int sd);
   // Handle an association change event for an association sd/change
   SctpStatus HandleAssocChange(int sd, struct sctp_assoc_change* change);
+  // Handle a send failed event
+  SctpStatus HandleSendFailure(int sd, struct sctp_send_failed* change);
   // Handle a comup event on an association sd/change
   SctpStatus HandleComUp(int sd, struct sctp_assoc_change* change);
   // Handle a comdown event on an association keyed by assoc_id

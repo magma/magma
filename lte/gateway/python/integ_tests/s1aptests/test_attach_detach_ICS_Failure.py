@@ -51,9 +51,7 @@ class TestAttachDetachICSFailure(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
@@ -72,9 +70,7 @@ class TestAttachDetachICSFailure(unittest.TestCase):
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail,
@@ -88,9 +84,7 @@ class TestAttachDetachICSFailure(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         print("*** Received Initial Context Setup Failure ***")
 

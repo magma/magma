@@ -22,6 +22,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 # Test builds are versioned automatically by fabfile.py
 VERSION=1.8.0 # magma version number
 SCTPD_MIN_VERSION=1.8.0 # earliest version of sctpd with which this version is compatible
+DHCP_CLI_MIN_VERSION=1.8.0 # earliest version of dhcp_cli with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=RelWithDebInfo
@@ -105,8 +106,9 @@ esac
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
 PKGFMT=deb
-PKGNAME=magma
+MAGMA_PKGNAME=magma
 SCTPD_PKGNAME=magma-sctpd
+DHCP_CLI_PKGNAME=magma-dhcp-cli
 
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
@@ -115,7 +117,7 @@ MAGMA_DEPS=(
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.20.1"
+    "python3-protobuf >= 3.20.3"
     "redis-server >= 3.2.0"
     "sudo"
     "dnsmasq >= 2.7"
@@ -132,7 +134,6 @@ MAGMA_DEPS=(
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
     "ntpdate" # required for eventd time synchronization
-    "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
@@ -146,6 +147,7 @@ MAGMA_DEPS=(
     # Ubuntu bcc lib (bpfcc-tools) is pretty old, use magma repo package
     "bcc-tools"
     "wireguard"
+    "${DHCP_CLI_PKGNAME} >= ${DHCP_CLI_MIN_VERSION}"
     )
 
 # OAI runtime dependencies
@@ -197,7 +199,7 @@ PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
 PY_LTE=${MAGMA_ROOT}/lte/gateway/python
 PY_ORC8R=${MAGMA_ROOT}/orc8r/gateway/python
-PY_TMP_BUILD=/tmp/build-${PKGNAME}
+PY_TMP_BUILD=/tmp/build-${MAGMA_PKGNAME}
 PY_TMP_BUILD_SUFFIX=/usr/lib/python3/${PY_PKG_LOC}
 
 PWD=`pwd`
@@ -297,15 +299,20 @@ PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
 LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
-# now the binaries are built, we can package up everything else and build the
-# magma package.
-PKGFILE=${PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
-BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
+MAGMA_BUILD_PATH=${OUTPUT_DIR}/${MAGMA_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+SCTPD_BUILD_PATH=${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
+DHCP_CLI_BUILD_PATH=${OUTPUT_DIR}/${DHCP_CLI_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT}
 
 cd $PWD
 # remove old packages
-if [ -f ${BUILD_PATH} ]; then
-  rm ${BUILD_PATH}
+if [ -f "${MAGMA_BUILD_PATH}" ]; then
+  rm "${MAGMA_BUILD_PATH}"
+fi
+if [ -f "${SCTPD_BUILD_PATH}" ]; then
+  rm "${SCTPD_BUILD_PATH}"
+fi
+if [ -f "${DHCP_CLI_BUILD_PATH}" ]; then
+  rm "${DHCP_CLI_BUILD_PATH}"
 fi
 
 SERVICE_DIR="/etc/systemd/system/"
@@ -324,6 +331,18 @@ echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
 echo "COMMIT_HASH=\"${COMMIT_HASH_WITH_VERSION}\"" > "${COMMIT_HASH_FILE}"
 
+# meta info
+DESCRIPTION_SCTPD="Magma SCTPD"
+DESCRIPTION_AGW="Magma Access Gateway"
+if [ "${BUILD_TYPE}" != "RelWithDebInfo" ]; then
+    DESCRIPTION_SCTPD="${DESCRIPTION_SCTPD} - dev build"
+    DESCRIPTION_AGW="${DESCRIPTION_AGW} - dev build"
+fi
+URL="https://github.com/magma/magma/"
+VENDOR="magma"
+LICENSE="BSD-3-Clause"
+MAINTAINER="The Magma Authors <main@lists.magmacore.org>"
+
 BUILDCMD="fpm \
 -s dir \
 -t ${PKGFMT} \
@@ -332,12 +351,17 @@ BUILDCMD="fpm \
 -v ${FULL_VERSION} \
 --provides ${SCTPD_PKGNAME} \
 --replaces ${SCTPD_PKGNAME} \
---package ${OUTPUT_DIR}/${SCTPD_PKGNAME}_${FULL_VERSION}_${ARCH}.${PKGFMT} \
---description 'Magma SCTPD' \
+--package ${SCTPD_BUILD_PATH} \
+--description '${DESCRIPTION_SCTPD}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE}' \
+--maintainer '${MAINTAINER}' \
 --exclude '*/.ignoreme' \
 ${SCTPD_BUILD}/sctpd=/usr/local/sbin/ \
 ${SCTPD_VERSION_FILE}=/usr/local/share/sctpd/version \
-$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service)"
+$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service) \
+${MAGMA_ROOT}/LICENSE=/usr/share/doc/${SCTPD_PKGNAME}/"
 
 eval "$BUILDCMD"
 
@@ -345,12 +369,16 @@ BUILDCMD="fpm \
 -s dir \
 -t ${PKGFMT} \
 -a ${ARCH} \
--n ${PKGNAME} \
+-n ${MAGMA_PKGNAME} \
 -v ${FULL_VERSION} \
---provides ${PKGNAME} \
---replaces ${PKGNAME} \
---package ${BUILD_PATH} \
---description 'Magma Access Gateway' \
+--provides ${MAGMA_PKGNAME} \
+--replaces ${MAGMA_PKGNAME} \
+--package ${MAGMA_BUILD_PATH} \
+--description '${DESCRIPTION_AGW}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE}' \
+--maintainer '${MAINTAINER}' \
 --after-install ${POSTINST} \
 --exclude '*/.ignoreme' \
 --config-files /etc/sysctl.d/99-magma.conf \
@@ -397,9 +425,6 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
-${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py.magma \
-${ANSIBLE_FILES}/service.py=/usr/local/lib/python3.8/dist-packages/ryu/app/ofctl/service.py.magma \
-${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
 ${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
@@ -407,9 +432,36 @@ ${ANSIBLE_FILES}/magma-bridge-reset.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-setup-wg.sh=/usr/local/bin/ \
 ${ANSIBLE_FILES}/magma-create-gtp-port.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
-$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
+$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${MAGMA_PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
+${MAGMA_ROOT}/LICENSE=/usr/share/doc/${MAGMA_PKGNAME}/ \
 " # Leave this quote on a new line to mark end of BUILDCMD
+
+eval "$BUILDCMD"
+
+DESCRIPTION_DHCP="Magma DHCP helper CLI"
+LICENSE_DHCP="GPL-2.0"
+SCAPY_PACKAGE="python3-scapy"
+SCAPY_VERSION="2.4.3"
+
+BUILDCMD="fpm \
+-s dir \
+-t ${PKGFMT} \
+-a ${ARCH} \
+-n ${DHCP_CLI_PKGNAME} \
+-v ${FULL_VERSION} \
+--provides ${DHCP_CLI_PKGNAME} \
+--replaces ${DHCP_CLI_PKGNAME} \
+--package ${DHCP_CLI_BUILD_PATH} \
+--description '${DESCRIPTION_DHCP}' \
+--url '${URL}' \
+--vendor '${VENDOR}' \
+--license '${LICENSE_DHCP}' \
+--maintainer '${MAINTAINER}' \
+--depends '${SCAPY_PACKAGE} >= ${SCAPY_VERSION}' \
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py=/usr/local/bin/ \
+${MAGMA_ROOT}/lte/gateway/python/dhcp_helper_cli/LICENSE=/usr/share/doc/${DHCP_CLI_PKGNAME}/ \
+"
 
 eval "$BUILDCMD"

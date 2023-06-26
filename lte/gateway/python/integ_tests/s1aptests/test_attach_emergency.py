@@ -41,7 +41,7 @@ class TestAttachEmergency(unittest.TestCase):
         )
 
         # Assert cause
-        self.assertEqual(msg.ueState, expected_ue_state)
+        assert msg.ueState == expected_ue_state
         print(
             "************************* Emergency attach rejection successful",
             "UE id ", req.ue_id,

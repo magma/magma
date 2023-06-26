@@ -31,11 +31,12 @@ from magma.pipelined.tests.pipelined_test_util import (
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
-def mocked_get_virtual_iface_mac(iface):
-    if iface == 'test_mtr1':
+def mocked_get_mac_address_from_iface(interface: str) -> str:
+    if interface == 'test_mtr1':
         return 'ae:fa:b2:76:37:5d'
-    if iface == 'testing_br':
+    if interface == 'testing_br':
         return 'bb:fa:b2:76:37:5d'
+    raise ValueError(f"No mac address found for interface {interface}")
 
 
 class InOutTest(unittest.TestCase):
@@ -55,9 +56,8 @@ class InOutTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(InOutTest, cls).setUpClass()
-        ingress.get_virtual_iface_mac = mocked_get_virtual_iface_mac
-        middle.get_virtual_iface_mac = mocked_get_virtual_iface_mac
-        egress.get_virtual_iface_mac = mocked_get_virtual_iface_mac
+        middle.get_mac_address_from_iface = mocked_get_mac_address_from_iface
+        egress.get_mac_address_from_iface = mocked_get_mac_address_from_iface
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 

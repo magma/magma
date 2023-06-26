@@ -10,7 +10,7 @@ Start up your Docker daemon, `cd` to where you've cloned Magma, then:
 
 ```bash
 cd magma/cwf/gateway/docker
-docker-compose build --parallel
+docker compose --compatibility build
 ```
 
 If this is your first time building the CWAG, this may take a while. When this

@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: cwf-operator
+# owner: @magma/approvers-gw
+# purpose: Run CWF deployer unit tests
+# remediation: -
+
+name: CWAG Lint & Test Operator
 
 on:
   push:
@@ -27,15 +31,15 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     # Map a step output to a job output
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: changes
         with:
           filters: |
@@ -45,19 +49,19 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwf operator pre-commit job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923 # pin@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
         with:
-          go-version: '1.18.3'
+          go-version: '1.20.1'
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
-        uses: nick-invision/retry@e88a9994b039653512d697de1bce46b00bfe11b5 # pin@v2
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2.8.2
         with:
           command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
           timeout_minutes: 10
@@ -65,11 +69,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
           make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
-      - name: Extract commit title
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -78,8 +77,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "CWF workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ''

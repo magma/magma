@@ -64,7 +64,7 @@ func GetDeleteSilencerHandler(alertmanagerURL string, client HttpClient) func(c 
 func postSilencer(networkID, silencerURL string, c echo.Context, client HttpClient) error {
 	silencer, err := buildSilencerFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	isRegex := false
@@ -78,23 +78,23 @@ func postSilencer(networkID, silencerURL string, c echo.Context, client HttpClie
 
 	newSilencerBytes, err := json.Marshal(silencer)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("make silencer: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("make silencer: %v", err))
 	}
 
 	resp, err := client.Post(silencerURL, "application/json", bytes.NewBuffer(newSilencerBytes))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := ioutil.ReadAll(resp.Body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error posting silencer: %s", respBody))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error posting silencer: %s", respBody))
 	}
 	var silenceResponse silence.PostSilencesOKBody
 	err = json.NewDecoder(resp.Body).Decode(&silenceResponse)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding alertmanager response: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding alertmanager response: %v", err))
 	}
 	return c.String(http.StatusOK, silenceResponse.SilenceID)
 }
@@ -102,13 +102,13 @@ func postSilencer(networkID, silencerURL string, c echo.Context, client HttpClie
 func getSilencers(networkID, silencerURL string, c echo.Context, client HttpClient) error {
 	filters, err := parse.Matchers(c.QueryParam(filterParam))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	filters = append(filters, &labels.Matcher{Type: labels.MatchEqual, Name: metrics.NetworkLabelName, Value: networkID})
 
 	filteredURL, err := url.Parse(silencerURL)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	q := filteredURL.Query()
@@ -117,19 +117,19 @@ func getSilencers(networkID, silencerURL string, c echo.Context, client HttpClie
 
 	resp, err := client.Get(filteredURL.String())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting silences: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error getting silences: %v", err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := ioutil.ReadAll(resp.Body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error getting silences: %s", respBody))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error getting silences: %s", respBody))
 	}
 
 	var silencers []models.GettableSilence
 	err = json.NewDecoder(resp.Body).Decode(&silencers)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding server response: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding server response: %v", err))
 	}
 
 	// Alertmanager API doesn't implement filtering on status so we have to do
@@ -160,17 +160,17 @@ func getSilencers(networkID, silencerURL string, c echo.Context, client HttpClie
 func deleteSilencer(silenceID, silencerURL string, c echo.Context, client HttpClient) error {
 	req, err := http.NewRequest(http.MethodDelete, silencerURL+"/"+silenceID, nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error deleting silence: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error deleting silence: %v", err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := ioutil.ReadAll(resp.Body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error deleting silence: %s", respBody))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error deleting silence: %s", respBody))
 	}
 	return c.NoContent(http.StatusOK)
 }

@@ -21,9 +21,9 @@ set -euo pipefail
 
 get_python_scripts() {
     echo "Collecting script targets..."
-    mapfile -t PYTHON_SCRIPTS < <(bazel query "kind(.*_binary, \
+    mapfile -t PYTHON_SCRIPTS < <(bazel query "attr(tags, 'util_script', kind(.*_binary, \
         //orc8r/gateway/python/scripts/... union \
-        //lte/gateway/python/scripts/... )")
+        //lte/gateway/python/scripts/... ))")
 }
 
 format_targets_to_paths() {

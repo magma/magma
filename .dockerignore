@@ -1,6 +1,5 @@
 *
 !.cache/test_certs
-!fb/config/
 
 !.devcontainer/
 !third_party/
@@ -22,18 +21,13 @@
 !lte/gateway/docker/
 !lte/gateway/deploy/roles/magma/files/
 !lte/gateway/python/
+!lte/gateway/release/
 !lte/gateway/Makefile
 !lte/gateway/c
 !lte/protos/
 !lte/swagger/
 !lte/gateway/deploy
 !lte/gateway/docker/deploy
-
-!devmand/cloud/
-!devmand/gateway/
-!devmand/protos/
-
-!fb/src/dpi/
 
 !orc8r/cloud/configs/
 !orc8r/lib/
@@ -62,9 +56,10 @@
 !protos/
 
 !bazel/
-!*.bzl
-!*.bazel
-!*.BUILD
+!**/*.bzl
+!**/*.bazel
 !.bazelrc
 !.bazelignore
 !.bazelversion
+
+!keys/

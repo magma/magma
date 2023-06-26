@@ -43,12 +43,6 @@ if (NOT BUILD_TESTS)
 else() # BUILD_TESTS
 endif ()
 
-message("Adding code coverage build and linker flags for BUILD_TESTS")
-set (CMAKE_CXX_FLAGS_DEBUG
-  "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-set(CMAKE_LINKER_FLAGS_DEBUG
-  "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
-
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
@@ -205,7 +199,7 @@ find_package(MAGMA_SENTRY REQUIRED)
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG MAGMA_LOGGING EVENTD MAGMA_SENTRY
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
-  prometheus-cpp tacopie
+  prometheus-cpp tacopie systemd
   )
 
 if (CLANG_FORMAT)

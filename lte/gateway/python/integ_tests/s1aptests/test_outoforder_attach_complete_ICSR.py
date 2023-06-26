@@ -64,10 +64,7 @@ class TestOutOfOrderAttachCompleteICSR(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         delay_init_ctxt_setup_resp = s1ap_types.UeDelayInitCtxtSetupRsp()
         delay_init_ctxt_setup_resp.ue_Id = req.ue_id
@@ -90,10 +87,7 @@ class TestOutOfOrderAttachCompleteICSR(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -140,10 +134,7 @@ class TestOutOfOrderAttachCompleteICSR(unittest.TestCase):
         )
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(1)
 

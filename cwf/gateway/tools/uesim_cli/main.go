@@ -25,18 +25,17 @@ import (
 	"sync"
 	"time"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
-
-	"github.com/golang/glog"
-	"github.com/magma/milenage"
-
 	"magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
 	"magma/feg/gateway/services/eap"
 	"magma/orc8r/cloud/go/tools/commands"
 	"magma/orc8r/lib/go/service/config"
+
+	"github.com/golang/glog"
+	"github.com/magma/milenage"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 )
 
 const (

@@ -2,25 +2,27 @@ package coadynamic
 
 import (
 	"context"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2866"
 	"fmt"
 	"net"
 	"sync/atomic"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/modules"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2866"
 )
 
 func TestCoaDynamic(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, _ := zap.NewDevelopment()
 	ctx, err := Init(logger, modules.ModuleConfig{
-		"port": 4799,
+		"port": port,
 	})
 	require.Nil(t, err)
 
@@ -35,23 +37,19 @@ func TestCoaDynamic(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
-	fmt.Println("Server listenning")
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
+	radiusResponseCounter = 0 // reset response count for test
+	fmt.Println("Server listening")
 
 	// Act
-
 	// Sending a coa request - expected to fail
 	generateRequest(ctx, radius.CodeDisconnectRequest, t, "session1", false)
 	require.Equal(t, uint32(1), atomic.LoadUint32(&radiusResponseCounter))
@@ -79,7 +77,10 @@ func generateRequest(ctx modules.Context, code radius.Code, t *testing.T, sessio
 	tracker.Set(&radius.Request{
 		Packet: &radius.Packet{
 			Attributes: radius.Attributes{
-				rfc2866.AcctSessionID_Type: []radius.Attribute{radius.Attribute(sessionID)},
+				&radius.AVP{
+					Type:      rfc2866.AcctSessionID_Type,
+					Attribute: radius.Attribute(sessionID),
+				},
 			},
 		},
 		RemoteAddr: IPAddr{"127.0.0.1:1313"},
@@ -112,7 +113,7 @@ func generateRequest(ctx modules.Context, code radius.Code, t *testing.T, sessio
 
 func createRadiusRequest(code radius.Code, sessionID string) *radius.Request {
 	packet := radius.New(code, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Attributes[rfc2866.AcctSessionID_Type] = []radius.Attribute{radius.Attribute(sessionID)}
+	packet.Add(rfc2866.AcctSessionID_Type, radius.Attribute(sessionID))
 	req := &radius.Request{}
 	req.RemoteAddr = &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4799}
 	req = req.WithContext(context.Background())

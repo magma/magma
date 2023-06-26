@@ -22,26 +22,17 @@
  * \email:
  */
 
-#ifndef PGW_UE_IP_ADDRESS_ALLOC_SEEN
-#define PGW_UE_IP_ADDRESS_ALLOC_SEEN
+#pragma once
 
 #include <arpa/inet.h>
 #include <stdint.h>
+#include <string>
 
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 
-void release_ue_ipv4_address(const char* imsi, const char* apn,
+void release_ue_ipv4_address(const std::string imsi, const std::string apn,
                              struct in_addr* addr);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
-#ifdef __cplusplus
-}
-#endif
-void release_ue_ipv6_address(const char* imsi, const char* apn,
-                             struct in6_addr* addr);
 
-#endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */
+void release_ue_ipv6_address(const std::string imsi, const std::string apn,
+                             struct in6_addr* addr);

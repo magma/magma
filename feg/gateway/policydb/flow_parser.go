@@ -37,9 +37,12 @@ type address struct {
 // GetFlowDescriptionFromFlowString returns a proto.FlowDescription from a IPFilterRule string
 // passed in the Flow-Description AVP. This AVP can have many variations, but follows
 // the format:
-//    action direction proto from src to dst
+//
+//	action direction proto from src to dst
+//
 // e.g.:
-//    permit out ip from 1.2.3.0/24 to any
+//
+//	permit out ip from 1.2.3.0/24 to any
 func GetFlowDescriptionFromFlowString(descriptorStr string) (*protos.FlowDescription, error) {
 	split, err := tokenizeString(descriptorStr)
 	if err != nil {

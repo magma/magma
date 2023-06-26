@@ -39,10 +39,10 @@ type PartialEntityModel interface {
 
 // GetPartialEntityHandlers returns both GET and PUT handlers for modifying the portion of a
 // network entity specified by the model.
-// - path : 	the url at which the handler will be registered.
-// - paramName: the parameter name in the url at which the entity key is stored
-// - model: 	the input and output of the handler and it also provides FromBackendModels
-//   and ToUpdateCriteria to go between the configurator model.
+//   - path : 	the url at which the handler will be registered.
+//   - paramName: the parameter name in the url at which the entity key is stored
+//   - model: 	the input and output of the handler and it also provides FromBackendModels
+//     and ToUpdateCriteria to go between the configurator model.
 func GetPartialEntityHandlers(path string, paramName string, model PartialEntityModel, serdes serde.Registry) []obsidian.Handler {
 	return []obsidian.Handler{
 		GetPartialUpdateEntityHandler(path, paramName, model, serdes),
@@ -53,16 +53,17 @@ func GetPartialEntityHandlers(path string, paramName string, model PartialEntity
 // GetPartialReadEntityHandler returns a GET obsidian handler at the specified path.
 // This function loads a portion of the gateway specified by the model's FromBackendModels function.
 // Example:
-// 		(m *TierName) FromBackendModels(networkID, tierID string) error {
-// 			entity, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, key, configurator.EntityLoadCriteria{LoadMetadata: true})
-//			if err != nil {
-//				return err
+//
+//			(m *TierName) FromBackendModels(networkID, tierID string) error {
+//				entity, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, key, configurator.EntityLoadCriteria{LoadMetadata: true})
+//				if err != nil {
+//					return err
+//				}
+//				*m = TierName(entity.Name)
+//				return nil
 //			}
-//			*m = TierName(entity.Name)
-//			return nil
-//		}
-// 		getTierNameHandler := handlers.GetPartialReadEntityHandler(URL, "tier_id", new(models.TierName))
-//      would return a GET handler that can read the tier name of a tier with the specified ID.
+//			getTierNameHandler := handlers.GetPartialReadEntityHandler(URL, "tier_id", new(models.TierName))
+//	     would return a GET handler that can read the tier name of a tier with the specified ID.
 func GetPartialReadEntityHandler(path string, paramName string, model PartialEntityModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
@@ -87,17 +88,18 @@ func GetPartialReadEntityHandler(path string, paramName string, model PartialEnt
 // GetPartialUpdateEntityHandler returns a PUT obsidian handler at the specified path.
 // This function updates a portion of the network entity specified by the model's ToUpdateCriteria function.
 // Example:
-//      (m *TierName) ToUpdateCriteria(networkID, tierID string) (configurator.EntityUpdateCriteria, error) {
-// 			return configurator.EntityUpdateCriteria{
-//				{
-// 					Key: gatewayID,
-//					Type: orc8r.MagmadGatewayType,
-//					NewName: m,
-//				}
-//          }
-// 		}
-// 		updateTierNameHandler := handlers.GetPartialUpdateEntityHandler(URL, "tier_id", new(models.TierName))
-//      would return a PUT handler that updates the tier name of a tier with the specified ID.
+//
+//	     (m *TierName) ToUpdateCriteria(networkID, tierID string) (configurator.EntityUpdateCriteria, error) {
+//				return configurator.EntityUpdateCriteria{
+//					{
+//						Key: gatewayID,
+//						Type: orc8r.MagmadGatewayType,
+//						NewName: m,
+//					}
+//	         }
+//			}
+//			updateTierNameHandler := handlers.GetPartialUpdateEntityHandler(URL, "tier_id", new(models.TierName))
+//	     would return a PUT handler that updates the tier name of a tier with the specified ID.
 func GetPartialUpdateEntityHandler(path string, paramName string, model PartialEntityModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,

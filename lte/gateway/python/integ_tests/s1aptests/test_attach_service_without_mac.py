@@ -66,9 +66,7 @@ class TestAttachServiceWithoutMac(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print(
             "************************* Sending Service request for UE id ",
@@ -85,9 +83,7 @@ class TestAttachServiceWithoutMac(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,

@@ -15,20 +15,19 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_ATTACH_ACCEPT_SEEN
-#define FILE_ATTACH_ACCEPT_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -115,5 +114,3 @@ int decode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
 
 int encode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
                          uint32_t len);
-
-#endif /* ! defined(FILE_ATTACH_ACCEPT_SEEN) */

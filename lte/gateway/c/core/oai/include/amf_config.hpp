@@ -24,7 +24,7 @@
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
@@ -36,6 +36,8 @@
 
 #define AMF_CONFIG_STRING_AMF_CONFIG "AMF"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
+#define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
+#define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
 #define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
@@ -50,6 +52,8 @@
 #define AMF_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
 #define AMF_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
 #define AMF_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
+#define AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP "ENABLE_IMS_VoPS_3GPP"
+#define AMF_CONFIG_STRING_NAS_T3512 "T3512"
 
 typedef struct nas5g_config_s {
   uint8_t preferred_integrity_algorithm[8];
@@ -70,6 +74,7 @@ typedef struct nas5g_config_s {
   bool force_reject_tau;
   bool force_reject_sr;
   bool disable_esm_information;
+  bool enable_IMS_VoPS_3GPP;
 } nas5g_config_t;
 
 typedef struct m5g_apn_map_s {
@@ -181,6 +186,10 @@ typedef struct amf_config_s {
     struct in_addr default_dns;
     struct in_addr default_dns_sec;
   } ipv4;
+  struct {
+    struct in_addr ipv4;
+  } pcscf_addr;
+
   bstring amf_name;
   bstring default_dnn;
   uint32_t auth_retry_interval;
@@ -199,9 +208,15 @@ void amf_config_init(amf_config_t*);
 int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
 int amf_config_parse_file(amf_config_t*, const mme_config_t*);
 void amf_config_display(amf_config_t*);
-void clear_amf_config(amf_config_t*);
+#ifdef __cplusplus
+extern "C" {
+#endif
 void copy_amf_config_from_mme_config(amf_config_t* dest,
                                      const mme_config_t* src);
+void clear_amf_config(amf_config_t*);
+#ifdef __cplusplus
+}
+#endif
 void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
 
 void amf_config_exit(void);

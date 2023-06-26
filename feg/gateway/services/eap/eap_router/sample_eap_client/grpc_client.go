@@ -45,10 +45,11 @@ var (
 )
 
 // To test:
-//	from magma/feg/gateway/ run:
-//		make run
-//      then
-//		go run magma/feg/gateway/services/eap/eap_router/sample_eap_client
+//
+//		from magma/feg/gateway/ run:
+//			make run
+//	     then
+//			go run magma/feg/gateway/services/eap/eap_router/sample_eap_client
 func main() {
 	serverAddr := flag.String("addr", "localhost:9109", "eap_router server address (host:port)")
 	flag.Parse()

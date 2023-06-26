@@ -22,8 +22,7 @@
  * \email: lionel.gauthier@eurecom.fr
  */
 
-#ifndef FILE_SGW_DEFS_SEEN
-#define FILE_SGW_DEFS_SEEN
+#pragma once
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -36,4 +35,3 @@ status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
 #ifdef __cplusplus
 }
 #endif
-#endif /* FILE_SGW_DEFS_SEEN */

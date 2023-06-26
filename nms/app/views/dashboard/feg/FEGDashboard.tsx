@@ -20,7 +20,6 @@ import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
 import TopBar from '../../../components/TopBar';
-import moment from 'moment';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
 import {EVENT_STREAM} from '../../events/EventsTable';
 import {Navigate, Route, Routes} from 'react-router-dom';
@@ -28,6 +27,7 @@ import {NetworkCheck} from '@mui/icons-material';
 import {Theme} from '@mui/material/styles';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@mui/styles';
+import {subDays} from 'date-fns';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
@@ -45,8 +45,8 @@ const useStyles = makeStyles<Theme>(theme => ({
  */
 function FEGDashboard() {
   // datetime picker
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(subDays(new Date(), 3));
+  const [endDate, setEndDate] = useState(new Date());
 
   return (
     <>
@@ -86,14 +86,10 @@ function FEGDashboard() {
  * It consists of an event alert chart, an alert table, a kpi for the
  * federation network and events table which helps in describing the
  * current network state.
- * @param {Array<moment>} startEnd: An array of two elements holding the
+ * @param {Array<Date>} startEnd: An array of two elements holding the
  * start and end date.
  */
-function FEGNetworkDashboard({
-  startEnd,
-}: {
-  startEnd: [moment.Moment, moment.Moment];
-}) {
+function FEGNetworkDashboard({startEnd}: {startEnd: [Date, Date]}) {
   const classes = useStyles();
 
   return (
@@ -131,10 +127,10 @@ function FEGNetworkDashboard({
  */
 
 type Props = {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
-  setStartDate: (startDate: moment.Moment) => void;
-  setEndDate: (endDate: moment.Moment) => void;
+  startDate: Date;
+  endDate: Date;
+  setStartDate: (startDate: Date) => void;
+  setEndDate: (endDate: Date) => void;
 };
 
 function FEGNetworkTab(props: Props) {
@@ -153,7 +149,7 @@ function FEGNetworkTab(props: Props) {
           maxDate={endDate}
           disableFuture
           value={startDate}
-          onChange={date => setStartDate(date as moment.Moment)}
+          onChange={date => setStartDate(date!)}
         />
       </Grid>
       <Grid item>
@@ -166,7 +162,7 @@ function FEGNetworkTab(props: Props) {
           renderInput={props => <TextField {...props} />}
           disableFuture
           value={endDate}
-          onChange={date => setEndDate(date as moment.Moment)}
+          onChange={date => setEndDate(date!)}
         />
       </Grid>
     </Grid>

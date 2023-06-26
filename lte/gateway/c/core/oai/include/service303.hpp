@@ -17,9 +17,17 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/include/service303_messages_types.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/service303_messages_types.hpp"
+
 #define SERVICE303_MME_PACKAGE_NAME "mme"
 #define SERVICE303_MME_PACKAGE_VERSION "1.0"
 #define SERVICE303_SPGW_PACKAGE_NAME "spgw"
@@ -47,10 +55,12 @@ typedef enum application_health_e {
   APP_HEALTHY = 2,
 } application_health_t;
 
-int service303_init(service303_data_t* service303_data);
-
 #ifdef __cplusplus
 extern "C" {
+#endif
+status_code_e service303_init(service303_data_t* service303_data);
+#ifdef __cplusplus
+}
 #endif
 
 /**
@@ -73,7 +83,3 @@ void stop_service303_server(void);
  * @param health: one of 0 (APP_UNKNOWN), 1 (APP_HEALTHY), 2 (APP_UNHEALTHY)
  */
 void service303_set_application_health(application_health_t health);
-
-#ifdef __cplusplus
-}
-#endif

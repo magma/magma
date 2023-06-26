@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Check for semantic PR title"
+# owner: any
+# purpose: PR format checker
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
+name: PR Check Title Or Commit Message
 
 on:
   # Semantic PR module only works with pull_request_target
@@ -26,31 +30,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-reverted-pr:
-    runs-on: ubuntu-latest
-    env:
-      PR_TITLE: "${{ github.event.pull_request.title }}"
-    outputs:
-      is_reverted_pr: ${{ steps.reverted_pr_check.outputs.is_reverted_pr }}
-    steps:
-      - name: Check if PR is a Reverted PR
-        id: reverted_pr_check
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
-        with:
-          script: |
-            if( process.env.PR_TITLE.startsWith('Revert') ) {
-              core.setOutput('is_reverted_pr', 'true');
-            }
-            else  {
-              core.setOutput('is_reverted_pr', 'false');
-            }
-
   check-semantic-pr:
-    runs-on: ubuntu-latest
-    needs: check-reverted-pr
-    if: ${{ needs.check-reverted-pr.outputs.is_reverted_pr == 'false' }}
+    runs-on: ubuntu-20.04
     steps:
-      - uses: amannn/action-semantic-pull-request@db6e259b93f286e3416eef27aaae88935d16cf2e # pin@v3.4.0
+      - uses: amannn/action-semantic-pull-request@01d5fd8a8ebb9aafe902c40c53f0f4744f7381eb # pin@v5.0.2
+        id: semantic-pr
+        if: ${{ ! startsWith(github.event.pull_request.title, 'Revert ') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -132,29 +117,14 @@ jobs:
           # merge commit, and it's easy to commit this by mistake. Enable this option
           # to also validate the commit message for one commit PRs.
           validateSingleCommit: true
-
-  comment-on-pr:
-    runs-on: ubuntu-latest
-    needs: check-semantic-pr
-    if: always()
-    env:
-      STATUS: ':heavy_check_mark:'
-      check-type: Semantic PR check
-      check-documentation: See [instructions on formatting your commit and pull request titles](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format).
-    steps:
-      - if: needs.check-semantic-pr.result == 'failure'
-        run: echo 'STATUS=:x:' >> $GITHUB_ENV
-      - uses: peter-evans/find-comment@1769778a0c5bd330272d749d12c036d65e70d39d # pin@v2.0.0
-        id: fc
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: always()
+      - uses: ./.github/workflows/composite/comment-on-pr
+        if: always()
+        env:
+          check-type: Semantic PR check
+          check-documentation: See [instructions on formatting your commit and pull request titles](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format).
         with:
-          issue-number: ${{ github.event.number }}
-          body-includes: ${{ env.check-type }}
-      - uses: thollander/actions-comment-pull-request@686ab1cab89e0f715a44a0d04b9fdfdd4f33d751 # pin@v1.4.1
-        if: >
-          (needs.check-semantic-pr.result == 'failure')
-          || (steps.fc.outputs.comment-id != '')
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          comment_includes: ${{ env.check-type }}
-          message: |
-            ${{ env.STATUS }} The **${{ env.check-type }}** ended with status **${{ needs.check-semantic-pr.result }}**. ${{ env.check-documentation }}
+          check-type: ${{ env.check-type }}
+          check-documentation: ${{ env.check-documentation }}
+          job-status: ${{ steps.semantic-pr.outcome }}

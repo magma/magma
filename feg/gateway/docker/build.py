@@ -68,8 +68,8 @@ def main() -> None:
 
 
 def _run(cmd: List[str]) -> None:
-    """ Run the required docker-compose command """
-    cmd = ['docker-compose'] + cmd
+    """ Run the required docker compose command """
+    cmd = ['docker', 'compose', '--compatibility'] + cmd
     print("Running '%s'..." % ' '.join(cmd))
     try:
         subprocess.run(cmd, check=True)  # noqa: S603
@@ -90,8 +90,6 @@ def _get_default_build_args(args: argparse.Namespace) -> List[str]:
         ret.append("--build-arg")
         ret.append("{0}={1}".format(arg, val))
 
-    if args.parallel:
-        ret.append('--parallel')
     if args.nocache:
         ret.append('--no-cache')
     return ret
@@ -191,12 +189,6 @@ def _parse_args() -> argparse.Namespace:
         '--nocache', '-n',
         action='store_true',
         help='Build the images with no Docker layer caching',
-    )
-    parser.add_argument(
-        '--parallel', '-p',
-        action='store_true',
-        default=False,
-        help='Build containers in parallel',
     )
     parser.add_argument(
         '--down', '-down',

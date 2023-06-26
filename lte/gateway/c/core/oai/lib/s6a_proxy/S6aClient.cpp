@@ -14,6 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread>  // std::thread
 #include <iostream>
@@ -22,8 +25,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
@@ -220,6 +222,82 @@ void S6aClient::update_location_request(
   // response using the response reader. When it is done, the callback stored
   // in `resp` will be called
   resp->set_response_reader(std::move(resp_rdr));
+}
+
+void S6aClient::convert_ula_to_subscriber_data(
+    feg::UpdateLocationAnswer response, magma::lte::SubscriberData* sub_data) {
+  if (response.apn_size() < 1) {
+    std::cout << "No APN configurations received" << std::endl;
+    return;
+  }
+  std::cout << "Converting ULA TO Subscriber Data object" << std::endl;
+  for (int i = 0; i < response.apn_size(); i++) {
+    auto apn = response.apn(i);
+    auto sub_apn_config = sub_data->mutable_non_3gpp()->add_apn_config();
+    if (apn.context_id() != 0) {
+      sub_apn_config->set_context_id(apn.context_id());
+    }
+
+    if (apn.service_selection().size() > 0) {
+      sub_apn_config->set_service_selection(apn.service_selection());
+    }
+
+    if (apn.has_qos_profile()) {
+      auto qos_profile = sub_apn_config->mutable_qos_profile();
+      if (apn.qos_profile().class_id()) {
+        qos_profile->set_class_id(apn.qos_profile().class_id());
+      }
+      if (apn.qos_profile().priority_level()) {
+        qos_profile->set_priority_level(apn.qos_profile().priority_level());
+      }
+      if (apn.qos_profile().preemption_capability()) {
+        qos_profile->set_preemption_capability(
+            apn.qos_profile().preemption_capability());
+      }
+      if (apn.qos_profile().preemption_vulnerability()) {
+        qos_profile->set_preemption_vulnerability(
+            apn.qos_profile().preemption_vulnerability());
+      }
+    }
+
+    if (apn.has_ambr()) {
+      auto ambr = sub_apn_config->mutable_ambr();
+      if (apn.ambr().max_bandwidth_dl() != 0) {
+        ambr->set_max_bandwidth_dl(apn.ambr().max_bandwidth_dl());
+      }
+      if (apn.ambr().max_bandwidth_ul() != 0) {
+        ambr->set_max_bandwidth_ul(apn.ambr().max_bandwidth_ul());
+      }
+
+      ambr->set_br_unit(
+          (magma::lte::AggregatedMaximumBitrate_BitrateUnitsAMBR)apn.ambr()
+              .unit());
+    }
+
+    sub_apn_config->set_pdn((magma::lte::APNConfiguration_PDNType)apn.pdn());
+
+    // Only the first IP is assigned to the subscriber in the current
+    // implementation
+    if (apn.served_party_ip_address_size() > 0) {
+      sub_apn_config->set_assigned_static_ip(apn.served_party_ip_address(0));
+    }
+
+    if (apn.has_resource()) {
+      auto resource = sub_apn_config->mutable_resource();
+      if (apn.resource().apn_name().size() > 0) {
+        resource->set_apn_name(apn.resource().apn_name());
+      }
+      if (apn.resource().gateway_ip().size() > 0) {
+        resource->set_gateway_ip(apn.resource().gateway_ip());
+      }
+      if (apn.resource().gateway_mac().size() > 0) {
+        resource->set_gateway_mac(apn.resource().gateway_mac());
+      }
+      if (apn.resource().vlan_id() != 0) {
+        resource->set_vlan_id(apn.resource().vlan_id());
+      }
+    }
+  }
 }
 
 }  // namespace magma

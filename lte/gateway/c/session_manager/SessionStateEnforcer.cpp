@@ -913,7 +913,24 @@ void SessionStateEnforcer::set_pdr_attributes(
   const auto& config = session_state->get_config();
   auto ue_ipv4 = config.common_context.ue_ipv4();
   auto ue_ipv6 = config.common_context.ue_ipv6();
-
+  if (config.rat_specific_context.m5gsm_session_context()
+          .has_subscribed_qos()) {
+    auto bit_rate = config.rat_specific_context.m5gsm_session_context()
+                        .subscribed_qos()
+                        .br_unit();
+    switch (bit_rate) {
+      case M5GQosInformationRequest_BitrateUnitsAMBR_KBPS: {
+        rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
+            AggregatedMaximumBitrate_BitrateUnitsAMBR_KBPS);
+        break;
+      }
+      default: {
+        rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
+            AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS);
+        break;
+      }
+    }
+  }
   rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
   rule->mutable_pdi()->set_ue_ipv6(ue_ipv6);
   rule->mutable_activate_flow_req()->mutable_sid()->set_id(imsi);

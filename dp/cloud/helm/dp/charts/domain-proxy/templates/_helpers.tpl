@@ -61,22 +61,6 @@ Configuration controller labels
 {{- end -}}
 
 {{/*
-Active mode controller match labels
-*/}}
-{{- define "domain-proxy.active_mode_controller.matchLabels" -}}
-component: {{ .Values.dp.active_mode_controller.name | quote }}
-{{ include "domain-proxy.common.matchLabels" . }}
-{{- end -}}
-
-{{/*
-Active mode controller labels
-*/}}
-{{- define "domain-proxy.active_mode_controller.labels" -}}
-{{ include "domain-proxy.active_mode_controller.matchLabels" . }}
-{{ include "domain-proxy.common.metaLabels" . }}
-{{- end -}}
-
-{{/*
 Radio controller match labels
 */}}
 {{- define "domain-proxy.radio_controller.matchLabels" -}}
@@ -204,23 +188,6 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 {{- end -}}
 
-{{/*
-Create a fully qualified active_mode_controller name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
-
-{{- define "domain-proxy.active_mode_controller.fullname" -}}
-{{- if .Values.dp.active_mode_controller.fullnameOverride -}}
-{{- .Values.dp.active_mode_controller.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.dp.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- printf "%s-%s" .Release.Name .Values.dp.active_mode_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s-%s" .Release.Name $name .Values.dp.active_mode_controller.name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Create a fully qualified fluentd name.
@@ -323,17 +290,6 @@ Create the name of the service account to use for db service
 {{- default (include "domain-proxy.fullname" .) .Values.dp.db_service.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.dp.db_service.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use for active mode controller
-*/}}
-{{- define "domain-proxy.active_mode_controller.serviceAccountName" -}}
-{{- if .Values.dp.active_mode_controller.serviceAccount.create }}
-{{- default (include "domain-proxy.fullname" .) .Values.dp.active_mode_controller.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.dp.active_mode_controller.serviceAccount.name }}
 {{- end }}
 {{- end }}
 

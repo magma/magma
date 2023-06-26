@@ -16,11 +16,8 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_manager.hpp"
-
-extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-}
 
 namespace magma {
 namespace lte {
@@ -52,14 +49,14 @@ void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
 
-  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
-  state_teid_ht_ = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**))spgw_free_s11_bearer_context_information, b);
+  state_teid_map.map =
+      new google::protobuf::Map<uint32_t, magma::lte::oai::S11BearerContext*>();
+  state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  state_teid_map.bind_callback(spgw_free_s11_bearer_context_information);
 
-  state_ue_ht =
-      hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-                          (void (*)(void**))sgw_free_ue_context, nullptr);
+  state_ue_map.map = new google::protobuf::Map<uint64_t, spgw_ue_context_s*>();
+  state_ue_map.set_name(SPGW_STATE_UE_MAP);
+  state_ue_map.bind_callback(sgw_free_ue_context);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
@@ -75,16 +72,7 @@ void SpgwStateManager::create_state() {
          &state_cache_p->sgw_ipv6_address_S1u_S12_S4_up,
          sizeof(state_cache_p->gtpv1u_data.sgw_ipv6_address_for_S1u_S12_S4_up));
 
-  // Creating PGW related state structs
-  state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
-      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
-
-  state_cache_p->predefined_pcc_rules = hashtable_ts_create(
-      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
-
   state_cache_p->gtpv1u_teid = 0;
-
-  bdestroy_wrapper(&b);
 }
 
 void SpgwStateManager::free_state() {
@@ -96,21 +84,14 @@ void SpgwStateManager::free_state() {
     return;
   }
 
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR(
-        "An error occurred while destroying SGW s11_bearer_context_information "
-        "hashtable");
+  if (state_ue_map.map && state_ue_map.destroy_map() != PROTO_MAP_OK) {
+    OAI_FPRINTF_ERR("An error occurred while destroying SPGW's state ue map ");
   }
 
-  hashtable_ts_destroy(state_teid_ht_);
-
-  if (state_cache_p->deactivated_predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->deactivated_predefined_pcc_rules);
+  if (state_teid_map.destroy_map() != magma::PROTO_MAP_OK) {
+    OAI_FPRINTF_ERR("An error occurred while destroying state_teid_map");
   }
 
-  if (state_cache_p->predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->predefined_pcc_rules);
-  }
   free_wrapper((void**)&state_cache_p);
 }
 
@@ -125,19 +106,22 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
       return RETURNerror;
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
-    spgw_ue_context_t* ue_context_p =
-        (spgw_ue_context_t*)calloc(1, sizeof(spgw_ue_context_t));
+    spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;
 }
 
-hash_table_ts_t* SpgwStateManager::get_state_teid_ht() {
+state_teid_map_t* SpgwStateManager::get_state_teid_map() {
   AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
 
-  return state_teid_ht_;
+  return &state_teid_map;
+}
+
+map_uint64_spgw_ue_context_t* SpgwStateManager::get_spgw_ue_state_map() {
+  return &state_ue_map;
 }
 
 }  // namespace lte

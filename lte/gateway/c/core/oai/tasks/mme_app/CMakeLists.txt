@@ -11,51 +11,42 @@ generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 
 if (EMBEDDED_SGW)
-  set(S11_RELATED_SRCS mme_app_embedded_spgw.c)
+  set(S11_RELATED_SRCS mme_app_embedded_spgw.cpp)
 endif (EMBEDDED_SGW)
 
-list(APPEND MME_BENCHMARK_SRCS "")
-if (MME_BENCHMARK)
-  list(APPEND MME_BENCHMARK_SRCS
-        "experimental/mme_app_serialization.cpp"
-        "experimental/mme_app_serialization.hpp"
-      )
-endif (MME_BENCHMARK)
-
 add_library(TASK_MME_APP
-    mme_app_capabilities.c
-    mme_app_context.c
-    mme_app_if_nas_transport.c
-    mme_app_main.c
-    mme_app_bearer.c
-    mme_app_authentication.c
-    mme_app_detach.c
-    mme_app_location.c
-    mme_app_transport.c
-    mme_app_ue_context.c
-    mme_app_statistics.c
-    mme_config.c
-    s6a_2_nas_cause.c
-    mme_app_purge_ue.c
-    mme_app_hss_reset.c
-    mme_app_sgs_detach.c
-    mme_app_sgsap_location_update.c
-    mme_app_sgs_fsm.c
-    mme_app_sgs_null.c
-    mme_app_sgs_la_updated.c
-    mme_app_sgs_associated.c
-    mme_app_sgs_reset.c
-    mme_app_sgs_alert.c
-    mme_app_sgsap_service_abort.c
-    mme_app_sgs_paging.c
-    mme_app_apn_selection.c
-    mme_app_bearer_context.c
-    mme_app_pdn_context.c
-    mme_app_procedures.c
-    mme_app_itti_messaging.c
-    mme_app_edns_emulation.c
-    mme_app_sgw_selection.c
-    mme_app_sgs_status.c
+    mme_app_capabilities.cpp
+    mme_app_context.cpp
+    mme_app_if_nas_transport.cpp
+    mme_app_main.cpp
+    mme_app_bearer.cpp
+    mme_app_detach.cpp
+    mme_app_location.cpp
+    mme_app_transport.cpp
+    mme_app_ue_context.cpp
+    mme_app_statistics.cpp
+    mme_config.cpp
+    s6a_2_nas_cause.cpp
+    mme_app_purge_ue.cpp
+    mme_app_hss_reset.cpp
+    mme_app_sgs_detach.cpp
+    mme_app_sgsap_location_update.cpp
+    mme_app_sgs_fsm.cpp
+    mme_app_sgs_null.cpp
+    mme_app_sgs_la_updated.cpp
+    mme_app_sgs_associated.cpp
+    mme_app_sgs_reset.cpp
+    mme_app_sgs_alert.cpp
+    mme_app_sgsap_service_abort.cpp
+    mme_app_sgs_paging.cpp
+    mme_app_apn_selection.cpp
+    mme_app_bearer_context.cpp
+    mme_app_pdn_context.cpp
+    mme_app_procedures.cpp
+    mme_app_itti_messaging.cpp
+    mme_app_edns_emulation.cpp
+    mme_app_sgw_selection.cpp
+    mme_app_sgs_status.cpp
     mme_app_state_converter.cpp
     mme_app_state_manager.cpp
     mme_app_state.cpp
@@ -66,7 +57,6 @@ add_library(TASK_MME_APP
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}
-    ${MME_BENCHMARK_SRCS}
     )
 
 target_compile_definitions(TASK_MME_APP PRIVATE

@@ -9,7 +9,7 @@ original_id: deploy_intro
 
 This section walks through installing a production Orchestrator deployment.
 
-We assume you will use the versioned artifacts provided by the project's official artifactory at [artifactory.magmacore.org](https://artifactory.magmacore.org/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
+We assume you will use the versioned artifacts provided by the project's official artifactory at [https://linuxfoundation.jfrog.io/](https://linuxfoundation.jfrog.io/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
 
 There are two principal ways to deploy an Orc8r instance
 

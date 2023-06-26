@@ -20,7 +20,7 @@ from lte.protos.pipelined_pb2 import (
 
 class FARRuleEntry(NamedTuple):
     apply_action: int
-    gnb_ip_addr: str
+    gnb_ip_addr: Optional[str]
 
 
 class PDRRuleEntry(NamedTuple):

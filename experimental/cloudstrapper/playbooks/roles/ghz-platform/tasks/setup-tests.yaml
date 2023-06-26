@@ -1,8 +1,41 @@
 ---
-- name: install docker-compose pydep
-  pip:
-    name: docker-compose
+- name: Install packages to allow apt to use a repository over HTTPS
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - software-properties-common
+      - python3-pip
+      - lsb-release
+
+- name: Copy docker gpg key from codebase
+  ansible.builtin.copy:
+    src: docker.asc
+    dest: /etc/apt/trusted.gpg.d/docker.asc
   become: true
+
+- name: Add the focal repository for Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install the latest version of Docker CE
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
 
 - name: copy redis conf template
   copy:

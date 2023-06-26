@@ -12,7 +12,7 @@ limitations under the License.
 """
 import argparse
 import json
-from typing import List
+from typing import List, Optional
 
 from google.protobuf import json_format
 from load_tests.common import (
@@ -40,7 +40,7 @@ PROTO_PATH = PROTO_DIR + '/session_manager.proto'
 SERVICE_NAME = 'magma.lte.LocalSessionManager'
 
 
-def _handle_create_session_benchmarking(subs: List[SubscriberID], import_path: str = None):
+def _handle_create_session_benchmarking(subs: List[SubscriberID], import_path: Optional[str] = None):
     _build_create_session_data(subs)
     request_type = 'CreateSession'
     benchmark_grpc_request(
@@ -77,7 +77,7 @@ def _build_create_session_data(subs: List[SubscriberID]):
         json.dump(reqs, file, separators=(',', ':'))
 
 
-def _handle_end_session_benchmarking(subs: List[SubscriberID], import_path: str = None):
+def _handle_end_session_benchmarking(subs: List[SubscriberID], import_path: Optional[str] = None):
     _build_end_session_data(subs)
     request_type = 'EndSession'
     benchmark_grpc_request(
@@ -155,15 +155,12 @@ def main():
         parser.print_usage()
         exit(1)
 
-    print('Preparing %s load test...' % args.cmd)
     subs = generate_subs(int(args.num))
     if args.cmd == 'create':
         _handle_create_session_benchmarking(subs, args.import_path)
 
     elif args.cmd == 'end':
         _handle_end_session_benchmarking(subs, args.import_path)
-
-    print('Done')
 
 
 if __name__ == "__main__":

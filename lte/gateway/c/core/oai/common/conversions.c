@@ -368,7 +368,8 @@ char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
   return hex_array;
 }
 
-void convert_guti_to_string(guti_t* guti_p, char (*guti_str)[GUTI_STRING_LEN]) {
+void convert_guti_to_string(const guti_t* guti_p,
+                            char (*guti_str)[GUTI_STRING_LEN]) {
   snprintf(*guti_str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%02x%08x",
            guti_p->gummei.plmn.mcc_digit1, guti_p->gummei.plmn.mcc_digit2,
            guti_p->gummei.plmn.mcc_digit3, guti_p->gummei.plmn.mnc_digit1,

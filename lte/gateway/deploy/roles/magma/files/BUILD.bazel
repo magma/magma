@@ -1,0 +1,93 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
+
+pkg_files(
+    name = "magma_modules_load_conf",
+    srcs = [":magma_modules_load"],
+    prefix = "/etc/modules-load.d",
+    renames = {":magma_modules_load": "magma.conf"},
+)
+
+pkg_files(
+    name = "magma_usr_local_bin",
+    srcs = [
+        ":configure_envoy_namespace.sh",
+        ":coredump",
+        ":magma-bridge-reset.sh",
+        ":magma-create-gtp-port.sh",
+        ":magma-setup-wg.sh",
+        ":ovs-kmod-upgrade.sh",
+        ":set_irq_affinity",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+)
+
+pkg_files(
+    name = "magma_envoy_yaml",
+    srcs = [":envoy.yaml"],
+    prefix = "/var/opt/magma",
+)
+
+pkg_files(
+    name = "magma_logrotate",
+    srcs = [
+        ":logrotate_oai.conf",
+        ":logrotate_rsyslog.conf",
+    ],
+    prefix = "/etc/logrotate.d",
+    renames = {
+        ":logrotate_oai.conf": "oai",
+        ":logrotate_rsyslog.conf": "rsyslog.magma",
+    },
+)
+
+pkg_files(
+    name = "magma_local_cdn",
+    srcs = [":local-cdn/index.html"],
+    prefix = "/var/www/local-cdn",
+)
+
+pkg_files(
+    name = "magma_99_magma_conf",
+    srcs = [":99-magma.conf"],
+    prefix = "/etc/sysctl.d",
+)
+
+pkg_files(
+    name = "magma_magma_ifaces_gtp",
+    srcs = [":magma_ifaces_gtp"],
+    prefix = "/etc/network/interfaces.d",
+    renames = {":magma_ifaces_gtp": "gtp"},
+)
+
+pkg_files(
+    name = "magma_20auto_upgrades",
+    srcs = [":20auto-upgrades"],
+    prefix = "/etc/apt/apt.conf.d",
+)
+
+pkg_filegroup(
+    name = "ansible_configs",
+    srcs = [
+        ":magma_20auto_upgrades",
+        ":magma_99_magma_conf",
+        ":magma_envoy_yaml",
+        ":magma_local_cdn",
+        ":magma_logrotate",
+        ":magma_magma_ifaces_gtp",
+        ":magma_modules_load_conf",
+        ":magma_usr_local_bin",
+    ],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)

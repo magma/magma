@@ -20,14 +20,14 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import Editor from '../common/Editor';
 import Grid from '@mui/material/Grid';
-import InputLabel from '@mui/material/InputLabel';
 import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
 import SelectReceiver from '../alertmanager/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useForm from '../../hooks/useForm';
+import {AltFormField} from '../../../../components/FormField';
+import {OutlinedInput} from '@mui/material';
 import {useAlarmContext} from '../AlarmContext';
 import {useAlertRuleReceiver} from '../hooks';
 
@@ -92,32 +92,26 @@ export default function RuleEditorBase({
             <Card>
               <CardHeader title="Summary" />
               <CardContent>
-                <Grid item>
-                  <TextField
-                    id="rulename"
-                    variant="standard"
-                    disabled={!isNew}
-                    required
-                    label="Rule Name"
-                    placeholder="Ex: Link down"
-                    fullWidth
+                <AltFormField disableGutters label="Rule Name">
+                  <OutlinedInput
+                    fullWidth={true}
                     value={formState.name}
                     onChange={handleInputChange(val => ({name: val as string}))}
-                  />
-                </Grid>
-                <Grid item>
-                  <TextField
-                    variant="standard"
+                    placeholder="Link down"
                     disabled={!isNew}
-                    label="Description"
-                    placeholder="Ex: The link is down"
-                    fullWidth
+                  />
+                </AltFormField>
+                <AltFormField disableGutters label="Description">
+                  <OutlinedInput
+                    fullWidth={true}
                     value={formState.description}
                     onChange={handleInputChange(val => ({
                       description: val as string,
                     }))}
+                    placeholder="The link is down"
+                    disabled={!isNew}
                   />
-                </Grid>
+                </AltFormField>
               </CardContent>
             </Card>
           </Grid>
@@ -163,7 +157,6 @@ export default function RuleEditorBase({
               <CardContent>
                 <Grid container direction="column" spacing={2}>
                   <Grid item>
-                    <InputLabel variant="standard">Audience</InputLabel>
                     <SelectReceiver
                       fullWidth
                       receiver={receiver}

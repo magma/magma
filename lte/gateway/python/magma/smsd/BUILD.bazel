@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -28,7 +29,11 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":smsd_lib",
         "//lte/protos:sms_orc8r_python_grpc",
@@ -42,7 +47,10 @@ py_library(
     srcs = ["relay.py"],
     visibility = ["//visibility:public"],
     deps = [
+        "//lte/protos:sms_orc8r_python_grpc",
+        "//orc8r/gateway/python/magma/common:job",
         "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
         "//orc8r/protos:directoryd_python_grpc",
     ],
 )

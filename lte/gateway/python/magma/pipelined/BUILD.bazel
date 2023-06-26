@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -31,7 +32,9 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
+    tags = TAG_SERVICE,
     deps = [
+        ":ifaces",
         ":pipelined_lib",
         "//lte/gateway/python/magma/pipelined/app:he",
         "//lte/gateway/python/magma/pipelined/app:of_rest_server",
@@ -41,6 +44,7 @@ py_binary(
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/configuration:environment",
         "@aioeventlet_repo//:aioeventlet",
+        requirement("sdnotify"),
     ],
 )
 
@@ -49,7 +53,6 @@ py_library(
     srcs = [
         "check_quota_server.py",
         "datapath_setup.py",
-        "ifaces.py",
     ],
     deps = [
         ":gtp_stats_collector",
@@ -184,7 +187,6 @@ py_library(
 py_library(
     name = "utils",
     srcs = ["utils.py"],
-    deps = [requirement("netifaces")],
 )
 
 py_library(
@@ -245,9 +247,23 @@ py_library(
 py_library(
     name = "gw_mac_address",
     srcs = ["gw_mac_address.py"],
+    deps = [
+        ":ifaces",
+        "//lte/gateway/python/magma/pipelined/app:packet_parser",
+        requirement("dpkt"),
+    ],
 )
 
 py_library(
     name = "pg_set_session_msg",
     srcs = ["pg_set_session_msg.py"],
+)
+
+py_library(
+    name = "ifaces",
+    srcs = ["ifaces.py"],
+    deps = [
+        requirement("netifaces"),
+        ":metrics",
+    ],
 )

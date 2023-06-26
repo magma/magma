@@ -35,17 +35,16 @@ class TestServiceInfo(unittest.TestCase):
         print("UPTIME ", uptime)
 
         # Sanity checks
-        self.assertGreater(start_time, 0)
-
-        self.assertGreaterEqual(uptime, 0)
+        assert start_time > 0
+        assert uptime >= 0
 
         # Make sure uptime is updating and start time is not
         time.sleep(1)
 
         new_uptime = service_util.get_uptime()
         new_start_time = service_util.get_start_time()
-        self.assertGreater(new_uptime, uptime)
-        self.assertEqual(start_time, new_start_time)
+        assert new_uptime > uptime
+        assert new_start_time == start_time
         print("START TIME ", new_start_time)
         print("UPTIME ", new_uptime)
 

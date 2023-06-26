@@ -54,10 +54,7 @@ class TestAttachUeCtxtReleaseCmpDelay(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -70,10 +67,7 @@ class TestAttachUeCtxtReleaseCmpDelay(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -114,10 +108,7 @@ class TestAttachUeCtxtReleaseCmpDelay(unittest.TestCase):
         )
         time.sleep(0.5)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_EMM_INFORMATION.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value
 
         time.sleep(0.5)
         # Now detach the UE
@@ -129,10 +120,7 @@ class TestAttachUeCtxtReleaseCmpDelay(unittest.TestCase):
             detach_req,
         )
         response = self._s1ap_wrapper._s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
 
         print(
             "*** Sending UE context release request ",
@@ -152,10 +140,7 @@ class TestAttachUeCtxtReleaseCmpDelay(unittest.TestCase):
             uectxtrel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(10)
 

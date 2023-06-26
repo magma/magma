@@ -24,11 +24,6 @@ def write_stdout(s):
     sys.stdout.flush()
 
 
-def write_stderr(s):
-    sys.stderr.write(s)
-    sys.stderr.flush()
-
-
 def main():
     while 1:
         # transition from ACKNOWLEDGED to READY
@@ -42,18 +37,14 @@ def main():
         data = sys.stdin.read(int(headers['len']))
 
         # transition from READY to ACKNOWLEDGED
-        write_stdout('RESULT %s\n%s' % (len(data), data))
+        write_stdout('RESULT 2\nOK')
 
 
-def result_handler(event, response):
-    # Parse the headers
-    line, data = response.split('\n', 1)
-    headers = dict(x.split(':') for x in line.split())
-
-    # Get the log lines and prefix the process name and stdout/stderr
-    lines = data.rstrip().split('\n')
-    prefix = '%s %s | ' % (headers['processname'], headers['channel'])
-    print('\n'.join([prefix + l for l in lines]))
+def result_handler(event, _):
+    print(
+        f"{event.process.config.name} {event.channel} | "
+        f"{event.data.decode('utf-8').rstrip()}",
+    )
 
 
 if __name__ == '__main__':

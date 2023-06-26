@@ -15,57 +15,51 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
-
-#include "lte/gateway/c/core/oai/include/mme_events.hpp"
-
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <systemd/sd-daemon.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 /* FreeDiameter headers for support of S6A interface */
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.h"
-#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
-#include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #if EMBEDDED_SGW
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
 #endif
 #include "lte/gateway/c/core/oai/include/udp_primitives_server.h"
-#include "lte/gateway/c/core/oai/include/s11_mme.h"
+#include "lte/gateway/c/core/oai/include/s11_mme.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
-#if MME_BENCHMARK
-#include "lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
-#endif
 
 static void send_timer_recovery_message(void);
 
@@ -172,6 +166,8 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(grpc_async_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
+  sd_notify(0, "READY=1");
+
 #if EMBEDDED_SGW
   /*
    * Display the configuration
@@ -182,14 +178,6 @@ int main(int argc, char* argv[]) {
   if (mme_config.use_stateless) {
     send_timer_recovery_message();
   }
-
-#if MME_BENCHMARK
-  if (mme_config.run_mode == RUN_MODE_TEST) {
-    if (mme_config.test_type == TEST_SERIALIZATION_PROTOBUF) {
-      mme_app_schedule_test_protobuf_serialization(mme_config.test_param);
-    }
-  }
-#endif
 
   /*
    * Handle signals here

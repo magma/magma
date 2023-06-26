@@ -4,18 +4,18 @@ The Better String Library is an abstraction of a string data type which is
 superior to the C library char buffer string type, or C++'s std::string.
 Among the features achieved are:
 
-  - Substantial mitigation of buffer overflow/overrun problems and other
+- Substantial mitigation of buffer overflow/overrun problems and other
     failures that result from erroneous usage of the common C string
     library functions
 
-  - Significantly simplified string manipulation
+- Significantly simplified string manipulation
 
-  - High performance interoperability with other source/libraries which
+- High performance interoperability with other source/libraries which
     expect '\0' terminated char buffers
 
-  - Improved overall performance of common string operations
+- Improved overall performance of common string operations
 
-  - Functional equivalency with other more modern languages
+- Functional equivalency with other more modern languages
 
 The library is totally stand alone, portable (known to work with gcc/g++,
 MSVC++, Intel C++, WATCOM C/C++, Turbo C, Borland C++, IBM's native CC

@@ -121,13 +121,13 @@ func NewMACMiddleware(c MACConfig) func(http.Handler) http.Handler {
 }
 
 // verify decided if we pass or reject the request. Here's an example flow of the authentication:
-// 1. Client calculates a checksum for the concatenation of the given values: method (POST/PUT/),
-//    resource (/resource/1?a=1), unix timestamp (1353832234) and request payload.
-// 2. Then, takes the hash created in #1 calculate the signature using RSASSA-PKCS1-V1_5-SIGN (with his private key),
-//    encode it into a base64, store it in the Authorization header and the timestamp used in the X-Authorization-Timestamp header.
-// 3. Client exposes its public key (it will be resolved using the `KeyGetter` function).
-// 4. When the server gets the request, it first makes sure that the time skew is not over the limit (avoid replays).
-// 5. Decodes the Authorization header and verifies the signature using the public key and SHA1 digest.
+//  1. Client calculates a checksum for the concatenation of the given values: method (POST/PUT/),
+//     resource (/resource/1?a=1), unix timestamp (1353832234) and request payload.
+//  2. Then, takes the hash created in #1 calculate the signature using RSASSA-PKCS1-V1_5-SIGN (with his private key),
+//     encode it into a base64, store it in the Authorization header and the timestamp used in the X-Authorization-Timestamp header.
+//  3. Client exposes its public key (it will be resolved using the `KeyGetter` function).
+//  4. When the server gets the request, it first makes sure that the time skew is not over the limit (avoid replays).
+//  5. Decodes the Authorization header and verifies the signature using the public key and SHA1 digest.
 func (m *MACMiddleware) verify(r *http.Request) error {
 	var (
 		ts = r.Header.Get(TimestampHeader)

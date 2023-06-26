@@ -41,6 +41,7 @@ type queryVisitor interface {
 type columnNamesCollector struct {
 	args  []*arg
 	masks []indexMask
+	nCols int
 }
 
 func collectColumns(q *Query) *columnNamesCollector {
@@ -69,9 +70,9 @@ func getTableName(arg *arg) string {
 	return arg.metadata.Table
 }
 
-func (c *columnNamesCollector) getPointers() ([]Model, []interface{}) {
+func (c *columnNamesCollector) getPointers() ([]Model, []any) {
 	models := make([]Model, len(c.args))
-	var pointers []interface{}
+	pointers := make([]any, 0, c.nCols)
 	for i, arg := range c.args {
 		models[i] = arg.metadata.CreateObject()
 		fields := c.masks[i].filterPointers(models[i])
@@ -82,7 +83,9 @@ func (c *columnNamesCollector) getPointers() ([]Model, []interface{}) {
 
 func (c *columnNamesCollector) preVisit(q *Query) {
 	c.args = append(c.args, q.arg)
-	c.masks = append(c.masks, makeIndexMask(q.arg.metadata, q.arg.outputMask))
+	mask := makeIndexMask(q.arg.metadata, q.arg.outputMask)
+	c.masks = append(c.masks, mask)
+	c.nCols += len(mask)
 }
 
 func (*columnNamesCollector) postVisit(_ *Query) {}
@@ -91,7 +94,7 @@ type joinClause struct {
 	query *Query
 }
 
-func (j *joinClause) ToSql() (string, []interface{}, error) {
+func (j *joinClause) ToSql() (string, []any, error) {
 	b := &joinBuilder{
 		sql: strings.Builder{},
 	}
@@ -101,7 +104,7 @@ func (j *joinClause) ToSql() (string, []interface{}, error) {
 
 type joinBuilder struct {
 	sql  strings.Builder
-	args []interface{}
+	args []any
 	err  error
 }
 
@@ -163,9 +166,9 @@ func (im indexMask) filterColumns(metadata *ModelMetadata) []string {
 	return columns
 }
 
-func (im indexMask) filterPointers(model Model) []interface{} {
+func (im indexMask) filterPointers(model Model) []any {
 	fields := model.Fields()
-	pointers := make([]interface{}, len(im))
+	pointers := make([]any, len(im))
 	for i, j := range im {
 		pointers[i] = fields[j].ptr()
 	}

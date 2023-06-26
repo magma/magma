@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Check Rebase"
+# owner: @magma/approvers-infra
+# purpose: Check if your PR needs a rebase on the current master
+# remediation: Rebase your PR on the current master branch
+
+name: PR Check Rebase
 
 on:
   pull_request:
@@ -19,7 +23,7 @@ on:
 
 jobs:
   checkRebase:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       HEAD_FULL_NAME: "${{github.event.pull_request.head.repo.full_name}}"
       BASE_FULL_NAME: "${{github.event.pull_request.base.repo.full_name}}"
@@ -27,12 +31,12 @@ jobs:
       BASE_SHA: "${{ github.event.pull_request.base.sha }}"
     steps:
       - name: Checkout Head
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           repository: "${{env.HEAD_FULL_NAME}}"
           fetch-depth: 0
       - name: Checkout Base
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           repository: "${{env.BASE_FULL_NAME}}"
           fetch-depth: 0

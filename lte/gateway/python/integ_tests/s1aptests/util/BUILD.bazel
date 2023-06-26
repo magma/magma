@@ -16,7 +16,6 @@ package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "traffic_util",
-    testonly = True,
     srcs = [
         "traffic_messages.py",
         "traffic_util.py",

@@ -34,7 +34,9 @@ class TestAttachDetachEnbRlfInitialUeMsg(unittest.TestCase):
             "Restart sctpd service to clear Redis state as test case doesn't"
             " intend to initiate detach procedure",
         )
-        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ['sctpd'], wait_time=30,
+        )
         self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def test_attach_detach_enb_rlf_initial_ue_msg(self):
@@ -64,10 +66,7 @@ class TestAttachDetachEnbRlfInitialUeMsg(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -80,10 +79,7 @@ class TestAttachDetachEnbRlfInitialUeMsg(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()

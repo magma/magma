@@ -30,18 +30,12 @@ test:
 	gotestsum --junitfile /tmp/test-results/aaa-eap.xml --packages  magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/... -- -tags link_local_service,with_builtin_radius
 	go test -tags cli_test magma/feg/gateway/tools/...
 
-buildenv: stop
+buildenv:
+	sudo service magma@* stop
 	PROTO_LIST="orc8r_protos feg_protos lte_protos" $(MAKE) -C $(MAGMA_ROOT)/orc8r/gateway/python $@
 
 run: buildenv build
 	sudo service magma@magmad start
-
-restart:
-	sudo service magma@* stop
-	sudo service magma@magmad start
-
-stop:
-	sudo service magma@* stop
 
 clean:
 	$(MAKE) -C $(MAGMA_ROOT)/lte/gateway/python $@
@@ -65,7 +59,7 @@ lint_tools:
 	else \
 		echo "-> installing golangci " && \
 			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-			| sudo sh -s -- -b /usr/sbin/ v1.45.0; \
+			| sudo sh -s -- -b /usr/sbin/ v1.51.2; \
 	fi
 
 build_only:
@@ -84,13 +78,13 @@ cover: tools
 		mv $(COVER_FILE).tmp $(COVER_FILE)
 
 docker_build:
-	cd ${DOCKER_DIR}; docker-compose build --parallel
+	cd ${DOCKER_DIR}; docker compose --compatibility build
 
 docker_start:
-	cd ${DOCKER_DIR}; docker-compose up -d
+	cd ${DOCKER_DIR}; docker compose --compatibility up -d
 
 docker_stop:
-	cd  ${DOCKER_DIR}; docker-compose down
+	cd  ${DOCKER_DIR}; docker compose down
 
 docker_healthcheck: docker_start
 	cd ${DOCKER_DIR}/tools/; ./docker_ps_healthcheck.sh ${DOCKER_DIR}

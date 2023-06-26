@@ -79,10 +79,10 @@ class SPGWPcoTest : public ::testing::Test {
   const uint8_t test_pcscf_ipv4_addr[4] = DEFAULT_PCSCF_IPV4_ARRAY;
   const std::string test_pcscf_ipv6_addr = DEFAULT_PCSCF_IPV6;
 
-  void fill_ipcp(pco_protocol_or_container_id_t* poc_id, char* primary_dns,
+  void fill_ipcp(magma::lte::oai::PcoProtocol* poc_id, char* primary_dns,
                  char* secondary_dns) {
-    poc_id->id = PCO_PI_IPCP;
-    poc_id->length = PCO_PI_IPCP_LEN;
+    poc_id->set_id(PCO_PI_IPCP);
+    poc_id->set_length(PCO_PI_IPCP_LEN);
 
     char poc_content[PCO_PI_IPCP_LEN];
 
@@ -103,7 +103,7 @@ class SPGWPcoTest : public ::testing::Test {
     poc_content[14] = secondary_dns[2];
     poc_content[15] = secondary_dns[3];
 
-    poc_id->contents = blk2bstr(poc_content, PCO_PI_IPCP_LEN);
+    poc_id->set_contents(poc_content, PCO_PI_IPCP_LEN);
   }
 
   void clear_pco(protocol_configuration_options_t* pco) {
@@ -143,13 +143,13 @@ class SPGWPcoTest : public ::testing::Test {
 TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
   status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id = {};
+  magma::lte::oai::PcoProtocol poc_id = {};
 
   char no_dns[4] = {0x00, 0x00, 0x00, 0x00};
 
   fill_ipcp(&poc_id, no_dns, no_dns);
 
-  return_code = pgw_process_pco_request_ipcp(&pco_resp, &poc_id);
+  return_code = pgw_process_pco_request_ipcp(&pco_resp, poc_id);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
@@ -157,8 +157,9 @@ TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
+  std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            poc_id.contents->data[1]);  // Identifier is same as poc_id
+            contents.at(1));  // Identifier is same as poc_id
 
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -173,21 +174,20 @@ TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
                    test_dns_secondary, sizeof(test_dns_secondary)),
             0);
 
-  bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
   status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id = {};
+  magma::lte::oai::PcoProtocol poc_id = {};
 
   char primary_dns[4] = {0x01, 0x02, 0x03, 0x04};    // 1.2.3.4
   char secondary_dns[4] = {0x05, 0x06, 0x07, 0x08};  // 5.6.7.8
 
   fill_ipcp(&poc_id, primary_dns, secondary_dns);
 
-  return_code = pgw_process_pco_request_ipcp(&pco_resp, &poc_id);
+  return_code = pgw_process_pco_request_ipcp(&pco_resp, poc_id);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
@@ -195,8 +195,9 @@ TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
+  std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            poc_id.contents->data[1]);  // Identifier is same as poc_id
+            contents.at(1));  // Identifier is same as poc_id
 
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -210,21 +211,20 @@ TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
                    test_dns_secondary, sizeof(test_dns_secondary)),
             0);
 
-  bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
   status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
-  pco_protocol_or_container_id_t poc_id = {};
+  magma::lte::oai::PcoProtocol poc_id = {};
 
   char primary_dns[4] = DEFAULT_DNS_PRIMARY_ARRAY;
   char secondary_dns[4] = DEFAULT_DNS_SECONDARY_ARRAY;
 
   fill_ipcp(&poc_id, primary_dns, secondary_dns);
 
-  return_code = pgw_process_pco_request_ipcp(&pco_resp, &poc_id);
+  return_code = pgw_process_pco_request_ipcp(&pco_resp, poc_id);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
@@ -232,8 +232,9 @@ TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
+  std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            poc_id.contents->data[1]);  // Identifier is same as poc_id
+            contents.at(1));  // Identifier is same as poc_id
 
   // check that return code is ACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -248,7 +249,6 @@ TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
                    test_dns_secondary, sizeof(test_dns_secondary)),
             0);
 
-  bdestroy_wrapper(&poc_id.contents);
   clear_pco(&pco_resp);
 }
 
@@ -256,7 +256,7 @@ TEST_F(SPGWPcoTest, TestIpv4DnsServerRequest) {
   status_code_e return_code = RETURNerror;
   protocol_configuration_options_t pco_resp = {};
 
-  return_code = pgw_process_pco_dns_server_request(&pco_resp, NULL);
+  return_code = pgw_process_pco_dns_server_request(&pco_resp);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.num_protocol_or_container_id, 1);
@@ -277,7 +277,7 @@ TEST_F(SPGWPcoTest, TestLinkMtuRequest) {
 
   protocol_configuration_options_t pco_resp = {};
 
-  return_code = pgw_process_pco_link_mtu_request(&pco_resp, NULL);
+  return_code = pgw_process_pco_link_mtu_request(&pco_resp);
 
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_CI_IPV4_LINK_MTU);
@@ -292,15 +292,15 @@ TEST_F(SPGWPcoTest, TestLinkMtuRequest) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 1;
-  pco_req.protocol_or_container_ids[0].id =
-      PCO_CI_DNS_SERVER_IPV6_ADDRESS_REQUEST;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(1);
+  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  pco_protocol->set_id(PCO_CI_DNS_SERVER_IPV6_ADDRESS_REQUEST);
 
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
 
@@ -321,14 +321,15 @@ TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 1;
-  pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(1);
+  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  pco_protocol->set_id(PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST);
 
   // process PCO for PCSCF without initializing SPGW config
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
@@ -357,14 +358,15 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 1;
-  pco_req.protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(1);
+  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  pco_protocol->set_id(PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST);
 
   // process PCO for PCSCF without initializing SPGW config
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
@@ -395,20 +397,20 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   char no_dns[4] = {0x00, 0x00, 0x00, 0x00};
 
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 2;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(2);
 
-  pco_req.protocol_or_container_ids[0].id =
-      PCO_CI_IP_ADDRESS_ALLOCATION_VIA_NAS_SIGNALLING;
+  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  pco_protocol->set_id(PCO_CI_IP_ADDRESS_ALLOCATION_VIA_NAS_SIGNALLING);
 
-  fill_ipcp(&pco_req.protocol_or_container_ids[1], no_dns, no_dns);
+  fill_ipcp(pco_req.add_pco_protocol(), no_dns, no_dns);
 
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
 
@@ -422,9 +424,9 @@ TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
   // compare the values in pco_resp with those in the poc_id
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].id, PCO_PI_IPCP);
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
+  std::string contents = pco_req.pco_protocol(1).contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            pco_req.protocol_or_container_ids[1]
-                .contents->data[1]);  // Identifier is same as poc_id
+            contents.at(1));
 
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -439,20 +441,20 @@ TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
                    test_dns_secondary, sizeof(test_dns_secondary)),
             0);
 
-  bdestroy_wrapper(&pco_req.protocol_or_container_ids[1].contents);
   clear_pco(&pco_resp);
 }
 
 TEST_F(SPGWPcoTest, TestPcoRequestForcePush) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request without poc_ids
-  pco_req.num_protocol_or_container_id = 0;
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+
+  pco_req.set_num_protocol_or_container_id(0);
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
 
   // Disable PCO force push
   spgw_config.pgw_config.force_push_pco = false;
@@ -475,16 +477,15 @@ TEST_F(SPGWPcoTest, TestPcoRequestForcePush) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestDNSReqForcePush) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request with DNS request
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 1;
-  pco_req.protocol_or_container_ids[0].id =
-      PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(1);
+  pco_req.add_pco_protocol()->set_id(PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST);
 
   // Disable PCO force push
   spgw_config.pgw_config.force_push_pco = false;
@@ -512,15 +513,15 @@ TEST_F(SPGWPcoTest, TestPcoRequestDNSReqForcePush) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestMTUReqForcePush) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request with MTU request
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
-  pco_req.num_protocol_or_container_id = 1;
-  pco_req.protocol_or_container_ids[0].id = PCO_CI_IPV4_LINK_MTU;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
+  pco_req.set_num_protocol_or_container_id(1);
+  pco_req.add_pco_protocol()->set_id(PCO_CI_IPV4_LINK_MTU);
 
   // Disable PCO force push
   spgw_config.pgw_config.force_push_pco = false;
@@ -548,28 +549,28 @@ TEST_F(SPGWPcoTest, TestPcoRequestMTUReqForcePush) {
 
 TEST_F(SPGWPcoTest, TestPcoRequestConfigurationProtocol) {
   status_code_e return_code = RETURNerror;
-  protocol_configuration_options_t pco_req = {};
+  magma::lte::oai::Pco pco_req = {};
   protocol_configuration_options_t pco_resp = {};
   protocol_configuration_options_ids_t pco_ids = {};
 
   // pco request without poc_ids
-  pco_req.num_protocol_or_container_id = 0;
+  pco_req.set_num_protocol_or_container_id(0);
 
   // PCO request with random configuration protocol
-  pco_req.configuration_protocol =
+  pco_req.set_configuration_protocol(
       1 +
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
   EXPECT_EQ(return_code, RETURNok);
   EXPECT_EQ(pco_resp.configuration_protocol, 0);
   PCO_IDS_EXPECT_EQ(0, 0, 0, 0, 0);
 
   // PCO request with configuration protocol set
-  pco_req.configuration_protocol =
-      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE;
+  pco_req.set_configuration_protocol(
+      PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
   EXPECT_EQ(return_code, RETURNok);
-  EXPECT_EQ(pco_resp.configuration_protocol, pco_req.configuration_protocol);
+  EXPECT_EQ(pco_resp.configuration_protocol, pco_req.configuration_protocol());
   PCO_IDS_EXPECT_EQ(0, 0, 0, 0, 0);
   clear_pco(&pco_resp);
 }

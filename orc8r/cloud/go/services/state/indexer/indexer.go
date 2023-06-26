@@ -22,17 +22,18 @@ import (
 
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
-// 	- be owned by a single service
-//	- have its generated data exposed by the owning service, i.e. only one other service
-//	  should access the generated data directly via the storage interface.
+//   - be owned by a single service
+//   - have its generated data exposed by the owning service, i.e. only one other service
+//     should access the generated data directly via the storage interface.
+//
 // Notes
-//	- There is an unlikely but existent race condition during a reindex
-//	  operation, where Index could be called with an outdated version of a state.
-//	  If indexers care about preventing this race condition:
-//		- add a Reindex method to indexer interface, called in-place of Index
-//		  during reindex operations
-//		- individual indexers should track received state IDs per version and
-//		  drop Reindex-ed states with stale versions.
+//   - There is an unlikely but existent race condition during a reindex
+//     operation, where Index could be called with an outdated version of a state.
+//     If indexers care about preventing this race condition:
+//     -- add a Reindex method to indexer interface, called in-place of Index
+//     during reindex operations
+//     -- individual indexers should track received state IDs per version and
+//     drop Reindex-ed states with stale versions.
 type Indexer interface {
 	// GetID returns the unique identifier for the indexer.
 	// For remote indexers, unique ID should be the service name.

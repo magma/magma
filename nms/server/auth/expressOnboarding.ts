@@ -79,7 +79,7 @@ export default function () {
 
         res.status(200).send({success: true});
       } catch (error) {
-        res.status(400).send({error: (error as Error).toString()});
+        res.status(400).send({message: (error as Error).toString()});
       }
     },
   );

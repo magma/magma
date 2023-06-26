@@ -1,0 +1,57 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Manual workflow to promote Docker images for releases
+# remediation: -
+
+name: Magma Promote Docker Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_tag:
+        description: 'Branch version number'
+        required: true
+      release_tag:
+        description: 'Release version number'
+        required: true
+
+jobs:
+  docker-promote:
+    runs-on: ubuntu-20.04
+    env:
+      BRANCH_TAG: ${{ inputs.branch_tag }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      MAGMA_ARTIFACTORY: linuxfoundation.jfrog.io
+    steps:
+      - uses: tspascoal/get-user-teams-membership@39b5264024b7c3bd7480de2f2c8d3076eed49ec5 # pin@v1.0.4
+        name: Check if user has rights to promote
+        id: checkUserMember
+        with:
+          username: ${{ github.actor }}
+          team: 'approvers-ci'
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+      - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
+        run: |
+          echo "User is not a member of the team"
+          exit 1
+      - uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # pin v2.1.0
+        name: Login to Artifactory
+        with:
+          registry: docker.${{ env.MAGMA_ARTIFACTORY }}
+          username: ${{ secrets.LF_JFROG_USERNAME }}
+          password: ${{ secrets.LF_JFROG_PASSWORD }}
+      - run: |
+          wget https://github.com/magma/magma/raw/master/orc8r/tools/docker/promote.sh
+          chmod 755 promote.sh
+          # Promote Docker images
+          ./promote.sh

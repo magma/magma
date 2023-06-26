@@ -15,17 +15,17 @@ package lbcanary
 
 import (
 	"context"
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 	"math"
 	"testing"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/session"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 const dummyListener = "dummyListener"
@@ -155,8 +155,8 @@ func TestLBCanaryAllocatesTiersProportionally(t *testing.T) {
 
 func createRadiusRequest(calledStationID string, callingStationID string) *radius.Request {
 	packet := radius.New(radius.CodeAccessRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
-	packet.Attributes[rfc2865.CallingStationID_Type] = []radius.Attribute{radius.Attribute(callingStationID)}
-	packet.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{radius.Attribute(calledStationID)}
+	packet.Add(rfc2865.CallingStationID_Type, radius.Attribute(callingStationID))
+	packet.Add(rfc2865.CalledStationID_Type, radius.Attribute(calledStationID))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())
 	req.Packet = packet

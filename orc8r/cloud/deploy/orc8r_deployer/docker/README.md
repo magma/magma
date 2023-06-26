@@ -88,7 +88,6 @@ Commands:
   add  Add creates application and self signed(optional) certs
 ```
 
-
 Certs relies on the orc8r configuration options being configured. Specifically it relies on `orc8r_domain_name` attribute to be configured.
 
 ## Install

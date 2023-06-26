@@ -14,6 +14,7 @@ limitations under the License.
 import json
 import logging
 import time
+from typing import Tuple
 
 import requests
 from integ_tests.s1aptests.ovs import DEV_VM_URL, MAX_RETRIES, OF_REST_PORT
@@ -57,6 +58,28 @@ def get_datapath(ip=DEV_VM_URL):
     """
     url = "http://%s:%d/stats/switches" % (ip, OF_REST_PORT)
     return str(_ovs_api_request('GET', url)[0])
+
+
+def get_datapath_state(ip=DEV_VM_URL) -> Tuple[bool, bool]:
+    """
+    Test if pipelined is started and a datapath is initialized.
+    This means, endpoint is reachable and a list containing at least
+    one datapath id is returned (for tests it's actually exactly one entry).
+    Input: ip address of pipelined
+    Output: (pipelined is running, datapath is initialized)
+    """
+    url = "http://%s:%d/stats/switches" % (ip, OF_REST_PORT)
+    try:
+        datapath_list = _ovs_api_request('GET', url)
+    except requests.ConnectionError:
+        # Check if datapath is initialized failed: pipelined not reachable.
+        return False, False
+
+    if len(datapath_list) == 0:
+        # Check if datapath is initialized failed: datapath not initialized.
+        return True, False
+
+    return True, True
 
 
 def _ovs_api_request(

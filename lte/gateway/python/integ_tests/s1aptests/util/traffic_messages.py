@@ -66,12 +66,10 @@ class TrafficServerInstance(object):
 
     def __repr__(self):
         ''' String representation of this test server instance '''
-        return ' '.join((
-            '%s:' % type(self).__name__,
-            '%s:%d' % (self.ip.exploded, self.port),
-            'on device',
-            self.mac,
-        ))
+        return (
+            f'{type(self).__name__}: {self.ip.exploded}:{self.port} '
+            f'on device {self.mac}'
+        )
 
 
 class TrafficTestInstance(object):
@@ -96,15 +94,13 @@ class TrafficTestInstance(object):
 
     def __repr__(self):
         ''' String representation of this test instance '''
-        return ' '.join((
-            '%s:' % type(self).__name__,
-            'UPLINK' if self.is_uplink else 'DOWNLINK',
-            'UDP' if self.is_udp else 'TCP',
-            'test,',
-            '%d seconds' % self.duration,
-            'for test device at',
-            '%s:%d' % (self.ip.exploded, self.port),
-        ))
+        link_type = "UPLINK" if self.is_uplink else "DOWNLINK"
+        protocol = "UDP" if self.is_udp else "TCP"
+        return (
+            f'{type(self).__name__}: {link_type} {protocol} test, '
+            f'{self.duration} seconds for test device at '
+            f'{self.ip.exploded}:{self.port}'
+        )
 
 
 class TrafficMessage(object):
@@ -127,11 +123,10 @@ class TrafficMessage(object):
     def __repr__(self):
         ''' String representation of this message '''
         payload_str = repr(self.payload)
-        return ' '.join((
-            '%s' % type(self).__name__,
-            '(%s, id %s):' % (self.message.name, str(self.id)),
-            payload_str,
-        ))
+        return (
+            f'{type(self).__name__} '
+            f'({self.message.name}, id {str(self.id)}): {payload_str}'
+        )
 
     @staticmethod
     def recv(stream):
@@ -166,12 +161,12 @@ class TrafficMessage(object):
         stream.flush()
 
 
-# Enumerated type for TrafficRequest; module-level for pickling purposes
-TrafficRequestType = enum.unique(
-    enum.Enum(
-        'TrafficRequestType', 'EXIT SHUTDOWN START TEST',
-    ),
-)
+@enum.unique
+class TrafficRequestType(enum.Enum):
+    EXIT = 1
+    SHUTDOWN = 2
+    START = 3
+    TEST = 4
 
 
 class TrafficRequest(TrafficMessage):
@@ -191,12 +186,12 @@ class TrafficRequest(TrafficMessage):
         super(TrafficRequest, self).__init__(message, identifier, payload)
 
 
-# Enumerated type for TrafficResponse; module-level for pickling purposes
-TrafficResponseType = enum.unique(
-    enum.Enum(
-        'TrafficResponseType', 'INFO RESULTS SERVER STARTED',
-    ),
-)
+@enum.unique
+class TrafficResponseType(enum.Enum):
+    INFO = 1
+    RESULTS = 2
+    SERVER = 3
+    STARTED = 4
 
 
 class TrafficResponse(TrafficMessage):

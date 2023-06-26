@@ -11,17 +11,19 @@
  * limitations under the License.
  */
 
+#include <unordered_map>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
-#include <unordered_map>
+
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/map.h"
@@ -732,7 +734,7 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
     OAILOG_DEBUG_UE(
         LOG_AMF_APP, ue_context_p->amf_context.imsi64,
         "Started Implicit Deregistration timer for UE id: " AMF_UE_NGAP_ID_FMT
-        ", Timer Id: %ld, Timer Val: %u (ms) ",
+        ", Timer Id: %ld, Timer Val: %ld (ms) ",
         ue_context_p->amf_ue_ngap_id,
         ue_context_p->m5_implicit_deregistration_timer.id,
         ue_context_p->m5_implicit_deregistration_timer.sec);
@@ -783,7 +785,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         ue_context_p->m5_mobile_reachability_timer.id ==
             AMF_APP_TIMER_INACTIVE_ID) {
       ue_context_p->m5_mobile_reachability_timer.sec =
-          (amf_config.nas_config.t3512_min + (4 * 60));
+          (amf_config.nas_config.t3512_min + 4) * 60;
       ue_context_p->m5_implicit_deregistration_timer.sec =
           ue_context_p->m5_mobile_reachability_timer.sec;
 
@@ -803,7 +805,7 @@ void amf_ue_context_update_ue_sig_connection_state(
         OAILOG_DEBUG_UE(
             LOG_AMF_APP, ue_context_p->amf_context.imsi64,
             "Started Mobile Reachability timer for UE id " AMF_UE_NGAP_ID_FMT
-            ", Timer Id: %ld, Timer Val: %u (s) ",
+            ", Timer Id: %ld, Timer Val: %ld (s) ",
             ue_context_p->amf_ue_ngap_id,
             ue_context_p->m5_mobile_reachability_timer.id,
             ue_context_p->m5_mobile_reachability_timer.sec);

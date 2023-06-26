@@ -21,11 +21,12 @@ limitations under the License.
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
-constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
-constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
-    "s11_bearer_context_information_htbl";
+constexpr char S11_BEARER_CONTEXT_INFO_MAP_NAME[] =
+    "s11_bearer_context_information_map";
 constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
 constexpr char SGW_TASK_NAME[] = "SGW";
+constexpr char SGW_S8_CSR_PROC_ID_MAP[] = "sgw_s8_csr_proc_id_map";
+constexpr char SGW_S8_STATE_UE_MAP_NAME[] = "sgw_s8_state_ue_map";
 }  // namespace
 
 namespace magma {
@@ -68,18 +69,20 @@ class SgwStateManager
   void free_state() override;
 
   status_code_e read_ue_state_from_db() override;
+  map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map();
 
  private:
   SgwStateManager();
   ~SgwStateManager();
 
   /**
-   * Allocates a new sgw_state_t struct, and inits hashtables and state
+   * Allocates a new sgw_state_t struct, and inits protobuf maps and state
    * structs to default values.
    */
   void create_state() override;
 
   const sgw_config_t* config_;
+  map_uint32_sgw_eps_bearer_context_t s8_state_teid_map;
 };
 
 }  // namespace lte

@@ -9,7 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_pyvenv//:venv.bzl", "py_venv")
 load("//bazel:python_test.bzl", "pytest_test")
 load(
     "//bazel:test_constants.bzl",
@@ -23,13 +25,46 @@ load(
     "TAG_TRAFFIC_SERVER_TEST",
 )
 
+genrule(
+    name = "integ_tests_pth",
+    outs = ["integ_tests.pth"],
+    cmd = "\n".join([
+        'echo /home/vagrant/magma/lte/gateway/python >> \"$@\"',
+        'echo /home/vagrant/magma/orc8r/gateway/python >> \"$@\"',
+    ]),
+)
+
+py_library(
+    # needs to be wrapped in a py_library so that py_env can consume it
+    name = "integ_tests_pth_wrapper",
+    data = [":integ_tests_pth"],
+    imports = ["."],
+)
+
+py_venv(
+    # This target creates a Python environment for running integration tests.
+    # Usage: `bazel run //path:python_env <path of your choice>`
+    # Note that this cannot update an existing Python environment, thus for updating you need
+    # to run something like `rm -rf ~/python_env` before recreating the environment.
+    # NOTE: until https://github.com/cedarai/rules_pyvenv/issues/1 is resolved, the environment does
+    # not cover magma libraries without adaptions - but all external and generated dependencies.
+    # The magma source is setup via a .pth-file that points to the magma reporsitory.
+    name = "python_env",
+    deps = [
+        ":gpp_types",
+        ":integ_tests_pth_wrapper",
+        ":s1ap_wrapper",
+        requirement("pytest"),
+        requirement("flaky"),
+    ],
+)
+
 MAGMA_ROOT = "../../../../../"
 
 LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
 
 py_library(
     name = "s1ap_utils",
-    testonly = True,
     srcs = [
         "s1ap_utils.py",
     ],
@@ -49,13 +84,11 @@ py_library(
 
 py_library(
     name = "gpp_types",
-    testonly = True,
     srcs = ["gpp_types.py"],
 )
 
 py_library(
     name = "s1ap_wrapper",
-    testonly = True,
     srcs = ["s1ap_wrapper.py"],
     deps = [
         ":s1ap_utils",
@@ -65,6 +98,15 @@ py_library(
         "//lte/gateway/python/integ_tests/common:subscriber_db_client",
         "//lte/gateway/python/integ_tests/s1aptests/util:traffic_util",
     ],
+)
+
+pytest_test(
+    name = "test_services_are_running",
+    size = "small",
+    srcs = ["test_services_are_running.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
 )
 
 pytest_test(
@@ -1181,6 +1223,15 @@ pytest_test(
 )
 
 pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
     name = "test_modify_mme_config_for_sanity",
     size = "medium",
     srcs = ["test_modify_mme_config_for_sanity.py"],
@@ -1655,6 +1706,24 @@ pytest_test(
         ":gpp_types",
         ":s1ap_wrapper",
     ],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue_looped",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
 )
 
 pytest_test(

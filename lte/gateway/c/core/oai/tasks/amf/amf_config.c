@@ -10,6 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
+
 #include <libconfig.h>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include <errno.h>
@@ -17,8 +20,7 @@
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
 
 void served_tai_config_init(served_tai_t* served_tai);
@@ -63,6 +65,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;
+  nas_conf->enable_IMS_VoPS_3GPP = false;
 }
 
 /***************************************************************************
@@ -128,6 +131,9 @@ void ngap_config_init(ngap_config_t* ngap_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 void amf_config_init(amf_config_t* config) {
   memset(config, 0, sizeof(*config));
 
@@ -145,7 +151,9 @@ void amf_config_init(amf_config_t* config) {
   plmn_support_list_config_init(&config->plmn_support_list);
   served_tai_config_init(&config->served_tai);
 }
-
+#ifdef __cplusplus
+}
+#endif
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -160,6 +168,16 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
   return 0;
 }
 
+static bool parse_bool(const char* str) {
+  if (strcasecmp(str, "yes") == 0) return true;
+  if (strcasecmp(str, "true") == 0) return true;
+  if (strcasecmp(str, "no") == 0) return false;
+  if (strcasecmp(str, "false") == 0) return false;
+  if (strcasecmp(str, "") == 0) return false;
+
+  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
+}
+
 /***************************************************************************
 **                                                                        **
 ** Name:    amf_config_parse_opt_line()                                   **
@@ -169,6 +187,9 @@ int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 int amf_config_parse_file(amf_config_t* config_pP,
                           const mme_config_t* mme_config_p) {
   config_t cfg = {0};
@@ -183,10 +204,11 @@ int amf_config_parse_file(amf_config_t* config_pP,
   const char* set_id = NULL;
   const char* pointer = NULL;
   const char* default_dns = NULL;
+  const char* default_pcscf = NULL;
   const char* default_dns_sec = NULL;
   const char* set_sst = NULL;
   const char* set_sd = NULL;
-
+  int aint = 0;
   config_init(&cfg);
 
   if (config_pP->config_file != NULL) {
@@ -214,13 +236,20 @@ int amf_config_parse_file(amf_config_t* config_pP,
     if (config_setting_lookup_string(setting_amf,
                                      AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
                                      (const char**)&default_dns) &&
-        config_setting_lookup_string(setting_amf,
-                                     AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
-                                     (const char**)&default_dns_sec)) {
+        config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
+            (const char**)&default_dns_sec)) {
       IPV4_STR_ADDR_TO_INADDR(default_dns, config_pP->ipv4.default_dns,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS !\n");
       IPV4_STR_ADDR_TO_INADDR(default_dns_sec, config_pP->ipv4.default_dns_sec,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS SEC!\n");
+    }
+
+    if (config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS,
+            (const char**)&default_pcscf)) {
+      IPV4_STR_ADDR_TO_INADDR(default_pcscf, config_pP->pcscf_addr.ipv4,
+                              "BAD IPv4 ADDRESS FORMAT FOR DEFAULT PCSCF !\n");
     }
 
     // AMF NAME
@@ -329,6 +358,19 @@ int amf_config_parse_file(amf_config_t* config_pP,
       }    // For the number of entries in the list for PLMN SUPPORT
     }      // PLMN_SUPPORT LIST is present
 
+    // enable VoNR support
+    if ((config_setting_lookup_string(
+            setting_amf, AMF_CONFIG_STRING_NAS_ENABLE_IMS_VoPS_3GPP,
+            &astring))) {
+      config_pP->nas_config.enable_IMS_VoPS_3GPP = parse_bool(astring);
+    }
+
+    // t3512
+    if ((config_setting_lookup_int(setting_amf, AMF_CONFIG_STRING_NAS_T3512,
+                                   &aint))) {
+      config_pP->nas_config.t3512_min = (uint32_t)aint;
+    }
+
     // guamfi SETTING
     setting =
         config_setting_get_member(setting_amf, AMF_CONFIG_STRING_GUAMFI_LIST);
@@ -401,6 +443,9 @@ int amf_config_parse_file(amf_config_t* config_pP,
   config_destroy(&cfg);
   return 0;
 }
+#ifdef __cplusplus
+}
+#endif
 
 /***************************************************************************
 **                                                                        **

@@ -28,7 +28,7 @@ See `build.py --help` for more information.
 
 ### Build
 
-- Command: `build.py --all --parallel`
+- Command: `build.py --all`
 - CI check: `orc8r-build`
 - About: build all [container images](https://github.com/magma/magma/blob/master/orc8r/cloud/docker/docker-compose.yml): `controller` and `nginx`
 

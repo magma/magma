@@ -192,7 +192,7 @@ func getGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load cellular gateway: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to load cellular gateway: %v", err))
 	}
 
 	checkedInRecently := lte_models.GatewayCheckedInRecently(orc8r_models.LastGatewayCheckInWasRecent(magmadModel.Status, magmadModel.Magmad))
@@ -258,7 +258,7 @@ func deleteGateway(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error loading existing cellular gateway: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error loading existing cellular gateway: %v", err))
 	}
 	deletes = append(deletes, gw.Associations.Filter(lte.APNResourceEntityType)...)
 
@@ -329,12 +329,12 @@ func listEnodebs(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	count, err := configurator.CountEntitiesOfType(c.Request().Context(), nid, lte.CellularEnodebEntityType)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	enodebs := make(map[string]*lte_models.Enodeb, len(ents))
 	for _, ent := range ents {
@@ -358,10 +358,10 @@ func createEnodeb(c echo.Context) error {
 
 	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if payload.AttachedGatewayID != "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "attached_gateway_id is a read-only property")
@@ -381,7 +381,7 @@ func createEnodeb(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -403,7 +403,7 @@ func getEnodeb(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := (&lte_models.Enodeb{}).FromBackendModels(ent)
@@ -419,10 +419,10 @@ func updateEnodeb(c echo.Context) error {
 
 	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if payload.AttachedGatewayID != "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "attached_gateway_id is a read-only property")
@@ -433,7 +433,7 @@ func updateEnodeb(c echo.Context) error {
 
 	_, err := configurator.UpdateEntity(reqCtx, nid, payload.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -446,7 +446,7 @@ func deleteEnodeb(c echo.Context) error {
 
 	err := configurator.DeleteEntity(c.Request().Context(), nid, lte.CellularEnodebEntityType, eid)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -460,9 +460,9 @@ func getEnodebState(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	st, err := state.GetState(reqCtx, nid, lte.EnodebStateType, eid, serdes.State)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	} else if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	enodebState := st.ReportedState.(*lte_models.EnodebState)
 	enodebState.TimeReported = st.TimeMs
@@ -489,7 +489,7 @@ func deleteConnectedEnodeb(c echo.Context) error {
 
 	var enodebSerial string
 	if err := c.Bind(&enodebSerial); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.UpdateEntity(
@@ -499,7 +499,7 @@ func deleteConnectedEnodeb(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -512,7 +512,7 @@ func addConnectedEnodeb(c echo.Context) error {
 
 	var enodebSerial string
 	if err := c.Bind(&enodebSerial); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.UpdateEntity(
@@ -522,7 +522,7 @@ func addConnectedEnodeb(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -540,7 +540,7 @@ func listApns(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := make(map[string]*lte_models.Apn, len(ents))
@@ -559,10 +559,10 @@ func createApn(c echo.Context) error {
 
 	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.CreateEntity(
@@ -576,7 +576,7 @@ func createApn(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -593,7 +593,7 @@ func getApnConfiguration(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := (&lte_models.Apn{}).FromBackendModels(ent)
@@ -609,10 +609,10 @@ func updateApnConfiguration(c echo.Context) error {
 
 	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.LoadEntity(reqCtx, networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{}, serdes.Entity)
@@ -620,12 +620,12 @@ func updateApnConfiguration(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to load existing APN: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to load existing APN: %v", err))
 	}
 
 	err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.APNEntityType, apnName, payload.ApnConfiguration, serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -644,7 +644,7 @@ func deleteApnConfiguration(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Cascade deletes to all associated apn_resource and apn_policy_profile
@@ -654,7 +654,7 @@ func deleteApnConfiguration(c echo.Context) error {
 
 	err = configurator.DeleteEntities(reqCtx, networkID, deletes)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -671,7 +671,7 @@ func AddNetworkWideSubscriberRuleName(c echo.Context) error {
 	}
 	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update config: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -687,7 +687,7 @@ func AddNetworkWideSubscriberBaseName(c echo.Context) error {
 	}
 	err := addToNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update config: %v", err))
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -703,7 +703,7 @@ func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
 	}
 	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, params[0], "")
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update config: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -719,7 +719,7 @@ func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
 	}
 	err := removeFromNetworkSubscriberConfig(c.Request().Context(), networkID, "", params[0])
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to update config: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to update config: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -803,14 +803,14 @@ func listGatewayPoolsHandler(c echo.Context) error {
 	}
 	gatewayPoolEnts, _, err := configurator.LoadAllEntitiesOfType(c.Request().Context(), nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	ret := make(map[string]*lte_models.CellularGatewayPool, len(gatewayPoolEnts))
 	for _, poolEnt := range gatewayPoolEnts {
 		gatewayPool := &lte_models.CellularGatewayPool{}
 		err := gatewayPool.FromBackendModels(poolEnt)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		ret[poolEnt.Key] = gatewayPool
 	}
@@ -850,15 +850,15 @@ func getGatewayPoolHandler(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound, err)
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	gatewayPool := &lte_models.CellularGatewayPool{}
 	err = gatewayPool.FromBackendModels(ent)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, gatewayPool)
 }
@@ -872,26 +872,26 @@ func updateGatewayPoolHandler(c echo.Context) error {
 
 	gatewayPool := &lte_models.MutableCellularGatewayPool{}
 	if err := c.Bind(gatewayPool); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := gatewayPool.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if string(gatewayPool.GatewayPoolID) != gatewayPoolID {
 		err := fmt.Errorf("gateway pool ID from parameters (%s) and payload (%s) must match", gatewayPoolID, gatewayPool.GatewayPoolID)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	// 404 if pool doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Error while checking if gateway pool exists: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error while checking if gateway pool exists: %v", err))
 	}
 	if !exists {
 		return echo.ErrNotFound
 	}
 	_, err = configurator.UpdateEntity(reqCtx, networkID, gatewayPool.ToEntityUpdateCriteria(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusCreated, gatewayPool.GatewayPoolID)
 }
@@ -904,12 +904,12 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 	reqCtx := c.Request().Context()
 	poolEnt, err := configurator.LoadEntity(reqCtx, networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	gatewayPool := &lte_models.CellularGatewayPool{}
 	err = gatewayPool.FromBackendModels(poolEnt)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	// Since deletion of the pool shouldn't necessitate deletion of the
 	// gateway, we force the pool to be empty before allowing deletion, rather
@@ -920,11 +920,11 @@ func deleteGatewayPoolHandler(c echo.Context) error {
 			gatewayPool.GatewayIds,
 			poolID,
 		)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	err = configurator.DeleteEntity(reqCtx, networkID, lte.CellularGatewayPoolEntityType, poolID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -941,5 +941,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 }

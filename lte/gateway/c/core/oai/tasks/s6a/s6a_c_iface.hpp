@@ -15,15 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#ifndef S6A_C_IFACE_H_SEEN
-#define S6A_C_IFACE_H_SEEN
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 bool s6a_viface_open(const s6a_config_t* config);
 void s6a_viface_close(void);
@@ -31,7 +26,3 @@ bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p);
 bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p);
 bool s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
 bool s6a_viface_purge_ue(const char* imsi);
-#ifdef __cplusplus
-}
-#endif
-#endif /* S6A_C_IFACE_H_SEEN */

@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
 	// register pprof with default http mux
 	_ "net/http/pprof"
 

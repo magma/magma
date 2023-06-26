@@ -54,6 +54,7 @@ to manually sync changes to these files between guest and host OS.
 - `generate_<service>_config.py`: Scripts that generate the
     `<service_name>.conf` file for some services. These are executed every time
 a service starts.
+
 Note that these files are maintained under `magma/lte/gateway/python/scripts`
 and copied to the `/usr/local/bin` directory in the guest host at the time of
 provisioning.  Changes to these scripts need to be manually synced between the
@@ -69,25 +70,24 @@ testing to physical UE and eNodeB.
 To connect a physical eNodeB to the gateway VM:
 
 1. Connect the eNodeB to a port on the host machine, say it is interface `en9`.
-1. From the VirtualBox GUI, switch the Adapter 1 (for `eth1` interface) from
+2. From the VirtualBox GUI, switch the Adapter 1 (for `eth1` interface) from
 `Host-only` to `Bridged` mode and bridge it to interface `en9` from above.
-1. In gateway VM, modify the `nat_iface` in `/etc/magma/pipelined.yml` from
+3. In gateway VM, modify the `nat_iface` in `/etc/magma/pipelined.yml` from
 `eth2` to `eth0`. Restart all services.
-1. In the gateway VM, follow the steps in [EnodeB
-Configuration](enodebd#basic-troubleshooting). Make sure the `earfcn` set in the
-enodebd section of `gateway.mconfig` is the one that is supported by the eNodeB
-under consideration.
+4. In the gateway VM, follow the steps in [EnodeB
+Configuration](deploy_config_enodebd#basic-troubleshooting). Make sure the
+`earfcn` set in the enodebd section of `gateway.mconfig` is the one that is
+supported by the eNodeB under consideration.
 
 To connect a physical UE to the gateway VM,
 
 1. Use a programmable SIM which is provisioned with the LTE auth key that you
 will use in the EPC.
-1. On the gateway VM, add the subscriber using the CLI:
-1. `magtivate`
-1. `subscriber_cli.py add --lte-auth-key <base64 LTE auth key> IMSI<15 digit
+2. On the gateway VM, add the subscriber using the CLI:
+    1. `magtivate`
+    2. `subscriber_cli.py add --lte-auth-key <base64 LTE auth key> IMSI<15 digit
 IMSI>`
-
-1. On the UE, turn airplane mode on, then off, to trigger a fresh attach
+3. On the UE, turn airplane mode on, then off, to trigger a fresh attach
 
 ### Connecting a physical AGW to S1AP test VM
 
@@ -180,7 +180,7 @@ print_grpc_payload: true
 
 Many services have a command line interface (CLI) that can be used for
 debugging and configuration. Check the [AGW
-Readme](README_AGW.md#command-line-interfaces) for more details.
+Readme](readme_agw.md#command-line-interfaces) for more details.
 
 ### Analyzing raw network packets
 
@@ -224,12 +224,12 @@ If you need to debug MME with gdb, make sure all the services that it is
 dependent on are already running. Follow the steps below:
 
 1. `sudo service magma@magmad start`
-1. `sudo service magma@mme stop`
-1. `sudo service sctpd start`
-1. `sudo service magma@mobilityd start`
-1. `sudo service magma@pipelined start`
-1. `sudo service magma@sessiond start`
-1. `sudo gdb /usr/local/bin/mme`
+2. `sudo service magma@mme stop`
+3. `sudo service sctpd start`
+4. `sudo service magma@mobilityd start`
+5. `sudo service magma@pipelined start`
+6. `sudo service magma@sessiond start`
+7. `sudo gdb /usr/local/bin/mme`
 
 ### Checking Redis entries for stateless services
 
