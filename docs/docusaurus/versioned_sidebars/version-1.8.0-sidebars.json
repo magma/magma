@@ -19,7 +19,8 @@
           "version-1.8.0-howtos/he_api",
           "version-1.8.0-howtos/inbound_roaming",
           "version-1.8.0-howtos/l3_transport",
-          "version-1.8.0-howtos/network_probe"
+          "version-1.8.0-howtos/network_probe",
+          "version-1.8.0-howtos/package"
         ]
       },
       {
@@ -132,6 +133,15 @@
         "ids": [
           "version-1.8.0-dp/deploy_build"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.8.0-cwf/deploy_intro",
+          "version-1.8.0-cwf/deploy_build",
+          "version-1.8.0-cwf/deploy_install"
+        ]
       }
     ],
     "Configure": [
@@ -232,6 +242,13 @@
       },
       {
         "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.8.0-cwf/healthchecker"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "version-1.8.0-orc8r/debug_logs"
@@ -289,11 +306,13 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "version-1.8.0-lte/readme_agw",
           "version-1.8.0-lte/dev_notes",
           "version-1.8.0-lte/openvswitch",
           "version-1.8.0-lte/pipelined",
           "version-1.8.0-lte/ebpf_datapath",
           "version-1.8.0-lte/ipfix",
+          "version-1.8.0-lte/pipelined_tests",
           "version-1.8.0-lte/dev_unit_testing",
           "version-1.8.0-lte/tr069",
           "version-1.8.0-lte/s1ap_tests",
@@ -302,7 +321,9 @@
           "version-1.8.0-lte/dev_teid_allocation",
           "version-1.8.0-lte/integrated_5g_sa",
           "version-1.8.0-lte/extended_5g_sa_features",
-          "version-1.8.0-lte/suci_extensions"
+          "version-1.8.0-lte/suci_extensions",
+          "version-1.8.0-lte/redirectd",
+          "version-1.8.0-lte/readme_callflow"
         ]
       },
       {
@@ -337,6 +358,7 @@
         "label": "Federation Gateway",
         "ids": [
           "version-1.8.0-feg/dev_testing",
+          "version-1.8.0-feg/docker",
           "version-1.8.0-feg/s1ap_federated_tests"
         ]
       },

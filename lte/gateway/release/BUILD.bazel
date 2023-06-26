@@ -338,3 +338,82 @@ sh_binary(
         "no-cache",
     ],
 )
+
+### CONTAINERIZED ACCESS GATEWAY
+
+# This target is used to bundle the Python services and scripts,
+# including all runfiles and pip dependencies, used e.g. in the
+# containerized LTE integration tests. The tar file can
+# be copied between builder and runtime Docker images.
+pkg_tar(
+    name = "python_executables_tar",
+    srcs = [
+        ":magma_configs",
+        ":magma_ebpf",
+        ":magma_python_scripts",
+        ":magma_python_services",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "magma_python_executables",
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "magma_orc8r_scripts",
+    srcs = ["//orc8r/gateway/python/scripts:magma_orc8r_scripts"],
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "feg_python_services",
+    srcs = ["//orc8r/gateway/python:magma_python_orc8r_services"],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+)
+
+# This target is used to bundle the Python services and scripts,
+# including all runfiles and pip dependencies, used in the FEG
+# (and CWF) integration tests. The tar file can be copied between
+# builder and runtime Docker images.
+pkg_tar(
+    name = "feg_python_executables_tar",
+    srcs = [
+        ":feg_python_services",
+        ":magma_configs",
+        ":magma_orc8r_scripts",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "feg_python_executables",
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "cwf_python_services",
+    srcs = ["//lte/gateway/python:cwf_lte_python_services"],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+)
+
+# This target is used to bundle the Python services,
+# including all runfiles and pip dependencies, used only in the
+# CWF integration tests. The tar file can be copied between builder
+# and runtime Docker images.
+pkg_tar(
+    name = "cwf_python_executables_tar",
+    srcs = [
+        ":cwf_python_services",
+        ":magma_configs",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "cwf_python_executables",
+    ),
+    tags = ["no-cache"],
+)

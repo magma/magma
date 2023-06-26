@@ -9,9 +9,6 @@ USER=magmacore
 BOX=$(basename $BOX_FILE | cut -d_ -f1-2 | cut -d. -f1)
 VERSION="1.3.$(date +"%Y%m%d")"
 BOX_PROVIDER=virtualbox
-if echo $BOX_FILE | grep -q libvirt; then
-  BOX_PROVIDER=libvirt
-fi
 
 #source vagrant-cloud-token
 if [ -z "$VAGRANT_CLOUD_TOKEN" ]; then

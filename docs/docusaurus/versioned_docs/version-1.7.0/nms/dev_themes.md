@@ -15,7 +15,7 @@ At the moment the `default.js` file exports 3 core design types, though more wil
 
 Colors are broken into subgroups (primary, secondary, state, data, and code), and then defined based off of the hex color code. Generally speaking, they should match closely with those found in the design file.
 
-In the case you need to add a color, I used [this site](http://chir.ag/projects/name-that-color/) to generate names based off of the color hex.
+In the case you need to add a color, I used [this site](https://chir.ag/projects/name-that-color/) to generate names based off of the color hex.
 
 ## Typography
 

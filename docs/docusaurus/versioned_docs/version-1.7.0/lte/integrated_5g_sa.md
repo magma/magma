@@ -2,7 +2,7 @@
 id: version-1.7.0-integrated_5g_sa
 title: Integrated 5G SA
 hide_title: true
-original_id: integrated_5G_sa
+original_id: integrated_5g_sa
 ---
 
 # Integrated 5G SA FWA
@@ -27,8 +27,8 @@ Following diagram gives an overview of the 5G SA components.
 
 Before starting to configure 5G SA setup, first you need to bring up a setup to handle your own/local subscribers. So before configuring Inbound Roaming you need:
 
-- Install [Or8cr](https:///magma.github.io/magma/docs/orc8r/architecture_overview),
-- Install [Federation Gateway](https:///magma.github.io/magma/docs/feg/deploy_intro) and,
+- Install [Or8cr](https://magma.github.io/magma/docs/orc8r/architecture_overview),
+- Install [Federation Gateway](https://magma.github.io/magma/docs/feg/deploy_intro) and,
 - Install [Access Gateway](https://magma.github.io/magma/docs/lte/setup_deb).
 - Make sure your setup is able to serve calls with your local subscribers
 

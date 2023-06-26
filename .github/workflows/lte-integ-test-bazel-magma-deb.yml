@@ -81,20 +81,20 @@ jobs:
         if: always()
         working-directory: 'lte/gateway/'
         run: |
-          fab get-test-summaries --integration-tests --dst-path="test-results" --dev-vm-name="magma_deb"
+          fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results
-          path: lte/gateway/test-results/**/*.xml
+          name: test_results
+          path: lte/gateway/test_results/**/*.xml
       - name: Publish Unit Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: LTE Debian integration test results
-          junit_files: lte/gateway/test-results/**/*.xml
+          junit_files: lte/gateway/test_results/**/*.xml
           check_run_annotations: all tests
 
       - name: Get test logs
@@ -116,7 +116,7 @@ jobs:
           REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.event.client_payload.trigger_sha }}.html"
         run: |
           npm install -g xunit-viewer
-          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.event.client_payload.trigger_sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} debian_lte_integ_test --url $URL
@@ -129,4 +129,4 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
-          args: "Bazel Debian LTE integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
+          args: "Bazel Debian LTE integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.client_payload.commit_message }}"

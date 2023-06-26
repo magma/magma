@@ -81,7 +81,7 @@
       "feg/dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "feg/docker_setup": {
+      "feg/docker": {
         "title": "FeG Docker Setup"
       },
       "feg/s1ap_federated_tests": {
@@ -120,7 +120,7 @@
       "howtos/network_probe": {
         "title": "Network Probe"
       },
-      "howtos/readme_package": {
+      "howtos/package": {
         "title": "Packaging"
       },
       "howtos/troubleshooting/agw_healthcheck": {
@@ -207,9 +207,6 @@
       "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
       },
-      "lte/HIL_AGW_tests": {
-        "title": "Hardware In Loop Testing"
-      },
       "lte/integrated_5g_sa": {
         "title": "Integrated 5G SA"
       },
@@ -227,7 +224,7 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "lte/readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "lte/redirectd": {
         "title": "Redirection"
@@ -237,10 +234,6 @@
       },
       "lte/sessiond": {
         "title": "Session Management in Magma"
-      },
-      "lte/setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
       },
       "lte/suci_extensions": {
         "title": "SUCI Extensions"
@@ -355,6 +348,9 @@
       },
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
+      },
+      "orc8r/deploy_using_ansible": {
+        "title": "Deploy Orchestrator using Ansible (Beta)"
       },
       "orc8r/deploy_using_juju": {
         "title": "Deploy Orchestrator using Juju (Beta)"
@@ -1489,6 +1485,9 @@
       "version-1.6.X/orc8r/version-1.6.X-deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "version-1.6.X/orc8r/version-1.6.X-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
+      },
       "version-1.6.X/orc8r/version-1.6.X-dev_aws_stack": {
         "title": "AWS Stack"
       },
@@ -1610,7 +1609,7 @@
       "version-1.7.0/feg/version-1.7.0-dev_testing": {
         "title": "Test Federation Gateway"
       },
-      "version-1.7.0/feg/version-1.7.0-docker_setup": {
+      "version-1.7.0/feg/version-1.7.0-docker": {
         "title": "FeG Docker Setup"
       },
       "version-1.7.0/feg/version-1.7.0-s1ap_federated_test": {
@@ -1646,7 +1645,7 @@
       "version-1.7.0/howtos/version-1.7.0-network_probe": {
         "title": "Network Probe"
       },
-      "version-1.7.0/howtos/version-1.7.0-readme_package": {
+      "version-1.7.0/howtos/version-1.7.0-package": {
         "title": "Packaging"
       },
       "version-1.7.0/howtos/troubleshooting/version-1.7.0-agw_healthcheck": {
@@ -1747,21 +1746,13 @@
         "sidebar_label": "Services/Sub-Components"
       },
       "version-1.7.0/lte/version-1.7.0-readme_callflow": {
-        "title": "Building the callflow"
+        "title": "Building the Callflow"
       },
       "version-1.7.0/lte/version-1.7.0-redirectd": {
         "title": "Redirection"
       },
       "version-1.7.0/lte/version-1.7.0-s1ap_tests": {
         "title": "S1AP Integration Tests"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup_baremetal": {
-        "title": "AGW Setup (Bare Metal)",
-        "sidebar_label": "Setup (Bare Metal)"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup": {
-        "title": "AGW Setup (With Vagrant)",
-        "sidebar_label": "Setup (With Vagrant)"
       },
       "version-1.7.0/lte/version-1.7.0-dev_teid_allocation": {
         "title": "TEID Allocation"
@@ -1849,6 +1840,9 @@
       },
       "version-1.7.0/orc8r/version-1.7.0-deploy_terraform_options": {
         "title": "Terraform Options"
+      },
+      "version-1.7.0/orc8r/version-1.7.0-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
       },
       "version-1.7.0/orc8r/version-1.7.0-dev_aws_stack": {
         "title": "AWS Stack"
@@ -2062,6 +2056,9 @@
       },
       "version-1.8.0/orc8r/version-1.8.0-deploy_intro": {
         "title": "Introduction"
+      },
+      "version-1.8.0/orc8r/version-1.8.0-deploy_using_juju": {
+        "title": "Deploy Orchestrator using Juju"
       },
       "version-1.8.0/orc8r/version-1.8.0-dev_build": {
         "title": "Build Orchestrator"

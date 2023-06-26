@@ -22,6 +22,7 @@ py_library(
         "service_configs.py",
     ],
     deps = [
+        "//cwf/protos:mconfigs_python_proto",
         "//feg/protos:mconfigs_python_proto",
         "//lte/protos:mconfigs_python_proto",
         "//orc8r/protos:mconfigs_python_proto",

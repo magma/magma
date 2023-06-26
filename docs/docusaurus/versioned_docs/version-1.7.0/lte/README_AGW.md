@@ -75,7 +75,7 @@ Sessiond implements the control plane for the PCEF functionality in Magma. Sessi
 
 ## Pipelined
 
-Pipelined is the control application that programs the OVS openflow rules. In implementation pipelined is a set of services that are chained together. These services can be chained and enabled/disabled through the REST API.  The README (<https://github.com/facebookincubator/magma/blob/master/README.md>) describes the contract in greater detail.
+Pipelined is the control application that programs the OVS openflow rules. In implementation pipelined is a set of services that are chained together. These services can be chained and enabled/disabled through the REST API.  The README (<https://github.com/magma/magma/blob/master/README.md>) describes the contract in greater detail.
 
 ## PolicyDB
 

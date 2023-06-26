@@ -50,6 +50,8 @@ py_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//cwf/swagger:cwf_swagger_specs",
+        "//feg/swagger:feg_swagger_specs",
         "//lte/swagger:lte_swagger_specs",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/swagger:orc8r_swagger_specs",

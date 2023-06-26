@@ -15,7 +15,7 @@ The first step to setting up your account is to request access to Linux Foundati
 
 ## Configuration
 
-To configure Sentry, you will need to create a pull request to update the config.yml on the Magma Github page. If you skip this step, all C/C++ will be unreadable for your Sentry instance. This file is located [here](https://github.com/magma/magma/blob/master/.circleci/config.yml). You will need to navigate to the "sentry-create-and-upload-artifacts" section of the file and create a new a new sentry upload in the following format:
+To configure Sentry, you will need to create a pull request to update the config.yml on the Magma Github page. If you skip this step, all C/C++ will be unreadable for your Sentry instance. This file is located [here](https://github.com/magma/magma/blob/v1.6.0/.circleci/config.yml). You will need to navigate to the "sentry-create-and-upload-artifacts" section of the file and create a new a new sentry upload in the following format:
 
 ```bash
 sentry-upload:

@@ -52,7 +52,7 @@ jobs:
 
   build-containers:
     outputs:
-      image_tag: ${{ steps.get-short-git-sha.outputs.commit_hash }}
+      image_tag: ${{ steps.set-agwc-tags.outputs.image_tag }}
       registry: ${{ steps.set-registry.outputs.registry }}
     runs-on: ubuntu-20.04
     steps:
@@ -77,10 +77,16 @@ jobs:
         name: Set short git sha output
         run: |
           echo ${GITHUB_SHA:0:8}
-          echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
+          echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_ENV
 
       - name: verify git sha output
-        run: echo "Git SHA is ${{ steps.get-short-git-sha.outputs.commit_hash }}"
+        run: echo "Git SHA is ${commit_hash}"
+
+      - name: Create possible release Tag
+        if: github.event_name == 'push' && github.ref_name != 'master'
+        run: |
+          GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+          echo commit_hash="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
 
       - name: Set agwc tags
         id: set-agwc-tags
@@ -89,7 +95,7 @@ jobs:
           python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
           go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
 
-          commit_hash=${{ steps.get-short-git-sha.outputs.commit_hash }}
+          echo image_tag=${commit_hash} >> $GITHUB_OUTPUT
           if [[ ${{ github.ref_name }} = master ]]
           then
             echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
@@ -161,15 +167,12 @@ jobs:
           echo "Registry is ${{ steps.set-registry.outputs.registry }}"
           echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
-      - id: get-short-git-sha
-        run: echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_OUTPUT
-
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.get-short-git-sha.outputs.commit_hash }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ needs.build-containers.outputs.image_tag }}
           TARGET: agw_c_ghz
           CONTEXT: lte/gateway/docker/ghz
 
@@ -178,7 +181,7 @@ jobs:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.get-short-git-sha.outputs.commit_hash }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ needs.build-containers.outputs.image_tag }}
           TARGET: agw_python_ghz
           CONTEXT: lte/gateway/docker/ghz
 
@@ -227,13 +230,13 @@ jobs:
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
       - name: Create test_results directory
-        run: mkdir -p lte/gateway/test-results
+        run: mkdir -p lte/gateway/test_results
 
       - name: Download test results of precommit tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
-          name: test-results-precommit
-          path: "${{ github.workspace }}/lte/gateway/test-results"
+          name: test_results_precommit
+          path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of precommit tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
@@ -243,8 +246,8 @@ jobs:
       - name: Download test results of extended tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
-          name: test-results-extended_tests
-          path: "${{ github.workspace }}/lte/gateway/test-results"
+          name: test_results_extended_tests
+          path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of extended tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
@@ -254,8 +257,8 @@ jobs:
       - name: Download test results of long extended tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
-          name: test-results-extended_tests_long
-          path: "${{ github.workspace }}/lte/gateway/test-results"
+          name: test_results_extended_tests_long
+          path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of long extended tests
         uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
@@ -294,7 +297,7 @@ jobs:
           REPORT_FILENAME: "lte_integ_test_containerized${{ github.sha }}.html"
         run: |
           npm install -g xunit-viewer
-          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} containerized_lte --url $URL

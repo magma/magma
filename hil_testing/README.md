@@ -4,7 +4,13 @@ NOTE: The code is submited as-is. At the time of writing this README file, the S
 
 ## Overview
 
-Magma Test case are automated using spirent system.
+Current testing workflow for Hardware in Loop (HIL) testing is automated using Spirent test center to emulate eNodeB, UE and Network host to run scale and performance tests. HIL is focusing on Magma AGW.
+HIL tests can be run with virtual or physical gateway. However, for now the automated runs are using physical [SUT-HW](https://protectli.com/vault-4-port) box.
+
+![HIL AGW Last Pass](http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg)
+
+Spirent test emulation hardware is hosted in FB lab emulating eNODEB, UE and traffic host elements. Magma AGW is also hosted in same lab. All tests are
+executed in worker node in FB lab. Reports and logs are pushed out to AWS S3 for debug and analysis.
 
 The current code is sufficient to run the SANITY test suite using Spirent's Landslide platform. This testbed utilized Spirent's C100 M4 chassis. It is licensed with the following components:
 
@@ -20,6 +26,32 @@ Software:
 - Sequence Mode support
 
  For the 4G testcases, Spirent is used to emulate the UEs and the eNBs. MME, SGW, PGW, HSS are provided by Magma and are collectively referred to as the System Under Test (SUT).
+
+## Dashboard
+
+All test results are available to compare on [dashboard](http://automation.fbmagma.ninja/). Please use `username:magma` and `password:magma`.
+We can retrieve log and Grafana metrics for each run by clicking on test run result table.
+
+### Tests run
+
+To setup HIL worker follow [instruction](https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
+Current test categories supported are:
+
+1. Sanity (every new build, run time - 30 minutes) updates badge with latest result on magma main README
+1. Performance (nightly, run time - 12hrs)
+1. Feature tests at scale - (nightly, run time - 6hrs)
+1. Availability - Every day, for 12hrs
+
+### HIL SANITY TEST CASES
+
+1. Verify 12 eNodeBs can connect to a Magma Access Gateway
+1. Verify 200 UEs at 5 UE/sec can connect to a Magma Access Gateway
+1. Verify 400 UEs at 5 UE/sec can connect to a Magma Access Gateway
+1. Verify 600 UEs at 5 UE/sec can connect to a Magma Access Gateway
+1. Verify 200 UEs across 12 eNodeBs with 2M data per UE
+1. Verify 400 UEs across 12 eNodeBs with 500k data per UE
+1. Verify 600 UEs across 12 eNodeBs with 500k data per UE
+1. Verify 30 UEs across 12 eNodeBs with 500K data changing state from active-idle-active-idle
 
 ## Setup
 

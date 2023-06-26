@@ -1,58 +1,69 @@
-# -----------------------------------------------------------------------------
-# Builder image to generate proto files
-# -----------------------------------------------------------------------------
+################################################################################
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
 FROM ubuntu:focal AS builder
 
+ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configuration
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install the runtime deps from apt.
-RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
-    apt-utils software-properties-common apt-transport-https git openjdk-8-jdk ant
-
-# Install protobuf compiler.
-RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
-    unzip protoc3.zip -d protoc3 && \
-    mv protoc3/bin/protoc /usr/bin/protoc && \
-    chmod a+rx /usr/bin/protoc && \
-    cp -r protoc3/include/google /usr/include/ && \
-    chmod -R a+Xr /usr/include/google && \
-    rm -rf protoc3.zip protoc3
-
-RUN apt-get -y update && apt-get -y install python3.8
+# Install the build deps with apt.
+RUN apt-get -y update && apt-get -y install \
+    apt-transport-https \
+    apt-utils \
+    git \
+    libsystemd-dev \
+    python3.8 \
+    python3-distutils \
+    python3-pip \
+    pkg-config \
+    systemd \
+    wget
 
 ENV MAGMA_ROOT /magma
-ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
-ENV CODEGEN_ROOT /var/tmp/codegen
-ENV CODEGEN_VERSION 2.2.3
-ENV SWAGGER_CODEGEN_DIR $CODEGEN_ROOT/modules/swagger-codegen-cli/target
-ENV SWAGGER_CODEGEN_JAR $SWAGGER_CODEGEN_DIR/swagger-codegen-cli.jar
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
-RUN printenv > /etc/environment
 
-# Download swagger codegen
-RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-    curl -Lfs https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -o ${SWAGGER_CODEGEN_JAR}
+# Download Bazel
+RUN  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+  chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
+  ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
-# Generate python proto bindings.
 COPY cwf/protos $MAGMA_ROOT/cwf/protos
 COPY cwf/swagger $MAGMA_ROOT/cwf/swagger
 COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY feg/swagger $MAGMA_ROOT/feg/swagger
-COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
-COPY lte/gateway/python/Makefile $MAGMA_ROOT/lte/gateway/python/Makefile
+COPY lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
 COPY lte/protos $MAGMA_ROOT/lte/protos
 COPY lte/swagger $MAGMA_ROOT/lte/swagger
 COPY orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
+COPY orc8r/gateway/configs $MAGMA_ROOT/orc8r/gateway/configs
 COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 COPY orc8r/tools/ansible/roles/fluent_bit/files $MAGMA_ROOT/orc8r/tools/ansible/roles/fluent_bit/files
 COPY protos $MAGMA_ROOT/protos
-ENV PROTO_LIST orc8r_protos lte_protos feg_protos cwf_protos
-RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
-ENV SWAGGER_LIST lte_swagger_specs feg_swagger_specs cwf_swagger_specs orc8r_swagger_specs
-RUN make -C $MAGMA_ROOT/orc8r/gateway/python swagger
+
+# Copy Bazel files
+COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
+COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY ./orc8r/gateway/python/BUILD.bazel ${MAGMA_ROOT}/orc8r/gateway/python/BUILD.bazel
+COPY ./lte/gateway/release/BUILD.bazel ${MAGMA_ROOT}/lte/gateway/release/BUILD.bazel
+COPY ./lte/gateway/release/deb_dependencies.bzl ${MAGMA_ROOT}/lte/gateway/release/deb_dependencies.bzl
+COPY ./lte/gateway/configs/templates/BUILD.bazel ${MAGMA_ROOT}/lte/gateway/configs/templates/BUILD.bazel
+COPY ./orc8r/gateway/configs/templates/BUILD.bazel ${MAGMA_ROOT}/orc8r/gateway/configs/templates/BUILD.bazel
+
+WORKDIR /magma
+RUN bazel build //lte/gateway/release:feg_python_executables_tar
 
 # -----------------------------------------------------------------------------
 # Production image
@@ -102,17 +113,17 @@ RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \
     rm /tmp/get_docker.sh
 
-# Install python code.
-COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
-
-# update aioh2 since there is no pushed package
-RUN pip3 install --force-reinstall git+https://github.com/URenko/aioh2.git
-
 # Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/feg_python_executables.tar.gz \
+                    /tmp/feg_python_executables.tar.gz
+RUN tar -xf /tmp/feg_python_executables.tar.gz --directory / && \
+    rm /tmp/feg_python_executables.tar.gz
 
-# Copy the configs.
+WORKDIR /usr/local/bin
+
+# Copy the configs to overwrite the LTE configs.
+# WARNING: With the current setup this needs to happen
+# after the installation of the Bazel build artifacts!
 COPY feg/gateway/configs /etc/magma
 
 COPY orc8r/gateway/configs/templates /etc/magma/templates

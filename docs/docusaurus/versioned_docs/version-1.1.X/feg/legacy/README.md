@@ -27,7 +27,7 @@ The Federated Gateway supports the following features and functionalities:
 
 
 
-Please see the **[Magma Product Spec](https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf)** for more detailed information.
+Please see the **[Magma Product Spec](https://github.com/magma/magma/blob/v1.1.0/docs/Magma_Specs_V1.1.pdf)** for more detailed information.
 
 ## Federated Gateway Services & Tools
 
@@ -37,7 +37,7 @@ The following services run on the federated gateway:
  - `csfb` - translates calls from GRPC interface to csfb protocol between AGW and VLR
  - `swx_proxy` - translates GRPC interface to SWx protocol between AGW and HSS
  - `gateway_health` - provides health updates to the orc8r to be used for
- achieving highly available federated gateway clusters (see **[Magma Product Spec](https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf)**
+ achieving highly available federated gateway clusters (see **[Magma Product Spec](https://github.com/magma/magma/blob/v1.1.0/docs/Magma_Specs_V1.1.pdf)**
  for more details)
  - `radiusd` - fetches metrics from the running radius server and exports them
 
