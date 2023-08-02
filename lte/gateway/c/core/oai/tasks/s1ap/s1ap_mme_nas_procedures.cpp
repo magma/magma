@@ -110,6 +110,11 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
 
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Missing ENB_UE_S1AP_ID\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_INFO(
       LOG_S1AP,
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
