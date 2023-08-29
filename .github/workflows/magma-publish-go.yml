@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Manual workflow to publish a new Go version to the artifactory blob storage (for caching)
+# remediation: -
+
 name: Magma Publish Go Package
 
 on:
@@ -16,7 +20,7 @@ on:
     inputs:
       version:
         description: Version to upload?
-        default: 1.19.3
+        default: 1.20.1
         required: true
 
 env:

@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-infra
+# purpose: Add labels to a PR based on changed code
+# remediation: -
+
 name: PR Generate Labels
 on:
   # Use pull_request_target to gain write permissions.

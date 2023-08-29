@@ -51,7 +51,6 @@
           "2"
         ]
       ],
-      "name": "magma",
       "memory": 2048,
       "ssh_handshake_attempts": "20",
       "boot_wait": "5s",
@@ -82,10 +81,7 @@
       "expect_disconnect": true
     },
     {
-      "extra_arguments": [
-        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
-      ],
-      "inventory_groups": "test",
+      "type": "ansible-local",
       "playbook_file": "../../../lte/gateway/deploy/magma_test.yml",
       "role_paths": [
         "../../../lte/gateway/deploy/roles/bazel",
@@ -95,7 +91,10 @@
         "../../../orc8r/tools/ansible/roles/pkgrepo",
         "../../../orc8r/tools/ansible/roles/python_dev"
       ],
-      "type": "ansible-local"
+      "inventory_groups": "test",
+      "extra_arguments": [
+        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
+      ]
     },
     {
       "type": "shell",

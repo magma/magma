@@ -35,12 +35,15 @@ load("@rules_pkg//:providers.bzl", "PackageFilesInfo")
 STRIP_PATHS = [
     "lte/gateway/python/",
     "orc8r/gateway/python/",
+    "cwf/swagger/specs_root/",
+    "feg/swagger/specs_root/",
     "lte/swagger/specs_root/",
     "orc8r/swagger/specs_root/",
 ]
 
 # beware: order matters here, e.g., "lte/protos/oai/" needs to be before "lte/protos/"
 STRIP_PATHS_PROTOS = [
+    "cwf/protos/",
     "dp/protos/",
     "feg/protos/",
     "lte/protos/oai/",

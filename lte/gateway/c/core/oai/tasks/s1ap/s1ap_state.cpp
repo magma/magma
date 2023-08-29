@@ -218,6 +218,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
     // for each ue comp_s1ap_id in eNB->ue_id_coll, check if it has an S1ap
     // ue_context, if not delete it
+    mme_ue_id_no_imsi_list.clear();
     for (auto ue_itr = ue_id_coll.map->begin(); ue_itr != ue_id_coll.map->end();
          ue_itr++) {
       // Check if a UE reference exists for this comp_s1ap_id
@@ -237,6 +238,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
       ue_id_coll.remove(mme_ue_id_no_imsi_list[i]);
 
       ueid_imsi_map.remove(mme_ue_id_no_imsi_list[i]);
+      DevAssert(enb_association_p.nb_ue_associated() > 0);
       enb_association_p.set_nb_ue_associated(
           (enb_association_p.nb_ue_associated() - 1));
 

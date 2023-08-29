@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: any
+# purpose: Linting various components
+# remediation: -
+
 name: PR Lint Reviewdog
 on:
   pull_request_target:
@@ -41,11 +45,11 @@ jobs:
         with:
           filters: |
             cpp:
-              - ["lte/gateway/c/**", "orc8r/gateway/c/**"]
+              - ["lte/gateway/c/**", "orc8r/gateway/c/**", "lte/gateway/python/**"]
             javascript:
               - ["nms/**", "**/*.js"]
             python:
-              - ["lte/gateway/python/**", "orc8r/gateway/python/**"]
+              - ["**/*.py"]
             terraform:
               - ["**/*.tf"]
 
@@ -61,7 +65,7 @@ jobs:
     #  'NOLINT(category)' comment to the line.  NOLINT or NOLINT(*)
     #  suppresses errors of all categories on that line.
     ##
-    #  For details on cpplint optinos see the detailed comments in
+    #  For details on cpplint options see the detailed comments in
     #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
     ##
     runs-on: ubuntu-20.04
@@ -71,19 +75,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
-        name: Install CPP Lint and ReviewDog
-      - run: |
-          wget -O - -q https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh \
-          | sh -s -- -b .
-          pip install cpplint
-      - name: Run CPP Lint and push Annotations
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cpplint --recursive \
-            --filter=-build/include_subdir,-build/c++11,-build/include_what_you_use \
-            --linelength=120 ${{ github.workspace }} 2>&1 \
-            | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-review" -level="warning"
+      # TODO: Switch to a release version, once a release of action-cpplint is available.
+      # See also https://github.com/reviewdog/action-cpplint/issues/29
+      - name: cpplint
+        uses: reviewdog/action-cpplint@a5d486c641b1ae5fd018b4fe6bf7bef3bc6e506e
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          flags: --linelength=120
+          filter: "-build/include_subdir\
+            ,-build/c++11\
+            ,-build/include_what_you_use\
+            "
+          reviewdog_flags: -fail-on-error
 
   golangci-lint:
     needs: files_changed
@@ -204,7 +208,7 @@ jobs:
         uses: tsuyoshicho/action-mypy@176f65a2ad781202baffaf870e5715d768d799a8 # pin@v3.9.2
         with:
           github_token: ${{ secrets.github_token }}
-          filter_mode: added
+          filter_mode: file
           reporter: github-pr-review
 
   shellcheck:
@@ -255,13 +259,28 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
+      - name: Get changed Python files
+        id: py-changes
+        # Set outputs.py_files_list to be a list of modified python files.
+        # It is important to use the github.event.pull_request.head.sha here,
+        # because the github.sha is identical to the github.event.pull_request.base.sha
+        # due to the pull_request_target trigger.
+        run: |
+          echo "py_files_list=$(git diff --name-only --diff-filter=ACMRT \
+            ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
+            | grep .py$ | xargs)" >> $GITHUB_OUTPUT
       - name: wemake-python-styleguide
-        uses: wemake-services/wemake-python-styleguide@b8260e79fcbc2feeae2dd4aae2b59ed86aafbf9d # pin@0.15.2
+        uses: wemake-services/wemake-python-styleguide@657508a0b169e15faeda641c4d9c7bc2afda484b # pin@0.17.0
         with:
           reporter: github-pr-review
-          path: ${{ steps.py-changes.outputs.py }}
+          path: ${{ steps.py-changes.outputs.py_files_list }}
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
+      - name: Info for local execution
+        if: failure()
+        run: |
+          echo "Running linting tools failed. This should be equivalent to running './lte/gateway/python/precommit.py --lint --diff' locally."
+          exit 1
 
   yamllint:
     name: yamllint

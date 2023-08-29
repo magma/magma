@@ -17,7 +17,7 @@ function lint {
     if [ -z "$LINTER" ]; then
         echo "-> installing golangci " && \
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-        | sudo sh -s -- -b /usr/sbin/ v1.50.1;
+        | sudo sh -s -- -b /usr/sbin/ v1.51.2;
     fi
 
     golangci-lint run -c "$MAGMA_ROOT"/.golangci.yml
@@ -51,18 +51,19 @@ function pretty {
 }
 
 function test {
-    gotestsum ./...
+    # Run tests sequentially to avoid radius server cross-talk between tests.
+    gotestsum -- -p 1 ./...
 }
 
 function e2e {
     pushd ../integration/lb/sim || exit
     echo Building E2E test containers for LB with simulator
-    docker-compose build
+    docker compose --compatibility build
     echo Starting E2E test containers for LB with simulator
     echo Automatically terminating after 60 secs...
-    docker-compose up &
+    docker compose --compatibility up &
     sleep 60s
-    docker-compose down
+    docker compose down
     popd || exit
 }
 

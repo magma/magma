@@ -21,6 +21,7 @@
 !lte/gateway/docker/
 !lte/gateway/deploy/roles/magma/files/
 !lte/gateway/python/
+!lte/gateway/release/
 !lte/gateway/Makefile
 !lte/gateway/c
 !lte/protos/
@@ -55,9 +56,8 @@
 !protos/
 
 !bazel/
-!*.bzl
-!*.bazel
-!*.BUILD
+!**/*.bzl
+!**/*.bazel
 !.bazelrc
 !.bazelignore
 !.bazelversion

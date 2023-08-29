@@ -105,8 +105,7 @@ e6f78db3d8ad        docker.io/gateway_go:tag          "/bin/bash -c 'envsu…"  
 Then register each gateway:
 
 ```console
-[user@cwf01:~/] cd /var/opt/magma/docker
-[user@cwf01:/var/opt/magma/docker] sudo docker-compose exec magmad /usr/local/bin/show_gateway_info.py
+[user@cwf01:~/] docker compose exec magmad /usr/local/bin/show_gateway_info.py
 ```
 
 You should see output similar to:

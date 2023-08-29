@@ -69,13 +69,13 @@ status_code_e pgw_pco_push_protocol_or_container_id(
 //------------------------------------------------------------------------------
 status_code_e pgw_process_pco_request_ipcp(
     protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id) {
+    const magma::lte::oai::PcoProtocol poc_id) {
   in_addr_t ipcp_dns_prim_ipv4_addr = INADDR_NONE;
   in_addr_t ipcp_dns_sec_ipv4_addr = INADDR_NONE;
   in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
   in_addr_t ipcp_out_dns_sec_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
-  int16_t ipcp_req_remaining_length = poc_id->length;
+  int16_t ipcp_req_remaining_length = poc_id.length();
   size_t pco_in_index = 0;
 
   int8_t ipcp_req_code = 0;
@@ -92,22 +92,23 @@ status_code_e pgw_process_pco_request_ipcp(
   int16_t ipcp_out_length = 0;
 
   OAILOG_DEBUG(LOG_SPGW_APP, "PCO: Protocol identifier IPCP length %u\n",
-               poc_id->length);
+               poc_id.length());
 
-  ipcp_req_code = poc_id->contents->data[pco_in_index++];
-  ipcp_req_identifier = poc_id->contents->data[pco_in_index++];
-  ipcp_req_length = (((int16_t)poc_id->contents->data[pco_in_index]) << 8) |
-                    ((int16_t)poc_id->contents->data[pco_in_index + 1]);
+  std::string contents = poc_id.contents();
+  ipcp_req_code = contents[pco_in_index++];
+  ipcp_req_identifier = contents[pco_in_index++];
+  ipcp_req_length = (((int16_t)contents[pco_in_index]) << 8) |
+                    ((int16_t)contents[pco_in_index + 1]);
   OAILOG_TRACE(
       LOG_SPGW_APP,
       "PCO: Protocol identifier IPCP (0x%x) code 0x%x identifier 0x%x length "
       "%i\n",
-      poc_id->id, ipcp_req_code, ipcp_req_identifier, ipcp_req_length);
+      poc_id.id(), ipcp_req_code, ipcp_req_identifier, ipcp_req_length);
   pco_in_index += 2;
   ipcp_req_remaining_length = ipcp_req_remaining_length - 1 - 1 - 2;
   ipcp_out_length = 1 + 1 + 2;
 
-  poc_id_resp.id = poc_id->id;
+  poc_id_resp.id = poc_id.id();
   poc_id_resp.length = 0;                   // fill value after parsing req
   uint8_t cil[4] = {0};                     // code, identifier, length
   poc_id_resp.contents = blk2bstr(cil, 4);  // fill values after parsing req
@@ -115,8 +116,8 @@ status_code_e pgw_process_pco_request_ipcp(
   ipcp_out_code = IPCP_CODE_CONFIGURE_ACK;
 
   while (ipcp_req_remaining_length >= 2) {
-    ipcp_req_option = poc_id->contents->data[pco_in_index];
-    ipcp_req_option_length = poc_id->contents->data[pco_in_index + 1];
+    ipcp_req_option = contents[pco_in_index];
+    ipcp_req_option_length = contents[pco_in_index + 1];
     ipcp_req_remaining_length =
         ipcp_req_remaining_length - ipcp_req_option_length;
     OAILOG_TRACE(
@@ -143,11 +144,11 @@ status_code_e pgw_process_pco_request_ipcp(
                      "length %i\n",
                      ipcp_req_option_length);
         if (ipcp_req_option_length >= 6) {
-          ipcp_dns_prim_ipv4_addr = htonl(
-              (((uint32_t)poc_id->contents->data[pco_in_index + 2]) << 24) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 3]) << 16) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 4]) << 8) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 5])));
+          ipcp_dns_prim_ipv4_addr =
+              htonl((((uint32_t)contents[pco_in_index + 2]) << 24) |
+                    (((uint32_t)contents[pco_in_index + 3]) << 16) |
+                    (((uint32_t)contents[pco_in_index + 4]) << 8) |
+                    (((uint32_t)contents[pco_in_index + 5])));
           OAILOG_DEBUG(
               LOG_SPGW_APP,
               "PCO: Protocol identifier IPCP option "
@@ -207,11 +208,11 @@ status_code_e pgw_process_pco_request_ipcp(
                      ipcp_req_option_length);
 
         if (ipcp_req_option_length >= 6) {
-          ipcp_dns_sec_ipv4_addr = htonl(
-              (((uint32_t)poc_id->contents->data[pco_in_index + 2]) << 24) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 3]) << 16) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 4]) << 8) |
-              (((uint32_t)poc_id->contents->data[pco_in_index + 5])));
+          ipcp_dns_sec_ipv4_addr =
+              htonl((((uint32_t)contents[pco_in_index + 2]) << 24) |
+                    (((uint32_t)contents[pco_in_index + 3]) << 16) |
+                    (((uint32_t)contents[pco_in_index + 4]) << 8) |
+                    (((uint32_t)contents[pco_in_index + 5])));
           OAILOG_DEBUG(
               LOG_SPGW_APP,
               "PCO: Protocol identifier IPCP option "
@@ -269,8 +270,7 @@ status_code_e pgw_process_pco_request_ipcp(
 
 //------------------------------------------------------------------------------
 status_code_e pgw_process_pco_dns_server_request(
-    protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id) {
+    protocol_configuration_options_t* const pco_resp) {
   in_addr_t ipcp_out_dns_prim_ipv4_addr =
       spgw_config.pgw_config.ipv4.default_dns.s_addr;
   pco_protocol_or_container_id_t poc_id_resp = {0};
@@ -290,8 +290,7 @@ status_code_e pgw_process_pco_dns_server_request(
 }
 //------------------------------------------------------------------------------
 status_code_e pgw_process_pco_link_mtu_request(
-    protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id) {
+    protocol_configuration_options_t* const pco_resp) {
   pco_protocol_or_container_id_t poc_id_resp = {0};
   uint8_t mtu_array[2];
 
@@ -378,41 +377,39 @@ status_code_e pgw_process_pco_dns_server_ipv6_address_req(
 }
 
 //------------------------------------------------------------------------------
-
 status_code_e pgw_process_pco_request(
-    const protocol_configuration_options_t* const pco_req,
+    const magma::lte::oai::Pco* const pco_req,
     protocol_configuration_options_t* pco_resp,
     protocol_configuration_options_ids_t* const pco_ids) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   status_code_e rc = RETURNok;
   memset(pco_ids, 0, sizeof *pco_ids);
 
-  switch (pco_req->configuration_protocol) {
+  switch (pco_req->configuration_protocol()) {
     case PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE:
       pco_resp->ext = 1;
       pco_resp->spare = 0;
       pco_resp->num_protocol_or_container_id = 0;
-      pco_resp->configuration_protocol = pco_req->configuration_protocol;
+      pco_resp->configuration_protocol = pco_req->configuration_protocol();
       break;
 
     default:
       OAILOG_WARNING(LOG_SPGW_APP,
                      "PCO: configuration protocol 0x%X not supported now\n",
-                     pco_req->configuration_protocol);
+                     pco_req->configuration_protocol());
       break;
   }
 
-  for (int id = 0; id < pco_req->num_protocol_or_container_id; id++) {
-    switch (pco_req->protocol_or_container_ids[id].id) {
+  for (uint8_t id = 0; id < pco_req->num_protocol_or_container_id(); id++) {
+    magma::lte::oai::PcoProtocol pco_protocol = pco_req->pco_protocol(id);
+    switch (pco_protocol.id()) {
       case PCO_PI_IPCP:
-        rc = pgw_process_pco_request_ipcp(
-            pco_resp, &pco_req->protocol_or_container_ids[id]);
+        rc = pgw_process_pco_request_ipcp(pco_resp, pco_protocol);
         pco_ids->pi_ipcp = true;
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        rc = pgw_process_pco_dns_server_request(
-            pco_resp, &pco_req->protocol_or_container_ids[id]);
+        rc = pgw_process_pco_dns_server_request(pco_resp);
         pco_ids->ci_dns_server_ipv4_address_request = true;
         break;
 
@@ -423,8 +420,7 @@ status_code_e pgw_process_pco_request(
         break;
 
       case PCO_CI_IPV4_LINK_MTU_REQUEST:
-        rc = pgw_process_pco_link_mtu_request(
-            pco_resp, &pco_req->protocol_or_container_ids[id]);
+        rc = pgw_process_pco_link_mtu_request(pco_resp);
         pco_ids->ci_ipv4_link_mtu_request = true;
         break;
 
@@ -444,17 +440,17 @@ status_code_e pgw_process_pco_request(
         OAILOG_WARNING(
             LOG_SPGW_APP,
             "PCO: Protocol/container identifier 0x%04X not supported now\n",
-            pco_req->protocol_or_container_ids[id].id);
+            pco_protocol.id());
     }
   }
 
   if (spgw_config.pgw_config.force_push_pco) {
     pco_ids->ci_ip_address_allocation_via_nas_signaling = true;
     if (!pco_ids->ci_dns_server_ipv4_address_request) {
-      pgw_process_pco_dns_server_request(pco_resp, NULL);
+      pgw_process_pco_dns_server_request(pco_resp);
     }
     if (!pco_ids->ci_ipv4_link_mtu_request) {
-      pgw_process_pco_link_mtu_request(pco_resp, NULL);
+      pgw_process_pco_link_mtu_request(pco_resp);
     }
   }
   return rc;

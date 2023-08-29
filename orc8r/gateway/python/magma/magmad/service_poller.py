@@ -13,7 +13,7 @@ limitations under the License.
 
 import logging
 import time
-from typing import List
+from typing import List, Optional
 
 import grpc
 from magma.common.job import Job
@@ -88,7 +88,7 @@ class ServicePoller(Job):
     # Timeout when getting status from other local services, in seconds
     GET_STATUS_TIMEOUT = 8
 
-    def __init__(self, loop, config, dynamic_services: List[str] = None):
+    def __init__(self, loop, config, dynamic_services: Optional[List[str]] = None):
         """
         Initialize the ServicePooler
 

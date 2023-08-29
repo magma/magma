@@ -67,7 +67,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    1. Download the tar file.
 
       ```bash
-      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.3.linux-amd64.tar.gz
+      wget https://linuxfoundation.jfrog.io/artifactory/magma-blob/go1.18.3.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
@@ -166,8 +166,8 @@ To download Magma current version, or a specific release do the following
 git clone https://github.com/magma/magma.git
 cd magma
 
-# in case you want to use a specific version of Magma (for example v1.6)
-git checkout v1.6
+# in case you want to use a specific version of Magma (for example v1.8)
+git checkout v1.8
 
 # to list all available releases
 git tag -l

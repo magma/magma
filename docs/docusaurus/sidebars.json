@@ -6,7 +6,6 @@
       "basics/quick_start_guide",
       "bazel/agw_with_bazel"
     ],
-    "Tutorials": [],
     "Usage": [
       {
         "type": "subcategory",
@@ -21,13 +20,9 @@
           "howtos/he_api",
           "howtos/inbound_roaming",
           "howtos/l3_transport",
-          "howtos/network_probe"
+          "howtos/network_probe",
+          "howtos/package"
         ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Access Gateway",
-        "ids": []
       },
       {
         "type": "subcategory",
@@ -61,15 +56,14 @@
         "ids": [
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
-          "orc8r/architecture_security",
-          "nms/nms_arch_overview"
+          "orc8r/architecture_security"
         ]
       },
       {
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "nms/nms_arch_overview"
+          "nms/architecture_overview"
         ]
       },
       {
@@ -113,6 +107,7 @@
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_install",
+          "orc8r/deploy_using_ansible",
           "orc8r/deploy_using_juju",
           "orc8r/deploy_terraform_options",
           "orc8r/deploy_faq"
@@ -139,6 +134,15 @@
         "label": "Domain Proxy",
         "ids": [
           "dp/deploy_build"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "cwf/deploy_intro",
+          "cwf/deploy_build",
+          "cwf/deploy_install"
         ]
       }
     ],
@@ -242,6 +246,7 @@
         "type": "subcategory",
         "label": "Carrier WiFi",
         "ids": [
+          "cwf/healthchecker",
           "cwf/pipelined_packet_tracer_debugging"
         ]
       },
@@ -287,11 +292,13 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/readme_agw",
           "lte/dev_notes",
           "lte/openvswitch",
           "lte/pipelined",
           "lte/ebpf_datapath",
           "lte/ipfix",
+          "lte/pipelined_tests",
           "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
@@ -299,9 +306,11 @@
           "lte/sessiond",
           "lte/access_service_restrictions",
           "lte/dev_teid_allocation",
-          "lte/integrated_5G_sa",
-          "lte/extended_5G_sa_features",
-          "lte/suci_extensions"
+          "lte/integrated_5g_sa",
+          "lte/extended_5g_sa_features",
+          "lte/suci_extensions",
+          "lte/redirectd",
+          "lte/readme_callflow"
         ]
       },
       {
@@ -336,6 +345,7 @@
         "label": "Federation Gateway",
         "ids": [
           "feg/dev_testing",
+          "feg/docker",
           "feg/s1ap_federated_tests",
           "feg/session_proxy"
         ]
@@ -365,7 +375,7 @@
         "label": "Access Gateway",
         "ids": [
           "proposals/p003_qos_enforcement",
-          "proposals/p004_fua-restrict-feature",
+          "proposals/p004_fua_restrict_feature",
           "proposals/p007_header_enrichment",
           "proposals/p008_apn_correction",
           "proposals/p013_Ubuntu_upgrade",

@@ -12,7 +12,7 @@ limitations under the License.
 """
 from abc import ABCMeta, abstractmethod
 from logging import Logger
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
@@ -160,7 +160,7 @@ class PolicyMixin(metaclass=ABCMeta):
         self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
         priority, qos, hard_timeout, rule_id, app_name,
         app_service_type, next_table, version, qos_mgr,
-        copy_table, _, urls: List[str] = None, local_f_teid_ng: int = 0,
+        copy_table, _, urls: Optional[List[str]] = None, local_f_teid_ng: int = 0,
     ):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
@@ -317,12 +317,18 @@ class PolicyMixin(metaclass=ABCMeta):
                 qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
 
         if qos_info or ambr:
+            if ambr and apn_ambr.br_unit == 0:
+                units = "bit"
+            if ambr and apn_ambr.br_unit == 1:
+                units = "kbit"
+
+            self.logger.debug("ambr: %s, apn_ambr.br_unit :%s, units : %s", ambr, apn_ambr.br_unit, units)
             cleanup_rule_func = lambda: self._invalidate_rule_version(
                 imsi,
                 ip_addr, rule_id,
             )
             action, inst, qos_handle = qos_mgr.add_subscriber_qos(
-                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d,
+                imsi, ip_addr.address.decode('utf8'), ambr, units, rule_num, d,
                 qos_info, cleanup_rule_func,
             )
 

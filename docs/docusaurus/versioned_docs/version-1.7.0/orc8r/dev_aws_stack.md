@@ -37,7 +37,7 @@ Magma provides a set of configuration parameters to control these resources, fol
 The values for these configurations can be defined/overwritten in your `main.tf` `orc8r` module.
 Some configurations do not have default values and are mandatory to be present in your `main.tf`.
 Other already have predefined values and can be overwritten.
-See the [complete list of available configurations](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf).
+See the [complete list of available configurations](https://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf).
 
 ## What Magma deploys in my AWS-hosted Kubernetes?
 
@@ -65,7 +65,7 @@ Magma provides a set of configuration parameters to control these resources, fol
 |deploy_openvpn |Optional |Flag to deploy OpenVPN server into cluster. This is useful if you want to remotely access AGWs. |FALSE |
 
 The values of these configurations can be defined or overwritten in your `main.tf` files's `orc8r-app` module.
-See the [complete list of configurations available for these resource](http://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-helm-aws/variables.tf).
+See the [complete list of configurations available for these resource](https://github.com/magma/magma/blob/master/orc8r/cloud/deploy/terraform/orc8r-helm-aws/variables.tf).
 
 ## What does the Orc8r Helm chart contain?
 

@@ -81,7 +81,7 @@ This chart installs the Magma CWF Gateway.
 
    source .prod_env
 
-   docker-compose build
+   docker compose --compatibility build
 
    ./magma/orc8r/tools/docker/publish.sh -r REGISTRY -i gateway_c -u USERNAME -p passwordfile
 
@@ -172,7 +172,7 @@ The following table list the configurable parameters of the orchestrator chart a
     
    b. SSH into VM
    
-         ssh -t testuser@${cwf_ip} "cd /var/opt/magma/docker ; sudo docker-compose exec magmad /usr/local/bin/show_gateway_info.py"
+         ssh -t testuser@${cwf_ip} "docker compose exec magmad /usr/local/bin/show_gateway_info.py"
       
    c. Note down the H/w Id and Challenge Key: 
   

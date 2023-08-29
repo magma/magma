@@ -18,23 +18,17 @@ ARG CPU_ARCH=x86_64
 ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
-ARG EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-test
 
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG CPU_ARCH
 ARG DEB_PORT
 ARG OS_DIST
 ARG OS_RELEASE
-ARG EXTRA_REPO
 
 ENV MAGMA_DEV_MODE 0
 ENV TZ=Europe/Paris
 ENV MAGMA_ROOT=/magma
-ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
-ENV SWAGGER_CODEGEN_DIR /var/tmp/codegen/modules/swagger-codegen-cli/target
-ENV SWAGGER_CODEGEN_JAR ${SWAGGER_CODEGEN_DIR}/swagger-codegen-cli.jar
-ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
@@ -42,57 +36,51 @@ RUN apt-get update && apt-get install -y \
   git \
   lsb-release \
   libsystemd-dev \
-  libprotobuf-dev \
   pkg-config \
   python3-dev \
-  python3-eventlet \
   python3-pip \
-  python3-protobuf \
-  python3-pystemd \
-  ruby \
-  ruby-dev \
   sudo \
-  openjdk-8-jdk \
-  openjdk-8-jre-headless \
-  virtualenv \
   wget \
   && rm -rf /var/lib/apt/lists/*
 
-RUN gem install fpm
+# Download Bazel
+RUN  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+  chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
+  ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
-COPY ./third_party/build/bin/aioeventlet_build.sh $MAGMA_ROOT/third_party/build/bin/aioeventlet_build.sh
-COPY ./third_party/build/lib/util.sh $MAGMA_ROOT/third_party/build/lib/util.sh
-WORKDIR /var/tmp/
-RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
-  dpkg -i python3-aioeventlet*
-
-RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-  wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
-
-COPY \
-    ./lte/gateway/python/Makefile \
-    ./lte/gateway/python/defs.mk \
-    ./lte/gateway/python/setup.py \
-    $MAGMA_ROOT/lte/gateway/python/
+COPY ./lte/gateway/python/integ_tests/s1aptests/ovs $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/ovs
 COPY ./lte/gateway/python/load_tests $MAGMA_ROOT/lte/gateway/python/load_tests
 COPY ./lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
 COPY ./lte/gateway/python/dhcp_helper_cli $MAGMA_ROOT/lte/gateway/python/dhcp_helper_cli
 COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
 COPY ./orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 
+COPY ./lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
+COPY ./orc8r/gateway/configs/templates $MAGMA_ROOT/orc8r/gateway/configs/templates
+
 COPY ./protos $MAGMA_ROOT/protos
+COPY ./cwf/protos $MAGMA_ROOT/cwf/protos
 COPY ./lte/protos $MAGMA_ROOT/lte/protos
 COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY ./feg/protos $MAGMA_ROOT/feg/protos
 COPY ./dp/protos $MAGMA_ROOT/dp/protos
 
+COPY ./cwf/swagger $MAGMA_ROOT/cwf/swagger
+COPY ./feg/swagger $MAGMA_ROOT/feg/swagger
 COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
 COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 
 COPY ./lte/gateway/deploy/roles/magma/files/patches $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/patches
 
-WORKDIR /magma/lte/gateway/python
-RUN make buildenv
+# Copy Bazel files
+COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
+COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY ./lte/gateway/python/BUILD.bazel $MAGMA_ROOT/lte/gateway/python/BUILD.bazel
+COPY ./lte/gateway/release/BUILD.bazel $MAGMA_ROOT/lte/gateway/release/BUILD.bazel
+COPY ./lte/gateway/release/deb_dependencies.bzl $MAGMA_ROOT/lte/gateway/release/deb_dependencies.bzl
+
+WORKDIR /magma
+RUN bazel build //lte/gateway/release:python_executables_tar //lte/gateway/release:dhcp_helper_cli_tar
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -124,19 +112,12 @@ RUN apt-get update && apt-get install -y \
   nghttp2-proxy \
   python3-pip \
   python3-venv \
-  python3-eventlet \
-  python3-pystemd \
-  python3-jinja2 \
-  python3-scapy \
   redis-server \
   sudo \
-  virtualenv \
   wget \
   && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv $VIRTUAL_ENV
-
-ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
+ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$PATH"
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
@@ -155,26 +136,18 @@ RUN apt-get update && apt-get install -y \
   wireguard \
   && rm -rf /var/lib/apt/lists/*
 
-COPY \
-    ./orc8r/gateway/python/scripts/ \
-    ./lte/gateway/python/scripts/ \
-    ./lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py \
-    /usr/local/bin/
-COPY ./lte/gateway/configs/templates /etc/magma/templates/
-COPY ./lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
-COPY ./lte/gateway/python/magma /magma/lte/gateway/python/magma
-COPY ./orc8r/gateway/configs/templates/nghttpx.conf.template /etc/magma/templates/nghttpx.conf.template
-COPY ./orc8r/gateway/python/magma /magma/orc8r/gateway/python/magma
+COPY ./lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py /usr/local/bin/
+RUN mkdir -p /var/opt/magma/
 
-COPY --from=builder /build /build
-COPY --from=builder /var/tmp/python3-aioeventlet*.deb /var/tmp/
+# Copy the build artifacts.
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma_python_executables.tar.gz \
+                    /tmp/magma_python_executables.tar.gz
+RUN tar -xf /tmp/magma_python_executables.tar.gz --directory / && \
+    rm /tmp/magma_python_executables.tar.gz
 
-# The Python scripts in /build/bin are broken inside the container
-# Remove all Python scripts already exist in /usr/local/bin
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz \
+                    /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
+RUN tar -xf /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz --directory / && \
+    rm /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
+
 WORKDIR /usr/local/bin
-RUN find ./*.py -exec rm -rf /build/bin/{} \;
-
-RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
-  dpkg -i /var/tmp/python3-aioeventlet* && \
-  pip install jsonpointer>$JSONPOINTER_VERSION && \
-  mkdir -p /var/opt/magma/

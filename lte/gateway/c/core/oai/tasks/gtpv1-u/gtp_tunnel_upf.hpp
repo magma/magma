@@ -25,7 +25,7 @@ int upf_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
                    struct in_addr enb, struct in6_addr* unused_in6_addr,
                    uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
                    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
-                   char* apn);
+                   const char* apn);
 
 int upf_del_tunnel(struct in_addr enb, struct in6_addr* unused_in6_addr,
                    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,

@@ -18,7 +18,7 @@ failure, and so on. The options for configuration and such can be looked
 
 Spin up and provision the gateway VM. From `magma/lte/gateway` on the host machine run `vagrant up magma && vagrant ssh magma`.
 
-Next build and start the magma services. See the [integ test documentation](https://docs.magmacore.org/docs/next/lte/s1ap_tests#s1ap-integration-tests) for details.
+Next build and start the magma services. See the [integ test documentation](https://magma.github.io/magma/docs/next/lte/s1ap_tests#s1ap-integration-tests) for details.
 
 ### Run tests
 

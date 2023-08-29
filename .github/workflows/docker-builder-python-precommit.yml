@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Check if the Python precommit image can be built
+# remediation: -
+
 name: AGW Build Docker Image Python Precommit
 on:
   push:
@@ -47,4 +51,4 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: false

@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: Orc8r fossa analysis
+# remediation: -
+
 name: Orc8r Analyze With Fossa
 
 on:

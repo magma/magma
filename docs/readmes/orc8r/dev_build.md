@@ -71,7 +71,7 @@ cd ${MAGMA_ROOT}/orc8r/cloud/docker
 for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} -u '' -p '' ; done
 ```
 
-Optionally, to build fluentd images for the Orchestrator, uncomment the line `docker-compose.logging.yaml` in `build.py`.
+Optionally, to build fluentd images for the Orchestrator, uncomment the line `docker-compose.logging.yml` in `build.py`.
 Build and publish fluentd images
 
 ```bash
@@ -84,8 +84,8 @@ Build and publish NMS images
 
 ```bash
 cd ${MAGMA_ROOT}/nms
-COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
-COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
+COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
+COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG} -u '' -p ''
 ```
 
 ## Build and publish Helm charts

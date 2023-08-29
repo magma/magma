@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-cloud
+# purpose: Ensure generated files are committed
+# remediation: https://magma.github.io/magma/docs/next/orc8r/dev_testing
+
 name: Orc8r Check Generated Files In Sync
 
 on:

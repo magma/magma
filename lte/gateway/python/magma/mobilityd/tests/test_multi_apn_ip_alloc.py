@@ -47,7 +47,7 @@ class MockedSubscriberDBStub:
 
     @classmethod
     def add_sub(
-        cls, sid: str, apn: str, ip: str, vlan: str = None,
+        cls, sid: str, apn: str, ip: str, vlan: Optional[str] = None,
         gw_ip=None, gw_mac=None,
     ):
         sub_db_sid = SIDUtils.to_pb(sid)
@@ -76,7 +76,7 @@ class MockedSubscriberDBStub:
 
     @classmethod
     def add_sub_ip(
-        cls, sid: str, apn: str, ip: str, vlan: str = None,
+        cls, sid: str, apn: str, ip: str, vlan: Optional[str] = None,
         gw_ip=None, gw_mac=None,
     ):
         sub_db_sid = SIDUtils.to_pb(sid)

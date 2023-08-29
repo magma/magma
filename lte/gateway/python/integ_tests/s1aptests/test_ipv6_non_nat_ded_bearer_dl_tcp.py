@@ -22,7 +22,7 @@ from s1ap_utils import MagmadUtil
 class TestIpv6NonNatDedBearerDlTcp(unittest.TestCase):
     """Integration Test: TestIpv6NonNatDedBearerDlTcp"""
 
-    def __init__(self, method_name: str = ...) -> None:
+    def __init__(self, method_name: str) -> None:
         """Initialize unittest class"""
         super().__init__(methodName=method_name)
         self.magma_utils = MagmadUtil(None)

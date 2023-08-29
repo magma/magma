@@ -17,9 +17,10 @@ import re
 import subprocess
 from collections import namedtuple
 from concurrent.futures import Future
+from dataclasses import dataclass
 from datetime import datetime
 from difflib import unified_diff
-from typing import List, NamedTuple, Optional, Tuple
+from typing import List, Optional, Tuple
 from unittest import TestCase, mock
 from unittest.mock import MagicMock
 
@@ -67,7 +68,8 @@ class FlowTest(namedtuple('FlowTest', ['query', 'match_num', 'flow_count'])):
         return super(FlowTest, cls).__new__(cls, query, match_num, flow_count)
 
 
-class SubTest(NamedTuple):
+@dataclass
+class SubTest:
     __test__ = False
     context: RyuDirectSubscriberContext
     isolator: RyuDirectTableIsolator
@@ -407,7 +409,7 @@ def get_enforcement_stats(enforcement_stats):
 
 def create_service_manager(
     services: List[int],
-    static_services: List[str] = None,
+    static_services: Optional[List[str]] = None,
 ):
     """
     Creates a service manager from the given list of services.

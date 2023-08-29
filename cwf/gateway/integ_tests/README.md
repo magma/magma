@@ -48,11 +48,11 @@ This VM runs an iperf3 server.
 
 #### Requirements
 
-- fabric3
+- fabric
 - see <https://magma.github.io/magma/docs/basics/prerequisites> for
 our prerequisites on running our VMs.
 
-To the run the test, run `fab integ_test` from `magma/cwf/gateway`.
+To run the test, run `fab integ-test` from `magma/cwf/gateway`.
 This fabfile will
 
 - Provision the 3 VMs
@@ -64,18 +64,18 @@ This fabfile will
 
 #### Fab script parameters
 
-- `no_build`: The fabfile by default stops, rebuilds, and starts all containers. If you
-only want to restart the containers, and not rebuild everything, run
-`fab integ_test:no_build=True`.
-- `tests_to_run`: By default, the fab script will run all existing tests. You can
-specify a subset of them with this flag. For example, run `fab integ_test:tests_to_run=gx`,
+- `build`: The fabfile by default stops, rebuilds, and restarts all containers.
+  If you only want to restart the containers, and not rebuild everything, run
+`fab integ-test --no-build`.
+- `tests-to-run`: By default, the fab script will run all existing tests. You can
+specify a subset of them with this flag. For example, run `fab integ-test --tests-to-run=gx`,
 to only run Gx tests. See the fabfile for more options.
 
 ## Debugging on `cwag-dev` VM
 
 - To see the list of running services, run `docker ps` in the `cwag-dev` VM.
-- To see per-service logs, run `docker-compose logs <container_name>`
-- To go into a running container, run `docker-compose exec <container_name> bash`
+- To see per-service logs, run `docker compose logs <container_name>`
+- To go into a running container, run `docker compose exec <container_name> bash`
 - `/usr/local/bin/pipelined_cli.py` in pipelined service maybe useful for
 viewing installed flows for debugging.
 
@@ -88,8 +88,8 @@ Before committing, please make sure you run the commands below to test and forma
 - If you touch anything in `magma/feg/gateway`, run `make precommit` inside
 the FeG test container.
     - `cd magma/feg/gateway/docker`
-    - `docker-compose up -d test`
-    - `docker-compose exec test /bin/bash`
+    - `docker compose --compatibility up -d test`
+    - `docker compose exec test /bin/bash`
     - `make precommit`
 - If you touch anything in `magma/.../cloud/go`, please run the
 orc8r precommit.

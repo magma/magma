@@ -560,7 +560,11 @@ int decode_emergency_number_list_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
+  CHECK_PDU_POINTER_AND_MAX_LENGTH_DECODER(
+      buffer + decoded, EMERGENCY_NUMBER_MAX_DIGITS, len - decoded);
+
   e->lengthofemergencynumberinformation = *(buffer + decoded);
+
   decoded++;
   emergencynumberlist->emergencyservicecategoryvalue =
       *(buffer + decoded) & 0x1f;

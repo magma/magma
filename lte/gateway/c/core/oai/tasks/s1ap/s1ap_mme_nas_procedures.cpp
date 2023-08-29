@@ -110,6 +110,11 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
 
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Missing ENB_UE_S1AP_ID\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_INFO(
       LOG_S1AP,
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
@@ -251,16 +256,18 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_cause, container,
                                S1ap_ProtocolIE_ID_id_RRC_Establishment_Cause,
                                true);
-    s1ap_mme_itti_s1ap_initial_ue_message(
-        assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
-        ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
-        &ecgi, ie_cause->value.choice.RRC_Establishment_Cause,
-        ie_e_tmsi ? &s_tmsi : NULL, ie_csg_id ? &csg_id : NULL,
-        ie_gummei ? &gummei : NULL,
-        NULL,  // CELL ACCESS MODE
-        NULL,  // GW Transport Layer Address
-        NULL   // Relay Node Indicator
-    );
+    if ((s1ap_mme_itti_s1ap_initial_ue_message(
+            assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
+            ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
+            &ecgi, ie_cause->value.choice.RRC_Establishment_Cause,
+            ie_e_tmsi ? &s_tmsi : NULL, ie_csg_id ? &csg_id : NULL,
+            ie_gummei ? &gummei : NULL,
+            NULL,   // CELL ACCESS MODE
+            NULL,   // GW Transport Layer Address
+            NULL))  // Relay Node Indicator
+        == RETURNerror) {
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
 
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;

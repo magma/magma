@@ -4406,7 +4406,7 @@ status_code_e s1ap_handle_enb_initiated_reset_ack(
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_Reset;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_ResetAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.ResetAcknowledge;
@@ -4856,7 +4856,7 @@ void s1ap_mme_generate_erab_modification_confirm(
     ie = (S1ap_E_RABModificationConfirmIEs_t*)calloc(
         1, sizeof(S1ap_E_RABModificationConfirmIEs_t));
     ie->id = S1ap_ProtocolIE_ID_id_E_RABModifyListBearerModConf;
-    ie->criticality = S1ap_Criticality_reject;
+    ie->criticality = S1ap_Criticality_ignore;
     ie->value.present =
         S1ap_E_RABModificationConfirmIEs__value_PR_E_RABModifyListBearerModConf;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
@@ -4870,7 +4870,7 @@ void s1ap_mme_generate_erab_modification_confirm(
               calloc(1, sizeof(S1ap_E_RABModifyItemBearerModConfIEs_t)));
 
       item->id = S1ap_ProtocolIE_ID_id_E_RABModifyItemBearerModConf;
-      item->criticality = S1ap_Criticality_reject;
+      item->criticality = S1ap_Criticality_ignore;
       item->value.present =
           S1ap_E_RABModifyItemBearerModConfIEs__value_PR_E_RABModifyItemBearerModConf;
 

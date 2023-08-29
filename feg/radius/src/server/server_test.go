@@ -55,8 +55,6 @@ type FullRADIUSSessiontWithAnalyticsModulesTestParam struct {
 
 // TestAnalyticsModulesAuthenticate tests the Analytics module handling of the Authenticate RADIUS packet
 func TestAnalyticsModulesAuthenticate(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
@@ -66,8 +64,6 @@ func TestAnalyticsModulesAuthenticate(t *testing.T) {
 
 // TestAnalyticsModulesAccountingStart test the processing of Accounting-Start RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingStart(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
@@ -84,8 +80,6 @@ func TestAnalyticsModulesAccountingStart(t *testing.T) {
 
 // TestAnalyticsModulesAccountingUpdate test the processing of Accounting-Update RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingUpdate(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
@@ -102,8 +96,6 @@ func TestAnalyticsModulesAccountingUpdate(t *testing.T) {
 
 // TestAnalyticsModulesAccountingStop test the processing of Accounting-Stop RADIUS packet, with/out processing of Auth-Request
 func TestAnalyticsModulesAccountingStop(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
@@ -121,8 +113,6 @@ func TestAnalyticsModulesAccountingStop(t *testing.T) {
 
 // full session lifetime test of Analytics module.
 func TestFullRADIUSSessiontWithAnalyticsModules(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -143,8 +133,6 @@ func TestFullRADIUSSessiontWithAnalyticsModules(t *testing.T) {
 }
 
 func TestRequestWithModules(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -249,8 +237,6 @@ func TestModuleFailsToInit(t *testing.T) {
 }
 
 func TestModuleFailsToHandle(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
@@ -258,7 +244,7 @@ func TestModuleFailsToHandle(t *testing.T) {
 
 	loader := loaderstest.MockLoader{}
 
-	mModule1 := createMockHandlerWithReturn(nil, errors.New("failed to handle"))
+	mModule1 := createMockHandlerWithReturnForFailure(&modules.Response{Code: radius.CodeAccessAccept}, errors.New("failed to handle"))
 
 	loader.On("LoadModule", "module.auth.1").Return(mModule1, nil)
 
@@ -268,7 +254,7 @@ func TestModuleFailsToHandle(t *testing.T) {
 	require.True(t, isReady, "failed to initialize the server")
 
 	// Act
-	packet := radius.New(radius.CodeAccessRequest, []byte(config.Secret))
+	packet := radius.New(radius.CodeAccountingRequest, []byte(config.Secret))
 	client := radius.Client{
 		Retry: 0,
 	}
@@ -309,8 +295,6 @@ func TestFilterFailsToInit(t *testing.T) {
 }
 
 func TestFilterFailsToProcess(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	// Arrange
 	config := getConfigWithFilters(t, []string{"filter.1"})
 
@@ -319,7 +303,7 @@ func TestFilterFailsToProcess(t *testing.T) {
 	loader := loaderstest.MockLoader{}
 	loader.On("LoadFilter", "filter.1").Return(mFilter1, nil)
 
-	mModule1 := createMockHandlerWithReturn(&modules.Response{}, nil)
+	mModule1 := createMockHandlerWithReturn(&modules.Response{Code: radius.CodeAccessAccept}, nil)
 	loader.On("LoadModule", "module.auth.1").Return(mModule1, nil)
 
 	server, err := New(config, zap.NewNop(), &loader)
@@ -328,7 +312,7 @@ func TestFilterFailsToProcess(t *testing.T) {
 	require.True(t, isReady, "failed to initialize the server")
 
 	// Act
-	packet := radius.New(radius.CodeAccessRequest, []byte(config.Secret))
+	packet := radius.New(radius.CodeAccountingRequest, []byte(config.Secret))
 	client := radius.Client{
 		Retry: 0,
 	}
@@ -349,15 +333,13 @@ func TestFilterFailsToProcess(t *testing.T) {
 }
 
 func TestDedup(t *testing.T) {
-	t.Skip("Skipped because test runs for 10 minutes before failing") // TODO GH14659
-
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	moduleChain := []string{"auth"}
 	moduleCount := []int{1}
 	config := getConfigWithAuthListener(t, moduleChain, moduleCount, true)
-	mModule1 := createMockHandlerWithReturn(nil, nil)
+	mModule1 := createMockHandlerWithReturnForFailure(&modules.Response{Code: radius.CodeAccessAccept}, nil)
 
 	loader := loaderstest.MockLoader{}
 	loader.On("LoadModule", "module.auth.1").Return(mModule1, nil)
@@ -365,14 +347,15 @@ func TestDedup(t *testing.T) {
 	server, err := New(config, logger, &loader)
 	assert.Equal(t, err, nil)
 	isReady := server.StartAndWait()
+
 	require.True(t, isReady, "failed to initialize the server")
-	packet := radius.New(radius.CodeAccessRequest, []byte(config.Secret))
+	packet := radius.New(radius.CodeAccountingRequest, []byte(config.Secret))
 	rfc2865.UserName_SetString(packet, "tim")
 	rfc2865.UserPassword_SetString(packet, "12345")
 
 	// Act (no response, package will be sent multiple times)
-	radius.DefaultClient.Retry, _ = time.ParseDuration("10ms")
-	deadline := time.Now().Add(time.Millisecond * 100)
+	radius.DefaultClient.Retry = 10 * time.Millisecond
+	deadline := time.Now().Add(100 * time.Millisecond)
 	d, cancelFunc := context.WithDeadline(context.Background(), deadline)
 	port := config.Listeners[0].Extra["Port"].(int)
 	_, _ = radius.Exchange(
@@ -406,7 +389,7 @@ func getConfigWithFilters(t *testing.T, filterNames []string) config.ServerConfi
 // getConfigWithAuthListener create a config with a chain of modules as set by args:
 // moduleChain the names of modules to chain - ordered is maintained
 // moduleCount the numner of module instances from the name in the same index within 'moduleChain'
-func getConfigWithAuthListener(t *testing.T, moduleChain []string, moduleCount []int, beutifyName bool) config.ServerConfig {
+func getConfigWithAuthListener(t *testing.T, moduleChain []string, moduleCount []int, beautifyName bool) config.ServerConfig {
 	require.Equal(t, len(moduleChain), len(moduleCount),
 		"chain of module must have same number of elements in names & count")
 	initialPort := 2000 + rand.Intn(5000)
@@ -433,7 +416,7 @@ func getConfigWithAuthListener(t *testing.T, moduleChain []string, moduleCount [
 		// Add module instances
 		for j := 1; j <= moduleCount[mi]; j++ {
 			modName := moduleChain[mi]
-			if beutifyName {
+			if beautifyName {
 				modName = fmt.Sprintf("module.%s.%d", moduleName, j)
 			}
 			listenerCfg.Modules = append(
@@ -467,14 +450,50 @@ func createMockHandlerWithReturn(r *modules.Response, err error) *modulestest.Mo
 	return &mModule
 }
 
+func createMockHandlerWithReturnForFailure(r *modules.Response, err error) *modulestest.MockModule {
+	mModule := modulestest.MockModule{}
+	mModule.On("Init", mock.Anything, mock.Anything).
+		Return(nil).On(
+		"Handle",
+		mock.AnythingOfType("*modules.RequestContext"),
+		mock.MatchedBy(func(req *radius.Request) bool {
+			return req.Packet.Code == radius.CodeAccountingRequest
+		}),
+		mock.AnythingOfType("modules.Middleware"),
+	).Run(func(args mock.Arguments) {
+		ctx := args.Get(0).(*modules.RequestContext)
+		req := args.Get(1).(*radius.Request)
+		next := args.Get(2).(modules.Middleware)
+		next(ctx, req)
+	}).Return(nil, err).On(
+		"Handle",
+		mock.AnythingOfType("*modules.RequestContext"),
+		mock.AnythingOfType("*radius.Request"),
+		mock.AnythingOfType("modules.Middleware"),
+	).Run(func(args mock.Arguments) {
+		ctx := args.Get(0).(*modules.RequestContext)
+		req := args.Get(1).(*radius.Request)
+		next := args.Get(2).(modules.Middleware)
+		next(ctx, req)
+	}).Return(r, nil)
+	return &mModule
+}
+
 func createMockFilterWithReturn(err error) *filterstest.MockFilter {
 	mFilter := filterstest.MockFilter{}
 	mFilter.On("Init", mock.Anything).Return(nil).On(
 		"Process",
 		mock.AnythingOfType("*modules.RequestContext"),
 		mock.AnythingOfType("string"),
+		mock.MatchedBy(func(req *radius.Request) bool {
+			return req.Packet.Code == radius.CodeAccountingRequest
+		}),
+	).Return(err).On(
+		"Process",
+		mock.AnythingOfType("*modules.RequestContext"),
+		mock.AnythingOfType("string"),
 		mock.AnythingOfType("*radius.Request"),
-	).Return(err)
+	).Return(nil)
 	return &mFilter
 }
 

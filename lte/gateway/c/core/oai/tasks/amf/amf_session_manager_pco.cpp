@@ -15,6 +15,13 @@
 
 #include <netinet/in.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#ifdef __cplusplus
+}
+#endif
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/common/rfc_1332.h"
 #include "lte/gateway/c/core/oai/common/rfc_1877.h"
@@ -207,6 +214,11 @@ uint16_t sm_process_pco_request_ipcp(
   idp[5] = (uint8_t)((ipcp_out_dns_prim_ipv4_addr >> 24) & 0x000000FF);
   ipcp_out_length += 6;
   bcatblk(poc_id_resp.contents, idp, 6);
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "PCO: Protocol identifier IPCP option "
+               "PRIMARY_DNS_SERVER_IP_ADDRESS ipcp_out_dns_prim_ipv4_addr "
+               "0x%x\n",
+               ipcp_out_dns_prim_ipv4_addr);
 
   /* Secondary DNS Server IP Address */
   ids[0] = IPCP_OPTION_SECONDARY_DNS_SERVER_IP_ADDRESS;
@@ -217,7 +229,11 @@ uint16_t sm_process_pco_request_ipcp(
   ids[5] = (uint8_t)((ipcp_out_dns_sec_ipv4_addr >> 24) & 0x000000FF);
   ipcp_out_length += 6;
   bcatblk(poc_id_resp.contents, ids, 6);
-
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "PCO: Protocol identifier IPCP option "
+               "SECONDARY_DNS_SERVER_IP_ADDRESS ipcp_out_dns_sec_ipv4_addr "
+               "0x%x\n",
+               ipcp_out_dns_sec_ipv4_addr);
   // finally we can fill code, length
   poc_id_resp.length = ipcp_out_length;  // fill value after parsing req
   poc_id_resp.contents->data[0] = IPCP_CODE_CONFIGURE_NACK;

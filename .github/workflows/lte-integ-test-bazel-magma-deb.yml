@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Run LTE integration tests against the AGW services from the Bazel-built Debian package
+# remediation: -
+
 name: AGW Test LTE Integration With Bazel Debian Build
 
 on:
@@ -34,12 +38,16 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
-          key: vagrant-box-magma-test-v1.2.20221012
+          key: vagrant-box-magma-test-v1.3.20221230
       - name: Cache magma-trfserver-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
-          key: vagrant-box-magma-trfserver-v20220722
+          key: vagrant-box-magma-trfserver-v1.3.20221230
+
+      - uses: ./.github/workflows/composite/bazel-gh-cache
+        with:
+          cache-key-prefix: magma_test
 
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
@@ -47,7 +55,7 @@ jobs:
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML firebase_admin
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -67,33 +75,33 @@ jobs:
             export MAGMA_PACKAGE=magma=${{ github.event.client_payload.magma_version }}
           fi
           echo "Starting integration tests using magma artifact \"${MAGMA_PACKAGE}\"."
-          fab integ_test_deb_installation
+          fab integ-test-deb-installation
 
       - name: Get test results
         if: always()
         working-directory: 'lte/gateway/'
         run: |
-          fab get_test_summaries:dst_path="test-results",sudo_tests=False,dev_vm_name="magma_deb"
+          fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
-          name: test-results
-          path: lte/gateway/test-results/**/*.xml
+          name: test_results
+          path: lte/gateway/test_results/**/*.xml
       - name: Publish Unit Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
         with:
           check_name: LTE Debian integration test results
-          junit_files: lte/gateway/test-results/**/*.xml
+          junit_files: lte/gateway/test_results/**/*.xml
           check_run_annotations: all tests
 
       - name: Get test logs
         if: always()
         run: |
           cd lte/gateway
-          fab get_test_logs:gateway_host_name=magma_deb,dst_path=./logs.tar.gz
+          fab get-test-logs --gateway-host-name=magma_deb --dst-path=./logs.tar.gz
       - name: Upload test logs
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
@@ -108,7 +116,7 @@ jobs:
           REPORT_FILENAME: "lte_integ_test_magma_deb_${{ github.event.client_payload.trigger_sha }}.html"
         run: |
           npm install -g xunit-viewer
-          [ -d "lte/gateway/test-results/" ] && { xunit-viewer -r lte/gateway/test-results/ -o "$REPORT_FILENAME"; }
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
           [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
           [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
           python ci-scripts/firebase_publish_report.py -id ${{ github.event.client_payload.trigger_sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} debian_lte_integ_test --url $URL
@@ -121,4 +129,4 @@ jobs:
           SLACK_USERNAME: ${{ github.workflow }}
           SLACK_AVATAR: ":boom:"
         with:
-          args: "Bazel Debian LTE integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"
+          args: "Bazel Debian LTE integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.event.client_payload.trigger_sha }}: ${{ github.event.client_payload.commit_message }}"

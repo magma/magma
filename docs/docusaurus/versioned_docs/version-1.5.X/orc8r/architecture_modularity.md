@@ -23,7 +23,7 @@ targeting a default set of use-cases, extending an Orchestrator deployment is, p
 the cluster.
 
 For more background on microservice patterns, and the extension pattern specifically, refer to [this article on domain-oriented
-microservice architectures](https://eng.uber.com/microservice-architecture/).
+microservice architectures](https://www.uber.com/en-AU/blog/microservice-architecture/).
 
 ## Implementation
 

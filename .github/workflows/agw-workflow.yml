@@ -9,6 +9,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# owner: @magma/approvers-gw
+# purpose: Linting various components in AGW
+# remediation: https://magma.github.io/magma/docs/next/lte/dev_unit_testing#format-agw
+
 name: AGW Lint
 
 on:
@@ -77,8 +81,6 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: jsonlint-mconfig
         run: find . -name gateway.mconfig -print0 | xargs --max-args=1 --null --replace='%' sh -c ">/dev/null jq . % || { echo % is not a valid json file; exit 1; } "
@@ -91,8 +93,6 @@ jobs:
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
           fetch-depth: 0
       - name: Setup Bazel Cache Image
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
@@ -113,6 +113,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
           run: |
             set -euo pipefail
+            apt update
             apt install -y python3.8-venv
             cd /workspaces/magma
             bazel run //dev_tools:python_env ${{ env.PY_ENV_PATH }}

@@ -5,7 +5,6 @@
       "version-1.7.0-basics/prerequisites",
       "version-1.7.0-basics/quick_start_guide"
     ],
-    "Tutorials": [],
     "Usage": [
       {
         "type": "subcategory",
@@ -19,13 +18,10 @@
           "version-1.7.0-howtos/ipv6_agw",
           "version-1.7.0-howtos/he_api",
           "version-1.7.0-howtos/inbound_roaming",
-          "version-1.7.0-howtos/l3_transport"
+          "version-1.7.0-howtos/l3_transport",
+          "version-1.7.0-howtos/network_probe",
+          "version-1.7.0-howtos/package"
         ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Access Gateway",
-        "ids": []
       },
       {
         "type": "subcategory",
@@ -59,15 +55,14 @@
         "ids": [
           "version-1.7.0-orc8r/architecture_overview",
           "version-1.7.0-orc8r/architecture_modularity",
-          "version-1.7.0-orc8r/architecture_security",
-          "version-1.7.0-nms/nms_arch_overview"
+          "version-1.7.0-orc8r/architecture_security"
         ]
       },
       {
         "type": "subcategory",
         "label": "NMS",
         "ids": [
-          "version-1.7.0-nms/nms_arch_overview"
+          "version-1.7.0-nms/architecture_overview"
         ]
       },
       {
@@ -111,6 +106,7 @@
           "version-1.7.0-orc8r/deploy_intro",
           "version-1.7.0-orc8r/deploy_install",
           "version-1.7.0-orc8r/deploy_terraform_options",
+          "version-1.7.0-orc8r/deploy_using_juju",
           "version-1.7.0-orc8r/deploy_faq"
         ]
       },
@@ -135,6 +131,15 @@
         "label": "Domain Proxy",
         "ids": [
           "version-1.7.0-dp/deploy_build"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.7.0-cwf/deploy_intro",
+          "version-1.7.0-cwf/deploy_build",
+          "version-1.7.0-cwf/deploy_install"
         ]
       }
     ],
@@ -236,6 +241,13 @@
       },
       {
         "type": "subcategory",
+        "label": "Carrier WiFi",
+        "ids": [
+          "version-1.7.0-cwf/healthchecker"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "version-1.7.0-orc8r/debug_logs"
@@ -294,18 +306,23 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "version-1.7.0-lte/readme_agw",
           "version-1.7.0-lte/dev_notes",
           "version-1.7.0-lte/openvswitch",
           "version-1.7.0-lte/pipelined",
           "version-1.7.0-lte/ebpf_datapath",
           "version-1.7.0-lte/ipfix",
+          "version-1.7.0-lte/pipelined_tests",
           "version-1.7.0-lte/dev_unit_testing",
           "version-1.7.0-lte/tr069",
           "version-1.7.0-lte/s1ap_tests",
           "version-1.7.0-lte/eventd",
           "version-1.7.0-lte/access_service_restrictions",
           "version-1.7.0-lte/dev_teid_allocation",
-          "version-1.7.0-lte/integrated_5G_sa"
+          "version-1.7.0-lte/integrated_5g_sa",
+          "version-1.7.0-lte/redirectd",
+          "version-1.7.0-lte/readme_callflow",
+          "version-1.7.0-lte/HIL_AGW_tests"
         ]
       },
       {
@@ -339,6 +356,7 @@
         "label": "Federation Gateway",
         "ids": [
           "version-1.7.0-feg/dev_testing",
+          "version-1.7.0-feg/docker",
           "version-1.7.0-feg/s1ap_federated_test"
         ]
       },
@@ -367,7 +385,7 @@
         "label": "Access Gateway",
         "ids": [
           "version-1.7.0-proposals/p003_qos_enforcement",
-          "version-1.7.0-proposals/p004_fua-restrict-feature",
+          "version-1.7.0-proposals/p004_fua_restrict_feature",
           "version-1.7.0-proposals/p007_header_enrichment",
           "version-1.7.0-proposals/p008_apn_correction",
           "version-1.7.0-proposals/p013_Ubuntu_upgrade",
