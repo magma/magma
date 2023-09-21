@@ -211,6 +211,12 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
     // CGI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_EUTRAN_CGI, true);
+
+    if (!ie) {
+      OAILOG_ERROR(LOG_S1AP, "EUTRAN_CGI IE not found\n");
+      return RETURNerror;
+    }
+
     if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
       OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
       return RETURNerror;
@@ -253,9 +259,16 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
      */
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_cause, container,
                                S1ap_ProtocolIE_ID_id_RRC_Establishment_Cause,
                                true);
+
+    if (!ie || !ie_cause) {
+      OAILOG_ERROR(LOG_S1AP, "Missing RRC Establishment Cause IE\n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+
     if ((s1ap_mme_itti_s1ap_initial_ue_message(
             assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
             ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
