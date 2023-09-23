@@ -340,7 +340,7 @@ class GatewayStatusFactory:
         )
         return network_info
 
-    def _meta_has_required_services(self, meta_services: List[str]) -> bool:
+    def _meta_has_required_services(self, meta_services: KeysView) -> bool:
         """
         Verifies based on status meta pulled from service_poller.
         service_statusmeta contains map of service_name -> statusmeta

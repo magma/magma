@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: dp-workflow
+# owner: @magma/approvers-cloud
+# purpose: Domain Proxy (DP) linting and testing
+# remediation: Check alembic migrations
+
+name: DP Lint & Test
 
 on:
   push:
@@ -28,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
       rc: ${{ steps.filter.outputs.rc }}
@@ -36,9 +40,9 @@ jobs:
       helm: ${{ steps.filter.outputs.helm }}
       integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # pin@v2
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
         id: filter
         with:
           filters: |
@@ -89,7 +93,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.cc == 'true' }}
     name: "Configuration controller unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}"
@@ -98,10 +102,8 @@ jobs:
       run:
         working-directory: dp/cloud/python/magma/configuration_controller
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -126,7 +128,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,configuration-controller
           name: codecov-configuration-controller
@@ -136,7 +138,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.rc == 'true' }}
     name: "Radio controller unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -149,17 +151,16 @@ jobs:
         working-directory: dp/cloud/python/magma/radio_controller
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install python3-aioeventlet from the magma apt repo
+        working-directory: "${{ github.workspace }}"
         run: |
-          cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
-          echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" | sudo -E tee /etc/apt/sources.list.d/magma.list
+          sudo cp keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+          sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet
           sudo rm -rf /var/lib/apt/lists/*
@@ -204,7 +205,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,radio-controller
           name: codecov-radio-controller
@@ -214,7 +215,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "Domain proxy db migration test"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     continue-on-error: false
     defaults:
       run:
@@ -233,10 +234,8 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -258,7 +257,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "DB service unit tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -271,10 +270,8 @@ jobs:
         working-directory: dp/cloud/python/magma/db_service
 
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -299,7 +296,7 @@ jobs:
           coverage report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # pin@v2
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
         with:
           flags: unittests,db-service
           name: codecov-db-service
@@ -307,13 +304,12 @@ jobs:
 
   integration_tests_orc8r:
     name: "Domain proxy integration tests with orc8r"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: path_filter
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run DP integration test (with orc8r)
         uses: ./.github/workflows/composite/dp-integ-tests
         with:
@@ -323,19 +319,18 @@ jobs:
     name: "Helm chart smoke tests"
     needs: path_filter
     if: ${{ needs.path_filter.outputs.helm == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: dp
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
 
       - name: Install Minikube
-        uses: manusa/actions-setup-minikube@cdef63c020a1c7b3d4787f30b3787ca1095ed9a7 # pin@v2.4.1
+        uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9 # pin@v2.7.1
         with:
           minikube version: 'v1.21.0'
           kubernetes version: 'v1.20.7'

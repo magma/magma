@@ -26,7 +26,7 @@ namespace lte {
  * Regression test for issue #8581.
  */
 TEST(test_s1ap_state_manager, free_state_idempotent) {
-  S1apStateManager::getInstance().init(2, 2, false);
+  S1apStateManager::getInstance().init(false);
   S1apStateManager::getInstance().free_state();
   S1apStateManager::getInstance().free_state();
 }

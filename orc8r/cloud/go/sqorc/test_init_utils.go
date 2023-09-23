@@ -70,13 +70,14 @@ func OpenCleanForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 // The shared DB is part of the shared testing infrastructure, so care must
 // be taken to avoid racing on the same DB name across testing code.
 // Supported DB drivers include:
-//	- postgres
-//	- mysql
+//   - postgres
+//   - mysql
+//
 // Environment variables:
-//	- SQL_DRIVER overrides the Go SQL driver
-//	- TEST_DATABASE_HOST overrides the DB connection host
-//	- TEST_DATABASE_PORT_POSTGRES overrides the port connected to for postgres driver
-//	- TEST_DATABASE_PORT_MARIA overrides the port connected to for maria driver
+//   - SQL_DRIVER overrides the Go SQL driver
+//   - TEST_DATABASE_HOST overrides the DB connection host
+//   - TEST_DATABASE_PORT_POSTGRES overrides the port connected to for postgres driver
+//   - TEST_DATABASE_PORT_MARIA overrides the port connected to for maria driver
 func OpenForTest(t *testing.T, dbName, dbDriver string) *sql.DB {
 	driver := definitions.GetEnvWithDefault("SQL_DRIVER", dbDriver)
 	source := getSource(t, dbName, driver)

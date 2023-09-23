@@ -1,41 +1,68 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # -----------------------------------------------------------------------------
-# Builder image for Magma proto files
+# Builder image
 # -----------------------------------------------------------------------------
 FROM ubuntu:focal AS builder
 
+ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configurtaion
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install the runtime deps from apt.
-RUN apt-get -y update && apt-get -y install curl make virtualenv zip \
-  apt-utils software-properties-common apt-transport-https
-
-# Install protobuf compiler.
-RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
-  unzip protoc3.zip -d protoc3 && \
-  mv protoc3/bin/protoc /usr/bin/protoc && \
-  chmod a+rx /usr/bin/protoc && \
-  cp -r protoc3/include/google /usr/include/ && \
-  chmod -R a+Xr /usr/include/google && \
-  rm -rf protoc3.zip protoc3
-
-RUN apt-get -y update && apt-get -y install python3.8
+# Install the build deps with apt.
+RUN apt-get -y update && apt-get -y install \
+    apt-transport-https \
+    apt-utils \
+    git \
+    libsystemd-dev \
+    python3.8 \
+    python3-distutils \
+    python3-pip \
+    pkg-config \
+    systemd \
+    wget
 
 ENV MAGMA_ROOT /magma
-ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
+
+# Download Bazel
+RUN  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+  chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
+  ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
 # Generate python proto bindings.
 COPY cwf/protos $MAGMA_ROOT/cwf/protos
+COPY cwf/swagger $MAGMA_ROOT/cwf/swagger
 COPY feg/protos $MAGMA_ROOT/feg/protos
-COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
-COPY lte/gateway/python/Makefile $MAGMA_ROOT/lte/gateway/python/Makefile
+COPY feg/swagger $MAGMA_ROOT/feg/swagger
+COPY lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
+COPY lte/gateway/python $MAGMA_ROOT/lte/gateway/python
+COPY lte/gateway/deploy/roles/magma/files/patches $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/patches
 COPY lte/protos $MAGMA_ROOT/lte/protos
+COPY lte/swagger $MAGMA_ROOT/lte/swagger
+COPY orc8r/gateway/configs $MAGMA_ROOT/orc8r/gateway/configs
 COPY orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
+COPY orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 COPY protos $MAGMA_ROOT/protos
-ENV PROTO_LIST orc8r_protos lte_protos feg_protos cwf_protos
-RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
+
+# Copy Bazel files
+COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
+COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY ./lte/gateway/release/BUILD.bazel ${MAGMA_ROOT}/lte/gateway/release/BUILD.bazel
+COPY ./lte/gateway/release/deb_dependencies.bzl ${MAGMA_ROOT}/lte/gateway/release/deb_dependencies.bzl
+
+WORKDIR /magma
+RUN bazel build //lte/gateway/release:cwf_python_executables_tar
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -45,12 +72,12 @@ FROM ubuntu:focal AS lte_gateway_python
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
-# TODO: change repo to focal once there will be such
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" && \
-    apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
+
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" && \
+    add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
 RUN apt-get -y update && apt-get -y install \
     curl \
@@ -67,7 +94,6 @@ RUN apt-get -y update && apt-get -y install \
     pkg-config \
     python-cffi \
     python3-pip \
-    python3-ryu \
     python3.8 \
     python3.8-dev \
     redis-server \
@@ -82,37 +108,11 @@ RUN apt-get -y update && apt-get -y install \
     iputils-ping \
     bcc-tools
 
-RUN python3.8 -m pip install --no-cache-dir \
-    Cython \
-    fire \
-    envoy \
-    glob2 \
-    flask \
-    aiodns \
-    pymemoize \
-    wsgiserver \
-    pycryptodome \
-    six \
-    eventlet \
-    h2 \
-    hpack \
-    docker \
-    redis \
-    redis-collections \
-    aiohttp \
-    Jinja2 \
-    netifaces \
-    pylint \
-    PyYAML \
-    pytz \
-    snowflake \
-    systemd-python \
-    itsdangerous \
-    click \
-    pycares \
-    python-dateutil \
-    aioeventlet@git+https://github.com/magma/deb-python-aioeventlet@86130360db113430370ed6c64d42aee3b47cd619 \
-    jsonpickle
+# Copy the build artifacts.
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/cwf_python_executables.tar.gz \
+                    /tmp/cwf_python_executables.tar.gz
+RUN tar -xf /tmp/cwf_python_executables.tar.gz --directory / && \
+    rm /tmp/cwf_python_executables.tar.gz
 
 # Temporary workaround to restore uplink bridge flows
 RUN mkdir -p /var/opt/magma/scripts
@@ -135,23 +135,9 @@ RUN ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc
 RUN make
 RUN make install
 
-# Install orc8r python (magma.common required for lte python)
-COPY orc8r/gateway/python /tmp/orc8r
-RUN python3.8 -m pip install --no-cache-dir /tmp/orc8r
-
-# Install lte python
-COPY lte/gateway/python /tmp/lte
-RUN python3.8 -m pip install --no-cache-dir /tmp/lte
-
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 RUN mkdir -p /var/opt/magma/configs
 
 WORKDIR /
-
-# Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.8/dist-packages/
-
-# update aioh2 since there is no pushed package, but master is fixed
-RUN python3.8 -m pip install --force-reinstall git+https://github.com/URenko/aioh2.git

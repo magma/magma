@@ -44,10 +44,13 @@ class MagmaPyLintTest(unittest.TestCase):
         )
         excluded_directories = []
         parent_path = os.path.dirname(os.path.dirname(__file__))
+        print("Starting pylint ...")
+        print(f"Checking all sub-directories of {parent_path}")
         directories = [
             d.name for d in os.scandir(parent_path)
             if d.is_dir() and d.name not in excluded_directories
         ]
         for directory in directories:
+            print(f"  Checking {directory}")
             path = os.path.join(parent_path, directory)
             py_wrap.assertNoLintErrors(path)

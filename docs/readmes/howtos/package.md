@@ -1,5 +1,5 @@
 ---
-id: readme_package
+id: package
 title: Packaging
 hide_title: true
 ---

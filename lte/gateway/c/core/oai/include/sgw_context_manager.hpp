@@ -38,29 +38,46 @@ extern "C" {
 
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
-    const sgw_eps_bearer_ctxt_t* eps_bearer_ctxt);
+    const magma::lte::oai::SgwEpsBearerContext* eps_bearer_ctxt);
 void sgw_display_s11_bearer_context_information(
     log_proto_t module,
+    magma::lte::oai::S11BearerContext* sgw_context_information);
+
+// TODO(rsarwad): to be removed while porting sgw_s8 task
+void sgw_s8_display_sgw_eps_bearer_context(
+    const sgw_eps_bearer_ctxt_t* eps_bearer_ctxt);
+
+void sgw_s8_display_s11_bearer_context_information(
+    log_proto_t module,
     sgw_eps_bearer_context_information_t* sgw_context_information);
-void pgw_lite_cm_free_apn(pgw_apn_t** apnP);
+
+sgw_eps_bearer_ctxt_t* sgw_s8_cm_get_eps_bearer_entry(
+    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
 
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(teid_t remote_teid,
                                            teid_t local_teid);
-s_plus_p_gw_eps_bearer_context_information_t*
+magma::lte::oai::S11BearerContext*
 sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
-hashtable_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
-                                                        imsi64_t imsi64);
+magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(teid_t teid,
+                                                               imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection, const ebi_t eps_bearer_idP);
-sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
-    sgw_pdn_connection_t* const sgw_pdn_connection,
-    sgw_eps_bearer_ctxt_t* const sgw_eps_bearer_ctxt);
-sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
-    sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi);
+
+magma::proto_map_rc_t sgw_cm_insert_eps_bearer_ctxt_in_collection(
+    magma::lte::oai::SgwPdnConnection* const sgw_pdn_connection,
+    magma::lte::oai::SgwEpsBearerContext* const sgw_eps_bearer_ctxt);
+
 // Returns SPGW state pointer for given UE indexed by IMSI
-s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
-    teid_t teid);
+magma::lte::oai::S11BearerContext* sgw_cm_get_spgw_context(teid_t teid);
 spgw_ue_context_t* spgw_get_ue_context(imsi64_t imsi64);
 spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
 status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
+
+magma::proto_map_rc_t sgw_cm_get_eps_bearer_entry(
+    magma::lte::oai::SgwPdnConnection* const sgw_pdn_connection, ebi_t ebi,
+    magma::lte::oai::SgwEpsBearerContext* bearer_context_p);
+
+magma::proto_map_rc_t sgw_update_eps_bearer_entry(
+    magma::lte::oai::SgwPdnConnection* sgw_pdn_connection_p, uint32_t ebi,
+    magma::lte::oai::SgwEpsBearerContext* bearer_context_p);

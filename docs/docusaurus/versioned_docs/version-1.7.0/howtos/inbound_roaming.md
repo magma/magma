@@ -19,7 +19,7 @@ At the bottom of this document you have
 [configuration example](#configuration-example)
 
 TEID allocation is described on
-[Technical Reference](https://docs.magmacore.org/docs/lte/dev_teid_allocation)
+[Technical Reference](https://magma.github.io/magma/docs/lte/dev_teid_allocation)
 section.
 
 ## Architecture
@@ -59,10 +59,10 @@ but you will still need the Neutral Host Network.
 ```mermaid
 graph LR
 
-AGW_G --Any_PLMN--> NH_Network
-NH_Network --PLMN1--> FeG_Gateway_1
-NH_Network --PLMN2--> FeG_Gateway_2
-NH_Network --PLMN3--> FeG_Gateway_3
+AGW_G --Any_PLMN--> Orc8r
+Orc8r --PLMN1--> FeG_Gateway_1
+Orc8r --PLMN2--> FeG_Gateway_2
+Orc8r --PLMN3--> FeG_Gateway_3
 Optional_FeG_gateway --Other_PLMN--> Local_HSS
 FeG_Gateway_1 --> HSS_1
 FeG_Gateway_2 --> HSS_2
@@ -74,7 +74,7 @@ AGW_G
 end
 
 subgraph Neutral_Host_Network
-NH_Network & Optional_FeG_gateway
+Orc8r & Optional_FeG_gateway
 
 end
 
@@ -97,9 +97,9 @@ Before starting to configure roaming setup, first you need to bring up a
 setup to handle your own/local subscribers. So before configuring Inbound
 Roaming you need:
 
-- Install [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
-- Install [Federatetion Gateway](https://docs.magmacore.org/docs/feg/deploy_intro) and,
-- Install [Access Gateway](https://docs.magmacore.org/docs/lte/setup_deb).
+- Install [Or8cr](https://magma.github.io/magma/docs/orc8r/architecture_overview),
+- Install [Federatetion Gateway](https://magma.github.io/magma/docs/feg/deploy_intro) and,
+- Install [Access Gateway](https://magma.github.io/magma/docs/lte/setup_deb).
 - Create a Federate Deployment (see [below](#Create a Federated Deployment)).
 - Make sure your setup is able to serve calls with your local subscribers
 
@@ -116,7 +116,7 @@ from the `roaming` Networks and Gateways we will create in the next step.
 
 As mentioned, Inbound Roaming requires of a FeG gateway to reach the roaming
 network. That is why Federated Deployment is required. Please, configure it
-using this guide for [Federated Deployment](https://docs.magmacore.org/docs/feg/federated_FWA_setup_guide).
+using this guide for [Federated Deployment](https://magma.github.io/magma/docs/feg/federated_FWA_setup_guide).
 
 All architectures requiere a Local FeG Network to exist. However depending on
 your architecture, you may not need to create a local FeG Gateway inside that

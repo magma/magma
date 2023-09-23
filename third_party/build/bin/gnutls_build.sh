@@ -29,8 +29,13 @@ function buildafter() {
 }
 
 function buildrequires() {
-    echo libtasn1-6-dev libp11-kit-dev \
-         libtspi-dev libtspi1 libidn2-0-dev libidn11-dev
+    echo \
+        libtasn1-6-dev \
+        libp11-kit-dev \
+        libtspi-dev \
+        libtspi1 \
+        libidn2-0-dev \
+        libidn11-dev
 }
 
 if_subcommand_exec
@@ -61,6 +66,37 @@ cd ${WORK_DIR}
 wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
 tar xf gnutls-$PKGVERSION.tar.xz
 cd gnutls-$PKGVERSION/
+
+# These patches account for the bug reported in 
+# https://lists.gnu.org/r/bug-gnulib/2018-03/msg00000.html.
+# This bug is still present in the gnutls version used here.
+# The underlying gnulib library was patched in 
+# https://github.com/coreutils/gnulib/commit/4af4a4a71827c0bc5e0ec67af23edef4f15cee8e.
+patch gl/stdio-impl.h <<'EOF'
+@@ -18,6 +18,9 @@
+    the same implementation of stdio extension API, except that some fields
+    have different naming conventions, or their access requires some casts.  */
+ 
++#if !defined _IO_IN_BACKUP && defined _IO_EOF_SEEN
++# define _IO_IN_BACKUP 0x100
++#endif
+ 
+ /* BSD stdio derived implementations.  */
+ 
+EOF
+
+patch gl/fseterr.c <<'EOF'
+@@ -29,7 +29,7 @@
+   /* Most systems provide FILE as a struct and the necessary bitmask in
+      <stdio.h>, because they need it for implementing getc() and putc() as
+      fast macros.  */
+-#if defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
++#if defined _IO_EOF_SEEN || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+   fp->_flags |= _IO_ERR_SEEN;
+ #elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+   fp_->_flags |= __SERR;
+EOF
+
 ./configure --prefix=/usr
 make -j`nproc`
 make install DESTDIR=${WORK_DIR}/install/

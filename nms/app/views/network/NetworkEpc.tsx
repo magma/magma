@@ -48,6 +48,12 @@ export default function NetworkEpc(props: Props) {
   const kpiData: Array<DataRows> = [
     [
       {
+        category: '5G Features',
+        value: props.epcConfigs?.enable5g_features ? 'Enabled' : 'Disabled',
+      },
+    ],
+    [
+      {
         category: 'Policy Enforcement Enabled',
         value: props.epcConfigs?.hss_relay_enabled ? 'Enabled' : 'Disabled',
       },
@@ -101,6 +107,7 @@ export function NetworkEpcEdit(props: EditProps) {
       ? {
           cloud_subscriberdb_enabled: false,
           default_rule_id: 'default_rule_1',
+          enable5g_features: false,
           lte_auth_amf: 'gAA=',
           lte_auth_op: 'EREREREREREREREREREREQ==',
           mcc: '001',
@@ -120,10 +127,15 @@ export function NetworkEpcEdit(props: EditProps) {
       enable_multi_apn_ip_allocation: false,
     },
   );
+
   const handleMobilityChange = <K extends keyof NetworkEpcConfigsMobility>(
     key: K,
     val: NetworkEpcConfigsMobility[K],
   ) => setEpcMobility({...epcMobility, [key]: val});
+  const handleEpcConfigChange = <K extends keyof NetworkEpcConfigs>(
+    key: K,
+    val: NetworkEpcConfigs[K],
+  ) => setEpcConfigs({...epcConfigs, [key]: val});
   const onSave = async () => {
     try {
       await ctx.updateNetworks({
@@ -146,6 +158,17 @@ export function NetworkEpcEdit(props: EditProps) {
           </AltFormField>
         )}
         <List>
+          <AltFormField label={'Enable 5G Features'}>
+            <Switch
+              onChange={() => {
+                handleEpcConfigChange(
+                  'enable5g_features',
+                  !epcConfigs.enable5g_features,
+                );
+              }}
+              checked={epcConfigs.enable5g_features}
+            />
+          </AltFormField>
           <AltFormField label={'IP Allocation Mode'}>
             <Select
               variant={'outlined'}

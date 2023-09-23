@@ -78,7 +78,6 @@ func (s SwxProxy) Deregister(_ context.Context, _ *protos.RegistrationRequest) (
 // NoUseSwxProxy - a dummu SwxProxy implementation which always returns an error & should not be called
 type NoUseSwxProxy struct{}
 
-//
 // Authenticate sends MAR (code 303) over diameter connection,
 // waits (blocks) for MAA & returns its RPC representation
 func (s NoUseSwxProxy) Authenticate(

@@ -45,7 +45,7 @@ func ListRatingGroups(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	groupsByID := map[models.RatingGroupID]*models.RatingGroup{}
@@ -65,15 +65,15 @@ func CreateRatingGroup(c echo.Context) error {
 
 	group := new(models.RatingGroup)
 	if err := c.Bind(group); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := group.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	_, err := configurator.CreateEntity(reqCtx, networkID, group.ToEntity(), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -94,7 +94,7 @@ func GetRatingGroup(c echo.Context) error {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
 	case err != nil:
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, (&models.RatingGroup{}).FromEntity(ent))
@@ -109,20 +109,20 @@ func UpdateRatingGroup(c echo.Context) error {
 
 	ratingGroup := new(models.MutableRatingGroup)
 	if err := c.Bind(ratingGroup); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := ratingGroup.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	groupID, err := swag.ConvertUint32(ratingGroupID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// 404 if rating group doesn't exist
 	exists, err := configurator.DoesEntityExist(reqCtx, networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Failed to check if rating group exists: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to check if rating group exists: %v", err))
 	}
 	if !exists {
 		return echo.ErrNotFound
@@ -130,7 +130,7 @@ func UpdateRatingGroup(c echo.Context) error {
 
 	_, err = configurator.UpdateEntity(reqCtx, networkID, ratingGroup.ToEntityUpdateCriteria(groupID), serdes.Entity)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -143,7 +143,7 @@ func DeleteRatingGroup(c echo.Context) error {
 
 	err := configurator.DeleteEntity(c.Request().Context(), networkID, lte.RatingGroupEntityType, ratingGroupID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }

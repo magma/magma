@@ -80,9 +80,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("************************* Restarting MME service on gateway")
         wait_for_restart = 30
@@ -112,9 +110,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         print(
             "************************* Running UE uplink (UDP) for UE id ",

@@ -30,11 +30,11 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.hpp"
 
 int decode_security_mode_command(
     security_mode_command_msg* security_mode_command, uint8_t* buffer,
@@ -87,8 +87,8 @@ int decode_security_mode_command(
       case SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI:
         if ((decoded_result = decode_imeisv_request_ie(
                  &security_mode_command->imeisvrequest,
-                 SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
+                 SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0,
+                 buffer + decoded, len - decoded)) <= 0)
           return decoded_result;
 
         decoded += decoded_result;
@@ -194,10 +194,10 @@ int encode_security_mode_command(
   if ((security_mode_command->presencemask &
        SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) ==
       SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT) {
-    if ((encode_result =
-             encode_imeisv_request_ie(&security_mode_command->imeisvrequest,
-                                      SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI,
-                                      buffer + encoded, len - encoded)) < 0)
+    if ((encode_result = encode_imeisv_request_ie(
+             &security_mode_command->imeisvrequest,
+             SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0, buffer + encoded,
+             len - encoded)) < 0)
       // Return in case of error
       return encode_result;
     else

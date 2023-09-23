@@ -40,4 +40,3 @@ Finally you can build:
 cd $MAGMA
 sudo podman build --target magma-mme --tag magma-mme:latest --ignorefile lte/gateway/docker/mme/.dockerignore --file lte/gateway/docker/mme/Dockerfile.rhel8 .
 ```
-

@@ -7,12 +7,11 @@
 <p align="center">
     <a href="https://github.com/magma/magma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-BSD3clause-blue.svg" alt="License"></a>
     <a href="https://github.com/magma/magma/releases"><img src="https://img.shields.io/github/release/magma/magma" alt="GitHub Release"></a>
-    <a href="https://docs.magmacore.org/docs/next/contributing/contribute_workflow"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
+    <a href="https://github.com/magma/magma/wiki/Contributing-Code"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PR's Welcome"></a>
     <a href="https://github.com/magma/magma/graphs/contributors"><img src="https://img.shields.io/github/contributors/magma/magma" alt="GitHub contributors"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/last-commit/magma/magma" alt="GitHub last commit"></a>
     <a href="https://github.com/magma/magma/commits/master"><img src="https://img.shields.io/github/commit-activity/y/magma/magma" alt="GitHub commit activity the past week"></a>
     <a href="https://codecov.io/gh/magma/magma"><img src="https://codecov.io/gh/magma/magma/branch/master/graph/badge.svg" alt="CodeCov"></a>
-    <a href="docs/readmes/lte/hil_tests.md"><img src="http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanityres.svg" alt="HIL AGW tests"></a>
 </p>
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
@@ -21,7 +20,6 @@ Magma is an open-source software platform that gives network operators an open, 
 - Enabling operators to manage their networks more efficiently with more automation, less downtime, better predictability, and more agility to add new services and applications
 - Enabling federation between existing MNOs and new infrastructure providers for expanding rural infrastructure
 - Allowing operators who are constrained with licensed spectrum to add capacity and reach by using Wi-Fi and CBRS
-
 
 ## Magma Architecture
 
@@ -40,10 +38,11 @@ Magma has three major components
 ## Documentation
 
 - [Magma Website](https://magmacore.org/): Project landing page
-- [Docs](https://docs.magmacore.org/): Deployment, configuration and usage information
+- [Docs](https://magma.github.io/magma/docs/basics/introduction.html): Deployment, configuration and usage information
 - [Code](https://github.com/magma): Source code
 - [Contributing](https://github.com/magma/magma/wiki/Contributor-Guide): Contributor Guide
 - [Wiki](https://wiki.magmacore.org/): Meeting notes and project team resources
+- [Rewards Program](REWARDS_PROGRAM.md): How to participate in the Magma rewards program
 
 ## Join the Magma community
 

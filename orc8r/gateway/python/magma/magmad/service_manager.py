@@ -16,7 +16,7 @@ import json
 import logging
 import subprocess
 from enum import Enum
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import magma.magmad.events as magmad_events
 from magma.magmad.service_poller import ServicePoller
@@ -48,17 +48,17 @@ class ServiceManager(object):
     Manages a set of systemd services, performing bulk operations across all
     of them.
     """
-    _service_control = {}
-    _services = []
-    _registered_dynamic_services = []
+    _service_control: Dict[str, 'ServiceControl'] = {}
+    _services: List[str] = []
+    _registered_dynamic_services: List[str] = []
 
     def __init__(
             self,
             services: List[str],
             init_system,
             service_poller: ServicePoller,
-            registered_dynamic_services: List[str] = None,
-            dynamic_services: List[str] = None,
+            registered_dynamic_services: Optional[List[str]] = None,
+            dynamic_services: Optional[List[str]] = None,
     ):
         if registered_dynamic_services is None:
             registered_dynamic_services = []
@@ -242,7 +242,7 @@ class ServiceManager(object):
 
     class InitSystemSpec(object):
         # Command to interact with the init system (i.e. 'systemctl', 'sv')
-        _init_cmd = None
+        _init_cmd: Optional[str] = None
 
         # Commands used by the init system to control processes.
         # start/stop/restart seem to be consistent among most init systems so
@@ -250,10 +250,10 @@ class ServiceManager(object):
         _start_cmd = 'start'
         _stop_cmd = 'stop'
         _restart_cmd = 'reload-or-restart'
-        _status_cmd = None
+        _status_cmd: Optional[str] = None
 
         # Dictionary mapping the status response to a ServiceState
-        _statuses = None
+        _statuses: Optional[Dict[str, ServiceState]] = None
 
         def __init__(self, name):
             assert isinstance(name, str), "Process name is not a string"

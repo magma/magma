@@ -19,6 +19,6 @@ hide_title: true
 ## Usage
 
 ```bash
-docker-compose exec magmad bash
+docker compose exec magmad bash
 health_cli.py
 ```

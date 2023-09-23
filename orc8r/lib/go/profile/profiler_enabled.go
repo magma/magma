@@ -54,9 +54,10 @@ func MemWrite() error {
 // CpuStart creates a new CPU profile file and starts CPU profiling
 // CpuStart will only return a non-nil file pointer on success, so
 // it should be safe to do:
-//     f, _ := profile.CpuStart()
-//     ... // run profiled logic
-//     profile.CpuStop(f)
+//
+//	f, _ := profile.CpuStart()
+//	... // run profiled logic
+//	profile.CpuStop(f)
 func CpuStart() (*os.File, error) {
 	os.MkdirAll(*profileDir, os.ModeDir)
 	fname := fmt.Sprintf(cpuProfFileFmt, *profileDir, time.Now().Format(timeFmt))

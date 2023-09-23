@@ -16,7 +16,7 @@ sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvs
 # Create /var/core directory
 mkdir -p /var/core
 
-value=`cat /usr/local/share/magma/commit_hash`
+value="COMMIT_HASH=REPLACE_ME"
 if grep -q "COMMIT_HASH" /etc/environment
 then
     sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment

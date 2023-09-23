@@ -43,24 +43,24 @@ const (
 // from datastore to blobstore formats.
 //
 // Schema migration:
-// 	- Datastore has cols
-//		- key
-//		- value
-//		- generation_number
-//		- deleted
-// 	- Blobstore has cols
-//		- network_id
-//		- type
-//		- key
-//		- value
-//		- version
-//	- Conversion (blobstore col <- datastore col)
-//		- network_id	<- [nid parameter]
-//		- type 			<- [typ parameter]
-//		- key			<- key
-//		- value			<- value
-//		- version		<- generation_number
-//		- [n/a]			<- deleted
+//   - Datastore has cols
+//     -- key
+//     -- value
+//     -- generation_number
+//     -- deleted
+//   - Blobstore has cols
+//     -- network_id
+//     -- type
+//     -- key
+//     -- value
+//     -- version
+//   - Conversion (blobstore col <- datastore col)
+//     -- network_id	<- [nid parameter]
+//     -- type 			<- [typ parameter]
+//     -- key			<- key
+//     -- value			<- value
+//     -- version		<- generation_number
+//     -- [n/a]			<- deleted
 func MigrateNetworkAgnosticServiceToBlobstore(nid, typ, oldTable, newTable string) {
 	dbDriver := GetEnvWithDefault("SQL_DRIVER", "postgres")
 	dbSource := GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable")

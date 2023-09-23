@@ -77,10 +77,7 @@ class TestTauTaUpdating(unittest.TestCase):
                 cntxt_rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # For the 1st UE, send TAU with Eps_Updt_Type
         # TA_UPDATING and active flag set to true
@@ -128,10 +125,7 @@ class TestTauTaUpdating(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value
         tau_acc = response.cast(s1ap_types.ueTauAccept_t)
         print(
             "************************* Received Tracking Area Update ",
@@ -140,10 +134,7 @@ class TestTauTaUpdating(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         for ue in ue_ids:
             print(

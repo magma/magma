@@ -49,9 +49,7 @@ class TestSctpShutdownAfterAuthReq(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received auth req ind ue-id", req.ue_id)
 
         print("send SCTP SHUTDOWN")

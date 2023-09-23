@@ -339,11 +339,20 @@ export function GenericCommandControls(props: ChildProps) {
   const {networkId} = useParams();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [commandName, setCommandName] = useState('');
-  const [commandParams, setCommandParams] = useState('{\n}');
+  const [commandParams, setCommandParams] = useState(
+    '{\n    "shell_params": [""]\n}',
+  );
   const [genericResponse, setGenericResponse] = useState<string>();
   const [showProgress, setShowProgress] = useState<boolean>();
 
   const onClick = () => {
+    if (commandName === '') {
+      enqueueSnackbar('Generic command failed: no command provided', {
+        variant: 'error',
+      });
+      return;
+    }
+
     const {gatewayID} = props;
     let params: Record<string, object> = {};
     try {
@@ -379,6 +388,15 @@ export function GenericCommandControls(props: ChildProps) {
     <div>
       <Divider className={classes.divider} />
       <Text variant="subtitle1">Generic</Text>
+      <br />
+      <Text variant="body2">
+        Allowed commands are configured in `magmad.yml`. Specify parameters in
+        JSON via "shell_params", i.e. `
+        {`
+        {"shell_params": ["param_1 ... param_n"]}
+        `}
+        `.
+      </Text>
       <FormField label="Command">
         <Input
           className={classes.input}

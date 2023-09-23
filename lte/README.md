@@ -1,1 +1,1 @@
-../docs/readmes/lte/README_AGW.md
+../docs/readmes/lte/readme_agw.md

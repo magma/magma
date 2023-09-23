@@ -18,10 +18,10 @@ import (
 	"errors"
 
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 // Config configuration structure for proxy module

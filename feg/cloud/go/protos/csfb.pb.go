@@ -478,6 +478,7 @@ type LocationUpdateAccept struct {
 	Imsi                   string `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	LocationAreaIdentifier []byte `protobuf:"bytes,2,opt,name=location_area_identifier,json=locationAreaIdentifier,proto3" json:"location_area_identifier,omitempty"`
 	// Types that are assignable to NewIMSITMSI:
+	//
 	//	*LocationUpdateAccept_NewImsi
 	//	*LocationUpdateAccept_NewTmsi
 	NewIMSITMSI isLocationUpdateAccept_NewIMSITMSI `protobuf_oneof:"newIMSITMSI"`

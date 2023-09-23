@@ -397,7 +397,9 @@ func (m *GatewayNgcConfigs) FromBackendModels(ctx context.Context, networkID str
 	if err != nil {
 		return err
 	}
-	*m = *gatewayConfig.Ngc
+	if gatewayConfig.Ngc != nil {
+		*m = *gatewayConfig.Ngc
+	}
 	return nil
 }
 

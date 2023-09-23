@@ -80,4 +80,75 @@ An event must be defined before they can be send to `eventd` service.
 - Create a spec under `<plugin_name>/swagger` e.g. `lte/swagger/mock_events.v1.yml`, or add an event to one of the specs
 - Register the `event_type` and the location of the swagger file under `eventd.yml`'s event registry.
 - Make an RPC call to eventd's `log_event` from your service, using the appropriate client API.
-    - (Python-only) Use `make build` under `lte/gateway` to generate swagger models into the `$PYTHON_BUILD` directory. e.g. Use model `ue_added` with the import `<plugin_name>.swagger.models.ue_added`
+
+### Example
+
+Create new file `$MAGMA_ROOT/lte/swagger/my_events.v1.yml` with content:
+
+```yml
+---
+swagger: '2.0'
+
+info:
+  title: MY event definitions
+  description: These events occur in MY task
+  version: 1.0.0
+
+definitions:
+  my_success:
+    type: object
+    description: My success
+    properties:
+      msg:
+        type: string
+```
+
+Add the following to `$MAGMA_ROOT/lte/gateway/configs/eventd.yml`:
+
+```yml
+  my_success:
+    module: lte
+    filename: my_events.v1.yml
+```
+
+Use the following code in a Python script to emit the event:
+
+```python
+import snowflake
+from magma.eventd.eventd_client import log_event
+from orc8r.protos.eventd_pb2 import Event
+
+log_event(
+    Event(
+        stream_name="magmad",
+        event_type="my_success",
+        tag=snowflake.snowflake(),
+        value="{}",
+    ),
+)
+```
+
+Add the following to the BUILD.bazel file in the directory, where your script is:
+
+```python
+MAGMA_ROOT = "RELATIVE_PATH_TO_MAGMA_ROOT"
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "your_script_name",
+    srcs = ["your_script_name.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    deps = [
+        "//orc8r/gateway/python/magma/eventd:eventd_client",
+        "//orc8r/protos:mconfig_python_proto",
+        requirement("snowflake"),
+    ],
+)
+```
+
+Finally call the script with Bazel:
+
+`bazel run //PATH/TO/YOUR/SCRIPT:your_script_name`
+
+The event should show up in the eventd logs.

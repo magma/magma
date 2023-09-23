@@ -35,7 +35,7 @@ helm upgrade --install \
 
 ### Build and publish images
 
-> NOTE: skip this step if you want to use the official container images at [artifactory.magmacore.org](https://artifactory.magmacore.org/).
+> NOTE: skip this step if you want to use the official container images at [https://linuxfoundation.jfrog.io/](https://linuxfoundation.jfrog.io/).
 
 There are 2 ways you can publish your own images: to a private registry, or to a localhost registry. Choose an option, then complete the relevant prerequisites:
 
@@ -104,8 +104,8 @@ A minimal values file is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minik
 
 This section describes how to install based on local charts. However, you can also install charts from the official chart repositories
 
-- Stable: <https://artifactory.magmacore.org/artifactory/helm/>
-- Test: <https://artifactory.magmacore.org/artifactory/helm-test/>
+- Stable: <https://linuxfoundation.jfrog.io/ui/repos/tree/General/magma-helm>
+- Test: <https://linuxfoundation.jfrog.io/ui/repos/tree/General/magma-helm-test>
 
 Install base `orc8r` chart
 

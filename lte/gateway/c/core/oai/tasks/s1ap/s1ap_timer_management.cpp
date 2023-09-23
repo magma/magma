@@ -26,6 +26,9 @@ extern "C" {
 // --Other includes
 // -------------------------------------------------------------
 
+namespace magma {
+namespace lte {
+
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
@@ -33,26 +36,21 @@ int s1ap_start_timer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
                      mme_ue_s1ap_id_t ue_id) {
   s1ap_timer_arg_t arg;
   arg.ue_id = ue_id;
-  return magma::lte::S1apUeContext::Instance().StartTimer(msec, repeat, handler,
-                                                          arg);
+  return S1apUeContext::Instance().StartTimer(msec, repeat, handler, arg);
 }
 
 //------------------------------------------------------------------------------
 void s1ap_stop_timer(int timer_id) {
-  magma::lte::S1apUeContext::Instance().StopTimer(timer_id);
+  S1apUeContext::Instance().StopTimer(timer_id);
 }
 
 //------------------------------------------------------------------------------
 bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
   s1ap_timer_arg_t arg;
-  bool result =
-      magma::lte::S1apUeContext::Instance().PopTimerById(timer_id, &arg);
+  bool result = S1apUeContext::Instance().PopTimerById(timer_id, &arg);
   *ue_id = arg.ue_id;
   return result;
 }
-
-namespace magma {
-namespace lte {
 
 //------------------------------------------------------------------------------
 int S1apUeContext::StartTimer(size_t msec, timer_repeat_t repeat,

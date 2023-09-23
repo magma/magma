@@ -167,7 +167,7 @@ type AuthInfoReq struct {
 	UserName string `protobuf:"bytes,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
 	// Number of umts vectors to request in response
 	NumRequestedUmtsVectors uint32 `protobuf:"varint,2,opt,name=num_requested_umts_vectors,json=numRequestedUmtsVectors,proto3" json:"num_requested_umts_vectors,omitempty"`
-	//ResyncInfo containing RAND and AUTS in the case of a resync attach
+	// ResyncInfo containing RAND and AUTS in the case of a resync attach
 	ResyncInfo *AuthInfoReq_ResyncInfo `protobuf:"bytes,3,opt,name=resync_info,json=resyncInfo,proto3" json:"resync_info,omitempty"`
 }
 

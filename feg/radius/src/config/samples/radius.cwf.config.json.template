@@ -53,10 +53,6 @@
                 },
                 "modules": [
                     {
-                        "name": "adaptruckus",
-                        "config": {}
-                    },
-                    {
                         "name": "analytics",
                         "config": {
                             "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",

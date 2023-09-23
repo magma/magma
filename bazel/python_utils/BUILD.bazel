@@ -16,3 +16,12 @@ py_library(
     srcs = ["coverage_decorator.py"],
     visibility = ["//visibility:public"],
 )
+
+# 'conftest.py' is a configuration file for pytest, it is used to prevent
+# the execution of the Python sudo and LTE integration tests with the
+# 'bazel test' command.
+py_library(
+    name = "conftest",
+    srcs = ["conftest.py"],
+    visibility = ["//visibility:public"],
+)

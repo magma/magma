@@ -24,7 +24,7 @@ func TestBasicInsertGet(t *testing.T) {
 	storage := NewMultiSessionMemoryStorage()
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, storage, "test")
+	performSingleReadWriteDeleteReadTest(t, storage, "test")
 }
 
 func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
@@ -36,9 +36,11 @@ func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
 
 	// Act
 	for i := 0; i < degOfParallelism; i++ {
+		onComplete.Add(1)
 		go func(called string, calling string) {
+			defer onComplete.Done()
 			sessionID := fmt.Sprintf("session_%s_%s", calling, called)
-			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext, &onComplete)
+			loopReadWriteDelete(t, storage, sessionID, reqPerConcurrentContext)
 		}(fmt.Sprintf("called%d", i), fmt.Sprintf("calling%d", i))
 	}
 	onComplete.Wait()

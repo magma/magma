@@ -16,9 +16,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 
-extern "C" {
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-}
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 namespace magma {
 

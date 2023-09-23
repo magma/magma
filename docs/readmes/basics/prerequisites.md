@@ -13,7 +13,7 @@ Additional prerequisites for developers can be found in the [contributor guide o
 
 Currently, the main development operating system (OS) is **macOS**. Documentation is mainly focused on that operating system.
 To develop on a **Linux OS**, the package manager (brew for macOS) will need to be replaced by the appropriate package manager for the respective Linux distribution (e.g. apt, yum, etc.).
-**Windows OS** is currently _not_ supported as developing environment, due to some dependencies on Linux-only tools during setup, such as Ansible or `fcntl`. You can try to use a [DevContainer setup](../contributing/contribute_vscode.md#open-a-devcontainer-workspace-with-github-codespaces) though.
+**Windows OS** is currently _not_ supported as developing environment, due to some dependencies on Linux-only tools during setup, such as Ansible or `fcntl`. You can try to use a [DevContainer setup](https://github.com/magma/magma/wiki/Contributing-Code-with-VSCode#using-devcontainer-for-development) though.
 
 ## Development Tools
 
@@ -25,27 +25,27 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 
 1. Install the following tools
 
-   1. [Docker](https://www.docker.com) and Docker Compose
+   1. [Docker and Docker Compose](https://docs.docker.com/desktop/install/mac-install/)
    2. [Homebrew](https://brew.sh/)
    3. [VirtualBox](https://www.virtualbox.org/)
    4. [Vagrant](https://vagrantup.com)
 
    ```bash
-   brew install go@1.18 pyenv
+   brew install go@1.20 pyenv
    # NOTE: this assumes you're using zsh.
    # See the above pyenv install instructions if using alternative shells.
-   echo 'export PATH="/usr/local/opt/go@1.18/bin:$PATH"' >> ~/.zshrc
+   echo 'export PATH="/usr/local/opt/go@1.20/bin:$PATH"' >> ~/.zshrc
    echo 'eval "$(pyenv init --path)"' >> ~/.zprofile
    echo 'eval "$(pyenv init -)"' >> ~/.zshrc
    exec $SHELL
    # IMPORTANT: close your terminal tab and open a new one before continuing
    pyenv install 3.8.10
    pyenv global 3.8.10
-   pip3 install ansible fabric3 jsonpickle requests PyYAML
+   pip3 install ansible fabric jsonpickle requests PyYAML
    vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
    ```
 
-   **Note**: In the case where installation of `fabric3` through pip was unsuccessful,
+   **Note**: In the case where installation of `fabric` through pip was unsuccessful,
    try switching to other package installers. Try running `brew install fabric`.
 
    You should start Docker Desktop and increase the memory
@@ -58,21 +58,21 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
 ### Ubuntu
 
 1. Install the following tools
-   1. [Docker](https://docs.docker.com/engine/install/ubuntu/) and [Docker Compose](https://docs.docker.com/compose/install/)
+   1. [Docker and Docker Compose](https://docs.docker.com/engine/install/ubuntu/)
    2. [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads)
-   3. [Vagrant](https://www.vagrantup.com/downloads) (Install by downloading the `.deb` file. Installing via the command line using `apt-get` can currently cause an issue with OpenSSL. See also [this discussion](https://github.com/hashicorp/vagrant/issues/12751).)
-2. Install golang version 18.
+   3. [Vagrant](https://www.vagrantup.com/downloads)
+2. Install golang version 1.20.1.
 
    1. Download the tar file.
 
       ```bash
-      wget https://artifactory.magmacore.org/artifactory/generic/go1.18.3.linux-amd64.tar.gz
+      wget https://linuxfoundation.jfrog.io/artifactory/magma-blob/go1.20.1.linux-amd64.tar.gz
       ```
 
    2. Extract the archive you downloaded into `/usr/local`, creating a Go tree in `/usr/local/go`.
 
       ```bash
-      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+      sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.1.linux-amd64.tar.gz
       ```
 
    3. Add `/usr/local/go/bin` to the PATH environment variable.
@@ -90,7 +90,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
       You should expect something like this
 
       ```bash
-      go version go1.18.3 linux/amd64
+      go version go1.20.1 linux/amd64
       ```
 
 3. Install `pyenv`.
@@ -144,7 +144,7 @@ Development can occur from multiple OS's, where **macOS** and **Ubuntu** are **e
    2. Install the following dependencies
 
       ```bash
-      pip3 install ansible fabric3 jsonpickle requests PyYAML
+      pip3 install ansible fabric jsonpickle requests PyYAML
       ```
 
 5. Install `vagrant` necessary plugin.
@@ -165,8 +165,8 @@ To download Magma current version, or a specific release do the following
 git clone https://github.com/magma/magma.git
 cd magma
 
-# in case you want to use a specific version of Magma (for example v1.6)
-git checkout v1.6
+# in case you want to use a specific version of Magma (for example v1.8)
+git checkout v1.8
 
 # to list all available releases
 git tag -l

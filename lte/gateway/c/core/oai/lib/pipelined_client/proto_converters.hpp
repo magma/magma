@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
 
 namespace magma {
 namespace lte {

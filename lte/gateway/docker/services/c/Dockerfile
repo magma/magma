@@ -18,7 +18,7 @@ ARG CPU_ARCH=x86_64
 ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
-ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
+ARG EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-test
 ARG CLANG_VERSION=3.8
 ARG FEATURES=mme_oai
 
@@ -89,11 +89,11 @@ RUN apt-get update && apt-get install -y \
   sudo \
   unzip \
   uuid-dev \
-  wget \
   && rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN apt-get update && apt-get install -y \
   grpc-dev \
   libfolly-dev \
@@ -114,6 +114,7 @@ WORKDIR /magma
 # Copy Bazel files at root and third_party
 COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
 COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY third_party/build/patches/libfluid/ ${MAGMA_ROOT}/third_party/build/patches/libfluid/
 
 # Build external dependencies first. This will help not rebuilt all dependencies triggered by Magma changes.
 RUN bazel build \
@@ -132,7 +133,6 @@ COPY orc8r/protos ${MAGMA_ROOT}/orc8r/protos
 COPY protos ${MAGMA_ROOT}/protos
 
 # Build session_manager c code
-COPY lte/gateway/Makefile ${MAGMA_ROOT}/lte/gateway/Makefile
 COPY orc8r/gateway/c/common ${MAGMA_ROOT}/orc8r/gateway/c/common
 COPY lte/gateway/c ${MAGMA_ROOT}/lte/gateway/c
 
@@ -140,16 +140,13 @@ COPY lte/gateway/python/scripts ${MAGMA_ROOT}/lte/gateway/python/scripts
 COPY lte/gateway/docker ${MAGMA_ROOT}/lte/gateway/docker
 COPY lte/gateway/docker/mme/configs/ ${MAGMA_ROOT}/lte/gateway/docker/configs/
 
-ARG BUILD_TYPE=RelWithDebInfo
-ENV BUILD_TYPE=$BUILD_TYPE
 RUN bazel build  \
+  --config=production \
   //lte/gateway/c/sctpd/src:sctpd \
   //lte/gateway/c/connection_tracker/src:connectiond \
   //lte/gateway/c/li_agent/src:liagentd \
   //lte/gateway/c/session_manager:sessiond \
-  --define=folly_so=1
-
-RUN make -C ${MAGMA_ROOT}/lte/gateway/ build_oai BUILD_TYPE="${BUILD_TYPE}"
+  //lte/gateway/c/core:agw_of
 
 # Prepare config file
 COPY lte/gateway/configs ${MAGMA_ROOT}/lte/gateway/configs
@@ -167,9 +164,11 @@ ARG MAGMA_VERSION=master
 ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
 ENV TZ=Europe/Paris
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
   apt-transport-https \
   apt-utils \
   ca-certificates \
@@ -177,6 +176,7 @@ RUN apt-get update && apt-get install -y \
   iproute2 \
   iptables \
   libgoogle-glog-dev \
+  libidn11-dev \
   libmnl-dev \
   libprotoc-dev \
   libsctp-dev \
@@ -192,8 +192,8 @@ RUN apt-get update && apt-get install -y \
   wget \
   && rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN apt-get update && apt-get install -y \
   libopenvswitch \
   openvswitch-common \
@@ -247,7 +247,7 @@ COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/session_manager/sessio
 COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/sctpd/src/sctpd /usr/local/bin/sctpd
 COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/connection_tracker/src/connectiond /usr/local/bin/connectiond
 COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/li_agent/src/liagentd /usr/local/bin/liagentd
-COPY --from=builder $C_BUILD/core/oai/oai_mme/mme /usr/local/bin/oai_mme
+COPY --from=builder ${MAGMA_ROOT}/bazel-bin/lte/gateway/c/core/agw_of /usr/local/bin/oai_mme
 
 RUN ldconfig 2> /dev/null
 

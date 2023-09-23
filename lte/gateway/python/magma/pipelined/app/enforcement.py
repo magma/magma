@@ -72,6 +72,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         self._redirect_manager = None
         self._qos_mgr = kwargs['qos_manager']
         self._clean_restart = kwargs['config']['clean_restart']
+        self.is_stateless = kwargs['config']['redis_enabled']
         self._redirect_manager = RedirectionManager(
             self._bridge_ip_address,
             self.logger,
@@ -357,3 +358,12 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         else:
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+
+    def _skip_extra_flows_removal_stateless(self):
+        """
+        Returns redis_enabled flag value
+        Traffic is not getting resumed on service restart in case of stateless.
+        It is due to extra flows - enforcement table entries getting deleted.
+        This will decide to remove extra flows or not.
+        """
+        return self.is_stateless

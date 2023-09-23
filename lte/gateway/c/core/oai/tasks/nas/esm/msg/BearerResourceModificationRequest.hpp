@@ -15,25 +15,25 @@
  *      contact@openairinterface.org
  */
 
-#ifndef BEARER_RESOURCE_MODIFICATION_REQUEST_H_
-#define BEARER_RESOURCE_MODIFICATION_REQUEST_H_
+#pragma once
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define BEARER_RESOURCE_MODIFICATION_REQUEST_MINIMUM_LENGTH \
@@ -92,5 +92,3 @@ int decode_bearer_resource_modification_request(
 int encode_bearer_resource_modification_request(
     bearer_resource_modification_request_msg* bearerresourcemodificationrequest,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(BEARER_RESOURCE_MODIFICATION_REQUEST_H_) */

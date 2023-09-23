@@ -15,11 +15,12 @@ limitations under the License.
 // directory lookup service, which manages UE location records.
 //
 // Primary state
-// 	- reported directly from the relevant device/gateway
-// 	- managed by the state service
-//	- versioned
+//   - reported directly from the relevant device/gateway
+//   - managed by the state service
+//   - versioned
+//
 // Secondary state
-// 	- derived, in the controller, from the primary state or other information
-// 	- managed by the directoryd service (DirectoryLookupServer)
-//	- non-versioned, with availability and correctness provided on a best-effort basis
+//   - derived, in the controller, from the primary state or other information
+//   - managed by the directoryd service (DirectoryLookupServer)
+//   - non-versioned, with availability and correctness provided on a best-effort basis
 package directoryd

@@ -78,7 +78,7 @@ class HeTableTest(unittest.TestCase):
     @classmethod
     @unittest.mock.patch(
         'netifaces.ifaddresses',
-        return_value=[[{'addr': '00:11:22:33:44:55'}]],
+        return_value={0: [{'addr': '00:11:22:33:44:55'}]},
     )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
@@ -520,6 +520,7 @@ class EnforcementTableHeTest(unittest.TestCase):
                 'enable_nat': True,
                 'ovs_gtp_port_number': 10,
                 'setup_type': 'LTE',
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=None,

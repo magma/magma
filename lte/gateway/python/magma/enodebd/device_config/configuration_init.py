@@ -52,7 +52,7 @@ SingleEnodebConfig = namedtuple(
 )
 
 
-def config_assert(condition: bool, message: str = None) -> None:
+def config_assert(condition: bool, message: Optional[str] = None) -> None:
     """ To be used in place of 'assert' so that ConfigurationError is raised
         for all config-related exceptions. """
     if not condition:

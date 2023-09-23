@@ -17,8 +17,8 @@ import (
 	"errors"
 	"fmt"
 
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 )
 
 // EAP constants

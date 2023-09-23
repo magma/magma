@@ -1,0 +1,66 @@
+# Copyright 2023 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Update Bazel Caches on GitHub
+description: Pulls caches for .bazel-cache and .bazel-cache-repo for a given key prefix and purges them based on a threshold
+
+inputs:
+  cache-key-prefix:
+    description: A prefix used for cache keys
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set variables
+      shell: bash
+      run: |
+        echo "BAZEL_CACHE_NAME=${{ env.BAZEL_CACHE_NAME }}" >> $GITHUB_ENV
+        echo "BAZEL_CACHE_REPO_NAME=${{ env.BAZEL_CACHE_REPO_NAME }}" >> $GITHUB_ENV
+        echo "BAZEL_CACHE_CUTOFF_MB=${{ env.BAZEL_CACHE_CUTOFF_MB }}" >> $GITHUB_ENV
+        echo "BAZEL_CACHE_REPO_CUTOFF_MB=${{ env.BAZEL_CACHE_REPO_CUTOFF_MB }}" >> $GITHUB_ENV
+        echo "BAZEL_CACHE_DIR=.${{ env.BAZEL_CACHE_NAME }}" >> $GITHUB_ENV
+        echo "BAZEL_CACHE_REPO_DIR=.${{ env.BAZEL_CACHE_REPO_NAME }}" >> $GITHUB_ENV
+      env:
+        BAZEL_CACHE_NAME: bazel-cache
+        BAZEL_CACHE_REPO_NAME: bazel-cache-repo
+        BAZEL_CACHE_CUTOFF_MB: 500
+        BAZEL_CACHE_REPO_CUTOFF_MB: 500
+
+    - name: Bazel Cache
+      uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+      with:
+        path: ${{ github.workspace }}/${{ env.BAZEL_CACHE_DIR }}
+        key: ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_NAME }}-${{ github.sha }}
+        restore-keys: |
+          ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_NAME }}-
+
+    - name: Bazel Cache Repo
+      uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+      with:
+        path: ${{ github.workspace }}/${{ env.BAZEL_CACHE_REPO_DIR }}
+        key: ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_REPO_NAME }}-${{ github.sha }}
+        restore-keys: |
+          ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_REPO_NAME }}-
+
+    # This check is needed to ensure that Bazel's unbounded cache growth doesn't result in a
+    # situation where the cache never updates (e.g. due to exceeding GitHub's cache size limit)
+    # thereby only ever using the last successful cache version. This solution will result in a
+    # few slower CI actions around the time cache is detected to be too large, but it should
+    # incrementally improve thereafter.
+    - name: Ensure cache size BAZEL_CACHE
+      shell: bash
+      run: |
+        ./.github/workflows/scripts/check-bazel-cache-dir-size.sh "${{ env.BAZEL_CACHE_DIR }}" "${{ env.BAZEL_CACHE_CUTOFF_MB }}"
+    - name: Ensure cache size BAZEL_CACHE_REPO
+      shell: bash
+      run: |
+        ./.github/workflows/scripts/check-bazel-cache-dir-size.sh "${{ env.BAZEL_CACHE_REPO_DIR }}" "${{ env.BAZEL_CACHE_REPO_CUTOFF_MB }}"

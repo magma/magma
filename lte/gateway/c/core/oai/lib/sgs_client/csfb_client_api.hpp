@@ -22,9 +22,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_types.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/sgs_messages_types.hpp"
 
 void send_alert_ack(const itti_sgsap_alert_ack_t* msg);
 
@@ -50,7 +53,3 @@ void send_ue_activity_indication(const itti_sgsap_ue_activity_ind_t* msg);
 void send_ue_unreachable(const itti_sgsap_ue_unreachable_t* msg);
 
 void send_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg);
-
-#ifdef __cplusplus
-}
-#endif

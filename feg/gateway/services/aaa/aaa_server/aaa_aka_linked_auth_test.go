@@ -58,13 +58,12 @@ func TestLinkedEapAkaConcurent(t *testing.T) {
 // See: https://tools.ietf.org/html/rfc3748#section-5.3 for more details
 //
 // "...Where a peer receives a Request for an unacceptable authentication
-//      Type (4-253,255), or a peer lacking support for Expanded Types
-//      receives a Request for Type 254, a Nak Response (Type 3) MUST be
-//      sent.  The Type-Data field of the Nak Response (Type 3) MUST
-//      contain one or more octets indicating the desired authentication
-//      Type(s), one octet per Type, or the value zero (0) to indicate no
-//      proposed alternative."
-//
+// Type (4-253,255), or a peer lacking support for Expanded Types
+// receives a Request for Type 254, a Nak Response (Type 3) MUST be
+// sent. The Type-Data field of the Nak Response (Type 3) MUST
+// contain one or more octets indicating the desired authentication
+// Type(s), one octet per Type, or the value zero (0) to indicate no
+// proposed alternative."
 func TestLinkedEAPPeerNak(t *testing.T) {
 	failureEAP := []byte{4, 237, 0, 4}
 	akaPrimeIdentity := eap.NewPacket(

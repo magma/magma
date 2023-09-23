@@ -48,7 +48,7 @@ func GetQueryLogHandler(client *elastic.Client) func(c echo.Context) error {
 	}
 }
 
-//GetCountLogHandler returns the count query handler
+// GetCountLogHandler returns the count query handler
 func GetCountLogHandler(client *elastic.Client) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		return countLogs(c, client)
@@ -63,7 +63,7 @@ func countLogs(c echo.Context, client *elastic.Client) error {
 
 	params, err := getCountParameters(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	query := secureElasticQuery(networkID, params)
 	result, err := client.Count().
@@ -71,7 +71,7 @@ func countLogs(c echo.Context, client *elastic.Client) error {
 		Query(query).
 		Do(c.Request().Context())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, result)
 }
@@ -104,7 +104,7 @@ func queryLogs(c echo.Context, client *elastic.Client) error {
 
 	params, err := getQueryParameters(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	query := secureElasticQuery(networkID, params)
 
@@ -116,10 +116,10 @@ func queryLogs(c echo.Context, client *elastic.Client) error {
 		Query(query).
 		Do(c.Request().Context())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if result.Error != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))
 	}
 	return c.JSON(http.StatusOK, result.Hits.Hits)
 }

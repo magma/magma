@@ -1,5 +1,16 @@
 .PHONY: all build clean run test
 
+define DEPRECATION_WARNING
+
+Warning: As part of the Make to Bazel switch-over of the AGW this Makefile
+will be deprecated soon, see https://github.com/magma/magma/issues/14971.
+Do not add any new Make targets for the AGW!
+All new targets should be integrated with the Bazel build system,
+see https://magma.github.io/magma/docs/next/bazel/agw_with_bazel.
+
+endef
+export DEPRECATION_WARNING
+
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
@@ -49,28 +60,27 @@ COMMON_FLAGS = -DCMAKE_C_FLAGS="-Wall $(CPPFLAGS)" -DCMAKE_CXX_FLAGS="-Wall $(CP
 
 $(info OAI_FLAGS $(OAI_FLAGS))
 
-FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
-OAI_TEST_FLAGS = -DMME_UNIT_TEST=True
 OAI_NOTEST_FLAGS = -DMME_UNIT_TEST=False
-OAI_TESTS ?= ".*"
 
 all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
-test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
-
 clean: clean_python clean_envoy_controller ## Clean all builds
+	@echo "$$DEPRECATION_WARNING"
 	rm -rf $(C_BUILD)
 
 clean_python: ## Clean Python-only builds
+	@echo "$$DEPRECATION_WARNING"
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
 
 clean_envoy_controller: ## Clean envoy controller build
+	@echo "$$DEPRECATION_WARNING"
 	rm -rf  $(GO_BUILD)/envoy_controller
 
 run: build ## Build and run all services
+	@echo "$$DEPRECATION_WARNING"
 	sudo service magma@* stop
 	sudo service magma@magmad start
 
@@ -90,101 +100,40 @@ cd $(2) && ctest --output-on-failure -R $(5)
 endef
 
 build_python: ## Build Python environment
+	@echo "$$DEPRECATION_WARNING"
 	sudo service magma@* stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common: ## Build shared libraries
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
 build_oai: ## Build OAI
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS) $(OAI_NOTEST_FLAGS))
 
-format_all:
-	find $(MAGMA_ROOT)/orc8r/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/c/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-	find $(MAGMA_ROOT)/lte/gateway/python/ \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h"  -o -iname "*.hpp" \) -exec \
-	/usr/bin/clang-format-11 -i {} \;
-
 build_sctpd:
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: build_common ## Build session manager
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 build_li_agent: ## Build li agent
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
 build_connection_tracker:
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
+	@echo "$$DEPRECATION_WARNING"
 	cd $(MAGMA_ROOT)/feg/gateway && $(MAKE) install_envoy_controller
-
-# Catch all for c services that don't have custom flags
-# This works with build_dpi
-build_%:
-	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
-
-test_python: ## Run all Python-specific tests
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
-
-test_sudo_python: ## Run Python tests that require sudo (datapath, etc.)
-	sudo service magma@* stop
-	make -C $(MAGMA_ROOT)/lte/gateway/python test_all SKIP_NON_SUDO_TESTS=1
-
-test_python_service: ## Run all Python-specific tests for a given service
-ifdef UT_PATH
-	$(eval ut_path?=$(shell realpath $(UT_PATH)))
-endif
-	make -C $(MAGMA_ROOT)/lte/gateway/python unit_tests MAGMA_SERVICE=$(MAGMA_SERVICE) UT_PATH=$(ut_path) DONT_BUILD_ENV=$(DONT_BUILD_ENV)
-
-test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-
-test_oai_runtime: export REPORT_FOLDER=${MAGMA_ROOT}/report/
-test_oai_runtime: export UNITTEST_REPORT_FOLDER=${REPORT_FOLDER}/unittest_report/
-test_oai_runtime: export MERGED_REPORT_FOLDER=${REPORT_FOLDER}/merged_report/
-test_oai_runtime: export GTEST_OUTPUT=xml:${UNITTEST_REPORT_FOLDER}
-test_oai_runtime: ## Run all OAI-specific tests with report about the running time
-	mkdir -p ${UNITTEST_REPORT_FOLDER}
-	mkdir -p ${MERGED_REPORT_FOLDER}
-	-$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(OAI_TEST_FLAGS), $(OAI_TESTS))
-	python3 python/scripts/runtime_report.py -i .+\\.xml$$ -w ${UNITTEST_REPORT_FOLDER}
-	rm ${UNITTEST_REPORT_FOLDER}/*.xml
-
-test_sctpd: ## Run all tests for sctpd
-	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
-
-test_common: ## Run all tests in magma_common
-	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
-	# Run the common lib tests that exist
-	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
-	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
-
-test_li_agent:
-	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
-
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
+	@echo "$$DEPRECATION_WARNING"
 	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
-
-coverage_oai: test_oai
-	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw
-	lcov -r /tmp/coverage_oai.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_oai.info
-	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
-
-## Generate complete code structural information prior to any test execution
-base_coverage: build_oai
-	lcov --initial --directory $(C_BUILD) -c --output-file /tmp/coverage_initialize.info.raw
-	lcov -r /tmp/coverage_initialize.info.raw "/*/test/*" "/usr/*" "/build/*protos*" -o /tmp/coverage_initialize.info
-	rm -f `find $(C_BUILD) -name *.gcda` # Clean up any prior coverage data
-
-# Combine results of sub-coverages
-coverage: base_coverage coverage_oai
-	lcov -a /tmp/coverage_initialize.info -a /tmp/coverage_oai.info -o $(C_BUILD)/coverage.info

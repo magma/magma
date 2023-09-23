@@ -465,7 +465,7 @@ class Classifier(MagmaController):
     def _add_tunnel_ip_flow_dl(
         self, i_teid: int, ip_flow_dl: IPFlowDL,
         gtp_port: int, o_teid: int, enodeb_ip_addr: str,
-        sid: int = None,
+        sid: Optional[int] = None,
     ):
 
         priority = Utils.get_of_priority(ip_flow_dl.precedence)
@@ -792,10 +792,10 @@ class Classifier(MagmaController):
 
     def gtp_handler(
         self, session_state, precedence: int, local_f_teid: int,
-        o_teid: int, gnb_ip_addr: str, ue_ip_addr: str = None,
-        sid: int = None, ng_flag: bool = True,
-        ue_ipv6_address: str = None, apn: str = None,
-        vlan: int = 0, ip_flow_dl: IPFlowDL = None,
+        o_teid: int, gnb_ip_addr: str, ue_ip_addr: Optional[str] = None,
+        sid: Optional[int] = None, ng_flag: bool = True,
+        ue_ipv6_address: Optional[str] = None, apn: Optional[str] = None,
+        vlan: int = 0, ip_flow_dl: Optional[IPFlowDL] = None,
         session_qfi: QCI = 0,
     ):
         ue_ip_adr = None
@@ -946,8 +946,8 @@ class Classifier(MagmaController):
 
     def delete_s8_tunnel_flows(
         self, i_teid: int, ue_ip_adr: IPAddress,
-        enodeb_ip_addr: str = None, pgw_gtp_port: int = 0,
-        ip_flow_dl: IPFlowDL = None,
+        enodeb_ip_addr: Optional[str] = None, pgw_gtp_port: int = 0,
+        ip_flow_dl: Optional[IPFlowDL] = None,
     ) -> bool:
 
         # Delete flow for gtp port

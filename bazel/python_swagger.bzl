@@ -106,7 +106,7 @@ py_swagger = rule(
             providers = [java_common.JavaRuntimeInfo],
         ),
         "_swagger_cli": attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("@maven_swagger_codegen_cli//jar"),
             allow_single_file = True,
         ),

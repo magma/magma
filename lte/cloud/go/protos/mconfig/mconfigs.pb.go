@@ -628,9 +628,9 @@ func (x *SentryConfig) GetNumberOfLinesInLog() uint32 {
 	return 0
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // EnodebD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type EnodebD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -793,9 +793,9 @@ func (x *EnodebD) GetEnbConfigsBySerial() map[string]*EnodebD_EnodebConfig {
 	return nil
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // PipelineD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type PipelineD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -969,9 +969,9 @@ func (x *PipelineD) GetSgiManagementIfaceIpv6Gw() string {
 	return ""
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // SessionD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type SessionD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1137,9 +1137,9 @@ func (x *WalletExhaustDetection) GetTimeoutMs() uint32 {
 	return 0
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // PolicyDB configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type PolicyDB struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1187,9 +1187,9 @@ func (x *PolicyDB) GetLogLevel() protos.LogLevel {
 	return protos.LogLevel(0)
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // RedirectD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type RedirectD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1237,9 +1237,9 @@ func (x *RedirectD) GetLogLevel() protos.LogLevel {
 	return protos.LogLevel(0)
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // MobilityD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type MobilityD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1248,7 +1248,8 @@ type MobilityD struct {
 	LogLevel protos.LogLevel `protobuf:"varint,1,opt,name=log_level,json=logLevel,proto3,enum=magma.orc8r.LogLevel" json:"log_level,omitempty"`
 	// An IP block is a range of IP addresses specified by a network address and
 	// a prefix-length of the netmask. For example,
-	//    IPv4 IP block:      "192.168.0.0/24"
+	//
+	//	IPv4 IP block:      "192.168.0.0/24"
 	IpBlock string `protobuf:"bytes,2,opt,name=ip_block,json=ipBlock,proto3" json:"ip_block,omitempty"`
 	// ip allocation type, either dhcp or ip_pool
 	// default is ip_pool
@@ -1346,9 +1347,9 @@ func (x *MobilityD) GetIpv6PrefixAllocationType() string {
 	return ""
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // MME configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type MME struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1869,9 +1870,9 @@ func (x *ModeMapItem) GetApn() string {
 	return ""
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // SubscriberDB configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type SubscriberDB struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1982,9 +1983,9 @@ func (x *SubscriberDB) GetEnable5GFeatures() bool {
 	return false
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // LighttpD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type LighttpD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2040,9 +2041,9 @@ func (x *LighttpD) GetEnableCaching() bool {
 	return false
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // MonitorD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type MonitorD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2098,9 +2099,9 @@ func (x *MonitorD) GetPollingInterval() int32 {
 	return 0
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // DPID configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type DPID struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2148,9 +2149,9 @@ func (x *DPID) GetLogLevel() protos.LogLevel {
 	return protos.LogLevel(0)
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // ConnectionD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type ConnectionD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2198,9 +2199,9 @@ func (x *ConnectionD) GetLogLevel() protos.LogLevel {
 	return protos.LogLevel(0)
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // LIAgentD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type LIAgentD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2343,9 +2344,9 @@ func (x *NProbeTask) GetDomainId() string {
 	return ""
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // DnsD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type DnsD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2496,9 +2497,9 @@ func (x *GatewayDNSConfigRecordsItems) GetDomain() string {
 	return ""
 }
 
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // AgwD configs
-//----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 type AgwD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2589,9 +2590,9 @@ func (x *AgwD) GetSentryDsn() string {
 	return ""
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 // SctpD configs
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 type SctpD struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -10,42 +10,8 @@
 # limitations under the License.
 
 load("@python_deps//:requirements.bzl", "requirement")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("//bazel:deb_build.bzl", "PY_DEST")
-load("//bazel:runfiles.bzl", "expand_runfiles")
-
-SCRIPTS = [
-    "loadtest_mobilityd",
-    "loadtest_pipelined",
-    "loadtest_sessiond",
-    "loadtest_subscriberdb",
-]
-
-expand_runfiles(
-    name = "scripts_expanded",
-    targets = [":{script}".format(script = script) for script in SCRIPTS],
-)
-
-[
-    pkg_mklink(
-        name = "{script}_symlink".format(script = script),
-        link_name = "/usr/local/bin/{script}.py".format(script = script),
-        target = "{dest}/load_tests/{script}.py".format(
-            dest = PY_DEST,
-            script = script,
-        ),
-    )
-    for script in SCRIPTS
-]
-
-pkg_filegroup(
-    name = "magma_lte_loadtest_scripts",
-    srcs = [":scripts_expanded"] +
-           ["{script}_symlink".format(script = script) for script in SCRIPTS],
-    prefix = PY_DEST,
-    visibility = ["//lte/gateway/release:__pkg__"],
-)
+load("//bazel:test_constants.bzl", "TAG_LOAD_TEST")
 
 MAGMA_ROOT = "../../../../"
 
@@ -60,6 +26,23 @@ py_library(
 )
 
 py_binary(
+    name = "loadtest_directoryd",
+    srcs = ["loadtest_directoryd.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/protos:directoryd_python_grpc",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
     name = "loadtest_mobilityd",
     srcs = ["loadtest_mobilityd.py"],
     imports = [
@@ -67,6 +50,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/subscriberdb:sid",
@@ -82,6 +66,7 @@ py_binary(
     srcs = ["loadtest_pipelined.py"],
     imports = [LTE_ROOT],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/pipelined:policy_converters",
@@ -93,10 +78,24 @@ py_binary(
 )
 
 py_binary(
+    name = "loadtest_policydb",
+    srcs = ["loadtest_policydb.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/protos:policydb_python_proto",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
     name = "loadtest_sessiond",
     srcs = ["loadtest_sessiond.py"],
     imports = [LTE_ROOT],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/protos:session_manager_python_proto",
@@ -112,6 +111,7 @@ py_binary(
         ORC8R_ROOT,
     ],
     legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
     deps = [
         ":common",
         "//lte/gateway/python/magma/subscriberdb:sid",

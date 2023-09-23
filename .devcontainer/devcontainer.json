@@ -29,8 +29,7 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug"
 	],
-	"initializeCommand": "docker pull ghcr.io/magma/magma/devcontainer:latest",
-	"image": "ghcr.io/magma/magma/devcontainer:latest",
+	"image": "ghcr.io/magma/magma/devcontainer:sha-84cfceb",
 	"settings": {
 		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {
@@ -82,10 +81,9 @@
 		"python.terminal.activateEnvironment": true,
 		"python.analysis.extraPaths": [
 			"${containerWorkspaceFolder}/orc8r/gateway/python/",
-			"${containerWorkspaceFolder}/lte/gateway/python/",
-			"/home/vscode/build/python/lib/python3.8/site-packages" // has to be in sync with $PYTHON_VENV and $PYTHON_VERSION from .devcontainer/Dockerfile
+			"${containerWorkspaceFolder}/lte/gateway/python/"
 		],
-		"python.defaultInterpreterPath": "/home/vscode/build/python/bin/python3.8", // has to be in sync with $PYTHON_VENV and $PYTHON_VERSION from .devcontainer/Dockerfile
+		"python.defaultInterpreterPath": "/home/vscode/python_ide_env/bin/python3",
 		"python.formatting.provider": "autopep8",
 		"python.formatting.autopep8Args": [
 			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`

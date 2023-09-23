@@ -20,7 +20,7 @@
 #include <gmp.h>  // gross but necessary to link spgw_config.h
 
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.h"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"
 
 namespace openflow {
 

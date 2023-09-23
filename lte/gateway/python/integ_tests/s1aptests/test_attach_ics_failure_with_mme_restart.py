@@ -62,9 +62,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("******************** Received Authentiction Request Indication")
 
         # Send Authentication Response
@@ -79,9 +77,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("******************** Received Security Mode Command Indication")
 
         print(
@@ -105,13 +101,12 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
         print("******************** Received Initial Context Setup Indication")
 
         print("******************** Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"], wait_for_restart)
 
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
@@ -125,15 +120,9 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail,
         )
 
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
-
         # Waiting for UE Context Release indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("******************** Received UE Context Release indication")
 
         print(

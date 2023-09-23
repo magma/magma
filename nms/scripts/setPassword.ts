@@ -17,6 +17,7 @@ import {AccessRoles} from '../shared/roles';
 import {Organization, User} from '../shared/sequelize_models';
 import {OrganizationModel} from '../shared/sequelize_models/models/organization';
 import {UserModel} from '../shared/sequelize_models/models/user';
+import {syncOrganizationWithOrc8rTenant} from '../server/util/tenantsSync';
 
 const SALT_GEN_ROUNDS = 10;
 
@@ -88,6 +89,7 @@ async function createOrFetchOrganization(
     ]);
     org = o;
   }
+  await syncOrganizationWithOrc8rTenant(org);
   return org;
 }
 

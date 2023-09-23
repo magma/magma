@@ -13,12 +13,12 @@ limitations under the License.
 import ipaddress
 from typing import Dict, List, NamedTuple
 
-import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SubscriberQuotaUpdate
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.egress import EGRESS
 from magma.pipelined.app.ingress import INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -74,16 +74,14 @@ class CheckQuotaController(MagmaController):
         self._datapath = None
 
     def _get_config(self, config_dict: Dict) -> NamedTuple:
-        def get_virtual_iface_mac(iface):
-            virt_ifaddresses = netifaces.ifaddresses(iface)
-            return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
-
         return self.CheckQuotaConfig(
             bridge_ip=config_dict['bridge_ip_address'],
             quota_check_ip=config_dict['quota_check_ip'],
             has_quota_port=config_dict['has_quota_port'],
             no_quota_port=config_dict['no_quota_port'],
-            cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
+            cwf_bridge_mac=get_mac_address_from_iface(
+                config_dict['bridge_name'],
+            ),
         )
 
     def handle_restart(

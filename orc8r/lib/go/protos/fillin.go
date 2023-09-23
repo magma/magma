@@ -22,7 +22,6 @@ import (
 // Go Struct tag to specify an alternative name for field name matching
 const MAGMA_ALT_NAME_TAG string = "magma_alt_name"
 
-//
 // FillIn assigns matching field values of src to dest
 // A fields from src & dest are considered "matching" if they have
 // identical names & Types

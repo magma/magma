@@ -12,13 +12,14 @@ limitations under the License.
 */
 
 #pragma once
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
+
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
@@ -116,10 +117,11 @@ void sgw_s8_send_failed_delete_bearer_response(
     const s8_delete_bearer_request_t* const db_req,
     gtpv2c_cause_value_t cause_value, Imsi_t imsi, teid_t pgw_s8_teid);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 void print_bearer_ids_helper(const ebi_t* ebi, uint32_t no_of_bearers);
-#ifdef __cplusplus
-}
-#endif
+
+status_code_e create_temporary_s8_dedicated_bearer_context(
+    sgw_eps_bearer_context_information_t* sgw_ctxt_p,
+    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+    pdn_type_t pdn_type, uint32_t sgw_ip_address_S1u_S12_S4_up,
+    struct in6_addr* sgw_ipv6_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    uint32_t sequence_number, log_proto_t module);

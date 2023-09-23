@@ -29,23 +29,28 @@
  */
 // These messages files are mandatory and must always be placed in first
 // position
+
+// This file is included more than once in the file intertask_interface_types.h
+// and it is included not just as a header file, but included within enum and
+// structure. Hence, it is not possible to have "#pragma once" in this file.
+
 #include "lte/gateway/c/core/oai/lib/itti/intertask_messages_def.h"
 
 // Messages files used between tasks
-#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_def.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_def.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_def.h"
+#include "lte/gateway/c/core/oai/include/s11_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_def.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_def.h"
-#include "lte/gateway/c/core/oai/include/s6a_messages_def.h"
-#include "lte/gateway/c/core/oai/include/sctp_messages_def.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_def.hpp"
+#include "lte/gateway/c/core/oai/include/sctp_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/gx_messages_def.h"
-#include "lte/gateway/c/core/oai/include/mme_app_messages_def.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_def.h"
-#include "lte/gateway/c/core/oai/include/service303_messages_def.h"
-#include "lte/gateway/c/core/oai/include/sgs_messages_def.h"
+#include "lte/gateway/c/core/oai/include/service303_messages_def.hpp"
+#include "lte/gateway/c/core/oai/include/sgs_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/async_system_messages_def.h"
 #include "lte/gateway/c/core/oai/include/udp_messages_def.h"
-#include "lte/gateway/c/core/oai/include/ha_messages_def.h"
+#include "lte/gateway/c/core/oai/include/ha_messages_def.hpp"
 #include "lte/gateway/c/core/oai/include/n11_messages_def.h"
 #include "lte/gateway/c/core/oai/include/s8_messages_def.h"

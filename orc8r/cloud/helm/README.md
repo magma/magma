@@ -3,7 +3,6 @@ Orchestrator Helm Charts
 
 If you're making changes to the chart under orc8r/, you MUST:
 
-
 1. Bump the versions of any updated subcharts in their Chart.yaml files
 
 2. Update the requirements.yaml and requirements.lock files in the main chart

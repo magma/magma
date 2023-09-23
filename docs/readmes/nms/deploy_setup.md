@@ -1,5 +1,5 @@
 ---
-id: deploy_config
+id: deploy_setup
 title: Set Up NMS
 hide_title: true
 ---
@@ -10,7 +10,7 @@ The NMS is deployed as part of Orc8r deployment. However, first-time deployment 
 
 The NMS supports multitenancy starting with v1.1.0. Tenants in the NMS are
 called "organizations". Each organization owns a subset of the networks
-provisioned on Orchestrator, and the special `master` organization
+provisioned on Orchestrator, and the special `host` organization
 administrates organizations in the system.
 
 Users in organizations log into the NMS using a subdomain that matches their
@@ -20,22 +20,22 @@ would access the NMS using `facebook.nms.yourdomain.com`.
 ## First-time Setup
 
 When you deploy the NMS for the first time, you'll need to create a user that
-has access to the master organization. Run the command
+has access to the host organization. Run the command
 
 - Docker (development environment)
 
     ```bash
-    docker-compose exec magmalte yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+    docker compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
     ```
 
 - Kubernetes (production environment)
 
     ```bash
     export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
-    kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+    kubectl exec -it ${NMS_POD} -- yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
     ```
 
-You can then log in to the master organization at `master.nms.yourdomain.com`
+You can then log in to the host organization at `host.nms.yourdomain.com`
 to create additional organizations and users.
 
 When creating a new organization, only enable the `NMS` tab. Also, note that

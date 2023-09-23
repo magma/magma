@@ -34,5 +34,5 @@ spec:
 name: connectiond
 args:
   - /usr/local/bin/connectiond
-image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_c{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}

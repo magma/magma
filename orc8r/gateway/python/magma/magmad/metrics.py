@@ -83,7 +83,7 @@ UNATTENDED_UPGRADE_STATUS = Gauge(
 )
 
 
-SERVICE_RESTART_STATUS = Counter(
+SERVICE_RESTART_STATUS = Gauge(
     'service_restart_status',
     'Count of service restarts',
     ['service_name', 'status'],
@@ -124,18 +124,6 @@ def _get_ping_params(config):
     return ping_params
 
 
-def _counter_set(counter: Counter, val: float):
-    """Set the counter to a particular value
-
-    Args:
-        counter (Counter): Counter instance
-        val (float): Value for the counter to be set
-    """
-    # pylint: disable=protected-access
-    prev = counter._value.get()
-    counter.inc(val - prev)
-
-
 @asyncio.coroutine
 def metrics_collection_loop(service_config, loop=None):
     if 'network_monitor_config' not in service_config:
@@ -165,18 +153,14 @@ def _collect_service_restart_stats():
         logging.error("Could not fetch service status: %s", e)
         return
     for service_name, status in service_dict.items():
-        _counter_set(
-            SERVICE_RESTART_STATUS.labels(
-                service_name=service_name,
-                status="Failure",
-            ), status.num_fail_exits,
-        )
-        _counter_set(
-            SERVICE_RESTART_STATUS.labels(
-                service_name=service_name,
-                status="Success",
-            ), status.num_clean_exits,
-        )
+        SERVICE_RESTART_STATUS.labels(
+            service_name=service_name,
+            status="Failure",
+        ).set(status.num_fail_exits)
+        SERVICE_RESTART_STATUS.labels(
+            service_name=service_name,
+            status="Success",
+        ).set(status.num_clean_exits)
 
 
 @asyncio.coroutine
@@ -294,25 +278,19 @@ def _collect_service_metrics():
                 logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
                 continue
             else:
-                _counter_set(
-                    SERVICE_CPU_PERCENTAGE.labels(
-                        service_name=service,
-                    ), cpu_percentage,
-                )
+                SERVICE_CPU_PERCENTAGE.labels(
+                    service_name=service,
+                ).set(cpu_percentage)
 
         if not memory.isnumeric():
             continue
 
         if memory_accounting == "yes":
-            _counter_set(
-                SERVICE_MEMORY_USAGE.labels(
-                    service_name=service,
-                ), int(memory),
-            )
+            SERVICE_MEMORY_USAGE.labels(
+                service_name=service,
+            ).set(int(memory))
 
         if memory_limit.isnumeric():
-            _counter_set(
-                SERVICE_MEMORY_PERCENTAGE.labels(
-                    service_name=service,
-                ), int(memory) / int(memory_limit),
-            )
+            SERVICE_MEMORY_PERCENTAGE.labels(
+                service_name=service,
+            ).set(int(memory) / int(memory_limit))

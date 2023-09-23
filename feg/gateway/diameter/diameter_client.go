@@ -118,9 +118,9 @@ func (c *Client) ServiceContextId() string {
 
 // NewClient creates a new client based on the config passed.
 // Input:
-// 		- clientCfg containing relevant diameter settings.
-//		- localAddresses must have format of IP:Port. These values will represents
-//		Host-IP-Address AVP sent in CER message. If empty 127.0.0.1 will be used.
+//   - clientCfg containing relevant diameter settings.
+//   - localAddresses must have format of IP:Port. These values will represents
+//     Host-IP-Address AVP sent in CER message. If empty 127.0.0.1 will be used.
 func NewClient(clientCfg *DiameterClientConfig, localAddresses ...string) *Client {
 	originStateID := uint32(time.Now().Unix())
 
@@ -277,10 +277,12 @@ func (client *Client) DisableConnectionCreation(period time.Duration) {
 // back the answer on the given channel. A key is required to identify the
 // corresponding answer. Additionally, SendRequest will add the OriginHost/Realm
 // AVPs to the message because they are mandatory for all requests
-// Input: server - cfg containing info on what server to send to
-// 				done - channel to send the answer to when received
-//				message - request to send
-//				key - something to uniquely identify the request
+// Input:
+//   - server  -- cfg containing info on what server to send to
+//   - done    -- channel to send the answer to when received
+//   - message -- request to send
+//   - key     -- something to uniquely identify the request
+//
 // Output: error if message sending failed, nil otherwise
 func (client *Client) SendRequest(
 	server *DiameterServerConfig,
@@ -327,8 +329,9 @@ func (client *Client) IgnoreAnswer(key interface{}) {
 // matching the given command is received. The AnswerHandler is responsible for
 // parsing the diameter message into something usable and extracting a key to identify
 // the corresponding request
-// Input: command - the diameter code for the command (like diam.CreditControl)
-// 				handler - the function to call when a message is received
+// Input:
+//   - command -- the diameter code for the command (like diam.CreditControl)
+//   - handler -- the function to call when a message is received
 func (client *Client) RegisterAnswerHandlerForAppID(command uint32, appID uint32, handler AnswerHandler) {
 	index := diam.CommandIndex{AppID: appID, Code: command, Request: false}
 	muxHandler := diam.HandlerFunc(func(c diam.Conn, m *diam.Message) {
@@ -355,8 +358,9 @@ func (client *Client) RegisterAnswerHandlerForAppID(command uint32, appID uint32
 // matching the given command is received. The AnswerHandler is responsible for
 // parsing the diameter message into something usable and extracting a key to identify
 // the corresponding request
-// Input: command - the diameter code for the command (like diam.CreditControl)
-// 				handler - the function to call when a message is received
+// Input:
+//   - command -- the diameter code for the command (like diam.CreditControl)
+//   - handler -- the function to call when a message is received
 func (client *Client) RegisterAnswerHandler(command uint32, handler AnswerHandler) {
 	client.RegisterAnswerHandlerForAppID(command, client.cfg.AppID, handler)
 }
@@ -366,8 +370,9 @@ func (client *Client) RegisterAnswerHandler(command uint32, handler AnswerHandle
 // the diameter message, taking any actions required, and sending a response back
 // through the responder argument of the handler. This responder is given so that
 // the response can happen asynchonously in another go routine.
-// Input: command - the diameter code for the command (like diam.CreditControl)
-//				handler - the function to call when a message is received
+// Input:
+//   - command -- the diameter code for the command (like diam.CreditControl)
+//   - handler -- the function to call when a message is received
 func (client *Client) RegisterRequestHandlerForAppID(command uint32, appID uint32, handler diam.HandlerFunc) {
 	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: true}, handler)
 }
@@ -378,7 +383,7 @@ func (client *Client) RegisterHandler(command uint32, appID uint32, request bool
 }
 
 // GenSessionIDOpt generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 func GenSessionIDOpt(identity, protocol, opt string) string {
 	if len(identity) == 0 {
 		identity = "magma"
@@ -392,7 +397,7 @@ func GenSessionIDOpt(identity, protocol, opt string) string {
 }
 
 // GenSessionIDOpt generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi value>
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi value>
 func GenSessionIdImsi(identity, protocol, imsi string) string {
 	if len(identity) == 0 {
 		identity = "magma"
@@ -406,14 +411,14 @@ func GenSessionIdImsi(identity, protocol, imsi string) string {
 }
 
 // GenSessionID generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 // Where <optional value> is base 16 uint32 random number
 func GenSessionID(identity, protocol string) string {
 	return GenSessionIDOpt(identity, protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
 }
 
 // GenSessionIDOpt generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 // Where <DiameterIdentity> is client.Host|ProductName-protocol
 func (client *DiameterClientConfig) GenSessionIDOpt(protocol, opt string) string {
 	if client != nil {
@@ -427,17 +432,17 @@ func (client *DiameterClientConfig) GenSessionIDOpt(protocol, opt string) string
 }
 
 // GenSessionID generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 // Where <DiameterIdentity> is client.Host|ProductName-protocol
-//     and <optional value> is base 16 uint32 random number
+// and <optional value> is base 16 uint32 random number
 func (client *DiameterClientConfig) GenSessionID(protocol string) string {
 	return client.GenSessionIDOpt(protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
 }
 
 // GenSessionIdImsi generates rfc6733 compliant session ID:
-//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi>]
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi>]
 // Where <DiameterIdentity> is client.Host|ProductName-protocol
-//     and <optional value> is base 16 uint32 random number
+// and <optional value> is base 16 uint32 random number
 func (client *DiameterClientConfig) GenSessionIdImsi(protocol, imsi string) string {
 	if len(imsi) == 0 {
 		return client.GenSessionID(protocol)

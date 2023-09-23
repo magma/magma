@@ -19,7 +19,7 @@ significant differences and many things in there you don't need to worry about.
 
 ### Build and publish images
 
-> NOTE: you can skip this step if you want to use the official container images at [artifactory.magmacore.org](https://artifactory.magmacore.org/).
+> NOTE: you can skip this step if you want to use the official container images at [https://linuxfoundation.jfrog.io/](https://linuxfoundation.jfrog.io/).
 
 Follow the instructions at [Building Orchestrator](./dev_build.md#build-and-publish-container-images).
 

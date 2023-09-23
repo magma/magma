@@ -1,0 +1,58 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^(?!http).*"
+    },
+    {
+      "pattern": ".*%2F*"
+    },
+    {
+      "pattern": ".*127.0.0.1.*"
+    },
+    {
+      "pattern" : ".*localhost.*"
+    },
+    {
+      "pattern": "^https://controller.url.sample:9443"
+    },
+    {
+      "pattern": "^https://nms.yourdomain.com"
+    },
+    {
+      "pattern" : "^https://your-org.nms.yourdomain.com"
+    },
+    {
+      "pattern" : "https://magma.github.io/magma/docs/orc8r/rds_upgrade#logs-and-validation"
+    },
+    {
+      "pattern" : "https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation"
+    },
+    {
+      "pattern" : "https://github.com/magma/ci-infra/blob/master/bazel/remote_caching/Readme.md"
+    },
+    {
+      "pattern" : "https://github.com/magma/security/issues"
+    },
+    {
+      "pattern" : "https://github.com/dysinger/basebox"
+    },
+    {
+      "pattern" : "https://docs.virtlet.cloud/user-guide/real-cluster/"
+    },
+    {
+      "pattern" : "^https://www.etsi.org.*pdf"
+    },
+    {
+      "pattern" : "https://core.ac.uk/download/pdf/322886318.pdf"
+    },
+    {
+      "pattern" : "http://automation.fbmagma.ninja/"
+    },
+    {
+      "pattern" : "http://ens-spirent-test-summary.com.s3-us-west-1.amazonaws.com/sanity/hilsanitypass.svg"
+    },
+    {
+      "pattern" : "https://fb.quip.com/4tmUAtlox4Oy"
+    }
+  ]
+}

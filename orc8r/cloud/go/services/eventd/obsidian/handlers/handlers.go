@@ -88,7 +88,7 @@ func setInitErrorHandlers(err error) []obsidian.Handler {
 
 func getInitErrorHandler(err error) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("initialization Error: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("initialization Error: %v", err))
 	}
 }
 
@@ -119,13 +119,13 @@ func GetEventCountHandler(client *elastic.Client) func(c echo.Context) error {
 func EventsHandler(c echo.Context, client *elastic.Client) error {
 	queryParams, err := getQueryParameters(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	results, err := eventdC.GetEvents(c.Request().Context(), queryParams, client)
 	if err != nil {
 		glog.Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, results)
 }
@@ -137,13 +137,13 @@ func EventsHandler(c echo.Context, client *elastic.Client) error {
 func MultiStreamEventsHandler(c echo.Context, client *elastic.Client) error {
 	params, err := getMultiStreamQueryParameters(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	results, err := eventdC.GetMultiStreamEvents(c.Request().Context(), params, client)
 	if err != nil {
 		glog.Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, results)
 }
@@ -152,13 +152,13 @@ func MultiStreamEventsHandler(c echo.Context, client *elastic.Client) error {
 func EventCountHandler(c echo.Context, client *elastic.Client) error {
 	params, err := getMultiStreamQueryParameters(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	result, err := eventdC.GetEventCount(c.Request().Context(), params, client)
 	if err != nil {
 		glog.Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, result)
 }
@@ -184,7 +184,7 @@ func getQueryParameters(c echo.Context) (eventdC.EventQueryParams, error) {
 
 // StreamNameHTTPErr indicates that stream_name is missing
 func StreamNameHTTPErr() *echo.HTTPError {
-	return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("Missing stream name"))
+	return echo.NewHTTPError(http.StatusBadRequest, "Missing stream name")
 }
 
 func getMultiStreamQueryParameters(c echo.Context) (eventdC.MultiStreamEventQueryParams, error) {

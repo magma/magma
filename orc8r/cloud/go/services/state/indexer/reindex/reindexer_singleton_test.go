@@ -40,15 +40,16 @@ func TestSingletonRunSuccess(t *testing.T) {
 
 	// Writes to channel after completing a job
 	reindexSuccessNum, reindexDoneNum := 0, 0
+	reindexConnectionFailsTotal := 0
 	ch := make(chan interface{})
 
 	reindex.TestHookReindexSuccess = func() {
-		reindexSuccessNum += 1
+		reindexSuccessNum++
 	}
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
-		reindexDoneNum += 1
+		reindexDoneNum++
 		ch <- nil
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
@@ -58,7 +59,13 @@ func TestSingletonRunSuccess(t *testing.T) {
 
 	r := initSingletonReindexTest(t)
 
+	// Ensure there are no dangling indexers and deregister all we reindex
+	// at the end of the test
+	indexer.DeregisterAllForTest(t)
+	defer indexer.DeregisterAllForTest(t)
+
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	go r.Run(ctx)
 
 	// Single indexer
@@ -68,12 +75,12 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0)
 
 	// Check
-	recvCh(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx0.AssertExpectations(t)
 	require.Equal(t, 1, reindexSuccessNum)
-	require.Equal(t, 1, reindexDoneNum)
+	require.Equal(t, 1+reindexConnectionFailsTotal, reindexDoneNum)
 
 	// Bump existing indexer version
 	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
@@ -83,12 +90,12 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx0a)
 
 	// Check
-	recvCh(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx0a.AssertExpectations(t)
 	require.Equal(t, 2, reindexSuccessNum)
-	require.Equal(t, 2, reindexDoneNum)
+	require.Equal(t, 2+reindexConnectionFailsTotal, reindexDoneNum)
 
 	// Test that a network/hardware pair that has been added after Run
 	// will have its states reindexed as well
@@ -105,22 +112,54 @@ func TestSingletonRunSuccess(t *testing.T) {
 	register(t, idx5)
 
 	// Check
-	recvCh(t, ch)
+	reindexConnectionFailsTotal += recvChAndRetryFailures(t, ch)
 	recvNoCh(t, ch)
 
 	idx5.AssertExpectations(t)
 	require.Equal(t, 3, reindexSuccessNum)
-	require.Equal(t, 3, reindexDoneNum)
-	cancel()
+	require.Equal(t, 3+reindexConnectionFailsTotal, reindexDoneNum)
+}
+
+func recvChAndRetryFailures(t *testing.T, ch chan interface{}) int {
+	// The remote indexer can in rare cases fail to establish a connection.
+	// In that case the connection is re-attempted during the next reindexing.
+	// We keep track of these failures with this test hook.
+
+	// Make nullimpotent calls to handle code coverage indeterminacy
+	reindex.TestHookReindexFailure()
+	reindexConnectionFails, reindexConnectionFailsTotal := 0, 0
+	reindex.TestHookReindexFailure = func() {
+		reindexConnectionFails += 1
+	}
+	defer func() { reindex.TestHookReindexFailure = func() {} }()
+	remainingNumberOfReindexingRuns := 1
+	for {
+		recvCh(t, ch)
+		remainingNumberOfReindexingRuns -= 1
+		if reindexConnectionFails > 0 {
+			reindexConnectionFailsTotal += reindexConnectionFails
+			remainingNumberOfReindexingRuns = reindexConnectionFails
+			reindexConnectionFails = 0
+		}
+		if reindexConnectionFailsTotal > 99 {
+			fmt.Println("Too many reindexing runs, aborting test")
+			break
+		}
+		if remainingNumberOfReindexingRuns == 0 {
+			break
+		}
+	}
+	return reindexConnectionFailsTotal
 }
 
 func TestSingletonRunFail(t *testing.T) {
 	// Make nullimpotent calls to handle code coverage indeterminacy
 	reindex.TestHookReindexSuccess()
 	reindex.TestHookReindexDone()
+	reindex.TestHookReindexFailure()
 
 	// Writes to channel after completing a job
-	reindexSuccessNum, reindexDoneNum := 0, 0
+	reindexSuccessNum, reindexDoneNum, reindexConnectionFails := 0, 0, 0
 	ch := make(chan interface{})
 
 	reindex.TestHookReindexSuccess = func() {
@@ -129,21 +168,23 @@ func TestSingletonRunFail(t *testing.T) {
 	defer func() { reindex.TestHookReindexSuccess = func() {} }()
 
 	reindex.TestHookReindexDone = func() {
-		if reindexDoneNum < 6 {
-			ch <- nil
-		}
+		ch <- nil
 		reindexDoneNum += 1
 	}
 	defer func() { reindex.TestHookReindexDone = func() {} }()
+	// The remote indexer can in rare cases fail to establish a connection.
+	// In that case the connection is re-attempted during the next reindexing.
+	// We keep track of these failures with this test hook.
+	reindex.TestHookReindexFailure = func() {
+		reindexConnectionFails += 1
+	}
+	defer func() { reindex.TestHookReindexFailure = func() {} }()
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
 	r := initSingletonReindexTest(t)
 	reportAdditionalState(t, nid3, hwid3, 3)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go r.Run(ctx)
 
 	// Indexer returns err => reindex jobs fail
 
@@ -167,19 +208,28 @@ func TestSingletonRunFail(t *testing.T) {
 
 	// Register indexers
 	register(t, fail1, fail2, fail3)
+	// Deregister all we reindex at the end of the test
+	defer indexer.DeregisterAllForTest(t)
+
+	// Only run the reindexer after all indexers have been registered.
+	// This is to ensure that the reindexer will not start with only one
+	// or two indexers registered, which would cause the reindexer to
+	// run four or five times, respectively.
+	ctx, cancel := context.WithCancel(context.Background())
+	go r.Run(ctx)
 
 	// Check
-	recvCh(t, ch)
-	recvCh(t, ch)
-	recvCh(t, ch)
+	for i := 0; i < 3; i++ {
+		recvCh(t, ch)
+	}
 	cancel()
 	recvNoCh(t, ch)
-
 	fail1.AssertExpectations(t)
 	fail2.AssertExpectations(t)
 	fail3.AssertExpectations(t)
 	require.Equal(t, 0, reindexSuccessNum)
-	require.Equal(t, 0, reindexDoneNum%3)
+	require.Equal(t, 3, reindexConnectionFails)
+	require.Equal(t, 3, reindexDoneNum)
 }
 
 // initSingletonReindexTest reports enough directory records to cause 3 batches per network

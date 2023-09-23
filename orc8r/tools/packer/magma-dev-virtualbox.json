@@ -1,114 +1,127 @@
 {
-  "variables": {
-    "cloud_token": "{{ env `ATLAS_TOKEN` }}",
-    "version": "1.0.{{timestamp}}"
-  },
-  "builders": [{
-    "type": "virtualbox-iso",
-    "guest_os_type": "Debian_64",
-    "headless": true,
-    "iso_url": "https://cdimage.debian.org/mirror/cdimage/archive/9.2.1/amd64/iso-cd/debian-9.2.1-amd64-netinst.iso",
-    "iso_checksum": "md5:5c583fd40360fd039b3ac98387b77dbb",
-    "ssh_username": "vagrant",
-    "ssh_password": "vagrant",
-    "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
-    "http_directory": ".",
-    "ssh_wait_timeout": "64206s",
-    "boot_command": [
-      "<esc><wait>",
-      "install <wait>",
-      "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/magma.seed <wait>",
-      "debian-installer=en_US <wait>",
-      "auto <wait>",
-      "locale=en_US <wait>",
-      "kbd-chooser/method=us <wait>",
-      "keyboard-configuration/xkb-keymap=us <wait>",
-      "netcfg/get_hostname={{ .Name }} <wait>",
-      "netcfg/get_domain=magma.com <wait>",
-      "fb=false <wait>",
-      "debconf/frontend=noninteractive <wait>",
-      "console-setup/ask_detect=false <wait>",
-      "console-keymaps-at/keymap=us <wait>",
-      "<enter><wait>"
-    ],
-    "vboxmanage": [
-      ["modifyvm", "{{.Name}}", "--memory", "2048" ],
-      ["modifyvm", "{{.Name}}", "--cpus", "2"]
-    ]
-  }],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+      "headless": true,
+      "vm_name": "magma-dev",
+      "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
+      "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
+      "ssh_password": "vagrant",
+      "ssh_username": "vagrant",
+      "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+      "http_directory": "http",
+      "ssh_timeout": "64206s",
+      "boot_command": [
+        "<esc><wait>",
+        "<esc><wait>",
+        "<enter><wait>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US.UTF-8<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US.UTF-8<wait>",
+        " netcfg/get_domain=magma.com<wait>",
+        " netcfg/get_hostname={{ .Name }}<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "8192"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "4"
+        ]
+      ],
+      "memory": 8192,
+      "cpus": 4,
+      "hard_drive_interface": "scsi",
+      "ssh_handshake_attempts": "20",
+      "boot_wait": "5s",
+      "guest_additions_mode": "upload",
+      "virtualbox_version_file": ".vbox_version"
+    }
+  ],
   "provisioners": [
-{
+    {
       "type": "shell",
-      "script": "scripts/provision-stretch.sh",
+      "scripts": [
+        "scripts/ubuntu_setup.sh",
+        "scripts/vagrant_key.sh"
+      ],
       "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}"
-    },{
+    },
+    {
       "type": "shell",
-      "inline": ["sudo reboot"],
+      "inline": "sudo reboot",
       "expect_disconnect": true
-    },{
-      "type": "shell",
-      "script": "scripts/guest_additions.sh",
-      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
-      "pause_before": "10s"
-    }, {
-      "type": "shell",
-      "script": "scripts/vagrant_key.sh",
-      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}"
     },
     {
       "type": "shell",
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/setup.sh"
-    },
-    {
-      "type": "shell",
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/ansible_debian.sh"
+      "scripts": [
+        "scripts/third_party/chef_bento/update_ubuntu.sh"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true
     },
     {
       "type": "ansible-local",
       "playbook_file": "../../../lte/gateway/deploy/magma_dev.yml",
-      "inventory_groups": "dev",
       "role_paths": [
-        "../../../orc8r/tools/ansible/roles/apt_cache",
-        "../../../orc8r/tools/ansible/roles/distro_snapshot",
+        "../../../lte/gateway/deploy/roles/bazel",
+        "../../../lte/gateway/deploy/roles/bazel_aliases",
+        "../../../lte/gateway/deploy/roles/dev_common",
+        "../../../lte/gateway/deploy/roles/gai_config",
+        "../../../lte/gateway/deploy/roles/magma",
+        "../../../lte/gateway/deploy/roles/pyvenv",
+        "../../../lte/gateway/deploy/roles/service_aliases",
         "../../../orc8r/tools/ansible/roles/docker",
         "../../../orc8r/tools/ansible/roles/fluent_bit",
         "../../../orc8r/tools/ansible/roles/gateway_dev",
         "../../../orc8r/tools/ansible/roles/gateway_services",
-        "../../../orc8r/tools/ansible/roles/golang",
         "../../../orc8r/tools/ansible/roles/pkgrepo",
         "../../../orc8r/tools/ansible/roles/python_dev",
-        "../../../orc8r/tools/ansible/roles/resolv_conf",
-        "../../../orc8r/tools/ansible/roles/test_certs",
-        "../../../lte/gateway/deploy/roles/envoy",
-        "../../../lte/gateway/deploy/roles/stretch_snapshot",
-        "../../../lte/gateway/deploy/roles/dev_common",
-        "../../../lte/gateway/deploy/roles/magma",
-        "../../../lte/gateway/deploy/roles/dev_common",
-        "../../../lte/gateway/deploy/roles/magma",
-        "../../../lte/gateway/deploy/roles/magma_test",
-        "../../../lte/gateway/deploy/roles/pyvenv",
-        "../../../lte/gateway/deploy/roles/stretch_snapshot",
-        "../../../lte/gateway/deploy/roles/trfserver",
-        "../../../lte/gateway/deploy/roles/uselocalpkgrepo"
+        "../../../orc8r/tools/ansible/roles/test_certs"
       ],
+      "inventory_groups": "dev",
       "extra_arguments": [
         "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
       ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/cleanup.sh",
+        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
+        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true
     }
   ],
   "post-processors": [
     [
       {
-        "output": "builds/magma_dev_{{.Provider}}.box",
-        "type": "vagrant"
-      },
-      {
-        "type": "vagrant-cloud",
-        "box_tag": "magmacore/magma_dev",
-        "access_token": "{{user `cloud_token`}}",
-        "version": "{{user `version`}}"
+        "type": "vagrant",
+        "output": "builds/magma_dev_{{.Provider}}.box"
       }
     ]
   ]

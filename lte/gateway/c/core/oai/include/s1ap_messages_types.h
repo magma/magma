@@ -43,7 +43,7 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
 
 #include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"

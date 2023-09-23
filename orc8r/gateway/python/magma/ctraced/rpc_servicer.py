@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.ctraced.trace_manager import TraceManager
+from magma.ctraced.trace_manager import EndTraceResult, TraceManager
 from orc8r.protos.ctraced_pb2 import (
     EndTraceRequest,
     EndTraceResponse,

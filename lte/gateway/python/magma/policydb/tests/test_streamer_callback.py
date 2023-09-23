@@ -91,7 +91,7 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                                 DynamicRuleInstall(
                                     policy_rule=PolicyRule(
                                         id="allowlist_sid-imsi_1-apn1",
-                                        priority=2,
+                                        priority=65530,
                                         flow_list=allow_all_flow_list,
                                         tracking_type=no_tracking_type,
                                     ),
@@ -113,7 +113,7 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                                 DynamicRuleInstall(
                                     policy_rule=PolicyRule(
                                         id="allowlist_sid-imsi_2-apn1",
-                                        priority=2,
+                                        priority=65530,
                                         flow_list=allow_all_flow_list,
                                         tracking_type=no_tracking_type,
                                     ),
@@ -234,7 +234,7 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                                 DynamicRuleInstall(
                                     policy_rule=PolicyRule(
                                         id="allowlist_sid-imsi_1-apn2",
-                                        priority=2,
+                                        priority=65530,
                                         flow_list=allow_all_flow_list,
                                         tracking_type=no_tracking_type,
                                     ),
@@ -256,7 +256,7 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                                 DynamicRuleInstall(
                                     policy_rule=PolicyRule(
                                         id="allowlist_sid-imsi_2-apn1",
-                                        priority=2,
+                                        priority=65530,
                                         flow_list=allow_all_flow_list,
                                         tracking_type=no_tracking_type,
                                     ),

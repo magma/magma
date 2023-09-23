@@ -12,7 +12,7 @@
 
 - name: Create convenient aliases for magma services
   lineinfile:
-    dest: /home/{{ ansible_user }}/.bashrc
+    path: /home/{{ ansible_user }}/.bashrc
     state: present
     line: "{{ item }}"
   with_items:

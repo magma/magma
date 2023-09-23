@@ -73,7 +73,7 @@ class EventValidator(object):
         Loads all swagger definitions from the files specified in the
         event registry.
         """
-        specs_by_filename = {}
+        specs_by_filename: Dict[Any, Dict] = {}
         for event_type, info in self.event_registry.items():
             filename = info[FILENAME]
             if filename in specs_by_filename:

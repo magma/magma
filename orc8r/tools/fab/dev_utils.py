@@ -12,21 +12,22 @@ limitations under the License.
 """
 
 import json
-import os
-import subprocess
 import sys
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import jsonpickle
 import requests
-from fabric.api import hide, lcd, local, run, settings
-from fabric.context_managers import cd
-from fabric.operations import sudo
-from tools.fab import types, vagrant
+from fabric import Connection
+from tools.fab import types
+from tools.fab.hosts import vagrant_connection
+
+AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
+FEG_INTEG_TEST_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests/federated_tests/"
 
 
 def register_generic_gateway(
+        c: Connection,
         network_id: str,
         vm_name: str,
         admin_cert: types.ClientCert = types.ClientCert(
@@ -38,6 +39,7 @@ def register_generic_gateway(
     Register a generic magmad gateway.
 
     Args:
+        c: Fabric connection
         network_id: Network to register inside
         vm_name: Vagrant VM name to pull HWID from
         admin_cert: Cert for API access
@@ -50,7 +52,7 @@ def register_generic_gateway(
         cloud_post('networks', network_payload, admin_cert=admin_cert)
 
     create_tier_if_not_exists(network_id, 'default')
-    hw_id = get_gateway_hardware_id_from_vagrant(vm_name=vm_name)
+    hw_id = get_gateway_hardware_id_from_vagrant(c, vm_name=vm_name)
     already_registered, registered_as = is_hw_id_registered(network_id, hw_id)
     if already_registered:
         print(f'VM is already registered as {registered_as}')
@@ -183,81 +185,79 @@ def create_tier_if_not_exists(
     )
 
 
-def get_gateway_hardware_id_from_vagrant(vm_name: str) -> str:
+def get_gateway_hardware_id_from_vagrant(c: Connection, vm_name: str) -> str:
     """
     Get the hardware ID of a gateway running on Vagrant VM
 
     Args:
+        c: Fabric connection
         vm_name: Name of the vagrant machine to use
 
     Returns:
         Hardware snowflake from the VM
     """
-    with hide('output', 'running', 'warnings'):
-        vagrant.setup_env_vagrant(vm_name)
-        hardware_id = run('cat /etc/snowflake')
-    return str(hardware_id)
+    with vagrant_connection(c, vm_name) as c_gw:
+        hardware_id = c_gw.run('cat /etc/snowflake', hide=True).stdout
+    return str(hardware_id).strip()
 
 
-def get_gateway_hardware_id_from_docker(location_docker_compose: str) -> str:
+def get_gateway_hardware_id_from_docker(c: Connection, location_docker_compose: str) -> str:
     """
     Get the hardware ID of a gateway running on Docker
 
     Args:
+        c: Fabric connection
         location_docker_compose: location of docker compose used to run FEG
         by default feg/gateway/docker
     Returns:
         Hardware snowflake from the VM
     """
-    with lcd('docker'), hide('output', 'running', 'warnings'), \
-            cd(location_docker_compose):
-        hardware_id = local(
-            'docker-compose exec magmad bash -c "cat /etc/snowflake"',
-            capture=True,
-        )
-    return str(hardware_id)
+    with vagrant_connection(c, 'magma') as c_gw:
+        with c_gw.cd(location_docker_compose):
+            hardware_id = c_gw.run(
+                'docker compose exec magmad bash -c "cat /etc/snowflake"',
+                hide=True,
+            ).stdout
+    return str(hardware_id).strip()
 
 
-def delete_gateway_certs_from_vagrant(vm_name: str):
+def delete_gateway_certs_from_vagrant(c: Connection, vm_name: str):
     """
     Delete certificates and gw_challenge of a gateway running on Vagrant VM
 
     Args:
+        c: Fabric connection
         vm_name: Name of the vagrant machine to use
     """
-    with settings(warn_only=True), hide('output', 'running', 'warnings'), \
-            cd('/var/opt/magma/certs'):
-        vagrant.setup_env_vagrant(vm_name)
-        sudo('rm gateway.*')
-        sudo('rm gw_challenge.key')
+    with c.cd(AGW_ROOT):
+        with vagrant_connection(c, vm_name) as c_gw:
+            with c_gw.cd('/var/opt/magma/certs'):
+                c_gw.run('sudo rm gateway.*', hide=True, warn=True)
+                c_gw.run('sudo rm gw_challenge.key', hide=True, warn=True)
 
 
-def delete_gateway_certs_from_docker(location_docker_compose: str):
+def delete_gateway_certs_from_docker(c: Connection, location_docker_compose: str):
     """
         Delete certificates and gw_challenge of a gateway running on Docker
 
     Args:
+        c: Fabric connection
         location_docker_compose: location of docker compose used to run FEG
     """
-    print("delete_feg_certs is running on directory %s" % os.getcwd())
-
-    subprocess.check_call(
-        [
-            'docker-compose exec magmad bash -c '
-            '"rm -f /var/opt/magma/certs/gateway.*"',
-        ],
-        shell=True,
-        cwd=location_docker_compose,
-    )
-
-    subprocess.check_call(
-        [
-            'docker-compose exec magmad bash -c '
-            '"rm -f /var/opt/magma/certs/gw_challenge.key    "',
-        ],
-        shell=True,
-        cwd=location_docker_compose,
-    )
+    with c.cd(AGW_ROOT):
+        with vagrant_connection(c, 'magma') as c_gw:
+            with c_gw.cd(FEG_INTEG_TEST_ROOT + location_docker_compose):
+                c_gw.run('echo "delete_feg_certs is running on directory $PWD"')
+                c_gw.run(
+                    'docker compose exec -t magmad bash -c '
+                    '"rm -f /var/opt/magma/certs/gateway.*"',
+                    warn=True,
+                )
+                c_gw.run(
+                    'docker compose exec -t magmad bash -c '
+                    '"rm -f /var/opt/magma/certs/gw_challenge.key"',
+                    warn=True,
+                )
 
 
 def is_hw_id_registered(
@@ -265,7 +265,7 @@ def is_hw_id_registered(
         hw_id: str,
         url: Optional[str] = None,
         admin_cert: Optional[types.ClientCert] = None,
-) -> (bool, str):
+) -> Tuple[bool, str]:
     """
     Check if a hardware ID is already registered for a given network. Note that
     this is not a true guarantee that a VM is not already registered, as the
@@ -294,29 +294,33 @@ def is_hw_id_registered(
     return False, ''
 
 
-def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
+def connect_gateway_to_cloud(
+        c_gw: Connection,
+        control_proxy_setting_path: str,
+        cert_path: str,
+):
     """
     Setup the gateway Vagrant VM to connect to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
     non-default control proxy setting and certificates
     """
     # Add the override for the production endpoints
-    run("sudo rm -rf /var/opt/magma/configs")
-    run("sudo mkdir /var/opt/magma/configs")
+    c_gw.run("sudo rm -rf /var/opt/magma/configs")
+    c_gw.run("sudo mkdir /var/opt/magma/configs")
     if control_proxy_setting_path is not None:
-        run(
+        c_gw.run(
             "sudo cp " + control_proxy_setting_path
             + " /var/opt/magma/configs/control_proxy.yml",
         )
 
     # Copy certs which will be used by the bootstrapper
-    run("sudo rm -rf /var/opt/magma/certs")
-    run("sudo mkdir /var/opt/magma/certs")
-    run("sudo cp " + cert_path + " /var/opt/magma/certs/")
+    c_gw.run("sudo rm -rf /var/opt/magma/certs")
+    c_gw.run("sudo mkdir /var/opt/magma/certs")
+    c_gw.run("sudo cp " + cert_path + " /var/opt/magma/certs/")
 
     # Restart the bootstrapper in the gateway to use the new certs
-    run("sudo systemctl stop magma@*")
-    run("sudo systemctl restart magma@magmad")
+    c_gw.run("sudo systemctl stop magma@*")
+    c_gw.run("sudo systemctl restart magma@magmad")
 
 
 def cloud_get(
@@ -354,7 +358,7 @@ def cloud_get(
 def cloud_post(
         resource: str,
         data: Any,
-        params: Dict[str, str] = None,
+        params: Optional[Dict[str, str]] = None,
         url: Optional[str] = None,
         admin_cert: Optional[types.ClientCert] = None,
 ):
@@ -421,40 +425,43 @@ def cloud_delete(
         )
 
 
-def local_command_with_repetition(command, timeout=5):
+def run_local_command_with_repetition(c, command, timeout=5):
     """
-    Run command on local machine using fabric.api.local. Repeats on error
+    Run command on local machine using fabric.connection.Connection.local.
+    Repeats on error
     Args:
+        c: fabric context
         command: command to issue
         timeout: time to execute the command while it fails
     """
-    _command_with_repetition(local, command, timeout)
+    _command_with_repetition(c.local, command, timeout)
 
 
-def run_remote_command_with_repetition(command, timeout=5):
+def run_remote_command_with_repetition(c, command, timeout=5):
     """
-    Run command on remote machine using fabric.api.run. Repeats on error
+    Run command on remote machine using fabric.connection.Connection.run.
+    Repeats on error
     Args:
+        c: fabric connection to remote machine
         command: command to run
         timeout: time to execute the command while it fails
     """
-    _command_with_repetition(run, command, timeout)
+    _command_with_repetition(c.run, command, timeout)
 
 
 def _command_with_repetition(func, command, timeout=5):
     timeout = int(timeout)  # in seconds
     start_time = time.time()
-    with settings(warn_only=True), hide('warnings', 'stdout'):
-        while time.time() - start_time <= timeout:
-            # func will be either
-            result = func(command)
-            if result.return_code == 0:
-                # GOOD execution
-                print(result)
-                return
-            print(
-                " ┗ command failed. Trying again",
-            )
-            time.sleep(1)
+    while time.time() - start_time <= timeout:
+        # func will be either 'run' or 'local'
+        result = func(command, hide='out', warn=True)
+        if result.return_code == 0:
+            # GOOD execution
+            print(result)
+            return
+        print(
+            " ┗ command failed. Trying again",
+        )
+        time.sleep(1)
     print(f"\nERROR on {command}\nError message:\n{result}")
     sys.exit(1)

@@ -14,6 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread>  // std::thread
 #include <iostream>
@@ -22,8 +25,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"

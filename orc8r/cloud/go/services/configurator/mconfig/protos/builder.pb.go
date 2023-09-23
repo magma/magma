@@ -110,8 +110,9 @@ type BuildResponse struct {
 
 	// configs_by_key contains the partial mconfig from this mconfig builder
 	// Each config value contains a proto which is
-	//  - first serialized to an any.Any proto
-	//  - then serialized to JSON
+	//   - first serialized to an any.Any proto
+	//   - then serialized to JSON
+	//
 	// TODO(#2310): remove the need to serialize to JSON by sending proto descriptors
 	ConfigsByKey map[string][]byte `protobuf:"bytes,1,rep,name=configs_by_key,json=configsByKey,proto3" json:"configs_by_key,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }

@@ -15,15 +15,16 @@ package lbcanary
 
 import (
 	"errors"
+	"math/rand"
+	"time"
+
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"math/rand"
-	"time"
 
 	"go.uber.org/zap"
+	"layeh.com/radius"
 )
 
 const maxCanariesWeight = 50

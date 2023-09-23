@@ -9,13 +9,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Update PR on check failure
+# owner: @magma/approvers-infra
+# purpose: Centralized workflow to add a comment on a PR based on results of other workflows
+# remediation: -
+
+name: PR Generate Comment On Workflow Failure
 on:
   workflow_run:
     workflows:
-      - DCO check
-      - Python Format Check
-      - Markdown lint check
+      - PR Check DCO
+      - AGW Build & Format Python
+      - Docs Lint & Check Generated Files In Sync
     types:
       - completed
 
@@ -26,16 +30,16 @@ concurrency:
 jobs:
   skip_check:
     name: Job to check if the workflow ${{ github.event.workflow.name }} can be skipped
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.event.workflow_run.event == 'pull_request' ||  github.event.workflow_run.event == 'pull_request_target'
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - name: 'Download artifact'
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
                run_id: ${{github.event.workflow_run.id }},
@@ -43,7 +47,7 @@ jobs:
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "pr"
             })[0];
-            var download = await github.actions.downloadArtifact({
+            var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
                artifact_id: matchArtifact.id,
@@ -54,7 +58,7 @@ jobs:
       - run: unzip pr.zip
       - name: Check if the workflow is skipped
         id: skip_check
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
             var fs = require('fs');
@@ -71,19 +75,19 @@ jobs:
   comment_pr:
     name: Comment on PR for check ${{ github.event.workflow.name }}
     needs: skip_check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: needs.skip_check.outputs.should_skip == 'false'
     env:
-      CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://docs.magmacore.org/docs/next/contributing/contribute_ci_checks)"
+      CHECK_GUIDELINE: "[Guide to the different CI checks and resolution guidelines](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd)"
       WORKFLOW_NAME: "${{ github.event.workflow.name }}"
       WORKFLOW_STATUS: "${{ github.event.workflow_run.conclusion }}"
     steps:
       # Retrieve PR number from triggering workflow artifacts
       - name: 'Download artifact'
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
                run_id: ${{github.event.workflow_run.id }},
@@ -91,7 +95,7 @@ jobs:
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "pr"
             })[0];
-            var download = await github.actions.downloadArtifact({
+            var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
                artifact_id: matchArtifact.id,
@@ -101,39 +105,39 @@ jobs:
             fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
       - run: unzip pr.zip
       - name: DCO comment message
-        if: ${{ github.event.workflow.name == 'DCO check' }}
+        if: ${{ github.event.workflow.name == 'PR Check DCO' }}
         run: |
-          echo "Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
+          echo "Oops! Looks like you failed the \`PR Check DCO\`. Be sure to sign all your commits.
           ### Howto
-          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [Magma guidelines on signing commits](https://github.com/magma/magma/wiki/Contributing-Code#signed-off-commits)
           - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
           - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357#answer-15667644)
           - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Python format comment message
-        if: ${{ github.event.workflow.name == 'Python Format Check' }}
+        if: ${{ github.event.workflow.name == 'AGW Build & Format Python' }}
         run: |
-          echo "Oops! Looks like you failed the \`Python Format Check\`.
+          echo "Oops! Looks like you failed the \`AGW Build & Format Python\`.
           ### Howto
-          - Instructions on running the formatter and linter locally are provided in the [format AGW doc](https://docs.magmacore.org/docs/next/lte/dev_unit_testing#format-agw)
+          - Instructions on running the formatter and linter locally are provided in the [format AGW doc](https://magma.github.io/magma/docs/lte/dev_unit_testing#format-python)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Semantic PR comment message
         if: ${{ github.event.workflow.name == 'Semantic PR' }}
         run: |
           echo "Oops! Looks like you failed the \`Semantic PR check\`.
           ### Howto
-          - [Instructions on formatting your PR title](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [Instructions on formatting your PR title](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format)
           - For PRs with only one commit, the commit message must also be semantic. See [Changing a commit message](https://docs.github.com/en/github/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message) for a howto
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Markdown lint comment message
-        if: ${{ github.event.workflow.name == 'Markdown lint check' }}
+        if: ${{ github.event.workflow.name == 'Docs Lint & Check Generated Files In Sync' }}
         run: |
-          echo "Oops! Looks like you failed the \`Markdown lint check\`.
+          echo "Oops! Looks like you failed the \`Docs Lint & Check Generated Files In Sync\`.
           ### Howto
-          - [Instructions on formatting your Markdown changes](https://magma.github.io/magma/docs/next/docs/docs_overview#precommit)
+          - [Instructions on formatting your Markdown changes](https://github.com/magma/magma/wiki/Contributing-Documentation#precommit)
           - $CHECK_GUIDELINE" >> $GITHUB_WORKSPACE/msg
       - name: Comment on PR
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
             var fs = require('fs');
@@ -151,7 +155,7 @@ jobs:
             var newMsg = '';
             //var shortCommitId = process.env.COMMIT_ID.substr(0,8);;
 
-            const commentsList = await github.issues.listComments({
+            const commentsList = await github.rest.issues.listComments({
                                         owner: context.repo.owner,
                                         repo: context.repo.repo,
                                         issue_number: issue_number,
@@ -169,7 +173,7 @@ jobs:
                   }
                   newMsg = msg + "\n\n" + updMsg;
                   console.log("UPDATING comment=" + newMsg);
-                  github.issues.updateComment({
+                  github.rest.issues.updateComment({
                                 owner: context.repo.owner,
                                 repo: context.repo.repo,
                                 comment_id: commentId,
@@ -181,7 +185,7 @@ jobs:
 
             if( (commentId == 0) && (process.env.WORKFLOW_STATUS == 'failure') ) {
               console.log("CREATING comment=" + msg);
-              github.issues.createComment({
+              github.rest.issues.createComment({
                             issue_number: issue_number,
                             owner: context.repo.owner,
                             repo: context.repo.repo,

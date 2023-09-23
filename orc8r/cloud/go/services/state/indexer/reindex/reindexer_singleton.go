@@ -141,6 +141,8 @@ func (r *reindexerSingleton) reindexJob(job *Job, ctx context.Context, batches [
 		if err != nil {
 			return fmt.Errorf("error completing state reindex job %+v: %s", job, err)
 		}
+	} else {
+		TestHookReindexFailure()
 	}
 
 	glog.V(2).Infof("Completed state reindex job %+v with job err %+v", job, jobErr)

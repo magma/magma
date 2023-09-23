@@ -20,7 +20,7 @@ load("//bazel:runfiles.bzl", "expand_runfiles")
 
 # test suite
 
-def runfiles_test_suite(name):
+def runfiles_test(name):
     _setup_empty_targets_returns_empty_providers_test()
     _setup_targets_are_correctly_expanded_test()
 

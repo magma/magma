@@ -15,23 +15,24 @@
  *      contact@openairinterface.org
  */
 
-#ifndef MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_
-#define MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH (0)
@@ -106,5 +107,3 @@ int decode_modify_eps_bearer_context_request(
 int encode_modify_eps_bearer_context_request(
     modify_eps_bearer_context_request_msg* modifyepsbearercontextrequest,
     uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_) */

@@ -1,0 +1,20 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Create convenient aliases for bazel builds
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "{{ item }}"
+  with_items:
+    # build all services and scripts needed to run the lte access gateway
+    - alias magma-build-agw='bazel build //... --build_tag_filters=service,util_script,-mme_oai'

@@ -19,7 +19,7 @@ original_id: faq
 3. I'm seeing 200's, but streamed configs at `/var/opt/magma/configs` aren't being updated?
 
     - Ensure the directory at `/var/opt/magma/configs` exists
-    - Ensure the gateway configs in NMS are created (see [link](https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf) for more instructions)
+    - Ensure the gateway configs in NMS are created (see [link](https://github.com/magma/magma/blob/v1.1.0/docs/Magma_Network_Management_System.pdf) for more instructions)
     - Ensure one of the following configs exist:
         - [Federated Gateway Network Configs](https://127.0.0.1:9443/apidocs#/Networks/post_networks__network_id__configs_federation)
         - [Federated Gateway Configs](https://127.0.0.1:9443/apidocs#/Gateways/post_networks__network_id__gateways__gateway_id__configs_federation)

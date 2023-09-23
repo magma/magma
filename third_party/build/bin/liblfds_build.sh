@@ -47,7 +47,7 @@ fi
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
-git clone https://github.com/liblfds/liblfds.git
+git clone https://liblfds.org/git/liblfds
 # maybe want to edit a persistent copy...
 # rsync -ravP --delete "${SCRIPT_DIR}/liblfds/" liblfds/
 

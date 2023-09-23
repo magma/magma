@@ -1,8 +1,8 @@
 ---
-id: version-1.7.0-p016_nms_regression_test
+id: version-1.7.0-p016_nms_regression_testing
 title: NMS Regression Testing
 hide_title: true
-original_id: p016_nms_regression_test
+original_id: p016_nms_regression_testing
 ---
 
 # Proposal: NMS Regression Testing

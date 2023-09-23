@@ -15,7 +15,7 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_pcef_emulation.h
+/*! \file pgw_types.h
  * \brief
  * \author Lionel Gauthier
  * \company Eurecom

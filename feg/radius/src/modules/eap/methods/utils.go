@@ -15,7 +15,8 @@ package methods
 
 import (
 	"fbc/cwf/radius/modules/eap/packet"
-	"fbc/lib/go/radius"
+
+	"layeh.com/radius"
 )
 
 // ToRadiusCode returs the RADIUS packet code which, as per RFCxxxx

@@ -7,8 +7,8 @@ FILES_TO_IGNORE = --ignore proposals/p010_vendor_neutral_dp.md \
 
 precommit:
 	docker build -t magma_readmes .
-	docker-compose run readmes markdownlint $(FILES_TO_IGNORE) . && echo PASSED
+	docker compose --compatibility run readmes markdownlint $(FILES_TO_IGNORE) . && echo PASSED
 
 precommit_fix:
 	docker build -t magma_readmes .
-	docker-compose run readmes markdownlint --fix $(FILES_TO_IGNORE) . && echo PASSED
+	docker compose --compatibility run readmes markdownlint --fix $(FILES_TO_IGNORE) . && echo PASSED

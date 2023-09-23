@@ -66,10 +66,7 @@ class TestAttachEsmInfoWithApnCorrection(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received auth req ind ")
 
         auth_res = s1ap_types.ueAuthResp_t()
@@ -84,10 +81,7 @@ class TestAttachEsmInfoWithApnCorrection(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("Received Security Mode Command ue-id", auth_res.ue_Id)
 
         time.sleep(1)
@@ -105,10 +99,7 @@ class TestAttachEsmInfoWithApnCorrection(unittest.TestCase):
             sec_mode_complete.ue_Id,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
         esm_info_req = response.cast(s1ap_types.ueEsmInformationReq_t)
         # Sending Esm Information Response
         print(
@@ -164,10 +155,7 @@ class TestAttachEsmInfoWithApnCorrection(unittest.TestCase):
         )
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Disable APN Correction
         self._s1ap_wrapper.magmad_util.config_apn_correction(

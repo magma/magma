@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_send.h
+Source      esm_send.hpp
 
 Version     0.1
 
@@ -33,15 +33,21 @@ Description Defines functions executed at the ESM Service Access
         EPS Mobility Management sublayer.
 
 *****************************************************************************/
-#ifndef __ESM_SEND_H__
-#define __ESM_SEND_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.h"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.hpp"
@@ -82,9 +88,6 @@ status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
  * Transaction related messages
  * ----------------------------
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e esm_send_esm_information_request(
     pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
 
@@ -115,8 +118,3 @@ status_code_e esm_send_activate_dedicated_eps_bearer_context_request(
 status_code_e esm_send_deactivate_eps_bearer_context_request(
     pti_t pti, ebi_t ebi, deactivate_eps_bearer_context_request_msg* msg,
     int esm_cause);
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* __ESM_SEND_H__*/

@@ -21,6 +21,7 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNetworkFeatureSupport.hpp"
 
 namespace magma5g {
 class RegistrationAcceptMsg {
@@ -35,6 +36,7 @@ class RegistrationAcceptMsg {
   TAIListMsg tai_list;
   NSSAIMsgList allowed_nssai;
   GPRSTimer3Msg gprs_timer;
+  NetworkFeatureSupportMsg network_feature;
 #define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
 
   RegistrationAcceptMsg();

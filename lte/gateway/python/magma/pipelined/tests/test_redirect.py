@@ -102,6 +102,7 @@ class RedirectTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': True,
                 'setup_type': 'LTE',
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=None,

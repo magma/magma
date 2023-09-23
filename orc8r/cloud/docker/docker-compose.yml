@@ -50,7 +50,7 @@ services:
   # Non-core essential services
 
   postgres:
-    image: postgres
+    image: postgres:14
     # Default is 64mb
     # Ref: https://stackoverflow.com/questions/30210362/how-to-increase-the-size-of-the-dev-shm-in-docker-container
     shm_size: '256mb'

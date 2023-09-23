@@ -16,27 +16,33 @@ package common
 import (
 	"crypto/md5"
 	"errors"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2548"
 	"math/rand"
+
+	"layeh.com/radius"
 )
 
 // MicrosoftVendor bytes depicting Microsoft vendor for RADIUS Vendor-Specific attributes
 var MicrosoftVendor = []byte{0x00, 0x00, 0x01, 0x37}
+
+// MicrosoftVendor specific key types (originally from rfc2584)
+const (
+	MSMPPESendKey_Type = radius.Type(16)
+	MSMPPERecvKey_Type = radius.Type(17)
+)
 
 func generateMPPESalt(random int) []byte {
 	return []byte{uint8((random&0xFF00)>>8) | 0x80, uint8(random & 0xFF)}
 }
 
 // GetKeyingAttributes Generates RADIUS keying materials
-func GetKeyingAttributes(msk []byte, radiusSecret []byte, reqAuthenticator []byte) ([]radius.Attribute, error) {
+func GetKeyingAttributes(msk []byte, radiusSecret []byte, reqAuthenticator []byte) (radius.Attributes, error) {
 	// Generate MS-MPPE-Recv-Key attribute
 	recvKeyAttribute, err := GenerateMPPEAttribute(
 		msk[:32],
 		radiusSecret,
 		reqAuthenticator,
 		generateMPPESalt(rand.Int()),
-		rfc2548.MSMPPERecvKey_Type,
+		MSMPPERecvKey_Type,
 	)
 	if err != nil {
 		return nil, err
@@ -48,16 +54,16 @@ func GetKeyingAttributes(msk []byte, radiusSecret []byte, reqAuthenticator []byt
 		radiusSecret,
 		reqAuthenticator,
 		generateMPPESalt(rand.Int()),
-		rfc2548.MSMPPESendKey_Type,
+		MSMPPESendKey_Type,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return []radius.Attribute{
-		radius.Attribute(recvKeyAttribute),
-		radius.Attribute(sendKeyAttribute),
-	}, nil
+	attrs := radius.Attributes{}
+	attrs.Add(MSMPPERecvKey_Type, recvKeyAttribute)
+	attrs.Add(MSMPPESendKey_Type, sendKeyAttribute)
+	return attrs, nil
 }
 
 // GenerateMPPEAttribute Wraps the MPPE key with RADIUS attributes as indicated

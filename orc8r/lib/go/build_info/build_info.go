@@ -22,10 +22,10 @@ const unknown = "UNDEFINED"
 
 // the following variables (buildBranch, buildTag, buildCommitHash, buildCommitDate & buildDate)
 // should be set by an external Makefile/build script/etc. via Go ldflags. For example:
-//     export MAGMA_BUILD_COMMIT_HASH=$(git rev-parse HEAD)
-//     export LD_FLAGS="-ldflags=-X 'magma/orc8r/lib/go/build_info.buildCommitHash=$MAGMA_BUILD_COMMIT_HASH'"
-//     go build -o ./magmad "$LD_FLAGS" magma/gateway/services/magmad
 //
+//	export MAGMA_BUILD_COMMIT_HASH=$(git rev-parse HEAD)
+//	export LD_FLAGS="-ldflags=-X 'magma/orc8r/lib/go/build_info.buildCommitHash=$MAGMA_BUILD_COMMIT_HASH'"
+//	go build -o ./magmad "$LD_FLAGS" magma/gateway/services/magmad
 var (
 	buildBranch     = unknown
 	buildTag        = unknown

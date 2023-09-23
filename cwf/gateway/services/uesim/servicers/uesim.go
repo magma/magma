@@ -23,8 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"fbc/lib/go/radius"
-
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
@@ -34,6 +32,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"layeh.com/radius"
 )
 
 const (

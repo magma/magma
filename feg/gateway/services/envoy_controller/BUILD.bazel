@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 go_library(
     name = "envoy_controller_lib",
@@ -29,5 +30,9 @@ go_library(
 go_binary(
     name = "envoy_controller",
     embed = [":envoy_controller_lib"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
 )

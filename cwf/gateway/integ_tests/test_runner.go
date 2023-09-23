@@ -21,16 +21,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/magma/milenage"
-	"github.com/stretchr/testify/assert"
-
-	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
 	fegprotos "magma/feg/cloud/go/protos"
 	lteprotos "magma/lte/cloud/go/protos"
+
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/magma/milenage"
+	"github.com/stretchr/testify/assert"
+	"layeh.com/radius"
 )
 
 // todo make Op configurable, or export it in the UESimServer.

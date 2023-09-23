@@ -67,9 +67,7 @@ class TestStandAlonePdnConnReq(unittest.TestCase):
         )
         # Receive PDN Connectivity Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
 
         print("Received PDN CONNECTIVITY REJECT")
         print(

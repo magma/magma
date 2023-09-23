@@ -83,9 +83,7 @@ class TestTauMixedPartialLists(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, cntxt_rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
             print(
                 "************************* Sending Tracking Area Update ",
@@ -102,9 +100,7 @@ class TestTauMixedPartialLists(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value
             tau_acc = response.cast(s1ap_types.ueTauAccept_t)
             print(
                 "************************* Received Tracking Area Update ",
@@ -113,9 +109,7 @@ class TestTauMixedPartialLists(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("************************* Sleeping for 2 seconds")
         time.sleep(2)

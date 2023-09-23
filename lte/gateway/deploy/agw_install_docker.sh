@@ -67,7 +67,17 @@ EOF
   echo "Install Magma"
   apt-get update -y
   apt-get upgrade -y
-  apt-get install curl zip python3-pip docker.io net-tools sudo docker-compose -y
+  apt-get install curl zip python3-pip net-tools sudo ca-certificates gnupg lsb-release -y
+
+  mkdir -p /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  apt-get update -y
+  apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+
 
   echo "Making sure $MAGMA_USER user is sudoers"
   if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then

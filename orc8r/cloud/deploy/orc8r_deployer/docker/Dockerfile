@@ -1,3 +1,14 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 FROM python:3.9-slim-buster
 ARG ENV=prod
 ARG TERRAFORM_VERSION="0.15.5"
@@ -61,11 +72,11 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     rm -rf /root/download/*
 
 # Install go if we are building testframework image
-ARG GOLANG_VERSION="1.18.3"
+ARG GOLANG_VERSION="1.20.1"
 RUN if [ "$ENV" = "testframework" ]; \
     then \
         GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
-     && wget --no-verbose https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} \
+     && wget --no-verbose https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} \
      && tar --strip-components=2 -C /usr/local/bin -xzf ${GO_TARBALL} go/bin/go go/bin/gofmt \
      && rm ${GO_TARBALL}; \
     fi

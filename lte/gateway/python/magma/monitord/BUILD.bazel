@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -28,7 +29,11 @@ py_binary(
     # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
     legacy_create_init = False,
     main = "main.py",
-    visibility = ["//lte/gateway/python:__pkg__"],
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":monitord_lib",
         "//lte/protos:mconfigs_python_proto",

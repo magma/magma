@@ -35,7 +35,6 @@ MS = 'magma.common.service'
 SReg = 'magma.common.service_registry'
 
 
-@staticmethod
 def make_awaitable(func, return_value):
     future = asyncio.Future()
     future.set_result(return_value)
@@ -144,7 +143,7 @@ class StateReporterTests(TestCase):
     def _construct_operational_state_mock(device_id: str) \
             -> unittest.mock.Mock:
         mock = unittest.mock.Mock()
-        future = asyncio.Future()
+        future: asyncio.Future = asyncio.Future()
         future.set_result(
             GetOperationalStatesResponse(
                 states=[

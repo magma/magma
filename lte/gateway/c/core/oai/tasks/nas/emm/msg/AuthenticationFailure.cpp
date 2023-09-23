@@ -109,7 +109,7 @@ int encode_authentication_failure(
       AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_PRESENT) {
     if ((encode_result = encode_authentication_failure_parameter_ie(
              authentication_failure->authenticationfailureparameter,
-             AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI,
+             AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI != 0,
              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;

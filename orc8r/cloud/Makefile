@@ -143,7 +143,7 @@ $(TOOLS_LIST): %_tools:
 
 tools_lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-		| sh -s -- -b $$(go env GOPATH)/bin v1.47.3
+		| sh -s -- -b $$(go env GOPATH)/bin v1.51.2
 
 ######################
 ## Swagger/API docs ##
@@ -175,7 +175,7 @@ else ifeq ($(OS_NAME),Darwin)
 endif
 
 nms_prereqs_ubuntu:
-	curl -sL https://deb.nodesource.com/setup_lts.x | bash -
+	curl -sL https://deb.nodesource.com/setup_18.x | bash -
 	apt install -y nodejs
 	npm install --global yarn
 	yarn

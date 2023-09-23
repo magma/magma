@@ -200,8 +200,6 @@ func TestRunBrokenIndexer(t *testing.T) {
 
 	r, q := initReindexTest(t, dbName)
 	ctx, cancel := context.WithCancel(context.Background())
-	go r.Run(ctx)
-	defer cancel()
 
 	// Job exists but indexer's broken
 	// Populate
@@ -210,9 +208,10 @@ func TestRunBrokenIndexer(t *testing.T) {
 	broken.On("PrepareReindex", zero, version0, true).Return(nil).Once()
 	broken.On("Index", mock.Anything, mock.Anything).Return(nil, someErr).Once()
 	registerAndPopulate(t, q, broken)
+	go r.Run(ctx)
+	defer cancel()
 	// Check
 	recvCh(t, ch)
-	recvCh(t, ch) // twice to go through full loop at least once with indexer available
 	broken.AssertExpectations(t)
 	assertErrored(t, q, id0, reindex.ErrReindex, someErr)
 }

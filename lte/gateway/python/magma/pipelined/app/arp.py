@@ -16,10 +16,10 @@ from collections import namedtuple
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.directoryd_client import get_all_records
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
-from magma.pipelined.utils import get_virtual_iface_mac
 from ryu.controller import dpset
 from ryu.lib.packet import arp, ether_types
 
@@ -78,7 +78,7 @@ class ArpController(MagmaController):
         virtual_iface = config_dict.get('virtual_interface', None)
         if enable_nat is True or setup_type != 'LTE':
             if virtual_iface is not None:
-                virtual_mac = get_virtual_iface_mac(virtual_iface)
+                virtual_mac = get_mac_address_from_iface(virtual_iface)
             else:
                 virtual_mac = None
         else:
@@ -93,7 +93,7 @@ class ArpController(MagmaController):
             if 'mtr_mac' in config_dict:
                 mtr_mac = config_dict['mtr_mac']
             else:
-                mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
+                mtr_mac = get_mac_address_from_iface(config_dict['mtr_interface'])
 
         return self.ArpdConfig(
             # TODO failsafes for fields not existing or yml updates
@@ -101,7 +101,7 @@ class ArpController(MagmaController):
             virtual_mac=virtual_mac,
             # TODO deprecate this, use mobilityD API to get ip-blocks
             cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
-            cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
+            cwf_bridge_mac=get_mac_address_from_iface(config_dict['bridge_name']),
             mtr_ip=mtr_ip,
             mtr_mac=mtr_mac,
             enable_nat=enable_nat,

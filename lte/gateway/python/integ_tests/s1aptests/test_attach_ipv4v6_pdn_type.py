@@ -36,16 +36,10 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         resp_ipv4_ipv6 = self._create_attach_ipv4v6_pdn_type_req(
             pdn_type_value=3,
         )
-        self.assertEqual(
-            resp_ipv4_ipv6.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert resp_ipv4_ipv6.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         # IPv6 is equal to 2
         resp_ipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
-        self.assertEqual(
-            resp_ipv6.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert resp_ipv6.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
     def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
         # Ground work.
@@ -77,10 +71,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -93,10 +84,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
             auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -108,10 +96,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         # Attach Reject will be sent since IPv6 PDN Type is not configured
         if pdn_type_value == 2:
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
             return self._s1ap_wrapper.s1_util.get_response()
 
         # Receive initial context setup and attach accept indication

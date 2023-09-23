@@ -1,6 +1,6 @@
 # VS Code DevContainer Environment
 
-Documentation on the usage of DevContainer can also be found in the [contributor documentation](https://docs.magmacore.org/docs/next/contributing/contribute_vscode#using-devcontainer-for-development).
+Documentation on the usage of DevContainer can also be found in the [contributor documentation](https://github.com/magma/magma/wiki/Contributing-Code-with-VSCode#using-devcontainer-for-development).
 
 
 For a comprehensive developer environment supporting AGW c / c++ workflows see the [instructions below](#using-clang-tidy-in-vs-code).
@@ -12,7 +12,7 @@ DevContainer is a technology developed by Microsoft. Thus, it is only available 
 In order to use the Github codespaces, you must be member of the Magma Github organization.
 In any case you will need a working Docker installation, as DevContainer is a docker based technology.
 
-For detailed instructions see the [contributor documentation](https://docs.magmacore.org/docs/next/contributing/contribute_vscode#using-devcontainer-for-development).
+For detailed instructions see the [contributor documentation](https://github.com/magma/magma/wiki/Contributing-Code-with-VSCode#using-devcontainer-for-development).
 
 ## Developing DevContainer
 

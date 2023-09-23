@@ -23,6 +23,7 @@ ORC8R_PY_SERVICES = [
 [
     expand_runfiles(
         name = "{py_service}_expanded".format(py_service = py_service),
+        tags = ["no-cache"],
         targets = [
             "//orc8r/gateway/python/magma/{py_service}:{py_service}".format(py_service = py_service),
         ],
@@ -33,5 +34,6 @@ ORC8R_PY_SERVICES = [
 pkg_filegroup(
     name = "magma_python_orc8r_services",
     srcs = ["{py_service}_expanded".format(py_service = py_service) for py_service in ORC8R_PY_SERVICES],
+    tags = ["no-cache"],
     visibility = ["//lte/gateway/release:__pkg__"],
 )

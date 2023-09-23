@@ -15,16 +15,15 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_EXTENDED_SERVICE_REQUEST_SEEN
-#define FILE_EXTENDED_SERVICE_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -72,4 +71,3 @@ int decode_extended_service_request(
 int encode_extended_service_request(
     extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
     uint32_t len);
-#endif /* ! defined(FILE_EXTENDED_SERVICE_REQUEST_SEEN) */

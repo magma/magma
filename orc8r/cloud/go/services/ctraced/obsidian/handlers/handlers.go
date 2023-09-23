@@ -70,7 +70,7 @@ func listCallTraces(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	ret := map[string]*models.CallTrace{}
@@ -88,7 +88,7 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 		}
 		cfg := &models.CallTraceConfig{}
 		if err := c.Bind(cfg); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		ctr := &models.CallTrace{
 			Config: cfg,
@@ -101,32 +101,32 @@ func getCreateCallTraceHandlerFunc(client GwCtracedClient) echo.HandlerFunc {
 
 		exists, err := configurator.DoesEntityExist(reqCtx, networkID, orc8r.CallTraceEntityType, cfg.TraceID)
 		if exists {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("Call trace id: %s already exists", cfg.TraceID))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Call trace id: %s already exists", cfg.TraceID))
 		}
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		if err := ctr.ValidateModel(context.Background()); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		req, err := buildStartTraceRequest(cfg)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to build call trace request: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to build call trace request: %v", err))
 		}
 
 		resp, err := client.StartCallTrace(reqCtx, networkID, cfg.GatewayID, req)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to start call trace: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to start call trace: %v", err))
 		}
 		if !resp.Success {
-			return echo.NewHTTPError(http.StatusInternalServerError, errors.New("failed to start call trace"))
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to start call trace")
 		}
 
 		createdEntity := ctr.ToEntity()
 		_, err = configurator.CreateEntity(reqCtx, networkID, createdEntity, serdes.Entity)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to create call trace: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to create call trace: %v", err))
 		}
 		return c.JSON(http.StatusCreated, cfg.TraceID)
 	}
@@ -150,10 +150,10 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 
 		mutableCallTrace := &models.MutableCallTrace{}
 		if err := c.Bind(mutableCallTrace); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		if err := mutableCallTrace.ValidateModel(reqCtx); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		callTrace, err := getCallTraceModel(c)
@@ -177,12 +177,12 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 
 		err = storage.StoreCallTrace(networkID, callTraceID, resp.TraceContent)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s: %w", networkID, callTrace.Config.GatewayID, callTraceID, err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to save call trace data, network-id: %s, gateway-id: %s, calltrace-id: %s: %v", networkID, callTrace.Config.GatewayID, callTraceID, err))
 		}
 
 		_, err = configurator.UpdateEntity(reqCtx, networkID, mutableCallTrace.ToEntityUpdateCriteria(callTraceID, *callTrace), serdes.Entity)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -197,12 +197,12 @@ func getDeleteCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 
 		err := storage.DeleteCallTrace(networkID, callTraceID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to delete call trace data: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to delete call trace data: %v", err))
 		}
 
 		err = configurator.DeleteEntity(c.Request().Context(), networkID, orc8r.CallTraceEntityType, callTraceID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -217,7 +217,7 @@ func getDownloadCallTraceHandlerFunc(storage storage.CtracedStorage) echo.Handle
 
 		callTrace, err := storage.GetCallTrace(networkID, callTraceID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to retrieve call trace data: %w", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to retrieve call trace data: %v", err))
 		}
 
 		res := c.Response()
@@ -242,15 +242,15 @@ func getCallTraceModel(c echo.Context) (*models.CallTrace, error) {
 		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
-		return nil, echo.NewHTTPError(http.StatusNotFound, err)
+		return nil, echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	callTrace := &models.CallTrace{}
 	err = callTrace.FromBackendModels(ent)
 	if err != nil {
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, err)
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return callTrace, nil
 }

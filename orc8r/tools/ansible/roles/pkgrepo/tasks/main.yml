@@ -9,59 +9,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# These steps are executed in preburn and full_provision to make
+# registry switches e.g. for upcoming releases easier.
+
+- name: Collect all registries
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d/
+    patterns: "*.list*"
+  register: registries_to_be_delete
+
 - name: Remove all old registries
-  become: yes
-  ignore_errors: yes
   ansible.builtin.file:
-    path: /etc/apt/sources.list.d/*.list
+    path: "{{ item.path }}"
     state: absent
+  with_items: "{{ registries_to_be_delete.files }}"
 
-- name: Wait for APT Lock
-  shell: |
-    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
-      while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1 ; do
-        sleep 1
-      done
-    fi
-
-- name: Remove unattended upgrades
-  apt:
-    state: absent
-    purge: yes
-    pkg:
-      - unattended-upgrades
-
-- name: Ensure ca-certificates is up to date
-  become: yes
-  apt:
-    name: "{{ packages }}"
-    state: latest
-    update_cache: yes
-  register: result
-  until: result is not failed
-  vars:
-    packages:
-      - ca-certificates
-
-- name: Copy gpg key from codebase
-  copy:
-    src: jfrog.pub
-    dest: /tmp/jfrog.pub
-
-- name: Adding the key to agent
-  apt_key:
-    file: /tmp/jfrog.pub
-    state: present
+- name: Adding the key for the registry
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
 
 - name: Configuring the registry in sources.list.d
-  shell: "echo 'deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main' > /etc/apt/sources.list.d/magma.list"
-
-- name: Update apt
-  apt:
-    update_cache: yes
+  ansible.builtin.apt_repository:
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main
+    filename: magma
+    state: present
+    update_cache: true

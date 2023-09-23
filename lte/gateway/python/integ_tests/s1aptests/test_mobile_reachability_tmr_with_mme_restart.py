@@ -87,10 +87,7 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("************************* Restarting MME service on gateway")
         wait_for_restart = 30
@@ -132,10 +129,7 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
         print(
             "************************* Received Service Reject for UE id ",
             ue_id,
@@ -143,10 +137,7 @@ class TestMobileReachabilityTmrWithMmeRestart(unittest.TestCase):
 
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

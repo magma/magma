@@ -12,9 +12,9 @@
 */
 
 /*
-	Package swagger provides a simple implementation of the per-service spec
-	servicer as well as the interface needed to poll every servicer for their
-	respective Swagger specs. This package serves as the entry
-	point for requesting and combining Swagger specs at runtime.
+Package swagger provides a simple implementation of the per-service spec
+servicer as well as the interface needed to poll every servicer for their
+respective Swagger specs. This package serves as the entry
+point for requesting and combining Swagger specs at runtime.
 */
 package swagger

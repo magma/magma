@@ -19,6 +19,7 @@ from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.gw_mac_address import get_gw_mac_address
+from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.mobilityd_client import (
     get_mobilityd_gw_info,
     set_mobilityd_gw_info,
@@ -27,7 +28,6 @@ from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import PROXY_TAG_TO_PROXY, Direction
-from magma.pipelined.utils import get_virtual_iface_mac
 from magma.pipelined.vlan_utils import get_vlan_egress_flow_msgs
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -102,7 +102,7 @@ class EgressController(RestartMixin, MagmaController):
         setup_type = config_dict.get('setup_type', None)
         if enable_nat is True or setup_type != 'LTE':
             if virtual_iface is not None:
-                virtual_mac = get_virtual_iface_mac(virtual_iface)
+                virtual_mac = get_mac_address_from_iface(virtual_iface)
             else:
                 virtual_mac = ""
         else:

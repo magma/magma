@@ -9,8 +9,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//bazel/test:runfiles_test.bzl", "runfiles_test_suite")
+load("//bazel/test:runfiles_test.bzl", "runfiles_test")
 
-runfiles_test_suite(
-    name = "runfiles_test_suite_target",
+runfiles_test(
+    name = "runfiles_test_target",
 )

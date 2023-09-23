@@ -3,7 +3,7 @@
 1. Go to magma lab and login
 2. Choose Actions/command dialog
 3. Fill generic command (connect)
-4. Pass following parameters 
+4. Pass following parameters
 
 ```
  {

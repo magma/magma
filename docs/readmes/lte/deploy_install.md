@@ -6,8 +6,6 @@ hide_title: true
 
 # Install Access Gateway on Ubuntu (Bare Metal)
 
-> NOTE: Debian-based AGW deployments are no longer supported as of v1.6. If you want to install to Debian, refer to [v1.5 of the documentation](https://magma.github.io/magma/versions).
-
 ## Prerequisites
 
 To set up a Magma Access Gateway, you will need a machine that
@@ -37,7 +35,7 @@ satisfies the following requirements:
 
 ### 1. Create boot USB stick and install Ubuntu on your AGW host
 
-- Download the Ubuntu Server 20.04 LTS `.iso` image from the Ubuntu website
+- Download the Ubuntu Server 20.04 LTS `.iso` image from the Ubuntu website. Verify its integrity by checking [the hash](https://releases.ubuntu.com/20.04/SHA256SUMS).
 - Create a bootable USB using this [Etcher tutorial](https://tutorials.ubuntu.com/tutorial/tutorial-create-a-usb-stick-on-macos#0)
 - Boot your AGW host from USB
     - Press F11 to select boot sequence. WARNING: This might be different for your machine.
@@ -45,7 +43,7 @@ satisfies the following requirements:
 - Install and configure your Access Gateway according to your network defaults.
     - Make sure to enable ssh server and utilities (untick every other).
 - Connect your SGi interface to the internet and select this port during the
-installation process to get an IP using DHCP.
+installation process to get an IP using DHCP. (Consider enabling DHCP snooping to mitigate [Rogue DHCP](https://en.wikipedia.org/wiki/Rogue_DHCP))
 
 ### 2. Deploy magma on the AGW_HOST
 
@@ -55,7 +53,7 @@ To install on a server with a DHCP-configured SGi interface
 
 ```bash
 su
-wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.8/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_install_ubuntu.sh
 ```
 
@@ -64,7 +62,7 @@ if SGi has an IP of 1.1.1.1/24 and the upstream router IP is 1.1.1.200
 
 ```bash
 su
-wget https://raw.githubusercontent.com/magma/magma/v1.6/lte/gateway/deploy/agw_install_ubuntu.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.8/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_install_ubuntu.sh 1.1.1.1/24 1.1.1.200
 ```
 
@@ -94,7 +92,7 @@ journalctl -fu agw_installation
 When you see "AGW installation is done.", it means that your installation is complete. You can make sure magma is running by executing
 
 ```bash
-service magma@* status
+service 'magma@*' status
 ```
 
 #### Post-install check

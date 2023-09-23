@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -29,6 +30,7 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
+    tags = TAG_SERVICE,
     visibility = ["//visibility:public"],
     deps = [
         ":client",

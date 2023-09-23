@@ -16,54 +16,50 @@
 
 - name: Set Python environment variables
   lineinfile:
-    dest: /etc/environment
+    path: /etc/environment
     state: present
     line: "{{ item }}"
   with_items:
     - PYTHON_BUILD="{{ python_build }}"
     - PIP_CACHE_HOME="~/.pipcache"
     - PYTHONDONTWRITEBYTECODE="no"
-  when: full_provision
+  when: preburn
 
 - name: Test for path in /etc/environment file
   shell: grep "^PATH=" /etc/environment
   register: test_path
   ignore_errors: true
-  when: full_provision
+  when: preburn
 
 - name: Add PATH line if it doesn't exist
   lineinfile:
-    dest: /etc/environment
+    path: /etc/environment
     state: present
     line: 'PATH=/usr/lib/ccache:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  when: full_provision and test_path.rc != 0
+  when: preburn and test_path.rc != 0
 
 - name: Append virtual env python3 bin if path exists
   lineinfile:
-    dest: /etc/environment
+    path: /etc/environment
     state: present
     backrefs: yes
     regexp: 'PATH=(["]*)((?!.*?{{ python_bin }}).*?)(["]*)$'
     line: 'PATH=\1{{ python_bin }}:\2\3'
-  when: full_provision
+  when: preburn
 
 #################################
 # Add common convenience aliases
 #################################
 
-- name: Set a convenience function for activating the virtualenv
+- name: Set convenience functions for virtualenv
   lineinfile:
-    dest: /home/{{ ansible_user }}/.bashrc
+    path: /home/{{ ansible_user }}/.bashrc
     state: present
-    line: "alias magtivate='source {{ python_build }}/bin/activate'"
-  when: full_provision
-
-- name: Set a convenience function for running things with sudo in the virtualenv
-  lineinfile:
-    dest: /home/{{ ansible_user }}/.bashrc
-    state: present
-    line: "alias venvsudo='sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env'"
-  when: full_provision
+    line: "{{ item }}"
+  with_items:
+    - alias magtivate='source {{ python_build }}/bin/activate'
+    - alias venvsudo='sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env'
+  when: preburn
 
 ##############################
 # Install dependency packages
@@ -74,7 +70,7 @@
   when: preburn
   apt:
     state: present
-    pkg:
+    name:
       # Build requirements
       - virtualenv
       - python-babel
@@ -117,6 +113,6 @@
 
 - name: Install grpcio-tools
   pip:
-    name: grpcio-tools
+    name: grpcio-tools>=1.46.3,<1.49.0
     executable: pip3
   when: preburn

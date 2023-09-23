@@ -676,9 +676,11 @@ void ngap_handle_conn_est_cnf(
       session_context->pDUSessionID = pdu_session_item->Pdu_Session_ID;
 
       /*NSSAI*/
-      session_context->s_NSSAI.sST.size = 1;
-      session_context->s_NSSAI.sST.buf = (uint8_t*)calloc(1, sizeof(uint8_t));
-      session_context->s_NSSAI.sST.buf[0] = 0x11;
+      Ngap_SST_t* sST = NULL;
+      sST = &session_context->s_NSSAI.sST;
+
+      INT8_TO_OCTET_STRING(
+          amf_config.plmn_support_list.plmn_support[0].s_nssai.sst, sST);
 
       Ngap_PDUSessionResourceSetupRequestTransfer_t
           pduSessionResourceSetupRequestTransferIEs = {0};

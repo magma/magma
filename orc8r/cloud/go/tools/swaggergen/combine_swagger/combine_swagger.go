@@ -12,15 +12,15 @@ limitations under the License.
 */
 
 /*
-	Package main holds the combine_swagger executable.
+Package main holds the combine_swagger executable.
 
-	combine_swagger is a custom tool to naively merge a set of Swagger YAML
-	files. The functionality is similar to go-swagger's mixin command.
+combine_swagger is a custom tool to naively merge a set of Swagger YAML
+files. The functionality is similar to go-swagger's mixin command.
 
-	The Swagger files are expected to have been assembled to an input
-	directory, along with a "common" Swagger YAML file. Merges are handled
-	naively, as a full overwrite, and with no guarantees on ordering -- except
-	that the "common" file's subfields receive precedence over other subfields.
+The Swagger files are expected to have been assembled to an input
+directory, along with a "common" Swagger YAML file. Merges are handled
+naively, as a full overwrite, and with no guarantees on ordering -- except
+that the "common" file's subfields receive precedence over other subfields.
 */
 package combine_swagger
 

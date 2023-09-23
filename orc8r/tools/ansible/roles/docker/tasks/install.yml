@@ -10,27 +10,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Debian install tasks
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+- name: Ubuntu install tasks
+  when: ansible_distribution == 'Ubuntu' and preburn
   include_tasks: install_debian.yml
 
 - name: Red Hat install tasks
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' and preburn
   include_tasks: install_redhat.yml
-
-- name: Download the lastest version of Docker Compose
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
-    dest: /usr/local/bin/docker-compose
-    mode: +x
 
 - name: Add the user to the docker group
   user:
     name: "{{ user }}"
     groups: docker
     append: yes
+  when: preburn
 
 - name: Install python docker module
   pip:
-    executable: /usr/bin/pip3
     name: docker
+    executable: pip3
+  when: preburn

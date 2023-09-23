@@ -10,11 +10,16 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 cc_binary(
     name = "connectiond",
     srcs = ["main.cpp"],
-    visibility = ["//lte/gateway/release:__pkg__"],
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [
         ":event_tracker",
         "//lte/protos:mconfigs_cpp_proto",

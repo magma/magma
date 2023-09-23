@@ -70,7 +70,7 @@ class IpDescriptorMap:
 
         self.ip_states[state][ip.exploded] = ip_desc
 
-    def remove_ip_from_state(self, ip: IPAddress, state: IPState) -> IPDesc:
+    def remove_ip_from_state(self, ip: IPAddress, state: IPState) -> Optional[IPDesc]:
         """ Remove an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 

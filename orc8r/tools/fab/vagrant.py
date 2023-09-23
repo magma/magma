@@ -11,97 +11,113 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-import os.path
+from typing import Dict, Tuple
 
-from fabric.api import cd, env, local
+from fabric import Connection
 
 
-def __ensure_in_vagrant_dir():
+def _ensure_in_vagrant_dir(c: Connection) -> None:
     """
     Error out if there is not Vagrant instance associated with this directory
     """
-    pwd = local('pwd', capture=True)
+    pwd = c.run('pwd', hide=True).stdout.strip()
     if not os.path.isfile(pwd + '/Vagrantfile'):
         # check if we are on a vagrant subdirectory
-        with cd(pwd):
-            if not local('vagrant validate', capture=True):
-                print("Error: Vagrantfile not found")
-                exit(1)
-    return
+        ret_code = c.run('vagrant validate', hide=True, warn=True).return_code
+        if ret_code != 0:
+            print("Error: Vagrantfile not found or not valid")
+            exit(ret_code)
 
 
-def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False):
+def setup_env_vagrant(
+    c: Connection, machine: str = 'magma', force_provision: bool = False,
+    max_retries: int = 1,
+) -> Tuple[Connection, Dict[str, str]]:
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
     whenever we need to run commands on the vagrant machine.
+
+    Parameters:
+        c: The connection context for execution
+        machine: The machine that should be setup
+        force_provision: Whether provisioning should be done
+        max_retries: Max attempts to setup machine
+
+    Returns:
+        Connection to the set up vm and meta information
     """
+    _ensure_in_vagrant_dir(c)
 
-    __ensure_in_vagrant_dir()
+    # An empty local ssh config file stops warnings from being printed.
+    c.run('touch ~/.ssh/config')
 
-    # Ensure that VM is running
-    isUp = local('vagrant status %s' % machine, capture=True) \
-        .find('running') < 0
-    if isUp:
-        # The machine isn't running. Most likely it's just not up. Let's
-        # first try the simple thing of bringing it up, and if that doesn't
-        # work then we ask the user to fix it.
-        print(
-            "VM %s is not running... Attempting to bring it up."
-            % machine,
-        )
-        local('vagrant up %s' % machine)
-        isUp = local('vagrant status %s' % machine, capture=True) \
-            .find('running')
-
-        if isUp < 0:
-            print(
-                "Error: VM: %s is still not running...\n"
-                " Failed to bring up %s'"
-                % (machine, machine),
-            )
-            exit(1)
+    # Ensure that VM is not already running
+    if not _is_vm_running(c, machine):
+        _vagrant_up_with_retry(c, machine, max_retries)
     elif force_provision:
-        local('vagrant provision %s' % machine)
+        c.run(f'vagrant provision {machine}')
 
-    ssh_config = local('vagrant ssh-config %s' % machine, capture=True)
+    ssh_config = c.run(f'vagrant ssh-config {machine}', hide=True).stdout.strip()
 
     ssh_lines = [line.strip() for line in ssh_config.split("\n")]
+    ssh_key_val = [line.split(" ", 1) for line in ssh_lines]
     ssh_params = {
-        key: val for key, val
-        in [line.split(" ", 1) for line in ssh_lines]
+        key: val
+        for key, val in ssh_key_val
     }
 
     host = ssh_params.get("HostName", "").strip()
     port = ssh_params.get("Port", "").strip()
     # some installations seem to have quotes around the file location
     identity_file = ssh_params.get("IdentityFile", "").strip().strip('"')
-    host_string = 'vagrant@%s:%s' % (host, port)
+    host_string = f'vagrant@{host}:{port}'
 
-    if apply_to_env:
-        env.host_string = host_string
-        env.hosts = [env.host_string]
-        env.key_filename = identity_file
-        env.disable_known_hosts = True
-    else:
-        return {
-            "hosts": [host_string],
-            "host_string": host_string,
-            "key_filename": identity_file,
-            "disable_known_hosts": True,
-        }
+    return Connection(
+        host_string, connect_kwargs={"key_filename": identity_file},
+    ), {
+        "host_string": host_string,
+        "key_filename": identity_file,
+    }
 
 
-def teardown_vagrant(machine):
-    """ Destroy a vagrant machine so that we get a clean environment to work
-        in
+def _is_vm_running(c: Connection, machine: str):
+    return c.run(f'vagrant status {machine}', hide=True).stdout.find('running') >= 0
+
+
+def _vagrant_up_with_retry(c: Connection, machine: str, max_retries: int):
+    print(f'VM {machine} is not running - attempting to bring it up ...')
+    for attempt in range(max_retries):
+        inc_attempt = attempt + 1
+        print(f'... attempt {inc_attempt}/{max_retries} to bring up VM {machine}')
+
+        try:
+            c.run(f'vagrant up {machine}')
+        except Exception:
+            print(f'... VM {machine} failed during "vagrant up" - VM will be destroyed')
+            teardown_vagrant(c, machine)
+
+        if _is_vm_running(c, machine):
+            print(f'... VM {machine} is running.')
+            break  # success
+
+    if not _is_vm_running(c, machine):
+        print(f'Error: VM {machine} is still not running after {max_retries} attempt(s).')
+        exit(1)
+
+
+def teardown_vagrant(c: Connection, machine: str) -> None:
     """
+    Destroy a vagrant machine so that we get a clean environment to work in.
 
-    __ensure_in_vagrant_dir()
+    Parameters:
+        c: The connection context for execution
+        machine: The machine to be destroyed
+    """
+    _ensure_in_vagrant_dir(c)
 
-    # Destroy if vm if it exists
-    created = local('vagrant status %s' % machine, capture=True) \
-        .find('not created') < 0
+    # Destroy vm if it exists
+    created = c.run(f'vagrant status {machine}', hide=True).stdout.find('not created') < 0
 
     if created:
-        local('vagrant destroy -f %s' % machine)
+        c.run(f'vagrant destroy -f {machine}')

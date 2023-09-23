@@ -40,9 +40,9 @@ def _create_snowflake_file() -> None:
 
 
 def _exec_docker_cmd(args) -> None:
-    cmd = ['docker-compose', 'up', '-d']
+    cmd = ['docker', 'compose', '--compatibility', 'up', '-d']
     if args.down:
-        cmd = ['docker-compose', 'down']
+        cmd = ['docker', 'compose', 'down']
     print(f"Running {' '.join(cmd)}...")
     _exec_cmd(cmd)
 

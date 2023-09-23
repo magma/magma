@@ -7,7 +7,7 @@ services:
         volumes:
             - ${MAGMA_ROOT}:/workspaces/magma
             - ${MAGMA_ROOT}/lte/gateway/configs:/etc/magma
-            - bazel-output:/tmp/bazel
+            - bazel-output:/var/tmp/bazel
         working_dir: /workspaces/magma
 volumes:
     bazel-output:

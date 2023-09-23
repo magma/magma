@@ -37,10 +37,12 @@ var sharedCloudConnectionTTL = DefaultSharedCloudConnectionTTL
 // either directly or via control proxy
 // GetSharedCloudConnection will return an existing cached cloud connection if it's available and healthy,
 // if not - it'll try to create, cache and return a new cloud connection
-// Input: service - name of cloud service to connect to
+// Input:
+//   - service - name of cloud service to connect to
 //
-// Output: *grpc.ClientConn with connection to cloud service
-//         error if it exists
+// Output:
+//   - *grpc.ClientConn with connection to cloud service
+//   - error if it exists
 func (r *ServiceRegistry) GetSharedCloudConnection(service string) (*grpc.ClientConn, error) {
 	cpc, ok := controlProxyConfig.Load().(*config.Map)
 	if (!ok) || cpc == nil {
@@ -60,15 +62,19 @@ func (r *ServiceRegistry) GetSharedCloudConnection(service string) (*grpc.Client
 // and local_port params
 // GetSharedCloudConnectionFromServiceConfig will return an existing cached cloud connection if it's available and
 // healthy, if not - it'll try to create, cache and return a new cloud connection
-// Input:  serviceConfig - ConfigMap containing cloud_address and local_port
-//         and optional proxy_cloud_connections, cloud_port, rootca_cert, gateway_cert/key fields if direct
-//         cloud connection is needed
-//         service - name of cloud service to connect to
 //
-// Output: *grpc.ClientConn with connection to cloud service
-//         error if it exists
-// Note:   controlProxyConfig differences are ignored in cached connection mapping,
-//         if an update to ConfigMap is required - use CleanupSharedCloudConnection() to flush the service conn cache
+// Input:
+//   - serviceConfig - ConfigMap containing cloud_address and local_port
+//     and optional proxy_cloud_connections, cloud_port, rootca_cert, gateway_cert/key fields if direct
+//     cloud connection is needed
+//   - service - name of cloud service to connect to
+//
+// Output:
+//   - *grpc.ClientConn with connection to cloud service
+//   - error if it exists
+//
+// Note: controlProxyConfig differences are ignored in cached connection mapping,
+// if an update to ConfigMap is required - use CleanupSharedCloudConnection() to flush the service conn cache
 func (r *ServiceRegistry) GetSharedCloudConnectionFromServiceConfig(
 	controlProxyConfig *config.Map, service string) (*grpc.ClientConn, error) {
 

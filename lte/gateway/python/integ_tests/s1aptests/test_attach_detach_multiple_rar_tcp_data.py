@@ -52,8 +52,6 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
-        gtp_br_util = GTPBridgeUtils()
-        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -192,8 +190,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+            assert (
+                response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             )
             act_ded_ber_ctxt_req1 = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
@@ -220,8 +218,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
+            assert (
+                response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             )
             act_ded_ber_ctxt_req2 = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
@@ -233,6 +231,9 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req2.bearerId,
             )
+
+            gtp_br_util = GTPBridgeUtils()
+            GTP_PORT = gtp_br_util.get_gtp_port_no()
 
             # Check if UL and DL OVS flows are created
             # UPLINK
@@ -253,10 +254,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(uplink_flows) > 2, "Uplink flow missing for UE"
-            self.assertIsNotNone(
-                uplink_flows[0]["match"]["tunnel_id"],
-                "Uplink flow missing tunnel id match",
-            )
+            assert uplink_flows[0]["match"]["tunnel_id"] is not None, \
+                "Uplink flow missing tunnel id match"
 
             # DOWNLINK
             print("Checking for downlink flow")
@@ -281,11 +280,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 time.sleep(5)  # sleep for 5 seconds before retrying
 
             assert len(downlink_flows) > 2, "Downlink flow missing for UE"
-            self.assertEqual(
-                downlink_flows[0]["match"]["ipv4_dst"],
-                ue_ip,
-                "UE IP match missing from downlink flow",
-            )
+            assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip, \
+                "UE IP match missing from downlink flow"
 
             actions = downlink_flows[0]["instructions"][0]["actions"]
             has_tunnel_action = any(
@@ -294,9 +290,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 if action["field"] == "tunnel_id"
                 and action["type"] == "SET_FIELD"
             )
-            self.assertTrue(
-                has_tunnel_action, "Downlink flow missing set tunnel action",
-            )
+            assert has_tunnel_action, "Downlink flow missing set tunnel action"
 
             with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
                 test.verify()
@@ -315,9 +309,9 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
+            assert (
+                response.msg_type
+                == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
             )
 
             print("******************* Received deactivate eps bearer context")

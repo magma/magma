@@ -15,13 +15,12 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_EMM_INFORMATION_SEEN
-#define FILE_EMM_INFORMATION_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -79,5 +78,3 @@ int decode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
 
 int encode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
                            uint32_t len);
-
-#endif /* ! defined(FILE_EMM_INFORMATION_SEEN) */

@@ -15,21 +15,19 @@
  *      contact@openairinterface.org
  */
 
-#ifndef S6A_FD_IFACE_H_SEEN
-#define S6A_FD_IFACE_H_SEEN
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.h"
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.h"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.hpp"
 
 class S6aFdIface : public S6aViface {
  public:
@@ -40,5 +38,3 @@ class S6aFdIface : public S6aViface {
   bool purge_ue(const char* imsi);
   ~S6aFdIface();
 };
-
-#endif /* S6A_FD_IFACE_H_SEEN */

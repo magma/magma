@@ -117,7 +117,7 @@ as shown below
 For e.g.
 ![simple_alert](assets/nms/userguide/alerts/simple_alert.png)
 
-In case of an advanced expression([PromQL cheatsheet](https://promlabs.com/promql-cheat-sheet/])) which might involve applying different functions on metric, we can
+In case of an advanced expression([PromQL cheatsheet](https://promlabs.com/promql-cheat-sheet/)) which might involve applying different functions on metric, we can
 type the advanced promQL expression directly in the textbox
 ![advanced_alert](assets/nms/userguide/alerts/advanced_alert.png)
 
@@ -228,8 +228,8 @@ Duration:
 In case we are having issues with alerts. Logs from the following services will give more information on debugging this further.
 
 ```bash
-kubectl --namespace orc8r logs -l [app.kubernetes.io/component=alertmanager](http://app.kubernetes.io/component=alertmanager)
-kubectl --namespace orc8r logs -l [app.kubernetes.io/component=alertmanager-configurer](http://app.kubernetes.io/component=alertmanager-configurer)
+kubectl --namespace orc8r logs -l app.kubernetes.io/component=alertmanager
+kubectl --namespace orc8r logs -l app.kubernetes.io/component=alertmanager-configurer
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus-configurer -c prometheus-configurer
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=prometheus -c prometheus
 kubectl --namespace orc8r logs -l app.kubernetes.io/component=metricsd

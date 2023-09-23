@@ -246,7 +246,7 @@ var (
                 "-logtostderr=true",
                 "-v=0"
             ],
-            "Image": "docker.artifactory.magmacore.org/gateway_go:latest",
+            "Image": "linuxfoundation.jfrog.io/magma-docker/gateway_go:latest",
             "Volumes": {
                 "/etc/magma/control_proxy.yml": {},
                 "/etc/magma/magmad.yml": {},

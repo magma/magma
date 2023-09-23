@@ -186,9 +186,9 @@ func convertKVToBlobs(typ string, kv map[string]string) blobstore.Blobs {
 
 // printIfError prints in case of errors.
 // Args:
-// 	err: error to check
-//  msg: message to print
-//  a: Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
+//   - err -- error to check
+//   - msg -- message to print
+//   - a   -- Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func printIfError(err error, msg string, a ...interface{}) {
 	if err != nil {
 		glog.Errorf(msg, a...)

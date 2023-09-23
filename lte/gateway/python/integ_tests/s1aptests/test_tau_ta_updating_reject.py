@@ -82,9 +82,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print(
             "************************* Sending Tracking Area Update ",
@@ -101,9 +99,7 @@ class TestTauTaUpdatingReject(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value
         tau_rej = response.cast(s1ap_types.ueTauRejInd_t)
         print(
             "************************* Received Tracking Area Update ",

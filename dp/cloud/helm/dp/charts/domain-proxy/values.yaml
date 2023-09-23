@@ -29,7 +29,7 @@ dp:
     name: configuration-controller  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/configuration-controller  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/configuration-controller  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
       tag: "1.7.0"
 
@@ -156,7 +156,7 @@ dp:
     name: radio-controller  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/radio-controller  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/radio-controller  # Docker image repository.
       tag: "1.7.0"
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
 
@@ -246,7 +246,7 @@ dp:
     name: db-service  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/db-service  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/db-service  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
       tag: "1.7.0"
 

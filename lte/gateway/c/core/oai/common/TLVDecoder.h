@@ -27,8 +27,15 @@
 #include <stdint.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define IES_DECODE_U8(bUFFER, dECODED, vALUE) \
   DECODE_U8(bUFFER + dECODED, vALUE, dECODED)
@@ -62,6 +69,16 @@ void tlv_decode_perror(void);
                    mINIMUMlENGTH, lENGTH);                                  \
     errorCodeDecoder = TLV_BUFFER_TOO_SHORT;                                \
     return TLV_BUFFER_TOO_SHORT;                                            \
+  }
+
+#define CHECK_PDU_POINTER_AND_MAX_LENGTH_DECODER(bUFFER, mAXIMUMlENGTH, \
+                                                 lENGTH)                \
+                                                                        \
+  if (lENGTH > mAXIMUMlENGTH) {                                         \
+    OAILOG_WARNING(LOG_NAS, "Expecting at most %d bytes, got %d\n",     \
+                   mAXIMUMlENGTH, lENGTH);                              \
+    errorCodeDecoder = TLV_BUFFER_TOO_SHORT;                            \
+    return TLV_OCTET_STRING_TOO_LONG_FOR_IEI;                           \
   }
 
 #define CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(      \

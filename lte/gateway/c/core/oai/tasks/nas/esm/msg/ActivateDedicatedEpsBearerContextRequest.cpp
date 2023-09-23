@@ -219,7 +219,8 @@ int encode_activate_dedicated_eps_bearer_context_request(
     if ((encode_result = encode_linked_ti_ie(
              &activate_dedicated_eps_bearer_context_request
                   ->transactionidentifier,
-             ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI,
+             ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI !=
+                 0,
              buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       return encode_result;

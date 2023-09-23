@@ -14,6 +14,7 @@ limitations under the License.
 
 import json
 import logging
+from typing import Any, Dict, Set
 
 import grpc
 import jsonpickle
@@ -95,10 +96,10 @@ class StateReplicator(SDWatchdogTask):
         # Garbage collector to propagate deletions back to Orchestrator
         self._garbage_collector = garbage_collector
         # In memory mapping of states to version
-        self._state_versions = {}
+        self._state_versions: Dict[str, Any] = {}
         # Set of keys from current replication iteration - used to track
         # keys to delete from _state_versions dict
-        self._state_keys_from_current_iteration = set()
+        self._state_keys_from_current_iteration: Set[str] = set()
         # Redis clients for each type of state to replicate
         self._redis_dicts = []
         self._redis_dicts.extend(get_proto_redis_dicts(service.config))

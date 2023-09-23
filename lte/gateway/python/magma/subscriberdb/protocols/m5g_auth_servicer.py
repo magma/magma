@@ -169,37 +169,37 @@ class M5GSUCIRegRpcServicer(subscriberdb_pb2_grpc.M5GSUCIRegistrationServicer):
                 )
                 return aia
 
-            if suciprofile.protection_scheme == 0:
+            if suciprofile.protection_scheme == 0 and len(request.ue_pubkey) == 32:
                 profile = 'A'
-            elif suciprofile.protection_scheme == 1:
+            elif suciprofile.protection_scheme == 1 and len(request.ue_pubkey) == 33:
                 profile = 'B'
+            else:
+                set_grpc_err(
+                    context,
+                    StatusCode.INVALID_ARGUMENT,
+                    "Public key length or protection scheme is invalid",
+                )
+                return aia
 
             home_network_info = ECIES_HN(
                 suciprofile.home_network_private_key,
                 profile,
             )
 
-            if len(request.ue_pubkey) != 32:
+            msin_recv = home_network_info.unprotect(
+                request.ue_pubkey, request.ue_ciphertext,
+                request.ue_encrypted_mac,
+            )
+
+            if msin_recv is not None:
+                aia.ue_msin_recv = msin_recv[:10]
+                logging.info("Deconcealed MSIN: %s", aia.ue_msin_recv)
+            else:
                 set_grpc_err(
                     context,
                     StatusCode.INVALID_ARGUMENT,
-                    f"public key {request.ue_pubkey} is not 32 bytes long",
+                    "Deconcealing MSIN failed.",
                 )
-            else:
-                msin_recv = home_network_info.unprotect(
-                    request.ue_pubkey, request.ue_ciphertext,
-                    request.ue_encrypted_mac,
-                )
-
-                if msin_recv is not None:
-                    aia.ue_msin_recv = msin_recv[:10]
-                    logging.info("Deconcealed MSIN: %s", aia.ue_msin_recv)
-                else:
-                    set_grpc_err(
-                        context,
-                        StatusCode.INVALID_ARGUMENT,
-                        "Deconcealing MSIN failed.",
-                    )
             return aia
 
         except SuciProfileNotFoundError as e:

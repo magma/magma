@@ -16,6 +16,7 @@
  */
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
 
@@ -54,8 +55,8 @@ void put_mme_nas_state() {
  */
 void clear_mme_nas_state() { MmeNasStateManager::getInstance().free_state(); }
 
-hash_table_ts_t* get_mme_ue_state() {
-  return MmeNasStateManager::getInstance().get_ue_state_ht();
+proto_map_uint32_ue_context_t* get_mme_ue_state() {
+  return MmeNasStateManager::getInstance().get_ue_state_map();
 }
 
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,

@@ -163,9 +163,7 @@ class TestDedicatedBearerActivationIdleModePagingTimerExpiry(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Verify if paging flow rules are created
         ip_list = [default_ip]
@@ -189,16 +187,12 @@ class TestDedicatedBearerActivationIdleModePagingTimerExpiry(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
 
         print("*********** Received Paging for UE id ", ue_id)
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
 
         print("*********** Received second Paging for UE id ", ue_id)
 

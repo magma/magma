@@ -79,8 +79,8 @@ terraform apply  # check this output VERY carefully
 
 [AWS is terminating support for Postgres 9.6 on November 11, 2021](https://aws.amazon.com/blogs/database/upgrading-from-amazon-rds-for-postgresql-version-9-5/), in accordance with the [Postgres versioning policy](https://www.postgresql.org/support/versioning/). Postgres 9.6 was the default Orc8r DB target for the past several Magma releases.
 
-To upgrade your Postgres database to the correct version follow [these instructions](https://docs.magmacore.org/docs/orc8r/rds_upgrade#logs-and-validation).
+To upgrade your Postgres database to the correct version follow [these instructions](https://magma.github.io/magma/docs/orc8r/rds_upgrade#logs-and-validation).
 
 ### Host custom artifacts
 
-If you wish to use your own artifacts, follow the follow the [Build Orchestrator](https://docs.magmacore.org/docs/orc8r/deploy_build) page to build and publish your own artifacts from the [v1.6 branch of the Magma repo](https://github.com/magma/magma/tree/v1.6), then update your `main.tf` file to point to the appropriate artifactories.
+If you wish to use your own artifacts, follow the follow the [Build Orchestrator](https://magma.github.io/magma/docs/orc8r/deploy_build) page to build and publish your own artifacts from the [v1.6 branch of the Magma repo](https://github.com/magma/magma/tree/v1.6), then update your `main.tf` file to point to the appropriate artifactories.

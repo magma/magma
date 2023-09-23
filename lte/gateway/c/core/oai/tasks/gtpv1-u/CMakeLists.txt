@@ -1,8 +1,8 @@
 
 set(GTPV1U_SRC
-    gtpv1u_task.c
-    gtp_tunnel_openflow.c
-    gtp_tunnel_upf.c
+    gtpv1u_task.cpp
+    gtp_tunnel_openflow.cpp
+    gtp_tunnel_upf.cpp
     )
 
 set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r15)

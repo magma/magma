@@ -38,7 +38,8 @@ echo "remove X11 libraries"
 apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6;
 
 echo "remove packages we don't need"
-apt-get -y purge popularity-contest command-not-found friendly-recovery bash-completion laptop-detect usbutils
+# The script in its upstream form removed "bash-completion" as well, which we want to have in the VMs.
+apt-get -y purge popularity-contest command-not-found friendly-recovery laptop-detect usbutils
 
 # Exclude the files we don't need w/o uninstalling linux-firmware
 echo "Setup dpkg excludes for linux-firmware"
@@ -69,8 +70,10 @@ find /var/log -type f -exec truncate --size=0 {} \;
 echo "blank netplan machine-id (DUID) so machines get unique ID generated on boot"
 truncate -s 0 /etc/machine-id
 
-echo "remove the contents of /tmp and /var/tmp"
-rm -rf /tmp/* /var/tmp/*
+echo "remove the contents of /tmp"
+# The script in its upstream form removed "/var/tmp" as well.
+# This step was removed since we use it to store the swagger 
+rm -rf /tmp/*
 
 echo "force a new random seed to be generated"
 rm -f /var/lib/systemd/random-seed

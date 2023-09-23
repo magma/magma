@@ -11,17 +11,12 @@
  * limitations under the License.
  */
 
-import {AxiosError, AxiosResponse} from 'axios';
-
-function isAxiosError<T>(error: any): error is AxiosError<T> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-  return 'isAxiosError' in error && error.isAxiosError;
-}
+import axios, {AxiosError, AxiosResponse} from 'axios';
 
 export function isAxiosErrorResponse<T = {message?: string}>(
   error: any,
 ): error is AxiosError<T> & {response: AxiosResponse<T>} {
-  return isAxiosError(error) && !!error.response;
+  return axios.isAxiosError(error) && !!error.response;
 }
 
 export function getErrorMessage(
@@ -29,10 +24,9 @@ export function getErrorMessage(
   fallbackMessage = 'Unknown Error',
 ): string {
   let errorMessage;
-  if (isAxiosError<{message?: string}>(error)) {
+  if (isAxiosErrorResponse(error)) {
     errorMessage = error.response?.data?.message ?? error.message;
-  }
-  if (error instanceof Error) {
+  } else if (error instanceof Error) {
     errorMessage = error.message;
   }
   return errorMessage || fallbackMessage;

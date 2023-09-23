@@ -18,8 +18,9 @@
       tags:
          - install
       vars:
-        distribution: "bionic"
+        distribution: "focal"
         repo: "cwf-prod"
+        preburn: true
     - role: ovs
       tags:
          - install

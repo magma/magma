@@ -26,7 +26,7 @@ const (
 	mconfigFileName string = "gateway.mconfig"
 )
 
-//RestartService adds ability to restart a particular service managed by docker
+// RestartService adds ability to restart a particular service managed by docker
 func (tr *TestRunner) RestartService(serviceName string) error {
 	fmt.Printf("Restarting docker container: %v\n", serviceName)
 	ctx := context.Background()
@@ -39,7 +39,7 @@ func (tr *TestRunner) RestartService(serviceName string) error {
 	return err
 }
 
-//StartService
+// StartService
 func (tr *TestRunner) StartService(serviceName string) error {
 	fmt.Printf("Starting docker container: %v\n", serviceName)
 	ctx := context.Background()
@@ -57,7 +57,7 @@ func (tr *TestRunner) StartService(serviceName string) error {
 	return cli.ContainerStart(ctx, serviceName, dockerTypes.ContainerStartOptions{})
 }
 
-//StopService
+// StopService
 func (tr *TestRunner) StopService(serviceName string) error {
 	fmt.Printf("Stop a docker container: %v\n", serviceName)
 	ctx := context.Background()
@@ -76,7 +76,7 @@ func (tr *TestRunner) StopService(serviceName string) error {
 	return cli.ContainerStop(ctx, containerId, &timeout)
 }
 
-//StopService adds ability to stop a particular service managed by docker
+// StopService adds ability to stop a particular service managed by docker
 func (tr *TestRunner) PauseService(serviceName string) error {
 	fmt.Printf("Pausing docker container: %v\n", serviceName)
 	ctx := context.Background()
@@ -88,14 +88,14 @@ func (tr *TestRunner) PauseService(serviceName string) error {
 	return err
 }
 
-//CmdOutput struct representing output of docker container command
+// CmdOutput struct representing output of docker container command
 type CmdOutput struct {
 	cmd    []string
 	output string
 	err    error
 }
 
-//RunCommandInContainer adds ability to run a specific command within a container
+// RunCommandInContainer adds ability to run a specific command within a container
 func (tr *TestRunner) RunCommandInContainer(serviceName string, cmdList [][]string) ([]*CmdOutput, error) {
 	fmt.Printf("RunCommandInContainer: %v\n", serviceName)
 	ctx := context.Background()
@@ -192,7 +192,7 @@ func (tr *TestRunner) OverwriteMConfig(mconfigPath string, serviceName string) e
 	return nil
 }
 
-//ScanContainerLogs provides ability to scan the container logs for a string
+// ScanContainerLogs provides ability to scan the container logs for a string
 func (tr *TestRunner) ScanContainerLogs(serviceName string, line string) int {
 	ctx := context.Background()
 	cli, containerID, err := tr.getDockerClientAndContainerID(serviceName)

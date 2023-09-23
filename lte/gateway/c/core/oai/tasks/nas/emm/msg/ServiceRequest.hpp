@@ -15,15 +15,14 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SERVICE_REQUEST_SEEN
-#define FILE_SERVICE_REQUEST_SEEN
+#pragma once
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ShortMac.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ShortMac.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
@@ -53,15 +52,8 @@ typedef struct service_request_msg_tag {
   short_mac_t messageauthenticationcode;
 } service_request_msg;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int decode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
                            uint32_t len);
 
 int encode_service_request(service_request_msg* servicerequest, uint8_t* buffer,
                            uint32_t len);
-#ifdef __cplusplus
-}
-#endif
-#endif /* ! defined(FILE_SERVICE_REQUEST_SEEN) */

@@ -21,6 +21,7 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
 #define SGW
 #define SGW_TASK_C
 
@@ -31,27 +32,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
+#include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/include/sgw_config.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/gtpv1_u_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_config.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
@@ -263,11 +263,6 @@ extern "C" status_code_e spgw_app_init(spgw_config_t* spgw_config_pP,
     return RETURNerror;
   }
 #endif
-
-  if (RETURNerror ==
-      pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
-    return RETURNerror;
-  }
 
   if (itti_create_task(TASK_SPGW_APP, &spgw_app_thread, NULL) < 0) {
     perror("pthread_create");

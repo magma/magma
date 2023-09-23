@@ -15,8 +15,7 @@
  *      contact@openairinterface.org
  */
 
-#ifndef ESM_STATUS_H_
-#define ESM_STATUS_H_
+#pragma once
 
 #include <stdint.h>
 
@@ -24,11 +23,12 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.h"
 #ifdef __cplusplus
 }
 #endif
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_STATUS_MINIMUM_LENGTH (ESM_CAUSE_MINIMUM_LENGTH)
@@ -57,5 +57,3 @@ typedef struct esm_status_msg_tag {
 int decode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
 
 int encode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
-
-#endif /* ! defined(ESM_STATUS_H_) */

@@ -16,8 +16,6 @@ limitations under the License.
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
-#include "lte/gateway/c/core/oai/include/ha_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -25,6 +23,8 @@ extern "C" {
 #include "S1ap_CauseRadioNetwork.h"
 }
 
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
+#include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
@@ -71,7 +71,7 @@ bool sync_up_with_orc8r(void) {
 }
 
 typedef struct callback_data_s {
-  s1ap_state_t* s1ap_state;
+  magma::lte::oai::S1apState* s1ap_state;
   ha_agw_offload_req_t* request;
 } callback_data_t;
 
@@ -92,18 +92,26 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
   callback_data_t* callback_data = (callback_data_t*)parameterP;
   ha_agw_offload_req_t* offload_request =
       (ha_agw_offload_req_t*)callback_data->request;
-  s1ap_state_t* s1ap_state = (s1ap_state_t*)callback_data->s1ap_state;
+  magma::lte::oai::S1apState* s1ap_state =
+      (magma::lte::oai::S1apState*)callback_data->s1ap_state;
   struct ue_mm_context_s* ue_context_p = (struct ue_mm_context_s*)elementP;
   bool any_flag = false;  // true if we tried offloading any UE
 
   IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
 
-  enb_description_t* enb_ref_p =
-      s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
+  magma::lte::oai::EnbDescription enb_ref_p;
+  magma::proto_map_rc_t rc = magma::lte::s1ap_state_get_enb(
+      s1ap_state, ue_context_p->sctp_assoc_id_key, &enb_ref_p);
 
+  if (rc != magma::PROTO_MAP_OK) {
+    OAILOG_ERROR_UE(LOG_UTIL, imsi64,
+                    "Failed to find enb_ref_p for assoc_id :%u",
+                    ue_context_p->sctp_assoc_id_key);
+    return false;
+  }
   // Return if this UE does not satisfy any of the filtering criteria
   if ((imsi64 != ue_context_p->emm_context._imsi64) &&
-      (offload_request->eNB_id != enb_ref_p->enb_id)) {
+      (offload_request->eNB_id != enb_ref_p.enb_id())) {
     return false;
   }
 
@@ -120,7 +128,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
         ue_context_p->mme_ue_s1ap_id;
     S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
         ue_context_p->enb_ue_s1ap_id;
-    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id = enb_ref_p->enb_id;
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id = enb_ref_p.enb_id();
     S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = S1AP_NAS_MME_OFFLOADING;
 
     OAILOG_INFO(
@@ -133,7 +141,7 @@ bool trigger_agw_offload_for_ue(const hash_key_t keyP, void* const elementP,
         ue_context_p->emm_context._imsi64, offload_request->imsi,
         ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
         ue_context_p->e_utran_cgi.cell_identity.enb_id,
-        ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p->enb_id);
+        ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p.enb_id());
     OAILOG_INFO(LOG_UTIL, "UE Context Release procedure initiated for IMSI%s",
                 offload_request->imsi);
     IMSI_STRING_TO_IMSI64(offload_request->imsi,

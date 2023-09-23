@@ -148,8 +148,8 @@ func mapSubscribersForVerbosity(subs map[string]*subscribermodels.Subscriber, ve
 // listSubscribersHandler handles the subscriber endpoint.
 // The returned subscribers can be filtered using the following query
 // parameters
-//	- msisdn
-//	- ip
+//   - msisdn
+//   - ip
 //
 // The MSISDN parameter is config-based, and is enforced to be a unique
 // identifier.
@@ -160,8 +160,8 @@ func mapSubscribersForVerbosity(subs map[string]*subscribermodels.Subscriber, ve
 // requested IP.
 //
 // The returned subscribers can be paginated using the following parameters
-//  - page_size
-//  - page_token
+//   - page_size
+//   - page_token
 //
 // The page size parameter specifies the maximum number of subscribers to
 // return.
@@ -181,8 +181,8 @@ func getListSubscribersHandler(subscriberStorage subscriberstorage.SubscriberSto
 		if pageSizeParam := c.QueryParam(ParamPageSize); pageSizeParam != "" {
 			pageSize, err = strconv.ParseUint(pageSizeParam, 10, 32)
 			if err != nil {
-				err := fmt.Errorf("invalid page size parameter: %s", err)
-				return echo.NewHTTPError(http.StatusBadRequest, err)
+				err = fmt.Errorf("invalid page size parameter: %s", err)
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 			}
 		}
 		pageToken := c.QueryParam(ParamPageToken)
@@ -222,7 +222,7 @@ func getListSubscribersHandler(subscriberStorage subscriberstorage.SubscriberSto
 		// size will be returned.
 		subs, nextPageToken, err := loadSubscriberPage(reqCtx, networkID, uint32(pageSize), pageToken, subscriberStorage)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		// get total number of subscribers
@@ -257,12 +257,12 @@ func createSubscribersHandler(c echo.Context) error {
 
 	payload := subscribermodels.MutableSubscribers{}
 	if err := c.Bind(&payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if nerr := validateSubscriberProfiles(reqCtx, networkID, getSubProfiles(payload)...); nerr != nil {
 		return nerr
@@ -298,16 +298,16 @@ func updateSubscriberHandler(c echo.Context) error {
 
 	payload := &subscribermodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if string(payload.ID) != subscriberID {
 		err := fmt.Errorf("subscriber ID from parameters (%s) and payload (%s) must match", subscriberID, payload.ID)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if nerr := validateSubscriberProfiles(reqCtx, networkID, string(*payload.Lte.SubProfile)); nerr != nil {
@@ -332,7 +332,7 @@ func deleteSubscriberHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -346,7 +346,7 @@ func getListSubscriberStateHandler(subscriberStorage subscriberstorage.Subscribe
 
 		statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, nil, subscriberStorage)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		modelsBySID := map[string]*subscribermodels.SubscriberState{}
 		for sid, states := range statesBySID {
@@ -398,15 +398,15 @@ func createMSISDNsHandler(c echo.Context) error {
 
 	payload := &subscribermodels.MsisdnAssignment{}
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	if err := payload.ValidateModel(context.Background()); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	err := subscriberdb.SetIMSIForMSISDN(c.Request().Context(), networkID, string(payload.Msisdn), string(payload.ID))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -432,7 +432,7 @@ func deleteMSISDNHandler(c echo.Context) error {
 
 	err := subscriberdb.DeleteMSISDN(c.Request().Context(), networkID, msisdn)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -446,12 +446,12 @@ func updateSubscriberProfile(c echo.Context) error {
 
 	var payload = new(subscribermodels.SubProfile)
 	if err := c.Bind(payload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	reqCtx := c.Request().Context()
 	if err := payload.ValidateModel(reqCtx); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	currentCfg, err := configurator.LoadEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
@@ -472,7 +472,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		serdes.Entity,
 	)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to update profile: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to update profile: %v", err))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -494,7 +494,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		newConfig.Lte.State = desiredState
 		err = configurator.CreateOrUpdateEntityConfig(reqCtx, networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -707,7 +707,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 
 	if len(uniqueIDs) != len(ids) {
 		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found multiple subscriber models for IDs: %+v", duplicates))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("found multiple subscriber models for IDs: %+v", duplicates))
 	}
 
 	// TODO(hcgatewood) iterate over this to remove "too many placeholders" error
@@ -717,7 +717,7 @@ func createSubscribers(ctx context.Context, networkID string, subs ...*subscribe
 		return obsidian.MakeHTTPError(err, http.StatusInternalServerError)
 	}
 	if len(found) != 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()))
 	}
 
 	_, err = configurator.CreateEntities(ctx, networkID, ents, serdes.Entity)
@@ -836,7 +836,7 @@ func deleteSubscriber(ctx context.Context, networkID, key string) error {
 
 	err = configurator.DeleteEntities(ctx, networkID, deletes)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return nil
@@ -950,5 +950,5 @@ func makeErr(err error) *echo.HTTPError {
 	if err == merrors.ErrNotFound {
 		return echo.ErrNotFound
 	}
-	return echo.NewHTTPError(http.StatusInternalServerError, err)
+	return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 }
