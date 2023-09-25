@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: build-all
+# owner: @magma/approvers-gw (cwf-operator-build, feg-build), @magma/approvers-cloud (nms-build, orc8r-build)
+# purpose: Building and publishing cloud and gateway components
+# remediation: https://magma.github.io/magma/docs/next/basics/quick_start_guide#terminal-tab-2-build-orchestrator (orc8r), https://magma.github.io/magma/docs/next/basics/quick_start_guide#using-the-nms-ui (nms-build), https://magma.github.io/magma/docs/next/feg/deploy_build (feg-build)
+
+name: Magma Build & Publish
 
 on:
   workflow_dispatch: null
@@ -22,36 +26,35 @@ on:
       - master
       - 'v1.*'
     types: [ opened, reopened, synchronize ]
-
 jobs:
   build_publish_helm_charts:
     if: github.repository_owner == 'magma'
     env:
-      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
-      HELM_CHART_MUSEUM_REPO: helm-test
-      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
-      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
+      HELM_CHART_ARTIFACTORY_URL: "https://linuxfoundation.jfrog.io/artifactory/"
+      HELM_CHART_MUSEUM_REPO: magma-helm-test
+      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.LF_JFROG_PASSWORD }}"
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       # Version is github job run number when running on master
       # Or is branch name when on release branch
       - name: Set Helm chart version
         run: |
-          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+          if [ "${GITHUB_REF}" = "refs/heads/master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          elif [ "${EVENT_NAME}" = "pull_request" ]; then
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
           fi
       - name: Launch build and publish script
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
-          elif [ "${EVENT_NAME}" = "pull_request" ] ;then
-            mkdir charts
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
+            mkdir -p charts
             orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
           else
             orc8r/tools/helm/package.sh --deployment-type all
@@ -73,12 +76,6 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -87,8 +84,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Push helm charts to artifactory failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -100,8 +97,8 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Helm charts have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
@@ -111,199 +108,27 @@ jobs:
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
   agw-build:
-    if: github.event_name == 'push' && github.repository_owner == 'magma'
-    runs-on: macos-12
-    outputs:
-      artifacts: ${{ steps.publish_packages.outputs.artifacts }}
-    steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-        with:
-          fetch-depth: 0
-      - name: Cache magma-dev-box
-        uses: actions/cache@0865c47f36e68161719c5b124609996bb5c40129 # pin@v3
-        with:
-          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
-          key: vagrant-box-magma-dev-v1.2.20220801
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
-        with:
-          python-version: '3.8.10'
-      - name: Install pre requisites
-        run: |
-          pip3 install --upgrade pip
-          pip3 install ansible fabric3 jsonpickle requests PyYAML
-          vagrant plugin install vagrant-vbguest vagrant-vbguest vagrant-mutate
-      - name: Open up network interfaces for VM
-        run: |
-          sudo mkdir -p /etc/vbox/
-          sudo touch /etc/vbox/networks.conf
-          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
-          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
-      - name: Build AGW
-        run: |
-          export MAGMA_DEV_MEMORY_MB=4096
-          cd lte/gateway
-          fab release package:destroy_vm=True
-          mkdir magma-packages
-          vagrant ssh -c "cp -r magma-packages /vagrant"
-      - name: Publish debian packages
-        id: publish_packages
-        if: github.event_name == 'push'
-        run: |
-          cd lte/gateway/magma-packages
-          ARTIFACTS='{"packages":[],"valid":false}'
-          PUBLISH_ERROR="false"
-          for i in `ls -a1 *.deb`
-          do
-            echo "Pushing package $i to JFROG artifiactory: https://artifactory.magmacore.org/artifactory/debian-test/pool"
-            HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -uci-bot:${{ secrets.JFROG_CIBOT_APIKEYS }} -XPUT "https://artifactory.magmacore.org/artifactory/debian-test/pool/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i)
-            echo "$HTTP_RESPONSE"
-            # extract the body and download uri
-            HTTP_BODY=$(echo $HTTP_RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
-            URI=$(echo $HTTP_BODY | jq -r '.uri')
-            if [[ "$URI" != "null" ]]; then
-              ARTIFACTS=$(echo $ARTIFACTS | jq --arg uri $URI '.packages += [$uri]')
-            else
-              PUBLISH_ERROR="true"
-            fi
-            # extract and check status
-            HTTP_STATUS=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
-            if [[ "$HTTP_STATUS" != "2"* ]]; then
-              PUBLISH_ERROR="true"
-            fi
-          done
-          # set output
-          if [[ "$PUBLISH_ERROR" != "true" ]]; then
-            ARTIFACTS=$(echo $ARTIFACTS | jq '. += {"valid":true}')
-          fi
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: magma-packages
-          path: lte/gateway/magma-packages/*.deb
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        name: Export sentry executables
-        if: github.event_name == 'push'
-        with:
-          name: sentry-exec
-          path: lte/gateway/magma-packages
-      - name: Extract commit title
-        # yamllint enable
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
-      - name: Notify failure to slack
-        if: failure() && github.event_name == 'push'
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: "Github action agw build failed"
-          SLACK_AVATAR: ":boom:"
-        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
-        with:
-          args: "AGW  build failed on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_USERNAME: "Github action agw build got published"
-        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
-        with:
-          args: "AGW  build succeeded on [${{github.sha}}](${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}): ${{ steps.commit.outputs.title}}"
-  sentry_release:
-    if: always() && github.event_name == 'push'
-    needs: [ agw-build ]
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      SENTRY_ENVIRONMENT: "staging"
-      SENTRY_ORG: "lf-9c"
-      PATH_TO_EXEC: "./executables"
-      MAGMA_VERSION: ${{ needs.agw-build.outputs.magma_version }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # pin@v2
-        with:
-          name: sentry-exec
-      - uses: geekyeggo/delete-artifact@b73cb986740e466292a536d0e32e2666c56fdeb3 # pin@v1
-        with:
-          name: sentry-exec
-      - run: ls -R
-      - run: curl -sL https://sentry.io/get-cli/ | bash
-      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        with:
-          EXECUTABLE_NAME: sessiond
-          SENTRY_ORG: lf-9c
-          PATH_TO_EXEC: "./executables"
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        with:
-          EXECUTABLE_NAME: mme
-          SENTRY_ORG: lf-9c
-          PATH_TO_EXEC: "./executables"
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        with:
-          EXECUTABLE_NAME: sctpd
-          SENTRY_ORG: lf-9c
-          PATH_TO_EXEC: "./executables"
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        with:
-          EXECUTABLE_NAME: connectiond
-          SENTRY_ORG: lf-9c
-          PATH_TO_EXEC: "./executables"
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
-        with:
-          EXECUTABLE_NAME: liagentd
-          SENTRY_ORG: lf-9c
-          PATH_TO_EXEC: "./executables"
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-      - name: Create a release in Sentry.io with the commit hash
-        env:
-          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
-        run: |
-          COMMIT_HASH_WITH_VERSION="magma@1.7.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:8}"
-          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
-          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
-          sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
+    uses: ./.github/workflows/bazel.yml
+    secrets: inherit
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run apt-get update
         run: sudo apt-get update
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
-          python3 build.py --all --nocache --parallel
-      - name: Export docker images to deploy them
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save orc8r_nginx | gzip > nginx.tar.gz
-          docker save orc8r_controller  | gzip > controller.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-orc8r
-          path: images
+          python3 build.py --all --nocache
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
@@ -317,19 +142,13 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -337,8 +156,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action orc8r-build failed"
-          SLACK_USERNAME: "Build workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -350,115 +169,18 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Orchestrator images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
-  agw-container-build:
-    if: github.repository_owner == 'magma'
-    name: agw container build
-    runs-on: ubuntu-latest
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-      DOCKER_BUILDKIT: 1
-    steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - name: Run agw docker compose
-        id: agw-docker-compose
-        continue-on-error: true
-        # yamllint disable rule:line-length
-        run: |
-          cd ${MAGMA_ROOT}/lte/gateway/docker
-          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Retry docker agw compose on failure
-        id: retry-agw-docker-compose
-        continue-on-error: true
-        if: steps.agw-docker-compose.outcome=='failure'
-        run: |
-          cd ${MAGMA_ROOT}/lte/gateway/docker
-          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Set the agw docker build status
-        if: always()
-        run: |
-          if ${{ steps.agw-docker-compose.outcome=='success' || steps.retry-agw-docker-compose.outcome=='success' }}; then
-             echo "AGW Docker compose completed successfully"
-          else
-             echo "Docker compose failed"
-             exit 1
-          fi
-      - name: Run ghz docker compose
-        id: ghz-docker-compose
-        continue-on-error: true
-        # yamllint disable rule:line-length
-        run: |
-          cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
-          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Retry ghz docker compose on failure
-        id: retry-ghz-docker-compose
-        continue-on-error: true
-        if: steps.ghz-docker-compose.outcome=='failure'
-        run: |
-          cd ${MAGMA_ROOT}/lte/gateway/docker/ghz
-          docker-compose --file docker-compose.yaml --file docker-compose.override.yaml build --parallel
-      - name: Set the ghz docker build status
-        if: always()
-        run: |
-          if ${{ steps.ghz-docker-compose.outcome=='success' || steps.retry-ghz-docker-compose.outcome=='success' }}; then
-             echo "GHZ Docker compose completed successfully"
-          else
-             echo "Docker compose failed"
-             exit 1
-          fi
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save agw_gateway_c | gzip > agw_gateway_c.tar.gz
-          docker save agw_gateway_python | gzip > agw_gateway_python.tar.gz
-          docker save ghz_gateway_c | gzip > ghz_gateway_c.tar.gz
-          docker save ghz_gateway_python | gzip > ghz_gateway_python.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-agw
-          path: images
-      # Need to save PR number as Github action does not propagate it with workflow_run event
-      # Used as version for PR builds
-      - name: Save PR number
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        with:
-          name: pr
-          path: pr/
-      - name: Create release Tag
-        if: github.event_name == 'push'
-        run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
-      - name: Tag and push agw containers to Jfrog Registry
-        id: publish_artifacts
-        if: github.event_name == 'push'
-        env:
-          DOCKER_REGISTRY: "agw-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
-        run: |
-          ./ci-scripts/tag-push-docker.sh --images 'ghz_gateway_c|ghz_gateway_python|agw_gateway_c|agw_gateway_python' --tag "${TAG}" --tag-latest true
+
   cloud-upload:
     name: cloud upload job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Install SwaggerHub CLI
         run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
@@ -468,20 +190,14 @@ jobs:
         run: |
           swaggerhub api:unpublish MagmaCore/Magma/1.0.0
           swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action cloud-upload failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -493,21 +209,24 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*SwaggerHub Updated*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   cwag-deploy:
     if: github.repository_owner == 'magma'
     name: cwag deploy job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - name: Check Out Repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Run docker compose
         id: cwag-docker-compose
         continue-on-error: true
@@ -516,7 +235,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
       - name: Retry docker compose on failure
         id: retry-cwag-docker-compose
         continue-on-error: true
@@ -525,7 +244,7 @@ jobs:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/gateway/docker
-          docker-compose --file docker-compose.yml --file docker-compose.override.yml build --parallel
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
       - name: Set the job status
         if: always()
         run: |
@@ -535,22 +254,6 @@ jobs:
              echo "Docker compose failed"
              exit 1
           fi
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save cwf_cwag_go | gzip > cwag_go.tar.gz
-          docker save cwf_gateway_go | gzip > gateway_go.tar.gz
-          docker save cwf_gateway_sessiond | gzip > gateway_sessiond.tar.gz
-          docker save cwf_gateway_python | gzip > gateway_python.tar.gz
-          docker save cwf_gateway_pipelined | gzip > gateway_pipelined.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-cwag
-          path: images
       # Need to save PR number as Github action does not propagate it with workflow_run event
       # Used as version for PR builds
       - name: Save PR number
@@ -574,19 +277,13 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -596,8 +293,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWAG-deploy failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -609,37 +306,25 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*CWAG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   cwf-operator-build:
     if: github.repository_owner == 'magma'
     name: cwf operator build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run docker compose build
         env:
           DOCKER_REGISTRY: cwf_
         run: |
           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
-          DOCKER_REGISTRY=cwf_ docker-compose build --parallel
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save cwf_operator | gzip > operator.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-cwf
-          path: images
+          DOCKER_REGISTRY=cwf_ docker compose --compatibility build
       # Need to save PR number as Github action does not propagate it with workflow_run event
       # Used as version for PR builds
       - name: Save PR number
@@ -663,17 +348,11 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "cwf-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -683,8 +362,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "CWF-operator-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ''
@@ -695,23 +374,23 @@ jobs:
         env:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_TITLE: "*CWF Artifact Has Been Published*"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ''
   feg-build:
     if: github.repository_owner == 'magma'
     name: feg-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: generate test certs and snowflake
@@ -737,19 +416,6 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save feg_gateway_go | gzip > feg_gateway_go.tar.gz
-          docker save feg_gateway_python | gzip > feg_gateway_python.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-feg
-          path: images
       - name: Create release Tag
         run: |
           if [ "$GITHUB_REF" = "refs/heads/master" ]; then
@@ -762,19 +428,13 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "feg-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -784,8 +444,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "FeG-precommit tests failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -797,40 +457,28 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*FeG Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   nms-build:
     if: github.repository_owner == 'magma'
     name: nms-build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
         run: |
           cd ${MAGMA_ROOT}/nms
-          COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
-      - name: Export docker images to deploy them on pull_request
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir images
-          cd images
-          docker save magmalte_magmalte | gzip > magmalte.tar.gz
-      - name: Upload docker images as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: docker-images-nms
-          path: images
+          COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
       - name: Create release Tag
         if: github.event_name == 'push'
         run: |
@@ -844,19 +492,13 @@ jobs:
         id: publish_artifacts
         if: github.event_name == 'push'
         env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
           ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
           ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
-          echo "::set-output name=artifacts::$(echo $ARTIFACTS)"
-      - name: Extract commit title
-        id: commit
-        if: github.event_name == 'push'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       # yamllint enable
@@ -866,8 +508,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action nms-build failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -879,15 +521,15 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "NMS Artifact Has Been Published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '
   Publish_to_firebase:
     name: Publish to firebase
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       [
         agw-build,
@@ -897,8 +539,8 @@ jobs:
         nms-build
       ]
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
-      - uses: actions/setup-python@7f80679172b057fc5e90d70d197929d454754a5a # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
       - name: Publish to
@@ -909,25 +551,25 @@ jobs:
           BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}",
             "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}",
             "github:ref": "${{ github.ref }}"}'
-          AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
           FEG_ARTIFACTS: ${{ needs.feg-build.outputs.artifacts }}
           ORC8R_ARTIFACTS: ${{ needs.orc8r-build.outputs.artifacts }}
           CWAG_ARTIFACTS: ${{ needs.cwag-deploy.outputs.artifacts }}
           NMS_ARTIFACTS: ${{ needs.nms-build.outputs.artifacts }}
+          AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
         run: |
           python -m pip install --upgrade pip
-          pip install Pyrebase
+          pip3 install pyrebase4
           python ci-scripts/firebase_publish.py
   domain-proxy-build:
     if: github.repository_owner == 'magma'
     name: domain proxy build job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Prepare tools
         working-directory: "${{ github.workspace }}/dp"
         run: |
@@ -942,21 +584,16 @@ jobs:
             echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
           fi
       - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
         if: github.event_name == 'push'
         working-directory: "${{ github.workspace }}/dp"
         env:
-          DOCKER_REGISTRY: "orc8r-test.artifactory.magmacore.org"
-          DOCKER_USERNAME: "${{ secrets.JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.JFROG_PASSWORD }}"
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
         run: |
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
           skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
-      - name: Extract commit title
-        if: github.event_name == 'push'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       - name: Notify failure to Slack
         if: failure() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -964,8 +601,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: "Github action domain-proxy-build failed"
-          SLACK_USERNAME: "Build workflow"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
@@ -977,8 +614,8 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
           SLACK_TITLE: "*Domain proxy images have been published*"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Build workflow"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":heavy_check_mark:"
           SLACK_COLOR: "#00FF00"
           SLACK_FOOTER: ' '

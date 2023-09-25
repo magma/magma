@@ -10,55 +10,9 @@
 # limitations under the License.
 
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier", "buildifier_test")
+load("@rules_java//java:defs.bzl", "java_binary")
 
-buildifier(
-    name = "buildifier",
-    lint_mode = "fix",
-    lint_warnings = ["all"],
-    mode = "fix",
-)
-
-buildifier_test(
-    name = "check_starlark_format",
-    size = "small",
-    timeout = "short",
-    srcs = ["//:starlark_files"],
-    lint_mode = "warn",
-    lint_warnings = ["-unused-variable"],
-    verbose = True,
-)
-
-filegroup(
-    name = "starlark_files",
-    srcs = glob(
-        include = [
-            "**/*.BUILD",
-            "**/*.bzl",
-            "**/*.sky",
-            "**/BUILD",
-            "**/BUILD.*.bazel",
-            "**/BUILD.*.oss",
-            "**/BUILD.bazel",
-            "**/WORKSPACE",
-            "**/WORKSPACE.*.bazel",
-            "**/WORKSPACE.*.oss",
-            "**/WORKSPACE.bazel",
-            "*.BUILD",
-            "*.bzl",
-            "*.sky",
-            "BUILD.*.bazel",
-            "BUILD.*.oss",
-            "WORKSPACE.*.bazel",
-            "WORKSPACE.*.oss",
-        ],
-        exclude = [
-            "bazel-*/**",
-            ".git/**",
-            "go_repositories.bzl",  # generated file
-        ],
-    ),
-)
+exports_files(["LICENSE"])
 
 # gazelle:prefix github.com/magma/magma
 # gazelle:exclude .cache/
@@ -69,3 +23,119 @@ filegroup(
 # TODO: Remove when we move proto generation to bazel - this prevents gazelle from causing import issues in the meantime.
 # gazelle:exclude **/*.proto/
 gazelle(name = "gazelle")
+
+java_binary(
+    name = "bazel-diff",
+    main_class = "com.bazel_diff.Main",
+    runtime_deps = ["@bazel_diff//jar"],
+)
+
+alias(
+    name = "envoy_controller",
+    actual = "//feg/gateway/services/envoy_controller:envoy_controller",
+)
+
+alias(
+    name = "connectiond",
+    actual = "//lte/gateway/c/connection_tracker/src:connectiond",
+)
+
+alias(
+    name = "agw_of",
+    actual = "//lte/gateway/c/core:agw_of",
+)
+
+alias(
+    name = "mme_oai",
+    actual = "//lte/gateway/c/core:mme_oai",
+)
+
+alias(
+    name = "liagentd",
+    actual = "//lte/gateway/c/li_agent/src:liagentd",
+)
+
+alias(
+    name = "sctpd",
+    actual = "//lte/gateway/c/sctpd/src:sctpd",
+)
+
+alias(
+    name = "sessiond",
+    actual = "//lte/gateway/c/session_manager:sessiond",
+)
+
+alias(
+    name = "enodebd",
+    actual = "//lte/gateway/python/magma/enodebd:enodebd",
+)
+
+alias(
+    name = "health",
+    actual = "//lte/gateway/python/magma/health:health",
+)
+
+alias(
+    name = "kernsnoopd",
+    actual = "//lte/gateway/python/magma/kernsnoopd:kernsnoopd",
+)
+
+alias(
+    name = "mobilityd",
+    actual = "//lte/gateway/python/magma/mobilityd:mobilityd",
+)
+
+alias(
+    name = "monitord",
+    actual = "//lte/gateway/python/magma/monitord:monitord",
+)
+
+alias(
+    name = "pipelined",
+    actual = "//lte/gateway/python/magma/pipelined:pipelined",
+)
+
+alias(
+    name = "policydb",
+    actual = "//lte/gateway/python/magma/policydb:policydb",
+)
+
+alias(
+    name = "redirectd",
+    actual = "//lte/gateway/python/magma/redirectd:redirectd",
+)
+
+alias(
+    name = "smsd",
+    actual = "//lte/gateway/python/magma/smsd:smsd",
+)
+
+alias(
+    name = "subscriberdb",
+    actual = "//lte/gateway/python/magma/subscriberdb:subscriberdb",
+)
+
+alias(
+    name = "ctraced",
+    actual = "//orc8r/gateway/python/magma/ctraced:ctraced",
+)
+
+alias(
+    name = "directoryd",
+    actual = "//orc8r/gateway/python/magma/directoryd:directoryd",
+)
+
+alias(
+    name = "eventd",
+    actual = "//orc8r/gateway/python/magma/eventd:eventd",
+)
+
+alias(
+    name = "magmad",
+    actual = "//orc8r/gateway/python/magma/magmad:magmad",
+)
+
+alias(
+    name = "state",
+    actual = "//orc8r/gateway/python/magma/state:state",
+)

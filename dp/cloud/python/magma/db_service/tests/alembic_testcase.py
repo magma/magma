@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import alembic.config
 import sqlalchemy as sa
@@ -62,10 +62,16 @@ class AlembicTestCase(DBTestCaseBlueprint):
         return sa.Table(table_name, sa.MetaData(), autoload_with=self.engine)
 
     def has_column(self, table: sa.Table, column_name: str) -> bool:
-        for c in table.columns:
-            if c.name == column_name:
-                return True
-        return False
+        return self.has_columns(table=table, columns_names=[column_name])
+
+    def has_columns(self, table: sa.Table, columns_names: List[str]) -> bool:
+        # TODO add method for checking that none of the columns exists
+        existing = {c.name for c in table.columns}
+
+        for c in columns_names:
+            if c not in existing:
+                return False
+        return True
 
     def upgrade(self, revision=None):
         revision = revision or self.up_revision

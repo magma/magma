@@ -39,7 +39,7 @@ export default function (props: {configs: Array<MetricGraphConfig>}) {
     return <LoadingFiller />;
   }
 
-  const gatewayNames = Object.keys(selectors);
+  const gatewayNames = Object.keys(selectors.gateways);
   const defaultGateway = gatewayNames[0];
 
   const metrics = (

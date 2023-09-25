@@ -18,11 +18,7 @@ from time import sleep
 from typing import Any, Dict
 from unittest import TestCase, mock
 
-from dp.protos.cbsd_pb2 import (
-    CBSDStateResult,
-    EnodebdUpdateCbsdRequest,
-    LteChannel,
-)
+from dp.protos.cbsd_pb2 import CBSDStateResult, LteChannel
 from magma.enodebd.data_models.data_model import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.configuration_util import (
@@ -31,12 +27,16 @@ from magma.enodebd.device_config.configuration_util import (
     calc_earfcn,
 )
 from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
-from magma.enodebd.devices.baicells_qrtb import (
+from magma.enodebd.devices.baicells_qrtb.data_model import (
+    BaicellsQRTBTrDataModel,
+)
+from magma.enodebd.devices.baicells_qrtb.params import (
+    CarrierAggregationParameters,
+)
+from magma.enodebd.devices.baicells_qrtb.states import (
     BaicellsQRTBNotifyDPState,
     BaicellsQRTBQueuedEventsWaitState,
-    BaicellsQRTBTrDataModel,
     BaicellsQRTBWaitInformRebootState,
-    CarrierAggregationParameters,
     qrtb_update_desired_config_from_cbsd_state,
 )
 from magma.enodebd.devices.device_utils import EnodebDeviceName
@@ -340,7 +340,7 @@ class SasToRfConfigTests(TestCase):
 
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
         test_serial_number = '120200024019APP0105'
 
@@ -359,7 +359,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         acs_state_machine.transition('notify_dp')
         mock_enodebd_update_cbsd.assert_not_called()
 
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_notify_dp(self, mock_enodebd_update_cbsd) -> None:
         expected_final_param_values = {
             ParameterName.UL_BANDWIDTH: '100',
@@ -526,7 +526,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             'receiving a RebootResponse',
         )
 
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_provision(self, mock_enodebd_update_cbsd) -> None:
         self.maxDiff = None
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
@@ -632,7 +632,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
 class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     """Testing Baicells QRTB specific states"""
 
-    @mock.patch('magma.enodebd.devices.baicells_qrtb.enodebd_update_cbsd')
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_end_session_and_notify_dp_transition(self, mock_enodebd_update_cbsd):
         """Testing if SM steps in and out of BaicellsQRTBWaitNotifyDPState as per state map"""
 

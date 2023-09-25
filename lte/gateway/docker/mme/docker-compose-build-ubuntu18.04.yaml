@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  magma-mme-base-image:
+    image: magma-dev-mme:ci-base-image
+    build:
+      context: ../../../..
+      target: magma-dev-mme
+      dockerfile: lte/gateway/docker/mme/Dockerfile.ubuntu18.04
+  magma-mme-target-image:
+    image: magma-mme:master
+    depends_on:
+      - magma-mme-base-image
+    build:
+      context: ../../../..
+      target: magma-mme
+      dockerfile: lte/gateway/docker/mme/Dockerfile.ubuntu18.04

@@ -35,7 +35,7 @@ The FeG serves as the interface to existing operator cores, affording a modern, 
 
 ## Points of contact
 
-Check out the [Community](https://www.magmacore.org/community/) page for community entry points. The principal resources are
+Check out the [Community](https://magmacore.org/join-the-open-source-community/) page for community entry points. The principal resources are
 
 - [GitHub Discussions page](https://github.com/magma/magma/discussions). Best place to ask questions if you're stuck or want more context.
 - Community Slack channel. Say hello in `#general` and let us know you're onboarding to the project.
@@ -134,7 +134,7 @@ NOTE: a minority of tests require a running Postgres instance, and will otherwis
 
 ### Complete a starter task
 
-If you haven't already, join our community Slack channel via the link from the [Community](https://www.magmacore.org/community/) page and say hello in `#general`. We can point you toward a good starter task. You can also use the [`good first issue` tag on our GitHub repo to search for good starter tasks](https://github.com/magma/magma/labels/good%20first%20issue).
+If you haven't already, join our community Slack channel via the link from the [Community](https://magmacore.org/join-the-open-source-community/) page and say hello in `#general`. We can point you toward a good starter task. You can also use the [`good first issue` tag on our GitHub repo to search for good starter tasks](https://github.com/magma/magma/labels/good%20first%20issue).
 
 As you're working on your starter task, refer to [Development Workflow](./contribute_workflow.md) for guidance on how to author a pull request and [Contributing Conventions](./contribute_conventions.md) for Magma conventions. Once your pull request is approved and merged, you're now an official contributor to the Magma project!
 

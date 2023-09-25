@@ -3,26 +3,27 @@ package coanas
 import (
 	"context"
 	"errors"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
 	"fmt"
 	"net"
 	"testing"
 
-	"go.uber.org/zap"
-
-	"fbc/lib/go/radius/rfc2865"
+	"fbc/cwf/radius/modules"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 func TestCoaNas(t *testing.T) {
 	// Arrange
+	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
-	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": "4799",
+		"port": fmt.Sprint(port),
 	})
 	require.Nil(t, err)
 
@@ -30,7 +31,6 @@ func TestCoaNas(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -38,23 +38,18 @@ func TestCoaNas(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
-	fmt.Println("Server listenning")
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
-	require.Nil(t, err)
 	res, err := Handle(
 		mCtx,
 		&modules.RequestContext{
@@ -62,7 +57,7 @@ func TestCoaNas(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest("127.0.0.1"),
+		createRadiusRequest("127.0.0.1", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			require.Fail(t, "Should never be called (coa nas module should not call next()")
 			return nil, nil
@@ -78,6 +73,7 @@ func TestCoaNas(t *testing.T) {
 func TestCoaNasNoResponse(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	addr := ":4799"
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
@@ -89,7 +85,6 @@ func TestCoaNasNoResponse(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -97,20 +92,16 @@ func TestCoaNasNoResponse(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
-	fmt.Println("Server listenning")
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	_, err = Handle(
@@ -120,7 +111,7 @@ func TestCoaNasNoResponse(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest("127.0.0.1"),
+		createRadiusRequest("127.0.0.1", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			return nil, errors.New("error")
 		},
@@ -133,10 +124,12 @@ func TestCoaNasNoResponse(t *testing.T) {
 func TestCoaNasFieldInvalid(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
+	port := 4799
+	addr := fmt.Sprintf(":%d", port)
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	mCtx, err := Init(logger, modules.ModuleConfig{
-		"port": "4799",
+		"port": fmt.Sprint(port),
 	})
 	require.Nil(t, err)
 
@@ -144,7 +137,6 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")
@@ -152,20 +144,16 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 			},
 		),
 		SecretSource: radius.StaticSecretSource(secret),
-		Addr:         fmt.Sprintf(":%d", 4799),
-		Ready:        make(chan bool, 1),
+		Addr:         addr,
 	}
 	fmt.Print("Starting server... ")
 	go func() {
 		_ = radiusServer.ListenAndServe()
 	}()
 	defer radiusServer.Shutdown(context.Background())
-	listenSuccess := <-radiusServer.Ready // Wait for server to get ready
-	if !listenSuccess {
-		require.Fail(t, "radiusServer start error")
-		return
-	}
-	fmt.Println("Server listenning")
+	err = modules.WaitForRadiusServerToBeReady(secret, addr)
+	require.Nil(t, err)
+	fmt.Println("Server listening")
 
 	// Act
 	var s int
@@ -176,7 +164,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 			Logger:         logger,
 			SessionStorage: nil,
 		},
-		createRadiusRequest(""),
+		createRadiusRequest("", secret),
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			s = 1
 			return nil, errors.New("error")
@@ -188,8 +176,8 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-func createRadiusRequest(nasIdentifier string) *radius.Request {
-	packet := radius.New(radius.CodeDisconnectRequest, []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06})
+func createRadiusRequest(nasIdentifier string, secret []byte) *radius.Request {
+	packet := radius.New(radius.CodeDisconnectRequest, secret)
 	rfc2865.NASIPAddress_Add(packet, net.ParseIP(nasIdentifier))
 	req := &radius.Request{}
 	req = req.WithContext(context.Background())

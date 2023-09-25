@@ -23,7 +23,6 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #ifdef __cplusplus
 }
@@ -98,7 +97,7 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_bearer_proto
    */
   static void spgw_bearer_context_to_proto(
-      const s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state,
+      const oai::S11BearerContext* spgw_bearer_state,
       oai::S11BearerContext* spgw_bearer_proto);
 
   /**
@@ -108,7 +107,7 @@ class SpgwStateConverter : StateConverter {
    */
   static void proto_to_spgw_bearer_context(
       const oai::S11BearerContext& spgw_bearer_proto,
-      s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
+      oai::S11BearerContext* spgw_bearer_state);
 
   /**
    * Converts sgw eps bearer struct to proto, memory is owned by the caller

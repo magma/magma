@@ -10,12 +10,18 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
 
 cc_binary(
     name = "liagentd",
     srcs = ["main.cpp"],
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
     deps = [
         ":interface_monitor",
         "//orc8r/gateway/c/common/config:mconfig_loader",

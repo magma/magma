@@ -17,10 +17,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <string>
 /*
  * This enum should have the same definition as TableID in directoryd.proto .
  *
@@ -36,8 +33,4 @@ bool directoryd_remove_location(char* imsi);
 
 bool directoryd_update_location(char* imsi, char* location);
 
-bool directoryd_update_record_field(char* imsi, char* key, char* value);
-
-#ifdef __cplusplus
-}
-#endif
+bool directoryd_update_record_field(char* imsi, std::string key, char* value);

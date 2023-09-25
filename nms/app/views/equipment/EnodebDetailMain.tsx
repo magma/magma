@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@mui/material/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -26,7 +27,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import Text from '../../theme/design-system/Text';
 import TextField from '@mui/material/TextField';
 import TopBar from '../../components/TopBar';
-import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import withAlert from '../../components/Alert/withAlert';
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker';
@@ -38,6 +38,7 @@ import {Theme} from '@mui/material/styles';
 import {colors, typography} from '../../theme/default';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
+import {subHours} from 'date-fns';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
 import type {WithAlert} from '../../components/Alert/withAlert';
@@ -160,8 +161,8 @@ const EnodebRebootButton = withAlert(EnodebRebootButtonInternal);
 
 function Overview() {
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const [startDate, setStartDate] = useState(subHours(new Date(), 3));
+  const [endDate, setEndDate] = useState(new Date());
   const [refresh, setRefresh] = useState(true);
 
   function MetricChartFilter() {
@@ -178,7 +179,7 @@ function Overview() {
             maxDate={endDate}
             disableFuture
             value={startDate}
-            onChange={date => setStartDate(date as moment.Moment)}
+            onChange={date => setStartDate(date!)}
           />
         </Grid>
         <Grid item>
@@ -191,7 +192,7 @@ function Overview() {
             renderInput={props => <TextField {...props} />}
             disableFuture
             value={endDate}
-            onChange={date => setEndDate(date as moment.Moment)}
+            onChange={date => setEndDate(date!)}
           />
         </Grid>
       </Grid>
@@ -239,8 +240,8 @@ function Overview() {
 }
 
 type Props = {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
+  startDate: Date;
+  endDate: Date;
 };
 
 function EnodebMetricChart(props: Props) {

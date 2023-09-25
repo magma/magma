@@ -21,7 +21,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/thoas/go-funk"
-	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -70,19 +69,18 @@ func (store *sqlConfiguratorStorage) doesPhysicalIDExist(physicalID string) (boo
 }
 
 func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent *NetworkEntity) (*NetworkEntity, error) {
-	entCopy := proto.Clone(ent).(*NetworkEntity)
-	entCopy.Pk = store.idGenerator.New()
-	entCopy.GraphID = store.idGenerator.New() // potentially-temporary graph ID
+	ent.Pk = store.idGenerator.New()
+	ent.GraphID = store.idGenerator.New() // potentially-temporary graph ID
 
 	_, err := store.builder.Insert(entityTable).
 		Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entGidCol, entNameCol, entDescCol, entPidCol, entConfCol).
-		Values(entCopy.Pk, networkID, entCopy.Type, entCopy.Key, entCopy.GraphID, toNullable(entCopy.Name), toNullable(entCopy.Description), toNullable(entCopy.PhysicalID), toNullable(entCopy.Config)).
+		Values(ent.Pk, networkID, ent.Type, ent.Key, ent.GraphID, toNullable(ent.Name), toNullable(ent.Description), toNullable(ent.PhysicalID), toNullable(ent.Config)).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return &NetworkEntity{}, fmt.Errorf("error creating entity %s: %w", entCopy.GetTK(), err)
+		return &NetworkEntity{}, fmt.Errorf("error creating entity %s: %w", ent.GetTK(), err)
 	}
-	return entCopy, nil
+	return ent, nil
 }
 
 func (store *sqlConfiguratorStorage) createEdges(networkID string, entity *NetworkEntity) (EntitiesByTK, error) {

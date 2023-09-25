@@ -1,0 +1,313 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This workflow utilizes a composite action and a second workflow to build
+# and test containers in CI
+#
+# - The 'build-containers' job sets the first eight digits of the commit hash
+#   (plus 'latest') as a image tag and calls the 'docker-builder-agw.yml'
+#   workflow for the C, Python, and go images.
+# - The three containers are built and uploaded with the 3rd party
+#   'docker/build-push-action' using their respective docker file, the tags,
+#   and the artifactory credentials.
+# - The 'lte-integ-test-containerized.yml' is executed for the 'precommit',
+#   'extended', and 'extended_long' test targets. These run in parallel and use
+#   the 8-char commit hash as a tag to pull the newly created Docker images
+#   from the artifactory to test them. Each returns their test reports and
+#   individual final status.
+# - The 'publish-container-test-results' job collects the results and uploads
+#   them with a combined pass/fail verdict to Firebase.
+
+# owner: @magma/approvers-gw
+# purpose: Building the AGW Docker containers and run the integration tests
+# remediation: see lte/gateway/docker/README.md
+
+name: AGW Build, Publish & Test Container
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        type: string
+        description: Overwrite registry (default linuxfoundation.jfrog.io/magma-docker-agw-test).
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+env:
+  registry: ${{ inputs.registry || 'linuxfoundation.jfrog.io/magma-docker-agw-test' }}
+
+jobs:
+
+  build-containers:
+    outputs:
+      image_tag: ${{ steps.set-agwc-tags.outputs.image_tag }}
+      registry: ${{ steps.set-registry.outputs.registry }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
+
+      - id: get-short-git-sha
+        name: Set short git sha output
+        run: |
+          echo ${GITHUB_SHA:0:8}
+          echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_ENV
+
+      - name: verify git sha output
+        run: echo "Git SHA is ${commit_hash}"
+
+      - name: Create possible release Tag
+        if: github.event_name == 'push' && github.ref_name != 'master'
+        run: |
+          GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+          echo commit_hash="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+
+      - name: Set agwc tags
+        id: set-agwc-tags
+        run: |
+          c_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c
+          python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
+          go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
+
+          echo image_tag=${commit_hash} >> $GITHUB_OUTPUT
+          if [[ ${{ github.ref_name }} = master ]]
+          then
+            echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash},${python_image}:latest >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash},${go_image}:latest >> $GITHUB_OUTPUT
+          else
+            echo c_image_tags=${c_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${commit_hash} >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print agwc tags
+        run: |
+          echo "C image: ${{ steps.set-agwc-tags.outputs.c_image_tags }}"
+          echo "Python image: ${{ steps.set-agwc-tags.outputs.python_image_tags }}"
+          echo "Go image: ${{ steps.set-agwc-tags.outputs.go_image_tags }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-c
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/c/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.c_image_tags }}
+          TARGET: gateway_c
+      - run: echo "docker-builder-c conclusion = ${{ steps.docker-builder-c.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-python
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/python/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
+          TARGET: gateway_python
+      - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-go
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: feg/gateway/docker/go/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
+          TARGET: gateway_go
+      - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
+
+  build-containers-ghz:
+    runs-on: ubuntu-20.04
+    needs: build-containers
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo ${{ env.registry }}
+          echo registry=${{ env.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ env.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+
+      - name: verify registry output
+        run: |
+          echo "Registry is ${{ steps.set-registry.outputs.registry }}"
+          echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ needs.build-containers.outputs.image_tag }}
+          TARGET: agw_c_ghz
+          CONTEXT: lte/gateway/docker/ghz
+
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ needs.build-containers.outputs.image_tag }}
+          TARGET: agw_python_ghz
+          CONTEXT: lte/gateway/docker/ghz
+
+  test-containers-precommit:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: precommit
+    secrets: inherit
+
+  test-containers-extended:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: extended_tests
+    secrets: inherit
+
+  test-containers-extended-long:
+    needs: build-containers
+    # We only want to trigger the tests if the build-containers job uploaded the images.
+    # The following condition is a crude heuristic for this limitation.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/lte-integ-test-containerized.yml
+    with:
+      image_tag: ${{ needs.build-containers.outputs.image_tag }}
+      registry: ${{ needs.build-containers.outputs.registry }}
+      test_targets: extended_tests_long
+    secrets: inherit
+
+  publish-container-test-results:
+    runs-on: ubuntu-20.04
+    if: always() && github.event_name == 'push'
+    needs: [test-containers-precommit, test-containers-extended, test-containers-extended-long]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - name: Create test_results directory
+        run: mkdir -p lte/gateway/test_results
+
+      - name: Download test results of precommit tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test_results_precommit
+          path: "${{ github.workspace }}/lte/gateway/test_results"
+
+      - name: Download final status of precommit tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-precommit
+
+      - name: Download test results of extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test_results_extended_tests
+          path: "${{ github.workspace }}/lte/gateway/test_results"
+
+      - name: Download final status of of extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-extended_tests
+
+      - name: Download test results of long extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test_results_extended_tests_long
+          path: "${{ github.workspace }}/lte/gateway/test_results"
+
+      - name: Download final status of of long extended tests
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: test-status-extended_tests_long
+
+      - name: Determine end result for all test targets
+        id: determine_end_result
+        run: |
+          result_precommit=$(cat test_status_precommit.txt)
+          result_extended=$(cat test_status_extended_tests.txt)
+          result_extended_long=$(cat test_status_extended_tests_long.txt)
+          if [ $result_precommit == $result_extended ] && [ $result_precommit == $result_extended_long ]
+          then
+            mv test_status_precommit.txt test_status.txt
+            echo "result=$result_precommit" >> $GITHUB_OUTPUT
+          else
+            echo fail > test_status.txt
+            echo "result=fail" >> $GITHUB_OUTPUT
+          fi
+          rm test_status_*.txt
+
+      - name: Setup python
+        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+
+      - name: Install pre-requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install firebase_admin
+
+      - name: Publish results to Firebase
+        env:
+          FIREBASE_SERVICE_CONFIG: "${{ secrets.FIREBASE_SERVICE_CONFIG }}"
+          REPORT_FILENAME: "lte_integ_test_containerized${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} containerized_lte --url $URL
+
+      - name: Notify failure to slack
+        if: ${{ steps.determine_end_result.outputs.result == 'fail' }}
+        env:
+          SLACK_WEBHOOK: "${{ secrets.SLACK_WEBHOOK }}"
+          SLACK_USERNAME: "${{ github.workflow }}"
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        with:
+          args: "Containerized LTE integration tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"

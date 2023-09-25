@@ -49,7 +49,7 @@ class TestAttachAuthMacFailure(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received Authentication Request message ")
 
         auth_failure = s1ap_types.ueAuthFailure_t()
@@ -63,7 +63,7 @@ class TestAttachAuthMacFailure(unittest.TestCase):
             s1ap_types.tfwCmd.UE_AUTH_FAILURE, auth_failure,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REJ_IND.value)
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REJ_IND.value
         print("Received Authentication Reject message")
 
 

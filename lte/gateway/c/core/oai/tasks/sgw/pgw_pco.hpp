@@ -21,11 +21,13 @@
  * \company Eurecom
  * \email: lionel.gauthier@eurecom.fr
  */
-#ifndef FILE_PGW_PCO_SEEN
-#define FILE_PGW_PCO_SEEN
+
+#pragma once
 
 #include <stdint.h>
 
+#include "lte/protos/oai/std_3gpp_types.pb.h"
+#include "lte/protos/oai/spgw_state.pb.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
@@ -54,19 +56,15 @@ status_code_e pgw_pco_push_protocol_or_container_id(
 
 status_code_e pgw_process_pco_request_ipcp(
     protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id);
+    const magma::lte::oai::PcoProtocol poc_id);
 
 status_code_e pgw_process_pco_dns_server_request(
-    protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id);
+    protocol_configuration_options_t* const pco_resp);
 
 status_code_e pgw_process_pco_link_mtu_request(
-    protocol_configuration_options_t* const pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id);
+    protocol_configuration_options_t* const pco_resp);
 
 status_code_e pgw_process_pco_request(
-    const protocol_configuration_options_t* const pco_req,
+    const magma::lte::oai::Pco* const pco_req,
     protocol_configuration_options_t* pco_resp,
     protocol_configuration_options_ids_t* const pco_ids);
-
-#endif

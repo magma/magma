@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: DCO check
+# owner: any
+# purpose: Check PR is signed off
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
+name: PR Check DCO
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
@@ -21,7 +25,7 @@ concurrency:
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     # Map a step output to a job output
@@ -30,7 +34,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # pin@v3.1.0
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
@@ -55,7 +59,7 @@ jobs:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
     name: DCO Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Get PR Commits
         id: 'get-pr-commits'

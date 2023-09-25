@@ -1,0 +1,97 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Test if patched OVS can be built - publish if manually triggered
+# remediation: -
+
+name: Magma Build & Publish Open vSwitch Artifacts
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+    paths:
+      - third_party/gtp_ovs/ovs-gtp-patches/**
+      - .github/workflows/magma-build-openvswitch.yml
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+    branches:
+      - master
+      - 'v1.*'
+    paths:
+      - third_party/gtp_ovs/ovs-gtp-patches/**
+      - .github/workflows/magma-build-openvswitch.yml
+  schedule:
+    - cron: 36 4 * * 0
+  workflow_dispatch:
+    inputs:
+      distribution:
+        description: Distribution to set?
+        default: 'focal-ci'
+        required: true
+
+jobs:
+  build-packages:
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: ${{ github.workspace }}
+      DEST: ${{ github.workspace }}/deb_packages
+      repository: magma-packages-test
+      distribution: ${{ inputs.distribution || 'focal-ci' }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+      - name: Build openvswitch
+        working-directory: third_party/gtp_ovs/ovs-gtp-patches/2.15
+        run: |
+          mkdir ${{ env.DEST }}
+          ./build.sh ${{ env.DEST }}
+
+      - name: Test installability of the debian package
+        working-directory: ${{ env.DEST }}
+        run: |
+            sudo pip install ovs==2.16.0
+            sudo apt-get install --yes --allow-downgrades ./*.deb
+
+      - name: Verify distribution
+        run: |
+          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
+              echo "You have chosen 'distribution' ${{ env.distribution }} as input."
+              echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"
+              exit 1
+          fi
+
+      - name: Setup JFrog CLI
+        id: jfrog-setup
+        # Workaround because secrets are available in `env` but not in `if`
+        if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+        env:
+          JF_URL: https://linuxfoundation.jfrog.io/
+          JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+
+      - name: Publish debian packages
+        if: steps.jfrog-setup.conclusion == 'success' && github.event_name == 'workflow_dispatch'
+        working-directory: ${{ env.DEST }}
+        run: |
+            for file in ./*.deb; do
+              file=${file:2}
+              name=${file%%.deb}
+              architecture=${name##*_}
+              echo Architecture is ${architecture}
+              jf rt upload \
+                --recursive=false \
+                --detailed-summary \
+                --target-props="deb.component=main;deb.distribution=${{ env.distribution }};deb.architecture=${architecture}" \
+                "(${file})" ${{ env.repository }}/pool/${{ env.distribution }}/{1}
+            done

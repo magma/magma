@@ -15,26 +15,28 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+
 #include <string>
+
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
 const int NUM_MAX_UE_HTBL_LISTS = 6;
-constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
-    "mme_app_mme_ue_s1ap_id_ue_context_htbl";
-constexpr char IMSI_UE_ID_TABLE_NAME[] = "mme_app_imsi_ue_context_htbl";
-constexpr char TUN_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
+constexpr char MME_UE_ID2UE_CTXT_MAP_NAME[] =
+    "mme_app_mme_ue_s1ap_id2ue_context_map";
+constexpr char MME_IMSI2MME_UE_ID_MAP_NAME[] = "mme_imsi2ue_id_map";
+constexpr char MME_S11_TEID2MME_UE_ID_MAP_NAME[] = "mme_s11_teid2ue_id_map";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
-constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
-    "mme_app_enb_ue_s1ap_id_ue_context_htbl";
+constexpr char MME_ENB_UE_S1AP_KEY2MME_UE_ID_MAP_NAME[] =
+    "mme_enb_ue_s1ap_key2ue_id_map";
 constexpr char MME_TASK_NAME[] = "MME";
 constexpr char MME_UEIP_IMSI_MAP_NAME[] = "mme_ueip_imsi_map";
 }  // namespace
@@ -49,6 +51,10 @@ namespace lte {
 MmeNasStateManager& MmeNasStateManager::getInstance() {
   static MmeNasStateManager instance;
   return instance;
+}
+
+proto_map_uint32_ue_context_t* MmeNasStateManager::get_ue_state_map() {
+  return &mme_app_state_ue_map;
 }
 
 // Constructor for MME NAS state object
@@ -96,12 +102,12 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db) {
 
   state_dirty = true;
   if (persist_state_enabled && read_from_db) {
-    // free up the memory allocated to hashtables
-    OAILOG_DEBUG(LOG_MME_APP, "Freeing up in-memory hashtables");
-    clear_mme_nas_hashtables();
-    // allocate memory for hashtables
-    OAILOG_DEBUG(LOG_MME_APP, "Allocating memory for new hashtables");
-    create_hashtables();
+    // free up the memory allocated to protobuf maps
+    OAILOG_DEBUG(LOG_MME_APP, "Freeing up in-memory protobuf maps");
+    clear_mme_nas_protomaps();
+    // allocate memory for protobuf maps
+    OAILOG_DEBUG(LOG_MME_APP, "Allocating memory for new protobuf maps");
+    create_protomaps();
     // read the state from data store
     int rc = read_state_from_db();
     if (rc != RETURNok) {
@@ -129,44 +135,28 @@ void MmeNasStateManager::clear_db_state() {
 // Initialize state that is non-persistent, e.g. timers
 void MmeNasStateManager::mme_nas_state_init_local_state() {}
 
-// Create the hashtables for MME NAS state
-void MmeNasStateManager::create_hashtables() {
-  bstring b = bfromcstr(IMSI_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, TUN_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.tun11_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  AssertFatal(sizeof(uintptr_t) >= sizeof(uint64_t),
-              "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
-  btrunc(b, 0);
-  bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);
-  state_ue_ht = hashtable_ts_create(max_ue_htbl_lists_, nullptr,
-                                    mme_app_state_free_ue_context, b);
+// Create the protobuf maps for MME NAS state
+void MmeNasStateManager::create_protomaps() {
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.map =
+      new google::protobuf::Map<uint64_t, uint32_t>();
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.set_name(
+      MME_IMSI2MME_UE_ID_MAP_NAME);
+  state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.map =
+      new google::protobuf::Map<uint32_t, uint32_t>();
+  state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.set_name(
+      MME_S11_TEID2MME_UE_ID_MAP_NAME);
 
-  if (!(state_ue_ht->lock_attr = (pthread_mutexattr_t*)calloc(
-            max_ue_htbl_lists_, sizeof(pthread_mutexattr_t)))) {
-    free_wrapper((void**)&state_ue_ht->lock_nodes);
-    free_wrapper((void**)&state_ue_ht->nodes);
-    free_wrapper((void**)&state_ue_ht->name);
-    free_wrapper((void**)&state_ue_ht);
-    return;
-  }
+  mme_app_state_ue_map.map =
+      new google::protobuf::Map<uint32_t, struct ue_mm_context_s*>();
+  mme_app_state_ue_map.set_name(MME_UE_ID2UE_CTXT_MAP_NAME);
+  mme_app_state_ue_map.bind_callback(mme_app_state_free_ue_context);
 
-  for (int i = 0; i < max_ue_htbl_lists_; i++) {
-    pthread_mutexattr_init(&state_ue_ht->lock_attr[i]);
-    pthread_mutexattr_settype(&state_ue_ht->lock_attr[i],
-                              PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&state_ue_ht->lock_nodes[i], &state_ue_ht->lock_attr[i]);
-  }
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map =
+      new google::protobuf::Map<uint64_t, uint32_t>();
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.set_name(
+      MME_ENB_UE_S1AP_KEY2MME_UE_ID_MAP_NAME);
 
-  btrunc(b, 0);
-  bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =
-      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
-  btrunc(b, 0);
-  bassigncstr(b, GUTI_UE_ID_TABLE_NAME);
+  bstring b = bfromcstr(GUTI_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.guti_ue_context_htbl =
       obj_hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr, b);
   bdestroy_wrapper(&b);
@@ -180,24 +170,21 @@ void MmeNasStateManager::create_state() {
   }
   state_cache_p->mme_app_ue_s1ap_id_generator = 1;
 
-  create_hashtables();
+  create_protomaps();
   // Initialize the local timers, which are non-persistent
   mme_nas_state_init_local_state();
 }
 
-// Delete the hashtables for MME NAS state
-void MmeNasStateManager::clear_mme_nas_hashtables() {
+// Delete the protobuf maps for MME NAS state
+void MmeNasStateManager::clear_mme_nas_protomaps() {
   if (!state_cache_p) {
     return;
   }
 
-  hashtable_ts_destroy(state_ue_ht);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-      state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
+  mme_app_state_ue_map.destroy_map();
+  state_cache_p->mme_ue_contexts.imsi2mme_ueid_map.destroy_map();
+  state_cache_p->mme_ue_contexts.s11_teid2mme_ueid_map.destroy_map();
+  state_cache_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.destroy_map();
   obj_hashtable_uint64_ts_destroy(
       state_cache_p->mme_ue_contexts.guti_ue_context_htbl);
 }
@@ -207,7 +194,7 @@ void MmeNasStateManager::free_state() {
   if (!state_cache_p) {
     return;
   }
-  clear_mme_nas_hashtables();
+  clear_mme_nas_protomaps();
   free(state_cache_p);
   state_cache_p = nullptr;
 }
@@ -226,14 +213,12 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
           calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
-      hashtable_rc_t h_rc = hashtable_ts_insert(
-          state_ue_ht, ue_context->mme_ue_s1ap_id, (void*)ue_context);
-      if (HASH_TABLE_OK != h_rc) {
+      if (mme_app_state_ue_map.insert(ue_context->mme_ue_s1ap_id, ue_context) !=
+          magma::PROTO_MAP_OK) {
         OAILOG_ERROR(log_task,
                      "Failed to insert UE state with key mme_ue_s1ap_id "
-                     " " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
-                     ue_context->mme_ue_s1ap_id,
-                     hashtable_rc_code2string(h_rc));
+                     " " MME_UE_S1AP_ID_FMT,
+                     ue_context->mme_ue_s1ap_id);
       } else {
         OAILOG_DEBUG(
             log_task,

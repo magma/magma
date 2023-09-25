@@ -33,39 +33,11 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         ":baicells",
-        ":baicells_qrtb",
-        ":freedomfi_one",
         "//lte/gateway/python/magma/enodebd/data_models:data_model",
         "//lte/gateway/python/magma/enodebd/device_config:enodeb_config_postprocessor",
+        "//lte/gateway/python/magma/enodebd/devices/baicells_qrtb",
         "//lte/gateway/python/magma/enodebd/devices/experimental:cavium",
-    ],
-)
-
-py_library(
-    name = "freedomfi_one",
-    srcs = ["freedomfi_one.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//lte/gateway/python/magma/enodebd:dp_client",
-        "//lte/gateway/python/magma/enodebd/data_models:transform_for",
-        "//lte/gateway/python/magma/enodebd/state_machines:acs_state_utils",
-        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs",
-        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_impl",
-    ],
-)
-
-py_library(
-    name = "baicells_qrtb",
-    srcs = ["baicells_qrtb.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":device_utils",
-        "//lte/gateway/python/magma/enodebd:dp_client",
-        "//lte/gateway/python/magma/enodebd/data_models:transform_for",
-        "//lte/gateway/python/magma/enodebd/device_config:configuration_util",
-        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs",
-        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_impl",
-        "//orc8r/gateway/python/magma/common:service",
+        "//lte/gateway/python/magma/enodebd/devices/freedomfi_one",
     ],
 )
 

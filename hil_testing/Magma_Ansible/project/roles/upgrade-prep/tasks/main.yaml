@@ -20,22 +20,24 @@
     state: absent
 
 - name: Add an Apt signing key, for Magma new repo
-  ansible.builtin.apt_key:
-    url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
-    state: present
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
 
 - name: Add specified repository into sources list for Debian Magma AGW
   tags: prep
   ansible.builtin.apt_repository:
-    repo: deb https://artifactory.magmacore.org/artifactory/debian-test stretch-{{ UpgradeTag }} main
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test stretch-{{ UpgradeTag }} main
     state: present
     filename: packages_magma_etagecom_io
+    update_cache: true
   when: ansible_distribution == 'Debian'
 
 - name: Add specified repository into sources list for Ubuntu Magma AGW
   tags: prep
   ansible.builtin.apt_repository:
-    repo: deb https://artifactory.magmacore.org/artifactory/debian-test focal-{{ UpgradeTag }} main
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-{{ UpgradeTag }} main
     state: present
     filename: packages_magma_etagecom_io
   when: ansible_distribution == 'Ubuntu'

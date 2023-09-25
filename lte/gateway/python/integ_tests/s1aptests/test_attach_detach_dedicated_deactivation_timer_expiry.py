@@ -78,9 +78,7 @@ class TestAttachDetachDedicatedDeactivationTimerExpiry(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t,
             )
@@ -115,10 +113,7 @@ class TestAttachDetachDedicatedDeactivationTimerExpiry(unittest.TestCase):
             # TODO:Receive retransmissions once support is added
             # at s1ap tester
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
             deact_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeDeActvBearCtxtReq_t,
             )

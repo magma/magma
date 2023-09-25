@@ -1,17 +1,29 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
-FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme-builder
+FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme-base
 
-ARG GIT_PROXY
-ARG FEATURES=mme_oai
+ENV FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=RelWithDebInfo
 ENV C_BUILD=/build/c
 ENV TZ=Europe/Paris
 # Copy RHEL certificates for builder image
-COPY tmp/entitlement/*.pem /etc/pki/entitlement
-COPY tmp/ca/redhat-uep.pem /etc/rhsm/ca
+COPY ./etc-pki-entitlement /etc/pki/entitlement
+# Copy the subscription manager configurations
+COPY ./rhsm-conf /etc/rhsm
+COPY ./rhsm-ca /etc/rhsm/ca
 
 RUN mkdir -p $C_BUILD
 
@@ -19,7 +31,7 @@ RUN rm /etc/rhsm-host && \
     yum repolist --disablerepo=* && \
     subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms \
   && yum update -y \
-  && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+  && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm \
   && yum install dnf-plugins-core -y \
   && yum install -y --enablerepo="codeready-builder-for-rhel-8-x86_64-rpms" \
     psmisc \
@@ -30,7 +42,7 @@ RUN rm /etc/rhsm-host && \
     libselinux-python3 \
     vim \
     gcc \
-    cmake3 \
+    cmake \
     automake \
     autoconf \
     tmux \
@@ -47,8 +59,7 @@ RUN rm /etc/rhsm-host && \
     ruby-devel \
     sqlite \
     sqlite-devel \
-  && ln -s /usr/bin/python3 /usr/bin/python \
-  && ln -s /usr/bin/cmake3 /usr/bin/cmake
+  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN yum install -y \
     gnupg \
@@ -74,14 +85,11 @@ RUN yum install -y \
     golang \
     python2 \
     perl \
-    # Install FMT lib requirements
-    elfutils-libelf-devel-static \
-    libdwarf-devel \
-    # Install double-conversion and unwind requirements
-    boost \
-    boost-devel \
     glog-devel \
     binutils-devel \
+    boost-devel \
+    libunwind-devel \
+    double-conversion-devel \
     # Install FreeDiameter requirements
     lksctp-tools \
     lksctp-tools-devel \
@@ -98,8 +106,7 @@ RUN yum install -y \
     libyaml-devel \
     gmp-devel \
     xz \
-    # Install czmq requirements
-    uuid-devel \
+    yaml-cpp-devel \
   && ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN yum install -y \
@@ -113,25 +120,24 @@ RUN yum install -y \
     valgrind \
     tcpdump \
     openssh-server \
+    systemd-devel \
     tree
 
 RUN yum install -y \
     # redis is temporary --> has to be deployed w/ an other pod/container
     redis \
+    python3-pip && \
+    pip3 install jinja2-cli \
   && yum clean all -y \
-  && rm -rf /var/cache/yum
+  && rm -rf /var/cache/yum /var/cache/dnf \
+  && rm -f /etc/pki/entitlement/*pem /etc/rhsm/ca/*pem
 
 # Add Converged MME sources to the container
 WORKDIR /patches
-COPY  lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch .
-COPY  lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch .
-COPY  lte/gateway/c/core/oai/patches/libzmq-strncpy.patch .
-COPY  lte/gateway/c/core/oai/patches/czmq-strncat.patch .
+COPY  lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch /patches
+COPY  lte/gateway/c/core/oai/patches/0002-opencoord.org.freeDiameter.patch /patches
 
-# In some network environments, GIT proxy is required
-RUN /bin/bash -c "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"
-
-# All works will be done from root of file system
+# All works will be done from the root of the file system
 WORKDIR /
 
 # git clone may fail on our OC cluster (could not resolve github.com, other sites
@@ -142,42 +148,37 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/cpp-redis/cpp_redis.git && \
      wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
      wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
-     git clone https://github.com/liblfds/liblfds.git && \
-     git clone https://git.osmocom.org/libgtpnl && \
+     git clone https://liblfds.org/git/liblfds && \
+     git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
-     git clone https://github.com/fmtlib/fmt.git && \
-     git clone --depth=1 --branch=v3.1.5 https://github.com/google/double-conversion.git && \
-     git clone --depth=1 --branch=v1.2.1 https://github.com/libunwind/libunwind.git && \
      git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
-     git clone https://github.com/jbeder/yaml-cpp.git && \
-     git clone https://github.com/nlohmann/json.git && \
-     git clone --branch=v4.2.3 https://github.com/zeromq/libzmq.git
+     git clone https://github.com/nlohmann/json.git
 
-##### GRPC and it's dependencies
+##### GRPC and its dependencies
 RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
     # Moved git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
     echo "Install c-ares" && \
-    cd grpc && \
+    cd /grpc && \
     cd third_party/cares/cares && \
     git fetch origin && \
     git checkout cares-1_13_0 && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
-    cmake3 -DCMAKE_BUILD_TYPE=Release ../.. && \
+    mkdir -p _build && \
+    cd _build && \
+    cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release .. && \
     make -j`nproc` && \
     make install && \
-    cd ../../../../.. && \
-    rm -rf third_party/cares/cares && \
+    cd /grpc && \
+    rm -rf third_party/cares/cares/_build && \
     echo "Install zlib" && \
     cd third_party/zlib && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
-    cmake3 -DCMAKE_BUILD_TYPE=Release ../.. && \
+    mkdir -p _build && \
+    cd _build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make -j`nproc` && \
     make install && \
-    cd ../../../.. && \
-    rm -rf third_party/zlib && \
+    cd /grpc && \
+    rm -rf third_party/zlib/_build && \
     echo "Install protobuf" && \
     cd third_party/protobuf && \
     git submodule update --init --recursive  && \
@@ -185,13 +186,13 @@ RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     ./configure  && \
     make -j`nproc` && \
     make install && \
-    cd ../.. && \
-    rm -rf third_party/protobuf && \
+    git clean -x -d -ff -q && \
+    cd /grpc && \
     ldconfig && \
     echo "Install GRPC" && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
-    cmake3 \
+    mkdir -p _build && \
+    cd _build && \
+    cmake \
         -DgRPC_INSTALL=ON \
         -DBUILD_SHARED_LIBS=ON \
         -DgRPC_BUILD_TESTS=OFF \
@@ -200,9 +201,11 @@ RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
         -DgRPC_CARES_PROVIDER=package \
         -DgRPC_SSL_PROVIDER=package \
         -DCMAKE_BUILD_TYPE=Release \
-        ../.. && \
+        .. && \
     make -j`nproc` && \
-    make install
+    make install && \
+    cd .. && rm -R --interactive=never _build
+
 
 ##### Prometheus CPP
 RUN cd prometheus-cpp && \
@@ -211,45 +214,52 @@ RUN cd prometheus-cpp && \
     git submodule init && git submodule update && \
     mkdir _build && \
     cd _build/ && \
-    cmake3 .. && \
+    cmake .. && \
     make -j`nproc` && \
-    make install
+    make install && \
+    cd .. && rm -R --interactive=never _build
 
 ##### Redis CPP
 RUN cd cpp_redis && \
     # Moved git clone https://github.com/cpp-redis/cpp_redis.git && \
     git checkout bbe38a7f83de943ffcc90271092d689ae02b3489 && \
     git submodule init && git submodule update && \
-    mkdir build && cd build && \
-    cmake3 .. -DCMAKE_BUILD_TYPE=Release && \
+    mkdir _build && cd _build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make -j`nproc` && \
-    make install
+    make install && \
+    cd .. && rm -R --interactive=never _build
 
 ##### NETTLE / gnutls
 RUN tar -xf nettle-2.5.tar.gz && \
     # Moved wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     cd nettle-2.5 && \
-    mkdir build && \
-    cd build/ && \
-    ../configure --libdir=/usr/local/lib && \
+    mkdir _build && \
+    cd _build/ && \
+    ../configure --libdir=/usr/lib && \
     make -j`nproc` && \
     make install && \
     ldconfig -v && \
     cd / && \
+    rm -R --interactive=never nettle-2.5.tar.gz nettle-2.5/_build && \
     # Moved wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
-    ./configure --with-libnettle-prefix=/usr/local && \
+    ./configure --with-libnettle-prefix=/usr --prefix=/usr && \
     sed -i -e "s#elif 0#elif 1#" gl/fseterr.c && \
     make -j`nproc` && \
     make install && \
+    make clean 2>&1 > /dev/null && \
+    cd / && \
+    rm -R --interactive=never gnutls-3.1.23.tar.xz && \
     ldconfig -v
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
 RUN cd /liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j`nproc` && \
-    make ar_install
+    make ar_install && \
+    make clean
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
@@ -260,6 +270,7 @@ RUN cd libgtpnl && \
     ./configure && \
     make -j`nproc` && \
     make install && \
+    make clean 2>&1 > /dev/null && \
     ldconfig
 
 #####  asn1c
@@ -269,25 +280,8 @@ RUN cd asn1c && \
     autoreconf -iv && \
     ./configure && \
     make -j`nproc` && \
-    make install
-
-##### Unwind and Double-Conversion
-RUN echo "Install Double Conversion" && \
-    # Moved git clone --depth=1 --branch=v3.1.5 https://github.com/google/double-conversion.git && \
-    cd double-conversion && \
-    cmake3 -DBUILD_SHARED_LIBS=ON . && \
-    make -j`nproc` && \
     make install && \
-    ldconfig && \
-    cd / && \
-    echo "Install Unwind" && \
-    # Moved git clone --depth=1 --branch=v1.2.1 https://github.com/libunwind/libunwind.git && \
-    cd libunwind && \
-    ./autogen.sh && \
-    ./configure && \
-    make -j`nproc` && \
-    make install && \
-    ldconfig
+    git clean -x -d -ff -q
 
 ##### FreeDiameter
 RUN cd freediameter && \
@@ -297,14 +291,15 @@ RUN cd freediameter && \
     echo "Patching dict_S6as6d" && \
     patch -p1 < /patches/0001-opencoord.org.freeDiameter.patch && \
     patch -p1 < /patches/0002-opencoord.org.freeDiameter.patch && \
-    mkdir build && \
-    cd build && \
-    cmake3 ../ && \
+    mkdir _build && \
+    cd _build && \
+    cmake -DBUILD_TESTING=false ../ && \
     grep DISABLE_SCTP CMakeCache.txt && \
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     grep DISABLE_SCTP CMakeCache.txt && \
     make -j`nproc` && \
-    make install
+    make install && \
+    cd ../ && rm -R --interactive=never _build
 
 ##### lib nlohmann json
 RUN cd json && \
@@ -312,54 +307,45 @@ RUN cd json && \
     git log -n1 && \
     mkdir _build && \
     cd _build && \
-    cmake3 -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j`nproc` && \
-    make install
-
-##### lib yaml-cpp
-RUN cd yaml-cpp && \
-    # Moved git clone https://github.com/jbeder/yaml-cpp.git && \
-    git checkout -f yaml-cpp-0.6.3 && \
-    mkdir _build && \
-    cd _build && \
-    cmake3 -DYAML_BUILD_SHARED_LIBS=ON .. && \
-    make -j`nproc` && \
-    make install
-
-##### lib czmq
-RUN cd libzmq && \
-    # Moved git clone --branch=v4.2.3 https://github.com/zeromq/libzmq.git && \
-    patch -p1 < /patches/libzmq-strncpy.patch && \
-    ./autogen.sh && \
-    ./configure && \
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DJSON_BuildTests=OFF .. && \
     make -j`nproc` && \
     make install && \
-    git clone --branch=v4.1.0 https://github.com/zeromq/czmq.git && \
-    cd czmq && \
-    patch -p1 < /patches/czmq-strncat.patch && \
-    ./autogen.sh && \
-    ./configure && \
-    make -j`nproc` && \
-    make install
+    cd ../ && rm -Rf _build && \
+    ldconfig --verbose
+
+# Install bazel
+WORKDIR /usr/sbin
+RUN wget --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -sf /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+RUN mkdir -p /usr/lib/x86_64-linux-gnu/ && \
+    ln -s /lib64/libglog.so /usr/lib/x86_64-linux-gnu/libglog.so.0 && \
+    ln -s /lib64/libgnutls.so /usr/lib/libgnutls.so && \
+    ldconfig --verbose
+
+# Starting from here, we are building MAGMA services (sctpd and mme)
+FROM magma-mme-base as magma-mme-builder
 
 # Add Converged MME sources to the container
 COPY ./ $MAGMA_ROOT
 
 # Build MME executables
-RUN ldconfig --verbose && \
-    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
-    cd $MAGMA_ROOT/lte/gateway && \
+RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
+    # Remove entitlements
+    rm -Rf $MAGMA_ROOT/etc-pki-entitlement $MAGMA_ROOT/rhsm-conf $MAGMA_ROOT/rhsm-ca && \
+    cd $MAGMA_ROOT && \
     echo $FEATURES && \
-    make build_oai && \
-    make build_sctpd && \
-    cp $C_BUILD/core/oai/oai_mme/mme $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/core/oai/oai_mme/oai_mme && \
-    ldd $C_BUILD/sctpd/src/sctpd
+    bazel build //lte/gateway/c/core:mme_oai --define=disable_sentry_native=1 && \
+    bazel build //lte/gateway/c/sctpd/src:sctpd --define=disable_sentry_native=1 && \
+    mv $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/mme_oai $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    echo 'Shared libraries for oai_mme' && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme && \
+    echo 'Shared libraries for sctpd' && \
+    ldd $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd
 
 # Prepare config file
-RUN yum install -y python3-pip && \
-    pip3 install jinja2-cli && \
-    cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
+RUN cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
     echo -e '{ \n' \
     '"realm": "magma.com",	 \n'\
     '"use_stateless": "", \n'\
@@ -386,10 +372,12 @@ RUN yum install -y python3-pip && \
     jinja2 ../../../configs/templates/mme.conf.template mme_vars.json --format=json  > mme.conf
 
 # For developer's to have the same run env as in target image to debug
+FROM magma-mme-builder as magma-dev-mme
+
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/bin
-RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
-RUN cp $C_BUILD/sctpd/src/sctpd .
+RUN cp $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme .
+RUN cp $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd .
 WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
@@ -418,14 +406,20 @@ RUN openssl rand -out /root/.rnd 128
 ################################################################
 # Target Image
 ################################################################
-FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest as magma-mme
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
 
+# Copy RHEL certificates for builder image
+COPY ./etc-pki-entitlement /etc/pki/entitlement
+# Copy the subscription manager configurations
+COPY ./rhsm-conf /etc/rhsm
+COPY ./rhsm-ca /etc/rhsm/ca
+
 # Install a few tools (may not be necessary later on)
 ENV TZ=Europe/Paris
-RUN yum update -y && \
-    yum -y install --enablerepo="ubi-8-codeready-builder" \
+RUN microdnf update -y && \
+    microdnf -y install \
       libubsan \
       libasan \
       liblsan \
@@ -434,49 +428,45 @@ RUN yum update -y && \
       procps-ng \
       tcpdump \
       openssl \
+      boost \
+      libicu \
+      libidn \
+      libconfig \
+      lksctp-tools \
       net-tools \
       tzdata && \
-    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
-    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
-    yum clean all -y && \
-    rm -rf /var/cache/yum
+    microdnf clean all -y && \
+    rm -rf /var/cache/yum /var/cache/dnf && \
+    rm -f /etc/pki/entitlement/*pem /etc/rhsm/ca/*pem
 
 # Copy runtime-used shared libraries from builder
 WORKDIR /lib64
 COPY --from=magma-mme-builder \
-    /lib64/libsctp.so.1 \
-    /lib64/libconfig.so.9 \
-    /lib64/libboost_program_options.so.1.66.0 \
-    /lib64/libboost_filesystem.so.1.66.0 \
-    /lib64/libboost_system.so.1.66.0 \
-    /lib64/libboost_regex.so.1.66.0 \
+# From epel8, cannot be installed on minimal UBI
+    /lib64/libyaml-cpp.so.0.6 \
     /lib64/libgflags.so.2.1 \
     /lib64/libglog.so.0 \
-    /lib64/libczmq.so.3 \
-    /lib64/libicudata.so.60 \
-    /lib64/libicui18n.so.60 \
-    /lib64/libicuuc.so.60 \
-    /lib64/libidn.so.11 \
-    /usr/local/lib64/libdouble-conversion.so.3 \
-    /lib64/
-
-WORKDIR /usr/local/lib
-COPY --from=magma-mme-builder \
-    /usr/local/lib/libnettle.so.4 \
-    /usr/local/lib/libgnutls.so.28 \
+    /lib64/libdouble-conversion.so.3 \
+    /lib64/libunwind.so.8 \
+    /lib64/libzmq.so.5 \
+    /lib64/libczmq.so.4 \
+    /lib64/libsodium.so.23 \
+    /lib64/libpgm-5.2.so.0 \
+# From GRPC src build
     /usr/local/lib/libgrpc.so \
     /usr/local/lib/libgrpc++.so \
     /usr/local/lib/libgpr.so \
-    /usr/local/lib/libyaml-cpp.so.0.6 \
+    /usr/local/lib/libaddress_sorting.so \
     /usr/local/lib/libcares.so.2 \
-    /usr/local/lib/libaddress_sorting.so  \
-    /usr/local/lib/libunwind.so.8 \
-    /usr/local/lib/libfdproto.so.6 \
-    /usr/local/lib/libfdcore.so.6 \
     /usr/local/lib/libprotobuf.so.17 \
-    /usr/local/lib/libhogweed.so.2 \
-    /usr/local/lib/libzmq.so.5 \
-    /usr/local/lib/
+# From Free Diameter src build
+    /usr/local/lib/libfdcore.so.6 \
+    /usr/local/lib/libfdproto.so.6 \
+# From nettle/gnutls src build
+    /lib64/libgnutls.so.28 \
+    /lib/libnettle.so.4 \
+    /lib/libhogweed.so.2 \
+    /lib64/
 
 # Copy all fdx files from freeDiameter installation
 WORKDIR /usr/local/lib/freeDiameter
@@ -488,8 +478,8 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder \
-    $C_BUILD/core/oai/oai_mme/oai_mme \
-    $C_BUILD/sctpd/src/sctpd \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/core/oai_mme \
+    $MAGMA_ROOT/bazel-bin/lte/gateway/c/sctpd/src/sctpd \
     ./
 
 # Copy the configuration file templates and mean to modify/generate certificates
@@ -504,7 +494,9 @@ WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml && \
     openssl rand -out /root/.rnd 128 && \
+    echo 'Shared libraries for oai_mme' && \
     ldd /magma-mme/bin/oai_mme && \
+    echo 'Shared libraries for sctpd' && \
     ldd /magma-mme/bin/sctpd
 
 WORKDIR /etc/magma

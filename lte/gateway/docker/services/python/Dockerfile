@@ -18,57 +18,69 @@ ARG CPU_ARCH=x86_64
 ARG DEB_PORT=amd64
 ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
-ARG EXTRA_REPO=https://artifactory.magmacore.org/artifactory/debian-test
 
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG CPU_ARCH
 ARG DEB_PORT
 ARG OS_DIST
 ARG OS_RELEASE
-ARG EXTRA_REPO
 
 ENV MAGMA_DEV_MODE 0
 ENV TZ=Europe/Paris
 ENV MAGMA_ROOT=/magma
-ENV PYTHON_BUILD=/build
 ENV PIP_CACHE_HOME="~/.pipcache"
-ENV SWAGGER_CODEGEN_DIR /var/tmp/codegen/modules/swagger-codegen-cli/target
-ENV SWAGGER_CODEGEN_JAR ${SWAGGER_CODEGEN_DIR}/swagger-codegen-cli.jar
-ARG CODEGEN_VERSION=2.2.3
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-  wget \
-  ruby \
-  sudo \
-  ruby-dev \
   docker.io \
-  python3-pip \
-  python3-dev \
-  python3-eventlet \
-  python3-pystemd \
-  python3-protobuf \
   git \
-  virtualenv \
   lsb-release \
-  openjdk-8-jre-headless \
-  openjdk-8-jdk \
-  pkg-config \
   libsystemd-dev \
-  libprotobuf-dev
+  pkg-config \
+  python3-dev \
+  python3-pip \
+  sudo \
+  wget \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN gem install fpm
+# Download Bazel
+RUN  wget -P /usr/sbin --progress=dot:giga https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-"${DEB_PORT}" && \
+  chmod +x /usr/sbin/bazelisk-linux-"${DEB_PORT}" && \
+  ln -s /usr/sbin/bazelisk-linux-"${DEB_PORT}" /usr/sbin/bazel
 
-COPY . $MAGMA_ROOT/
-WORKDIR /var/tmp/
-RUN /magma/third_party/build/bin/aioeventlet_build.sh && \
-    dpkg -i python3-aioeventlet*
+COPY ./lte/gateway/python/integ_tests/s1aptests/ovs $MAGMA_ROOT/lte/gateway/python/integ_tests/s1aptests/ovs
+COPY ./lte/gateway/python/load_tests $MAGMA_ROOT/lte/gateway/python/load_tests
+COPY ./lte/gateway/python/scripts $MAGMA_ROOT/lte/gateway/python/scripts
+COPY ./lte/gateway/python/dhcp_helper_cli $MAGMA_ROOT/lte/gateway/python/dhcp_helper_cli
+COPY ./lte/gateway/python/magma $MAGMA_ROOT/lte/gateway/python/magma
+COPY ./orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 
-RUN mkdir -p ${SWAGGER_CODEGEN_DIR}; \
-    wget --no-verbose https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${CODEGEN_VERSION}/swagger-codegen-cli-${CODEGEN_VERSION}.jar -O ${SWAGGER_CODEGEN_JAR}
+COPY ./lte/gateway/configs $MAGMA_ROOT/lte/gateway/configs
+COPY ./orc8r/gateway/configs/templates $MAGMA_ROOT/orc8r/gateway/configs/templates
 
-WORKDIR /magma/lte/gateway/python
-RUN make buildenv
+COPY ./protos $MAGMA_ROOT/protos
+COPY ./cwf/protos $MAGMA_ROOT/cwf/protos
+COPY ./lte/protos $MAGMA_ROOT/lte/protos
+COPY ./orc8r/protos $MAGMA_ROOT/orc8r/protos
+COPY ./feg/protos $MAGMA_ROOT/feg/protos
+COPY ./dp/protos $MAGMA_ROOT/dp/protos
+
+COPY ./cwf/swagger $MAGMA_ROOT/cwf/swagger
+COPY ./feg/swagger $MAGMA_ROOT/feg/swagger
+COPY ./lte/swagger $MAGMA_ROOT/lte/swagger
+COPY ./orc8r/swagger $MAGMA_ROOT/orc8r/swagger
+
+COPY ./lte/gateway/deploy/roles/magma/files/patches $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/patches
+
+# Copy Bazel files
+COPY WORKSPACE.bazel BUILD.bazel .bazelignore .bazelrc .bazelversion ${MAGMA_ROOT}/
+COPY bazel/ ${MAGMA_ROOT}/bazel
+COPY ./lte/gateway/python/BUILD.bazel $MAGMA_ROOT/lte/gateway/python/BUILD.bazel
+COPY ./lte/gateway/release/BUILD.bazel $MAGMA_ROOT/lte/gateway/release/BUILD.bazel
+COPY ./lte/gateway/release/deb_dependencies.bzl $MAGMA_ROOT/lte/gateway/release/deb_dependencies.bzl
+
+WORKDIR /magma
+RUN bazel build //lte/gateway/release:python_executables_tar //lte/gateway/release:dhcp_helper_cli_tar
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -88,56 +100,54 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
+  docker.io \
+  ethtool \
+  inetutils-ping \
+  iproute2 \
+  iptables \
+  isc-dhcp-client \
+  linux-headers-generic \
+  net-tools \
   netcat \
-  sudo \
+  nghttp2-proxy \
   python3-pip \
   python3-venv \
-  virtualenv \
-  python3-eventlet \
-  python3-pystemd \
-  python3-jinja2 \
-  nghttp2-proxy \
-  net-tools \
-  inetutils-ping \
   redis-server \
+  sudo \
   wget \
-  ethtool \
-  linux-headers-generic \
-  iptables \
-  iproute2
+  && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$PATH"
 
-ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts/:$VIRTUAL_ENV/bin:$PATH"
-
-RUN echo "deb https://artifactory.magmacore.org/artifactory/debian-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN wget -qO - https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public | apt-key add -
+# Add the magma apt repo
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
 
 RUN apt-get update && apt-get install -y \
-  td-agent-bit \
+  bcc-tools \
   libopenvswitch \
   openvswitch-datapath-dkms \
   openvswitch-common \
   openvswitch-switch \
-  bcc-tools \
-  wireguard
+  td-agent-bit \
+  wireguard \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build /build
-COPY --from=builder /magma /magma
-COPY --from=builder /magma/orc8r/gateway/python/scripts/ /usr/local/bin
-COPY --from=builder /magma/lte/gateway/python/scripts/ /usr/local/bin
-COPY --from=builder /var/tmp/python3-aioeventlet* /var/tmp/
-COPY --from=builder /magma/lte/gateway/configs/templates /etc/magma/templates/
-COPY --from=builder /magma/orc8r/gateway/configs/templates/nghttpx.conf.template /etc/magma/templates/nghttpx.conf.template
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_service_config.py /usr/local/bin/generate_service_config.py
-COPY --from=builder /magma/orc8r/gateway/python/scripts/generate_fluent_bit_config.py /usr/local/bin/generate_fluent_bit_config.py
-COPY --from=builder /magma/lte/gateway/deploy/roles/magma/files/set_irq_affinity /usr/local/bin/set_irq_affinity
+COPY ./lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py /usr/local/bin/
+RUN mkdir -p /var/opt/magma/
 
-RUN chmod -R +x /usr/local/bin/generate* /usr/local/bin/set_irq_affinity /usr/local/bin/checkin_cli.py && \
-  dpkg -i /var/tmp/python3-aioeventlet* && \
-  pip install jsonpointer>$JSONPOINTER_VERSION && \
-  mkdir -p /var/opt/magma/
+# Copy the build artifacts.
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma_python_executables.tar.gz \
+                    /tmp/magma_python_executables.tar.gz
+RUN tar -xf /tmp/magma_python_executables.tar.gz --directory / && \
+    rm /tmp/magma_python_executables.tar.gz
+
+COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz \
+                    /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
+RUN tar -xf /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz --directory / && \
+    rm /tmp/magma-dhcp-cli_1.9.0-VERSION-SUFFIX_amd64.tar.gz
+
+WORKDIR /usr/local/bin

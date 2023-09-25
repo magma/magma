@@ -15,8 +15,9 @@ package analytics
 
 import (
 	"encoding/json"
-	"fbc/cwf/radius/modules/analytics/graphql"
 	"time"
+
+	"fbc/cwf/radius/modules/analytics/graphql"
 )
 
 // RadiusSession this is the radius session we create in WWW - information returned as mutation result
@@ -60,11 +61,8 @@ type RadiusSession struct {
 	// download bytes
 	DownloadBytes int64 `json:"download_bytes,omitempty"`
 
-	//radius_server_id
+	// radius_server_id
 	RADIUSServerID int64 `json:"radius_server_id,omitempty"`
-
-	// Vendor enum
-	Vendor int64 `json:"vendor,omitempty"`
 }
 
 // Session is a GraphQL response for create and update radius sessions.
@@ -75,40 +73,41 @@ type Session struct {
 	CalledStationID  string `json:"called_station_id,omitempty"`
 	NASIdentifier    string `json:"nas_identifier,omitempty"`
 	NASIPAddress     string `json:"nas_ip_address,omitempty"`
-	Vendor           string `json:"vendor_name,omitempty"`
 	RADIUSServerID   int64  `json:"radius_server_id,omitempty"`
 }
 
 /*
- * CreateSessionOp holds the graphql create_cwfradius_session mutation.
- * Sample usage using GraphiQL tool:
+  - CreateSessionOp holds the graphql create_cwfradius_session mutation.
+  - Sample usage using GraphiQL tool:
+
 Query/Mutation:
-mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
-mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
-	create_cwfradius_session(data: $data) {
-		client_mutation_id
-    radius_session {
-      id
-    }
-  }
-}
+
+	mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
+		create_cwfradius_session(data: $data) {
+			client_mutation_id
+	    radius_session {
+	      id
+	    }
+	  }
+	}
+
 Query Variables:
-{
-  "data": {
-    "client_mutation_id": 7,
-    "acct_session_id": "6",
-    "calling_station_id": "5",
-    "called_station_id": "4",
-    "normalized_mac_address": "aa:bb:cc:dd:ee:ff",
-    "nas_identifier": "nas",
-    "nas_ip_address": "nas ip",
-    "upload_bytes": 100,
-    "download_bytes": 100,
-    "radius_server_id": 0,
-    "vendor_name": "CAMBIUM",
-    "framed_ip_address": "1.1.1.1"
-  }
-}
+
+	{
+	  "data": {
+	    "client_mutation_id": 7,
+	    "acct_session_id": "6",
+	    "calling_station_id": "5",
+	    "called_station_id": "4",
+	    "normalized_mac_address": "aa:bb:cc:dd:ee:ff",
+	    "nas_identifier": "nas",
+	    "nas_ip_address": "nas ip",
+	    "upload_bytes": 100,
+	    "download_bytes": 100,
+	    "radius_server_id": 0,
+	    "framed_ip_address": "1.1.1.1"
+	  }
+	}
 */
 type CreateSessionOp struct {
 	Session *RadiusSession
@@ -148,7 +147,6 @@ func (c *CreateSessionOp) Vars() (string, error) {
 		"upload_bytes":           c.Session.UploadBytes,
 		"download_bytes":         c.Session.DownloadBytes,
 		"radius_server_id":       c.Session.RADIUSServerID,
-		"vendor_name":            Vendor(c.Session.Vendor).String(),
 	}.String()
 }
 
@@ -202,7 +200,6 @@ Query Variables:
     "upload_bytes": 100,
     "download_bytes": 100,
     "radius_server_id": 0,
-    "vendor_name": "CAMBIUM",
     "framed_ip_address": "1.1.1.1"
   }
 }*/
@@ -247,7 +244,6 @@ func (u *UpdateSessionOp) Vars() (string, error) {
 		"upload_bytes":           u.Session.UploadBytes,
 		"download_bytes":         u.Session.DownloadBytes,
 		"radius_server_id":       u.Session.RADIUSServerID,
-		"vendor_name":            Vendor(u.Session.Vendor).String(),
 	}
 	return v.String()
 }

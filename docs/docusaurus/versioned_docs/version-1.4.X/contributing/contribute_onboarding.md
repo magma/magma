@@ -35,7 +35,7 @@ The FeG serves as the interface to existing operator cores, affording a modern, 
 
 ## Points of contact
 
-Check out the [Community](https://www.magmacore.org/community/) page for community entry points. The principal resources are
+Check out the [Community](https://magmacore.org/join-the-open-source-community/) page for community entry points. The principal resources are
 
 - [GitHub Discussions page](https://github.com/magma/magma/discussions). Best place to ask questions if you're stuck or want more context.
 - Community Slack channel. Say hello in `#general` and let us know you're onboarding to the project.
@@ -100,7 +100,7 @@ Install Magma locally and get everything running.
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
 2. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
-    2. [Via IntelliJ](https://magma.github.io/magma/docs/next/orc8r/development/testing_tips)
+    2. [Via IntelliJ](https://magma.github.io/magma/docs/1.4.X/orc8r/dev_testing_tips)
 3. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
 4. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
     - You will need to toggle a Google Chrome preference to [allow insecure localhost](https://superuser.com/questions/772762/how-can-i-disable-security-checks-for-localhost)
@@ -109,7 +109,7 @@ Note: remember to periodically call `docker system prune` to clear outdated Dock
 
 ### Complete a starter task
 
-If you haven't already, join our community Slack channel via the link from the [Community](https://www.magmacore.org/community/) page and say hello in `#general`. We can point you toward a good starter task. You can also use the [`good first issue` tag on our GitHub repo to search for good starter tasks](https://github.com/magma/magma/labels/good%20first%20issue).
+If you haven't already, join our community Slack channel via the link from the [Community](https://magmacore.org/join-the-open-source-community/) page and say hello in `#general`. We can point you toward a good starter task. You can also use the [`good first issue` tag on our GitHub repo to search for good starter tasks](https://github.com/magma/magma/labels/good%20first%20issue).
 
 As you're working on your starter task, refer to [Development Workflow](./contribute_workflow.md) for guidance on how to author a pull request and [Contributing Conventions](./contribute_conventions.md) for Magma conventions. Once your pull request is approved and merged, you're now an official contributor to the Magma project!
 

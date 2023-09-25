@@ -17,7 +17,7 @@ import EnodebContext from '../../../context/EnodebContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {EnodebInfo} from '../../../components/lte/EnodebUtils';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
@@ -122,7 +122,7 @@ describe('<Enodeb />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork/enodeb']} initialIndex={0}>
-      <LocalizationProvider dateAdapter={AdapterMoment}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
             <ThemeProvider theme={defaultTheme}>

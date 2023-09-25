@@ -123,10 +123,16 @@ typedef struct paging_tai_list_s {
     tai_dst.tac = tai_src.tac;                         \
   } while (0)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int encode_tracking_area_identity(tai_t* tai, uint8_t iei, uint8_t* buffer,
                                   uint32_t len);
 int decode_tracking_area_identity(tai_t* tai, uint8_t iei, uint8_t* buffer,
                                   uint32_t len);
+#ifdef __cplusplus
+}
+#endif
 void clear_tai(tai_t* const tai);
 
 #endif /* TRACKING AREA IDENTITY_SEEN */

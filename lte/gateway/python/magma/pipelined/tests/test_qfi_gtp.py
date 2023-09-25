@@ -103,7 +103,7 @@ class QfigtpTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_qfi_set_tunnel_flows(self):
+    def test_qfi_tunnel_flows(self):
 
         # Need to delete all default flows in table 0 before
         # install the specific flows test case.
@@ -122,23 +122,22 @@ class QfigtpTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
+            snapshot_name='with_qfi_flows',
+            include_stats=False,
         )
         with snapshot_verifier:
             pass
 
-    def test_qfi_delete_tunnel_flows(self):
-
-        ue_ip_addr = "192.168.128.30"
-        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.delete_tunnel_flows(
             1, IPAddress(version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8')),
-            ip_flow_dl=ip_flow_dl,
+            ip_flow_dl=ip_flow_dl, session_qfi=9,
         )
 
         snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
             include_stats=False,
+            snapshot_name='empty',
         )
         with snapshot_verifier:
             pass

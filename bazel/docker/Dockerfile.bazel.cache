@@ -1,0 +1,76 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+##########################################################
+# Build the bazel cache for all configs
+##########################################################
+# hadolint ignore=DL3007
+FROM ghcr.io/magma/magma/bazel-base:latest as bazel_builder_cache
+
+ENV MAGMA_ROOT=/workspaces/magma
+
+# The bazel target rule and config are inputs via '--build-arg'.
+ARG BAZEL_TARGET_RULE='.*_test'
+# BAZEL-CONFIG needs to be of the form '--config=config_name'.
+ARG BAZEL_CONFIG=''
+
+# Copy Magma repository into the builder.
+COPY ./ $MAGMA_ROOT
+COPY ./lte/gateway/configs /etc/magma
+
+# Remove sym-links to cache folders and create directories.
+# Build the caches by running the bazel tests.
+# --flaky_test_attempts is set to avoid build failures due
+# to flaky unit tests.
+# --test_tag_filters=-manual is needed to avoid running
+# integration and Python sudo tests.
+# hadolint ignore=SC2006,DL3003
+RUN rm /var/cache/bazel-cache && \
+    rm /var/cache/bazel-cache-repo && \
+    mkdir -p /var/cache/bazel-cache && \
+    mkdir -p /var/cache/bazel-cache-repo && \
+    cd $MAGMA_ROOT && \
+    if [ -z "${BAZEL_CONFIG}" ]; then echo "Running Bazel coverage on all 'cc_test' targets ..."; fi && \
+    if [ -z "${BAZEL_CONFIG}" ]; then bazel coverage //orc8r/gateway/c/... //lte/gateway/c/... --flaky_test_attempts=5; fi && \
+    if [ "${BAZEL_CONFIG}" = "--config=production" ]; then echo "Running Bazel release build ..." ; fi && \
+    if [ "${BAZEL_CONFIG}" = "--config=production" ]; then bazel run //lte/gateway/release:release_build --config=production; fi && \
+    echo "Running Bazel test on all '${BAZEL_TARGET_RULE}' targets with config '${BAZEL_CONFIG}' ..." && \
+    bazel test ${BAZEL_CONFIG} --flaky_test_attempts=5 --test_tag_filters=-manual `bazel query "kind(${BAZEL_TARGET_RULE}, //...)"` && \
+    echo "The size of the /var/cache/bazel-cache* folders is:" && \
+    du -sh /var/cache/bazel-cache*
+
+##########################################################
+# Copy the cache into a clean new image to be used in CI
+##########################################################
+# hadolint ignore=DL3007
+FROM ghcr.io/magma/magma/bazel-base:latest as bazel_cache
+
+ENV MAGMA_ROOT=/workspaces/magma
+
+# Remove sym-links to cache folders and create directories.
+RUN rm /var/cache/bazel-cache && \
+    rm /var/cache/bazel-cache-repo && \
+    mkdir -p /var/cache/bazel-cache && \
+    mkdir -p /var/cache/bazel-cache-repo
+
+# Copy the caches from the builder image to the final image.
+COPY --from=bazel_builder_cache \
+    /var/cache/bazel-cache \
+    /var/cache/bazel-cache
+
+# Copy the caches from the builder image to the final image.
+COPY --from=bazel_builder_cache \
+    /var/cache/bazel-cache-repo \
+    /var/cache/bazel-cache-repo
+
+# Print volume of the caches for debugging.
+RUN echo "The size of the /var/cache/bazel-cache* folders is:" && \
+    du -sh /var/cache/bazel-cache*

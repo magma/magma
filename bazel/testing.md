@@ -6,23 +6,23 @@ Bazel ships with support for executing tests and generating test coverage.
 
 In general tests are executed by calling `bazel test` on one or multiple targets, where the targets are defined by a test rule.
 
-* Execute one test:
+- Execute one test:
 `bazel test //lte/gateway/python/magma/mobilityd/tests:test_uplink_gw`
 
-* Execute all tests in folder:
+- Execute all tests in folder:
 `bazel test //lte/gateway/python/magma/mobilityd/tests:all`
 Note: "all" is a keyword that expands all found test targets.
 
-* Execute all tests in lte:
+- Execute all tests in lte:
 `bazel test //lte/...:all`
 
-* Execute all tests:
+- Execute all tests:
 `bazel test //...:all`
 
-* Why is my test not executed?
-  * A reason could be a test tagged as "manual", see below.
+- Why is my test not executed?
+    - A reason could be a test tagged as "manual", see below.
 
-* Bazel not only caches build targets that are needed for tests, but also test results. This is, if there is no change in test dependencies or test logic, then a test re-run is completely fetched from the caches.
+- Bazel not only caches build targets that are needed for tests, but also test results. This is, if there is no change in test dependencies or test logic, then a test re-run is completely fetched from the caches.
 
 ## Helpful Flags
 
@@ -53,20 +53,21 @@ py_test(
   tags = TAG_FOO + TAG_BAR,
 )
 ```
+
 Tags can be used to filter tests to be executed:
 `bazel test --test_tag_filters=foo,-bar ...`
 Execute all tests that are tagged with "foo" but exclude all that are tagged with "bar".
 
 ### Tag Usage In Magma
 
- * Tags are not used for specifying components or modules, e.g., "lte" or "mobilityd". In order to filter on those criteria use the target expansion on folders, e.g.,
-   * `bazel test //lte/gateway/python/...:all`
+- Tags are not used for specifying components or modules, e.g., "lte" or "mobilityd". In order to filter on those criteria use the target expansion on folders, e.g.,
+    - `bazel test //lte/gateway/python/...:all`
      all python lte tests
-   * `bazel test //lte/gateway/python/magma/mobilityd/...:all`
+    - `bazel test //lte/gateway/python/magma/mobilityd/...:all`
      all python mobilityd tests
-  * Unit test is the default test type, i.e., there is no tag required for these tests.
-  * Non-unit-tests should be tagged by the specific test type, e.g., integration_test, load_test, ... . These tests should usually also be tagged as "manual" (see below).
-    * Example: All "sudo tests" (Python specific tests that need to be executed as root) are tagged with "sudo_test" and "manual". This is handled via [test_constants.bzl](bazel/test_constants.bzl).
+- Unit test is the default test type, i.e., there is no tag required for these tests.
+- Non-unit-tests should be tagged by the specific test type, e.g., integration_test, load_test, ... . These tests should usually also be tagged as "manual" (see below).
+    - Example: All "sudo tests" (Python specific tests that need to be executed as root) are tagged with "sudo_test" and "manual". This is handled via [test_constants.bzl](bazel/test_constants.bzl).
 
 ### Tags With Special Semantics
 

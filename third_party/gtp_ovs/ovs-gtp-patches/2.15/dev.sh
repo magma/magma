@@ -25,15 +25,18 @@ function setup() {
   git am "$MAGMA_ROOT/third_party/gtp_ovs/ovs-gtp-patches/$OVS_VER"/00*
 
   cd ../
-  git clone git://git.osmocom.org/libgtpnl
+  git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl
   cd libgtpnl
   autoreconf -fi && ./configure && make && make install
-  cp ./src/.libs/libgtpnl.so.0.1.1 /lib/libgtpnl.so.0
+  cp ./src/.libs/libgtpnl.so.0.1.2 /lib/libgtpnl.so.0
 }
 
 
 function  build_test() {
   service magma@* stop
+  # sometimes this package is auto removed.
+
+  apt install -y linux-modules-extra-`uname -r`
 
   sleep 1
   ifdown gtp_br0
@@ -64,6 +67,9 @@ function  build_test() {
   modprobe nft_connlimit
   modprobe nft_counter
   modprobe gtp
+  rmmod vport_gtp || true
+  rmmod openvswitch || true
+
   cp datapath/linux/*.ko /lib/modules/`uname -r`/kernel/net/openvswitch/
   cp datapath/linux/*.ko /lib/modules/`uname -r`/updates/dkms/
   sync

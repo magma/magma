@@ -16,11 +16,17 @@ import json
 import os
 import sys
 import time
+from typing import Optional
 
 from firebase_admin import credentials, db, initialize_app
 
 
-def publish_report(worker_id, build_id, verdict, report):
+def publish_report(
+    worker_id: str,
+    build_id: str,
+    verdict: str,
+    report: str,
+):
     """Publish report to Firebase realtime database"""
     # Read Firebase service account config from envirenment
     firebase_config = os.environ["FIREBASE_SERVICE_CONFIG"]
@@ -44,65 +50,66 @@ def publish_report(worker_id, build_id, verdict, report):
     reports_ref.set(report_dict)
 
 
-def url_to_html_redirect(run_id, url):
+def url_to_html_redirect(run_id: str, url: Optional[str]):
     """Convert URL into a redirecting HTML page"""
     report_url = url
-    if url is None:
-        report_url = 'https://github.com/magma/magma/actions/runs/' + run_id
+    if not url:
+        report_url = f'https://github.com/magma/magma/actions/runs/{run_id}'
 
-    return '<script>'\
-           '  window.location.href = "' + report_url + '";'\
-           '</script>'
+    return (
+        f'<script>'
+        f'  window.location.href = "{report_url}";'
+        f'</script>'
+    )
 
 
-def lte_integ_test(args):
+def debian_lte_integ_test(args):
     """Prepare and publish LTE Integ Test report"""
-    report = url_to_html_redirect(args.run_id, args.url)
-    # Possible args.verdict values are success, failure, or canceled
-    verdict = 'inconclusive'
-
-    # As per the recent change, CI process runs all integ tests ignoring the
-    # failing test cases, because of which CI report always shows lte integ
-    # test as success. Here we read the CI status from file for more accurate
-    # lte integ test execution status
-    if os.path.exists("test_status.txt"):
-        with open('test_status.txt', 'r') as file:
-            status_file_content = file.read().rstrip()
-            expected_verdict_list = ["pass", "fail"]
-            if status_file_content in expected_verdict_list:
-                verdict = status_file_content
-    publish_report('lte_integ_test', args.build_id, verdict, report)
+    prepare_and_publish('debian_lte_integ_test', args, 'test_status.txt')
 
 
 def feg_integ_test(args):
     """Prepare and publish FEG Integ Test report"""
-    report = url_to_html_redirect(args.run_id, args.url)
-    # Possible args.verdict values are success, failure, or canceled
-    verdict = 'inconclusive'
-
-    # As per the recent change, CI process runs all integ tests ignoring the
-    # failing test cases, because of which CI report always shows feg integ
-    # test as success. Here we read the CI status from file for more accurate
-    # feg integ test execution status
-    if os.path.exists("test_status.txt"):
-        with open('test_status.txt', 'r') as file:
-            status_file_content = file.read().rstrip()
-            expected_verdict_list = ["pass", "fail"]
-            if status_file_content in expected_verdict_list:
-                verdict = status_file_content
-    publish_report('feg_integ_test', args.build_id, verdict, report)
+    prepare_and_publish('feg_integ_test', args, 'test_status.txt')
 
 
 def cwf_integ_test(args):
     """Prepare and publish CWF Integ Test report"""
+    prepare_and_publish('cwf_integ_test', args)
+
+
+def sudo_python_tests(args):
+    """Prepare and publish Sudo Python Test report"""
+    prepare_and_publish('sudo_python_tests', args)
+
+
+def containerized_lte_integ_test(args):
+    """Prepare and publish containerized LTE Integ Test report"""
+    prepare_and_publish('containerized_lte_integ_test', args, 'test_status.txt')
+
+
+def prepare_and_publish(test_type: str, args, path: Optional[str] = None):
+    """Prepare and publish test report"""
     report = url_to_html_redirect(args.run_id, args.url)
-    # Possible args.verdict values are success, failure, or canceled
+    # Possible args.verdict values are success, failure, or inconclusive
     verdict = 'inconclusive'
-    if args.verdict.lower() == 'success':
-        verdict = 'pass'
-    elif args.verdict.lower() == 'failure':
-        verdict = 'fail'
-    publish_report('cwf_integ_test', args.build_id, verdict, report)
+
+    if path and os.path.exists(path):
+        # As per the recent change, CI process runs all integ tests ignoring
+        # the failing test cases, because of which CI report always shows lte
+        # integ test as success. Here we read the CI status from file for more
+        # accurate lte integ test execution status
+        with open(path, 'r') as file:
+            status_file_content = file.read().rstrip()
+            expected_verdict_list = ["pass", "fail"]
+            if status_file_content in expected_verdict_list:
+                verdict = status_file_content
+    else:
+        if args.verdict.lower() == 'success':
+            verdict = 'pass'
+        elif args.verdict.lower() == 'failure':
+            verdict = 'fail'
+    publish_report(test_type, args.build_id, verdict, report)
 
 
 # Create the top-level parser
@@ -110,6 +117,7 @@ parser = argparse.ArgumentParser(
     description='Traffic CLI that generates traffic to an endpoint',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
+
 
 # Add arguments
 parser.add_argument("--build_id", "-id", required=True, help="build ID")
@@ -119,20 +127,20 @@ parser.add_argument("--run_id", default="none", help="Github Actions Run ID")
 # Add subcommands
 subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
 
-# Create the parser for the "lte" command
-parser_lte = subparsers.add_parser('lte')
-parser_lte.add_argument("--url", default="none", help="Report URL", nargs='?')
-parser_lte.set_defaults(func=lte_integ_test)
+tests = {
+    'feg': feg_integ_test,
+    'cwf': cwf_integ_test,
+    'sudo_python_tests': sudo_python_tests,
+    'debian_lte_integ_test': debian_lte_integ_test,
+    'containerized_lte': containerized_lte_integ_test,
+}
 
-# Create the parser for the "feg" command
-parser_feg = subparsers.add_parser('feg')
-parser_feg.add_argument("--url", default="none", help="Report URL", nargs='?')
-parser_feg.set_defaults(func=feg_integ_test)
-
-# Create the parser for the "cwf" command
-parser_cwf = subparsers.add_parser('cwf')
-parser_cwf.add_argument("--url", default="none", help="Report URL", nargs='?')
-parser_cwf.set_defaults(func=cwf_integ_test)
+for key, value in tests.items():
+    test_parser = subparsers.add_parser(key)
+    test_parser.add_argument(
+        "--url", default="none", help="Report URL", nargs='?',
+    )
+    test_parser.set_defaults(func=value)
 
 # Read arguments from the command line
 args = parser.parse_args()

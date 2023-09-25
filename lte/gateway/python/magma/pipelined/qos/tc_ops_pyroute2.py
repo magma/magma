@@ -14,9 +14,9 @@ limitations under the License.
 
 import logging
 import pprint
-from typing import Union
+from typing import Optional, Union
 
-from pyroute2 import IPRoute, NetlinkError
+from pyroute2 import IPRoute, NetlinkError  # pylint: disable=no-name-in-module
 
 from .tc_ops import TcOpsBase
 
@@ -39,7 +39,7 @@ class TcOpsPyRoute2(TcOpsBase):
 
     def create_htb(
         self, iface: str, qid: str, max_bw: int, rate: str,
-        parent_qid: str = None,
+        units: str, parent_qid: Optional[str] = None,
     ) -> int:
         """
         Create HTB class for a UE session.
@@ -49,22 +49,22 @@ class TcOpsPyRoute2(TcOpsBase):
             qid: qid number.
             max_bw: ceiling in bits per sec.
             rate: rate limiting.
+            units: bit/kbit
             parent_qid: HTB parent queue.
 
         Returns:
             zero on success.
         """
 
-        LOG.debug("Create HTB iface %s qid %s max_bw %s rate %s", iface, qid, max_bw, rate)
+        LOG.debug("Create HTB iface %s qid %s max_bw %s%s rate %s", iface, qid, max_bw, units, rate)
         try:
             # API needs ceiling in bytes per sec.
-            max_bw_bytes = max_bw / 8
             if_index = self._get_if_index(iface)
             htb_queue = QUEUE_PREFIX + qid
             ret = self._ipr.tc(
                 "add-class", "htb", if_index,
                 htb_queue, parent=parent_qid,
-                rate=str(rate).lower(), ceil=max_bw_bytes, prio=1,
+                rate=str(rate).lower(), ceil=str(max_bw) + units, prio=1,
             )
             LOG.debug("Return: %s", ret)
         except (ValueError, NetlinkError) as ex:
@@ -140,10 +140,10 @@ class TcOpsPyRoute2(TcOpsBase):
         return 0
 
     def create(
-        self, iface: str, qid: str, max_bw: int, rate=None,
-        parent_qid: str = None, proto=PROTOCOL,
+        self, iface: str, qid: str, max_bw: int, units: str, rate=None,
+        parent_qid: Optional[str] = None, proto=PROTOCOL,
     ) -> int:
-        err = self.create_htb(iface, qid, max_bw, rate, parent_qid)
+        err = self.create_htb(iface, qid, max_bw, rate, units, parent_qid)
         if err:
             return err
         err = self.create_filter(iface, qid, qid, proto)

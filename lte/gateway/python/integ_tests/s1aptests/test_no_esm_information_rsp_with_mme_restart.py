@@ -57,9 +57,7 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
 
         global response
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received Auth Req for ue-id", ue_id)
 
         auth_res = s1ap_types.ueAuthResp_t()
@@ -73,9 +71,7 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("Received Security Mode Command for ue-id", ue_id)
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -87,17 +83,14 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
 
         # Esm Information Request indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
         print("Received Esm Information Request ue-id", ue_id)
 
         print("************************* Restarting MME service on", "gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Receive UE_ESM_INFORMATION_REQ, as sometimes MME retransmits
         # UE_ESM_INFORMATION_REQ message before it restarts
@@ -109,10 +102,9 @@ class TestNoEsmInformationRspWithMmeRestart(unittest.TestCase):
                 ue_id,
             )
             # Wait for UE_CTX_REL_IND
-            response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+            while response.msg_type != s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
+                response = self._s1ap_wrapper.s1_util.get_response()
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Perform end-end attach
         self._s1ap_wrapper.s1_util.attach(

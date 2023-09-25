@@ -85,12 +85,12 @@ func getHandlerWithRouteFunc(configManagerURL string, handlerImplFunc func(echo.
 func configureAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	sendErr := sendConfig(receiver, url, http.MethodPost, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Errorf("%s", sendErr.Message))
+		return sendErr
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -105,7 +105,7 @@ func retrieveAlertReceivers(c echo.Context, url string, client HttpClient) error
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error reading receivers: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error reading receivers: %v", body.Message))
 	}
 	var recs []config.Receiver
 	err = json.NewDecoder(resp.Body).Decode(&recs)
@@ -118,20 +118,20 @@ func retrieveAlertReceivers(c echo.Context, url string, client HttpClient) error
 func updateAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	receiverName := c.Param(ReceiverNamePathParam)
 	if receiverName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("receiver name not provided"))
+		return echo.NewHTTPError(http.StatusBadRequest, "receiver name not provided")
 	}
 	if receiverName != receiver.Name {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("new receiver configuration must have same name"))
+		return echo.NewHTTPError(http.StatusBadRequest, "new receiver configuration must have same name")
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
 	sendErr := sendConfig(receiver, url, http.MethodPut, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, sendErr)
+		return sendErr
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -139,23 +139,23 @@ func updateAlertReceiver(c echo.Context, url string, client HttpClient) error {
 func deleteAlertReceiver(c echo.Context, url string, client HttpClient) error {
 	receiverName := c.QueryParam(ReceiverNameQueryParam)
 	if receiverName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("receiver name not provided"))
+		return echo.NewHTTPError(http.StatusBadRequest, "receiver name not provided")
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error deleting receiver: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error deleting receiver: %v", body.Message))
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -170,12 +170,12 @@ func retrieveAlertRoute(c echo.Context, url string, client HttpClient) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error reading alerting route: %v", body.Message))
+		return echo.NewHTTPError(resp.StatusCode, fmt.Sprintf("error reading alerting route: %v", body.Message))
 	}
 	var route config.Route
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error decoding server response %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error decoding server response %v", err))
 	}
 	return c.JSON(http.StatusOK, route)
 }
@@ -183,12 +183,12 @@ func retrieveAlertRoute(c echo.Context, url string, client HttpClient) error {
 func updateAlertRoute(c echo.Context, url string, client HttpClient) error {
 	route, err := buildRouteFromContext(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid route specification: %v", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid route specification: %v", err))
 	}
 
 	sendErr := sendConfig(route, url, http.MethodPost, client)
 	if sendErr != nil {
-		return echo.NewHTTPError(sendErr.Code, fmt.Errorf("error updating alert route: %v", sendErr.Message))
+		return echo.NewHTTPError(sendErr.Code, fmt.Sprintf("error updating alert route: %v", sendErr.Message))
 	}
 	return c.NoContent(http.StatusOK)
 }

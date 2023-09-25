@@ -19,7 +19,7 @@ set -e -o pipefail
 FWA="fwa"
 FFWA="federated_fwa"
 ALL="all"
-ORC8R_VERSION="1.4"
+ORC8R_VERSION="1.8"
 
 # package chart, update index.yaml and push it to artifactory
 update_and_send_to_artifactory () {
@@ -175,8 +175,8 @@ else
   fi
 
   if [[ $ONLY_PACKAGE = false ]]; then
-      if [[ -z $HELM_CHART_MUSEUM_REPO ]]; then
-    exitmsg "Environment variable $HELM_CHART_MUSEUM_REPO must be set"
+    if [[ -z $HELM_CHART_MUSEUM_REPO ]]; then
+      exitmsg "Environment variable HELM_CHART_MUSEUM_REPO must be set"
     fi
 
     if [[ -z $HELM_CHART_MUSEUM_USERNAME ]]; then

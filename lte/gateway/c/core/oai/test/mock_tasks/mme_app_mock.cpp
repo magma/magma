@@ -12,7 +12,7 @@
  */
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
-#include "lte/gateway/c/core/oai/include/mme_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
 
 task_zmq_ctx_t task_zmq_ctx_mme;
 static std::shared_ptr<MockMmeAppHandler> mme_app_handler_;

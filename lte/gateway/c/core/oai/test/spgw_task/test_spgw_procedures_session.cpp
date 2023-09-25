@@ -18,13 +18,17 @@
 #include <memory>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -33,10 +37,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/include/s11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 }
 
 namespace magma {
@@ -75,15 +75,17 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // Verify that no IP address is allocated for this UE
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
+  magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
+  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection(),
+      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
 
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  ASSERT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
+              UNASSIGNED_UE_IP);
 
   // send an IP alloc response to SPGW with status as failure
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
@@ -124,15 +126,17 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // Verify that no IP address is allocated for this UE
-  s_plus_p_gw_eps_bearer_context_information_t* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-      &spgw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-           .pdn_connection,
-      DEFAULT_EPS_BEARER_ID);
+  magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
+  magma::proto_map_rc_t rc = sgw_cm_get_eps_bearer_entry(
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection(),
+      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
 
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == UNASSIGNED_UE_IP);
+  ASSERT_TRUE(eps_bearer_ctxt.ue_ip_paa().ipv4_addr().size() ==
+              UNASSIGNED_UE_IP);
 
   // send an IP alloc response to SPGW
   itti_ip_allocation_response_t test_ip_alloc_resp = {};
@@ -142,7 +146,14 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   sgw_handle_ip_allocation_rsp(spgw_state, &test_ip_alloc_resp, test_imsi64);
 
   // check if IP address is allocated after this message is done
-  ASSERT_TRUE(eps_bearer_ctxt_p->paa.ipv4_address.s_addr == DEFAULT_UE_IP);
+  sgw_cm_get_eps_bearer_entry(
+      spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context()
+          ->mutable_pdn_connection(),
+      DEFAULT_EPS_BEARER_ID, &eps_bearer_ctxt);
+  struct in_addr ue_ipv4 = {};
+  int ue_ip = DEFAULT_UE_IP;
+  inet_pton(AF_INET, eps_bearer_ctxt.ue_ip_paa().ipv4_addr().c_str(), &ue_ipv4);
+  ASSERT_TRUE(!(memcmp(&ue_ipv4, &ue_ip, sizeof(DEFAULT_UE_IP))));
 
   // send pcef create session response to SPGW
   itti_pcef_create_session_response_t sample_pcef_csr_resp;

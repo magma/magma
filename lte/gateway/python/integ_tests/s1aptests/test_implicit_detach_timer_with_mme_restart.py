@@ -88,10 +88,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
         # Mobile Reachability Timer value = 1 minute (conf file) + delta value
@@ -107,11 +104,10 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             print("*********** Slept for", time_slept, "seconds")
 
         print("************************* Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Wait for Implicit detach timer to expire, on expiry of which MME deletes
         # UE contexts locally, S1ap tester shall send Service Request expecting
@@ -142,9 +138,8 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
+        assert (
+            response.msg_type == s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
         )
         print(
             "************************* Received Service Reject for UE id ",
@@ -153,10 +148,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
 
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
 
 if __name__ == "__main__":

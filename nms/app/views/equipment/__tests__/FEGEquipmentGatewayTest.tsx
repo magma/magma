@@ -15,7 +15,6 @@ import FEGEquipmentDashboard from '../FEGEquipmentDashboard';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import moment from 'moment';
 import {AxiosResponse} from 'axios';
 import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {
@@ -25,6 +24,7 @@ import {
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {fireEvent, render, waitFor} from '@testing-library/react';
+import {formatRelative, getUnixTime, toDate} from 'date-fns';
 import {mockAPI, mockAPIOnce} from '../../../util/TestUtils';
 import type {
   Csfb,
@@ -167,11 +167,14 @@ const mockKPIMetric: PromqlReturnObject = {
   },
 };
 
-const lastFalloverTimeResponse1 = moment().unix();
+const lastFalloverTimeResponse1 = getUnixTime(new Date());
 
-const lastFalloverTimeResponse2 = moment().unix();
+const lastFalloverTimeResponse2 = getUnixTime(new Date());
 
-const lastFalloverTime = `${moment.unix(lastFalloverTimeResponse2).calendar()}`;
+const lastFalloverTime = `${formatRelative(
+  toDate(lastFalloverTimeResponse2),
+  new Date(),
+)}`;
 
 const mockFalloverStatus: PromqlReturnObject = {
   status: 'success',

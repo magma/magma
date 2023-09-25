@@ -67,10 +67,7 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
             attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqn_recvd = s1ap_types.ueSqnRcvd_t()
@@ -83,10 +80,7 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         )
         response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
@@ -110,11 +104,10 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
             "************************* Restarting MME service on",
             "gateway",
         )
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(20):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 20
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         # Receive NW initiated detach request
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -126,20 +119,14 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value
         nw_init_detach_req = response.cast(s1ap_types.ueNwInitdetachReq_t)
         print(
             "**************** Received NW initiated Detach Req with detach "
             "type set to ",
             nw_init_detach_req.Type,
         )
-        self.assertEqual(
-            nw_init_detach_req.Type,
-            s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value,
-        )
+        assert nw_init_detach_req.Type == s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value
 
         print("**************** Sending Detach Accept")
         # Send detach accept
@@ -168,16 +155,10 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
                 nw_init_detach_req.Type,
                 "Ignoring...",
             )
-            self.assertEqual(
-                nw_init_detach_req.Type,
-                s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value,
-            )
+            assert nw_init_detach_req.Type == s1ap_types.ueNwInitDetType_t.TFW_RE_ATTACH_REQUIRED.value
             response = self._s1ap_wrapper.s1_util.get_response()
 
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("****** Received Ue context release command *********")
 
         print("****** Triggering end-end attach after mme restart *********")

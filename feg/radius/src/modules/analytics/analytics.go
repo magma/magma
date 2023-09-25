@@ -24,13 +24,13 @@ import (
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/analytics/graphql"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"fbc/lib/go/radius/rfc2866"
-	"fbc/lib/go/radius/rfc2869"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
+	"layeh.com/radius/rfc2866"
+	"layeh.com/radius/rfc2869"
 )
 
 const InsecureVerify = true
@@ -54,6 +54,7 @@ type (
 )
 
 // Init module interface implementation
+//
 //nolint:deadcode
 func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var ctx ModuleCtx
@@ -110,6 +111,7 @@ func getSessionState(logger *zap.Logger, c *modules.RequestContext) (*session.St
 }
 
 // Handle module interface implementation
+//
 //nolint:deadcode
 func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	mCtx := m.(ModuleCtx)

@@ -16,14 +16,7 @@
 ###############################################################################
 
 # virtualenv bin and build dirs
-PYTHON_VERSION=3.5
-OS_DISTRO := $(shell lsb_release -si)
-OS_VERSION := $(shell lsb_release -rs)
-ifeq ($(OS_DISTRO),Ubuntu)
-	ifeq ($(OS_VERSION),20.04)
-    	PYTHON_VERSION=3.8
-	endif
-endif
+PYTHON_VERSION=3.8
 
 BIN := $(PYTHON_BUILD)/bin
 SRC := $(MAGMA_ROOT)
@@ -58,8 +51,8 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
 
-	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch 2>/dev/null \
-	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch && echo "ryu was patched" ) \
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/app/ofctl/service.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/app/ofctl/service.py <$(PATCHES_DIR)/0001-Set-unknown-dpid-ofctl-log-to-debug.patch && echo "ryu was patched" ) \
 	|| ( true && echo "skipping ryu patch since it was already applied")
 
 	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nicira_ext.py <$(PATCHES_DIR)/0002-QFI-value-set-in-Openflow-controller-using-RYU.patch 2>/dev/null \
@@ -116,7 +109,7 @@ prometheus_proto:
 
 # If you update the version here, you probably also want to update it in setup.py
 $(BIN)/grpcio-tools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools>=1.16.1"
+	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools>=1.46.3,<1.49.0"
 
 .test: .tests .sudo_tests
 

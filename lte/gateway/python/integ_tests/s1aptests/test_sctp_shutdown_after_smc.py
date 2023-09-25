@@ -50,9 +50,7 @@ class TestSctpShutdownAfterSmc(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received auth req ind ue-id", req.ue_id)
 
         auth_res = s1ap_types.ueAuthResp_t()
@@ -66,9 +64,7 @@ class TestSctpShutdownAfterSmc(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("Received Security Mode Command ue-id", req.ue_id)
 
         print("send SCTP SHUTDOWN")

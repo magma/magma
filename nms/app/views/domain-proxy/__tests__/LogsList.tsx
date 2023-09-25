@@ -12,14 +12,12 @@
  */
 
 import LogsList from '../LogsList';
+import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment';
+import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 import {LocalizationProvider} from '@mui/x-date-pickers';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
-
-import MagmaAPI from '../../../api/MagmaAPI';
-import moment from 'moment';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {
   fireEvent,
@@ -29,6 +27,7 @@ import {
   within,
 } from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
+import {parse} from 'date-fns';
 
 const mockEnqueueSnackbar = jest.fn();
 jest.mock('../../../hooks/useSnackbar', () => ({
@@ -49,7 +48,7 @@ const renderWithProviders = (jsx: React.ReactNode) => {
     <MemoryRouter
       initialEntries={[`/nms/${networkId}/metrics/domain-proxy-logs`]}
       initialIndex={0}>
-      <LocalizationProvider dateAdapter={AdapterMoment}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={defaultTheme}>
             <ThemeProvider theme={defaultTheme}>
@@ -136,10 +135,12 @@ describe('<LogsList />', () => {
     it('Sends start date', async () => {
       fillInput('start-date-input', filterValues.startDate);
       clickSearchButton();
-      await expectApiCallParam(
-        'begin',
-        moment(filterValues.startDate).toISOString(),
+      const date = parse(
+        filterValues.startDate,
+        'yyyy/MM/dd HH:mm',
+        new Date(),
       );
+      await expectApiCallParam('begin', date.toISOString());
     });
 
     it('Sends responseCode', async () => {
@@ -163,10 +164,8 @@ describe('<LogsList />', () => {
     it('Sends end date', async () => {
       fillInput('end-date-input', filterValues.endDate);
       clickSearchButton();
-      await expectApiCallParam(
-        'end',
-        moment(filterValues.endDate).toISOString(),
-      );
+      const date = parse(filterValues.endDate, 'yyyy/MM/dd HH:mm', new Date());
+      await expectApiCallParam('end', date.toISOString());
     });
   });
 });

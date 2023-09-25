@@ -181,9 +181,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Verify if paging flow rules are created
         ip_list = [default_ip]
@@ -222,9 +220,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
 
         print("*********** Received Paging for UE id ", ue_id)
         print("*********** Sending Service request for UE id ", ue_id)
@@ -238,15 +234,11 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         print("*********** Received ICS Request for UE id ", ue_id)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req_oai_apn1 = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -259,9 +251,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             ue_id, act_ded_ber_req_oai_apn1.bearerId,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req_oai_apn2 = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )

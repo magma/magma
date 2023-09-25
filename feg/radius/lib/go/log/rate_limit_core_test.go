@@ -21,7 +21,7 @@ import (
 // so if multiple consecutive calls to time.Sleep() are skipped, multiple logger calls will be dropped, though they are executed on 2 different instances.
 func TestRateLimitLogger(t *testing.T) {
 	ratePerSec := 5
-	delayAllowsNextLog := int(1000 / ratePerSec)
+	delayAllowsNextLog := 1000 / ratePerSec
 	require.True(t, ratePerSec <= 1000) // bcz we sleep in [msec]
 	ctx := context.Background()
 	rateLimiter := rate.NewLimiter(rate.Limit(ratePerSec), 1)

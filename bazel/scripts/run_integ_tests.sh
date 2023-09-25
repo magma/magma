@@ -35,6 +35,8 @@ help() {
     echo "      Should be used together with --retry-on-failure."
     echo "   --rerun-previously-failed"
     echo "      Rerun all tests that have failed during the previous run."
+    echo "   --profile PROFILE_FILE_PATH"
+    echo "      Create a bazel profile during build. The profile will be stored in the given file."
     echo -e "${BOLD}List tests:${NO_FORMATTING}"
     echo "   $(basename "$0") --list"
     echo "      List all integration tests."
@@ -139,12 +141,12 @@ create_test_targets() {
             create_nonsanity_test_targets
         fi
     fi
-    ALL_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" "${NONSANITY_TEST_TARGETS[@]}" )
-    for TARGET in "${ALL_TARGETS[@]}"
+    ALL_REQUESTED_TARGETS=( "${PRECOMMIT_TEST_TARGETS[@]}" "${EXTENDED_TEST_TARGETS[@]}" "${NONSANITY_TEST_TARGETS[@]}" )
+    for TARGET in "${ALL_REQUESTED_TARGETS[@]}"
     do
         echo "${TARGET}"
     done
-    if [[ "${#ALL_TARGETS[@]}" -eq 0 ]];
+    if [[ "${#ALL_REQUESTED_TARGETS[@]}" -eq 0 ]];
     then
         echo "ERROR: No targets found with the given options!"
         exit 1
@@ -208,8 +210,12 @@ setup_extended_tests() {
     echo "Building..."
     bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_mme_config_for_sanity" --define=on_magma_test=1
     echo "Executing..."
-    sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_mme_config_for_sanity"
-    echo "Setup finished successfully."
+    if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_mme_config_for_sanity";
+    then
+        echo "Setup finished successfully."
+    else
+        return 1
+    fi
 }
 
 teardown_extended_tests() {
@@ -219,8 +225,12 @@ teardown_extended_tests() {
         echo "Building..."
         bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_mme_config_after_sanity" --define=on_magma_test=1
         echo "Executing..."
-        sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_mme_config_after_sanity"
-        echo "Cleanup finished successfully."
+        if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_mme_config_after_sanity";
+        then
+            echo "Cleanup finished successfully."
+        else
+            return 1
+        fi
     else
         echo "No backup file found, skipping cleanup."
     fi
@@ -231,8 +241,12 @@ setup_nonsanity_tests() {
     echo "Building..."
     bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_config_for_non_sanity" --define=on_magma_test=1
     echo "Executing..."
-    sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_config_for_non_sanity"
-    echo "Setup finished successfully."
+    if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_config_for_non_sanity";
+    then
+        echo "Setup finished successfully."
+    else
+        return 1
+    fi
 }
 
 teardown_nonsanity_tests() {
@@ -242,8 +256,12 @@ teardown_nonsanity_tests() {
         echo "Building..."
         bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity" --define=on_magma_test=1
         echo "Executing..."
-        sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_config_after_non_sanity"
-        echo "Cleanup finished successfully."
+        if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_config_after_non_sanity";
+        then
+            echo "Cleanup finished successfully."
+        else
+            return 1
+        fi
     else
         echo "No backup file found, skipping cleanup."
     fi
@@ -265,15 +283,18 @@ run_test_batch() {
     done
 }
 
+build_tests() {
+    (
+        set -x
+        bazel build "${ALL_REQUESTED_TARGETS[@]}" --define=on_magma_test=1 "$PROFILE"
+    )
+}
+
 run_test() {
     local TARGET=$1
     local TARGET_PATH=${TARGET%:*}
     local SHORT_TARGET=${TARGET#*:}
     (
-        echo "BUILDING TEST: ${TARGET}"
-        set -x
-        bazel build "${TARGET}" --define=on_magma_test=1
-        set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
         sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \
@@ -283,15 +304,17 @@ run_test() {
 }
 
 create_xml_report() {
-    rm -f "${MERGED_REPORT_FOLDER}/"*.xml
-    mkdir -p "${MERGED_REPORT_FOLDER}"
-    python3 lte/gateway/python/scripts/runtime_report.py -i ".+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/report_all_tests.xml" 
-    rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
+    local MERGED_REPORT_XML="integtests_report.xml"
+    rm -f "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}"
+    mkdir -p "${INTEGTEST_REPORT_FOLDER}"
+    python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "${INTEGTEST_REPORT_FOLDER}" -o "${MERGED_REPORT_FOLDER}/${MERGED_REPORT_XML}" 
+    sudo rm -f "${INTEGTEST_REPORT_FOLDER}/"*.xml
 }
 
 print_summary() {
     local NUM_SUCCESS=$1
     local TOTAL_TESTS=$2
+    echo "The bazel profile was saved to the following location: ${PROFILE#*=}"
     echo "SUMMARY: ${NUM_SUCCESS}/${TOTAL_TESTS} tests were successful."
     for TARGET in "${!TEST_RESULTS[@]}"
     do
@@ -329,12 +352,14 @@ RETRY_ATTEMPTS=2
 RERUN_PREVIOUSLY_FAILED="false"
 FAILED_LIST=()
 FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
-INTEGTEST_REPORT_FOLDER="/var/tmp/test_results"
-MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/merged"
+MERGED_REPORT_FOLDER="/var/tmp/test_results"
+INTEGTEST_REPORT_FOLDER="${MERGED_REPORT_FOLDER}/integtest_reports"
+PROFILE="--profile=/var/tmp/bazel_profile_lte_integ_tests"
 
 BOLD='\033[1m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
 NO_FORMATTING='\033[0m'
 
 declare -a POSITIONAL_ARGS=()
@@ -411,6 +436,11 @@ while [[ $# -gt 0 ]]; do
       RERUN_PREVIOUSLY_FAILED="true"
       break
       ;;
+    --profile)
+      shift
+      PROFILE="--profile=$1"
+      shift
+      ;;
     --help)
       help
       exit 0
@@ -458,6 +488,11 @@ then
     FLAKY_ARGS=( --force-flaky --no-flaky-report "--max-runs=$((RETRY_ATTEMPTS + 1))" "--min-passes=1" )
 fi
 
+echo "#######################################"
+echo "BUILDING REQUESTED TESTS"
+echo "#######################################"
+build_tests
+
 declare -a TEST_BATCH_TO_RUN
 
 if [[ ${#PRECOMMIT_TEST_TARGETS[@]} -gt 0 ]];
@@ -474,17 +509,31 @@ then
     echo "#######################################"
     echo "EXTENDED TESTS"
     echo "#######################################"
+    EXTENDED_SETUP="success"
     if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
     then
-        setup_extended_tests
+        if setup_extended_tests;
+        then
+            EXTENDED_SETUP="success"
+        else
+            EXTENDED_SETUP="failed"
+            echo -e "The setup ${RED}failed${NO_FORMATTING}. Skipping extended tests."
+            TEST_RESULTS["SETUP FOR THE EXTENDED TESTS"]="${RED}FAILED ${YELLOW}(EXTENDED TESTS SKIPPED)${NO_FORMATTING}"
+        fi
     fi
 
-    TEST_BATCH_TO_RUN=( "${EXTENDED_TEST_TARGETS[@]}" )
-    run_test_batch
+    if [[ "${EXTENDED_SETUP}" == "success" ]];
+    then
+        TEST_BATCH_TO_RUN=( "${EXTENDED_TEST_TARGETS[@]}" )
+        run_test_batch
+    fi
 
     if [[ "${SKIP_EXTENDED_SETUP_AND_TEARDOWN}" == "false" ]];
     then
-        teardown_extended_tests
+        if ! teardown_extended_tests;
+        then
+            echo "Teardown ${RED}failed${NO_FORMATTING}."
+        fi
     fi
 fi
 
@@ -493,17 +542,31 @@ then
     echo "#######################################"
     echo "NONSANITY TESTS"
     echo "#######################################"
+    NONSANITY_SETUP="success"
     if [[ "${SKIP_NONSANITY_SETUP_AND_TEARDOWN}" == "false" ]];
     then
-        setup_nonsanity_tests
+        if setup_nonsanity_tests;
+        then
+            NONSANITY_SETUP="success"
+        else
+            NONSANITY_SETUP="failed"
+            echo -e "The setup ${RED}failed${NO_FORMATTING}. Skipping nonsanity tests."
+            TEST_RESULTS["SETUP FOR THE NONSANITY TESTS"]="${RED}FAILED ${YELLOW}(NONSANITY TESTS SKIPPED)${NO_FORMATTING}"
+        fi
     fi
 
-    TEST_BATCH_TO_RUN=( "${NONSANITY_TEST_TARGETS[@]}" )
-    run_test_batch
-
+    if [[ "${NONSANITY_SETUP}" == "success" ]];
+    then
+        TEST_BATCH_TO_RUN=( "${NONSANITY_TEST_TARGETS[@]}" )
+        run_test_batch
+    fi
+    
     if [[ "${SKIP_NONSANITY_SETUP_AND_TEARDOWN}" == "false" ]];
     then
-        teardown_nonsanity_tests
+        if ! teardown_nonsanity_tests;
+        then
+            echo "Teardown ${RED}failed${NO_FORMATTING}."
+        fi
     fi
 fi
 

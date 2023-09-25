@@ -10,6 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import AddAlertTwoToneIcon from '@mui/icons-material/AddAlertTwoTone';
 import AlertDetailsPane from './AlertDetails/AlertDetailsPane';
 import Button from '@mui/material/Button';
@@ -20,17 +21,16 @@ import SeverityIndicator from '../severity/SeverityIndicator';
 import SimpleTable from '../table/SimpleTable';
 import Slide from '@mui/material/Slide';
 import Typography from '@mui/material/Typography';
-import moment from 'moment';
 import {Link, useResolvedPath} from 'react-router-dom';
+import {Theme} from '@mui/material/styles';
 import {colors} from '../../../../theme/default';
+import {formatDistanceToNow, formatISO} from 'date-fns';
+import {getErrorMessage} from '../../../../util/ErrorUtils';
 import {makeStyles} from '@mui/styles';
 import {useAlarmContext} from '../AlarmContext';
 import {useEffect, useState} from 'react';
 import {useNetworkId} from '../hooks';
 import {useSnackbars} from '../../../../hooks/useSnackbar';
-
-import {Theme} from '@mui/material/styles';
-import {getErrorMessage} from '../../../../util/ErrorUtils';
 import type {PromFiringAlert} from '../../../../../generated';
 
 const useStyles = makeStyles<Theme>(theme => ({
@@ -182,11 +182,13 @@ export default function FiringAlerts(props: Props) {
               title: 'Date',
               field: 'startsAt',
               render: currRow => {
-                const date = moment(new Date(currRow.startsAt));
+                const date = new Date(currRow.startsAt ?? null);
                 return (
                   <>
-                    <Typography variant="body1">{date.fromNow()}</Typography>
-                    <div>{date.format('dddd, MMMM Do YYYY')}</div>
+                    <Typography variant="body1">
+                      {formatDistanceToNow(date)}
+                    </Typography>
+                    <div>{formatISO(date, {representation: 'date'})}</div>
                   </>
                 );
               },

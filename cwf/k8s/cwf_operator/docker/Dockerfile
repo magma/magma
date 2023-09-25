@@ -18,11 +18,11 @@ RUN apt-get update && \
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y bzr curl daemontools gcc
 
-# Install Golang 1.18
+# Install Golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.18.3"
+ARG GOLANG_VERSION="1.20.1"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://artifactory.magmacore.org/artifactory/generic/${GO_TARBALL} --remote-name --location \
+ && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && ln -s /usr/local/go/bin/go /usr/local/bin/go \
  && rm ${GO_TARBALL}

@@ -14,8 +14,8 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#ifndef FILE_PGW_PROCEDURES_SEEN
-#define FILE_PGW_PROCEDURES_SEEN
+
+#pragma once
 
 /*! \file pgw_procedures.hpp
   \brief  Just a workaround waiting for PCEF implementation
@@ -24,10 +24,9 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_pcef_emulation.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
 typedef enum {
@@ -68,7 +67,3 @@ pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
 #endif
 pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
     sgw_eps_bearer_context_information_t* const ctx_p);
-void pgw_delete_procedure_create_bearer(
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
-
-#endif

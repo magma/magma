@@ -692,7 +692,7 @@ func (s *stubCbsdManager) EnodebdUpdateCbsd(data *storage.DBCbsd) (*storage.Deta
 		return nil, s.err
 	}
 	s.details.Cbsd.CbsdCategory = data.CbsdCategory
-	s.details.Cbsd.AntennaGain = data.AntennaGain
+	s.details.Cbsd.AntennaGainDbi = data.AntennaGainDbi
 	s.details.Cbsd.LatitudeDeg = data.LatitudeDeg
 	s.details.Cbsd.LongitudeDeg = data.LongitudeDeg
 	s.details.Cbsd.HeightType = data.HeightType

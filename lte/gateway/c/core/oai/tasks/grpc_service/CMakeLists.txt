@@ -53,8 +53,8 @@ generate_grpc_protos("${SMOSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 # S1ap Service
-set(S1APSRV_LTE_CPP_PROTOS s1ap_service)
-set(S1APSRV_LTE_GRPC_PROTOS s1ap_service)
+set(S1APSRV_LTE_CPP_PROTOS s1ap_service oai/s1ap_state)
+set(S1APSRV_LTE_GRPC_PROTOS s1ap_service oai/s1ap_state)
 generate_cpp_protos("${S1APSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"

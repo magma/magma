@@ -8,12 +8,8 @@
   with_items:
     - S1AP_TESTER_ROOT={{ s1ap_tester_root }}
     - S1AP_TESTER_SRC={{ s1ap_tester_src }}
-    - GATEWAY_NAME={{ gateway_name }}
     - GATEWAY_IP={{ gateway_ip }}
     - GATEWAY_PORT={{ gateway_port }}
-    - M2_HOME={{ mvn_dir }}
-    - SWAGGER_SPEC={{ swagger_spec }}
-    - SWAGGER_CODEGEN_OUTPUT={{ swagger_codegen_output }}
     - CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
@@ -24,15 +20,18 @@
   when: full_provision
 
 - name: Set up S1AP tester build directory
-  file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
-  when: full_provision
+  file:
+    path: "{{ s1ap_tester_root }}/bin"
+    state: directory
+    recurse: yes
+  when: preburn
 
 - name: Set a convenience function for starting the S1AP tester
-  lineinfile: >
-    dest=/home/{{ ansible_user }}/.bashrc
-    state=present
-    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
-  when: full_provision
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    state: present
+    line: "alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
+  when: preburn
 
 - name: Add integ test scripts to path
   become: yes
@@ -65,16 +64,11 @@
     S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
-- name: Install pyparsing
+- name: Install pyparsing and flaky
   pip:
-    name: pyparsing
-    extra_args: --cache-dir $PIP_CACHE_HOME
-    executable: pip3
-  when: full_provision
-
-- name: Install flaky
-  pip:
-    name: flaky
+    name:
+      - pyparsing
+      - flaky
     extra_args: --cache-dir $PIP_CACHE_HOME
     executable: pip3
   when: full_provision
@@ -87,25 +81,17 @@
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
-  apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
+  apt:
+    name: default-libmysqlclient-dev
+    state: present
+    update_cache: yes
   when: preburn
-
-- name: Check whether swagger.yml exists
-  stat:
-    path: "{{ swagger_spec }}"
-  register: swagger_yml_present
-  when: full_provision
-
-#- name: Generate Python bindings for the REST API with swagger-codegen
-#  no_log: True
-#  command: "{{ test_scripts }}/generate_python_bindings.sh"
-#  when: full_provision and (swagger_yml_present.stat.exists == true)
 
 - name: Add the test controller DNS entry
   become: yes
   lineinfile:
-    dest: /etc/hosts
+    path: /etc/hosts
     regexp: '.*controller.magma.test$'
     line: "10.0.2.2 controller.magma.test"
     state: present
-  when: full_provision
+  when: preburn

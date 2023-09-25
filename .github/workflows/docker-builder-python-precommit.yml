@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "Build Docker image for Python Precommit"
+# owner: @magma/approvers-gw
+# purpose: Check if the Python precommit image can be built
+# remediation: -
+
+name: AGW Build Docker Image Python Precommit
 on:
   push:
     branches:
@@ -38,12 +42,13 @@ env:
 
 jobs:
   build_dockerfile:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE }}
+          PUSH_TO_REGISTRY: false

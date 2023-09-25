@@ -32,7 +32,7 @@ import {SSOSelectedType} from '../../../shared/types/auth';
 import {useState} from 'react';
 
 const ENABLE_ALL_NETWORKS_HELPER =
-  'By checking this, the organization will have access to all existing and future networks.';
+  'Checking this gives access to all networks that exist at the moment.';
 
 /**
  * Create Organization Tab
@@ -83,7 +83,7 @@ export default function (props: DialogProps) {
         {!shouldEnableAllNetworks && (
           <AltFormField
             label={'Accessible Networks'}
-            subLabel={'The networks that the organization have access to'}>
+            subLabel={'The networks that the organization has access to'}>
             <Select
               fullWidth={true}
               variant={'outlined'}

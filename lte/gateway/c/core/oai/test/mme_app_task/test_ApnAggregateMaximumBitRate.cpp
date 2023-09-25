@@ -20,10 +20,11 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 }
+
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
 
 TEST(test_bit_rate_value_to_eps_qos_for_apnambr_extended2_test,
      bit_rate_value_to_eps_qos_for_apnambr_extended2_test) {

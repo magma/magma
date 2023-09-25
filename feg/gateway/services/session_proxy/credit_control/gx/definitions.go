@@ -112,14 +112,17 @@ type RedirectInformation struct {
 	RedirectServerAddress string `avp:"Redirect-Server-Address"`
 }
 
-// Flow-Information ::= < AVP Header: 1058 >
-//  [ Flow-Description ]
-//  [ Packet-Filter-Identifier ]
-//  [ Packet-Filter-Usage ]
-//  [ ToS-Traffic-Class ]
-//  [ Security-Parameter-Index ]
-//  [ Flow-Label ]
-//  [ Flow-Direction ]
+// Flow-Information ::=
+//
+//	< AVP Header: 1058 >
+//	[ Flow-Description ]
+//	[ Packet-Filter-Identifier ]
+//	[ Packet-Filter-Usage ]
+//	[ ToS-Traffic-Class ]
+//	[ Security-Parameter-Index ]
+//	[ Flow-Label ]
+//	[ Flow-Direction ]
+//
 // Only Flow-Description is supported right now
 type FlowInformation struct {
 	FlowDescription string `avp:"Flow-Description"`
@@ -195,35 +198,37 @@ type CCADiameterMessage struct {
 	Offline          int32                  `avp:"Offline"`
 }
 
-//<RA-Request> ::= 	< Diameter Header: 258, REQ, PXY >
-//					< Session-Id >
-//					[ DRMP ]
-//					{ Auth-Application-Id }
-//					{ Origin-Host }
-//					{ Origin-Realm }
-//					{ Destination-Realm }
-//					{ Destination-Host }
-//					{ Re-Auth-Request-Type }
-//					[ Session-Release-Cause ]
-//					[ Origin-State-Id ]
-//					[ OC-Supported-Features ]
-//					*[ Event-Trigger ]
-//					[ Event-Report-Indication ]
-//					*[ Charging-Rule-Remove ]
-//					*[ Charging-Rule-Install ]
-//					[ Default-EPS-Bearer-QoS ]
-//					*[ QoS-Information ]
-//					[ Default-QoS-Information ]
-//					[ Revalidation-Time ]
-//					*[ Usage-Monitoring-Information ]
-//					[ PCSCF-Restoration-Indication ] 0*4[ Conditional-Policy-Information ]
-//					[ Removal-Of-Access ]
-//					[ IP-CAN-Type ]
-//					[ PRA-Install ]
-//					[ PRA-Remove ]
-//					*[ Proxy-Info ]
-//					*[ Route-Record ]
-//					*[ AVP ]
+// <RA-Request> ::=
+//
+//	    < Diameter Header: 258, REQ, PXY >
+//		< Session-Id >
+//		[ DRMP ]
+//		{ Auth-Application-Id }
+//		{ Origin-Host }
+//		{ Origin-Realm }
+//		{ Destination-Realm }
+//		{ Destination-Host }
+//		{ Re-Auth-Request-Type }
+//		[ Session-Release-Cause ]
+//		[ Origin-State-Id ]
+//		[ OC-Supported-Features ]
+//		*[ Event-Trigger ]
+//		[ Event-Report-Indication ]
+//		*[ Charging-Rule-Remove ]
+//		*[ Charging-Rule-Install ]
+//		[ Default-EPS-Bearer-QoS ]
+//		*[ QoS-Information ]
+//		[ Default-QoS-Information ]
+//		[ Revalidation-Time ]
+//		*[ Usage-Monitoring-Information ]
+//		[ PCSCF-Restoration-Indication ] 0*4[ Conditional-Policy-Information ]
+//		[ Removal-Of-Access ]
+//		[ IP-CAN-Type ]
+//		[ PRA-Install ]
+//		[ PRA-Remove ]
+//		*[ Proxy-Info ]
+//		*[ Route-Record ]
+//		*[ AVP ]
 type PolicyReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
 	OriginHost       string                 `avp:"Origin-Host"`
@@ -235,52 +240,56 @@ type PolicyReAuthRequest struct {
 	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
 }
 
-//<RA-Answer> ::= 	< Diameter Header: 258, PXY >
-//					< Session-Id >
-//					[ DRMP ]
-//					{ Origin-Host }
-//					{ Origin-Realm }
-//					[ Result-Code ]
-//					[ Experimental-Result ]
-//					[ Origin-State-Id ]
-//					[ OC-Supported-Features ]
-//					[ OC-OLR ]
-//					[ IP-CAN-Type ]
-//					[ RAT-Type ]
-//					[ AN-Trusted ]
-//					0*2 [ AN-GW-Address ]
-//					[ 3GPP-SGSN-MCC-MNC ]
-//					[ 3GPP-SGSN-Address ]
-//					[ 3GPP-SGSN-Ipv6-Address ]
-//					[ RAI ]
-//					[ 3GPP-User-Location-Info ]
-//					[ User-Location-Info-Time ]
-//					[ NetLoc-Access-Support ]
-//					[ User-CSG-Information ]
-//					[ 3GPP-MS-TimeZone ]
-//					[ Default-QoS-Information ]
-//					*[ Charging-Rule-Report]
-//					[ Error-Message ]
-//					[ Error-Reporting-Host ]
-//					[ Failed-AVP ]
-//					*[ Proxy-Info ]
-//					*[ AVP ]
+// <RA-Answer> ::=
+//
+//	    < Diameter Header: 258, PXY >
+//		< Session-Id >
+//		[ DRMP ]
+//		{ Origin-Host }
+//		{ Origin-Realm }
+//		[ Result-Code ]
+//		[ Experimental-Result ]
+//		[ Origin-State-Id ]
+//		[ OC-Supported-Features ]
+//		[ OC-OLR ]
+//		[ IP-CAN-Type ]
+//		[ RAT-Type ]
+//		[ AN-Trusted ]
+//		0*2 [ AN-GW-Address ]
+//		[ 3GPP-SGSN-MCC-MNC ]
+//		[ 3GPP-SGSN-Address ]
+//		[ 3GPP-SGSN-Ipv6-Address ]
+//		[ RAI ]
+//		[ 3GPP-User-Location-Info ]
+//		[ User-Location-Info-Time ]
+//		[ NetLoc-Access-Support ]
+//		[ User-CSG-Information ]
+//		[ 3GPP-MS-TimeZone ]
+//		[ Default-QoS-Information ]
+//		*[ Charging-Rule-Report]
+//		[ Error-Message ]
+//		[ Error-Reporting-Host ]
+//		[ Failed-AVP ]
+//		*[ Proxy-Info ]
+//		*[ AVP ]
 type PolicyReAuthAnswer struct {
 	SessionID   string                `avp:"Session-Id"`
 	ResultCode  uint32                `avp:"Result-Code"`
 	RuleReports []*ChargingRuleReport `avp:"Charging-Rule-Report"`
 }
 
-//Charging-Rule-Report ::= < AVP Header: 1018 >
-// 						  *[ Charging-Rule-Name ]
-//                        *[ Charging-Rule-Base-Name ]
-//                         [ Bearer-Identifier ]
-//                         [ PCC-Rule-Status ]
-//                         [ Rule-Failure-Code ]
-//                         [ Final-Unit-Indication ]
-//                        *[ RAN-NAS-Release-Cause ]
-//                        *[ Content-Version ]
-//                        *[ AVP ]
+// Charging-Rule-Report ::=
+//
+//	    < AVP Header: 1018 >
+//		*[ Charging-Rule-Name ]
+//		*[ Charging-Rule-Base-Name ]
+//		[ Bearer-Identifier ]
+//		[ PCC-Rule-Status ]
+//		[ Rule-Failure-Code ]
+//		[ Final-Unit-Indication ]
+//		*[ RAN-NAS-Release-Cause ]
+//		*[ Content-Version ]
+//		*[ AVP ]
 type ChargingRuleReport struct {
 	RuleNames     []string        `avp:"Charging-Rule-Name"`
 	RuleBaseNames []string        `avp:"Charging-Rule-Base-Name"`

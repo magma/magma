@@ -15,9 +15,10 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.h"
 }
+
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 
 extern task_zmq_ctx_t task_zmq_ctx_main_s8;
 using ::testing::Test;
@@ -50,7 +51,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_dedicated_bearer_creation_request) {
   memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   // Validates temporary bearer context is created
-  EXPECT_EQ(create_temporary_dedicated_bearer_context(
+  EXPECT_EQ(create_temporary_s8_dedicated_bearer_context(
                 sgw_pdn_session, &itti_bearer_req, IPv4,
                 sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
                 &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
@@ -132,7 +133,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
          sizeof(traffic_flow_template_t));
   memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
-  create_temporary_dedicated_bearer_context(
+  create_temporary_s8_dedicated_bearer_context(
       sgw_pdn_session, &itti_bearer_req, IPv4,
       sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
       &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
@@ -146,7 +147,7 @@ TEST_F(SgwS8ConfigAndCreateMock, check_failed_to_create_dedicated_bearer) {
   fill_create_bearer_response(&s11_actv_bearer_rsp, csresp.context_teid,
                               default_eps_bearer_id, s1_u_sgw_fteid,
                               REQUEST_REJECTED);
-  handle_failed_create_bearer_response(
+  handle_failed_s8_create_bearer_response(
       sgw_pdn_session, s11_actv_bearer_rsp.cause.cause_value, imsi64,
       &s11_actv_bearer_rsp.bearer_contexts.bearer_contexts[0], NULL,
       LOG_SGW_S8);
@@ -184,7 +185,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_bearer_response_invalid_teid) {
   memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   // Validates temporary bearer context is created
-  create_temporary_dedicated_bearer_context(
+  create_temporary_s8_dedicated_bearer_context(
       sgw_pdn_session, &itti_bearer_req, IPv4,
       sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
       &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,
@@ -239,7 +240,7 @@ TEST_F(SgwS8ConfigAndCreateMock, create_bearer_req_fails_to_find_ctxt) {
   memcpy(&itti_bearer_req.eps_bearer_qos, &bc_cbreq.qos, sizeof(bearer_qos_t));
   teid_t s1_u_sgw_fteid = sgw_get_new_s1u_teid(sgw_state);
   // Validates temporary bearer context is created
-  EXPECT_EQ(create_temporary_dedicated_bearer_context(
+  EXPECT_EQ(create_temporary_s8_dedicated_bearer_context(
                 sgw_pdn_session, &itti_bearer_req, IPv4,
                 sgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr,
                 &sgw_state->sgw_ipv6_address_S1u_S12_S4_up, s1_u_sgw_fteid,

@@ -10,10 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-# Ansible playbook for setting up a production machine (i.e., a box running
-# Debian 8).
-
 - name: Set up an iperf3 trfserver machine
   hosts: trfserver
   become: true

@@ -8,7 +8,7 @@ hide_title: true
 
 This section walks through installing a production Orchestrator deployment.
 
-We assume you will use the versioned artifacts provided by the project's official artifactory at [artifactory.magmacore.org](https://artifactory.magmacore.org/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
+We assume you will use the versioned artifacts provided by the project's official artifactory at [linuxfoundation.jfrog.io](https://linuxfoundation.jfrog.io/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
 
 To deploy orc8r, see the [Manual installation](./deploy_install.md) page.
 
@@ -63,6 +63,15 @@ The current release schedule tags a new minor version 3-4 times per year. Patch 
 To target a specific release, checkout the Magma repository's relevant release branch when building artifacts. This is also a great place to find relevant Terraform values.
 
 Values for recent Orchestrator releases are summarized below
+
+### v1.8.0
+
+Verified with Terraform version `1.0.11`.
+
+- `v1.8` [patch branch](https://github.com/magma/magma/tree/v1.8)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.8`
+Terraform module source
+- `1.8.0` Helm chart version
 
 ### v1.6.0
 

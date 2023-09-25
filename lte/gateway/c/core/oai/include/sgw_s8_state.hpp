@@ -13,14 +13,17 @@ limitations under the License.
 
 #pragma once
 
+#include <pthread.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <pthread.h>
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.
 int sgw_state_init(bool persist_state, const sgw_config_t* config);
@@ -35,13 +38,14 @@ sgw_state_t* get_sgw_state(bool read_from_db);
 void put_sgw_state(void);
 
 /**
- * Returns pointer to SGW UE state
- * @return hashtable_ts_t struct with SGW UE context structs as data
+ * Returns pointer to map, map_uint32_sgw_eps_bearer_context_t
+ * @return map_uint32_sgw_eps_bearer_context_t map with SGW context structs as
+ * data
  */
-hash_table_ts_t* get_sgw_ue_state(void);
+map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map(void);
 
 /**
- * Populates SGW UE hashtable from db
+ * Populates SGW UE protobuf map from db
  * @return response code
  */
 int read_sgw_ue_state_db(void);
@@ -58,20 +62,18 @@ void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64);
  * @param imsi64
  */
 void delete_sgw_ue_state(imsi64_t imsi64);
+/**
+ * Callback function for freeing the
+ * sgw_eps_bearer_context_information_t while removing an entry from
+ * map_uint32_sgw_eps_bearer_context_t
+ * @param pointer to an object of sgw_eps_bearer_context_information_t
+ */
+
+void sgw_free_s11_bearer_context_information(void** ptr);
 
 /**
- * Callback function for s11_bearer_context_information hashtable freefunc
- * @param context_p sgw eps bearer context entry on hashtable
+ * Callback function for freeing the ue context while removing an entry from
+ * state_ue_map
+ * @param pointer to an object of spgw_ue_context_t
  */
-void sgw_free_s11_bearer_context_information(
-    sgw_eps_bearer_context_information_t** context_p);
-
-/**
- * Callback function for imsi_ue_context hashtable's freefunc
- * @param spgw_ue_context_t
- */
-void sgw_free_ue_context(spgw_ue_context_t** ue_context_p);
-
-#ifdef __cplusplus
-}
-#endif
+void sgw_free_ue_context(void** ptr);

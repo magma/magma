@@ -22,7 +22,11 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 
-name: "CodeQL"
+# owner: any
+# purpose: CodeQL security analysis
+# remediation: -
+
+name: Magma Analyze With CodeQL
 
 on:
   push:
@@ -40,7 +44,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
@@ -53,11 +57,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
+        uses: github/codeql-action/init@ec3cf9c605b848da5f1e41e8452719eb1ccfb9a6 # pin@v2.1.29
         with:
           languages: ${{ matrix.language }}
           # If you wish to specify custom queries, you can do so here or in a config file.
@@ -68,7 +72,7 @@ jobs:
           # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
           # If this step fails, then you should remove it and run the build manually (see below)
       - name: Autobuild
-        uses: github/codeql-action/autobuild@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
+        uses: github/codeql-action/autobuild@ec3cf9c605b848da5f1e41e8452719eb1ccfb9a6 # pin@v2.1.29
 
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 https://git.io/JvXDl
@@ -79,16 +83,9 @@ jobs:
       #   make bootstrap
       #   make release
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@a6611b86918424d4588efe7d6dbe18fe52d42518 # pin@v1
+        uses: github/codeql-action/analyze@ec3cf9c605b848da5f1e41e8452719eb1ccfb9a6 # pin@v2.1.29
         env:
           NODE_OPTIONS: --max-old-space-size=5120
-
-      - name: Extract commit title
-        if: failure() && github.ref == 'refs/heads/master'
-        id: commit
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
 
       # Notify ci-info channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
@@ -98,8 +95,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action CodeQL-analysis ${{ matrix.language }} failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "CodeQL-analysis ${{ matrix.language }} "
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }} ${{ matrix.language }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

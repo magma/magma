@@ -1,11 +1,12 @@
 # Magma Network Management System - Development
+
 The Magma NMS provides an enterprise grade GUI for provisioning and operating magma based networks.
 
 > NOTE:
 >
 > This document is written to help with development of the Magma NMS
 >
-> See the [**docs**](https://docs.magmacore.org/docs/next/nms/overview) for a user-focused guide.
+> See the [**docs**](https://magma.github.io/magma/docs/next/nms/overview) for a user-focused guide.
 
 ## Project Layout
 
@@ -21,44 +22,55 @@ Triggering unit tests, e2e tests, eslint, and TypeScript checks is done from thi
 > You may need to make adjustments if using MiniKube.
 
 ### Pre-requisites
+
 **Docker Settings**
+
 - Ensure you have Docker installed
 - Configure Docker to at least 4 GiB allocated memory for Orc8r + NMS
 
 **Magma Orc8r**
+
 - The NMS requires a working connection to the Magma Orc8r to function.
 - For local development, bring up the Orc8r docker containers.
 - See `magma/orc8r/cloud/docker/docker-compose.yml`
 
 **NMS Metrics and Graphing**
+
 - To ensure that NMS has access to metrics and graphing functionality, bring up the Prometheus and Grafana containers.
 - See `magma/orc8r/cloud/docker/docker-compose.metrics.yml`
 - This is optional during development
 
 ### Build NMS Docker Image
+
 Run the following command from [`nms/`](../nms/)
+
 ```
-COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte
+COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
 ```
 
 ### Run NMS Containers
+
 Run the following command from [`nms/`](../nms/)
+
 ```
-docker-compose up -d
+docker compose --compatibility up -d
 ```
 
 ---
+
 ## NMS Troubleshooting
 
 ### First Time Running NMS
+
 We recommend that the first time you bring up the Magma NMS,
 you do so without any local changes,
 allowing you to troubleshoot your setup.
 This should correspond to a recent pull of the `main`/`master` branch from Github.
 
 Here are some example logs from the Magma NMS `magmalte` container from a successful startup:
+
 ```
-➜  magmalte git:(1-9-nms-orgs-fix) docker-compose logs -f magmalte
+➜  magmalte git:(1-9-nms-orgs-fix) docker compose logs -f magmalte
 Attaching to magmalte_magmalte_1
 magmalte_1     | wait-for-it.sh: waiting 30 seconds for postgres:5432
 magmalte_1     | wait-for-it.sh: postgres:5432 is available after 0 seconds
@@ -94,23 +106,28 @@ magmalte_1     | 2021-09-11T22:16:12.511Z [express-middleware/webpackSmartMiddle
 ```
 
 ### Checking NMS Logs
+
 Run the following from [`nms/`](../nms/)
+
 ```
-docker-compose logs -f magmalte
+docker compose logs -f magmalte
 ```
 
 Depending on the issues you run into, you may need to check the logs of other containers, both NMS and Orc8r related.
 
 If the NMS application server crashes, you will likely find the following error log:
+
 ```
 [nodemon] app crashed - waiting for file changes before starting...
 ```
 
 ### Cannot Connect to NMS Through Browser
+
 If your NMS containers are up and running, it is likely that the NMS app server has crashed.
 Check the `magmalte` container logs.
 
 ### NMS Loads a Blank Page
+
 This likely corresponds to React errors.
 If this is the case, you should be able to see the relevant error logs through your web browser's developer tools.
 
@@ -125,18 +142,22 @@ Running eslint and TypeScript checks requires installing dependencies.
 Install node and npm if you haven't already
 
 Install yarn if you don't already have it:
+
 ```
 npm install --global yarn
 ```
 
 Run the following command from [`nms/`](../nms/) to install all dependencies:
+
 ```
 yarn install --frozen-lockfile
 ```
 
 ### Eslint
+
 Run from [`nms/`](../nms/).
 Version `7.3.2` of `eslint` is used currently.
+
 ```
 yarn run eslint ./
 ```
@@ -151,21 +172,27 @@ yarn run tsc
 ```
 
 ### Unit Tests
+
 Run from [`nms/`](../nms/)
+
 ```
 yarn run test
 ```
 
 ### E2E Tests
+
 Run from [`nms/`](../nms/)
+
 ```
 ./e2e_test_setup.sh
 ```
+
 This brings up the NMS docker containers, as well as a mock Orc8r API server.
 Tests are run using puppeteer to control a headless Chrome.
 
 These tests can also be triggered without the mocked API.
 Run the following in [`nms/`](../nms/) in the `magmalte` docker container:
+
 ```
 yarn test:e2e
 ```
@@ -199,39 +226,45 @@ For example, users of a *NewOrg* organization in the NMS would access the NMS us
 Note that any NMS user can only access the organization it was created under.
 
 ### First-time Setup
+
 When you deploy the NMS for the first time, you'll need to create a user that has access to the host organization.
 
 Run the following command from [`nms/`](../nms/) and make sure to substitute `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` with your desired email and password.
+
 ```
-docker-compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+docker compose exec magmalte yarn setAdminPassword host ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
-Access the `host` (http://host.localhost:8081/host) portal to create your first organization.
+Access the `host` (<http://host.localhost:8081/host>) portal to create your first organization.
 Create a new super user for that organization, and then you can login as that user for your new organization.
 
-For example, if you created an organization called `magma-test`, you can access the NMS at http://magma-test.localhost:8081/nms
+For example, if you created an organization called `magma-test`, you can access the NMS at <http://magma-test.localhost:8081/nms>
 
 ### First-time Setup (Fast)
 
 Run the following from [`nms/`](../nms/) to create two users, one for `host` organization, and another for `magma-test`.
-The username and password for both will be `admin@magma.test` and `password1234`
+The username and password for both will be `admin@magma.test` and `password1234`.
+
 ```
 ./scripts/dev_setup.sh
 ```
 
 ### Host Portal
+
 The host portal allows management of organizations.
 
-http://host.localhost:8081/host
+<http://host.localhost:8081/host>
 
 ### Admin Portal
+
 The admin portal allows management for users of an organization.
 
 For a `magma-test` organization, you would access the admin portal at the following:
-http://magma-test.localhost:8081/admin
+<http://magma-test.localhost:8081/admin>
 
 ### NMS Portal
+
 Regular users will do their regular network management through the NMS portal.
 
 For a `magma-test` organization, you would access the NMS at the following:
-http://magma-test.localhost:8081/nms
+<http://magma-test.localhost:8081/nms>

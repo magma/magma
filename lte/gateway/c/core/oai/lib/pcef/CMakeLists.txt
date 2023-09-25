@@ -4,7 +4,7 @@ set(CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
 
 # compile the needed protos
 set(PCEF_ORC8R_CPP_PROTOS mconfig/mconfigs)
-set(PCEF_LTE_CPP_PROTOS policydb session_manager)
+set(PCEF_LTE_CPP_PROTOS policydb session_manager oai/spgw_state oai/sgw_state oai/common_types oai/std_3gpp_types)
 set(PCEF_ORC8R_GRPC_PROTOS "")
 set(PCEF_LTE_GRPC_PROTOS session_manager)
 

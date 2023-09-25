@@ -18,12 +18,11 @@
   when: preburn
 
 - name: Install ansible for Ubuntu systems
-  when: preburn
   apt:
+    name: ansible
     state: present
-    pkg:
-      - ansible
   retries: 5
+  when: preburn
 
 - name: Copy over the timesyncd config
   become: yes
@@ -37,10 +36,10 @@
     state: started
 
 - name: Copy ssh keepAlive configs
-  copy: src={{ item.src }} dest={{ item.dest }}
   become: yes
-  with_items:
-    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
+  copy:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
 
 - name: Restart service ssh
   become: yes
@@ -54,10 +53,11 @@
   become_user: "{{ ansible_user }}"
   command: ansible-galaxy collection install community.general
   ignore_errors: yes
+  when: preburn
 
 - name: Set build environment variables
   lineinfile:
-    dest: /etc/environment
+    path: /etc/environment
     state: present
     line: "{{ item }}"
   with_items:
@@ -70,16 +70,25 @@
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"
     -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
     -  CODEGEN_ROOT={{ codegen_root }}
-    -  ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
+    -  ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1:fast_unwind_on_malloc=0
+    -  LSAN_OPTIONS=suppressions=/usr/local/suppressions.txt
   when: full_provision
+
+- name: Create LSAN suppressions file
+  copy:
+    dest: "/usr/local/suppressions.txt"
+    content: |
+      leak:libczmq.so.4
+      leak:libzmq.so.5
+      leak:fluid_base::BaseOFConnection::OFReadBuffer::read_notify
+  when: preburn
 
 - name: "Go export"
   lineinfile:
-    dest: "/home/{{ ansible_user }}/.profile"
+    path: "/home/{{ ansible_user }}/.profile"
     state: present
-    line: "{{ item }}"
-  with_items:
-    - export PATH=$PATH:"/usr/local/go/bin"
+    line: export PATH=$PATH:"/usr/local/go/bin"
+  when: preburn
 
 - name: Create the ccache directory
   file:
@@ -87,7 +96,7 @@
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-  when: full_provision
+  when: preburn
 
 #################################
 # Add common convenience aliases
@@ -95,10 +104,10 @@
 
 - name: Set a convenience function for disabling TCP checksumming for traffic test
   lineinfile:
-    dest: /home/{{ ansible_user }}/.bashrc
+    path: /home/{{ ansible_user }}/.bashrc
     state: present
     line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
-  when: full_provision
+  when: preburn
 
 ##############################
 # Install dependency packages
@@ -106,18 +115,18 @@
 
 - name: Install convenience packages for development
   apt:
-    state: present
-    update_cache: no
-    pkg:
+    name:
       - byobu
       - vim
       - aptitude
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
 - name: Install debugger packages
   apt:
-    pkg: gdb
+    name: gdb
     state: present
     update_cache: no
   retries: 5
@@ -125,25 +134,26 @@
 
 - name: Install monitoring packages
   apt:
-    state: present
-    update_cache: no
-    pkg:
+    name:
       - htop
       - iotop
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
 # TODO: remove this after migrating magma_test box image to plain Debian
 - name: Install lxml
-  apt: pkg=python3-lxml state=present update_cache=no
+  apt:
+    name: python3-lxml
+    state: present
+    update_cache: no
   when: preburn
 
 - name: Install prereqs for FPM
   tags: dev
   apt:
-    state: present
-    update_cache: no
-    pkg:
+    name:
       - ruby
       - ruby-dev
       - build-essential
@@ -153,6 +163,8 @@
       - python-setuptools
       - libssl-dev
       - apt-transport-https
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
@@ -164,55 +176,47 @@
 - name: Common install dependencies for building and shipping client release
   tags: dev
   apt:
-    state: present
-    update_cache: no
-    pkg:
+    name:
       - autogen
       - autoconf
-      - build-essential
       - ccache
       - ninja-build
       - git
       - libtool
       - python3-apt
-      - python3-setuptools
       - python3-requests
       - python3-pip
       - python3-debian
+      - python3-venv
       - net-tools # ifconfig
       - tcpdump
       - curl
+    state: present
+    update_cache: no
   retries: 5
   when: preburn
 
 - name: Install build requirements for Ubuntu systems
   # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
   # due to upstream versioning bug
-  when: preburn
   apt:
-    state: present
-    pkg:
+    name:
       - clang
       - cmake
       - make
       - python3-aioeventlet
+    state: present
   retries: 5
+  when: preburn
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
-- name: Create the env script
-  file:
-    path: /etc/profile.d/env.sh
-    state: touch
-  when: full_provision
-
 - name: Override the default compiler with cache
   lineinfile:
-    dest: /etc/profile.d/env.sh
+    path: /etc/profile.d/env.sh
     state: present
-    line: "{{ item }}"
-  with_items:
-    - PATH="/usr/lib/ccache:{{ ansible_env.PATH }}"
+    create: true
+    line: PATH="/usr/lib/ccache:{{ ansible_env.PATH }}"
   when: full_provision
 
 ########################################
@@ -225,6 +229,7 @@
     url: "https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64"
     dest: /usr/sbin/bazelisk-linux-amd64
     mode: ugo+x
+  when: preburn
 
 - name: Create a symlink for /usr/sbin/bazel
   # yamllint disable rule:truthy
@@ -234,6 +239,13 @@
     path: /usr/sbin/bazel
     state: link
     force: yes
+  when: preburn
+
+- name: Setup Bazel Bash completion
+  ansible.builtin.shell: "{{ magma_root }}/bazel/scripts/setup_bazel_bash_completion.sh $(cat {{ magma_root }}/.bazelversion)"
+  become: yes
+  become_user: "{{ ansible_user }}"
+  when: full_provision
 
 ########################################
 # Install common Magma dev dependencies
@@ -241,9 +253,7 @@
 
 - name: Install common Magma gateway dev dependencies
   apt:
-    state: present
-    update_cache: yes
-    pkg:
+    name:
       # install gRPC
       - grpc-dev
       # install protobuf
@@ -263,49 +273,21 @@
       - libtins-dev
       - libmnl-dev
       - libcurl4-openssl-dev
+    state: present
+    update_cache: yes
   retries: 5
   when: preburn
 
 - name: Install Ubuntu Magma gateway dev dependencies
   retries: 5
-  when: preburn
   apt:
-    state: present
-    update_cache: no
-    pkg:
+    name:
       - libprotobuf17
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
-
-###############################################
-# Download and build libprotobuf-mutator
-###############################################
-
-- name: Clone libprotobuf-mutator repo
-  become: yes
-  git:
-    repo: 'https://github.com/google/libprotobuf-mutator'
-    dest: "{{ tmp_libprotobuf_mutator_dir }}"
-    version: v1.0
-    force: yes
-  when: preburn
-
-- name: Create a build directory for libprotobuf-mutator
-  file:
-    path: "{{ tmp_libprotobuf_mutator_dir }}/build"
-    state: directory
-  when: preburn
-
-# Fails build unless we add -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON
-#  to download and build updated proto lib.
-- name: Build libprotobuf-mutator
-  become: yes
-  shell: |
-    cd {{ tmp_libprotobuf_mutator_dir }}/build && \
-    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DLIB_PROTO_MUTATOR_DOWNLOAD_PROTOBUF=ON && \
-    ninja && \
-    ninja install
+    state: present
+    update_cache: no
   when: preburn
 
 ###############################################
@@ -313,11 +295,11 @@
 ###############################################
 
 - name: Install Sentry Native SDK
-  vars:
-    sentry_native_version: "0.4.12"
   get_url:
     url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
     dest: "{{ tmp_directory }}/sentry-native.zip"
+  vars:
+    sentry_native_version: "0.4.12"
   when: preburn
 
 - name: Create a directory for Sentry Native
@@ -349,7 +331,7 @@
 - name: Setup build requirements for python sdk
   become: yes
   apt:
-    pkg: openjdk-8-jdk
+    name: openjdk-8-jdk
     state: present
     update_cache: yes
   retries: 5
@@ -370,10 +352,10 @@
 
 - name: Download gHZ binary from artifactory
   get_url:
-    url: https://artifactory.magmacore.org:443/artifactory/blob-prod/ghz
+    url: https://linuxfoundation.jfrog.io/artifactory/magma-blob/ghz
     dest: /usr/local/bin/ghz
     mode: 0755
-  when: full_provision
+  when: preburn
 
 - name: Fix kernel commandline for interface naming.
   shell: |
@@ -386,13 +368,23 @@
     path: /var/tmp/test_results
     state: directory
     mode: 0777
+  when: preburn
+
+- name: Install multipath-tools
+  become: yes
+  apt:
+    name: multipath-tools
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
 
 - name: Patch multipath conf
-  when: preburn
+  become: yes
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
-  become: yes
+  when: preburn
   ignore_errors: true
 
 - name: Copy Interface file.
@@ -414,30 +406,9 @@
     src: magma_resolv.conf
     dest: /etc/systemd/resolved.conf
 
-- name: Wait for APT Lock
-  shell: |
-    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 ; do
-      sleep 1
-    done
-    if [ -f /var/log/unattended-upgrades/unattended-upgrades.log ]; then
-      while sudo fuser /var/log/unattended-upgrades/unattended-upgrades.log >/dev/null 2>&1 ; do
-        sleep 1
-      done
-    fi
-
-- name: Remove unattended upgrades
-  apt:
-    state: absent
-    purge: yes
-    pkg:
-      - unattended-upgrades
-
 - name: Install LLDB debugger
   apt:
-    pkg: lldb
+    name: lldb
     state: present
     update_cache: no
   retries: 5

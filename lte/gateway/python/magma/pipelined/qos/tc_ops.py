@@ -20,6 +20,7 @@ from __future__ import (
 )
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class TcOpsBase(ABC):
@@ -32,7 +33,7 @@ class TcOpsBase(ABC):
     @abstractmethod
     def create_htb(
         self, iface: str, qid: str, max_bw: int, rate: str,
-        parent_qid: str = None,
+        units: str, parent_qid: Optional[str] = None,
     ) -> int:
         """
         Create HTB scheduler

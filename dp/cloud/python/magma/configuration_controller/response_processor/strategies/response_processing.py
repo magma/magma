@@ -19,13 +19,7 @@ from magma.configuration_controller.custom_types.custom_types import DBResponse
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.db_service.models import (
-    DBCbsd,
-    DBCbsdState,
-    DBChannel,
-    DBGrant,
-    DBGrantState,
-)
+from magma.db_service.models import DBCbsd, DBCbsdState, DBGrant, DBGrantState
 from magma.db_service.session_manager import Session
 from magma.mappings.types import CbsdStates, GrantStates, ResponseCodes
 
@@ -52,7 +46,6 @@ def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
     Currently a CBSD should be marked as unregistered on Domain Proxy if:
     * SAS returns a response with responseCode 105 (ResponseCodes.DEREGISTER)
     * SAS returns a response with responseCode 103 (ResponseCodes.INVALID_VALUE)
-      and responseData has "cbsdId" listed as the INVALID_VALUE parameter
 
     Parameters:
         process_response_func: Response processing function
@@ -61,10 +54,7 @@ def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
         response processing function wrapper
     """
     def process_response_wrapper(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
-        if any([
-            response.response_code == ResponseCodes.DEREGISTER.value,
-            _is_response_invalid_value_cbsd_id(response),
-        ]):
+        if response.response_code in {ResponseCodes.DEREGISTER.value, ResponseCodes.INVALID_VALUE.value}:
             logger.info(f'SAS {response.payload} implies CBSD immedaite unregistration')
             _unregister_cbsd(response, session)
             return
@@ -144,18 +134,16 @@ def _create_channels(response: DBResponse, session: Session):
             "Could not create channel from spectrumInquiryResponse. Response missing 'availableChannel' object",
         )
         return
+
+    channels = []
     for ac in available_channels:
         frequency_range = ac["frequencyRange"]
-        channel = DBChannel(
-            cbsd=cbsd,
-            low_frequency=frequency_range["lowFrequency"],
-            high_frequency=frequency_range["highFrequency"],
-            channel_type=ac["channelType"],
-            rule_applied=ac["ruleApplied"],
-            max_eirp=ac.get("maxEirp"),
-        )
-        logger.info(f"Creating channel for {cbsd.id=}")
-        session.add(channel)
+        channels.append({
+            "low_frequency": frequency_range["lowFrequency"],
+            "high_frequency": frequency_range["highFrequency"],
+            "max_eirp": ac.get("maxEirp", 37),
+        })
+    cbsd.channels = channels
 
 
 @unregister_cbsd_on_response_condition
@@ -370,20 +358,18 @@ def _update_grant_from_response(response: DBResponse, grant: DBGrant) -> None:
 
 
 def _terminate_all_grants_from_response(response: DBResponse, session: Session) -> None:
-    cbsd_id = response.payload.get(
-        CBSD_ID,
-    ) or response.request.payload.get(CBSD_ID)
+    cbsd_id = response.cbsd_id
     if not cbsd_id:
         return
-    logger.info(f'Terminating all grants for {cbsd_id=}')
+
     with session.no_autoflush:
-        session.query(DBGrant). \
-            filter(DBGrant.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id). \
-            delete(synchronize_session=False)
+        logger.info(f'Terminating all grants for {cbsd_id=}')
+        session.query(DBGrant).filter(
+            DBGrant.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id,
+        ).delete(synchronize_session=False)
+
         logger.info(f"Deleting all channels for {cbsd_id=}")
-        session.query(DBChannel). \
-            filter(DBChannel.cbsd_id == DBCbsd.id, DBCbsd.cbsd_id == cbsd_id). \
-            delete(synchronize_session=False)
+        session.query(DBCbsd).filter(DBCbsd.cbsd_id == cbsd_id).update({DBCbsd.channels: []})
 
 
 def _unsync_conflict_from_response(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
@@ -410,13 +396,3 @@ def _unregister_cbsd(response: DBResponse, session: Session) -> None:
         filter(DBCbsdState.name == CbsdStates.UNREGISTERED.value)
     _terminate_all_grants_from_response(response, session)
     _update_cbsd(session, where, {"state_id": state_id.subquery()})
-
-
-def _is_response_invalid_value_cbsd_id(response: DBResponse) -> bool:
-    if response.response_code != ResponseCodes.INVALID_VALUE.value:
-        return False
-
-    response_data = response.payload.get(
-        "response", {},
-    ).get("responseData", [])
-    return CBSD_ID in response_data

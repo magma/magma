@@ -11,11 +11,11 @@ import (
 	"fbc/cwf/radius/modules/eap/methods"
 	"fbc/cwf/radius/modules/eap/methods/common"
 	eap "fbc/cwf/radius/modules/eap/packet"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 // EapAkaTataIpxMethod Implementation ofthe EAP-AKA method impl with
@@ -71,7 +71,7 @@ func (m EapAkaTataIpxMethod) Handle(
 		},
 		RadiusCode:       radius.CodeAccessChallenge,
 		NewProtocolState: state,
-		ExtraAttributes:  make(radius.Attributes),
+		ExtraAttributes:  *new(radius.Attributes),
 	}
 
 	// Handle EAP-Identity request
@@ -135,13 +135,18 @@ func (m EapAkaTataIpxMethod) Handle(
 		if err != nil {
 			return nil, err
 		}
-		result.ExtraAttributes[rfc2865.VendorSpecific_Type] = keyingMaterialAttrs
+		for i := range keyingMaterialAttrs {
+			result.ExtraAttributes.Add(
+				rfc2865.VendorSpecific_Type,
+				keyingMaterialAttrs[i].Attribute,
+			)
+		}
 
 		// Add required User-Name
-		result.ExtraAttributes[rfc2865.UserName_Type] =
-			[]radius.Attribute{
-				radius.Attribute(currentState.Identity),
-			}
+		result.ExtraAttributes.Add(
+			rfc2865.UserName_Type,
+			radius.Attribute(currentState.Identity),
+		)
 	}
 
 	if akaPacket.Subtype == AkaClientError {

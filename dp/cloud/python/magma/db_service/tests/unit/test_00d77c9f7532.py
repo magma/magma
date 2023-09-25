@@ -60,8 +60,7 @@ class Test00d77c9f7532TestCase(AlembicTestCase):
         cbsds = self.get_table(CBSDS)
 
         # then
-        for col in NEW_COLUMNS:
-            self.assertTrue(self.has_column(cbsds, col))
+        self.assertTrue(self.has_columns(cbsds, NEW_COLUMNS))
 
     def test_default_values_post_upgrade(self):
         # given

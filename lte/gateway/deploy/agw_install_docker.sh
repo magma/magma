@@ -67,7 +67,17 @@ EOF
   echo "Install Magma"
   apt-get update -y
   apt-get upgrade -y
-  apt-get install curl zip python3-pip docker.io net-tools sudo docker-compose -y
+  apt-get install curl zip python3-pip net-tools sudo ca-certificates gnupg lsb-release -y
+
+  mkdir -p /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  apt-get update -y
+  apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+
 
   echo "Making sure $MAGMA_USER user is sudoers"
   if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
@@ -79,7 +89,8 @@ EOF
   fi
 
   alias python=python3
-  pip3 install ansible
+  # TODO GH13915 pinned for now because of breaking change in ansible-core 2.13.4
+  pip3 install ansible==5.0.1
 
   rm -rf /opt/magma/
   git clone "${GIT_URL}" /opt/magma
@@ -116,16 +127,6 @@ if [ "$MODE" == "base" ]; then
 else
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "sudo ansible-playbook -v -e \"MAGMA_ROOT='/opt/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts --tags agwc $DEPLOY_PATH/magma_docker.yml"
-fi
-
-# check if we are on ARM system
-if [ "$(uname -m)" == "aarch64" ]; then
-  sed -i 's/OPTIONAL_ARCH_POSTFIX=/OPTIONAL_ARCH_POSTFIX=_arm/' /var/opt/magma/docker/.env
-fi
-
-if [ "${MAGMA_VERSION}" == "v1.8" ]; then
-  sed -i 's,DOCKER_REGISTRY=,DOCKER_REGISTRY=docker.artifactory.magmacore.org/,' /var/opt/magma/docker/.env
-  sed -i 's/IMAGE_VERSION=latest/IMAGE_VERSION=1.8.0/' /var/opt/magma/docker/.env
 fi
 
 [[ $RERUN -eq 1 ]] || echo "Reboot this VM to apply kernel settings"

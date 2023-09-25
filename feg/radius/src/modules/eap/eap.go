@@ -15,18 +15,19 @@ package eap
 
 import (
 	"errors"
+	"fmt"
+
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/eap/authstate"
 	"fbc/cwf/radius/modules/eap/methods"
 	"fbc/cwf/radius/modules/eap/methods/akamagma"
 	"fbc/cwf/radius/modules/eap/methods/akatataipx"
 	"fbc/cwf/radius/modules/eap/packet"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2869"
-	"fmt"
 
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2869"
 )
 
 // Method A definition for an EAP method with its config
@@ -47,6 +48,7 @@ type ModuleCtx struct {
 }
 
 // Init module interface implementation
+//
 //nolint:deadcode
 func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var mCtx ModuleCtx
@@ -87,6 +89,7 @@ func getMethod(method Method) (methods.EapMethod, error) {
 }
 
 // Handle module interface implementation
+//
 //nolint:deadcode
 func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	mCtx := m.(ModuleCtx)
@@ -177,10 +180,8 @@ func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, nex
 
 	// Add the extra attributes to the radius packet
 	if eapResponse.ExtraAttributes != nil {
-		for t, attrs := range eapResponse.ExtraAttributes {
-			for _, attr := range attrs {
-				radiusResponse.Add(t, attr)
-			}
+		for _, attrs := range eapResponse.ExtraAttributes {
+			radiusResponse.Add(attrs.Type, attrs.Attribute)
 		}
 	}
 

@@ -112,6 +112,7 @@ cc_test(
         "test_spgw_procedures_with_injected_state.cpp",
     ],
     data = ["//lte/gateway/c/core/oai/test/spgw_task/data"],
+    flaky = True,
     deps = [
         ":spgw_test_core",
         "//lte/gateway/c/core:lib_agw_of",
@@ -129,18 +130,5 @@ cc_test(
     deps = [
         "//lte/gateway/c/core:lib_agw_of",
         "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "spgw_state_converter_test",
-    size = "small",
-    srcs = [
-        "test_spgw_state_converter.cpp",
-    ],
-    deps = [
-        ":spgw_test_core",
-        "//lte/gateway/c/core:lib_agw_of",
-        "@com_google_googletest//:gtest",
     ],
 )

@@ -9,7 +9,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: docusaurus-workflow
+# owner: @magma/approvers-infra
+# purpose: Building and deploying the docusaurus documentation
+# remediation: -
+
+name: Docs Build & Deploy
 
 on:
   push:
@@ -17,9 +21,9 @@ on:
       - master
 jobs:
   docusaurus-build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@7884fcad6b5d53d10323aee724dc68d8b9096a2e # pin@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Export vars
         run: |
           echo "DOCUSAURUS_URL=https://magma.github.io" >> $GITHUB_ENV
@@ -39,12 +43,6 @@ jobs:
           cd website && yarn install
           CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
           # yamllint enable
-      - name: Extract commit title
-        id: commit
-        if: failure() && github.ref == 'refs/heads/master'
-        run: |
-          str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
-          echo ::set-output name=title::${str%%\\n*} | tr -d '"'
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -53,8 +51,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
           SLACK_TITLE: "Github action Docusaurus update failed"
-          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
-          SLACK_USERNAME: "Docusaurus update "
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '

@@ -85,15 +85,10 @@ class TestConcurrentSecondaryPdnReject(unittest.TestCase):
 
         # Receive PDN connectivity reject for internet APN
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         # Verify cause
         pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
-        self.assertEqual(
-            pdn_con_rsp.m.conRejInfo.cause,
-            s1ap_types.TFW_ESM_CAUSE_MISSING_OR_UNKNOWN_APN,
-        )
+        assert pdn_con_rsp.m.conRejInfo.cause == s1ap_types.TFW_ESM_CAUSE_MISSING_OR_UNKNOWN_APN
 
         print(
             "************************* Received PDN Connectivity "
@@ -104,9 +99,7 @@ class TestConcurrentSecondaryPdnReject(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context
         # request for ims APN
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         print(
             "************************* Received Activate default EPS bearer "
@@ -151,9 +144,7 @@ class TestConcurrentSecondaryPdnReject(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         print(
             "******************* Received deactivate eps bearer context"

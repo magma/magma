@@ -21,7 +21,6 @@ import MagmaAPI from '../../api/MagmaAPI';
 import Paper from '@mui/material/Paper';
 import React from 'react';
 import Typography from '@mui/material/Typography';
-import moment from 'moment';
 import nullthrows from '../../../shared/util/nullthrows';
 import useMagmaAPI from '../../api/useMagmaAPI';
 import {FederationGateway, PromqlReturnObject} from '../../../generated';
@@ -31,6 +30,7 @@ import {
   HEALTHY_STATUS,
 } from '../../components/GatewayUtils';
 import {GatewayId} from '../../../shared/types/network';
+import {formatRelative, toDate} from 'date-fns';
 import {makeStyles} from '@mui/styles';
 import {useContext} from 'react';
 import {useParams} from 'react-router-dom';
@@ -90,7 +90,10 @@ export default function FEGClusterStatus() {
       lastFalloverTime = Math.max(lastFalloverTime, curUpdate);
     });
     lastFalloverTime &&
-      (lastFalloverStatus = moment.unix(lastFalloverTime).calendar());
+      (lastFalloverStatus = formatRelative(
+        toDate(lastFalloverTime),
+        new Date(),
+      ));
     return lastFalloverStatus;
   };
   const getSecondaryFegGatewayId = (

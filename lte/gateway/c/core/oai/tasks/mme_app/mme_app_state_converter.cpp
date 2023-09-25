@@ -15,17 +15,19 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
+
+#include <memory>
 #include <vector>
+
 extern "C" {
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/bytes_to_ie.h"
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_converter.hpp"
-#include <memory>
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
 namespace magma {
@@ -113,8 +115,8 @@ void MmeNasStateConverter::guti_table_to_proto(
     uint64_t mme_ue_id;
 
     std::string guti_str((char*)(*key_array_p)[i], (GUTI_STRING_LEN - 1));
-    OAILOG_INFO(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
-                (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
+    OAILOG_DEBUG(LOG_MME_APP, "Looking for key %p with value %s strlen:%ld\n",
+                 (*key_array_p)[i], guti_str.c_str(), strlen(guti_str.c_str()));
     hashtable_rc_t ht_rc =
         obj_hashtable_uint64_ts_get(guti_htbl, (const void*)(*key_array_p)[i],
                                     (GUTI_STRING_LEN - 1), &mme_ue_id);
@@ -703,18 +705,15 @@ void MmeNasStateConverter::state_to_proto(const mme_app_desc_t* mme_nas_state_p,
   // copy mme_ue_contexts
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
 
-  OAILOG_DEBUG(LOG_MME_APP, "IMSI table to proto");
-  hashtable_uint64_ts_to_proto(
-      mme_nas_state_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
-      mme_ue_ctxts_proto->mutable_imsi_ue_id_htbl());
-  OAILOG_DEBUG(LOG_MME_APP, "Tunnel table to proto");
-  hashtable_uint64_ts_to_proto(
-      mme_nas_state_p->mme_ue_contexts.tun11_ue_context_htbl,
-      mme_ue_ctxts_proto->mutable_tun11_ue_id_htbl());
-  OAILOG_DEBUG(LOG_MME_APP, "Enb_Ue_S1ap_id table to proto");
-  hashtable_uint64_ts_to_proto(
-      mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-      mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP, "IMSI map to proto");
+  *mme_ue_ctxts_proto->mutable_imsi_ue_id_map() =
+      *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map);
+  OAILOG_DEBUG(LOG_MME_APP, "S11 teid map to proto");
+  *mme_ue_ctxts_proto->mutable_s11_teid_ueid_map() =
+      *(mme_nas_state_p->mme_ue_contexts.s11_teid2mme_ueid_map.map);
+  OAILOG_DEBUG(LOG_MME_APP, "enb_ue_s1ap_key map to proto");
+  *mme_ue_ctxts_proto->mutable_enb_ue_s1ap_key_ue_id_map() =
+      *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map);
   guti_table_to_proto(mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
                       mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -742,17 +741,17 @@ void MmeNasStateConverter::proto_to_state(const oai::MmeNasState& state_proto,
   oai::MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();
 
   mme_ue_context_t* mme_ue_ctxt_state = &mme_nas_state_p->mme_ue_contexts;
-  // copy maps to hashtables
-  OAILOG_INFO(LOG_MME_APP, "Hashtable MME UE ID => IMSI");
-  proto_to_hashtable_uint64_ts(mme_ue_ctxts_proto.imsi_ue_id_htbl(),
-                               mme_ue_ctxt_state->imsi_mme_ue_id_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
-  proto_to_hashtable_uint64_ts(mme_ue_ctxts_proto.tun11_ue_id_htbl(),
-                               mme_ue_ctxt_state->tun11_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable ENB UE S1AP ID => MME UE ID");
-  proto_to_hashtable_uint64_ts(
-      mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
-      mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);
+  // Copy in-memory map to protobuf map
+  OAILOG_INFO(LOG_MME_APP, "Copy in-memory imsi2mme_ueid_map to protobuf map");
+  *(mme_nas_state_p->mme_ue_contexts.imsi2mme_ueid_map.map) =
+      mme_ue_ctxts_proto.imsi_ue_id_map();
+  OAILOG_INFO(LOG_MME_APP,
+              "Copy in-memory s11_teid2mme_ueid_map to protobuf map");
+  *(mme_nas_state_p->mme_ue_contexts.s11_teid2mme_ueid_map.map) =
+      mme_ue_ctxts_proto.s11_teid_ueid_map();
+  OAILOG_INFO(LOG_MME_APP, "Copy enb_ue_s1ap_key2mme_ueid map to protobuf map");
+  *(mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_key2mme_ueid_map.map) =
+      mme_ue_ctxts_proto.enb_ue_s1ap_key_ue_id_map();
   proto_to_guti_table(mme_ue_ctxts_proto.guti_ue_id_htbl(),
                       mme_ue_ctxt_state->guti_ue_context_htbl);
   OAILOG_FUNC_OUT(LOG_MME_APP);

@@ -50,9 +50,7 @@ class TestNasNonDeliveryForSmc(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("Received auth req ind ue-Id", req.ue_id)
 
         """ The purpose of UE_SET_NAS_NON_DELIVERY command is to prepare
@@ -86,9 +84,7 @@ class TestNasNonDeliveryForSmc(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("Received UE_CTX_REL_IND")
 
         # Reset the nas non delivery flag

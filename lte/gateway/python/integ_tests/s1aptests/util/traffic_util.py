@@ -19,6 +19,7 @@ import shlex
 import socket
 import subprocess
 import threading
+import time
 
 import iperf3
 import pyroute2
@@ -112,55 +113,95 @@ class TrafficUtil(object):
         self.ue_ipv6_block = "fdee:0005:006c::/64"
         self.agw_ipv6 = "3001::10"
 
-    def exec_command(self, command):
+    def exec_command(self, command, capture_output=False):
         """
         Run a command remotely on magma_trfserver VM.
 
         Args:
             command: command (str) to be executed on remote host
                 e.g. 'sed -i \'s/str1/str2/g\' /usr/local/bin/traffic_server.py'
+            capture_output: Sets the `capture_output` flag in `subprocess.run`
 
         Returns:
-            Shell command execution output
+            Shell command return code and stdout
         """
-        data = self._cmd_data
-        data["command"] = '"' + command + '"'
-        param_list = shlex.split(self._command.format(**data))
-        return subprocess.call(
+        self._cmd_data["command"] = f'"{command}"'
+        param_list = shlex.split(self._command.format(**self._cmd_data))
+        return subprocess.run(
             param_list,
             shell=False,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            capture_output=capture_output,
         )
+
+    def _dump_leases(self):
+        """Dump DHCP leases in TRF server VM"""
+        return self.exec_command("dumpleases", capture_output=True).stdout
+
+    def clear_leases(self):
+        """Remove all DHCP leases in TRF server VM"""
+        cmd = 'systemctl stop udhcpd.service && ' \
+              'rm -f /var/lib/misc/udhcpd.leases && ' \
+              'systemctl start udhcpd.service'
+        self.exec_command(f"sudo bash -c '{cmd}'")
+
+    def _count_leases(self):
+        """Count the total number of leases in TRF server VM"""
+        # Subtract 2 to account for the table header
+        # and the empty line at the end
+        return len(self._dump_leases().decode("utf-8").split("\n")) - 2
+
+    def _count_expired_leases(self):
+        """Count number of expired leases in TRF server VM"""
+        return self._dump_leases().decode("utf-8").count("expired")
+
+    def check_attached_leases(self, expected_leases):
+        """Wait for up to timeout seconds for expected number of leases"""
+        i = 0
+        timeout = 5
+        while expected_leases != self._count_leases():
+            if i == timeout - 1:
+                assert False, "IP not assigned to UE"
+            time.sleep(1)
+            i += 1
+
+    def check_detached_leases(self, expected_leases):
+        """Wait for up to timeout seconds for expected number of leases"""
+        i = 0
+        timeout = 5
+        while expected_leases != self._count_expired_leases():
+            if i == timeout - 1:
+                assert False, "Not all IPs released"
+            time.sleep(1)
+            i += 1
 
     def update_dl_route(self, ue_ip_block):
         """Update downlink route in TRF server"""
         ret_code_ipv4 = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
             "replace " + ue_ip_block + " via 192.168.129.1 dev eth2",
-        )
+        ).returncode
         ret_code_ipv6 = self.exec_command(
             "sudo ip -6 route flush via " + self.agw_ipv6 + " && sudo ip -6 route "
             "replace " + self.ue_ipv6_block + " via " + self.agw_ipv6 + " dev eth3",
-        )
+        ).returncode
         return ret_code_ipv4 == 0 and ret_code_ipv6 == 0
 
     def close_running_iperf_servers(self):
         """Close running Iperf3 servers in TRF server VM"""
         ret_code = self.exec_command(
             "pidof iperf3 && pidof iperf3 | xargs sudo kill -9",
-        )
+        ).returncode
         return ret_code == 0
 
     def update_mtu_size(self, set_mtu=False):
         """ Update MTU size in TRF server """
         # Set MTU size to 1400 for ipv6
         if set_mtu == True:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400")
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1400").returncode
             if ret_code != 0:
                 return False
         else:
-            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500")
+            ret_code = self.exec_command("sudo /sbin/ifconfig eth3 mtu 1500").returncode
             if ret_code != 0:
                 return False
         return True
@@ -409,7 +450,7 @@ class TrafficTest(object):
             ifname=TrafficTest._net_iface_ipv6,
         )[0]
         TrafficTest._iproute.addr(
-            'add', index=net_iface_index, address=ip.exploded,
+            'add', index=net_iface_index, address=ip.exploded, prefixlen=128,
         )
         os.system(
             'sudo route -A inet6 add 3001::10/64 dev eth3',

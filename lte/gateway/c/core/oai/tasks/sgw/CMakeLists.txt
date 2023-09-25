@@ -22,7 +22,6 @@ add_library(TASK_SGW
     pgw_pco.cpp
     mobilityd_ue_ip_address_alloc.cpp
     sgw_paging.cpp
-    pgw_pcef_emulation.cpp
     pgw_procedures.cpp
     spgw_state.cpp
     spgw_state_manager.cpp
@@ -38,7 +37,7 @@ target_compile_definitions(TASK_SGW PRIVATE
 target_link_libraries(TASK_SGW
     COMMON
     ${GTPNL_LIBRARIES}
-    LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT LIB_PCEF
+    LIB_BSTR LIB_MOBILITY_CLIENT LIB_PCEF
     TASK_GTPV1U
     cpp_redis tacopie protobuf
     )

@@ -1,20 +1,25 @@
-FROM python:3.8-alpine as builder
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM python:3.9.10-alpine
 
 RUN addgroup -S linter && adduser -S -G linter linter
-RUN apk add --no-cache git gcc musl-dev # temp
 
-COPY lte/gateway/docker/python-precommit/requirements.txt /
-RUN pip wheel -r /requirements.txt --wheel-dir=/wheelhouse/
-
-
-FROM python:3.8-alpine as runner
-
-RUN addgroup -S linter && adduser -S -G linter linter
-
-RUN apk add --no-cache jq
-
-COPY --from=builder /wheelhouse/ /wheelhouse/
-RUN pip install /wheelhouse/*
+# Installing wemake-python-styleguide==0.17.0 is not
+# working with a requirements.in file.
+# hadolint ignore=DL3013
+RUN pip install --no-cache-dir wemake-python-styleguide==0.17.0 \
+                add-trailing-comma \
+                isort \
+                autopep8
 
 USER linter
 WORKDIR /code/

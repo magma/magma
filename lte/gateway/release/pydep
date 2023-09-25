@@ -47,9 +47,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tarfile
-import zipfile
-from datetime import datetime
 from functools import lru_cache, partial
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, cast
 
@@ -151,105 +148,6 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool = False) -> str:
 
     suffix = PYPI_TO_DEB.get(py_pkgname.lower(), py_pkgname)
     return "{}-{}".format(prefix, suffix).lower()  # deb likes lowercase
-
-
-@lru_cache(maxsize=128)
-def get_package(pkgname: str,
-                version: Optional[str] = None,
-                use_latest_if_needed: bool = False) -> str:
-    """
-    Downloads and verifies a package from PyPI into
-    /tmp/pyreq-{pkgname}/{version}. If the version number is not specified, we
-    assume the latest version.
-
-    Args:
-        pkgname: The name of the package
-        version: The requested version number
-        use_latest_if_needed: If the requested version isn't available, we use
-                              the latest from PyPI. (Default: False)
-
-    Returns path to the downloaded tar.gz
-    """
-
-    pkg_info_url = PYPI_API_BASE.format(pkgname)
-
-    resp = requests.get(pkg_info_url)
-    if resp.status_code != 200:
-        raise ValueError("couldn't get package info for {} ({})".format(
-            pkgname, resp.status_code))
-
-    r = resp.json()
-
-    # get latest package version if version not specified, or doesn't exist
-    if (not version
-            or (use_latest_if_needed and version not in r['releases'])
-            or not r['releases'][version]):
-        version = r['info']['version']
-
-    # get package info for specified version. there can, apparently, be more
-    # than one release package per version, so we use the one with the most
-    # recent release time to disambiguate.
-    release = {}  # type: Dict[str, str]
-    newest_time = None
-    for rel in r['releases'][version]:
-        if rel['packagetype'] != 'sdist':
-            continue
-        ul_time = datetime.strptime(rel['upload_time'], "%Y-%m-%dT%H:%M:%S")
-        if not newest_time or ul_time > newest_time:
-            newest_time = ul_time
-            release = rel
-
-    # download package
-    dl_path = "/tmp/pyreq-{}/{}".format(pkgname, version)
-    filename = _wget(release['url'], dl_path)
-    if _md5sum(filename) != release['md5_digest']:
-        raise ValueError("downloaded file doesn't match md5sum, aborting")
-
-    return filename
-
-
-def _unpack_tarfile(filepath: str, file_type: str) -> str:
-    """
-    Unpacks a tar.gz, and returns a path to the unpacked directory.
-    """
-    extract_path = os.path.dirname(filepath)
-    tarball = tarfile.open(filepath, "r:" + file_type)
-    top_level = tarball.getmembers()[0]
-    if not top_level.isdir():
-        raise ValueError("archive doesn't contain a top level directory")
-
-    tarball.extractall(extract_path)
-    tarball.close()
-    return "{}/{}".format(extract_path, top_level.name)
-
-
-def _unpack_zip(filepath: str) -> str:
-    """
-    Unpacks a zip, and returns a path to the unpacked directory.
-    """
-    extract_path = os.path.dirname(filepath)
-    zfile = zipfile.ZipFile(filepath)
-
-    # we take a guess that it's going to extract to a directory, yolo
-    top_level = os.path.dirname(zfile.infolist()[0].filename)
-
-    zfile.extractall(extract_path)
-    zfile.close()
-    return "{}/{}".format(extract_path, top_level)
-
-
-def _unpack(filepath: str) -> str:
-    """
-    Unpacks a tar.gz or zip, and returns a path to the unpacked directory.
-    """
-    if filepath.endswith(".zip"):
-        return _unpack_zip(filepath)
-    elif filepath.endswith(".tar.gz"):
-        return _unpack_tarfile(filepath, "gz")
-    elif filepath.endswith(".tar.bz2"):
-        return _unpack_tarfile(filepath, "bz2")
-    else:
-        raise ValueError("Unsupported package archive: {}".format(filepath))
 
 
 def _get_requires(pkg_dir: str) -> Optional[str]:
@@ -591,7 +489,7 @@ def py_to_deb(pkgname: str,
             return 0
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
-        cmd = "fpm -s python -t deb --no-python-dependencies "
+        cmd = "fpm -s python -t deb --no-python-dependencies --no-python-internal-pip "
         if not py2:
             cmd += "--python-package-name-prefix=python3 "
             cmd += "--python-bin=python3 "
@@ -661,38 +559,6 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
         already_built = True
 
     return already_built
-
-
-@lru_cache(maxsize=128)
-def get_pkg_deps(pkgname: str,
-                 version: Optional[str] = None,
-                 use_latest_if_needed: bool = False,
-                 clean: bool = True) -> List[str]:
-    """
-    Get the direct dependencies for a package.
-
-    Args:
-        pkgname: The python package name.
-        version: The desired version (optional)
-        use_latest_if_needed: If the requested version isn't available, we use
-                              the latest from PyPI. (Default: False)
-        clean: Remove temporary build files. (Default: True)
-
-    Returns:
-        List of tuples containing (depname, version_str)
-    """
-
-    path = _unpack(get_package(pkgname, version, use_latest_if_needed))
-    requires_txt = _get_requires(path)
-    if requires_txt:
-        dependencies = _parse_requires_txt(requires_txt)
-    else:
-        dependencies = []
-
-    if clean:
-        _cleanup(pkgname)
-
-    return dependencies
 
 
 @contextlib.contextmanager
@@ -1086,7 +952,7 @@ def main(args):
             pip_packages = [req.key for req in repo_installable]
             subprocess.call(shlex.split('sudo pip3 uninstall -y '
                                         + ' '.join(pip_packages)))
-            subprocess.call(shlex.split('sudo apt install -y '
+            subprocess.call(shlex.split('sudo apt reinstall -y '
                                         + ' '.join(repo_pkgs)))
         except Exception:
             log.error('error trying to install repo packages')

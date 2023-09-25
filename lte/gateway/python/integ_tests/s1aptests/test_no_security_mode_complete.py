@@ -91,9 +91,7 @@ class TestNoSecurityModeComplete(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
@@ -106,17 +104,13 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         # Wait for timer 3460 expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
             print("************************* Timeout", i + 1)
 
         print("************************* Timeouts complete")
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("************************* Context released")
 
 

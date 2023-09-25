@@ -13,44 +13,44 @@ message("Proto_srcs are ${PROTO_SRCS}")
 include_directories("${S1AP_C_DIR}")
 include_directories(${CMAKE_SOURCE_DIR})
 set(libnas_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/network/nas_message.cpp
     )
 
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 set(libnas_emm_msg_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AttachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationFailure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/AuthenticationResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/CsServiceNotification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DetachRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/DownlinkNasTransport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/emm_msg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/EmmStatus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ExtendedServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/GutiReallocationComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/IdentityResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeCommand.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/SecurityModeReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/ServiceRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateAccept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateComplete.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateReject.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/TrackingAreaUpdateRequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/msg/UplinkNasTransport.cpp
     )
 
 set(libnas_esm_msg_OBJS
@@ -81,95 +81,95 @@ set(libnas_esm_msg_OBJS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ies)
 set(libnas_ies_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/AdditionalUpdateResult.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/AdditionalUpdateType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ApnAggregateMaximumBitRate.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/Cli.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/CsfbResponse.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/DetachType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EmmCause.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsAttachResult.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsAttachType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsBearerContextStatus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsMobileIdentity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsNetworkFeatureSupport.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsQualityOfService.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsUpdateResult.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsUpdateType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmCause.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmInformationTransferFlag.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmMessageContainer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/GutiType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/KsiAndSequenceNumber.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LcsClientIdentity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LcsIndicator.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LinkedEpsBearerIdentity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/MessageType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasKeySetIdentifier.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasMessageContainer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasRequestType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasSecurityAlgorithms.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/Nonce.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PagingIdentity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PdnAddress.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PdnType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/RadioPriority.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SecurityHeaderType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ServiceType.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ShortMac.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SsCode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SupportedCodecList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentity.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentityList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeAdditionalSecurityCapability.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeNetworkCapability.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeRadioCapabilityInformationUpdateNeeded.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeSecurityCapability.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NrUeSecurityCapability.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/AdditionalUpdateResult.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/AdditionalUpdateType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ApnAggregateMaximumBitRate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/Cli.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/CsfbResponse.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/DetachType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EmmCause.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsAttachResult.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsAttachType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsBearerContextStatus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsMobileIdentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsNetworkFeatureSupport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsQualityOfService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsUpdateResult.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EpsUpdateType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmCause.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmInformationTransferFlag.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmMessageContainer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/GutiType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/KsiAndSequenceNumber.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LcsClientIdentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LcsIndicator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/LinkedEpsBearerIdentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/MessageType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasKeySetIdentifier.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasMessageContainer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasRequestType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NasSecurityAlgorithms.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/Nonce.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PagingIdentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PdnAddress.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/PdnType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/RadioPriority.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SecurityHeaderType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ServiceType.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ShortMac.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SsCode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/SupportedCodecList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/TrackingAreaIdentityList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeAdditionalSecurityCapability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeNetworkCapability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeRadioCapabilityInformationUpdateNeeded.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/UeSecurityCapability.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/NrUeSecurityCapability.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)
 set(libnas_utils_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/api/mme)
 set(libnas_mme_api_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/mme/mme_api.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm)
 set(libnas_mme_emm_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Attach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Authentication.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Detach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmInformation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_data_ctx.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/emm_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmStatusHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/Identification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/LowerLayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/SecurityModeControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/ServiceRequestHdl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/TrackingAreaUpdate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/EmmCommon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/NasTransportHdl.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/emm/sap)
 set(libnas_mme_emm_sap_OBJS
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_as.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_cn.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmCommonProcedureInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmDeregisteredInitiated.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_esm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_fsm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_recv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_reg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/EmmRegistered.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_sap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/emm/sap/emm_send.cpp
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)
@@ -197,9 +197,9 @@ set(libnas_mme_esm_sap_OBJS
     )
 
 add_library(TASK_NAS
-    nas_network.c
-    nas_proc.c
-    nas_procedures.c
+    nas_network.cpp
+    nas_proc.cpp
+    nas_procedures.cpp
     nas_state_converter.cpp
     ${libnas_api_OBJS}
     ${libnas_mme_api_OBJS}

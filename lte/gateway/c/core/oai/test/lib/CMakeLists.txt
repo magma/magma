@@ -24,3 +24,7 @@ add_test(test_bstr bstr_test)
 add_executable(3gpp_test test_3gpp.cpp)
 target_link_libraries(3gpp_test LIB_3GPP gmock_main gtest gtest_main gmock)
 add_test(test_3gpp 3gpp_test)
+
+add_executable(ula_sub_data_test test_ula_subData.cpp)
+target_link_libraries(ula_sub_data_test LIB_STORE LIB_S6A_PROXY COMMON TASK_MME_APP gmock_main gtest gtest_main gmock)
+add_test(test_ula_subdata ula_sub_data_test)

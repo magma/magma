@@ -52,9 +52,7 @@ class TestIcsTimerExpiryUeUnregistered(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
 
         print("*** Sending indication to drop Initial Context Setup Req ***")
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
@@ -76,9 +74,7 @@ class TestIcsTimerExpiryUeUnregistered(unittest.TestCase):
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -90,14 +86,10 @@ class TestIcsTimerExpiryUeUnregistered(unittest.TestCase):
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print(
             "************************* Received UE_CTX_REL_IND for UE id ",
             req.ue_id,

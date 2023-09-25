@@ -38,7 +38,7 @@ args:
   - mkdir -p /var/opt/magma/cores &&
     sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
     /usr/local/bin/sessiond
-image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_c{{ .Values.image.arch }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
   privileged: true
 {{- end -}}

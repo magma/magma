@@ -29,7 +29,7 @@ dp:
     name: configuration-controller  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/configuration-controller  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/configuration-controller  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
       tag: "1.7.0"
 
@@ -156,86 +156,7 @@ dp:
     name: radio-controller  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/radio-controller  # Docker image repository.
-      tag: "1.7.0"
-      pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
-
-    replicaCount: 1  # How many replicas of particular component should be created.
-
-    imagePullSecrets: []  # Name of the secret that contains container image registry keys.
-
-    serviceAccount:
-      create: false  # Specifies whether a service account should be created.
-      annotations: {}  # Annotations to add to the service account.
-      name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
-
-    podAnnotations: {}  # Additional pod annotations.
-
-    podSecurityContext: {}  # Holds pod-level security attributes.
-    # fsGroup: 2000
-
-    securityContext: {}  # Holds security configuration that will be applied to a container.
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
-    # runAsUser: 1000
-
-    resources: {}  # Resource requests and limits of Pod.
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-
-    readinessProbe: {}  # Readines probe definition.
-    # Example httpGet probe
-    # httpGet:
-    #   path: /
-    #   port: http
-
-    livenessProbe: {}  # Livenes probe definition.
-    # Example httpget probe
-    # httpGet:
-    #   path: /
-    #   port: http
-
-    autoscaling:
-      enabled: false  # Enables horizontal pod autscaler kubernetes resource.
-      minReplicas: 1  # Minimum number of dp component replicas.
-      maxReplicas: 100  # Maximum number of dp component replicas.
-      targetCPUUtilizationPercentage: 80  # Target CPU utilization threshold in perecents when new replica should be created
-      # targetMemoryUtilizationPercentage: 80 # Target CPU utilization threshold in perecents when new replica should be created
-      # You can use one of these
-
-    # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
-    podDisruptionBudget:
-      enabled: false  # Creates kubernetes podDisruptionBudget resource.
-      minAvailable: 1  # Minimum available pods for dp component.
-      maxUnavailable: ""  # Maximum unavailable pods for dp component.
-      # You can use either one.
-
-    nodeSelector: {}  # Kubernetes node selection constraint.
-
-    tolerations: []  # Allow the pods to schedule onto nodes with matching taints.
-
-    affinity: {}  # Constrain which nodes your pod is eligible to be scheduled on.
-
-  active_mode_controller:
-
-    nameOverride: ""  # Replaces service part of the dp component deployment name.
-    fullnameOverride: ""  # Completely replaces dp component deployment name.
-    enabled: true  # Enables deployment of the given dp component.
-    name: active-mode-controller  # Domain proxy component name.
-
-    image:
-      repository: docker.artifactory.magmacore.org/active-mode-controller  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/radio-controller  # Docker image repository.
       tag: "1.7.0"
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
 
@@ -325,7 +246,7 @@ dp:
     name: db-service  # Domain proxy component name.
 
     image:
-      repository: docker.artifactory.magmacore.org/db-service  # Docker image repository.
+      repository: linuxfoundation.jfrog.io/magma-docker/db-service  # Docker image repository.
       pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
       tag: "1.7.0"
 

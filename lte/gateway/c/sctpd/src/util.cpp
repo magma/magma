@@ -107,6 +107,7 @@ int set_sctp_opts(const int sd, const uint16_t instreams,
   }
 
   struct sctp_event_subscribe event;
+  memset(&event, 0, sizeof(event));
   event.sctp_association_event = on;
   event.sctp_shutdown_event = on;
   event.sctp_data_io_event = on;

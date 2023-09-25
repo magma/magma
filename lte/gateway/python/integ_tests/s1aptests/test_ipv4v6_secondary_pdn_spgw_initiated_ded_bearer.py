@@ -85,9 +85,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         )
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         pdn_type = act_def_bearer_req.m.pdnInfo.pAddr.pdnType
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -109,9 +107,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
 
         # Receive Router Advertisement message
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
         router_adv = response.cast(s1ap_types.ueRouterAdv_t)
         print(
             "******************* Received Router Advertisement for APN-%s"
@@ -139,9 +135,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
             req.ue_id, act_ded_ber_ctxt_req.bearerId,
@@ -184,9 +178,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
 
         print("******************* Received deactivate eps bearer context")
 

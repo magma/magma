@@ -1,7 +1,18 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ARG ENV=standard
 FROM python:3.9.2-slim-buster as protos-generator
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl=7.64.0-4+deb10u2 zip=3.0-11+b1 make=4.2.1-1.2 unzip=6.0-23+deb10u2
+RUN apt-get update && apt-get install -y --no-install-recommends curl zip make unzip
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.10.0/protoc-3.10.0-linux-x86_64.zip \
     -o protoc3.zip
 RUN unzip protoc3.zip -d protoc3 &&\

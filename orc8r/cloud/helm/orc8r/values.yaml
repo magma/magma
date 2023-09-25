@@ -15,7 +15,7 @@ nms:
   magmalte:
     create: true
     image:
-      repository: docker.artifactory.magmacore.org/magmalte
+      repository: linuxfoundation.jfrog.io/magma-docker/magmalte
       tag: 1.7.0
   nginx:
     create: true
@@ -107,7 +107,7 @@ nginx:
 
   # nginx image
   image:
-    repository: docker.artifactory.magmacore.org/nginx
+    repository: linuxfoundation.jfrog.io/magma-docker/nginx
     tag: 1.7.0
     pullPolicy: IfNotPresent
 
@@ -153,7 +153,7 @@ controller:
 
   # orc8r_base image
   image:
-    repository: docker.artifactory.magmacore.org/controller
+    repository: linuxfoundation.jfrog.io/magma-docker/controller
     tag: 1.7.0
     pullPolicy: IfNotPresent
     env:
@@ -346,5 +346,16 @@ dp:
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: /magma/v1/dp
   enabled: false
-  cbsd_inactivity_interval_sec: 14400
-  log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
+  config:
+    dp_backend:
+      cbsd_inactivity_interval_sec: 14400
+      log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
+    active_mode_controller:
+      dial_timeout_sec: 60
+      heartbeat_send_timeout_sec: 10
+      request_timeout_sec: 5
+      request_processing_interval_sec: 10
+      polling_interval: 10
+      grpc_service: 'domain-proxy-radio-controller'
+      grpc_port: 50053
+      cbsd_inactivity_interval_sec: 14400

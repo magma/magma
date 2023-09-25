@@ -14,7 +14,7 @@ If you are going to run or build the Symphony Agent you will need to install Doc
 There are some known limitations to running Docker on MacOS, the biggest being that you are unable to run ping over IPv6 from inside these Docker containers. But if you don't need your agent to do these things, this should be fine.
 
 
-With MacOS you actually **don't want to install Docker via Homebrew**, but if you go to the docker website it will ask you to create an account to login before installing. To avoid having to create an account, though, you can use this [direct link](https://download.docker.com/mac/stable/Docker.dmg) to download a dmg image file instead. (You can read more background on this issue [here](https://github.com/docker/docker.github.io/issues/6910))
+With MacOS you actually **don't want to install Docker via Homebrew**, but if you go to the docker website it will ask you to create an account to login before installing. To avoid having to create an account, though, you can use this [link](https://docs.docker.com/desktop/install/mac-install/) to download a dmg image file instead. (You can read more background on this issue [here](https://github.com/docker/docker.github.io/issues/6910))
 
 Once you have installed Docker via the dmg file you will want to increase the Docker disk (~50GB) and memory (at least 5GB) in the Docker desktop UI. You can do this by going to the Disk and Advanced tabs in Docker's preferences window.
 

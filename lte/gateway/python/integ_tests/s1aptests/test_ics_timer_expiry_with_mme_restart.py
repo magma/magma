@@ -74,9 +74,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print("*** Sending indication to drop Initial Context Setup Req ***")
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
@@ -105,21 +103,16 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
         print("************************* Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
+        wait_for_restart = 30
+        self._s1ap_wrapper.magmad_util.restart_services(
+            ["mme"], wait_for_restart,
+        )
 
         print("************************* Waiting for response from MME")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         print(
             "************************* Received UE_CTX_REL_IND for UE id ",

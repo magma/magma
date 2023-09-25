@@ -13,9 +13,9 @@
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
 
 # Add the s1aptester integration tests
-PRECOMMIT_TESTS = s1aptests/test_attach_detach.py \
+PRECOMMIT_TESTS = s1aptests/test_services_are_running.py \
+s1aptests/test_attach_detach.py \
 s1aptests/test_attach_detach_static_ip.py \
-s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_combined_eps_imsi.py \
@@ -111,25 +111,27 @@ s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
 s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
 s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
-s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
-s1aptests/test_attach_dl_udp_data.py \
-s1aptests/test_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
 s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_sctpd_restart.py \
 s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
+s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
+s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp.py \
+s1aptests/test_attach_detach_attach_dl_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+s1aptests/test_attach_dl_udp_data.py \
+s1aptests/test_attach_dl_tcp_data.py \
+s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
-s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
-s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
+s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 s1aptests/test_enable_ipv6_iface.py \
 s1aptests/test_disable_ipv6_iface.py
 
@@ -137,8 +139,6 @@ EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
-s1aptests/test_attach_detach_with_he_policy.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
@@ -162,13 +162,9 @@ s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_s1_handover.py \
-s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
-s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
-s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
-s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
@@ -176,6 +172,17 @@ s1aptests/test_tau_mixed_partial_lists.py \
 s1aptests/test_eps_bearer_context_status_multiple_ded_bearer_deact.py \
 s1aptests/test_guti_attach_with_zero_mtmsi.py \
 s1aptests/test_ics_timer_expiry_with_mme_restart.py \
+s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
+s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
+s1aptests/test_attach_detach_rar_tcp_data.py \
+s1aptests/test_attach_detach_rar_tcp_he.py \
+s1aptests/test_attach_detach_with_he_policy.py \
+s1aptests/test_paging_after_mme_restart.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue.py \
+s1aptests/test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py \
+s1aptests/test_restore_mme_config_after_sanity.py
+
+EXTENDED_TESTS_LONG = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \
@@ -271,10 +278,10 @@ s1aptests/test_restore_config_after_non_sanity.py
 #---------------
 
 # TODO: Flaky ipv6 tests which randomly fail with connection refused
+#s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 #s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
 #s1aptests/test_ipv6_non_nat_dp_ul_udp.py
 #s1aptests/test_ipv6_non_nat_dp_dl_udp.py
-#s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 #---------------
 
 # TODO: Add ipv6 tests to integ test suite
@@ -308,7 +315,15 @@ s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_detach_after_ue_context_release.py \
 s1aptests/test_attach_esm_information_wrong_apn.py \
 s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
-s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
+s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py \
+s1aptests/test_attach_service_without_mac.py \
+s1aptests/test_attach_mme_restart_detach_multi_ue.py \
+s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_detach_looped.py \
+s1aptests/test_attach_ipv4v6_pdn_type.py \
+s1aptests/test_standalone_pdn_conn_req.py \
+s1aptests/test_attach_detach_dedicated_multi_ue.py \
+s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py
 
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
@@ -317,6 +332,3 @@ cloud_tests/config_test.py
 
 S1AP_TESTER_CFG=$(MAGMA_ROOT)/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
 S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
-
-# Local integ tests are run on the magma access gateway, not the test VM
-LOCAL_INTEG_TESTS = gxgy_tests

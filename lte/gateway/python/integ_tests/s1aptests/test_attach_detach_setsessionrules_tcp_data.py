@@ -141,9 +141,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
         # Receive Activate dedicated bearer request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_ctxt_req = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -170,9 +168,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         # Triggers a delete bearer followed by a create bearer request
         # Receive Deactivate dedicated bearer request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
         deactivate_ber_ctxt_req = response.cast(
             s1ap_types.UeDeActvBearCtxtReq_t,
         )
@@ -184,9 +180,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
         # Receive Activate dedicated bearer request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_ctxt_req = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -219,14 +213,9 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             time.sleep(5)  # sleep for 5 seconds before retrying
 
         assert len(uplink_flows) == 2, "There should be 2 UL flow rules for UE"
-        self.assertIsNotNone(
-            uplink_flows[0]["match"]["tunnel_id"],
-            "Uplink flow missing tunnel id match",
-        )
-        self.assertIsNotNone(
-            uplink_flows[1]["match"]["tunnel_id"],
-            "Uplink flow missing tunnel id match",
-        )
+        for i in range(len(uplink_flows)):
+            assert uplink_flows[i]["match"]["tunnel_id"] is not None, \
+                "Uplink flow missing tunnel id match"
 
         # DOWNLINK
         print("Checking for downlink flow")
@@ -251,11 +240,8 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             time.sleep(5)  # sleep for 5 seconds before retrying
 
         assert len(downlink_flows) == 3, "Downlink flows must have been 3 for UE"
-        self.assertEqual(
-            downlink_flows[0]["match"]["ipv4_dst"],
-            ue_ip,
-            "UE IP match missing from downlink flow",
-        )
+        assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip, \
+            "UE IP match missing from downlink flow"
 
         actions = downlink_flows[0]["instructions"][0]["actions"]
         has_tunnel_action = any(
@@ -264,9 +250,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             if action["field"] == "tunnel_id"
             and action["type"] == "SET_FIELD"
         )
-        self.assertTrue(
-            has_tunnel_action, "Downlink flow missing set tunnel action",
-        )
+        assert has_tunnel_action, "Downlink flow missing set tunnel action"
 
         # Get UL Flow Rule for TCP flows for verifying rate limits enforced
         print("**********************Get uplink TCP flow for UE before UL traffic test:")

@@ -31,8 +31,7 @@ Author      Frederic Maurel
 Description Defines functions used to handle EPS bearer contexts.
 
 *****************************************************************************/
-#ifndef ESM_EBR_CONTEXT_SEEN
-#define ESM_EBR_CONTEXT_SEEN
+#pragma once
 
 #include <stdbool.h>
 
@@ -40,7 +39,7 @@ Description Defines functions used to handle EPS bearer contexts.
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include <czmq.h>
 /****************************************************************************/
@@ -77,9 +76,6 @@ ebi_t esm_ebr_context_release(emm_context_t* emm_context, ebi_t ebi,
 
 void free_esm_ebr_context(esm_ebr_context_t* ctx);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
                                                         int timer_id,
                                                         void* args);
@@ -90,7 +86,3 @@ status_code_e dedicated_eps_bearer_activate_t3485_handler(zloop_t* loop,
 
 status_code_e eps_bearer_deactivate_t3495_handler(zloop_t* loop, int timer_id,
                                                   void* args);
-#ifdef __cplusplus
-}
-#endif
-#endif /* ESM_EBR_CONTEXT_SEEN */

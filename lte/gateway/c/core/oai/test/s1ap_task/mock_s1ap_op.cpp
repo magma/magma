@@ -19,10 +19,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_converter.hpp"
-
-using magma::lte::oai::S1apState;
-using magma::lte::oai::UeDescription;
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace magma {
 namespace lte {
@@ -52,14 +49,14 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 // samples
 status_code_e mock_read_s1ap_ue_state_db(
     const std::vector<std::string>& ue_samples) {
-  hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  if (!state_ue_ht) {
+  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  if (!state_ue_map) {
     std::cerr << "Cannot get S1AP UE State" << std::endl;
     return RETURNerror;
   }
 
   for (const auto& name_of_sample_file : ue_samples) {
-    UeDescription ue_proto = UeDescription();
+    oai::UeDescription ue_proto = oai::UeDescription();
     std::fstream input(name_of_sample_file.c_str(),
                        std::ios::in | std::ios::binary);
     if (!ue_proto.ParseFromIstream(&input)) {
@@ -68,17 +65,21 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    ue_description_t* ue_context_p = reinterpret_cast<ue_description_t*>(
-        calloc(1, sizeof(ue_description_t)));
-    S1apStateConverter::proto_to_ue(ue_proto, ue_context_p);
+    oai::UeDescription* ue_context_p = new oai::UeDescription();
+    if (!ue_context_p) {
+      std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
+      return RETURNerror;
+    }
+    ue_context_p->MergeFrom(ue_proto);
 
-    hashtable_rc_t h_rc =
-        hashtable_ts_insert(state_ue_ht, ue_context_p->comp_s1ap_id,
-                            reinterpret_cast<void*>(ue_context_p));
+    proto_map_rc_t rc = state_ue_map->insert(
+        ue_context_p->comp_s1ap_id(),
+        reinterpret_cast<oai::UeDescription*>(ue_context_p));
 
-    if (HASH_TABLE_OK != h_rc) {
+    if (rc != magma::PROTO_MAP_OK) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
+      free_ue_description(reinterpret_cast<void**>(&ue_context_p));
       return RETURNerror;
     }
   }
@@ -89,78 +90,20 @@ status_code_e mock_read_s1ap_ue_state_db(
 // samples
 status_code_e mock_read_s1ap_state_db(
     const std::string& file_name_state_sample) {
-  s1ap_state_t* state_cache_p = get_s1ap_state(false);
+  oai::S1apState* state_cache_p = get_s1ap_state(false);
 
-  S1apState state_proto = S1apState();
+  oai::S1apState state_proto = oai::S1apState();
 
   std::ifstream input(file_name_state_sample.c_str(),
                       std::ios::in | std::ios::binary);
-  std::vector<char> data = std::vector<char>(
-      std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-  std::string decoded_msg = decode_msg(data);
-  std::istringstream input_stream(decoded_msg);
-  if (!state_proto.ParseFromIstream(&input_stream)) {
+  if (!state_proto.ParseFromIstream(&input)) {
     std::cerr << "Failed to decode and parse the sample: "
               << file_name_state_sample << std::endl;
     return RETURNerror;
   }
-  S1apStateConverter::proto_to_state(state_proto, state_cache_p);
+  state_cache_p->Clear();
+  state_cache_p->MergeFrom(state_proto);
   return RETURNok;
-}
-
-// putting data in the buffer to decode and update the size of the buffer
-void add_data_to_buffer(unsigned int& buf, int& buf_size, int data,
-                        const std::vector<int>& decode_table) {
-  buf = buf << ENCODER_BLOCK_SIZE;
-  buf += data;
-  buf_size += ENCODER_BLOCK_SIZE;
-}
-
-// getting the last byte from the buffer
-int get_last_decoder_block_size_bit(int num) {
-  return num & ((1 << DECODER_BLOCK_SIZE) - 1);
-}
-
-// decoding each byte and putting it into the buffer of the decoded message
-void add_decoded_data_to_output(unsigned int& buf, int& buf_size,
-                                std::string& buf_decoded_msg) {
-  if (buf_size >= DECODER_BLOCK_SIZE) {
-    buf_size -= DECODER_BLOCK_SIZE;
-    char decoded_char =
-        static_cast<char>(get_last_decoder_block_size_bit(buf >> buf_size));
-    buf_decoded_msg.push_back(decoded_char);
-  }
-}
-
-// decoding an encoded message
-std::string decode_msg(const std::vector<char>& encoded_msg) {
-  if (encoded_msg.size() % 4 != 0) {
-    std::cerr << " This data is wrongly encoded." << std::endl;
-    return "";
-  }
-  std::vector<int> decode_table(MAX_ASCII_VAL_OF_DECODE_TABLE, NO_CODE_VAL);
-  for (int i = 0; i < LENGTH_OF_STR_DECODE_TABLE; i++)
-    decode_table[STR_DECODE_TABLE[i]] = i;
-
-  int pad_size = 0;
-  int cur_len_buffer = 0;
-  unsigned int buffer = 0;
-  std::string decoded_msg;
-  for (int i = 0; i < encoded_msg.size(); ++i) {
-    char ch = encoded_msg[i];
-    ch -= SHIFT;
-    int data = decode_table[ch];
-    if (data == NO_CODE_VAL) {
-      if (ch != PAD_SYMBOL) {
-        std::cerr << " Invalid char in the encoded message." << std::endl;
-        return "";
-      }
-      break;
-    }
-    add_data_to_buffer(buffer, cur_len_buffer, data, decode_table);
-    add_decoded_data_to_output(buffer, cur_len_buffer, decoded_msg);
-  }
-  return decoded_msg;
 }
 
 }  // namespace lte

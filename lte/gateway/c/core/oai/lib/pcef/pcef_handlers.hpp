@@ -27,8 +27,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
+#ifdef __cplusplus
+}
+#endif
 
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 struct pcef_create_session_data {
   char msisdn[MSISDN_LENGTH + 1];
   char imeisv[IMEISV_DIGITS_MAX + 1];
@@ -57,7 +60,7 @@ struct pcef_create_session_data {
  * the PCEF and sends an S5 ITTI message to SGW when done.
  * This is a long process, so it needs to by asynchronous
  */
-void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
+void pcef_create_session(std::string imsi, const char* ip4, const char* ip6,
                          const struct pcef_create_session_data* session_data,
                          s5_create_session_request_t bearer_request);
 
@@ -66,7 +69,7 @@ void pcef_create_session(const char* imsi, const char* ip4, const char* ip6,
  * PCEF and returns true if successful.
  * This may turn asynchronous in the future if it's too long
  */
-bool pcef_end_session(char* imsi, char* apn);
+bool pcef_end_session(const std::string imsi, const std::string apn);
 
 /**
  * pcef_send_policy2bearer_binding is an asynchronous call that binds policy
@@ -79,10 +82,6 @@ void pcef_send_policy2bearer_binding(const char* imsi,
                                      const uint8_t eps_bearer_id,
                                      const uint32_t eps_bearer_agw_teid,
                                      const uint32_t eps_bearer_enb_teid);
-
-void get_session_req_data(spgw_state_t* spgw_state,
-                          const itti_s11_create_session_request_t* saved_req,
-                          struct pcef_create_session_data* data);
 
 /**
  * pcef_update_teids is an asynchronous call that updates
@@ -104,6 +103,12 @@ int get_imeisv_from_session_req(
 void convert_imeisv_to_string(char* imeisv);
 
 bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list);
-#ifdef __cplusplus
-}
-#endif
+
+bool get_uli_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* uli);
+
+void get_plmn_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* mcc_mnc);
+
+void get_imsi_plmn_from_session_req(const std::string imsi,
+                                    struct pcef_create_session_data* data);

@@ -207,9 +207,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req_oai_apn = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -224,9 +222,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
         sec_ip = ipaddress.ip_address(bytes(addr[:4]))
@@ -254,9 +250,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
         act_ded_ber_req_ims_apn = response.cast(
             s1ap_types.UeActDedBearCtxtReq_t,
         )
@@ -298,9 +292,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         # Verify if paging flow rules are created
         ip_list = [default_ip, sec_ip]
@@ -314,7 +306,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
             req, duration=1, is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
             # Send service request to reconnect UE
             print(
                 "************************* Sending Service request for UE id ",
@@ -335,9 +327,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
                 )
                 response = self._s1ap_wrapper.s1_util.get_response()
 
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
-            )
+            assert response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             test.verify()
 
         print("Sleeping for 5 seconds")
@@ -359,9 +349,7 @@ class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
 
         print(
             "******************* Received deactivate eps bearer context"

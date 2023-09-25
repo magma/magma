@@ -63,7 +63,7 @@ class MeterManager(object):
 
     # pylint:disable=unused-argument
     def add_qos(
-        self, _, qos_info: QosInfo, cleanup_rule,
+        self, _, qos_info: QosInfo, cleanup_rule, units='',
         parent=None, skip_filter=False,
     ) -> int:
         if self._qos_impl_broken:

@@ -10,6 +10,7 @@
 # limitations under the License.
 
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -28,7 +29,11 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":policydb_lib",
         "//lte/gateway/python/magma/policydb/servicers:policy_servicer",

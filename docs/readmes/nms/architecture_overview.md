@@ -1,5 +1,5 @@
 ---
-id: nms_arch_overview
+id: architecture_overview
 title: Overview
 hide_title: true
 ---
@@ -14,11 +14,11 @@ ability to configure and receive alerts.
 
 ### NMS UI
 
-NMS UI is a React App that uses hooks to manage the internal state. The NMS UI contains various react components to implement NMS page, admin page and the master page. NMS UI primarily uses most of the front end components from Material UI framework.
+NMS UI is a React App that uses hooks to manage the internal state. The NMS UI contains various react components to implement NMS page, admin page and the host page. NMS UI primarily uses most of the front end components from Material UI framework.
 
-#### Master page
+#### Host page
 
-Master page contains components for displaying organizations, features, metrics and users in the master portal.
+Host page contains components for displaying organizations, features, metrics and users in the host portal.
 
 #### NMS Page
 
@@ -59,9 +59,9 @@ Sets some generic app level configuration. Including expecting the body to be js
 
 Router middlewares to handle login routes for the user
 
-#### masterOrgMiddleware
+#### hostOrgMiddleware
 
-Router middleware to ensure that only requests from “master” organization is handled by master routes.
+Router middleware to ensure that only requests from “host” organization is handled by host routes.
 
 #### Notes on Routes handling
 

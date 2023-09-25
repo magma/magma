@@ -21,7 +21,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    Text,
 )
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.declarative import declarative_base
@@ -215,13 +214,6 @@ class DBCbsd(Base):
     longitude_deg = Column(Float)
     height_m = Column(Float)
     height_type = Column(String)
-    horizontal_accuracy_m = Column(Float)
-    antenna_azimuth_deg = Column(Integer)
-    antenna_downtilt_deg = Column(Integer)
-    antenna_beamwidth_deg = Column(Integer)
-    antenna_model = Column(String)
-    eirp_capability_dbm_mhz = Column(Integer)
-    cpi_digital_signature = Column(Text)
     indoor_deployment = Column(Boolean, nullable=False, server_default='false')
     is_deleted = Column(Boolean, nullable=False, server_default='false')
     should_deregister = Column(Boolean, nullable=False, server_default='false')
@@ -243,7 +235,7 @@ class DBCbsd(Base):
     desired_state = relationship("DBCbsdState", foreign_keys=[desired_state_id])
     requests = relationship("DBRequest", back_populates="cbsd")
     grants = relationship("DBGrant", back_populates="cbsd")
-    channels = relationship("DBChannel", back_populates="cbsd")
+    channels = Column(JSON, nullable=False, server_default=sa_text("'[]'::json"))
 
     def __repr__(self):
         """
@@ -258,34 +250,3 @@ class DBCbsd(Base):
                f"cbsd_serial_number='{self.cbsd_serial_number}', " \
                f"created_date='{self.created_date}' " \
                f"updated_date='{self.updated_date}')>"
-
-
-class DBChannel(Base):
-    """
-    SAS DB Channel class
-    """
-    __tablename__ = "channels"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cbsd_id = Column(Integer, ForeignKey("cbsds.id", ondelete="CASCADE"), index=True)
-    low_frequency = Column(BigInteger, nullable=False)
-    high_frequency = Column(BigInteger, nullable=False)
-    channel_type = Column(String, nullable=False)
-    rule_applied = Column(String, nullable=False)
-    max_eirp = Column(Float)
-    created_date = Column(
-        DateTime(timezone=True),
-        nullable=False, server_default=now(),
-    )
-    updated_date = Column(
-        DateTime(timezone=True),
-        server_default=now(), onupdate=now(),
-    )
-
-    cbsd = relationship("DBCbsd", back_populates="channels")
-
-    def __repr__(self):
-        """
-        Return string representation of DB object
-        """
-        class_name = self.__class__.__name__
-        return f"<{class_name}(id='{self.id}', cbsd_id='{self.cbsd_id}')>"

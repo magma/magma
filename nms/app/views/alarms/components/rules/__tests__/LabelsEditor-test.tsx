@@ -13,6 +13,10 @@
 
 import * as React from 'react';
 import LabelsEditor from '../LabelsEditor';
+import defaultTheme from '../../../../../theme/default';
+
+import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
+
 import {act, fireEvent, render} from '@testing-library/react';
 
 const commonProps = {
@@ -20,9 +24,39 @@ const commonProps = {
   onChange: jest.fn(),
 };
 
+const WrapperTwoKeys = () => (
+  <StyledEngineProvider injectFirst>
+    <ThemeProvider theme={defaultTheme}>
+      <LabelsEditor
+        {...commonProps}
+        labels={{
+          testKey1: 'testVal1',
+          testKey2: 'testVal2',
+        }}
+      />
+    </ThemeProvider>
+  </StyledEngineProvider>
+);
+const WrapperOneKey = () => (
+  <StyledEngineProvider injectFirst>
+    <ThemeProvider theme={defaultTheme}>
+      <LabelsEditor
+        {...commonProps}
+        labels={{
+          testKey1: 'testVal1',
+        }}
+      />
+    </ThemeProvider>
+  </StyledEngineProvider>
+);
+
 test('clicking the add button adds new textboxes', () => {
   const {getByTestId, queryAllByPlaceholderText} = render(
-    <LabelsEditor {...commonProps} />,
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <LabelsEditor {...commonProps} />
+      </ThemeProvider>
+    </StyledEngineProvider>,
   );
   expect(queryAllByPlaceholderText(/name/i).length).toBe(0);
   expect(queryAllByPlaceholderText(/value/i).length).toBe(0);
@@ -40,15 +74,7 @@ test('clicking the add button adds new textboxes', () => {
 });
 
 test('typing into a key field edits the key of a label', () => {
-  const {getByDisplayValue} = render(
-    <LabelsEditor
-      {...commonProps}
-      labels={{
-        testKey1: 'testVal1',
-        testKey2: 'testVal2',
-      }}
-    />,
-  );
+  const {getByDisplayValue} = render(<WrapperTwoKeys />);
 
   act(() => {
     fireEvent.change(getByDisplayValue('testKey1'), {
@@ -67,15 +93,7 @@ test('typing into a key field edits the key of a label', () => {
 });
 
 test('spaces in the key field are replaced by underscores', () => {
-  const {getByDisplayValue} = render(
-    <LabelsEditor
-      {...commonProps}
-      labels={{
-        testKey1: 'testVal1',
-        testKey2: 'testVal2',
-      }}
-    />,
-  );
+  const {getByDisplayValue} = render(<WrapperTwoKeys />);
 
   act(() => {
     fireEvent.change(getByDisplayValue('testKey1'), {
@@ -94,15 +112,7 @@ test('spaces in the key field are replaced by underscores', () => {
 });
 
 test('typing into a value field edits the value of a label', () => {
-  const {getByDisplayValue} = render(
-    <LabelsEditor
-      {...commonProps}
-      labels={{
-        testKey1: 'testVal1',
-        testKey2: 'testVal2',
-      }}
-    />,
-  );
+  const {getByDisplayValue} = render(<WrapperTwoKeys />);
 
   act(() => {
     fireEvent.change(getByDisplayValue('testVal1'), {
@@ -120,14 +130,7 @@ test('typing into a value field edits the value of a label', () => {
   });
 });
 test('labels without a key are filtered out', () => {
-  const {getByTestId, queryAllByPlaceholderText} = render(
-    <LabelsEditor
-      {...commonProps}
-      labels={{
-        testKey1: 'testVal1',
-      }}
-    />,
-  );
+  const {getByTestId, queryAllByPlaceholderText} = render(<WrapperOneKey />);
   expect(queryAllByPlaceholderText(/name/i).length).toBe(1);
   act(() => {
     fireEvent.click(getByTestId('add-new-label'));
@@ -144,14 +147,7 @@ test('labels without a key are filtered out', () => {
   });
 });
 test('clicking the remove label button removes a label', () => {
-  const {getByLabelText, queryByLabelText} = render(
-    <LabelsEditor
-      {...commonProps}
-      labels={{
-        testKey1: 'testVal1',
-      }}
-    />,
-  );
+  const {getByLabelText, queryByLabelText} = render(<WrapperOneKey />);
   act(() => {
     fireEvent.click(getByLabelText(/remove label/i));
   });

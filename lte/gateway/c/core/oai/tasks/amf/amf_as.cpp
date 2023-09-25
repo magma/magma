@@ -495,9 +495,30 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
       .len = 1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
-      .unit = 0;
+      .unit = static_cast<uint8_t>(M5GGprsTimer3ValueUnit::MULTIPLES_OF_10MIN);
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.gprs_timer
-      .timervalue = 6;
+      .timervalue = (amf_config.nas_config.t3512_min) / 10;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.iei = NETWORK_FEATURE;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.len = 2;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MPSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IWK_N26 = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMF = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMC = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_N3GPP = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.IMS_VoPS_3GPP =
+      amf_config.nas_config.enable_IMS_VoPS_3GPP;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.MCSI = 0;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .network_feature.EMCN3 = 0;
 
   size += MOBILE_IDENTITY_MAX_LENGTH;
   size += 20;
@@ -1278,6 +1299,14 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
     }
   }
 
+  // UE Aggregate bit rate IE will be added only if PDU Session Resource setup
+  // transfer IE is added in initial context setup request message.
+  if (req->PDU_Session_Resource_Setup_Transfer_List.no_of_items > 0) {
+    // Get the ambr values
+    amf_smf_context_ue_aggregate_max_bit_rate_get(
+        amf_ctx, &(req->ue_aggregate_max_bit_rate.dl),
+        &(req->ue_aggregate_max_bit_rate.ul));
+  }
   if (nas_msg) {
     req->nas_pdu = nas_msg;
   } else {
@@ -1397,8 +1426,7 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
     // Condition for sending ICS :
     //  1. Context is request and message is registration
     //  2. Service Request message (data or signaling)
-    if (ue_mm_context->ue_context_request &&
-        (ue_mm_context->cm_state == M5GCM_IDLE)) {
+    if (ue_mm_context->cm_state == M5GCM_IDLE) {
       // Every time ICS is sent this kgnb needs to be re-calculated
       derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
                        amf_security_context->kgnb);

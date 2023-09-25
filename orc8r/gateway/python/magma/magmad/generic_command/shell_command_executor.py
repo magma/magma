@@ -84,7 +84,10 @@ async def _run_subprocess(
     """
     cmd_str = cmd
     if allow_params:
-        cmd_str = cmd.format(*params.get('shell_params', []))
+        if params["shell_params"] == []:
+            cmd_str = cmd.format([''])
+        else:
+            cmd_str = cmd.format(*params.get('shell_params', ['']))
 
     logging.info("Running command: %s", cmd_str)
 

@@ -17,12 +17,8 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "lte/gateway/c/core/oai/include/mme_config.h"
-#include "lte/gateway/c/core/oai/include/mme_app_desc.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
 
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if
@@ -51,14 +47,11 @@ void put_mme_nas_state(void);
  */
 void clear_mme_nas_state(void);
 
-// Returns UE MME state hashtable, indexed by IMSI
-hash_table_ts_t* get_mme_ue_state(void);
+// Returns UE MME state map
+proto_map_uint32_ue_context_t* get_mme_ue_state(void);
+
 // Persists UE MME state for subscriber into db
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);
 // Deletes entry for UE MME state on db
 void delete_mme_ue_state(imsi64_t imsi64);
-
-#ifdef __cplusplus
-}
-#endif

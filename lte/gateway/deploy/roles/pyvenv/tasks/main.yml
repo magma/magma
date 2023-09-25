@@ -18,22 +18,21 @@
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
+  when: preburn
 
 - name: Install virtualenvwrapper
   apt:
+    name: virtualenvwrapper
     state: present
     update_cache: yes
-    pkg:
-      - virtualenvwrapper
-
-- name: Configure login shell for virtualenv location
-  lineinfile:
-    path: /home/{{ ansible_user }}/.bashrc
-    line: export WORKON_HOME=$HOME/.virtualenvs
-    state: present
+  when: preburn
 
 - name: Configure login shell for virtualenv
   lineinfile:
     path: /home/{{ ansible_user }}/.bashrc
-    line: source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    line: "{{ item }}"
     state: present
+  with_items:
+    - export WORKON_HOME=$HOME/.virtualenvs
+    - source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+  when: preburn

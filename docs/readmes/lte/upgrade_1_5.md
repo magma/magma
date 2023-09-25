@@ -11,7 +11,7 @@ hide_title: true
 ## Repo Change
 
 In Magma Fuji (v1.5), Magma artifacts are now hosted on the new Magmacore repositories at
-[artifactory.magmacore.org](https://artifactory.magmacore.org/).
+[https://linuxfoundation.jfrog.io/](https://linuxfoundation.jfrog.io/).
 Gateways migrating from older Magma releases can run the migration script to update the sources accordingly.
 
 The repository currently supports both Debian and Ubuntu OS flavors.

@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esm_recv.h
+Source      esm_recv.hpp
 
 Version     0.1
 
@@ -33,26 +33,25 @@ Description Defines functions executed at the ESM Service Access
         from the EPS Mobility Management sublayer.
 
 *****************************************************************************/
-#ifndef __ESM_RECV_H__
-#define __ESM_RECV_H__
+#pragma once
 
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.h"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextReject.hpp"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextAccept.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ModifyEpsBearerContextReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -93,9 +92,6 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     const pdn_connectivity_request_msg* msg, ebi_t* new_ebi,
     bool is_standalone);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 esm_cause_t esm_recv_pdn_disconnect_request(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     const pdn_disconnect_request_msg* msg);
@@ -127,8 +123,3 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
 esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
     emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
     const deactivate_eps_bearer_context_accept_msg* msg);
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* __ESM_RECV_H__*/

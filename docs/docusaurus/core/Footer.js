@@ -30,45 +30,6 @@ class Footer extends React.Component {
   render() {
     return (
       <footer className="nav-footer" id="footer">
-        <section className="sitemap">
-          <a href={this.props.config.baseUrl} className="nav-home">
-            {this.props.config.footerIcon && (
-              <img
-                src={this.props.config.baseUrl + this.props.config.footerIcon}
-                alt={this.props.config.title}
-                width="66"
-              />
-            )}
-          </a>
-          <div>
-            <h5>Docs</h5>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">
-              Magma Product Overview
-            </a>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">
-              Magma Spec
-            </a>
-          </div>
-          <div>
-            <h5>Community</h5>
-            <a href="https://slack.magmacore.org">
-              Slack
-            </a>
-
-            <a
-              href="https://fb.me/magmadevsummit"
-              target="_blank"
-              rel="noreferrer noopener">
-              Magma Dev Summit
-            </a>
-          </div>
-          <div>
-            <h5>More</h5>
-            <a href="https://code.fb.com/open-source/magma/">Blog</a>
-            <a href="https://github.com/facebookincubator/magma">GitHub</a>
-          </div>
-        </section>
-
         <section className="copyright">{this.props.config.copyright}</section>
       </footer>
     );

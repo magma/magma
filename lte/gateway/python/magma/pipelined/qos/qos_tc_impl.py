@@ -28,6 +28,7 @@ LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 ROOT_QID = 65534
 DEFAULT_RATE = '80Kbit'
 DEFAULT_INTF_SPEED = '1000'
+GTPU_INTF_NAME = 'gtpu_sys_2152'
 
 
 class TrafficClass:
@@ -51,7 +52,7 @@ class TrafficClass:
 
     @staticmethod
     def create_class(
-        intf: str, qid: int, max_bw: int, rate=None,
+        intf: str, qid: int, max_bw: int, units: str, rate=None,
         parent_qid=None, skip_filter=False,
     ) -> int:
         if not TrafficClass.tc_ops:
@@ -71,7 +72,7 @@ class TrafficClass:
 
         qid_hex = hex(qid)
         parent_qid_hex = '1:' + hex(parent_qid)
-        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
+        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, units, parent_qid_hex)
         if err < 0 or skip_filter:
             return err
 
@@ -93,13 +94,15 @@ class TrafficClass:
         cmd_list = []
         speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
-        fn = "/sys/class/net/{intf}/speed".format(intf=intf)
-        try:
-            with open(fn, encoding="utf-8") as f:
-                speed = f.read().strip()
-        except OSError:
-            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
-
+        if intf == GTPU_INTF_NAME:
+            LOG.info('Using default speed %s for %s.', speed, intf)
+        else:
+            fn = "/sys/class/net/{intf}/speed".format(intf=intf)
+            try:
+                with open(fn, encoding="utf-8") as f:
+                    speed = f.read().strip()
+            except OSError:
+                LOG.error('Unable to read speed from %s defaulting to %s', fn, speed)
         # qdisc does not support replace, so check it before creating the HTB qdisc.
         qdisc_type = TrafficClass._get_qdisc_type(intf)
         if qdisc_type != "htb":
@@ -239,7 +242,7 @@ class TCManager(object):
     ) -> None:
         self._datapath = datapath
         self._uplink = config['nat_iface']
-        self._downlink = 'gtpu_sys_2152'
+        self._downlink = GTPU_INTF_NAME
         self._max_rate = config["qos"]["max_rate"]
         self._gbr_rate = config["qos"].get("gbr_rate", DEFAULT_RATE)
 
@@ -303,7 +306,7 @@ class TCManager(object):
 
     def create_class_async(
         self, d: FlowMatch.Direction, qos_info: QosInfo,
-        qid,
+        units: str, qid,
         parent, skip_filter, cleanup_rule,
     ):
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
@@ -312,7 +315,7 @@ class TCManager(object):
             gbr = self._gbr_rate
         err = TrafficClass.create_class(
             intf, qid, qos_info.mbr,
-            rate=gbr,
+            units=units, rate=gbr,
             parent_qid=parent,
             skip_filter=skip_filter,
         )
@@ -328,12 +331,12 @@ class TCManager(object):
 
     def add_qos(
         self, d: FlowMatch.Direction, qos_info: QosInfo,
-        cleanup_rule=None, parent=None, skip_filter=False,
+        cleanup_rule=None, units='', parent=None, skip_filter=False,
     ) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
         self.create_class_async(
-            d, qos_info,
+            d, qos_info, units,
             qid, parent, skip_filter, cleanup_rule,
         )
         LOG.debug("assigned qid: %d", qid)

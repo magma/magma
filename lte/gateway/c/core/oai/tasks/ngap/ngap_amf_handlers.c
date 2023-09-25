@@ -1110,6 +1110,8 @@ status_code_e ngap_amf_generate_ue_context_release_command(
   ie->id = Ngap_ProtocolIE_ID_id_Cause;
   ie->criticality = Ngap_Criticality_ignore;
   ie->value.present = Ngap_UEContextReleaseCommand_IEs__value_PR_Cause;
+  OAILOG_INFO_UE(LOG_AMF_APP, imsi64, "UE Context Release Cause = (%d)\n",
+                 cause);
   switch (cause) {
     case NGAP_NAS_DEREGISTER:
       cause_type = Ngap_Cause_PR_nas;
@@ -1185,6 +1187,8 @@ status_code_e ngap_handle_ue_context_release_command(
      * to send UE context release command to gNB. Free UE context locally.
      */
 
+    OAILOG_DEBUG_UE(LOG_AMF_APP, imsi64, "UE Context Release Cause = (%d)\n",
+                    ue_context_release_command_pP->cause);
     if (ue_context_release_command_pP->cause == NGAP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == NGAP_SCTP_SHUTDOWN_OR_RESET ||
         ue_context_release_command_pP->cause ==
@@ -2177,9 +2181,13 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
                .pduSessResourceModRespList.item[index]
                .PDU_Session_Resource_Mpdify_Response_Transfer
                .qos_flow_add_or_modify_response_list;
-      qos_add_or_modify_list->maxNumOfQosFlows =
-          pDUSessionResourceModifyResponseTransfer
-              ->qosFlowAddOrModifyResponseList->list.count;
+      if (pDUSessionResourceModifyResponseTransfer
+              ->qosFlowAddOrModifyResponseList != NULL)
+        qos_add_or_modify_list->maxNumOfQosFlows =
+            pDUSessionResourceModifyResponseTransfer
+                ->qosFlowAddOrModifyResponseList->list.count;
+      else
+        qos_add_or_modify_list->maxNumOfQosFlows = 0;
       for (int i = 0; i < qos_add_or_modify_list->maxNumOfQosFlows; i++) {
         qos_add_or_modify_list->item[i].qos_flow_identifier =
             pDUSessionResourceModifyResponseTransfer
@@ -2189,11 +2197,16 @@ status_code_e ngap_amf_handle_pduSession_modify_response(
                  ->qosFlowAddOrModifyResponseList->list.array[index]);
       }
 
-      free(pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList->list.array);
-      free(pDUSessionResourceModifyResponseTransfer
-               ->qosFlowAddOrModifyResponseList);
-      free(pDUSessionResourceModifyResponseTransfer);
+      if (pDUSessionResourceModifyResponseTransfer
+              ->qosFlowAddOrModifyResponseList != NULL)
+        free(pDUSessionResourceModifyResponseTransfer
+                 ->qosFlowAddOrModifyResponseList->list.array);
+      if (pDUSessionResourceModifyResponseTransfer
+              ->qosFlowAddOrModifyResponseList != NULL)
+        free(pDUSessionResourceModifyResponseTransfer
+                 ->qosFlowAddOrModifyResponseList);
+      if (pDUSessionResourceModifyResponseTransfer)
+        free(pDUSessionResourceModifyResponseTransfer);
     }
   }
 
@@ -2338,7 +2351,6 @@ status_code_e ngap_handle_gnb_initiated_reset_ack(
   Ngap_NGAP_PDU_t pdu;
   /** NGReset Acknowledgment. */
   Ngap_NGResetAcknowledge_t* out;
-  Ngap_NGResetAcknowledgeIEs_t* ie = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NGAP);

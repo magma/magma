@@ -61,10 +61,7 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         )
         print("****** Sent ATTACH_REQUEST")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("****** Received AUTH_REQ_IND")
         delay_init_ctxt_setup_resp = s1ap_types.UeDelayInitCtxtSetupRsp()
         delay_init_ctxt_setup_resp.ue_Id = req.ue_id
@@ -88,10 +85,7 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         )
         print("****** Sent UE_AUTH_RESP")
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("****** Received UE_SEC_MOD_CMD_IND")
 
         # Trigger Security Mode Complete
@@ -126,10 +120,7 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
         print("****** Sent ATTACH_COMPLETE")
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         print("****** Received UE_CTX_REL_IND")
 
 

@@ -1,0 +1,53 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Manual workflow to promote Helm charts for releases
+# remediation: -
+
+name: Magma Promote Helm Charts
+
+on:
+  workflow_dispatch:
+    inputs:
+      magma_version:
+        description: 'Magma version number'
+        required: true
+
+jobs:
+  helm-promote:
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_VERSION: ${{ inputs.magma_version }}
+      MAGMA_ARTIFACTORY: https://linuxfoundation.jfrog.io/artifactory
+      HELM_CHART_MUSEUM_TOKEN: ${{ secrets.LF_JFROG_USERNAME }}
+      HELM_CHART_MUSEUM_USERNAME: ${{ secrets.LF_JFROG_PASSWORD }}
+    steps:
+      - uses: tspascoal/get-user-teams-membership@39b5264024b7c3bd7480de2f2c8d3076eed49ec5 # pin@v1.0.4
+        name: Check if user has rights to promote
+        id: checkUserMember
+        with:
+          username: ${{ github.actor }}
+          team: 'approvers-ci'
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+      - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
+        run: |
+          echo "User is not a member of the team"
+          exit 1
+      - run: |
+          wget https://github.com/magma/magma/raw/master/orc8r/tools/helm/promote.sh
+          chmod 755 promote.sh
+          # Promote Helm charts
+          ./promote.sh orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh cwf-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh feg-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh lte-orc8r-${MAGMA_VERSION}.tgz
+          ./promote.sh domain-proxy-${MAGMA_VERSION}.tgz

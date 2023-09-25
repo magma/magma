@@ -158,7 +158,6 @@ class ConfigManager(StreamerClient.Callback):
                 ),
             )
 
-        services_to_restart = []
         if SHARED_MCONFIG in mconfig.configs_by_key and did_mconfig_change(SHARED_MCONFIG):
             logging.info("Shared config changed. Restarting all services.")
             services_to_restart = self._services

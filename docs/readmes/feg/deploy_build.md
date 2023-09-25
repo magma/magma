@@ -15,10 +15,10 @@ In case you need to change the version you can:
 # to list all releases
 git tag -l
 
-# to switch to a different release (for example v1.3.3)
-git checkout v1.3.3
+# to switch to a different release (for example v1.8)
+git checkout v1.8
 
-# to switch to master (developement version)
+# to switch to master (development version)
 git checkout master
 ```
 
@@ -27,9 +27,9 @@ Then go run those commands to build FeG.
 
 ```bash
 cd magma/feg/gateway/docker
-docker-compose build --parallel
+docker compose --compatibility build
 # if build fails try with sudo and without parallelization
-sudo docker-compose build
+sudo docker compose --compatibility build
 ```
 
 Note that you are building FeG from your local repository. There is no need to

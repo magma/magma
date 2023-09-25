@@ -1,5 +1,5 @@
 ---
-id: docker_setup
+id: docker
 title: FeG Docker Setup
 hide_title: true
 ---
@@ -15,8 +15,7 @@ The development `test` service can also be used to perform other development-rel
 
 To run the FeG with docker, both docker and docker compose must be installed.
 
-- Follow [these steps](https://docs.docker.com/install/) to install docker
-- Follow [these steps](https://docs.docker.com/compose/install/) to install docker compose
+- Follow [these steps](https://docs.docker.com/engine/install/) to install docker and docker compose
 
 NOTE: If you are running the FeG on Mac, you will need to increase the memory
 limit of the docker daemon to at least 4GB to build the images. Otherwise,
@@ -31,14 +30,14 @@ so that it can be mounted into the appropriate containers from there.
 Follow these steps to run the FeG services:
 
 1. `cd magma/feg/gateway/docker`
-2. `docker-compose build`
-3. `docker-compose up -d`
+2. `docker compose --compatibility build`
+3. `docker compose --compatibility up -d`
 
 Each service should now be running in each of its containers.
 By default, both production and development services should be running.
 To place a shell into the test container, run the command:
 
-`docker-compose exec test /bin/bash`
+`docker compose exec test /bin/bash`
 
 The test container contains the mounted source code and configuration settings.
 The mounted source code and configuration settings can be changed externally
@@ -47,16 +46,16 @@ Run the command `make precommit` in the container before submitting a patch.
 
 To make changes to currently running FeG services, the containers must be rebuilt and restarted:
 
-1. `docker-compose down`
-2. `docker-compose build`
-3. `docker-compose up -d`
+1. `docker compose down`
+2. `docker compose --compatibility build`
+3. `docker compose --compatibility up -d`
 
 To manage the containers, the following commands are useful:
 
-- `docker-compose ps` (get status of each container)
-- `docker-compose logs -f` (tail logs of all containers)
-- `docker-compose logs -f <service name>` (tail logs of a particular service)
-- `docker-compose down` (stop all services)
+- `docker compose ps` (get status of each container)
+- `docker compose logs -f` (tail logs of all containers)
+- `docker compose logs -f <service name>` (tail logs of a particular service)
+- `docker compose down` (stop all services)
 
 ## Publishing the images
 

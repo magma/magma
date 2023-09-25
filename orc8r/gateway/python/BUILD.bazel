@@ -1,0 +1,39 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+
+ORC8R_PY_SERVICES = [
+    "ctraced",
+    "directoryd",
+    "eventd",
+    "magmad",
+    "state",
+]
+
+[
+    expand_runfiles(
+        name = "{py_service}_expanded".format(py_service = py_service),
+        tags = ["no-cache"],
+        targets = [
+            "//orc8r/gateway/python/magma/{py_service}:{py_service}".format(py_service = py_service),
+        ],
+    )
+    for py_service in ORC8R_PY_SERVICES
+]
+
+pkg_filegroup(
+    name = "magma_python_orc8r_services",
+    srcs = ["{py_service}_expanded".format(py_service = py_service) for py_service in ORC8R_PY_SERVICES],
+    tags = ["no-cache"],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)

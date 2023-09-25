@@ -29,3 +29,10 @@ def monitor_ifaces(iface_names):
             status = 1 if iface in active else 0
             NETWORK_IFACE_STATUS.labels(iface_name=iface).set(status)
         yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
+
+
+def get_mac_address_from_iface(interface_name: str) -> str:
+    if_addresses = netifaces.ifaddresses(interface_name)[netifaces.AF_LINK]
+    if not if_addresses or not if_addresses[0].get('addr'):
+        raise ValueError(f"No mac address found for interface {interface_name}")
+    return if_addresses[0]['addr']

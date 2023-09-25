@@ -11,8 +11,8 @@
 # limitations under the License.
 
 apiVersion: v2
-appVersion: "0.1.0"
-version: 0.1.0
+appVersion: "1.8.0"
+version: 1.8.0
 description: A Helm chart for magma orchestrator's domain-proxy module.
 name: domain-proxy
 engine: gotpl

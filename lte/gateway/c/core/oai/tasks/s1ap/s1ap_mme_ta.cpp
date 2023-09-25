@@ -22,6 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -39,10 +41,9 @@ extern "C" {
 #include "S1ap_SupportedTAs-Item.h"
 #include "S1ap_TAC.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 
 static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
   int i = 0;
@@ -167,26 +168,28 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
 
 /* @brief compare PLMNs
  */
-static int s1ap_paging_compare_plmns(plmn_t* enb_bplmns, uint8_t enb_plmn_count,
-                                     const paging_tai_list_t* p_tai_list) {
+static int s1ap_paging_compare_plmns(
+    const magma::lte::oai::SupportedTaiItems& enb_tai_item,
+    uint8_t enb_plmn_count, const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
+  if (!(enb_tai_item.bplmns_size())) {
+    OAILOG_ERROR(LOG_S1AP, "PLMN Information not found in eNB tai list\n");
+    return false;
+  }
   for (plmn_idx = 0; plmn_idx < enb_plmn_count; plmn_idx++) {
-    plmn_t* enb_plmn = NULL;
-    enb_plmn = &enb_bplmns[plmn_idx];
-    if (enb_plmn == NULL) {
-      OAILOG_ERROR(LOG_S1AP, "PLMN Information not found in eNB tai list\n");
-      return false;
-    }
+    plmn_t enb_plmn;
+    char plmn_array[6] = {0};
+    memcpy(plmn_array, enb_tai_item.bplmns(plmn_idx).c_str(),
+           sizeof(plmn_array));
+    COPY_PLMN_FROM_CHAR_ARRAY_FMT(enb_plmn, plmn_array);
 
     for (p_plmn_idx = 0; p_plmn_idx < (p_tai_list->numoftac + 1);
          p_plmn_idx++) {
       tai_t p_plmn;
       p_plmn = p_tai_list->tai_list[p_plmn_idx];
 
-      if (IS_PLMN_EQUAL((*(enb_plmn)), p_plmn.plmn))
-
-      {
+      if (IS_PLMN_EQUAL(enb_plmn, p_plmn.plmn)) {
         return true;
       }
     }
@@ -213,20 +216,20 @@ static int s1ap_paging_compare_tac(uint8_t enb_tac,
    ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
 */
-int s1ap_paging_compare_ta_lists(supported_ta_list_t* enb_ta_list,
+int s1ap_paging_compare_ta_lists(magma::lte::oai::SupportedTaList& enb_ta_list,
                                  const paging_tai_list_t* p_tai_list,
                                  uint8_t p_tai_list_count) {
   bool tac_ret = false, bplmn_ret = false;
   int enb_tai_count, p_list_count;
 
-  for (enb_tai_count = 0; enb_tai_count < enb_ta_list->list_count;
+  for (enb_tai_count = 0; enb_tai_count < enb_ta_list.list_count();
        enb_tai_count++) {
-    supported_tai_items_t* enb_tai_item = NULL;
-    enb_tai_item = &enb_ta_list->supported_tai_items[enb_tai_count];
-    if (enb_tai_item == NULL) {
+    if (!(enb_ta_list.supported_tai_items_size())) {
       OAILOG_ERROR(LOG_S1AP, "TAI Item not found in eNB TA List\n");
       return false;
     }
+    magma::lte::oai::SupportedTaiItems enb_tai_item =
+        enb_ta_list.supported_tai_items(enb_tai_count);
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
       const paging_tai_list_t* tai = NULL;
       tai = &p_tai_list[p_list_count];
@@ -234,13 +237,12 @@ int s1ap_paging_compare_ta_lists(supported_ta_list_t* enb_ta_list,
         OAILOG_ERROR(LOG_S1AP, "Paging TAI list not found\n");
         return false;
       }
-
-      tac_ret = s1ap_paging_compare_tac(enb_tai_item->tac, tai);
+      tac_ret = s1ap_paging_compare_tac(enb_tai_item.tac(), tai);
       if (tac_ret != true) {
         return false;
       } else {
-        bplmn_ret = s1ap_paging_compare_plmns(
-            enb_tai_item->bplmns, enb_tai_item->bplmnlist_count, tai);
+        bplmn_ret = s1ap_paging_compare_plmns(enb_tai_item,
+                                              enb_tai_item.bplmns_size(), tai);
       }
       // Returns TRUE only if both TAC and PLMN matches
       if (tac_ret && bplmn_ret) {

@@ -27,18 +27,14 @@ constexpr char S1AP_ENB_COLL[] = "s1ap_eNB_coll";
 constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
+constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
 }  // namespace
-
-using magma::lte::oai::UeDescription;
 
 namespace magma {
 namespace lte {
 
 S1apStateManager::S1apStateManager()
-    : max_ues_(0),
-      max_enbs_(0),
-      s1ap_imsi_map_hash_(0),
-      s1ap_imsi_map_(nullptr) {}
+    : s1ap_imsi_map_hash_(0), s1ap_imsi_map_(nullptr) {}
 
 S1apStateManager::~S1apStateManager() { free_state(); }
 
@@ -47,14 +43,11 @@ S1apStateManager& S1apStateManager::getInstance() {
   return instance;
 }
 
-void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
-                            bool persist_state) {
+void S1apStateManager::init(bool persist_state) {
   log_task = LOG_S1AP;
   table_key = S1AP_STATE_TABLE;
   task_name = S1AP_TASK_NAME;
   persist_state_enabled = persist_state;
-  max_ues_ = max_ues;
-  max_enbs_ = max_enbs;
   redis_client = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
@@ -64,63 +57,55 @@ void S1apStateManager::init(uint32_t max_ues, uint32_t max_enbs,
   is_initialized = true;
 }
 
-s1ap_state_t* create_s1ap_state(void) {
-  bstring ht_name;
+oai::S1apState* create_s1ap_state(void) {
+  proto_map_uint32_enb_description_t enb_map;
 
-  s1ap_state_t* state_cache_p = new s1ap_state_t();
-  state_cache_p->enbs.map =
-      new google::protobuf::Map<unsigned int, struct enb_description_s*>();
-  state_cache_p->enbs.set_name(S1AP_ENB_COLL);
-  state_cache_p->enbs.bind_callback(free_cpp_wrapper);
+  oai::S1apState* state_cache_p = new oai::S1apState();
+  enb_map.map = state_cache_p->mutable_enbs();
+  enb_map.set_name(S1AP_ENB_COLL);
+  enb_map.bind_callback(free_enb_description);
 
-  state_cache_p->mmeid2associd.map =
-      new google::protobuf::Map<uint32_t, uint32_t>();
-  state_cache_p->mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
+  magma::proto_map_uint32_uint32_t mmeid2associd;
+  mmeid2associd.map = state_cache_p->mutable_mmeid2associd();
+  mmeid2associd.set_name(S1AP_MME_ID2ASSOC_ID_COLL);
 
-  state_cache_p->num_enbs = 0;
   return state_cache_p;
 }
 
 void S1apStateManager::create_state() {
   state_cache_p = create_s1ap_state();
+  if (!state_cache_p) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to create s1ap state");
+    return;
+  }
 
-  bstring ht_name = bfromcstr(S1AP_ENB_COLL);
-  state_ue_ht = hashtable_ts_create(max_ues_, nullptr, free_wrapper, ht_name);
-  bdestroy(ht_name);
+  state_ue_map.map = new google::protobuf::Map<uint64_t, oai::UeDescription*>();
+  if (!(state_ue_map.map)) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
+    return;
+  }
+  state_ue_map.set_name(S1AP_STATE_UE_MAP);
+  state_ue_map.bind_callback(free_ue_description);
 
   create_s1ap_imsi_map();
 }
 
-void free_s1ap_state(s1ap_state_t* state_cache_p) {
+void free_s1ap_state(oai::S1apState* state_cache_p) {
   AssertFatal(state_cache_p,
-              "s1ap_state_t passed to free_s1ap_state must not be null");
+              "S1apState passed to free_s1ap_state must not be null");
 
-  int i;
-  hashtable_rc_t ht_rc;
-  hashtable_key_array_t* keys;
-  sctp_assoc_id_t assoc_id;
-  enb_description_t* enb;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state_cache_p->mutable_enbs();
 
-  if (state_cache_p->enbs.isEmpty()) {
-    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+  if (enb_map.isEmpty()) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb map");
   } else {
-    for (auto itr = state_cache_p->enbs.map->begin();
-         itr != state_cache_p->enbs.map->end(); itr++) {
-      enb = itr->second;
-      if (!enb) {
-        OAILOG_ERROR(LOG_S1AP, "eNB entry not found in eNB S1AP state");
-      } else {
-        enb->ue_id_coll.destroy_map();
-      }
+    for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
+      oai::EnbDescription enb = itr->second;
+      enb.clear_ue_id_map();
     }
   }
-  if (state_cache_p->enbs.destroy_map() != PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying s1 eNB map");
-  }
-  if ((state_cache_p->mmeid2associd.destroy_map()) != magma::PROTO_MAP_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying mmeid2associd map");
-  }
+  state_cache_p->Clear();
   delete state_cache_p;
 }
 
@@ -135,9 +120,8 @@ void S1apStateManager::free_state() {
   free_s1ap_state(state_cache_p);
   state_cache_p = nullptr;
 
-  if (hashtable_ts_destroy(state_ue_ht) != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "An error occurred while destroying assoc_id hash table");
+  if (state_ue_map.destroy_map() != PROTO_MAP_OK) {
+    OAILOG_ERROR(LOG_S1AP, "An error occurred while destroying state_ue_map");
   }
   clear_s1ap_imsi_map();
 }
@@ -151,31 +135,38 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
-    UeDescription ue_proto = UeDescription();
-    auto* ue_context = (ue_description_t*)calloc(1, sizeof(ue_description_t));
+    oai::UeDescription ue_proto = oai::UeDescription();
+    auto* ue_context = new oai::UeDescription();
+    if (!ue_context) {
+      OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
+      return RETURNerror;
+    }
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
-    S1apStateConverter::proto_to_ue(ue_proto, ue_context);
+    // Update each UE state version from redis
+    this->ue_state_version[key] = redis_client->read_version(table_key);
 
-    hashtable_rc_t h_rc = hashtable_ts_insert(
-        state_ue_ht, ue_context->comp_s1ap_id, (void*)ue_context);
-    if (HASH_TABLE_OK != h_rc) {
+    ue_context->MergeFrom(ue_proto);
+
+    proto_map_rc_t rc =
+        state_ue_map.insert(ue_context->comp_s1ap_id(), ue_context);
+    if (rc != PROTO_MAP_OK) {
       OAILOG_ERROR(
           log_task,
           "Failed to insert UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
           ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
           ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " (Error Code: %s)\n",
-          ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-          ue_context->mme_ue_s1ap_id, hashtable_rc_code2string(h_rc));
+          ue_context->comp_s1ap_id(), ue_context->enb_ue_s1ap_id(),
+          ue_context->mme_ue_s1ap_id(), magma::map_rc_code2string(rc));
     } else {
       OAILOG_DEBUG(log_task,
                    "Inserted UE state with key comp_s1ap_id " COMP_S1AP_ID_FMT
                    ", ENB UE S1AP Id: " ENB_UE_S1AP_ID_FMT
                    ", MME UE S1AP Id: " MME_UE_S1AP_ID_FMT,
-                   ue_context->comp_s1ap_id, ue_context->enb_ue_s1ap_id,
-                   ue_context->mme_ue_s1ap_id);
+                   ue_context->comp_s1ap_id(), ue_context->enb_ue_s1ap_id(),
+                   ue_context->mme_ue_s1ap_id());
     }
   }
 #endif
@@ -183,17 +174,14 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
 }
 
 void S1apStateManager::create_s1ap_imsi_map() {
-  s1ap_imsi_map_ = new s1ap_imsi_map_t();
+  proto_map_uint32_uint64_t imsi_map;
+  s1ap_imsi_map_ = new oai::S1apImsiMap();
 
-  s1ap_imsi_map_->mme_ueid2imsi_map.map =
-      new google::protobuf::Map<uint32_t, uint64_t>();
-  s1ap_imsi_map_->mme_ueid2imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
+  imsi_map.map = s1ap_imsi_map_->mutable_mme_ue_s1ap_id_imsi_map();
+  imsi_map.set_name(S1AP_MME_UEID2IMSI_MAP);
 
   if (persist_state_enabled) {
-    oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
-    redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
-
-    S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
+    redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, *s1ap_imsi_map_);
   }
 }
 
@@ -201,11 +189,11 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   if (!s1ap_imsi_map_) {
     return;
   }
-  s1ap_imsi_map_->mme_ueid2imsi_map.destroy_map();
+  s1ap_imsi_map_->Clear();
   delete s1ap_imsi_map_;
 }
 
-s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
+oai::S1apImsiMap* S1apStateManager::get_s1ap_imsi_map() {
   return s1ap_imsi_map_;
 }
 
@@ -213,10 +201,8 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   if (!persist_state_enabled) {
     return;
   }
-  oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
-  S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
   std::string proto_msg;
-  redis_client->serialize(imsi_proto, proto_msg);
+  redis_client->serialize(*s1ap_imsi_map_, proto_msg);
   std::size_t new_hash = std::hash<std::string>{}(proto_msg);
 
   // s1ap_imsi_map is not state service synced, so version will not be updated
@@ -224,6 +210,96 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
     redis_client->write_proto_str(S1AP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
     this->s1ap_imsi_map_hash_ = new_hash;
   }
+}
+
+map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
+  return &state_ue_map;
+}
+
+oai::S1apState* S1apStateManager::get_state(bool read_from_db) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  AssertFatal(
+      is_initialized,
+      "S1apStateManager init() function should be called to initialize state");
+  state_dirty = true;
+  AssertFatal(state_cache_p != nullptr, " S1ap State cache is NULL");
+  if (persist_state_enabled && read_from_db) {
+    read_state_from_db();
+    read_ue_state_from_db();
+  }
+  OAILOG_FUNC_RETURN(LOG_S1AP, state_cache_p);
+}
+
+void S1apStateManager::write_s1ap_state_to_db() {
+  AssertFatal(
+      is_initialized,
+      "S1ap StateManager init() function should be called to initialize state");
+
+  if (!state_dirty) {
+    OAILOG_ERROR(log_task, "Tried to put state while it was not in use");
+    return;
+  }
+
+  if (persist_state_enabled) {
+    std::string proto_str;
+    redis_client->serialize(*state_cache_p, proto_str);
+    std::size_t new_hash = std::hash<std::string>{}(proto_str);
+
+    if (new_hash != this->task_state_hash) {
+      if (redis_client->write_proto_str(table_key, proto_str,
+                                        this->task_state_version) != RETURNok) {
+        OAILOG_ERROR(log_task, "Failed to write state to db");
+        return;
+      }
+      OAILOG_DEBUG(log_task, "Finished writing state");
+      this->task_state_version++;
+      this->state_dirty = false;
+      this->task_state_hash = new_hash;
+    }
+  }
+}
+
+void S1apStateManager::s1ap_write_ue_state_to_db(
+    const oai::UeDescription* ue_context, const std::string& imsi_str) {
+  AssertFatal(
+      is_initialized,
+      "StateManager init() function should be called to initialize state");
+
+  std::string proto_str;
+  redis_client->serialize(*ue_context, proto_str);
+  std::size_t new_hash = std::hash<std::string>{}(proto_str);
+  if (new_hash != this->ue_state_hash[imsi_str]) {
+    std::string key = IMSI_STR_PREFIX + imsi_str + ":" + task_name;
+    if (redis_client->write_proto_str(key, proto_str,
+                                      ue_state_version[imsi_str]) != RETURNok) {
+      OAILOG_ERROR(log_task, "Failed to write UE state to db for IMSI %s",
+                   imsi_str.c_str());
+      return;
+    }
+    this->ue_state_version[imsi_str]++;
+    this->ue_state_hash[imsi_str] = new_hash;
+    OAILOG_DEBUG(log_task, "Finished writing UE state for IMSI %s",
+                 imsi_str.c_str());
+  }
+}
+
+status_code_e S1apStateManager::read_state_from_db() {
+#if !MME_UNIT_TEST
+  if (persist_state_enabled) {
+    oai::S1apState state_proto = oai::S1apState();
+    if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
+      OAILOG_ERROR(LOG_MME_APP, "Failed to read proto from db \n");
+      return RETURNerror;
+    }
+
+    // Update the state version from redis
+    this->task_state_version = redis_client->read_version(table_key);
+
+    state_cache_p->Clear();
+    state_cache_p->MergeFrom(state_proto);
+  }
+#endif
+  return RETURNok;
 }
 
 }  // namespace lte

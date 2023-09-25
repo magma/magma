@@ -51,15 +51,12 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         print("************************* Received UE_AUTH_REQ_IND")
 
         # Try consecutive mme restarts
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = 1
@@ -76,13 +73,10 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         print("************************* Received UE_SEC_MOD_CMD_IND")
 
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         print("************************* Sending UE_SEC_MOD_COMPLETE")
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
@@ -103,7 +97,7 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
             attach_acc.ue_Id,
         )
 
-        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
+        self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
         # Trigger Attach Complete
         print("************************* Sending UE_ATTACH_COMPLETE")

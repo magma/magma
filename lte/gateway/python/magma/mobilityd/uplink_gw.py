@@ -93,6 +93,7 @@ class UplinkGatewayInfo:
             self._read_default_gw_interval_seconds,
             self._do_read_default_gw,
         )
+        self._read_default_gw_timer.setDaemon(True)
         self._read_default_gw_timer.start()
         logging.info("GW probe: timer started")
 
@@ -117,6 +118,7 @@ class UplinkGatewayInfo:
             self._read_default_gw_interval_seconds,
             self._do_read_default_gw_v6,
         )
+        self._read_default_gw_timer6.setDaemon(True)
         self._read_default_gw_timer6.start()
         logging.info("GW-v6 probe: timer started")
 

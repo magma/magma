@@ -33,7 +33,8 @@ typedef enum proto_map_return_code_e {
   PROTO_MAP_BAD_PARAMETER_VALUE,
   PROTO_MAP_EMPTY,
   PROTO_MAP_NOT_CREATED,
-  PROTO_MAP_DUMP_FAIL
+  PROTO_MAP_DUMP_FAIL,
+  PROTO_MAP_REMOVE_KEY_FAILED
 } proto_map_rc_t;
 
 /***************************************************************************
@@ -44,7 +45,7 @@ typedef enum proto_map_return_code_e {
 **                                                                        **
 ***************************************************************************/
 
-static char* map_rc_code2string(proto_map_rc_t rc) {
+static inline const char* map_rc_code2string(proto_map_rc_t rc) {
   switch (rc) {
     case PROTO_MAP_OK:
       return "MAP_OK";
@@ -166,11 +167,16 @@ struct proto_map_s {
   **                                                                        **
   ** Name:    remove()                                                      **
   **                                                                        **
-  ** Description: Takes key parameter.Removes the corresponding entry from  **
-  **              the map. If key does not exists returns error             **
+  ** Description: Takes key parameter.Looks up the corresponding entry from **
+  **              the map.                                                  **
+  **              By default, the argument free_an_entry is set to true.    **
+  **              If it's true, memory allocated for an entry will be       **
+  **              freed else memory allocated for an entry will not be      **
+  **              freed but in both cases an entry is removed from the map  **
+  **              If key does not exists returns error                      **
   **                                                                        **
   ***************************************************************************/
-  proto_map_rc_t remove(const keyT key) {
+  proto_map_rc_t remove(const keyT key, bool free_an_entry = true) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -178,7 +184,7 @@ struct proto_map_s {
       return PROTO_MAP_EMPTY;
     }
 
-    if (free_callback_func) {
+    if (free_callback_func && free_an_entry) {
       valueT value;
       if (get(key, &value) == PROTO_MAP_OK) {
         free_callback_func(reinterpret_cast<void**>(&value));
@@ -220,8 +226,14 @@ struct proto_map_s {
       return PROTO_MAP_NOT_CREATED;
     }
     if (!(map->empty())) {
-      map->clear();
+      for (auto itr = map->begin(); itr != map->end(); itr++) {
+        if (free_callback_func) {
+          valueT value = itr->second;
+          free_callback_func(reinterpret_cast<void**>(&value));
+        }
+      }
     }
+    map->clear();
     return PROTO_MAP_OK;
   }
   /***************************************************************************
@@ -259,6 +271,7 @@ struct proto_map_s {
     }
     map->clear();
     delete map;
+    map = nullptr;
     return PROTO_MAP_OK;
   }
 
@@ -287,6 +300,35 @@ struct proto_map_s {
     }
     return PROTO_MAP_DUMP_FAIL;
   }
+
+  /***************************************************************************
+  **                                                                        **
+  ** Name:    update_val()                                                  **
+  **                                                                        **
+  ** Description: Takes key and valueP as parameters.If the key exists,     **
+  **              updates the value corresponding to key                    **
+  **              else returns error.                                       **
+  **                                                                        **
+  ***************************************************************************/
+
+  proto_map_rc_t update_val(const keyT key, valueT* valueP) {
+    if (!map) {
+      return PROTO_MAP_NOT_CREATED;
+    }
+    if (map->empty()) {
+      return PROTO_MAP_EMPTY;
+    }
+    if (valueP == nullptr) {
+      return PROTO_MAP_BAD_PARAMETER_VALUE;
+    }
+    auto search_result = map->find(key);
+    if (search_result != map->end()) {
+      (*map)[key] = *valueP;
+      return PROTO_MAP_OK;
+    } else {
+      return PROTO_MAP_KEY_NOT_EXISTS;
+    }
+  }
 };
 
 // Map- Key: uint64_t, Data: uint64_t
@@ -297,5 +339,7 @@ typedef magma::proto_map_s<std::string, uint64_t> proto_map_string_uint64_t;
 typedef magma::proto_map_s<uint32_t, uint64_t> proto_map_uint32_uint64_t;
 // Map- Key: uint32_t, Data: uint32_t
 typedef magma::proto_map_s<uint32_t, uint32_t> proto_map_uint32_uint32_t;
+// Map- Key: uint64_t, Data: uint32_t
+typedef magma::proto_map_s<uint64_t, uint32_t> proto_map_uint64_uint32_t;
 
 }  // namespace magma

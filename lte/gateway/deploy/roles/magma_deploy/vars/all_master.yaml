@@ -13,12 +13,11 @@
 ################################################################################
 
 magma_pkgrepo_proto: https
-magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian-test
+magma_pkgrepo_host: linuxfoundation.jfrog.io/artifactory/magma-packages-test
 magma_pkgrepo_path: ""
 magma_pkgrepo_dist: focal-ci
 magma_pkgrepo_component: main
 magma_pkgrepo_name: "magma"
 
-magma_pkgrepo_key: "https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public"
-magma_pkgrepo_key_fingerprint: ""
+magma_pkgrepo_key: "linux_foundation_registry_key.asc"
 magma_use_pkgrepo: yes

@@ -22,7 +22,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/thoas/go-funk"
-	"google.golang.org/protobuf/proto"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -94,7 +93,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		}
 	}()
 
-	// Named return values below so we can automatically decide tx commit/
+	// Named return values below, so we can automatically decide tx commit/
 	// rollback in deferred function
 
 	_, err = fact.builder.CreateTable(networksTable).
@@ -115,7 +114,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	// tables that are already created will also have the type column.
 	// TODO Remove after 1-2 months to ensure service isn't disrupted
 	_, err = tx.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s text", networksTable, nwTypeCol))
-	// special case sqlite3 because ADD COLUMN IF NOT EXISTS is not supported
+	// special case sqlite3 because ADD COLUMN IF NOT EXISTS is not supported,
 	// and we only run sqlite3 for unit tests
 	if err != nil && os.Getenv("SQL_DRIVER") != "sqlite3" {
 		err = fmt.Errorf("failed to add 'type' field to networks table: %w", err)
@@ -245,15 +244,13 @@ func (store *sqlConfiguratorStorage) Rollback() error {
 }
 
 func (store *sqlConfiguratorStorage) LoadNetworks(filter *NetworkLoadFilter, loadCriteria *NetworkLoadCriteria) (*NetworkLoadResult, error) {
-	filterCopy := proto.Clone(filter).(*NetworkLoadFilter)
-	loadCriteriaCopy := proto.Clone(loadCriteria).(*NetworkLoadCriteria)
 	emptyRet := &NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
-	if funk.IsEmpty(filterCopy.Ids) && funk.IsEmpty(filterCopy.TypeFilter) {
+	if funk.IsEmpty(filter.Ids) && funk.IsEmpty(filter.TypeFilter) {
 		return emptyRet, nil
 	}
 
-	selectBuilder := store.getLoadNetworksSelectBuilder(filterCopy, loadCriteriaCopy)
-	if loadCriteriaCopy.LoadConfigs {
+	selectBuilder := store.getLoadNetworksSelectBuilder(filter, loadCriteria)
+	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
 				"%s ON %s.%s = %s.%s",
@@ -267,13 +264,13 @@ func (store *sqlConfiguratorStorage) LoadNetworks(filter *NetworkLoadFilter, loa
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "LoadNetworks")
 
-	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteriaCopy)
+	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
 		return emptyRet, err
 	}
 
 	ret := &NetworkLoadResult{
-		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, filterCopy.Ids),
+		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, filter.Ids),
 		Networks:           make([]*Network, 0, len(loadedNetworksByID)),
 	}
 	for _, nid := range loadedNetworkIDs {
@@ -283,16 +280,15 @@ func (store *sqlConfiguratorStorage) LoadNetworks(filter *NetworkLoadFilter, loa
 }
 
 func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria *NetworkLoadCriteria) ([]*Network, error) {
-	emptyNetworks := []*Network{}
+	var emptyNetworks []*Network
 	idsToExclude := []string{InternalNetworkID}
 
-	loadCriteriaCopy := proto.Clone(loadCriteria).(*NetworkLoadCriteria)
-	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteriaCopy)...).
+	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
 		From(networksTable).
 		Where(sq.NotEq{
 			fmt.Sprintf("%s.%s", networksTable, nwIDCol): idsToExclude,
 		})
-	if loadCriteriaCopy.LoadConfigs {
+	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
 				"%s ON %s.%s = %s.%s",
@@ -306,7 +302,7 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria *NetworkLoadCr
 	}
 	defer sqorc.CloseRowsLogOnError(rows, "LoadAllNetworks")
 
-	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteriaCopy)
+	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
 		return emptyNetworks, err
 	}
@@ -319,42 +315,41 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria *NetworkLoadCr
 }
 
 func (store *sqlConfiguratorStorage) CreateNetwork(network *Network) (*Network, error) {
-	networkCopy := proto.Clone(network).(*Network)
-	exists, err := store.doesNetworkExist(networkCopy.ID)
+	exists, err := store.doesNetworkExist(network.ID)
 	if err != nil {
 		return &Network{}, err
 	}
 	if exists {
-		return &Network{}, fmt.Errorf("a network with ID %s already exists", networkCopy.ID)
+		return &Network{}, fmt.Errorf("a network with ID %s already exists", network.ID)
 	}
 
 	_, err = store.builder.Insert(networksTable).
 		Columns(nwIDCol, nwTypeCol, nwNameCol, nwDescCol).
-		Values(networkCopy.ID, networkCopy.Type, networkCopy.Name, networkCopy.Description).
+		Values(network.ID, network.Type, network.Name, network.Description).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
 		return &Network{}, fmt.Errorf("error inserting network: %s", err)
 	}
 
-	if funk.IsEmpty(networkCopy.Configs) {
-		return networkCopy, nil
+	if funk.IsEmpty(network.Configs) {
+		return network, nil
 	}
 
 	// Sort config keys for deterministic behavior
-	configKeys := funk.Keys(networkCopy.Configs).([]string)
+	configKeys := funk.Keys(network.Configs).([]string)
 	sort.Strings(configKeys)
 	insertBuilder := store.builder.Insert(networkConfigTable).
 		Columns(nwcIDCol, nwcTypeCol, nwcValCol)
 	for _, configKey := range configKeys {
-		insertBuilder = insertBuilder.Values(networkCopy.ID, configKey, networkCopy.Configs[configKey])
+		insertBuilder = insertBuilder.Values(network.ID, configKey, network.Configs[configKey])
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
 		return &Network{}, fmt.Errorf("error inserting network configs: %w", err)
 	}
 
-	return networkCopy, nil
+	return network, nil
 }
 
 func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCriteria) error {
@@ -362,8 +357,8 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCrit
 		return err
 	}
 
-	networksToDelete := []string{}
-	networksToUpdate := []*NetworkUpdateCriteria{}
+	var networksToDelete []string
+	var networksToUpdate []*NetworkUpdateCriteria
 	for _, update := range updates {
 		if update.DeleteNetwork {
 			networksToDelete = append(networksToDelete, update.ID)
@@ -399,9 +394,8 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []*NetworkUpdateCrit
 }
 
 func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter *EntityLoadFilter) (*EntityCountResult, error) {
-	filterCopy := proto.Clone(filter).(*EntityLoadFilter)
 	ret := &EntityCountResult{Count: 0}
-	count, err := store.countEntities(networkID, filterCopy)
+	count, err := store.countEntities(networkID, filter)
 	if err != nil {
 		return ret, err
 	}
@@ -410,19 +404,17 @@ func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter *Ent
 }
 
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter *EntityLoadFilter, criteria *EntityLoadCriteria) (*EntityLoadResult, error) {
-	filterCopy := proto.Clone(filter).(*EntityLoadFilter)
-	criteriaCopy := proto.Clone(criteria).(*EntityLoadCriteria)
-	if err := validatePaginatedLoadParameters(filterCopy, criteriaCopy); err != nil {
+	if err := validatePaginatedLoadParameters(filter, criteria); err != nil {
 		return &EntityLoadResult{}, err
 	}
 
-	entsByTK, err := store.loadEntities(networkID, filterCopy, criteriaCopy)
+	entsByTK, err := store.loadEntities(networkID, filter, criteria)
 	if err != nil {
 		return &EntityLoadResult{}, err
 	}
 
 	if criteria.LoadAssocsFromThis {
-		assocs, err := store.loadAssocs(networkID, filterCopy, criteriaCopy, loadChildren)
+		assocs, err := store.loadAssocs(networkID, filter, criteria, loadChildren)
 		if err != nil {
 			return &EntityLoadResult{}, err
 		}
@@ -439,7 +431,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter *Enti
 	}
 
 	if criteria.LoadAssocsToThis {
-		parentAssocs, err := store.loadAssocs(networkID, filterCopy, criteriaCopy, loadParents)
+		parentAssocs, err := store.loadAssocs(networkID, filter, criteria, loadParents)
 		if err != nil {
 			return &EntityLoadResult{}, err
 		}
@@ -461,10 +453,10 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter *Enti
 		res.Entities = append(res.Entities, ent)
 	}
 	SortEntities(res.Entities) // for deterministic return
-	res.EntitiesNotFound = calculateIDsNotFound(entsByTK, filterCopy.IDs)
+	res.EntitiesNotFound = calculateIDsNotFound(entsByTK, filter.IDs)
 
 	// Set next page token when there may be more pages to return
-	if len(res.Entities) == store.getEntityLoadPageSize(criteriaCopy) {
+	if len(res.Entities) == store.getEntityLoadPageSize(criteria) {
 		res.NextPageToken, err = getNextPageToken(res.Entities)
 		if err != nil {
 			return &EntityLoadResult{}, err
@@ -475,23 +467,22 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter *Enti
 }
 
 func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *NetworkEntity) (*NetworkEntity, error) {
-	entityCopy := proto.Clone(entity).(*NetworkEntity)
-	exists, err := store.doesEntExist(networkID, entityCopy.GetTK())
+	exists, err := store.doesEntExist(networkID, entity.GetTK())
 	if err != nil {
 		return &NetworkEntity{}, err
 	}
 	if exists {
-		return &NetworkEntity{}, fmt.Errorf("an entity '%s' already exists", entityCopy.GetTK())
+		return &NetworkEntity{}, fmt.Errorf("an entity '%s' already exists", entity.GetTK())
 	}
 
 	// Physical ID must be unique across all networks, since we use a gateway's
 	// physical ID to search for its network (and ent)
-	physicalIDExists, err := store.doesPhysicalIDExist(entityCopy.GetPhysicalID())
+	physicalIDExists, err := store.doesPhysicalIDExist(entity.GetPhysicalID())
 	if err != nil {
 		return &NetworkEntity{}, err
 	}
 	if physicalIDExists {
-		return &NetworkEntity{}, fmt.Errorf("an entity with physical ID '%s' already exists", entityCopy.GetPhysicalID())
+		return &NetworkEntity{}, fmt.Errorf("an entity with physical ID '%s' already exists", entity.GetPhysicalID())
 	}
 
 	// First insert the associations as graph edges. This step involves a
@@ -503,7 +494,7 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *Netw
 	// shouldn't be a problem on the load side because we load graphs via
 	// graph ID, not by traversing edges.
 
-	createdEnt, err := store.insertIntoEntityTable(networkID, entityCopy)
+	createdEnt, err := store.insertIntoEntityTable(networkID, entity)
 	if err != nil {
 		return &NetworkEntity{}, err
 	}
@@ -533,28 +524,27 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity *Netw
 }
 
 func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *EntityUpdateCriteria) (*NetworkEntity, error) {
-	updateCopy := proto.Clone(update).(*EntityUpdateCriteria)
 	emptyRet := &NetworkEntity{Type: update.Type, Key: update.Key}
-	entToUpdate, err := store.loadEntToUpdate(networkID, updateCopy)
-	if err != nil && !updateCopy.DeleteEntity {
+	entToUpdate, err := store.loadEntToUpdate(networkID, update)
+	if err != nil && !update.DeleteEntity {
 		return emptyRet, fmt.Errorf("failed to load entity being updated: %w", err)
 	}
 	if entToUpdate == nil {
 		return emptyRet, nil
 	}
 
-	if updateCopy.DeleteEntity {
+	if update.DeleteEntity {
 		// Cascading FK relations in the schema will handle the other tables
 		_, err := store.builder.Delete(entityTable).
 			Where(sq.And{
 				sq.Eq{entNidCol: networkID},
-				sq.Eq{entTypeCol: updateCopy.Type},
-				sq.Eq{entKeyCol: updateCopy.Key},
+				sq.Eq{entTypeCol: update.Type},
+				sq.Eq{entKeyCol: update.Key},
 			}).
 			RunWith(store.tx).
 			Exec()
 		if err != nil {
-			return emptyRet, fmt.Errorf("failed to delete entity (%s, %s): %w", updateCopy.Type, updateCopy.Key, err)
+			return emptyRet, fmt.Errorf("failed to delete entity (%s, %s): %w", update.Type, update.Key, err)
 		}
 
 		// Deleting a node could partition its graph
@@ -568,13 +558,13 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *Enti
 
 	// Then, update the fields on the entity table
 	entToUpdate.NetworkID = networkID
-	err = store.processEntityFieldsUpdate(entToUpdate.Pk, updateCopy, entToUpdate)
+	err = store.processEntityFieldsUpdate(entToUpdate.Pk, update, entToUpdate)
 	if err != nil {
 		return entToUpdate, err
 	}
 
 	// Finally, process edge updates for the graph
-	err = store.processEdgeUpdates(networkID, updateCopy, entToUpdate)
+	err = store.processEdgeUpdates(networkID, update, entToUpdate)
 	if err != nil {
 		return entToUpdate, err
 	}
@@ -583,11 +573,9 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update *Enti
 }
 
 func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID *EntityID, loadCriteria *EntityLoadCriteria) (*EntityGraph, error) {
-	entityIDCopy := proto.Clone(entityID).(*EntityID)
-	loadCriteriaCopy := proto.Clone(loadCriteria).(*EntityLoadCriteria)
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	singleEnt, err := store.loadEntities(networkID, &EntityLoadFilter{IDs: []*EntityID{entityIDCopy}}, &EntityLoadCriteria{})
+	singleEnt, err := store.loadEntities(networkID, &EntityLoadFilter{IDs: []*EntityID{entityID}}, &EntityLoadCriteria{})
 	if err != nil {
 		return &EntityGraph{}, fmt.Errorf("failed to load entity for graph query: %w", err)
 	}
@@ -597,10 +585,10 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		ent = e
 	}
 	if ent == nil {
-		return &EntityGraph{}, fmt.Errorf("could not find requested entity (%s) for graph query", entityIDCopy.String())
+		return &EntityGraph{}, fmt.Errorf("could not find requested entity (%s) for graph query", entityID.String())
 	}
 
-	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteriaCopy)
+	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteria)
 	if err != nil {
 		return &EntityGraph{}, err
 	}

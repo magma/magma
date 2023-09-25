@@ -2,7 +2,7 @@
 
 Orchestrator Secrets is used to apply a set of secrets required by magma orchestrator.
 
-## TL;DR;
+## TL;DR
 
 ```bash
 # Copy secrets into temp directory
@@ -38,6 +38,7 @@ $ ls ../secretstemp
 rootCA.pem controller.crt controller.key admin_operator.pem admin_operator.key.pem fluentd.pem fluentd.key
 
 ```
+
 ## Image Pull Secret
 
 This chart can also be used to install image pull secret which is required
@@ -45,7 +46,7 @@ when working with private docker registries.
 
 ## Configuration
 
-The following table lists the configurable secret locations, 
+The following table lists the configurable secret locations,
 docker credentials and their default values.
 
 | Parameter        | Description     | Default   |

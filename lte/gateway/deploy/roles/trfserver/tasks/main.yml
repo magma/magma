@@ -43,8 +43,6 @@
 
 - name: Install common Magma dev dependencies
   apt:
-    state: present
-    update_cache: yes
     name:
       - python3-pip
       - git
@@ -52,6 +50,8 @@
       - net-tools
       # install ethtool for disabling TCP checksumming
       - ethtool
+    state: present
+    update_cache: yes
   when: preburn
 
 - name: Rename interfaces to ethx-scheme
@@ -69,17 +69,18 @@
 
 - name: Install the trfgen-server python dependencies
   pip:
-    executable: pip3
     name:
       - pyroute2
       - scapy-python3
       - git+https://github.com/thiezn/iperf3-python#egg=iperf3-python
+    executable: pip3
   when: preburn
 
-
-- name: remove preinstalled iperf3 and libiperf0
+- name: Remove preinstalled iperf3 and libiperf0
   apt:
-    name: ['iperf3', 'libiperf0']
+    name:
+      - iperf3
+      - libiperf0
     state: absent
     update_cache: yes
     purge: yes
@@ -90,7 +91,7 @@
     name: libsctp1
   when: preburn
 
-- name: install iperf3 and libiperf0
+- name: Install iperf3 and libiperf0
   apt:
     deb: "https://iperf.fr/download/ubuntu/{{ item }}"
   with_items:
@@ -98,7 +99,34 @@
     - iperf3_3.9-1_amd64.deb
   when: preburn
 
-- name: configure sshd_config
+- name: Configure dhcpd
+  become: yes
+  copy:
+    src: udhcpd.conf
+    dest: /etc/
+  when: preburn
+
+- name: Install udhcpd
+  apt:
+    name: udhcpd
+  when: preburn
+
+- name: Configure udhcpd
+  become: yes
+  replace:
+    path: /etc/default/udhcpd
+    regexp: 'DHCPD_ENABLED="no"'
+    replace: 'DHCPD_ENABLED="yes"'
+  when: preburn
+
+- name: Restart service udhcpd
+  become: yes
+  service:
+    name: udhcpd
+    state: restarted
+  when: preburn
+
+- name: Configure sshd_config
   become: yes
   replace:
     path: /etc/ssh/sshd_config

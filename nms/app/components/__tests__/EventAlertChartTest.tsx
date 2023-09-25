@@ -15,11 +15,11 @@ import EventAlertChart from '../EventAlertChart';
 import MagmaAPI from '../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../theme/default';
-import moment from 'moment';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
 import {mockAPI} from '../../util/TestUtils';
 import {render, waitFor} from '@testing-library/react';
+import {subDays, subHours} from 'date-fns';
 import type {PromqlReturnObject} from '../../../generated';
 
 const mockMetricSt: PromqlReturnObject = {
@@ -35,12 +35,48 @@ const mockMetricSt: PromqlReturnObject = {
   },
 };
 
+const testCases = [
+  {
+    startDate: subHours(new Date(), 4),
+    endDate: new Date(),
+    step: '15m',
+  },
+  {
+    startDate: subDays(new Date(), 10),
+    endDate: new Date(),
+    step: '24h',
+  },
+  {
+    startDate: new Date(),
+    endDate: subDays(new Date(), 10),
+    step: '5m',
+  },
+];
+
+const Wrapper = (props: {startDate: Date; endDate: Date}) => (
+  <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={defaultTheme}>
+          <Routes>
+            <Route
+              path="/nms/:networkId"
+              element={
+                <EventAlertChart startEnd={[props.startDate, props.endDate]} />
+              }
+            />
+          </Routes>
+        </ThemeProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
+  </MemoryRouter>
+);
+
 jest.mock('axios');
 jest.mock('../../../app/hooks/useSnackbar');
 
 // chart component was failing here so mocking this out
-// this shouldn't affect the prop verification part in the react
-// chart component
+// this shouldn't affect the prop verification part in the React chart component
 // @ts-ignore
 window.HTMLCanvasElement.prototype.getContext = () => {};
 
@@ -54,51 +90,8 @@ describe('<EventAlertChart/>', () => {
     mockAPI(MagmaAPI.events, 'eventsNetworkIdAboutCountGet');
   });
 
-  const testCases = [
-    {
-      startDate: moment().subtract(2, 'hours'),
-      endDate: moment(),
-      step: '15m',
-      valid: true,
-    },
-    {
-      startDate: moment().subtract(10, 'day'),
-      endDate: moment(),
-      step: '24h',
-      valid: true,
-    },
-    {
-      startDate: moment(),
-      endDate: moment().subtract(10, 'day'),
-      step: '24h',
-      valid: false,
-    },
-  ];
-
-  it.each(testCases)('renders', async tc => {
-    // const endDate = moment();
-    // const startDate = moment().subtract(3, 'hours');
-    const Wrapper = () => (
-      <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-        <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={defaultTheme}>
-            <ThemeProvider theme={defaultTheme}>
-              <Routes>
-                <Route
-                  path="/nms/:networkId"
-                  element={
-                    <EventAlertChart startEnd={[tc.startDate, tc.endDate]} />
-                  }
-                />
-              </Routes>
-            </ThemeProvider>
-          </ThemeProvider>
-        </StyledEngineProvider>
-      </MemoryRouter>
-    );
-
-    render(<Wrapper />);
-    const currentStep = tc.valid ? tc.step : '5m';
+  it.each(testCases)('renders', async ({startDate, endDate, step}) => {
+    render(<Wrapper startDate={startDate} endDate={endDate} />);
     await waitFor(() =>
       expect(
         MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
@@ -108,9 +101,9 @@ describe('<EventAlertChart/>', () => {
     expect(
       MagmaAPI.metrics.networksNetworkIdPrometheusQueryRangeGet,
     ).toBeCalledWith({
-      start: tc.startDate.toISOString(),
-      end: tc.endDate.toISOString(),
-      step: currentStep,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      step: step,
       networkId: 'mynetwork',
       query: 'sum(ALERTS)',
     });

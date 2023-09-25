@@ -226,7 +226,7 @@ function userMiddleware(options: Options) {
       });
       res.status(200).send({users});
     } catch (error) {
-      res.status(400).send({error: (error as Error).toString()});
+      res.status(400).send({message: (error as Error).toString()});
     }
   });
 
@@ -311,7 +311,7 @@ function userMiddleware(options: Options) {
         );
         res.status(201).send({user});
       } catch (error) {
-        res.status(400).send({error: (error as Error).toString()});
+        res.status(400).send({message: (error as Error).toString()});
         await logUserChange(req, req.user, 'CREATE', req.body, 'FAILURE');
       }
     },

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Dict, Type
 
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_enb, transform_for_magma
@@ -202,67 +202,15 @@ class BaicellsQAFATrDataModel(DataModel):
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
 
+    # Parameters to query when reading eNodeB config
+    LOAD_PARAMETERS = list(PARAMETERS.keys())
+
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
         # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
         ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode,
     }
-
-    @classmethod
-    def get_parameter(cls, param_name: ParameterName) -> Optional[TrParam]:
-        return cls.PARAMETERS.get(param_name)
-
-    @classmethod
-    def _get_magma_transforms(
-        cls,
-    ) -> Dict[ParameterName, Callable[[Any], Any]]:
-        return cls.TRANSFORMS_FOR_MAGMA
-
-    @classmethod
-    def _get_enb_transforms(cls) -> Dict[ParameterName, Callable[[Any], Any]]:
-        return cls.TRANSFORMS_FOR_ENB
-
-    @classmethod
-    def get_load_parameters(cls) -> List[ParameterName]:
-        """
-        Load all the parameters instead of a subset.
-        """
-        return list(cls.PARAMETERS.keys())
-
-    @classmethod
-    def get_num_plmns(cls) -> int:
-        return cls.NUM_PLMNS_IN_CONFIG
-
-    @classmethod
-    def get_parameter_names(cls) -> List[ParameterName]:
-        excluded_params = [
-            str(ParameterName.DEVICE),
-            str(ParameterName.FAP_SERVICE),
-        ]
-        names = list(
-            filter(
-                lambda x: (not str(x).startswith('PLMN'))
-                and (str(x) not in excluded_params),
-                cls.PARAMETERS.keys(),
-            ),
-        )
-        return names
-
-    @classmethod
-    def get_numbered_param_names(
-        cls,
-    ) -> Dict[ParameterName, List[ParameterName]]:
-        names = {}
-        for i in range(1, cls.NUM_PLMNS_IN_CONFIG + 1):
-            params = []
-            params.append(ParameterName.PLMN_N_CELL_RESERVED % i)
-            params.append(ParameterName.PLMN_N_ENABLE % i)
-            params.append(ParameterName.PLMN_N_PRIMARY % i)
-            params.append(ParameterName.PLMN_N_PLMNID % i)
-            names[ParameterName.PLMN_N % i] = params
-
-        return names
 
 
 class BaicellsQAFATrConfigurationInitializer(EnodebConfigurationPostProcessor):

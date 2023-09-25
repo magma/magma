@@ -37,9 +37,6 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/ebpf/ebpf_ul_handler.c"
   "./lte/gateway/python/magma/pipelined/ebpf/ebpf_dl_handler.c"
-  # TODO: GH12771 add MME_BENCHMARK support and bazelify files
-  "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.hpp"
-  "./lte/gateway/c/core/oai/tasks/mme_app/experimental/mme_app_serialization.cpp"
 )
 
 DENY_LIST=( "${DENY_LIST_NOT_RELEVANT[@]}" "${DENY_LIST_NOT_YET_BAZELIFIED[@]}" )

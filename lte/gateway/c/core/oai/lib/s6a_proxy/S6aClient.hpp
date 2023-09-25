@@ -23,9 +23,12 @@
 #include <functional>
 #include <memory>
 
+#include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
-#include "lte/gateway/c/core/oai/include/s6a_messages_types.h"
+#include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+
+#include "lte/protos/subscriberdb.pb.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -74,6 +77,9 @@ class S6aClient : public GRPCReceiver {
   static void update_location_request(
       const s6a_update_location_req_t* const msg,
       std::function<void(Status, feg::UpdateLocationAnswer)> callback);
+
+  static void convert_ula_to_subscriber_data(feg::UpdateLocationAnswer response,
+                                             lte::SubscriberData* sub_data);
 
  public:
   S6aClient(S6aClient const&) = delete;

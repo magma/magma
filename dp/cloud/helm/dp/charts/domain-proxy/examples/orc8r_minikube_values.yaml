@@ -158,8 +158,6 @@ nms:
           targetPort: 9443
 dp:
   enabled: true
-  cbsd_inactivity_interval_sec: 3
-  log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
   service:
     labels:
       orc8r.io/obsidian_handlers: "true"

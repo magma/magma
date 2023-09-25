@@ -13,7 +13,9 @@ limitations under the License.
 
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
-from magma.enodebd.devices.baicells_qrtb import BaicellsQRTBTrDataModel
+from magma.enodebd.devices.baicells_qrtb.data_model import (
+    BaicellsQRTBTrDataModel,
+)
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.acs_state_utils import (
     get_object_params_to_get,

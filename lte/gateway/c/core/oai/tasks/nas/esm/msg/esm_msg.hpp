@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source    esm_msg.h
+Source    esm_msg.hpp
 
 Version   0.1
 
@@ -32,16 +32,15 @@ Description Defines EPS Session Management messages and functions used
     to encode and decode
 
 *****************************************************************************/
-#ifndef __ESM_MSG_H__
-#define __ESM_MSG_H__
+#pragma once
 
 #include <stdint.h>
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/esm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmInformationTransferFlag.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PdnType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrafficFlowAggregateDescription.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDedicatedEpsBearerContextReject.hpp"
@@ -120,14 +119,6 @@ typedef union {
 int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
                           uint32_t len);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
 
 int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len);
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __ESM_MSG_H__ */

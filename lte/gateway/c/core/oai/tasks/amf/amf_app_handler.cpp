@@ -1030,11 +1030,7 @@ status_code_e amf_app_handle_pdu_session_accept(
                                &ue_context->amf_context._security);
   if (bytes > 0) {
     buffer->slen = bytes;
-    if (ue_context->ue_context_request) {
-      pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
-    } else {
-      initial_context_setup_request(ue_id, &ue_context->amf_context, buffer);
-    }
+    pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx, buffer);
 
   } else {
     OAILOG_WARNING(LOG_AMF_APP, "NAS encode failed \n");

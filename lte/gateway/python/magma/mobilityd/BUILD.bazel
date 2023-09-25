@@ -11,6 +11,7 @@
 
 load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
 
 MAGMA_ROOT = "../../../../../"
 
@@ -29,7 +30,11 @@ py_binary(
     legacy_create_init = False,
     main = "main.py",
     python_version = "PY3",
-    visibility = ["//visibility:private"],
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
     deps = [
         ":mobilityd_lib",
         "//lte/protos:mconfigs_python_proto",
@@ -37,13 +42,13 @@ py_binary(
         "//orc8r/gateway/python/magma/common:sentry",
         "//orc8r/gateway/python/magma/common:service",
         "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("sdnotify"),
     ],
 )
 
 py_library(
     name = "mobilityd_lib",
     srcs = [
-        "dhcp_client.py",
         "ip_address_man.py",
         "ip_allocator_base.py",
         "ip_allocator_dhcp.py",
@@ -66,7 +71,6 @@ py_library(
         "//lte/protos:subscriberdb_python_grpc",
         "//orc8r/gateway/python/magma/common:rpc_utils",
         "//orc8r/gateway/python/magma/common/redis:client",
-        requirement("scapy"),
         requirement("prometheus_client"),
     ],
 )

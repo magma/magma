@@ -79,9 +79,7 @@ class TestPagingRequest(unittest.TestCase):
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
 
         time.sleep(0.3)
         print(
@@ -92,7 +90,7 @@ class TestPagingRequest(unittest.TestCase):
             req, duration=1, is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
+            assert response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value
             # Send service request to reconnect UE
             ser_req = s1ap_types.ueserviceReq_t()
             ser_req.ue_Id = ue_id
@@ -103,8 +101,8 @@ class TestPagingRequest(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+            assert (
+                response.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
             test.verify()
 

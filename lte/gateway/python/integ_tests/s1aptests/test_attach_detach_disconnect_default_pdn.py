@@ -59,9 +59,7 @@ class TestAttachDetachDisconnectDefaultPdn(unittest.TestCase):
 
         # Receive PDN Disconnect Reject
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REJ.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REJ.value
 
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(

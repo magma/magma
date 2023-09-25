@@ -138,9 +138,10 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         qos_rule.len = QOS_DEL_RULE_MIN_LEN;
       }
 
-      if (PDU_SESSION_DEFAULT_QFI == qos_flow_req_item->qos_flow_identifier) {
+      if (smf_ctx->subscribed_qos.qci ==
+          qos_flow_req_item->qos_flow_identifier) {
         qos_rule.dqr_bit = QOS_RULE_DQR_BIT_SET;
-        qos_rule.qos_rule_id = PDU_SESSION_DEFAULT_QFI;
+        qos_rule.qos_rule_id = qos_flow_req_item->qos_flow_identifier;
       } else {
         qos_rule.dqr_bit = 0;
         qos_rule.qos_rule_id = qos_flow_req_item->qos_flow_identifier;
@@ -203,9 +204,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_dl);
         flow_des.numOfParams++;
       }
 
@@ -214,9 +214,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->mbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_ul);
         flow_des.numOfParams++;
       }
 
@@ -225,9 +224,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_dl / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_dl);
         flow_des.numOfParams++;
       }
 
@@ -236,10 +234,15 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        flow_des.paramList[flow_des.numOfParams].element =
-            (uint16_t)(qos_flow_desc->gbr_ul / 1000);
-        flow_des.paramList[flow_des.numOfParams].units = 1;
+        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_ul);
         flow_des.numOfParams++;
+      }
+
+      if (flow_des.numOfParams > 0) {
+        flow_des.Ebit = 1;
+      } else {
+        flow_des.Ebit = 0;
       }
 
       if (flow_des.numOfParams) {
@@ -278,7 +281,9 @@ void amf_smf_session_set_default_qos_rule(qos_flow_list_t* pti_flow_list) {
     return;
   }
 
-  qos_flow_req_item->qos_flow_identifier = PDU_SESSION_DEFAULT_QFI;
+  if (!qos_flow_req_item->qos_flow_identifier) {
+    qos_flow_req_item->qos_flow_identifier = PDU_SESSION_DEFAULT_QFI;
+  }
   qos_flow_req_item->qos_flow_action = policy_action_add;
   qos_flow_req_item->ul_tft.tftoperationcode =
       TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;

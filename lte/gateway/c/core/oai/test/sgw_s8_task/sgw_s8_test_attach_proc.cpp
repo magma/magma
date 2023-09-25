@@ -52,11 +52,9 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
           sgw_state, &temporary_create_session_procedure_id);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
   sgw_pdn_session = nullptr;
-  EXPECT_EQ(
-      hashtable_ts_get(sgw_state->temporary_create_session_procedure_id_htbl,
-                       temporary_create_session_procedure_id,
-                       reinterpret_cast<void**>(&sgw_pdn_session)),
-      HASH_TABLE_OK);
+  EXPECT_EQ(sgw_state->temporary_create_session_procedure_id_map.get(
+                temporary_create_session_procedure_id, &sgw_pdn_session),
+            magma::PROTO_MAP_OK);
 
   // validates creation of bearer context on reception of Create Session Req
   itti_s11_create_session_request_t session_req = {0};
@@ -123,7 +121,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
             RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -133,12 +131,10 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
               csresp.bearer_context[0].pgw_s8_up.teid);
   EXPECT_GT(bearer_ctx_p->s_gw_teid_S5_S8_up, 0);
   // Check pdn session is removed from
-  // temporary_create_session_procedure_id_htbl
-  EXPECT_EQ(
-      hashtable_ts_get(sgw_state->temporary_create_session_procedure_id_htbl,
-                       temporary_create_session_procedure_id,
-                       reinterpret_cast<void**>(&sgw_pdn_session)),
-      HASH_TABLE_KEY_NOT_EXISTS);
+  // temporary_create_session_procedure_id_map
+  EXPECT_EQ(sgw_state->temporary_create_session_procedure_id_map.get(
+                temporary_create_session_procedure_id, &sgw_pdn_session),
+            magma::PROTO_MAP_EMPTY);
 }
 
 // TC indicates that SGW_S8 has received incorrect temporary session id in
@@ -252,7 +248,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -362,7 +358,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -380,8 +376,8 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   sgw_s8_handle_modify_bearer_request(sgw_state, &mbr_req, imsi64);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
-  bearer_ctx_p = sgw_cm_get_eps_bearer_entry(&sgw_pdn_session->pdn_connection,
-                                             csresp.eps_bearer_id);
+  bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
+      &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
   EXPECT_TRUE(bearer_ctx_p->enb_teid_S1u ==

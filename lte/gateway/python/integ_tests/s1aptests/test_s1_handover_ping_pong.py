@@ -121,10 +121,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Handover Request to Target ENB.
         # Wait for S1 Handover Request Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value
         s1ho_req_ind = response.cast(s1ap_types.FwNbS1HoReqInd_t)
         print(
             "************************* Received S1 Handover Request "
@@ -155,10 +152,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value
         s1ho_cmd_ind = response.cast(s1ap_types.FwNbS1HoCmdInd_t)
         print(
             "************************* Received S1 Handover Command "
@@ -189,10 +183,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Status Transfer to Target ENB.
         # Wait for MME Status Transfer Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value
         mme_status_trf_ind = response.cast(s1ap_types.FwNbMmeStatusTrnsfrInd_t)
         print(
             "************************* Received MME Status Transfer "
@@ -223,21 +214,10 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         ue_ctxt_rel_ind = response.cast(s1ap_types.FwNbUeCtxRelInd_t)
-        self.assertEqual(
-            # causeType = 0 (Radio network)
-            ue_ctxt_rel_ind.relCause.causeType,
-            0,
-        )
-        self.assertEqual(
-            # causeVal = 2 (successful-handover)
-            ue_ctxt_rel_ind.relCause.causeVal,
-            2,
-        )
+        assert ue_ctxt_rel_ind.relCause.causeType == 0  # causeType = 0 (Radio network)
+        assert ue_ctxt_rel_ind.relCause.causeVal == 2  # causeVal = 2 (successful-handover)
         print(
             "************************* Received UE Context Release Command "
             "after successful handover",
@@ -282,10 +262,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Handover Request to Target ENB.
         # Wait for S1 Handover Request Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_REQ_IND.value
         s1ho_req_ind = response.cast(s1ap_types.FwNbS1HoReqInd_t)
         print(
             "************************* Received S1 Handover Request "
@@ -316,10 +293,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Handover Command to Source ENB.
         # Wait for S1 Handover Command Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_HANDOVER_CMD_IND.value
         s1ho_cmd_ind = response.cast(s1ap_types.FwNbS1HoCmdInd_t)
         print(
             "************************* Received S1 Handover Command "
@@ -350,10 +324,7 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # Status Transfer to Target ENB.
         # Wait for MME Status Transfer Indication
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.S1_MME_STATUS_TRSFR_IND.value
         mme_status_trf_ind = response.cast(s1ap_types.FwNbMmeStatusTrnsfrInd_t)
         print(
             "************************* Received MME Status Transfer "
@@ -384,21 +355,10 @@ class TestS1HandoverPingPong(unittest.TestCase):
         # source ENB for clearing UE context from source ENB
         # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type,
-            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
-        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         ue_ctxt_rel_ind = response.cast(s1ap_types.FwNbUeCtxRelInd_t)
-        self.assertEqual(
-            # causeType = 0 (Radio network)
-            ue_ctxt_rel_ind.relCause.causeType,
-            0,
-        )
-        self.assertEqual(
-            # causeVal = 2 (successful-handover)
-            ue_ctxt_rel_ind.relCause.causeVal,
-            2,
-        )
+        assert ue_ctxt_rel_ind.relCause.causeType == 0  # causeType = 0 (Radio network)
+        assert ue_ctxt_rel_ind.relCause.causeVal == 2  # causeVal = 2 (successful-handover)
         print(
             "************************* Received UE Context Release Command "
             "after successful handover",

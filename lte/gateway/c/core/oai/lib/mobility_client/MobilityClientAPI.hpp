@@ -15,19 +15,23 @@
  *      contact@openairinterface.org
  */
 
-#ifndef RPC_CLIENT_H
-#define RPC_CLIENT_H
+#pragma once
 
-#include "stdint.h"
+#include <stdint.h>
+
+#include <string>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 // Status codes from gRPC
 #define RPC_STATUS_OK 0
@@ -71,9 +75,10 @@ int get_assigned_ipv4_block(int index, struct in_addr* netaddr,
  * @param pdn_type str for PDN type (ipv4, ipv6...)
  * @return status of gRPC call
  */
-int pgw_handle_allocate_ipv4_address(const char* subscriber_id, const char* apn,
-                                     const char* pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv4_address(const std::string subscriber_id,
+                                     const std::string apn,
+                                     const std::string pdn_type,
+                                     teid_t context_teid, ebi_t eps_bearer_id);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -85,9 +90,10 @@ int pgw_handle_allocate_ipv4_address(const char* subscriber_id, const char* apn,
  * @return status of gRPC call
  */
 
-int pgw_handle_allocate_ipv6_address(const char* subscriber_id, const char* apn,
-                                     const char* pdn_type, teid_t context_teid,
-                                     ebi_t eps_bearer_id);
+int pgw_handle_allocate_ipv6_address(const std::string subscriber_id,
+                                     const std::string apn,
+                                     const std::string pdn_type,
+                                     teid_t context_teid, ebi_t eps_bearer_id);
 
 /*
  * Release an allocated IP address.
@@ -98,8 +104,8 @@ int pgw_handle_allocate_ipv6_address(const char* subscriber_id, const char* apn,
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param addr: IP address to release
  */
-void release_ipv4_address(const char* subscriber_id, const char* apn,
-                          const struct in_addr* addr);
+void release_ipv4_address(const std::string subscriber_id,
+                          const std::string apn, const struct in_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -111,8 +117,8 @@ void release_ipv4_address(const char* subscriber_id, const char* apn,
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: IPv6 address to release in "host byte order
  */
-void release_ipv6_address(const char* subscriber_id, const char* apn,
-                          const struct in6_addr* addr);
+void release_ipv6_address(const std::string subscriber_id,
+                          const std::string apn, const struct in6_addr* addr);
 
 /*
  * Release an allocated IP address.
@@ -125,7 +131,8 @@ void release_ipv6_address(const char* subscriber_id, const char* apn,
  * @param ipv4_addr: IPv4 address to release in "host byte order
  * @param ipv6_addr: IPv6 address to release in "host byte order
  */
-void release_ipv4v6_address(const char* subscriber_id, const char* apn,
+void release_ipv4v6_address(const std::string subscriber_id,
+                            const std::string apn,
                             const struct in_addr* ipv4_addr,
                             const struct in6_addr* ipv6_addr);
 
@@ -164,13 +171,8 @@ int get_subscriber_id_from_ipv4(const struct in_addr* addr,
  * @return status of gRPC call
  */
 
-int pgw_handle_allocate_ipv4v6_address(const char* subscriber_id,
-                                       const char* apn, const char* pdn_type,
+int pgw_handle_allocate_ipv4v6_address(const std::string subscriber_id_str,
+                                       const std::string apn_str,
+                                       const std::string pdn_type_str,
                                        teid_t context_teid,
                                        ebi_t eps_bearer_id);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // RPC_CLIENT_H

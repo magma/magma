@@ -18,17 +18,19 @@
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/mme_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 }
 
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/include/state_converter.hpp"
+#include "xer_encoder.h"
 
 extern bool hss_associated;
 extern task_zmq_ctx_t task_zmq_ctx_mme;
@@ -104,7 +106,7 @@ class S1apMmeHandlersTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  s1ap_state_t* state;
+  oai::S1apState* state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
 };
@@ -125,7 +127,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
   ASSERT_EQ(rc, RETURNok);
 
   // State validation
-  ASSERT_EQ(state->num_enbs, 0);
+  ASSERT_EQ(state->num_enbs(), 0);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -134,9 +136,12 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureHss) {
 TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
 
-  enb_description_t* enb_associated = NULL;
-  state->enbs.get(assoc_id, &enb_associated);
-  enb_associated->s1_state = S1AP_RESETING;
+  oai::EnbDescription enb_associated;
+  proto_map_uint32_enb_description_t enb_map;
+  enb_map.map = state->mutable_enbs();
+  enb_map.get(assoc_id, &enb_associated);
+  enb_associated.set_s1_enb_state(magma::lte::oai::S1AP_RESETING);
+  s1ap_state_update_enb_map(state, assoc_id, &enb_associated);
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -149,7 +154,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1SetupRequestFailureReseting) {
   ASSERT_EQ(rc, RETURNok);
 
   // State validation
-  ASSERT_EQ(state->num_enbs, 0);
+  ASSERT_EQ(state->num_enbs(), 0);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -170,7 +175,7 @@ TEST_F(S1apMmeHandlersTest, HandleCloseSctpAssociation) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -207,7 +212,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_context_setup_failure())
       .Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -216,7 +221,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -268,7 +273,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t ics_release_bytes[] = {0x00, 0x12, 0x40, 0x15, 0x00, 0x00, 0x03,
@@ -297,7 +302,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSFailure) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_context_setup_failure())
       .Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -306,7 +311,7 @@ TEST_F(S1apMmeHandlersTest, HandleICSFailure) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -363,7 +368,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -372,7 +377,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -410,7 +415,7 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   // Freeing pdu and payload data
@@ -420,18 +425,18 @@ TEST_F(S1apMmeHandlersTest, HandleUECapIndication) {
 }
 
 TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
-  ue_description_t ue_ref_p = {
-      .enb_ue_s1ap_id = 1,
-      .mme_ue_s1ap_id = 1,
-      .sctp_assoc_id = assoc_id,
-      .comp_s1ap_id = S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1)};
+  oai::UeDescription ue_ref_p;
+  ue_ref_p.set_enb_ue_s1ap_id(1);
+  ue_ref_p.set_mme_ue_s1ap_id(1);
+  ue_ref_p.set_sctp_assoc_id(assoc_id);
+  ue_ref_p.set_comp_s1ap_id(S1AP_GENERATE_COMP_S1AP_ID(assoc_id, 1));
 
-  ue_ref_p.s1ap_ue_context_rel_timer.id = -1;
-  ue_ref_p.s1ap_ue_context_rel_timer.msec = 1000;
+  ue_ref_p.mutable_s1ap_ue_context_rel_timer()->set_id(-1);
+  ue_ref_p.mutable_s1ap_ue_context_rel_timer()->set_msec(1000);
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -440,7 +445,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
 
   uint8_t initial_ue_bytes[] = {
@@ -465,7 +470,7 @@ TEST_F(S1apMmeHandlersTest, GenerateUEContextReleaseCommand) {
                           state, &ue_ref_p, S1AP_INITIAL_CONTEXT_SETUP_FAILED,
                           INVALID_IMSI64, assoc_id, stream_id, 1, 1));
 
-  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer.id, S1AP_TIMER_INACTIVE_ID);
+  EXPECT_NE(ue_ref_p.s1ap_ue_context_rel_timer().id(), S1AP_TIMER_INACTIVE_ID);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -477,7 +482,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -501,9 +506,9 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send UE context release command mimicing MME_APP
   MessageDef* message_p;
@@ -540,7 +545,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-  ASSERT_EQ(state->mmeid2associd.size(), 0);
+  ASSERT_EQ(state->mmeid2associd_size(), 0);
 }
 
 TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
@@ -553,7 +558,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -561,7 +566,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -578,7 +583,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send UE connection establishment cnf mimicing MME_APP
 
@@ -597,7 +602,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -605,7 +610,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -622,7 +627,7 @@ TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnfExtUEAMBR) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send UE connection establishment cnf mimicing MME_APP
 
@@ -640,7 +645,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabRelCmd) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -648,7 +653,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabRelCmd) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -665,7 +670,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabRelCmd) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_ERAB_REL_CMD message to s1ap_mme_handlers
   ASSERT_EQ(send_s1ap_erab_rel_cmd(state, 7, 1), RETURNok);
@@ -680,7 +685,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabSetupReq) {
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -688,7 +693,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabSetupReq) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -705,7 +710,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabSetupReq) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Call S1AP_ERAB_SETUP_REQ message handler
   ASSERT_EQ(send_s1ap_erab_setup_req(state, 7, 1, 1), RETURNok);
@@ -721,7 +726,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_e_rab_setup_rsp()).Times(1);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -729,7 +734,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
   ASSERT_EQ(s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1),
             RETURNok);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -746,7 +751,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Call S1AP_ERAB_SETUP_REQ message handler
   ASSERT_EQ(send_s1ap_erab_setup_req(state, 7, 1, 1), RETURNok);
@@ -790,7 +795,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -798,7 +803,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -815,7 +820,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabResetReq) {
 
   handle_mme_ue_id_notification(state, assoc_id);
 
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_ERAB_RESET_REQ mimicing MME_APP
   ASSERT_EQ(send_s1ap_erab_reset_req(assoc_id, stream_id, 1, 7), RETURNok);
@@ -833,7 +838,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -841,7 +846,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -859,9 +864,9 @@ TEST_F(S1apMmeHandlersTest, HandleS1apUeCtxtModification) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_UE_CONTEXT_MODIFICATION_REQUEST mimicing MME_APP
   ASSERT_EQ(send_s1ap_ue_ctxt_mod(1, 7), RETURNok);
@@ -879,7 +884,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -887,7 +892,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -905,9 +910,9 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchRequest) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_PATH_SWITCH_REQUEST_ACK mimicing MME_APP
   ASSERT_EQ(send_s1ap_path_switch_req(assoc_id, 1, 7), RETURNok);
@@ -925,7 +930,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchFailure) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -933,7 +938,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPathSwitchFailure) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -966,7 +971,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
       .Times(0);
   EXPECT_CALL(*mme_app_handler, nas_proc_dl_transfer_rej()).Times(0);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -974,7 +979,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -996,7 +1001,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
 
   // State validation
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -1005,7 +1010,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverRequest) {
 TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1019,7 +1024,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -1047,7 +1052,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apHandoverCommand) {
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
   // State validation
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_HANDOVER));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_HANDOVER));
 }
 
 TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
@@ -1153,7 +1158,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1203,9 +1208,9 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
   // Send S1AP_HANDOVER_COMMAND mimicing MME_APP
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 2), RETURNok);
 
-  ue_description_t* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
-  ASSERT_EQ(ue_ref_p->s1_ue_state, S1AP_UE_HANDOVER);
+  ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
   // Simulate ENB Status Transfer
   uint8_t enb_transfer[] = {0x00, 0x18, 0x40, 0x24, 0x00, 0x00, 0x03, 0x00,
@@ -1231,12 +1236,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
 
   // Free up eRAB data on target eNB
   ue_ref_p = s1ap_state_get_ue_enbid(target_assoc_id, 2);
-  ASSERT_EQ(ue_ref_p->s1ap_handover_state.target_enb_id, 2);
-  for (int i = 0;
-       i < ue_ref_p->s1ap_handover_state.e_rab_admitted_list.no_of_items; i++) {
-    bdestroy_wrapper(&ue_ref_p->s1ap_handover_state.e_rab_admitted_list.item[i]
-                          .transport_layer_address);
-  }
+  ASSERT_EQ(ue_ref_p->s1ap_handover_state().target_enb_id(), 2);
 }
 
 TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
@@ -1342,7 +1342,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1487,7 +1487,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1538,9 +1538,9 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 11),
             RETURNok);
 
-  ue_description_t* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
-  ASSERT_EQ(ue_ref_p->s1_ue_state, S1AP_UE_HANDOVER);
+  ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
   // Simulate Handover Cancel
   uint8_t hand_cancel[] = {0x00, 0x04, 0x00, 0x15, 0x00, 0x00, 0x03, 0x00, 0x00,
@@ -1639,7 +1639,7 @@ TEST_F(S1apMmeHandlersTest, HandleErabSetupResponse) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1765,7 +1765,7 @@ TEST_F(S1apMmeHandlersTest, HandleErrorIndicationMessage) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1889,7 +1889,7 @@ TEST_F(S1apMmeHandlersTest, HandleEnbResetPartial) {
                                     assoc_id, stream_id),
             RETURNok);
 
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -1917,7 +1917,7 @@ TEST_F(S1apMmeHandlersTest, HandleEnbResetPartial) {
 TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1931,7 +1931,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -1954,9 +1954,9 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_PAGING_REQUEST mimicing MME_APP
   ASSERT_EQ(send_s1ap_paging_request(assoc_id), RETURNok);
@@ -1970,7 +1970,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apPagingRequest) {
 TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -1984,7 +1984,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -2002,9 +2002,9 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabModificationCnf) {
   handle_mme_ue_id_notification(state, assoc_id);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send S1AP_E_RAB_MODIFICATION_CNF mimicing MME_APP
   ASSERT_EQ(send_s1ap_erab_mod_confirm(1, 7), RETURNok);
@@ -2018,7 +2018,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
 
   bool is_state_same = true;
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(5);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -2114,8 +2114,8 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, S1AP_UE_CONNECTED));
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_ue_state_valid(assoc_id, 1, oai::S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
 
   // Simulate Attach Complete
   uint8_t attach_compl_bytes[] = {
@@ -2170,7 +2170,7 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
       RETURNok);
 
   // Confirm UE state update (assoc_id, enb_ue_s1ap_id)
-  ASSERT_TRUE(is_ue_state_valid(switch_assoc_id, 2, S1AP_UE_CONNECTED));
+  ASSERT_TRUE(is_ue_state_valid(switch_assoc_id, 2, oai::S1AP_UE_CONNECTED));
 
   // Simulate Detach request PDU payload
   uint8_t detach_req_bytes[] = {
@@ -2196,7 +2196,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
 
   bool is_state_same = false;
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_INIT, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_INIT, 0));
 
   S1ap_S1AP_PDU_t pdu_s1;
   memset(&pdu_s1, 0, sizeof(pdu_s1));
@@ -2204,7 +2204,7 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
   ASSERT_EQ(RETURNok,
             s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
 
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 0));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
 
   uint8_t initial_ue_bytes[] = {
       0x00, 0x0c, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x08, 0x00, 0x02,
@@ -2264,9 +2264,311 @@ TEST_F(S1apMmeHandlersTest, HandleS1apNasNonDelivery) {
             RETURNok);
 
   // State validation
-  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, S1AP_READY, 1));
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 1));
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
-  ASSERT_EQ(state->mmeid2associd.size(), 1);
+  ASSERT_EQ(state->mmeid2associd_size(), 1);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, HandleBigNasPackets) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x0,  0xc,  0x40, 0x84, 0x46, 0x0,  0x0,  0xa,  0x0,  0xf2, 0x40, 0x1,
+      0x0,  0x0,  0x64, 0x40, 0x8,  0x0,  0x0,  0xb8, 0x40, 0x84, 0xc6, 0x54,
+      0x20, 0x0,  0x1a, 0x40, 0x83, 0xfb, 0x83, 0xf9, 0x7,  0x61, 0x43, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x80, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83, 0x83,
+      0x83, 0x83, 0x83, 0x83, 0x83, 0x0,  0xf2, 0x40, 0x1,  0x0,  0x0,  0x4b,
+      0x40, 0x7,  0x0,  0x40, 0x21, 0x0,  0x92, 0x1e, 0x0,  0x0,  0x8,  0x40,
+      0x4,  0x80, 0xff, 0xf0, 0x7f, 0x0,  0x43, 0x40, 0x6,  0x0,  0x6d, 0x33,
+      0x87, 0x5b, 0xc2, 0x0,  0x86, 0x40, 0x1,  0x30, 0x0,  0x9b, 0x40, 0x2,
+      0x0,  0x40, 0x1,  0x19, 0x40, 0x1,  0x0};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, MalformedInitialUEMissingENBUES1APID) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x03, 0x0e, 0x00, 0x00, 0x00, 0x54, 0x40, 0x19, 0xa2,
+      0xba, 0x8b, 0x00, 0x5f, 0x00, 0x00, 0x06, 0x00, 0x08, 0x00, 0x02, 0x00,
+      0x01, 0x00, 0x1a, 0x00, 0x2d, 0x2c, 0x17, 0x6b, 0xf1, 0x10, 0x00, 0x19,
+      0xb0, 0x10, 0x00, 0x86, 0x40, 0x01, 0x40, 0x00, 0x60, 0xbf, 0x4b, 0x51,
+      0x01, 0x07, 0x41, 0x01, 0x0b, 0xf6, 0x00, 0xf1, 0x10, 0x00, 0x02, 0x01,
+      0xf2, 0x00, 0x46, 0x53, 0x07, 0xe0, 0x01, 0x0c, 0x40, 0x01, 0x00, 0x00,
+      0x00, 0x40, 0x05, 0x01, 0xd0, 0x11, 0xd1, 0x91, 0xe0, 0x6f, 0x04, 0xe0,
+      0xf2, 0x60, 0x00, 0x00, 0x43, 0x00, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00,
+      0x07, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x19, 0xb0,
+      0x10, 0x00, 0x86, 0x02, 0x01, 0xd0, 0x11, 0xd1, 0x91, 0xe0, 0x6f, 0x04,
+      0xe0, 0x00, 0x06, 0x00, 0x40, 0xf2, 0x00, 0x46, 0x53};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, ResetTypeS1apProtocolIEIDMissing) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0e, 0x40, 0x05, 0xc0, 0x00, 0x00, 0x0a, 0x00, 0x3b, 0x40, 0x01,
+      0x24, 0x00, 0x5c, 0x40, 0x01, 0x00, 0x00, 0xea, 0x40, 0x5c, 0x40, 0x5f,
+      0x40, 0x08, 0x5f, 0x40, 0x09, 0x00, 0x5b, 0x40, 0x09, 0x6c, 0x4f, 0x8f,
+      0xcd, 0xa5, 0x80, 0x1b, 0x77, 0xa0, 0x7f, 0x5b, 0x40, 0x01, 0x00, 0x00,
+      0x5b, 0x40, 0x05, 0x4c, 0x7e, 0x91, 0x2f, 0x69, 0x00, 0x5b, 0x40, 0x09,
+      0x6c, 0x76, 0x0e, 0x40, 0x05, 0xc0, 0x00, 0x00, 0x0a, 0x00, 0x3b, 0x40,
+      0x01, 0x24, 0x00, 0x5c, 0x6b, 0x75, 0x2c, 0x80, 0xdc, 0x00, 0x80, 0xf5,
+      0x5b, 0x40, 0x09, 0x6c, 0x62, 0x65, 0x31, 0x1b, 0x80, 0xbb, 0x57, 0x7a,
+      0x00, 0x5b, 0x59, 0x05, 0x4c, 0x0f, 0xc6, 0x9f, 0x08, 0x00, 0x5b, 0x37,
+      0x05, 0x35, 0xff, 0x4f, 0x59, 0x17, 0x00, 0x5b, 0x40, 0x04, 0x28, 0x38,
+      0x34, 0xf7, 0x00, 0x02, 0x03, 0x40, 0x00, 0x02, 0x40, 0x01, 0x20, 0x00,
+      0x02, 0x40, 0x02, 0x01, 0x00, 0x00, 0x02, 0x40, 0x02, 0x00, 0x80};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, MalformedSONConfigurationTransferIE) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x28, 0x40, 0x03, 0x0e, 0x00, 0x00, 0x00, 0x54, 0x40,
+      0x7f, 0x50, 0x10, 0x00, 0x9c, 0x40, 0x14, 0x0c, 0x00, 0x93,
+      0xff, 0xff, 0x01, 0x72, 0x00, 0x94, 0xbf, 0x0b, 0x40, 0x02,
+      0x01, 0x00, 0x00, 0x00, 0x7f, 0xb4, 0x40, 0x40, 0x40,
+  };
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, MissingRRCEstablishmentCauseIE) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x5f, 0x00, 0x00, 0x06, 0x00, 0x08, 0x00, 0x02,
+      0x00, 0x01, 0x00, 0x1a, 0x00, 0x2d, 0x2c, 0x17, 0x6b, 0xbf, 0x4b,
+      0x51, 0x17, 0x07, 0x41, 0xfa, 0x00, 0x00, 0xfa, 0xf1, 0x10, 0x00,
+      0x02, 0x01, 0x60, 0x00, 0x46, 0x53, 0x07, 0xe0, 0xf2, 0x00, 0x00,
+      0x00, 0x00, 0x10, 0x00, 0x05, 0x02, 0x01, 0xd0, 0x11, 0xd1, 0x91,
+      0xe0, 0x6f, 0x04, 0xe0, 0x00, 0x60, 0x00, 0x00, 0x43, 0x00, 0x06,
+      0x00, 0x00, 0xf1, 0x10, 0x03, 0x07, 0x00, 0x64, 0x40, 0x08, 0x00,
+      0x00, 0xf1, 0x10, 0x00, 0x19, 0xb0, 0x10, 0x00, 0x91, 0x40, 0x01,
+      0x40, 0x00, 0x60, 0x00, 0x06, 0x00, 0x40, 0xf2, 0x00, 0x46, 0x53};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
+
+  // Freeing pdu and payload data
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
+}
+
+TEST_F(S1apMmeHandlersTest, CheckEUTRANCGIPLMNSize) {
+  ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
+
+  EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(1);
+  S1ap_S1AP_PDU_t pdu_s1;
+  memset(&pdu_s1, 0, sizeof(pdu_s1));
+  ASSERT_EQ(RETURNok, generate_s1_setup_request_pdu(&pdu_s1));
+  ASSERT_EQ(RETURNok,
+            s1ap_mme_handle_message(state, assoc_id, stream_id, &pdu_s1));
+
+  // State validation
+  ASSERT_TRUE(is_enb_state_valid(state, assoc_id, oai::S1AP_READY, 0));
+  ASSERT_TRUE(is_num_enbs_valid(state, 1));
+
+  uint8_t initial_ue_bytes[] = {
+      0x00, 0x0c, 0x40, 0x3e, 0x00, 0x00, 0x0a, 0x00, 0x43, 0x40, 0x06,
+      0x00, 0x9e, 0xca, 0x07, 0x9b, 0x40, 0x00, 0xf6, 0x40, 0x02, 0xbc,
+      0x40, 0x00, 0xf2, 0x40, 0x01, 0x00, 0x00, 0xf2, 0x40, 0x01, 0x00,
+      0x00, 0x08, 0x40, 0x04, 0x80, 0xa4, 0x00, 0x2d, 0x00, 0xf2, 0x40,
+      0x01, 0x00, 0x00, 0x86, 0x40, 0x01, 0x00, 0x00, 0xe6, 0x40, 0x01,
+      0x11, 0x00, 0x91, 0x40, 0x01, 0x00, 0x00, 0xf2, 0x40, 0x01, 0x00};
+
+  ASSERT_EQ(simulate_pdu_s1_message(initial_ue_bytes, sizeof(initial_ue_bytes),
+                                    state, assoc_id, stream_id),
+            RETURNerror);
+
+  // Send SCTP_CLOSE_ASSOCIATION mimicing SCTP task
+  ASSERT_EQ(send_s1ap_close_sctp_association(assoc_id), RETURNok);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);

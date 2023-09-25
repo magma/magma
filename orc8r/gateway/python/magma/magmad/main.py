@@ -63,6 +63,7 @@ def main():
     # Create service manager
     services = service.config.get('magma_services')
     init_system = service.config.get('init_system', 'systemd')
+    logging.info("Running magmad with init system %s", init_system)
     registered_dynamic_services = service.config.get(
         'registered_dynamic_services', [],
     )

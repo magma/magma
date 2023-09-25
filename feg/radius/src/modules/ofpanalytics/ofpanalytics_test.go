@@ -15,16 +15,18 @@ package ofpanalytics
 
 import (
 	"encoding/json"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"fbc/cwf/radius/modules"
+
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"layeh.com/radius"
+	"layeh.com/radius/rfc2865"
 )
 
 var (
@@ -118,7 +120,7 @@ func TestV2(t *testing.T) {
 			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				// Returning radius auth response
 				jsonPacket, _ := json.Marshal(map[string][]string{
-					"config:Auth-Type": []string{tc.authCode},
+					"config:Auth-Type": {tc.authCode},
 				})
 				w.Write(jsonPacket)
 			}))

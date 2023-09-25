@@ -27,6 +27,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./dp/cloud/python/magma"
   "./dp/tools"
   "./dev_tools"
+  "./docs"
   "./example"
   "./feg/gateway/docker"
   "./lte/gateway/dev_tools.py"
@@ -41,7 +42,6 @@ DENY_LIST_NOT_RELEVANT=(
   "./orc8r/cloud/deploy"
   "./orc8r/cloud/docker"
   # is not relevant for AGW
-  "./orc8r/gateway/python/magma/magmad/upgrade/docker_upgrader.py"
   "./orc8r/tools"
   "./protos"
   "./show-tech"
@@ -53,35 +53,35 @@ DENY_LIST_NOT_RELEVANT=(
 # Folders and files that are relevant for building with bazel.
 # This list needs to be updated if respected structures are bazelified.
 DENY_LIST_NOT_YET_BAZELIFIED=(
-  # TODO: GH12752 tests should be bazelified
+  # Regarding the cloud tests see https://github.com/magma/magma/issues/13358
   "./lte/gateway/python/integ_tests/cloud"
   "./lte/gateway/python/integ_tests/cloud_tests"
   "./lte/gateway/python/integ_tests/federated_tests"
-  "./lte/gateway/python/integ_tests/gxgy_tests"
   "./lte/gateway/python/integ_tests/s1aptests/workflow"
+  "./lte/gateway/python/integ_tests/s1aptests/test_enable_ipv6_iface.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_disable_ipv6_iface.py"
+  #  as of 2022.09.19 commented out in make
   "./lte/gateway/python/integ_tests/s1aptests/test_agw_offload_mixed_idle_active_multiue.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_udp_data_multi_ue.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_tcp_data_multi_ue.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_udp_data_multi_ue.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ul_tcp.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_tcp_data_multi_ue.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_tcp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_ul_udp_data_multi_ue.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_attach_with_multiple_mme_restarts.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_data_flow_after_service_request.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_tcp.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_udp.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ded_bearer_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv4v6_non_nat_ul_tcp.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_tcp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_ipv6_non_nat_dp_dl_udp.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py"
   "./lte/gateway/python/integ_tests/s1aptests/test_scalability_attach_detach_multi_ue.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_attach_dl_tcp_data_multi_ue.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_attach_with_multiple_mme_restarts.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_enable_ipv6_iface.py"
-  "./lte/gateway/python/integ_tests/s1aptests/test_disable_ipv6_iface.py"
+  "./lte/gateway/python/integ_tests/s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py"
   # TODO: GH12754 move to (lte|orc8r)/gateway/python/scripts/
   "./orc8r/gateway/python/magma/common/health/docker_health_service.py"
   "./orc8r/gateway/python/magma/common/health/health_service.py"
@@ -93,10 +93,16 @@ DENY_LIST_NOT_YET_BAZELIFIED=(
   # this needs to be refactored when make is not used anymore
   "./lte/gateway/python/magma/pipelined/tests/script/gtp-packet.py"
   "./lte/gateway/python/magma/pipelined/tests/script/ip-packet.py"
-  # TODO: GH9878 needs to be further analyzed
-  "./lte/gateway/python/load_tests"
-  "./lte/gateway/python/scripts"
-  "./orc8r/gateway/python/scripts"
+  # These scripts are not essential but it may be useful
+  # to bazelify them in the future.
+  "./lte/gateway/python/scripts/smf_upf_integration_cli.py"
+  "./lte/gateway/python/scripts/test_supi_profile_cli.py"
+  "./lte/gateway/python/scripts/test_supi_decrypt_imsi_cli.py"
+  "./lte/gateway/python/scripts/runtime_report.py"
+  "./orc8r/gateway/python/scripts/register.py"
+  "./orc8r/gateway/python/scripts/tests/test_service_util.py"
+  "./orc8r/gateway/python/scripts/config_cli.py"
+  "./orc8r/gateway/python/scripts/verify_streamed_mconfigs.py"
 )
 
 DENY_LIST=( "${DENY_LIST_NOT_RELEVANT[@]}" "${DENY_LIST_NOT_YET_BAZELIFIED[@]}" )
@@ -164,7 +170,7 @@ check_py_files() {
   while IFS= read -r -d '' file
   do
     check_py_file "$file"
-  done 
+  done
 }
 
 report_problematic_files() {
