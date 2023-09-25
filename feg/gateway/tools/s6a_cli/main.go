@@ -71,6 +71,8 @@ var (
 type s6aCli interface {
 	AuthenticationInformation(
 		req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error)
+	UpdateLocation(
+		req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error)
 }
 
 type s6aProxyCli struct{}
@@ -79,6 +81,12 @@ func (s6aProxyCli) AuthenticationInformation(
 	req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error) {
 
 	return s6a_proxy.AuthenticationInformation(req)
+}
+
+func (s6aProxyCli) UpdateLocation(
+	req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
+
+	return s6a_proxy.UpdateLocation(req)
 }
 
 type s6aBuiltIn struct {
@@ -91,8 +99,15 @@ func (s s6aBuiltIn) AuthenticationInformation(
 	return s.impl.AuthenticationInformation(context.Background(), req)
 }
 
+func (s s6aBuiltIn) UpdateLocation(
+	req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
+
+	return s.impl.UpdateLocation(context.Background(), req)
+}
+
 func init() {
 	proxyAddr, _ = registry.GetServiceAddress(registry.S6A_PROXY)
+
 	cmd := cmdRegistry.Add(
 		"AIR",
 		"Send AIR via s6a_proxy",
@@ -126,6 +141,36 @@ func init() {
 	f.Uint64Var(&imsiRange, "range", imsiRange, "Send multiple request with consecutive imsis")
 	f.IntVar(&rate, "rate", rate, "Request per second (to be used with range)")
 
+	cmd = cmdRegistry.Add(
+		"ULR",
+		"Update location through S6a_proxy",
+		ulr)
+	f = cmd.Flags()
+	f.Usage = func() {
+		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
+			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], cmd.Name(), cmd.Name())
+		f.PrintDefaults()
+	}
+	f.StringVar(&proxyAddr, "proxy", proxyAddr, "s6a proxy address")
+	f.BoolVar(&remoteS6a, "remote_s6a", remoteS6a, "Use orc8r to get to the s6a_proxy (Run it on AGW without proxy flag)")
+	f.StringVar(&s6aAddr, "hss_addr", s6aAddr,
+		"s6a server (HSS) address - overwrites proxy address and starts local s6a proxy")
+	f.StringVar(&network, "network", network, "s6a server (HSS) network: tcp/sctp")
+	f.StringVar(&localAddr, "local_addr", localAddr, "s6a client local address to build to")
+	f.StringVar(&diamHost, "host", diamHost, "s6a diam host")
+	f.StringVar(&diamRealm, "realm", diamRealm, "s6a diam realm")
+	f.StringVar(&destHost, "dhost", destHost, "s6a dest host")
+	f.StringVar(&destRealm, "drealm", destRealm, "s6a dest realm")
+	f.IntVar(&mncLen, "mnclen", mncLen, "IMSI's MNC part len (2 or 3)")
+	f.IntVar(&mncLen, "l", mncLen, "IMSI's MNC part len (2 or 3) - short form")
+	f.BoolVar(&testServer, "test", testServer,
+		"Start local test s6a server bound to a specified by 'test_addr' or 'hss_addr' address")
+	f.StringVar(&testServerAddr, "test_addr", testServerAddr,
+		"s6a test server address (defaults to '-hss_addr' if not specified)")
+	f.BoolVar(&useMconfig, "use_mconfig", false,
+		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
+	f.Uint64Var(&imsiRange, "range", imsiRange, "Send multiple request with consecutive imsis")
+	f.IntVar(&rate, "rate", rate, "Request per second (to be used with range)")
 }
 
 // AIR Handler
@@ -146,7 +191,7 @@ func air(cmd *commands.Command, args []string) int {
 	imsiStr := fmt.Sprintf("%d", imsiNum)
 	if mncLen != 2 && mncLen != 3 {
 		f.Usage()
-		log.Printf("Imvalid MCC Length specified (-mccl %d). Must be 2 or 3", mncLen)
+		log.Printf("Invalid MCC Length specified (-mccl %d). Must be 2 or 3", mncLen)
 		return 3
 	}
 	plmnId, err := getPlmnID(imsiStr, mncLen)
@@ -309,6 +354,201 @@ func air(cmd *commands.Command, args []string) int {
 	// check if errors
 	if len(airErrors) != 0 {
 		log.Printf("Errors found: %d request failed out of %d\n", len(airErrors), imsiRange)
+		return 9
+	}
+	log.Printf("\nAll request (%d) got a response\n", imsiRange)
+	return 0
+}
+
+// URL Handler
+func ulr(cmd *commands.Command, args []string) int {
+	f := cmd.Flags()
+	imsi := strings.TrimSpace(f.Arg(0))
+	if f.NArg() != 1 || len(imsi) < 6 {
+		f.Usage()
+		log.Printf("A single IMSI (6+ long) must be specified.")
+		return 1
+	}
+	imsiNum, err := strconv.ParseUint(imsi, 10, 64)
+	if err != nil {
+		f.Usage()
+		log.Printf("Invalid IMSI '%s': %v", imsi, err)
+		return 2
+	}
+	imsiStr := fmt.Sprintf("%d", imsiNum)
+	if mncLen != 2 && mncLen != 3 {
+		f.Usage()
+		log.Printf("Invalid MCC Length specified (-mccl %d). Must be 2 or 3", mncLen)
+		return 3
+	}
+	plmnId, err := getPlmnID(imsiStr, mncLen)
+	if err != nil {
+		f.Usage()
+		log.Print(err)
+		return 31
+	}
+	fmt.Printf("Using IMSI: %s; MCC: %s; MNC: %s; PLMN ID: %d\n",
+		imsiStr, imsiStr[:3], imsiStr[3:3+mncLen], plmnId)
+
+	clientCfg := &diameter.DiameterClientConfig{
+		Host:        diamHost,
+		Realm:       diamRealm,
+		ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
+	}
+	serverCfg := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		Addr:      s6aAddr,
+		Protocol:  network,
+		LocalAddr: localAddr},
+		DestHost:  destHost,
+		DestRealm: destRealm,
+	}
+
+	conf := &servicers.S6aProxyConfig{
+		ClientCfg: clientCfg,
+		ServerCfg: serverCfg,
+		PlmnIds:   plmn_filter.PlmnIdVals{},
+	}
+
+	if testServer {
+		if len(testServerAddr) == 0 {
+			testServerAddr = s6aAddr
+		}
+		if startTestServer(serverCfg.Protocol, testServerAddr) != nil {
+			return 4
+		}
+	}
+
+	var cli s6aCli
+	var peerAddr string
+	if len(s6aAddr) > 0 || useMconfig { // use direct HSS connection if address is provided
+		fmt.Println("Using builtin S6a_proxy")
+		if useMconfig {
+			conf = servicers.GetS6aProxyConfigs()
+		}
+		fmt.Printf("Direct connection:\n\tClient Config: %+v\n\tServer Config: %+v\n", *clientCfg, *serverCfg)
+
+		localProxy, err := servicers.NewS6aProxy(conf)
+		if err != nil {
+			f.Usage()
+			log.Printf("BuiltIn Proxy initialization error: %v", err)
+			return 5
+		}
+		cli = s6aBuiltIn{impl: localProxy}
+		peerAddr = conf.ServerCfg.Addr
+	} else {
+		if remoteS6a {
+			fmt.Println("Using S6a_proxy through Orc8r")
+			os.Setenv("USE_REMOTE_S6A_PROXY", "true")
+		} else {
+			fmt.Println("Using local S6a_proxy")
+		}
+
+		cli = s6aProxyCli{}
+		currAddr, _ := registry.GetServiceAddress(registry.S6A_PROXY)
+		if currAddr != proxyAddr {
+			fmt.Println("Inside currAddr != proxyAddr air ")
+			ch, cp, err := parseAddr(currAddr)
+			if err != nil {
+				log.Printf("Internal Error, invalid S6A_PROXY address '%s': %v", currAddr, err)
+				cp = 9098
+			}
+			h, p, err := parseAddr(proxyAddr)
+			if err != nil {
+				if strings.HasPrefix(err.Error(), "missing port") {
+					p = cp
+					log.Printf("Missing S6a Proxy Address port, using %d", p)
+					h = proxyAddr
+				} else {
+					f.Usage()
+					log.Printf("Invalid S6a Proxy Address '%s': %v", proxyAddr, err)
+					return 6
+				}
+				if len(h) == 0 {
+					h = ch
+					log.Printf("Missing S6a Proxy Address host, using %s", h)
+				}
+			}
+			registry.AddService(registry.S6A_PROXY, h, p)
+		}
+		peerAddr = proxyAddr
+	}
+
+	errChann := make(chan error)
+	done := make(chan struct{})
+	lenOfImsi := len(imsi)
+	wg := sync.WaitGroup{}
+	// run all the producers in parallel
+	fmt.Printf("Start sending requests to %d\n", imsiRange)
+	for i := uint64(0); i < imsiRange; i++ {
+		wg.Add(1)
+		iShadow := i
+		// wait to adjust the rate
+		if rate > 0 && i != 0 && i%uint64(rate) == 0 {
+			fmt.Printf("\nWait 1 sec to send next group of %d request\n\n", rate)
+			time.Sleep(time.Second)
+		}
+		go func() {
+			defer wg.Done()
+			var errCli error
+			req := &protos.UpdateLocationRequest{
+				UserName:                     fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow),
+				VisitedPlmn:                  plmnId[:],
+				SkipSubscriberData:           false,
+				InitialAttach:                true,
+				DualRegistration_5GIndicator: true,
+				// s6a_proxy.pb.go (generated from s6a_proxy.proto) defines two optional fields the UpdateLocationRequest struct:
+				/*
+					// Feature List ID 2 as a part of Supported features AVP(Optional)
+					FeatureListId_2 *FeatureListId2 `protobuf:"bytes,6,opt,name=feature_list_id_2,json=featureListId2,proto3" json:"feature_list_id_2,omitempty"`
+					// Feature List ID 1 as a part of Supported features AVP(Optional)
+					FeatureListId_1 *FeatureListId1 `protobuf:"bytes,7,opt,name=feature_list_id_1,json=featureListId1,proto3" json:"feature_list_id_1,omitempty"`
+				*/
+			}
+			// ULR
+			json, errCli := orcprotos.MarshalIntern(req)
+			if errCli != nil {
+				errCli := fmt.Errorf("Can not marshall request: %s", errCli)
+				log.Print(errCli)
+				errChann <- errCli
+				return
+			}
+			fmt.Printf("Sending ULR to %s:\n%s\n%+#v\n\n", peerAddr, json, req)
+			r, errCli := cli.UpdateLocation(req)
+			if errCli != nil || r == nil {
+				errCli = fmt.Errorf("GRPC AIR Error: %v", errCli)
+				log.Print(errCli)
+				errChann <- errCli
+				return
+			}
+			json, errCli = orcprotos.MarshalIntern(r)
+			if errCli != nil {
+				errCli = fmt.Errorf("Marshal Error %v for result: %+v", errCli, r)
+				errChann <- errCli
+				return
+			}
+			fmt.Printf("Received ULR:\n%s\n%+v\n", json, r)
+		}()
+	}
+
+	// go routine to collect the errors
+	ulrErrors := make([]error, 0)
+	go func() {
+		for err2 := range errChann {
+			ulrErrors = append(ulrErrors, err2)
+		}
+		done <- struct{}{}
+	}()
+
+	// wait until all ulr requests are done
+	wg.Wait()
+	close(errChann)
+	// wait until all the errors are processed
+	<-done
+	close(done)
+
+	// check if errors
+	if len(ulrErrors) != 0 {
+		log.Printf("Errors found: %d request failed out of %d\n", len(ulrErrors), imsiRange)
 		return 9
 	}
 	log.Printf("\nAll request (%d) got a response\n", imsiRange)
