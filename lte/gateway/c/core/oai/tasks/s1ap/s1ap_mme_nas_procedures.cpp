@@ -319,10 +319,20 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Missing ENB_UE_S1AP_ID in Uplink NAS Transport message\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   enb_ue_s1ap_id = (enb_ue_s1ap_id_t)ie->value.choice.ENB_UE_S1AP_ID;
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Missing MME_UE_S1AP_ID in Uplink NAS Transport message\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t)ie->value.choice.MME_UE_S1AP_ID;
 
   if ((s1ap_state_get_enb(state, assoc_id, &enb_ref)) != PROTO_MAP_OK) {
