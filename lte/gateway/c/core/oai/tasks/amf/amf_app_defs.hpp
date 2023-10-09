@@ -26,10 +26,14 @@ typedef struct amf_app_desc_s {
   long m5_statistic_timer_id;
   uint32_t m5_statistic_timer_period;
 
-  /* ***************Statistics*************
-   * number of connected UE
-   */
+  /****************Statistics**************/
+  // number of connected UE
   uint32_t nb_ue_connected;
+  // number of Attached UE 
+  uint32_t nb_ue_attached;
+  // number of Active Pdu session 
+  uint32_t nb_pdu_sessions;
+  uint32_t nb_ue_idle;
 } amf_app_desc_t;
 
 // UL and DL routines.

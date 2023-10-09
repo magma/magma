@@ -816,6 +816,7 @@ void amf_ue_context_update_ue_sig_connection_state(
     ue_context_p->cm_state = M5GCM_IDLE;
     // Update Stats
     update_amf_app_stats_connected_ue_sub();
+    update_amf_app_stats_registered_ue_sub();
 
     OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - IDLE.\n");
@@ -833,6 +834,8 @@ void amf_ue_context_update_ue_sig_connection_state(
     // state
     ue_context_p->ppf = true;
     update_amf_app_stats_connected_ue_add();
+    update_amf_app_stats_registered_ue_add();
+
     OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - CONNECTED.\n");
   } else if (ue_context_p->cm_state == M5GCM_IDLE &&

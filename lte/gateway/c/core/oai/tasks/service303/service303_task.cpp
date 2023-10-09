@@ -178,6 +178,7 @@ static void service303_message_exit(void) {
 
 static int handle_display_timer(zloop_t* loop, int id, void* arg) {
   service303_statistics_display();
+  service303_statistics_display_5G();
   return 0;
 }
 

@@ -154,10 +154,12 @@ void AmfNasStateConverter::proto_to_guti_map(
 void AmfNasStateConverter::state_to_proto(const amf_app_desc_t* amf_nas_state_p,
                                           MmeNasState* state_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
+  state_proto->set_nb_ue_connected(amf_nas_state_p->nb_ue_connected);
+  state_proto->set_nb_ue_attached(amf_nas_state_p->nb_ue_attached);
+  state_proto->set_nb_ue_idle(amf_nas_state_p->nb_ue_idle);
+  state_proto->set_nb_pdu_sessions(amf_nas_state_p->nb_pdu_sessions);
   state_proto->set_mme_app_ue_s1ap_id_generator(
-      amf_nas_state_p->amf_app_ue_ngap_id_generator);
-  //   state_proto->set_nb_ue_connected(amf_nas_state_p->nb_ue_connected);
-  state_proto->set_nb_ue_connected(25);
+    amf_nas_state_p->amf_app_ue_ngap_id_generator);
   // These Functions are to be removed as part of the stateless enhancement
   // maps to proto
   auto amf_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
@@ -180,7 +182,12 @@ void AmfNasStateConverter::state_to_proto(const amf_app_desc_t* amf_nas_state_p,
 void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
                                           amf_app_desc_t* amf_nas_state_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_nas_state_p->amf_app_ue_ngap_id_generator =
+    amf_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
+    amf_nas_state_p->nb_ue_attached = state_proto.nb_ue_attached();
+    amf_nas_state_p->nb_ue_idle = state_proto.nb_ue_idle();
+    amf_nas_state_p->nb_pdu_sessions = state_proto.nb_pdu_sessions();
+  
+    amf_nas_state_p->amf_app_ue_ngap_id_generator =
       state_proto.mme_app_ue_s1ap_id_generator();
 
   if (amf_nas_state_p->amf_app_ue_ngap_id_generator == 0) {  // uninitialized
@@ -188,7 +195,6 @@ void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
   }
   OAILOG_INFO(LOG_AMF_APP, "Done reading AMF statistics from data store");
 
-  amf_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
       state_proto.mme_ue_contexts();
 

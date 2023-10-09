@@ -86,6 +86,10 @@ int send_amf_app_stats_to_service303(
   }
   message_p->ittiMsg.application_amf_app_stats_msg.nb_ue_connected =
       stats_msg->nb_ue_connected;
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_ue_attached =
+      stats_msg->nb_ue_attached;
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_pdu_sessions =
+      stats_msg->nb_pdu_sessions;   
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 

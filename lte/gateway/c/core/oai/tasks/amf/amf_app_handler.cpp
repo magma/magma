@@ -48,6 +48,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -551,7 +552,7 @@ static int amf_smf_session_update_pti_proc(
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
 status_code_e amf_app_handle_pdu_session_response(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp) {
+  itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
   memset(&encode_msg, 0, sizeof(encode_msg));
   ue_m5gmm_context_s* ue_context = nullptr;
@@ -603,7 +604,6 @@ status_code_e amf_app_handle_pdu_session_response(
          sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
 
   smf_ctx->n_active_pdus += 1;
-
   if (!ue_context->pending_service_response) {
     /* If idle and context is requested */
     if ((ue_context->cm_state == M5GCM_IDLE) &&
@@ -643,6 +643,7 @@ status_code_e amf_app_handle_pdu_session_response(
                                smf_ctx->pdu_session_state, ue_context,
                                amf_smf_msg, NULL, pdu_session_resp, ue_id);
       rc = RETURNok;
+      update_amf_app_stats_pdusessions_ue_add(); 
     }
   } else {
     smf_ctx->pdu_session_state = ACTIVE;
@@ -672,7 +673,7 @@ status_code_e amf_app_handle_pdu_session_response(
           pdu_session_status;
       amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
       rc = amf_sap_send(&amf_sap);
-
+      
       OAILOG_WARNING(LOG_NAS_AMF,
                      "Received response from SMF for all requested PDUs "
                      "ue_id=" AMF_UE_NGAP_ID_FMT ")\n",

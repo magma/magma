@@ -417,7 +417,6 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 
 static void start_stats_timer(void) {
   ngap_state_t* ngap_state_p = get_ngap_state(false);
-  ngap_state_p->num_gnbs = 7;
   ngap_stats_timer_id =
       start_timer(&ngap_task_zmq_ctx, 1000 * ngap_stats_timer_sec,
                   TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
