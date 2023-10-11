@@ -70,7 +70,6 @@ RUN echo "Install general purpose packages" && \
         wget \
         zip
 
-
 RUN apt-get install -y --no-install-recommends \
         libtool=2.4.6-14 && \
     echo "Install Folly dependencies" && \
