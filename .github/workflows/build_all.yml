@@ -107,7 +107,9 @@ jobs:
         run: |
           pip install artifactory
           python ci-scripts/helm_repo_rotation.py
-
+  agw-build:
+    uses: ./.github/workflows/bazel.yml
+    secrets: inherit
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
@@ -221,7 +223,10 @@ jobs:
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check Out Repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Run docker compose
         id: cwag-docker-compose
         continue-on-error: true
@@ -527,6 +532,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs:
       [
+        agw-build,
         feg-build,
         orc8r-build,
         cwag-deploy,
@@ -549,9 +555,10 @@ jobs:
           ORC8R_ARTIFACTS: ${{ needs.orc8r-build.outputs.artifacts }}
           CWAG_ARTIFACTS: ${{ needs.cwag-deploy.outputs.artifacts }}
           NMS_ARTIFACTS: ${{ needs.nms-build.outputs.artifacts }}
+          AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
         run: |
           python -m pip install --upgrade pip
-          pip install Pyrebase
+          pip3 install pyrebase4
           python ci-scripts/firebase_publish.py
   domain-proxy-build:
     if: github.repository_owner == 'magma'

@@ -94,6 +94,5 @@ status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
                                       sctp_stream_id_t stream_id);
 
 void handle_mme_ue_id_notification(oai::S1apState* s, sctp_assoc_id_t assoc_id);
-
 }  // namespace lte
 }  // namespace magma

@@ -16,7 +16,9 @@ limitations under the License.
 package servicers
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"time"
 
@@ -186,7 +188,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 					for i, code := range ula.SubscriptionData.RegionalSubscriptionZoneCode {
 						res.RegionalSubscriptionZoneCode[i] = code.Serialize()
 					}
-					for _, apnCfg := range ula.SubscriptionData.APNConfigurationProfile.APNConfigs {
+					for i, apnCfg := range ula.SubscriptionData.APNConfigurationProfile.APNConfigs {
 						res.Apn = append(
 							res.Apn,
 							&protos.UpdateLocationAnswer_APNConfiguration{
@@ -201,7 +203,19 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 								},
 								Ambr:                    apnCfg.AMBR.getProtoAmbr(),
 								ChargingCharacteristics: apnCfg.TgppChargingCharacteristics,
+								ServedPartyIpAddress:    make([]string, len(apnCfg.ServedPartyIpAddress)),
 							})
+						for j, address := range apnCfg.ServedPartyIpAddress {
+							if len(address) == 4 { // IPv4 address
+								res.Apn[i].ServedPartyIpAddress[j] = net.IPv4(address[0], address[1], address[2], address[3]).String()
+							} else if len(address) == 16 { // IPv6 address
+                                                                hexIPv6 := fmt.Sprintf("%x", address)
+                                                                res.Apn[i].ServedPartyIpAddress[j] = net.ParseIP(
+                                                                        fmt.Sprintf("%s:%s:%s:%s:%s:%s:%s:%s",
+                                                                        hexIPv6[0:4], hexIPv6[4:8], hexIPv6[8:12], hexIPv6[12:16],
+                                                                        hexIPv6[16:20], hexIPv6[20:24], hexIPv6[24:28], hexIPv6[28:32])).String()
+							}
+						}
 					}
 					return res, err
 				} else {
