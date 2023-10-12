@@ -52,6 +52,10 @@ env:
 
 jobs:
   build_dockerfile_bazel_base:
+    if: |
+      github.event_name == 'push' &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -63,7 +67,7 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_BASE }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_BASE }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: "true"
       - name: Build space left after run
         shell: bash
         run: |
@@ -83,6 +87,10 @@ jobs:
 
   build_dockerfile_devcontainer:
     needs: build_dockerfile_bazel_base
+    if: |
+      github.event_name == 'push' &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -94,7 +102,7 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_DEVCONTAINER }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_DEVCONTAINER }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: "true"
       - name: Build space left after run
         shell: bash
         run: |
