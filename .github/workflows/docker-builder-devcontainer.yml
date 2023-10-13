@@ -56,7 +56,7 @@ jobs:
     if: |
       (github.event_name == 'push' &&
       github.ref_name == 'master' &&
-      github.repository_owner == 'magma' || 
+      github.repository_owner == 'magma' ||
       github.event_name == 'workflow_dispatch' &&
       github.ref_name == 'master' &&
       github.repository_owner == 'magma')
@@ -94,7 +94,7 @@ jobs:
     if: |
       (github.event_name == 'push' &&
       github.ref_name == 'master' &&
-      github.repository_owner == 'magma' || 
+      github.repository_owner == 'magma' ||
       github.event_name == 'workflow_dispatch' &&
       github.ref_name == 'master' &&
       github.repository_owner == 'magma')
