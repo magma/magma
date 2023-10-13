@@ -490,6 +490,27 @@
       "Service": "AMF"
     },
     {
+      "MetricName": "ue_registered_5g",
+      "PromQL": "ue_registered_5g",
+      "Description": "Number of UE registered succesfully",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
+      "MetricName": "ue_idle_5g",
+      "PromQL": "ue_idle_5g",
+      "Description": "Number of Idle UEs",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
+      "MetricName": "pdu_sessions",
+      "PromQL": "pdu_sessions",
+      "Description": "Number of active PDU Sessions",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
       "MetricName": "ue_attach",
       "PromQL": "ue_attach",
       "Description": "Number of UE attach success",

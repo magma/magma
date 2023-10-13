@@ -84,6 +84,28 @@ export default function () {
       unit: '',
     },
     {
+      label: 'Number of Registered UEs 5G',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(ue_idle_5g)',
+        },
+      ],
+      legendLabels: ['Registered'],
+      unit: '',
+    },
+    {
+      label: 'Number of Active PDU Sessions',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(pdu_sessions)',
+        },
+      ],
+      legendLabels: ['PDU_Sessions'],
+      unit: '',
+    },
+    {
       label: 'S1 Setup',
       basicQueryConfigs: [],
       customQueryConfigs: [

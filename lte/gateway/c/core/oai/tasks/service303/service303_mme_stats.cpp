@@ -76,7 +76,8 @@ void service303_amf_app_statistics_read(
   size_t label = 0;
   // Set the gauges
   set_gauge("ue_connected_5g", stats_msg_p->nb_ue_connected, label);
-  set_gauge("ue_registered_5G", stats_msg_p->nb_ue_attached, label);
+  set_gauge("ue_registered_5g", stats_msg_p->nb_ue_attached, label);
+  set_gauge("ue_idle_5g", stats_msg_p->nb_ue_idle, label);
   set_gauge("pdu_sessions", stats_msg_p->nb_pdu_sessions, label);
 }
 
@@ -95,7 +96,9 @@ void service303_statistics_display_5G(void) {
   OAILOG_DEBUG(LOG_SERVICE303, "Connected UEs  | %10u      |\n",
                (uint32_t)get_gauge("ue_connected_5g", label));
   OAILOG_DEBUG(LOG_SERVICE303, "Attached UEs   | %10u      |\n",
-               (uint32_t)get_gauge("ue_registered_5G", label));
+               (uint32_t)get_gauge("ue_registered_5g", label));
+  OAILOG_DEBUG(LOG_SERVICE303, "Idle UEs       | %10u      |\n",
+               (uint32_t)get_gauge("ue_idle_5g", label));
   OAILOG_DEBUG(LOG_SERVICE303, "Connected Gnbs | %10u      |\n",
                (uint32_t)get_gauge("gnb_connected", label));
   OAILOG_DEBUG(LOG_SERVICE303, "Pdu Sessions   | %10u      |\n",

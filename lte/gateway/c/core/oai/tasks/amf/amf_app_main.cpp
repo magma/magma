@@ -239,6 +239,7 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   stats_msg.nb_ue_connected = amf_app_desc_p->nb_ue_connected;
   stats_msg.nb_ue_attached = amf_app_desc_p->nb_ue_attached;
   stats_msg.nb_pdu_sessions = amf_app_desc_p->nb_pdu_sessions;
+  stats_msg.nb_ue_idle = amf_app_desc_p->nb_ue_idle;
   return send_amf_app_stats_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP,
                                           &stats_msg);
 }

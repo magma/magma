@@ -27,12 +27,13 @@ typedef struct amf_app_desc_s {
   uint32_t m5_statistic_timer_period;
 
   /****************Statistics**************/
-  // number of connected UE
+  // Number of connected UEs
   uint32_t nb_ue_connected;
-  // number of Attached UE 
+  // Number of Attached UEs 
   uint32_t nb_ue_attached;
-  // number of Active Pdu session 
+  // Number of Active Pdu session 
   uint32_t nb_pdu_sessions;
+  // Number of Idle UEs
   uint32_t nb_ue_idle;
 } amf_app_desc_t;
 

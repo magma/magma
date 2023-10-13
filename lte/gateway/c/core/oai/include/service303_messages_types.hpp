@@ -51,6 +51,7 @@ typedef struct application_amf_app_stats_msg {
   uint32_t nb_ue_connected;
   uint32_t nb_ue_attached;
   uint32_t nb_pdu_sessions;
+  uint32_t nb_ue_idle;
 } application_amf_app_stats_msg_t;
 
 typedef struct application_ngap_stats_msg {
