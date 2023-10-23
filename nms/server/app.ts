@@ -60,7 +60,7 @@ app.use(
     devMode: DEV_MODE,
     sessionStore: sequelizeSessionStore,
     sessionToken:
-      process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
+      process.env.SESSION_TOKEN
   }),
 );
 app.use(passport.initialize());
