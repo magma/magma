@@ -112,7 +112,9 @@ router.post(
       if (!allowedNetworkTypes.includes(data.networkType?.toUpperCase())) {
         res
           .status(400)
-          .send(`please provide a valid network type like: LTE, FEG_LTE, CWF or FEG`)
+          .send(
+            `please provide a valid network type like: LTE, FEG_LTE, CWF or FEG`,
+          )
           .end();
         return;
       }
