@@ -56,5 +56,4 @@ typedef struct application_amf_app_stats_msg {
 
 typedef struct application_ngap_stats_msg {
   uint32_t nb_gnb_connected;
-  // uint32_t nb_ngap_last_msg_latency;
 } application_ngap_stats_msg_t;

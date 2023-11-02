@@ -163,8 +163,7 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
             title: 'Number of Idle UEs',
             targets: [
               {
-                expr:
-                  'sum(ue_idle_5g{networkID=~"$networkID"}) by (networkID)',
+                expr: 'sum(ue_idle_5g{networkID=~"$networkID"}) by (networkID)',
                 legendFormat: '{{networkID}}',
               },
             ],

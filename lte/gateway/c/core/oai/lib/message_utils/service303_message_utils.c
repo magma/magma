@@ -106,7 +106,5 @@ int send_ngap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
   }
   message_p->ittiMsg.application_ngap_stats_msg.nb_gnb_connected =
       stats_msg->nb_gnb_connected;
-  // message_p->ittiMsg.application_ngap_stats_msg.nb_ngap_last_msg_latency =
-  //     stats_msg->nb_ngap_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }

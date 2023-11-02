@@ -273,7 +273,6 @@ int pdu_session_resource_release_complete(
   OAILOG_DEBUG(LOG_AMF_APP,
                "clear saved context associated with the PDU session\n");
   clear_amf_smf_context(ue_context->amf_context, amf_smf_msg.pdu_session_id);
-  update_amf_app_stats_pdusessions_ue_sub();
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 

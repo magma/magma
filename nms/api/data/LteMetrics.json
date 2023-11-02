@@ -492,7 +492,7 @@
     {
       "MetricName": "ue_registered_5g",
       "PromQL": "ue_registered_5g",
-      "Description": "Number of UE registered succesfully",
+      "Description": "Number of UE registered successfully",
       "Category": "AGW",
       "Service": "AMF"
     },

@@ -42,7 +42,7 @@ task_zmq_ctx_t amf_app_task_zmq_ctx;
 void amf_app_exit(void);
 static void start_stats_timer(void);
 static int handle_stats_timer(zloop_t* loop, int id, void* arg);
-static long amf_stats_timer_id;
+static int amf_stats_timer_id;
 static size_t amf_stats_timer_sec = 60;
 /****************************************************************************
  **                                                                        **

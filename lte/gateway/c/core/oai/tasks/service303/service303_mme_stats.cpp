@@ -102,7 +102,7 @@ void service303_statistics_display_5G(void) {
   OAILOG_DEBUG(LOG_SERVICE303, "Connected Gnbs | %10u      |\n",
                (uint32_t)get_gauge("gnb_connected", label));
   OAILOG_DEBUG(LOG_SERVICE303, "Pdu Sessions   | %10u      |\n",
-               (uint32_t)get_gauge("pdu_sessions", label));             
+               (uint32_t)get_gauge("pdu_sessions", label));
   OAILOG_DEBUG(LOG_SERVICE303,
                "======================================= STATISTICS "
                "============================================\n\n");

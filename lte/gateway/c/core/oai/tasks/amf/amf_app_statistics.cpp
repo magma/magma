@@ -38,8 +38,10 @@ void update_amf_app_stats_connected_ue_add(void) {
 }
 void update_amf_app_stats_connected_ue_sub(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  if (amf_app_desc_p->nb_ue_connected != 0) (amf_app_desc_p->nb_ue_connected)--;
-   amf_app_desc_p->nb_ue_idle = get_max(
+  if (amf_app_desc_p->nb_ue_connected != 0) {
+    (amf_app_desc_p->nb_ue_connected)--;
+  }
+  amf_app_desc_p->nb_ue_idle = get_max(
       amf_app_desc_p->nb_ue_attached - amf_app_desc_p->nb_ue_connected, 0);
   return;
 }

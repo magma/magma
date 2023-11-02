@@ -529,6 +529,7 @@ status_code_e amf_idle_mode_procedure(amf_context_t* amf_ctx) {
     smf_ctx->pdu_session_state = INACTIVE;
     amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY,
                               it.first);
+    update_amf_app_stats_pdusessions_ue_sub();
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
@@ -816,7 +817,6 @@ void amf_ue_context_update_ue_sig_connection_state(
     ue_context_p->cm_state = M5GCM_IDLE;
     // Update Stats
     update_amf_app_stats_connected_ue_sub();
-    update_amf_app_stats_registered_ue_sub();
 
     OAILOG_INFO_UE(LOG_AMF_APP, ue_context_p->amf_context.imsi64,
                    "UE STATE - IDLE.\n");

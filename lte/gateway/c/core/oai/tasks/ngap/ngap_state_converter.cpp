@@ -67,8 +67,7 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
-  // proto->set_num_gnbs(state->num_gnbs);
-  proto->set_num_gnbs(5);
+  proto->set_num_gnbs(state->num_gnbs);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 

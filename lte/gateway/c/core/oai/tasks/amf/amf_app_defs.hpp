@@ -29,9 +29,9 @@ typedef struct amf_app_desc_s {
   /****************Statistics**************/
   // Number of connected UEs
   uint32_t nb_ue_connected;
-  // Number of Attached UEs 
+  // Number of Attached UEs
   uint32_t nb_ue_attached;
-  // Number of Active Pdu session 
+  // Number of Active Pdu session
   uint32_t nb_pdu_sessions;
   // Number of Idle UEs
   uint32_t nb_ue_idle;

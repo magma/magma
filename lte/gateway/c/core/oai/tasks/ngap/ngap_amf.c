@@ -52,8 +52,7 @@
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 static void start_stats_timer(void);
-// static int handle_stats_timer(zloop_t* loop, int id, void* arg);
-static long ngap_stats_timer_id;
+static int ngap_stats_timer_id;
 static size_t ngap_stats_timer_sec = 30;
 
 uint64_t ngap_last_msg_latency = 0;
@@ -237,8 +236,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_NGAP);
-  // init_task_context(TASK_NGAP, (task_id_t[]){TASK_AMF_APP, TASK_SCTP}, 2,
-  //                   handle_message, &ngap_task_zmq_ctx);
   init_task_context(TASK_NGAP,
                     (task_id_t[]){TASK_AMF_APP, TASK_SCTP, TASK_SERVICE303}, 3,
                     handle_message, &ngap_task_zmq_ctx);
