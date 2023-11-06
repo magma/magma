@@ -628,6 +628,10 @@ status_code_e s1ap_mme_handle_s1_setup_request(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_supported_tas,
                              container, S1ap_ProtocolIE_ID_id_SupportedTAs,
                              true);
+  if (!ie_supported_tas) {
+    OAILOG_ERROR(LOG_S1AP, "Missing Supported TAs in S1 Setup Request\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
 
   ta_ret =
       s1ap_mme_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAs);

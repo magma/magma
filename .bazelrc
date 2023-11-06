@@ -19,7 +19,7 @@ startup --host_jvm_args="-Xmx8g"
 build --announce_rc
 build --color=yes
 
-build:production --config=lsan --copt=-O3
+build:production 
 build:production --define=production=1
 
 # experimental_allow_tags_propagation means that tags will be propagated from
