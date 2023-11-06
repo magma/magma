@@ -31,6 +31,9 @@ static inline int get_max(int num1, int num2) {
 // Number of Connected UEs
 void update_amf_app_stats_connected_ue_add(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   (amf_app_desc_p->nb_ue_connected)++;
   amf_app_desc_p->nb_ue_idle = get_max(
       amf_app_desc_p->nb_ue_attached - amf_app_desc_p->nb_ue_connected, 0);
@@ -38,6 +41,9 @@ void update_amf_app_stats_connected_ue_add(void) {
 }
 void update_amf_app_stats_connected_ue_sub(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   if (amf_app_desc_p->nb_ue_connected != 0) {
     (amf_app_desc_p->nb_ue_connected)--;
   }
@@ -50,11 +56,17 @@ void update_amf_app_stats_connected_ue_sub(void) {
 // Number of Registered UEs
 void update_amf_app_stats_registered_ue_add(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   (amf_app_desc_p->nb_ue_attached)++;
   return;
 }
 void update_amf_app_stats_registered_ue_sub(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   if (amf_app_desc_p->nb_ue_attached != 0) (amf_app_desc_p->nb_ue_attached)--;
   amf_app_desc_p->nb_ue_idle = get_max(
       amf_app_desc_p->nb_ue_attached - amf_app_desc_p->nb_ue_connected, 0);
@@ -65,11 +77,17 @@ void update_amf_app_stats_registered_ue_sub(void) {
 // Number of Pdusessions UEs
 void update_amf_app_stats_pdusessions_ue_add(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   (amf_app_desc_p->nb_pdu_sessions)++;
   return;
 }
 void update_amf_app_stats_pdusessions_ue_sub(void) {
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  if (amf_app_desc_p == NULL) {
+    return;
+  }
   if (amf_app_desc_p->nb_pdu_sessions != 0) (amf_app_desc_p->nb_pdu_sessions)--;
   return;
 }
