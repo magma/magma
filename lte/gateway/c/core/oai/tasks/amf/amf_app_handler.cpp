@@ -1363,7 +1363,8 @@ static void amf_app_handle_ngap_ue_context_release(
       amf_nas_proc_implicit_deregister_ue_ind(ue_context_p->amf_ue_ngap_id);
     }
   } else {
-    if (cause == NGAP_RADIO_NR_GENERATED_REASON) {
+    if (cause == NGAP_RADIO_NR_GENERATED_REASON ||
+        cause == NGAP_SCTP_SHUTDOWN_OR_RESET) {
       int rc = RETURNerror;
       rc = ue_state_handle_message_initial(
           ue_context_p->mm_state, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
@@ -1373,7 +1374,7 @@ static void amf_app_handle_ngap_ue_context_release(
         OAILOG_WARNING(LOG_AMF_APP, "Failed transitioning to idle mode\n");
       }
 
-      amf_app_itti_ue_context_release(ue_context_p, NGAP_USER_INACTIVITY);
+      amf_app_itti_ue_context_release(ue_context_p, cause);
     }
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -1446,8 +1447,8 @@ void amf_app_handle_gnb_deregister_ind(
     const itti_ngap_gNB_deregistered_ind_t* const gNB_deregistered_ind) {
   for (int i = 0; i < gNB_deregistered_ind->nb_ue_to_deregister; i++) {
     amf_app_handle_ngap_ue_context_release(
-        gNB_deregistered_ind->gnb_ue_ngap_id[i],
-        gNB_deregistered_ind->amf_ue_ngap_id[i], gNB_deregistered_ind->gnb_id,
+        gNB_deregistered_ind->amf_ue_ngap_id[i],
+        gNB_deregistered_ind->gnb_ue_ngap_id[i], gNB_deregistered_ind->gnb_id,
         NGAP_SCTP_SHUTDOWN_OR_RESET);
   }
 }
