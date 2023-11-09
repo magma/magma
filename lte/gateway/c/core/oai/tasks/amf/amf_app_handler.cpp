@@ -24,6 +24,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/map.h"
@@ -1561,6 +1562,8 @@ status_code_e amf_app_handle_notification_received(
   MessageDef* message_p = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   status_code_e rc = RETURNok;
+  amf_as_establish_t establish = {0};
+  nas5g_establish_rsp_t nas_msg = {0};
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
@@ -1626,7 +1629,16 @@ status_code_e amf_app_handle_notification_received(
 
     case UE_SERVICE_REQUEST_ON_PAGING:
       OAILOG_DEBUG(LOG_AMF_APP, "Service Accept notification received\n");
-      // TODO: Service Accept code to be implemented in upcoming PR
+      establish.ue_id = ue_context->amf_ue_ngap_id;
+      establish.nas_info = AMF_AS_NAS_INFO_SR;
+      establish.pdu_session_reactivation_status =
+          AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+      establish.pdu_session_status_ie =
+          (AMF_AS_PDU_SESSION_REACTIVATION_STATUS | AMF_AS_PDU_SESSION_STATUS);
+      establish.pdu_session_status = AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+      amf_as_establish_cnf(&establish, &nas_msg);
+      break;
+
     default:
       OAILOG_DEBUG(LOG_AMF_APP, "default case nothing to do\n");
       break;
