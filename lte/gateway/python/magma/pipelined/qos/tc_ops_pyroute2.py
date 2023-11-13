@@ -49,6 +49,7 @@ class TcOpsPyRoute2(TcOpsBase):
             qid: qid number.
             max_bw: ceiling in bits per sec.
             rate: rate limiting.
+            units: bit/kbit
             parent_qid: HTB parent queue.
 
         Returns:
@@ -139,10 +140,10 @@ class TcOpsPyRoute2(TcOpsBase):
         return 0
 
     def create(
-        self, iface: str, qid: str, max_bw: int, rate=None,
+        self, iface: str, qid: str, max_bw: int, units: str, rate=None,
         parent_qid: Optional[str] = None, proto=PROTOCOL,
     ) -> int:
-        err = self.create_htb(iface, qid, max_bw, rate, parent_qid)
+        err = self.create_htb(iface, qid, max_bw, rate, units, parent_qid)
         if err:
             return err
         err = self.create_filter(iface, qid, qid, proto)

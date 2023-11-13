@@ -110,6 +110,11 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
 
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Missing ENB_UE_S1AP_ID\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_INFO(
       LOG_S1AP,
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
@@ -206,6 +211,12 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
     // CGI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_EUTRAN_CGI, true);
+
+    if (!ie) {
+      OAILOG_ERROR(LOG_S1AP, "EUTRAN_CGI IE not found\n");
+      return RETURNerror;
+    }
+
     if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
       OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
       return RETURNerror;
@@ -248,19 +259,28 @@ status_code_e s1ap_mme_handle_initial_ue_message(oai::S1apState* state,
      */
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
                                S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_cause, container,
                                S1ap_ProtocolIE_ID_id_RRC_Establishment_Cause,
                                true);
-    s1ap_mme_itti_s1ap_initial_ue_message(
-        assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
-        ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
-        &ecgi, ie_cause->value.choice.RRC_Establishment_Cause,
-        ie_e_tmsi ? &s_tmsi : NULL, ie_csg_id ? &csg_id : NULL,
-        ie_gummei ? &gummei : NULL,
-        NULL,  // CELL ACCESS MODE
-        NULL,  // GW Transport Layer Address
-        NULL   // Relay Node Indicator
-    );
+
+    if (!ie || !ie_cause) {
+      OAILOG_ERROR(LOG_S1AP, "Missing RRC Establishment Cause IE\n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+
+    if ((s1ap_mme_itti_s1ap_initial_ue_message(
+            assoc_id, eNB_ref.enb_id(), ue_ref->enb_ue_s1ap_id(),
+            ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
+            &ecgi, ie_cause->value.choice.RRC_Establishment_Cause,
+            ie_e_tmsi ? &s_tmsi : NULL, ie_csg_id ? &csg_id : NULL,
+            ie_gummei ? &gummei : NULL,
+            NULL,   // CELL ACCESS MODE
+            NULL,   // GW Transport Layer Address
+            NULL))  // Relay Node Indicator
+        == RETURNerror) {
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
 
   } else {
     imsi64_t imsi64 = INVALID_IMSI64;
@@ -299,10 +319,20 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Missing ENB_UE_S1AP_ID in Uplink NAS Transport message\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   enb_ue_s1ap_id = (enb_ue_s1ap_id_t)ie->value.choice.ENB_UE_S1AP_ID;
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Missing MME_UE_S1AP_ID in Uplink NAS Transport message\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t)ie->value.choice.MME_UE_S1AP_ID;
 
   if ((s1ap_state_get_enb(state, assoc_id, &enb_ref)) != PROTO_MAP_OK) {

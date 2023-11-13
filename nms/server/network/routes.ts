@@ -107,6 +107,17 @@ router.post(
     ) => {
       const {networkID, data} = req.body;
       const {name, description} = data;
+      const allowedNetworkTypes = ['LTE', 'FEG_LTE', 'CWF', 'FEG'];
+
+      if (!allowedNetworkTypes.includes(data.networkType?.toUpperCase())) {
+        res
+          .status(400)
+          .send(
+            `please provide a valid network type like: LTE, FEG_LTE, CWF or FEG`,
+          )
+          .end();
+        return;
+      }
       const commonField = {
         name,
         description,

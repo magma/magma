@@ -71,6 +71,16 @@ void tlv_decode_perror(void);
     return TLV_BUFFER_TOO_SHORT;                                            \
   }
 
+#define CHECK_PDU_POINTER_AND_MAX_LENGTH_DECODER(bUFFER, mAXIMUMlENGTH, \
+                                                 lENGTH)                \
+                                                                        \
+  if (lENGTH > mAXIMUMlENGTH) {                                         \
+    OAILOG_WARNING(LOG_NAS, "Expecting at most %d bytes, got %d\n",     \
+                   mAXIMUMlENGTH, lENGTH);                              \
+    errorCodeDecoder = TLV_BUFFER_TOO_SHORT;                            \
+    return TLV_OCTET_STRING_TOO_LONG_FOR_IEI;                           \
+  }
+
 #define CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(      \
     bUFFER, mINIMUMlENGTH, lENGTH)                                   \
   if (bUFFER == NULL) {                                              \

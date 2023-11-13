@@ -63,10 +63,11 @@ class TcSetypTest(unittest.TestCase):
         iface = cls.IFACE
         qid = "0xae"
         max_bw = 10000
+        units = 'bit'
         rate = 1000
         parent_qid = '1:fffe'
 
-        err1 = t1.create(iface, qid, max_bw, rate, parent_qid)
+        err1 = t1.create(iface, qid, max_bw, units, rate, parent_qid)
         self.assertTrue(self.check_qid_in_tc(qid))
         err = t1.delete(iface, qid)
         self.assertFalse(self.check_qid_in_tc(qid))
@@ -79,10 +80,11 @@ class TcSetypTest(unittest.TestCase):
         iface = cls.IFACE
         qid = "0xae"
         max_bw = 10000
+        units = 'bit'
         rate = 1000
         parent_qid = '1:fffe'
 
-        err1 = t1.create(iface, qid, max_bw, rate, parent_qid, proto=0x86DD)
+        err1 = t1.create(iface, qid, max_bw, units, rate, parent_qid, proto=0x86DD)
         self.assertTrue(self.check_qid_in_tc(qid))
         err = t1.delete(iface, qid, proto=0x86DD)
         self.assertFalse(self.check_qid_in_tc(qid))
@@ -97,10 +99,11 @@ class TcSetypTest(unittest.TestCase):
         iface1 = cls.IFACE
         qid1 = "0xae"
         max_bw = 10000
+        units = 'bit'
         rate = 1000
         parent_qid1 = '1:fffe'
 
-        err1 = t1.create(iface1, qid1, max_bw, rate, parent_qid1)
+        err1 = t1.create(iface1, qid1, max_bw, units, rate, parent_qid1)
         self.assertTrue(self.check_qid_in_tc(qid1))
 
         # Second queue
@@ -110,7 +113,7 @@ class TcSetypTest(unittest.TestCase):
         rate = 1000
         parent_qid2 = '1:' + qid1
 
-        err1 = t1.create(iface1, qid2, max_bw, rate, parent_qid2)
+        err1 = t1.create(iface1, qid2, max_bw, units, rate, parent_qid2)
         self.assertTrue(self.check_qid_in_tc(qid2))
         # t1._print_classes(iface1)
         # t1._print_filters(iface1)
@@ -132,10 +135,11 @@ class TcSetypTest(unittest.TestCase):
         iface = cls.IFACE
         qid = "0xae"
         max_bw = 10000
+        units = 'bit'
         rate = 1000
         parent_qid = '1:fffe'
 
-        err1 = t1.create(iface, qid, max_bw, rate, parent_qid)
+        err1 = t1.create(iface, qid, max_bw, units, rate, parent_qid)
         self.assertTrue(self.check_qid_in_tc(qid))
 
         err = t2.del_filter(iface, qid, qid)
@@ -155,9 +159,10 @@ class TcSetypTest(unittest.TestCase):
         qid = "0xae"
         max_bw = 10000
         rate = 1000
+        unit = 'bit'
         parent_qid = '1:fffe'
 
-        err1 = t2.create_htb(iface, qid, max_bw, rate, parent_qid)
+        err1 = t2.create_htb(iface, qid, max_bw, rate, unit, parent_qid)
         self.assertEqual(err1, 0)
         err1 = t2.create_filter(iface, qid, qid)
         self.assertEqual(err1, 0)
