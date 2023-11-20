@@ -27,6 +27,7 @@ DENY_LIST_NOT_RELEVANT=(
   "./dp/cloud/python/magma"
   "./dp/tools"
   "./dev_tools"
+  "./docs"
   "./example"
   "./feg/gateway/docker"
   "./lte/gateway/dev_tools.py"
@@ -41,7 +42,6 @@ DENY_LIST_NOT_RELEVANT=(
   "./orc8r/cloud/deploy"
   "./orc8r/cloud/docker"
   # is not relevant for AGW
-  "./orc8r/gateway/python/magma/magmad/upgrade/docker_upgrader.py"
   "./orc8r/tools"
   "./protos"
   "./show-tech"

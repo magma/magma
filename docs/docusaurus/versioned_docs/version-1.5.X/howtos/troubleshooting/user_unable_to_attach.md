@@ -53,7 +53,7 @@ PROTOCOL_ERROR 111
 
 Suggested Solution:
 
-1. Identify which parameter the UE is sending in the Attach Request and compare with the ones Magma support. You can find which parameters magma is currently supported from the code. https://github.com/magma/magma/blob/master/lte/gateway/c/oai/tasks/nas/emm/msg/AttachRequest.c
+1. Identify which parameter the UE is sending in the Attach Request and compare with the ones Magma support. You can find which parameters magma is currently supported from the code. https://github.com/magma/magma/blob/master/lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.cpp
 
     Note: Make sure to select the branch you are currently have in your network(v1.1, v1.2, v1.3 , etc)
 

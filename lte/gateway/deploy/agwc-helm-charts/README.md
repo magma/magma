@@ -2,7 +2,7 @@
 
 This folder contains a Helm Chart for the containerized AGW.
 
-This is currently not in a working state.
+Currently working on arm64 kvm-qemu VM host.
 
 ## Configuration
 
@@ -14,8 +14,11 @@ The following table list the configurable parameters of the agw chart and their 
 | `image.repository` | Repository for agwc images. | `` |
 | `image.pullPolicy` | Pull policy for agwc images. | `` |
 | `image.tag` | Tag for agwc image. | `latest` |
+| `image.arch` | Tag for node architecture (e.g., arm). | `` |
 | `config.domainName` | Orchestrator domain name. | `` |
 | `persistant.name` | Secret name containing agwc certs. | `agwc-claim` |
+
+For `image.arch`, use `arm` or leave blank for x86
 
 ## Installation
 

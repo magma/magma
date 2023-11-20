@@ -1,3 +1,14 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ################################################################
 # Devcontainer Image (for local development and CI)
 ################################################################
@@ -70,7 +81,7 @@ RUN echo "Install general purpose packages" && \
 
 # Install golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.19.3"
+ARG GOLANG_VERSION="1.20.1"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
     && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
     && tar -xzf ${GO_TARBALL} \

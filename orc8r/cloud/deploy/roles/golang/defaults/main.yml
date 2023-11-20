@@ -10,8 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-golang_tar: go1.19.3.linux-amd64.tar.gz
-golang_tar_checksum: 'sha256:74b9640724fd4e6bb0ed2a1bc44ae813a03f1e72a4c76253e2d5c015494430ba'
+golang_tar: go1.20.1.linux-amd64.tar.gz
+golang_tar_checksum: 'sha256:000a5b1fca4f75895f78befeb2eecf10bfff3c428597f3f1e69133b63b911b02'
 go_install_path: /usr/local
 gopath: '/home/{{ user }}/go'
 gobin: '/home/{{ user }}/go/bin'

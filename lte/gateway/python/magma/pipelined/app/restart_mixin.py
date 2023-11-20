@@ -128,7 +128,7 @@ class RestartMixin(metaclass=ABCMeta):
                 [flow.match for flow in startup_flows_map[tbl]],
             )
 
-        if self._skip_extra_flows_removal():
+        if self._skip_extra_flows_removal_stateless():
             logging.info("skipping removal of enforcement flows since it is in stateless mode")
         else:
             self._remove_extra_flows(startup_flows_map)
@@ -157,7 +157,7 @@ class RestartMixin(metaclass=ABCMeta):
             chan = self._msg_hub.send(msg_list, self._datapath)
             self._wait_for_responses(chan, len(msg_list))
 
-    def _skip_extra_flows_removal(self):
+    def _skip_extra_flows_removal_stateless(self):
         """
         This method can be overridden by controllers.
         Skips removal of extra flows in case of stateless mode.

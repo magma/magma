@@ -57,7 +57,7 @@ args:
     /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
     /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
     /usr/bin/env python3 -m magma.pipelined.main
-image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
   privileged: true
   capabilities:

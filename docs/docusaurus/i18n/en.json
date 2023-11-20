@@ -349,6 +349,9 @@
       "orc8r/deploy_terraform_options": {
         "title": "Terraform Options"
       },
+      "orc8r/deploy_using_ansible": {
+        "title": "Deploy Orchestrator using Ansible (Beta)"
+      },
       "orc8r/deploy_using_juju": {
         "title": "Deploy Orchestrator using Juju (Beta)"
       },
@@ -1750,10 +1753,6 @@
       },
       "version-1.7.0/lte/version-1.7.0-s1ap_tests": {
         "title": "S1AP Integration Tests"
-      },
-      "version-1.7.0/lte/version-1.7.0-setup": {
-        "title": "AGW Setup (With Vagrant)",
-        "sidebar_label": "Setup (With Vagrant)"
       },
       "version-1.7.0/lte/version-1.7.0-dev_teid_allocation": {
         "title": "TEID Allocation"

@@ -143,7 +143,7 @@ $(TOOLS_LIST): %_tools:
 
 tools_lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-		| sh -s -- -b $$(go env GOPATH)/bin v1.50.1
+		| sh -s -- -b $$(go env GOPATH)/bin v1.51.2
 
 ######################
 ## Swagger/API docs ##

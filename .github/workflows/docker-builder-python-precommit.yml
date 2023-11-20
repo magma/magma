@@ -51,4 +51,4 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: false

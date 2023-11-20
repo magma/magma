@@ -29,9 +29,8 @@ spec:
       - -c
       - mkdir -p /var/opt/magma/configs && cp -f /configs/control_proxy.yml /var/opt/magma/configs/  &&
         mkdir -p /var/opt/magma/certs &&  cp -f /certs/rootCA.pem /var/opt/magma/certs/ &&
-        cat /configs/gw_challenge.b64 | base64 -d > /var/opt/magma/certs/gw_challenge.key &&
         /usr/local/bin/generate_nghttpx_config.py
-      image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+      image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
       name: agwc-config
       resources: {}
       volumeMounts:
@@ -49,7 +48,7 @@ spec:
     - name: magma-config
       hostPath:
         path: /etc/magma
-        type: Directory
+        type: DirectoryOrCreate
     - name: agwc-claim
       persistentVolumeClaim:
         claimName: agwc-claim

@@ -628,6 +628,10 @@ status_code_e s1ap_mme_handle_s1_setup_request(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_supported_tas,
                              container, S1ap_ProtocolIE_ID_id_SupportedTAs,
                              true);
+  if (!ie_supported_tas) {
+    OAILOG_ERROR(LOG_S1AP, "Missing Supported TAs in S1 Setup Request\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
 
   ta_ret =
       s1ap_mme_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAs);
@@ -2481,7 +2485,7 @@ status_code_e s1ap_mme_handle_handover_cancel(oai::S1apState* state,
       S1ap_ProcedureCode_id_HandoverCancel;
   out_pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_HandoverCancelAcknowledge;
-  out_pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  out_pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   out =
       &out_pdu.choice.successfulOutcome.value.choice.HandoverCancelAcknowledge;
 
@@ -4184,6 +4188,11 @@ status_code_e s1ap_mme_handle_enb_reset(oai::S1apState* state,
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_ResetIEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_ResetType, true);
 
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Reset Type S1AP ProtocolIE ID Missing\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   S1ap_ResetType_t* resetType = &ie->value.choice.ResetType;
 
   switch (resetType->present) {
@@ -4926,6 +4935,11 @@ status_code_e s1ap_mme_handle_enb_configuration_transfer(
                              S1ap_ProtocolIE_ID_id_SONConfigurationTransferECT,
                              false);
 
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Missing SON Configuration Transfer IE\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_DEBUG(LOG_S1AP, "Received eNB Confiuration Request from assoc_id %u\n",
                assoc_id);
   if ((s1ap_state_get_enb(state, assoc_id, &enb_association)) != PROTO_MAP_OK) {
@@ -5089,7 +5103,7 @@ status_code_e s1ap_handle_path_switch_req_ack(
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_PathSwitchRequest;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_PathSwitchRequestAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.PathSwitchRequestAcknowledge;

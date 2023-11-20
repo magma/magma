@@ -24,3 +24,11 @@
     All upgrade instructions for backwards-breaking changes will be aggregated
     in the next release's changelog so this is very important to fill out.
 -->
+
+## Security Considerations
+
+<!--
+    Comment on potential security impact. Could the change create or 
+    eliminate weaknesses? STRIDE, OWASP Top 10, or RFC 3552 may help.
+-->
+
