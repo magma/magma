@@ -15,6 +15,7 @@
 
 name: Magma Build Docker Image Bazel Base & DevContainer
 on:
+  workflow_dispatch: null
   push:
     branches:
       - master
@@ -115,7 +116,7 @@ jobs:
   build_dockerfile_bazel_cache_asan:
     needs: build_dockerfile_bazel_base
     if: |
-      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
       github.ref_name == 'master' &&
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest
@@ -155,7 +156,7 @@ jobs:
   build_dockerfile_bazel_cache_plain:
     needs: build_dockerfile_bazel_base
     if: |
-      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
       github.ref_name == 'master' &&
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest
@@ -194,7 +195,7 @@ jobs:
   build_dockerfile_bazel_cache_prod:
     needs: build_dockerfile_bazel_base
     if: |
-      (github.event_name == 'push' || github.event_name == 'schedule') &&
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
       github.ref_name == 'master' &&
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest

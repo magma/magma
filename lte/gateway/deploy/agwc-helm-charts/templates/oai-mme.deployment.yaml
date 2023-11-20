@@ -52,7 +52,7 @@ args:
   - /bin/bash
   - -c
   - /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
-image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_c{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
   privileged: true
   capabilities:

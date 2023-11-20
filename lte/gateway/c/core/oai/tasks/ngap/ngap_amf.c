@@ -351,7 +351,7 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
   // NULL reference...
   if (ue_ref == NULL) return;
 
-  gnb_ue_ngap_id_t gnb_ue_ngap_id = ue_ref->gnb_ue_ngap_id;
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
   gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
 
   // Updating number of UE
@@ -361,14 +361,14 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
 
   hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_ngap_id);
-  hashtable_ts_free(&state->amfid2associd, gnb_ue_ngap_id);
-  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, gnb_ue_ngap_id);
+  hashtable_ts_free(&state->amfid2associd, amf_ue_ngap_id);
+  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, amf_ue_ngap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
   ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
 
   hashtable_uint64_ts_get(ngap_imsi_map->amf_ue_id_imsi_htbl,
-                          (const hash_key_t)gnb_ue_ngap_id, &imsi64);
+                          (const hash_key_t)amf_ue_ngap_id, &imsi64);
 
   delete_ngap_ue_state(imsi64);
 

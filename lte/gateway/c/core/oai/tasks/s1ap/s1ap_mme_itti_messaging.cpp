@@ -147,7 +147,7 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
 
 //------------------------------------------------------------------------------
 
-void s1ap_mme_itti_s1ap_initial_ue_message(
+status_code_e s1ap_mme_itti_s1ap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id, const uint8_t* const nas_msg,
     const size_t nas_msg_length, const tai_t* const tai,
@@ -161,14 +161,20 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  AssertFatal((nas_msg_length < 1000), "Bad length for NAS message %lu",
-              nas_msg_length);
+
+  if (nas_msg_length >= 1000) {
+    OAILOG_ERROR(LOG_S1AP,
+                 "Bad length for NAS message greater then 1000 "
+                 " S1AP_INITIAL_UE_MESSAGE \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP,
                  "itti_alloc_new_message Failed for"
                  " S1AP_INITIAL_UE_MESSAGE \n");
-    OAILOG_FUNC_OUT(LOG_S1AP);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   OAILOG_INFO(LOG_S1AP,
@@ -213,7 +219,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   S1AP_INITIAL_UE_MESSAGE(message_p).transparent.e_utran_cgi = *ecgi;
 
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
-  OAILOG_FUNC_OUT(LOG_S1AP);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
 //------------------------------------------------------------------------------

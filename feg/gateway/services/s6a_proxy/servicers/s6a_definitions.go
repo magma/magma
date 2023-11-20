@@ -173,6 +173,7 @@ type APNConfiguration struct {
 	EPSSubscribedQoSProfile     EPSSubscribedQoSProfile `avp:"EPS-Subscribed-QoS-Profile"`
 	AMBR                        AMBR                    `avp:"AMBR"`
 	TgppChargingCharacteristics string                  `avp:"TGPP-Charging-Characteristics"`
+	ServedPartyIpAddress        []string                `avp:"Served-Party-IP-Address"`
 }
 
 type APNConfigurationProfile struct {

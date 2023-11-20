@@ -13,6 +13,7 @@
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 
 #include <cstdlib>
+#include <fstream>
 #include "S1ap_Cause.h"
 
 extern "C" {

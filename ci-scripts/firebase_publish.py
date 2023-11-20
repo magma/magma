@@ -56,7 +56,7 @@ def main():
         print(f"Decoding build_metadata_env JSON failed: {build_metadata_env}")
     build_info = {"metadata": build_metadata}
 
-    builds = ["FEG", "ORC8R", "CWAG", "NMS"]
+    builds = ["AGW", "FEG", "ORC8R", "CWAG", "NMS"]
     for build in builds:
         artifact_env = os.environ[f"{build}_ARTIFACTS"]
         artifacts = {}
@@ -68,6 +68,8 @@ def main():
                 f"has failed: {artifact_env}",
             )
             artifacts = {"packages": [], "valid": False}
+        if build == "AGW":
+            artifacts = _set_download_uri(artifacts)
         build_info[f"{build.lower()}"] = artifacts
 
     # Prepare workload

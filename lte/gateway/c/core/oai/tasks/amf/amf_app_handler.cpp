@@ -24,6 +24,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/map.h"
@@ -1363,7 +1364,8 @@ static void amf_app_handle_ngap_ue_context_release(
       amf_nas_proc_implicit_deregister_ue_ind(ue_context_p->amf_ue_ngap_id);
     }
   } else {
-    if (cause == NGAP_RADIO_NR_GENERATED_REASON) {
+    if (cause == NGAP_RADIO_NR_GENERATED_REASON ||
+        cause == NGAP_SCTP_SHUTDOWN_OR_RESET) {
       int rc = RETURNerror;
       rc = ue_state_handle_message_initial(
           ue_context_p->mm_state, STATE_EVENT_CONTEXT_RELEASE, SESSION_NULL,
@@ -1373,7 +1375,7 @@ static void amf_app_handle_ngap_ue_context_release(
         OAILOG_WARNING(LOG_AMF_APP, "Failed transitioning to idle mode\n");
       }
 
-      amf_app_itti_ue_context_release(ue_context_p, NGAP_USER_INACTIVITY);
+      amf_app_itti_ue_context_release(ue_context_p, cause);
     }
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -1446,8 +1448,8 @@ void amf_app_handle_gnb_deregister_ind(
     const itti_ngap_gNB_deregistered_ind_t* const gNB_deregistered_ind) {
   for (int i = 0; i < gNB_deregistered_ind->nb_ue_to_deregister; i++) {
     amf_app_handle_ngap_ue_context_release(
-        gNB_deregistered_ind->gnb_ue_ngap_id[i],
-        gNB_deregistered_ind->amf_ue_ngap_id[i], gNB_deregistered_ind->gnb_id,
+        gNB_deregistered_ind->amf_ue_ngap_id[i],
+        gNB_deregistered_ind->gnb_ue_ngap_id[i], gNB_deregistered_ind->gnb_id,
         NGAP_SCTP_SHUTDOWN_OR_RESET);
   }
 }
@@ -1561,6 +1563,8 @@ status_code_e amf_app_handle_notification_received(
   MessageDef* message_p = nullptr;
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   status_code_e rc = RETURNok;
+  amf_as_establish_t establish = {0};
+  nas5g_establish_rsp_t nas_msg = {0};
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
@@ -1626,7 +1630,16 @@ status_code_e amf_app_handle_notification_received(
 
     case UE_SERVICE_REQUEST_ON_PAGING:
       OAILOG_DEBUG(LOG_AMF_APP, "Service Accept notification received\n");
-      // TODO: Service Accept code to be implemented in upcoming PR
+      establish.ue_id = ue_context->amf_ue_ngap_id;
+      establish.nas_info = AMF_AS_NAS_INFO_SR;
+      establish.pdu_session_reactivation_status =
+          AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+      establish.pdu_session_status_ie =
+          (AMF_AS_PDU_SESSION_REACTIVATION_STATUS | AMF_AS_PDU_SESSION_STATUS);
+      establish.pdu_session_status = AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+      amf_as_establish_cnf(&establish, &nas_msg);
+      break;
+
     default:
       OAILOG_DEBUG(LOG_AMF_APP, "default case nothing to do\n");
       break;

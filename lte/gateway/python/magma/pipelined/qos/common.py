@@ -384,6 +384,7 @@ class QosManager(object):
             imsi: str,
             ip_addr: str,
             apn_ambr: int,
+            units: str,
             rule_num: int,
             direction: FlowMatch.Direction,
             qos_info: QosInfo,
@@ -428,7 +429,7 @@ class QosManager(object):
                 if not ambr_qos_handle_root:
                     ambr_qos_handle_root = self.impl.add_qos(
                         direction, QosInfo(gbr=None, mbr=apn_ambr),
-                        cleanup_rule,
+                        cleanup_rule, units=units,
                         skip_filter=True,
                     )
                     if not ambr_qos_handle_root:
@@ -450,7 +451,7 @@ class QosManager(object):
                     ambr_qos_handle_leaf = self.impl.add_qos(
                         direction,
                         QosInfo(gbr=None, mbr=apn_ambr),
-                        cleanup_rule,
+                        cleanup_rule, units=units,
                         parent=ambr_qos_handle_root,
                     )
                     if ambr_qos_handle_leaf:
@@ -470,7 +471,7 @@ class QosManager(object):
 
             if qos_info:
                 qos_handle = self.impl.add_qos(
-                    direction, qos_info, cleanup_rule,
+                    direction, qos_info, cleanup_rule, units=units,
                     parent=ambr_qos_handle_root,
                 )
                 LOG.debug("Added ded brr handle: %d", qos_handle)
