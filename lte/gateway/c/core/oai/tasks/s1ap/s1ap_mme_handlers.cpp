@@ -4669,24 +4669,11 @@ status_code_e s1ap_mme_handle_erab_modification_indication(
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_E_RABModificationIndicationIEs_t, ie,
                              container, S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID,
                              true);
-  if (!ie) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "Missing MME_UE_S1AP_ID field in the E-RAB Modification "
-                 "Indication S1AP packet\n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-
   mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
 
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_E_RABModificationIndicationIEs_t, ie,
                              container, S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID,
                              true);
-  if (!ie) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "Missing eNB_UE_S1AP_ID fieldin the E-RAB Modification "
-                 "Indication S1AP packet\n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   // eNB UE S1AP ID is limited to 24 bits
   enb_ue_s1ap_id =
       (enb_ue_s1ap_id_t)(ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
