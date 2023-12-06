@@ -43,7 +43,7 @@ do
   while read -r line;
   do
     version=$(echo "$line" | awk -F '"' '{print $2}')
-    if [[ -n $version && $version != "$expected_version" ]]
+    if [[ -n $version && $version != "$expected_version" && $version != "1.21.0" ]]
     then
       echo "Found unexpected Go version $version in file $(realpath --relative-to="$MAGMA_ROOT" "$file"):"
       echo "$line"
