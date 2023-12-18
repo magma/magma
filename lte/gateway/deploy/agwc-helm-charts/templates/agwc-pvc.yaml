@@ -16,14 +16,15 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     app.kubernetes.io/component: agwc-claim
-  name: agwc-claim
+  name: {{ .Values.persistant.name }}
   namespace: {{ .Values.namespace }}
   annotations:
     "helm.sh/hook": "pre-install"
     "helm.sh/hook-weight": "-5"
 spec:
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi

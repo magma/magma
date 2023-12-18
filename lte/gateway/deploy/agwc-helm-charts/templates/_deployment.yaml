@@ -45,7 +45,7 @@ spec:
             type: Directory
         - name: agwc-claim
           persistentVolumeClaim:
-            claimName: {{ .Values.persistent.name }}
+            claimName: {{ .Values.persistant.name }}
         - name: snowflake-file
           hostPath:
             path: /etc/snowflake

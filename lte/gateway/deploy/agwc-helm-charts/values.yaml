@@ -16,18 +16,18 @@ secret:
   certs: agwc-secret-certs
 
 image:
-  repository: public.ecr.aws/z2g3r6f7
+  repository: 10.0.3.1:5005
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "feg_cwf_arm_port_1a65c34"
   # Arch is blank for x86 and _arm for ARM64
-  arch:
+  arch: ""
 
 config:
-  domainName: iot.magmacore.click
+  domainName: magmacore.local
   gwChallenge: 
 
-persistent:
+persistant:
   name: agwc-claim
 
 ressources:

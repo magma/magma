@@ -19,7 +19,7 @@ volumeMounts:
   - name: "magma-config"
     mountPath: /etc/magma/
     readOnly: true
-  - name: {{ .Values.persistent.name }}
+  - name: {{ .Values.persistant.name }}
     mountPath: /var/opt/magma
     readOnly: false
   - mountPath: /etc/snowflake
