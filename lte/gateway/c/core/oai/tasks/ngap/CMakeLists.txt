@@ -25,7 +25,7 @@ if( ${ASN1_SOURCE_DIR} IS_NEWER_THAN ${ngap_generate_code_done_flag})
 
     #Create NGAP_PDU structure without pointer references
     execute_process(
-        COMMAND bash "-c" "asn1c -pdu=all -fcompound-names -fno-include-deps -gen-PER -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} ${ASN1_ERR_FILTER}"
+        COMMAND bash "-c" "asn1c -pdu=all -fcompound-names -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} ${ASN1_ERR_FILTER}"
         RESULT_VARIABLE ret
     )
     if (NOT ${ret} STREQUAL 0)

@@ -31,7 +31,7 @@ set(ASN1_ERR_FILTER "2> >(grep -v \"Parameterized type\" | grep -v \"Compiled \"
 if (${ASN1_SOURCE_DIR} IS_NEWER_THAN ${s1ap_generate_code_done_flag})
     file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
     execute_process(
-        COMMAND bash "-c" "asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} ${ASN1_ERR_FILTER}"
+        COMMAND bash "-c" "asn1c -pdu=all -fcompound-names  -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} ${ASN1_ERR_FILTER}"
         RESULT_VARIABLE ret
     )
     if (NOT ${ret} STREQUAL 0)
