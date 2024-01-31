@@ -70,3 +70,4 @@ We wish to acknowledge valuable disclosures by the following security researcher
 
 - Guarang Maheta
 - Phi Trần
+- Nathaniel Bennett (University of Florida)
