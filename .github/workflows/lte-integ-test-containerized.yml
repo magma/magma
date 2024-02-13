@@ -44,7 +44,7 @@ on:
 
 jobs:
   lte-integ-test-containerized:
-    runs-on: macos-12
+    runs-on: macos-12-large
     steps:
       - name: Show inputs
         run: |

@@ -77,7 +77,7 @@ jobs:
 
   federated-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-12
+    runs-on: macos-12-large
     needs: [docker-build-orc8r, docker-build-feg]
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
