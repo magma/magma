@@ -37,6 +37,7 @@ import type {
 import asyncHandler from '../util/asyncHandler';
 import crypto from 'crypto';
 import {SSOSelectedType} from '../../shared/types/auth';
+import {limiter} from './ratelimit/middleware';
 
 const logger = logging.getLogger(module);
 const PASSWORD_FOR_LOGGING = '<SECRET>';
@@ -107,6 +108,7 @@ function userMiddleware(options: Options) {
 
   router.get(
     '/login',
+    limiter,
     asyncHandler(
       async (req: Request<never, any, never, {to?: string}>, res, next) => {
         try {
@@ -175,6 +177,7 @@ function userMiddleware(options: Options) {
   );
   router.get(
     '/login/oidc/callback',
+    limiter,
     (req: Request<never, any, never, {to?: string}>, res, next) => {
       const to = req.query.to;
       const loginSuccessUrl =
@@ -196,7 +199,7 @@ function userMiddleware(options: Options) {
     },
   );
 
-  router.get('/logout', (req: Request, res) => {
+  router.get('/logout', limiter, (req: Request, res) => {
     if (req.isAuthenticated()) {
       req.logout();
     }
