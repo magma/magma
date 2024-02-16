@@ -39,6 +39,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.17.3",
     "express-http-proxy": "^1.5.1",
+    "express-rate-limit": "^7.1.5",
     "express-session": "^1.15.6",
     "filefy": "^0.1.11",
     "form-data": "4.0.0",
