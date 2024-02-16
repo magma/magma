@@ -1,10 +1,6 @@
 import {rateLimit} from 'express-rate-limit';
+import {RATE_LIMIT_CONFIG} from '../../../config/config';
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  limit: 100,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-});
+const limiter = rateLimit({...RATE_LIMIT_CONFIG});
 
 export {limiter};
