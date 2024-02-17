@@ -12,8 +12,8 @@
  */
 
 import fs from 'fs';
-import {getValidLogLevel} from '../shared/logging';
 import {Options as RateLimitOptions} from 'express-rate-limit';
+import {getValidLogLevel} from '../shared/logging';
 
 export const DEV_MODE = process.env.NODE_ENV !== 'production';
 export const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';

@@ -11,8 +11,8 @@
  * limitations under the License.
  *
  */
-import {rateLimit} from 'express-rate-limit';
 import {RATE_LIMIT_CONFIG} from '../../config/config';
+import {rateLimit} from 'express-rate-limit';
 
 const limiter = rateLimit({...RATE_LIMIT_CONFIG});
 
