@@ -71,7 +71,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be #pin@v1.3.1
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # pin@v1.3.1
         with:
           # this might remove tools that are actually needed,
           # when set to "true" but frees about 6 GB
