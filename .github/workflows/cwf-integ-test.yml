@@ -73,8 +73,8 @@ jobs:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be #pin@v1.3.1
         with:
-        # this might remove tools that are actually needed,
-        # when set to "true" but frees about 6 GB
+          # this might remove tools that are actually needed,
+          # when set to "true" but frees about 6 GB
           tool-cache: true
       - name: Cache ubuntu generic box for CWF VMs
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
