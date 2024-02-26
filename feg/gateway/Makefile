@@ -21,9 +21,6 @@ download:
 install:
 	go install ./... magma/gateway/services/magmad
 
-install_envoy_controller:
-	go install ./... magma/feg/gateway/services/envoy_controller
-
 test:
 	mkdir -p /tmp/test-results
 	gotestsum --junitfile /tmp/test-results/main.xml ./...

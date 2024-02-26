@@ -120,9 +120,6 @@
       "howtos/network_probe": {
         "title": "Network Probe"
       },
-      "howtos/package": {
-        "title": "Packaging"
-      },
       "howtos/troubleshooting/agw_healthcheck": {
         "title": "Perform Access Gateway health check"
       },
