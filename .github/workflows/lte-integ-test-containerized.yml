@@ -44,7 +44,7 @@ on:
 
 jobs:
   lte-integ-test-containerized:
-    runs-on: macos-12-large
+    runs-on: ubuntu-latest
     steps:
       - name: Show inputs
         run: |
@@ -63,9 +63,9 @@ jobs:
       - name: Write image tag to docker-compose.yaml
         working-directory: lte/gateway/docker
         run: |
-          sed -i '' "s#image:.*agw_gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ inputs.image_tag }}#" docker-compose.yaml
-          sed -i '' "s#image:.*agw_gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ inputs.image_tag }}#" docker-compose.yaml
-          sed -i '' "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i "s#image:.*agw_gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i "s#image:.*agw_gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ inputs.image_tag }}#" docker-compose.yaml
       - name: Show docker-compose yaml to verify correct docker images hashes
         run: cat lte/gateway/docker/docker-compose.yaml
       - name: Cache magma-dev-box
@@ -88,11 +88,15 @@ jobs:
           cache-key-prefix: magma_test
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
-          python-version: '3.8.10'
+          python-version: '3.10.12'
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle PyYAML requests
+          sudo apt update && sudo apt install virtualbox
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install vagrant
           vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
       - name: Open up network interfaces for VM
         run: |
@@ -105,11 +109,14 @@ jobs:
           MAGMA_DEV_MEMORY_MB: 9216
         working-directory: lte/gateway
         # the image is directly concatenated to the registry, so we need the slash as delimiter
-        run: fab --debug integ-test-containerized --test-mode=${{ inputs.test_targets }} --docker-registry=${{ inputs.registry }}/
+        run: |
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          fab --debug integ-test-containerized --test-mode=${{ inputs.test_targets }} --docker-registry=${{ inputs.registry }}/
       - name: Get test results
         if: always()
         working-directory: lte/gateway
         run: |
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
           fab get-test-summaries --integration-tests
       - name: Publish Unit Test Results
         if: always()
