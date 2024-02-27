@@ -91,6 +91,10 @@ jobs:
           if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
           then
             echo "Logging in to vagrant cloud to mitigate rate limiting."
+             wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update && sudo apt install vagrant
+            vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
             vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
           else
             echo "Vagrant cloud token is not configured. Skipping login."
@@ -102,11 +106,7 @@ jobs:
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
-          sudo apt update && sudo apt install virtualbox
-          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-          sudo apt update && sudo apt install vagrant
-          vagrant plugin install vagrant-vbguest vagrant-reload vagrant-disksize
+          sudo apt install virtualbox
       - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: docker-images

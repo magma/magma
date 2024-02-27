@@ -197,7 +197,7 @@ def _redirect_feg_agw_to_vagrant_orc8r(c_gw):
     # This is only run in CI:
     # on macOS
     c_gw.local(
-        f"sed -i '' 's/:10.0.2.2/:127.0.0.1/' "
+        f"sed -i 's/:10.0.2.2/:127.0.0.1/' "
         f"{FEG_INTEG_TEST_DOCKER_ROOT}/docker-compose.override.yml",
     )
     # on ubuntu
