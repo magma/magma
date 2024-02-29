@@ -9,7 +9,7 @@ pyyaml
 urllib3
 certifi
 sentry-sdk
-snowflake>=0.0.3
+snowflake==0.0.3
 #  prometheus_client==0.3.1 required (see e.g. magmad/tests/metrics_tests.py)
 prometheus_client==0.3.1
 redis-collections

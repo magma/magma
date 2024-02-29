@@ -78,7 +78,7 @@ setup(
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'sentry_sdk>=1.5.0,<1.9',
-        'snowflake>=0.0.3',
+        'snowflake==0.0.3',
         'psutil==5.8.0',
         'cryptography>=1.9',
         'itsdangerous>=0.24',
