@@ -37,6 +37,7 @@ from tools.fab.hosts import (  # noqa: E402
     vagrant_setup,
 )
 
+# noqa: WPS462
 """
 Magma Gateway packaging tool:
 
@@ -56,7 +57,7 @@ in `release/magma.lockfile`
 
     fab dev package
 """
-
+TMP = "tmp"
 GATEWAY_IP_ADDRESS = "192.168.60.142"
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
@@ -66,21 +67,32 @@ ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
-TEST_SUMMARY_GLOB = "/var/tmp/test_results/*.xml"
+TEST_SUMMARY_GLOB = f"/var/{TMP}/test_results/*.xml"
 debug_mode = None
 
 
 @task
 def dev(c):
+    """
+    Set debug_mode to True, should be used for producing an AGW package for development
+
+    Args:
+        c: Fabric Connection
+    """
     global debug_mode
-    debug_mode = True
+    debug_mode = True  # noqa: WPS442
 
 
 @task
 def release(c):
-    """Set debug_mode to False, should be used for producing a production AGW package"""
+    """
+    Set debug_mode to False, should be used for producing a production AGW package
+
+    Args:
+        c: Fabric Connection
+    """
     global debug_mode
-    debug_mode = False
+    debug_mode = False  # noqa: WPS442
 
 
 @task
@@ -90,7 +102,18 @@ def package(
     destroy_vm=False,
     vm='magma', os="ubuntu",
 ):
-    """ Builds the magma package """
+    """
+    Build the magma package
+
+    Args:
+        c: Fabric Connection
+        all_deps: bool
+        cert_file: RootCA
+        proxy_config: Control Proxy Config
+        destroy_vm: If True, destroy the VM before running the tests
+        vm: Virtual Machine Name
+        os: operating system
+    """
 
     global debug_mode
     if debug_mode is None:
@@ -167,17 +190,20 @@ def open_orc8r_port_in_vagrant(c):
     Add a line to the Vagrantfile file to open port 9443 on the magma_deb VM.
     Note that localhost request to 9443 will be sent to a Vagrant vm.
     Remove this line manually if you intend to run orc8r on your host.
+
+    Args:
+        c: Fabric Connection
     """
     is_port_open = "grep -q 'guest: 9443, host: 9443' Vagrantfile"
 
-    pattern_template = "^  config.vm.define :{},.*$"
-    open_port_template = '    {}.vm.network \"forwarded_port\", guest: 9443, host: 9443'
+    pattern_template = "^  config.vm.define :{0},.*$"
+    open_port_template = '    {0}.vm.network \"forwarded_port\", guest: 9443, host: 9443'
     # workaround:
     # 1. duplicate line ("p") and then override - because "a" (append text
     #    after line) works different on linux and macos (but would be more elegant)
     # 2. don't use -i (inline replace), but copy .bak file - because syntax
     #    differs between linux and macos
-    cmd_open_port_template = "sed '/{}/p; s/{}/{}/' Vagrantfile > v.bak && cp v.bak Vagrantfile && rm v.bak"
+    cmd_open_port_template = "sed '/{0}/p; s/{1}/{2}/' Vagrantfile > v.bak && cp v.bak Vagrantfile && rm v.bak"
 
     def create_cmd(machine):
         pattern = pattern_template.format(machine)
@@ -191,13 +217,18 @@ def open_orc8r_port_in_vagrant(c):
 
 def _redirect_feg_agw_to_vagrant_orc8r(c_gw):
     """
-    Modifies feg docker-compose.override.yml hosts and AGW /etc/hosts
+    Modify feg docker-compose.override.yml hosts and AGW /etc/hosts
     to point to localhost when Orc8r runs inside Vagrant
+
+    Args:
+        c_gw: vagrant connection
+
+    Returns: None
     """
     # This is only run in CI:
     # on macOS
     c_gw.local(
-        f"sed -i '' 's/:10.0.2.2/:127.0.0.1/' "
+        f"sed -i 's/:10.0.2.2/:127.0.0.1/' "
         f"{FEG_INTEG_TEST_DOCKER_ROOT}/docker-compose.override.yml",
     )
     # on ubuntu
@@ -209,7 +240,20 @@ def federated_integ_test(
     c, build_all=False, clear_orc8r=False, provision_vm=False,
     destroy_vm=False, orc8r_on_vagrant=False,
 ):
+    """
+    Run Federated Integration Tests
 
+    Args:
+        c: Fabric Connection
+        build_all: bool
+        clear_orc8r: bool
+        provision_vm: When set to false, this script will not provision the VMs
+            before running the tests.
+        destroy_vm: If True, destroy the VM before running the tests
+        orc8r_on_vagrant: Allow access to Orc8r running inside Vagrant
+
+    Returns: None
+    """
     if orc8r_on_vagrant:
         # Modify Vagrantfile to allow access to Orc8r running inside Vagrant
         open_orc8r_port_in_vagrant(c)
@@ -265,6 +309,14 @@ def provision_magma_dev_vm(
     This defaults to running on local vagrant machines, but can also be
     pointed to an arbitrary host (e.g. amazon) by passing "address:port"
     as arguments
+
+    Args:
+        c: Fabric Connection
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port".
+        destroy_vm: If True, destroy the VM before running the tests
+        provision_vm: When set to false, this script will not provision the VMs
+            before running the tests.
     """
     if not gateway_host:
         vagrant_setup(c, 'magma', destroy_vm, force_provision=provision_vm)
@@ -396,6 +448,24 @@ def integ_test_containerized(
     """
     Run the integration tests against the containerized AGW.
     Other than that the same as `integ_test`.
+
+    Args:
+        c: Fabric connection.
+        gateway_host: The ssh address string of the machine to run the gateway
+            services on. Formatted as "host:port". If not specified, defaults to
+            the `magma_deb` vagrant box.
+        test_host: The ssh address string of the machine to run the tests on.
+            Formatted as "host:port". If not specified, defaults to the
+            `magma_test` vagrant box.
+        trf_host: The ssh address string of the machine to run the TrafficServer
+            on. Formatted as "host:port". If not specified, defaults to the
+            `magma_trfserver` vagrant box.
+        destroy_vm: If True, destroy the magma deb VM before running the tests.
+        provision_vm: If True, provision the magma deb VM before running the
+            tests.
+        test_mode: Containerized integration test
+        tests: Individual test/s name
+        docker_registry: The docker registry to pull the images from.
     """
 
     # Set up the gateway: use the provided gateway if given, else default to the
@@ -507,8 +577,16 @@ def _run_with_retry(c_gw, command, retries=10):
 
 @task
 def get_test_summaries(c, sudo_tests=False, integration_tests=False):
+    """
+    Retrieve test summaries
+
+    Args:
+        c: Fabric Connection
+        sudo_tests: Set for sudo test summary
+        integration_tests: Set for integration test summary
+    """
     results_folder = "test_results"
-    results_dir = "/var/tmp/"
+    results_dir = f"/var/{TMP}/"
 
     c.run('mkdir -p ' + results_folder)
 
@@ -540,7 +618,7 @@ def get_test_logs(
     gateway_host=None,
     test_host=None,
     trf_host=None,
-    dst_path="/tmp/build_logs.tar.gz",
+    dst_path="/tmp/build_logs.tar.gz",  # noqa: S108
 ):
     """
     Download the relevant magma logs from the given gateway and test machines.
@@ -562,9 +640,9 @@ def get_test_logs(
     """
 
     # Grab the build logs from the machines and bring them to the host
-    dev_logs_location = '/tmp/build_logs/dev'
-    test_logs_location = '/tmp/build_logs/test'
-    trfserver_logs_location = '/tmp/build_logs/trfserver'
+    dev_logs_location = f'/{TMP}/build_logs/dev'
+    test_logs_location = f'/{TMP}/build_logs/test'
+    trfserver_logs_location = f'/{TMP}/build_logs/trfserver'
 
     c.run('rm -rf /tmp/build_logs')
     c.run('mkdir /tmp/build_logs')
@@ -588,13 +666,13 @@ def get_test_logs(
         c, trf_host, 'magma_trfserver', trf_files, trfserver_logs_location,
     )
 
-    test_files = ['/var/log/syslog', '/tmp/fw/*']
+    test_files = ['/var/log/syslog', f'/{TMP}/fw/*']
     _get_files_from_vm(
         c, test_host, 'magma_test', test_files, test_logs_location,
     )
 
     c.run("tar -czvf /tmp/build_logs.tar.gz /tmp/build_logs/*")
-    if dst_path != "/tmp/build_logs.tar.gz":
+    if dst_path != f"/{TMP}/build_logs.tar.gz":
         c.run(f'mv /tmp/build_logs.tar.gz {dst_path}', warn=True)
     c.run('rm -rf /tmp/build_logs')
 
@@ -627,7 +705,7 @@ def _get_folder(c_vm, folder_name, remote_path, local_path):
     """
     with c_vm.cd(remote_path):
         c_vm.run(f'tar -czvf /tmp/{folder_name}.tar.gz {folder_name}')
-    c_vm.get(f'/tmp/{folder_name}.tar.gz', local=f'{local_path}/{folder_name}.tar.gz')
+    c_vm.get(f'/{TMP}/{folder_name}.tar.gz', local=f'{local_path}/{folder_name}.tar.gz')
     c_vm.run(f'rm /tmp/{folder_name}.tar.gz')
     c_vm.local(f'sudo tar -xzf {local_path}/{folder_name}.tar.gz -C {local_path}')
     c_vm.local(f'sudo chmod 755 {local_path}/{folder_name}')
@@ -636,6 +714,15 @@ def _get_folder(c_vm, folder_name, remote_path, local_path):
 
 @task
 def build_and_start_magma_trf(c, destroy_vm=False, provision_vm=False):
+    """
+    Build and Start MAGMA_TRF
+
+    Args:
+        c: Fabric Connection
+        destroy_vm: If True, destroy the VM before running the tests
+        provision_vm: When set to false, this script will not provision the VMs
+        before running the tests.
+    """
     with vagrant_connection(
         c, 'magma_trfserver', destroy_vm=destroy_vm, force_provision=provision_vm,
     ) as c_trf:
@@ -669,7 +756,7 @@ def _build_magma(c_gw):
 
 
 def _start_gateway(c_gw):
-    """ Starts the gateway """
+    """ Start the gateway """
     c_gw.run('sudo service magma@magmad start')
 
 
@@ -705,7 +792,7 @@ def _start_test_vm(c, destroy_vm, provision_vm, test_host):
 
 
 def _start_trfserver(c_trf):
-    """ Starts the traffic gen server"""
+    """ Start the traffic gen server"""
 
     c_trf.run('sudo ethtool --offload eth1 rx off tx off')
     c_trf.run('sudo ethtool --offload eth2 rx off tx off')
@@ -717,7 +804,8 @@ def _start_trfserver(c_trf):
 def _run_integ_tests(
         c, vm_data, gateway_ip='192.168.60.142', test_mode='integ_test', tests='',
 ):
-    """ Run the integration tests
+    """
+    Run the integration tests
 
     NOTE: The S1AP-tester produces a bunch of output which the python ssh
     library, and thus fab, has trouble processing quickly. Instead, we manually
@@ -730,6 +818,13 @@ def _run_integ_tests(
         -p: the port to connect to
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
+
+    Args:
+        c: Fabric Connection
+        vm_data: VM config map
+        gateway_ip:  Gateway IP for integration tests
+        test_mode: Nature of test i.e. integration test
+        tests: Individual test/s name
     """
     host = vm_data.get("host_string").split(':')[0]
     port = vm_data.get("host_string").split(':')[1]
@@ -738,17 +833,17 @@ def _run_integ_tests(
     # We do not have a proper shell, so the `magtivate` alias is not available.
     # We instead directly source the activate file.
     c.run(
-        f'ssh'
-        f' -i {key}'
-        f' -o UserKnownHostsFile=/dev/null'
-        f' -o StrictHostKeyChecking=no'
-        f' -tt {host}'
-        f' -p {port}'
-        f' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests;'
-        f' sudo ethtool --offload eth1 rx off tx off;'
-        f' sudo ethtool --offload eth2 rx off tx off;'
-        f' source ~/build/python/bin/activate;'
-        f' export GATEWAY_IP={gateway_ip};'
-        f' make {test_mode} enable-flaky-retry=true {tests};'
-        f' make evaluate_result\'',
+        f"ssh"
+        f" -i {key}"
+        f" -o UserKnownHostsFile=/dev/null"
+        f" -o StrictHostKeyChecking=no"
+        f" -tt {host}"
+        f" -p {port}"
+        f" 'cd $MAGMA_ROOT/lte/gateway/python/integ_tests;"
+        f" sudo ethtool --offload eth1 rx off tx off;"
+        f" sudo ethtool --offload eth2 rx off tx off;"
+        f" source ~/build/python/bin/activate;"
+        f" export GATEWAY_IP={gateway_ip};"
+        f" make {test_mode} enable-flaky-retry=true {tests};"
+        f" make evaluate_result'",
     )
