@@ -19,6 +19,10 @@ module.exports = {
     '!**/node_modules/**',
   ],
   coverageReporters: ['json', 'html'],
+  fakeTimers: {
+    doNotFake: ['nextTick'],
+    timerLimit: 1000,
+  },
   testTimeout: 10000,
   projects: [
     {
