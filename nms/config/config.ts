@@ -12,8 +12,8 @@
  */
 
 import fs from 'fs';
-import {Options as RateLimitOptions} from 'express-rate-limit';
-import {getValidLogLevel} from '../shared/logging';
+import { Options as RateLimitOptions } from 'express-rate-limit';
+import { getValidLogLevel } from '../shared/logging';
 
 export const DEV_MODE = process.env.NODE_ENV !== 'production';
 export const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
@@ -21,8 +21,8 @@ export const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 export const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
 export const API_HOST = process.env.API_HOST || 'magma_test.local';
 export const RATE_LIMIT_CONFIG: Partial<RateLimitOptions> = {
-  windowMs: 15 * 60 * 1000, // 15 min
-  limit: 100,
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,  // 15 min default
+  limit: Number(process.env.RATE_LIMIT_COUNT) || 100,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 };
