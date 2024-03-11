@@ -28,6 +28,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 namespace magma5g {
 
@@ -324,6 +325,7 @@ status_code_e pdu_state_handle_message(
       case STATE_PDU_SESSION_RELEASE_COMPLETE:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        update_amf_app_stats_pdusessions_ue_sub();
         return reinterpret_cast<status_code_e (*)(amf_smf_release_t*, char*)>(
             ue_state_matrix[cur_state][event][session_state].handler.func)(
             &amf_smf_msg.u.release, imsi);
@@ -331,6 +333,7 @@ status_code_e pdu_state_handle_message(
       case STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT:
         smf_ctx->pdu_session_state =
             ue_state_matrix[cur_state][event][session_state].next_sess_state;
+        update_amf_app_stats_pdusessions_ue_add();
 
         return reinterpret_cast<status_code_e (*)(
             itti_n11_create_pdu_session_response_t*, uint32_t)>(

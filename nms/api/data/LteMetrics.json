@@ -462,6 +462,13 @@
       "Service": "MME"
     },
     {
+      "MetricName": "gnb_connected",
+      "PromQL": "gnb_connected",
+      "Description": "Number of gNodeb connected to AMF",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
       "MetricName": "ue_registered",
       "PromQL": "ue_registered",
       "Description": "Number of UE registered succesfully",
@@ -474,6 +481,34 @@
       "Description": "Number of UE connected",
       "Category": "AGW",
       "Service": "MME"
+    },
+    {
+      "MetricName": "ue_connected_5g",
+      "PromQL": "ue_connected_5g",
+      "Description": "Number of UE connected",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
+      "MetricName": "ue_registered_5g",
+      "PromQL": "ue_registered_5g",
+      "Description": "Number of UE registered successfully",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
+      "MetricName": "ue_idle_5g",
+      "PromQL": "ue_idle_5g",
+      "Description": "Number of Idle UEs",
+      "Category": "AGW",
+      "Service": "AMF"
+    },
+    {
+      "MetricName": "pdu_sessions",
+      "PromQL": "pdu_sessions",
+      "Description": "Number of active PDU Sessions",
+      "Category": "AGW",
+      "Service": "AMF"
     },
     {
       "MetricName": "ue_attach",
