@@ -74,3 +74,37 @@ int send_s1ap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
       stats_msg->nb_s1ap_last_msg_latency;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
+
+int send_amf_app_stats_to_service303(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
+    application_amf_app_stats_msg_t* stats_msg) {
+  MessageDef* message_p =
+      itti_alloc_new_message(origin_id, APPLICATION_AMF_APP_STATS_MSG);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP, "Unable to allocate memory");
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_ue_connected =
+      stats_msg->nb_ue_connected;
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_ue_attached =
+      stats_msg->nb_ue_attached;
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_pdu_sessions =
+      stats_msg->nb_pdu_sessions;
+  message_p->ittiMsg.application_amf_app_stats_msg.nb_ue_idle =
+      stats_msg->nb_ue_idle;
+  return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
+}
+
+int send_ngap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+                                  task_id_t origin_id,
+                                  application_ngap_stats_msg_t* stats_msg) {
+  MessageDef* message_p =
+      itti_alloc_new_message(origin_id, APPLICATION_NGAP_STATS_MSG);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "Unable to allocate memory");
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
+  message_p->ittiMsg.application_ngap_stats_msg.nb_gnb_connected =
+      stats_msg->nb_gnb_connected;
+  return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
+}
