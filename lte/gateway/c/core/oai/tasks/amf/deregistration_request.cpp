@@ -38,6 +38,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
@@ -233,7 +234,8 @@ status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
       ue_context_p->ue_context_rel_cause = NGAP_INVALID_CAUSE;
     }
   }
-
+  update_amf_app_stats_connected_ue_sub();
+  update_amf_app_stats_registered_ue_sub();
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
@@ -277,6 +279,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
                 "Deleting Pdu Session id = %d for ue_id = " AMF_UE_NGAP_ID_FMT
                 "\n",
                 smf_message.pdu_session_id, ue_context->amf_ue_ngap_id);
+    update_amf_app_stats_pdusessions_ue_sub();
   }
 
   ue_context->amf_context.smf_ctxt_map.clear();

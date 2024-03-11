@@ -105,6 +105,14 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
       service303_s1ap_statistics_read(
           &received_message_p->ittiMsg.application_s1ap_stats_msg);
     } break;
+    case APPLICATION_AMF_APP_STATS_MSG: {
+      service303_amf_app_statistics_read(
+          &received_message_p->ittiMsg.application_amf_app_stats_msg);
+    } break;
+    case APPLICATION_NGAP_STATS_MSG: {
+      service303_ngap_statistics_read(
+          &received_message_p->ittiMsg.application_ngap_stats_msg);
+    } break;
     case TERMINATE_MESSAGE:
       free(received_message_p);
       service303_message_exit();
@@ -170,6 +178,7 @@ static void service303_message_exit(void) {
 
 static int handle_display_timer(zloop_t* loop, int id, void* arg) {
   service303_statistics_display();
+  service303_statistics_display_5G();
   return 0;
 }
 

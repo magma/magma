@@ -40,7 +40,10 @@ extern "C" {
 namespace magma5g {
 task_zmq_ctx_t amf_app_task_zmq_ctx;
 void amf_app_exit(void);
-
+static void start_stats_timer(void);
+static int handle_stats_timer(zloop_t* loop, int id, void* arg);
+static int amf_stats_timer_id;
+static size_t amf_stats_timer_sec = 60;
 /****************************************************************************
  **                                                                        **
  ** Name:    handle_message()                                              **
@@ -223,9 +226,28 @@ void* amf_app_thread(void* args) {
                     &amf_app_task_zmq_ctx);
   // Service started, but not healthy yet
   send_app_health_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP, false);
+  start_stats_timer();
   zloop_start(amf_app_task_zmq_ctx.event_loop);
   amf_app_exit();
   return NULL;
+}
+
+static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  application_amf_app_stats_msg_t stats_msg;
+
+  stats_msg.nb_ue_connected = amf_app_desc_p->nb_ue_connected;
+  stats_msg.nb_ue_attached = amf_app_desc_p->nb_ue_attached;
+  stats_msg.nb_pdu_sessions = amf_app_desc_p->nb_pdu_sessions;
+  stats_msg.nb_ue_idle = amf_app_desc_p->nb_ue_idle;
+  return send_amf_app_stats_to_service303(&amf_app_task_zmq_ctx, TASK_AMF_APP,
+                                          &stats_msg);
+}
+
+static void start_stats_timer(void) {
+  amf_stats_timer_id =
+      start_timer(&amf_app_task_zmq_ctx, 1000 * amf_stats_timer_sec,
+                  TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }
 
 /****************************************************************************

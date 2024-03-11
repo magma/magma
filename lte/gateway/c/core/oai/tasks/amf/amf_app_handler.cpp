@@ -48,6 +48,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
@@ -603,7 +604,6 @@ status_code_e amf_app_handle_pdu_session_response(
          sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
 
   smf_ctx->n_active_pdus += 1;
-
   if (!ue_context->pending_service_response) {
     /* If idle and context is requested */
     if ((ue_context->cm_state == M5GCM_IDLE) &&

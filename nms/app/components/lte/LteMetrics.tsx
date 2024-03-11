@@ -45,6 +45,42 @@ const CONFIGS: Array<MetricGraphConfig> = [
     label: 'Connected Subscribers',
   },
   {
+    basicQueryConfigs: [
+      {
+        metric: 'ue_connected_5g',
+        filters: [{name: 'service', value: 'amf'}],
+      },
+    ],
+    label: 'Connected Subscribers 5G',
+  },
+  {
+    basicQueryConfigs: [
+      {
+        metric: 'ue_registered_5g',
+        filters: [{name: 'service', value: 'amf'}],
+      },
+    ],
+    label: 'Number of UEs registered succesfully',
+  },
+  {
+    basicQueryConfigs: [
+      {
+        metric: 'ue_idle_5g',
+        filters: [{name: 'service', value: 'amf'}],
+      },
+    ],
+    label: 'Number of Idle UEs',
+  },
+  {
+    basicQueryConfigs: [
+      {
+        metric: 'pdu_sessions',
+        filters: [{name: 'service', value: 'amf'}],
+      },
+    ],
+    label: 'Number of Active PDU Sessions',
+  },
+  {
     customQueryConfigs: [
       {
         resolveQuery: gw =>

@@ -48,8 +48,12 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
+static void start_stats_timer(void);
+static int ngap_stats_timer_id;
+static size_t ngap_stats_timer_sec = 30;
 
 uint64_t ngap_last_msg_latency = 0;
 
@@ -232,7 +236,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_NGAP);
-  init_task_context(TASK_NGAP, (task_id_t[]){TASK_AMF_APP, TASK_SCTP}, 2,
+  init_task_context(TASK_NGAP,
+                    (task_id_t[]){TASK_AMF_APP, TASK_SCTP, TASK_SERVICE303}, 3,
                     handle_message, &ngap_task_zmq_ctx);
 
   if (ngap_send_init_sctp() < 0) {
@@ -240,6 +245,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   } else {
     OAILOG_DEBUG(LOG_NGAP, " Sending SCTP_INIT_MSG to SCTP \n");
   }
+  start_stats_timer();
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(0,
               "Asserting as ngap_amg_thread should not be exiting on its own! "
@@ -394,4 +400,21 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
+}
+
+static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
+  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  application_ngap_stats_msg_t stats_msg;
+
+  stats_msg.nb_gnb_connected = ngap_state_p->num_gnbs;
+  // stats_msg.nb_ngap_last_msg_latency = ngap_last_msg_latency;
+  return send_ngap_stats_to_service303(&ngap_task_zmq_ctx, TASK_NGAP,
+                                       &stats_msg);
+}
+
+static void start_stats_timer(void) {
+  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  ngap_stats_timer_id =
+      start_timer(&ngap_task_zmq_ctx, 1000 * ngap_stats_timer_sec,
+                  TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }
