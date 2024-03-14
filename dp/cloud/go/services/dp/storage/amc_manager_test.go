@@ -164,6 +164,46 @@ func (s *AmcManagerTestSuite) TestDeleteCbsd() {
 	s.Require().NoError(err)
 }
 
+func (s *AmcManagerTestSuite) TestDeleteGrant() {
+	stateId := s.enumMaps[storage.GrantStateTable][granted]
+	grant1 := b.NewDBGrantBuilder().
+		WithDefaultTestValues().
+		WithStateId(stateId).
+		WithId(1).
+		Grant
+	grant2 := b.NewDBGrantBuilder().
+		WithDefaultTestValues().
+		WithStateId(stateId).
+		WithId(2).
+		Grant
+	s.givenResourcesInserted(grant1, grant2)
+
+	_, err := storage.WithinTx(s.database, func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.amcManager.DeleteGrant(tx, grant1)
+	})
+	s.Require().NoError(err)
+
+	// only grant2 should exist
+	err = s.resourceManager.InTransaction(func() {
+		actual, err := db.NewQuery().
+			WithBuilder(s.resourceManager.GetBuilder()).
+			From(&storage.DBGrant{}).
+			Select(db.NewIncludeMask("id")).
+			Fetch()
+		s.Require().NoError(err)
+
+		expected := []db.Model{&storage.DBGrant{Id: grant2.Id}}
+		s.Assert().Equal(expected, actual)
+	})
+	s.Require().NoError(err)
+
+	// delete on non-existent cbsd should not return an error
+	_, err = storage.WithinTx(s.database, func(tx *sql.Tx) (interface{}, error) {
+		return nil, s.amcManager.DeleteGrant(tx, grant1)
+	})
+	s.Require().NoError(err)
+}
+
 func (s *AmcManagerTestSuite) TestUpdateCbsd() {
 	stateId := s.enumMaps[storage.CbsdStateTable][unregistered]
 	cbsd := storage.DBCbsd{
