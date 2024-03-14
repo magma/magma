@@ -5,6 +5,22 @@
       "version-1.8.0-basics/prerequisites",
       "version-1.8.0-basics/quick_start_guide"
     ],
+    "Tutorials": [
+      {
+        "type": "subcategory",
+        "label": "Operate your own private mobile network with Charmed Magma",
+        "ids": [
+          "version-1.8.0-tutorials/00_overview",
+          "version-1.8.0-tutorials/01_getting_started",
+          "version-1.8.0-tutorials/02_deploying_magma_orchestrator",
+          "version-1.8.0-tutorials/03_deploying_magma_agw",
+          "version-1.8.0-tutorials/04_integrating_agw_with_orc8r",
+          "version-1.8.0-tutorials/05_deploying_the_radio_simulator",
+          "version-1.8.0-tutorials/06_simulating_user_traffic",
+          "version-1.8.0-tutorials/06_destroying_the_env"
+        ]
+      }
+    ],
     "Usage": [
       {
         "type": "subcategory",
@@ -97,6 +113,7 @@
           "version-1.8.0-lte/deploy_config_agw",
           "version-1.8.0-lte/deploy_config_enodebd",
           "version-1.8.0-lte/deploy_config_apn",
+          "version-1.8.0-lte/deploy_agw_using_juju",
           "version-1.8.0-lte/build_install_magma_pkg_in_agw"
         ]
       },
