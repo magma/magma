@@ -70,3 +70,5 @@ We wish to acknowledge valuable disclosures by the following security researcher
 
 - Guarang Maheta
 - Phi Trần
+
+We are especially indebted to Nathaniel Bennett of the University of Florida for his deep and broad security review of the MME.
