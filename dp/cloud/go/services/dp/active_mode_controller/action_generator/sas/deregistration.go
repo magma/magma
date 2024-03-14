@@ -14,10 +14,15 @@ limitations under the License.
 package sas
 
 import (
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/storage"
 )
 
 type DeregistrationRequestGenerator struct{}
+
+func (*DeregistrationRequestGenerator) GenerateActions(_ *storage.DetailedCbsd) []action.Action {
+	return []action.Action{}
+}
 
 func (*DeregistrationRequestGenerator) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {
 	payload := &DeregistrationRequest{
