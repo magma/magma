@@ -98,7 +98,7 @@ router.post(
             name: string;
             description: string;
             fegNetworkID?: string;
-            networkType: string;
+            networkType: typeof CWF | typeof FEG | typeof FEG_LTE | typeof LTE;
             servedNetworkIDs?: string;
           };
         }
@@ -107,13 +107,17 @@ router.post(
     ) => {
       const {networkID, data} = req.body;
       const {name, description} = data;
-      const allowedNetworkTypes = ['LTE', 'FEG_LTE', 'CWF', 'FEG'];
-
-      if (!allowedNetworkTypes.includes(data.networkType?.toUpperCase())) {
+      const allowedNetworkTypes: Array<typeof data['networkType']> = [
+        LTE,
+        FEG_LTE,
+        CWF,
+        FEG,
+      ];
+      if (!allowedNetworkTypes.includes(data.networkType)) {
         res
           .status(400)
           .send(
-            `please provide a valid network type like: LTE, FEG_LTE, CWF or FEG`,
+            `please provide a valid network type like: lte, feg_lte, feg or carrier_wifi_network`,
           )
           .end();
         return;
@@ -185,10 +189,7 @@ router.post(
             },
           });
         } else {
-          res
-            .status(400)
-            .send(`Unsupported network type ${data.networkType}`)
-            .end();
+          res.status(400).send(`Unsupported network type}`).end();
           return;
         }
 
