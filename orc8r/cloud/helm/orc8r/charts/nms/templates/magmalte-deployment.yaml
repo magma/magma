@@ -109,6 +109,8 @@ spec:
                   key: MYSQL_USER
             - name: USER_GRAFANA_ADDRESS
               value: {{ .Values.magmalte.env.grafana_address }}
+            - name: VERSION_TAG
+              value: {{ .Values.magmalte.image.tag }}
           livenessProbe:
             exec:
               command:
