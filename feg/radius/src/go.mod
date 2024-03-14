@@ -10,7 +10,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/go-redis/redis v6.15.5+incompatible
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.3.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.12.2
@@ -18,8 +18,8 @@ require (
 	go.opencensus.io v0.22.4
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.18.1
-	google.golang.org/grpc v1.43.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/grpc v1.53.0
+	google.golang.org/protobuf v1.28.1
 	layeh.com/radius v0.0.0-20210819152912-ad72663a72ab
 	magma/orc8r/lib/go v0.0.0
 )
@@ -27,7 +27,7 @@ require (
 require (
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -45,7 +45,7 @@ require (
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
