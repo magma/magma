@@ -22,10 +22,10 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
-COMMIT_DATE=20190423
+COMMIT_DATE=20221118
 # index of the commit from a particular date, start from 0
 COMMIT_INDEX=0
-COMMIT=f12568d6
+COMMIT=ebed802
 # 0~ makes the version compatible with real version numbers
 # 0~20160721+c3~r43c4a295 < 0~20160721+c5~r43c4a295 < 0~20160722+c0~r43c4a295 < 0.1
 ITERATION=0
@@ -64,7 +64,7 @@ if [ -d ${WORK_DIR} ]; then
 fi
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
-git clone https://gitlab.eurecom.fr/oai/asn1c.git
+git clone https://github.com/mouse07410/asn1c.git
 cd asn1c
 git checkout ${COMMIT} .
 
