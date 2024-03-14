@@ -70,6 +70,10 @@ meter:
   poll_interval: 5
   idle_timeout: 0
 
+conntrackd:
+  enabled: false
+  zone: 897
+
 enforcement:
   poll_interval: 5
   default_drop_flow_name: 'internal_default_drop_flow_rule'
