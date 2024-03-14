@@ -12,7 +12,7 @@
 ################################################################################
 
 locals {
-  region = "us-west-2"
+  region = "ap-south-1"
 }
 
 module "orc8r" {
@@ -24,36 +24,37 @@ module "orc8r" {
 
   # If you performing a fresh Orc8r install, choose a recent Postgres version
   # orc8r_db_engine_version     = "12.6"
-  orc8r_db_password = "mypassword" # must be at least 8 characters
+  orc8r_db_password = "password" # must be at least 8 characters
 
   setup_cert_manager = false
 
   secretsmanager_orc8r_secret = "orc8r-secrets"
-  orc8r_domain_name           = "orc8r.example.com"
+  orc8r_domain_name           = "orc8r.magmacore.link"
 
-  orc8r_sns_email             = "admin@example.com"
+  orc8r_sns_email             = "admin@magmacore.link"
   enable_aws_db_notifications = true
 
   vpc_name     = "orc8r"
   cluster_name = "orc8r"
 
-  deploy_elasticsearch          = true
-  elasticsearch_domain_name     = "orc8r-es"
-  elasticsearch_version         = "7.7"
-  elasticsearch_instance_type   = "t2.medium.elasticsearch"
-  elasticsearch_instance_count  = 2
-  elasticsearch_az_count        = 2
-  elasticsearch_ebs_enabled     = true
-  elasticsearch_ebs_volume_size = 32
-  elasticsearch_ebs_volume_type = "gp2"
+  deploy_elasticsearch = true
+
+  deploy_elasticsearch_service_linked_role = false
 }
 
 module "orc8r-app" {
   # Change this to pull from GitHub with a specified ref, e.g.
-  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.6"
+  # source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.8"
   source = "../.."
 
   region = local.region
+
+  cluster_name            = module.orc8r.cluster_name
+  vpc_id                  = module.orc8r.vpc_id
+  subnets                 = module.orc8r.subnets
+  node_security_group_id  = module.orc8r.node_security_group_id
+  oidc_provider_arn       = module.orc8r.oidc_provider_arn
+  cluster_oidc_issuer_url = module.orc8r.cluster_oidc_issuer_url
 
   orc8r_domain_name     = module.orc8r.orc8r_domain_name
   orc8r_route53_zone_id = module.orc8r.route53_zone_id
@@ -86,14 +87,14 @@ module "orc8r-app" {
   helm_pass      = ""
   eks_cluster_id = module.orc8r.eks_cluster_id
 
-  efs_file_system_id       = module.orc8r.efs_file_system_id
-  efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
+  # efs_file_system_id       = module.orc8r.efs_file_system_id
+  # efs_csi_driver_arn       = module.orc8r.efs_csi_driver_arn
 
   elasticsearch_endpoint       = module.orc8r.es_endpoint
   elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag             = "1.7.0"
+  orc8r_tag             = "1.8.0"
 }
 
 output "nameservers" {
