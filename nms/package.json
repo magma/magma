@@ -162,7 +162,7 @@
     "react-refresh": "^0.14.0",
     "regenerator-runtime": "^0.13.7",
     "rimraf": "^3.0.0",
-    "sqlite3": "^5.0.3",
+    "sqlite3": "^5.1.5",
     "style-loader": "^2.0.0",
     "supertest": "^6.2.4",
     "swagger-js-codegen": "^1.13.0",
