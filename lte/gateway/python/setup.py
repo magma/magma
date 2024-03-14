@@ -116,7 +116,7 @@ setup(
         'docker==4.1.0',
         'urllib3==1.26.11',
         'websocket-client>=1.3.2',
-        'requests==2.28.1',
+        'requests==2.31.0',
         'certifi>=2022.6.15',
         'idna==3.3',
         'python-dateutil>=2.8.2',
