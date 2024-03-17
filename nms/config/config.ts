@@ -23,6 +23,7 @@ export const API_HOST = process.env.API_HOST || 'magma_test.local';
 export const RATE_LIMIT_CONFIG: Partial<RateLimitOptions> = {
   windowMs: Number(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000, // 15 min default
   limit: Number(process.env.RATE_LIMIT_COUNT) || 100,
+  message: "Too many requests, please try again later.",
   standardHeaders: 'draft-7',
   legacyHeaders: false,
 };
