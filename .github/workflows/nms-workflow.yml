@@ -146,7 +146,7 @@ jobs:
       - name: run yarn test
         run: |
           cd ${MAGMA_ROOT}/nms
-          yarn add jest@^26.4.2 -W --dev
+          yarn add jest@^28.1.3 -W --dev
           yarn test:ci
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
