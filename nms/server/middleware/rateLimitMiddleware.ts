@@ -11,10 +11,9 @@
  * limitations under the License.
  *
  */
+import {RATE_LIMIT_CONFIG} from '../../config/config';
+import {rateLimit} from 'express-rate-limit';
 
-export {default as organizationMiddleware} from './organizationMiddleware';
-export {default as appMiddleware} from './appMiddleware';
-export {default as csrfMiddleware} from './csrfMiddleware';
-export {default as rateLimitMiddleware} from './rateLimitMiddleware';
-export {default as sessionMiddleware} from './sessionMiddleware';
-export {default as webpackSmartMiddleware} from './webpackSmartMiddleware';
+const limiter = rateLimit({...RATE_LIMIT_CONFIG});
+
+export {limiter as default};
