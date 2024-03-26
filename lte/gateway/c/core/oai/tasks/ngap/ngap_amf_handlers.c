@@ -927,6 +927,10 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
     asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
                       (uint64_t*)&amf_ue_ngap_id);
   } else {
+    OAILOG_ERROR(LOG_NGAP,
+                 "UE CONTEXT RELEASE REQUEST invoked with missing "
+                 "Ngap_UEContextReleaseRequest_IEs (AMF_UE_NGAP_ID). Unable to "
+                 "process the message.\n");
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
@@ -935,6 +939,10 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
   if (ie) {
     gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
   } else {
+    OAILOG_ERROR(LOG_NGAP,
+                 "UE CONTEXT RELEASE REQUEST invoked with missing "
+                 "Ngap_UEContextReleaseRequest_IEs (RAN_UE_NGAP_ID). "
+                 "Unable to process the message.\n");
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
 
@@ -944,6 +952,10 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
   if (ie) {
     cause_type = ie->value.choice.Cause.present;
   } else {
+    OAILOG_ERROR(LOG_NGAP,
+                 "UE CONTEXT RELEASE REQUEST invoked with missing "
+                 "Ngap_UEContextReleaseRequest_IEs (Cause)."
+                 " Unable to process the message.\n");
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
   switch (cause_type) {
@@ -1017,7 +1029,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
      * AMF doesn't know the AMF UE NGAP ID provided.
      * No need to do anything. Ignore the message
      */
-    OAILOG_DEBUG(
+    OAILOG_INFO(
         LOG_NGAP,
         "UE_CONTEXT_RELEASE_REQUEST ignored cause could not get context with "
         "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
@@ -1052,7 +1064,7 @@ int ngap_amf_handle_ue_context_release_request(ngap_state_t* state,
       OAILOG_FUNC_RETURN(LOG_NGAP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
-      OAILOG_DEBUG_UE(
+      OAILOG_NOTICE_UE(
           LOG_NGAP, imsi64,
           "UE_CONTEXT_RELEASE_REQUEST ignored, cause mismatch gnb_ue_ngap_id: "
           "ctxt " GNB_UE_NGAP_ID_FMT " != request " GNB_UE_NGAP_ID_FMT " ",
