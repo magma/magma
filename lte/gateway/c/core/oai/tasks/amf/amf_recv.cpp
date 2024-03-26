@@ -52,7 +52,7 @@ status_code_e amf_handle_service_request(
   uint32_t tmsi_stored;
   paging_context_t* paging_ctx = nullptr;
 
-  OAILOG_DEBUG(LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
+  OAILOG_DEBUG(LOG_AMF_APP, "Received TMSI in message : 0x%02x%02x%02x%02x",
                msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
                msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
                msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
@@ -178,6 +178,8 @@ status_code_e amf_handle_service_request(
           }
           if (!is_pdu_session_id_exist) {
             // Send prepare and send reject message.
+            OAILOG_DEBUG(LOG_AMF_APP,
+                         "No PDU Session ID found. Sending Service Reject\n");
             OAILOG_INFO(LOG_NAS_AMF, "Sending service reject");
             amf_sap.primitive = AMFAS_DATA_REQ;
             amf_sap.u.amf_as.u.data.ue_id = ue_id;
@@ -191,7 +193,7 @@ status_code_e amf_handle_service_request(
     }
   } else {
     OAILOG_WARNING(LOG_NAS_AMF,
-                   "TMSI not matched for ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+                   "TMSI not matched for ue_id=" AMF_UE_NGAP_ID_FMT "\n",
                    ue_id);
 
     // Send prepare and send reject message.
@@ -300,7 +302,6 @@ status_code_e amf_handle_registration_request(
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
-  guti_and_amf_id_t guti_and_amf_id;
   bool is_plmn_present = false;
   /*
    * Handle message checking error
@@ -350,9 +351,7 @@ status_code_e amf_handle_registration_request(
 
   // If registration type is initial registration or
   // Context is new and registration type is mobile updating start registration
-  if ((params->m5gsregistrationtype == AMF_REGISTRATION_TYPE_INITIAL) ||
-      ((is_amf_ctx_new == true) && (params->m5gsregistrationtype ==
-                                    AMF_REGISTRATION_TYPE_MOBILITY_UPDATING))) {
+  if (params->m5gsregistrationtype == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_DEBUG(LOG_NAS_AMF, "New REGISTRATION_REQUEST processing\n");
     // Check integrity and ciphering algorithm bits
     // If all bits are zero it means integrity and ciphering algorithms are not
@@ -551,6 +550,90 @@ status_code_e amf_handle_registration_request(
            << BIT_SHIFT_TMSI1);
     }
   } else if (params->m5gsregistrationtype ==
+             AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
+    OAILOG_DEBUG(
+        LOG_NAS_AMF,
+        "AMF_REGISTRATION_TYPE_MOBILITY_UPDATING processing"
+        "identity type = %d ",
+        msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
+    if (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+            M5GSMobileIdentityMsg_GUTI &&
+        !(is_amf_ctx_new)) {
+      for (uint8_t i = 0; i < amf_config.guamfi.nb; i++) {
+        if (PLMN_ARE_EQUAL(msg->m5gs_mobile_identity.mobile_identity.guti,
+                           amf_config.guamfi.guamfi[i].plmn)) {
+          is_plmn_present = true;
+        }
+      }
+      if (!is_plmn_present) {
+        delete params;
+        amf_cause = AMF_CAUSE_INVALID_MANDATORY_INFO;
+        OAILOG_ERROR(
+            LOG_NAS_AMF,
+            "UE PLMN mismatch"
+            "AMF rejecting the REGISTRATION_TYPE_MOBILITY_UPDATING with "
+            "cause : %d for UE "
+            "ID: " AMF_UE_NGAP_ID_FMT,
+            amf_cause, ue_id);
+        rc = amf_proc_registration_reject(ue_id, amf_cause);
+        amf_free_ue_context(ue_context);
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+      }
+
+      amf_copy_plmn_to_context_guti(
+          msg->m5gs_mobile_identity.mobile_identity.guti, ue_context);
+
+      /* Copying PLMN to local supi which is imsi  */
+      supi_imsi.plmn.mcc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
+      supi_imsi.plmn.mcc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit2;
+      supi_imsi.plmn.mcc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit3;
+      supi_imsi.plmn.mnc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit1;
+      supi_imsi.plmn.mnc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit2;
+      supi_imsi.plmn.mnc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit3;
+
+      amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+
+      OAILOG_DEBUG(LOG_NAS_AMF,
+                   "In process of registration mobility update: "
+                   "GUAMFI: " PLMN_FMT
+                   ".%u.%u.%u - "
+                   "new 5G-TMSI value 0x%08" PRIx32 "\n",
+                   PLMN_ARG(&amf_guti.guamfi.plmn),
+                   amf_guti.guamfi.amf_regionid, amf_guti.guamfi.amf_set_id,
+                   amf_guti.guamfi.amf_pointer, amf_guti.m_tmsi);
+
+      amf_ue_context_on_new_guti(ue_context,
+                                 reinterpret_cast<guti_m5_t*>(&amf_guti));
+      ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+
+      params->guti = new (guti_m5_t)();
+      memcpy(params->guti, &(ue_context->amf_context.m5_guti),
+             sizeof(guti_m5_t));
+
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+
+    } else {
+      // UE context is new and/or UE identity type is not GUTI
+      // add log message.
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "UE context does not exist or UE identity type is not GUTI "
+                   "Mobility Registration Update failed. Sending Registration "
+                   "Reject message\n");
+      amf_cause = AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
+      rc = amf_proc_registration_reject(ue_id, amf_cause);
+      // Haven't received 5G TMSI. Temporary context created to be cleaned up
+      if (ue_context->amf_context.m5_guti.m_tmsi == INVALID_TMSI) {
+        amf_free_ue_context(ue_context);
+      }
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
+  } else if (params->m5gsregistrationtype ==
              AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
      * This request for periodic registration update
@@ -567,8 +650,9 @@ status_code_e amf_handle_registration_request(
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
-    if (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
-        M5GSMobileIdentityMsg_GUTI) {
+    if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+         M5GSMobileIdentityMsg_GUTI) &&
+        !(is_amf_ctx_new)) {
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
           msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
@@ -606,6 +690,12 @@ status_code_e amf_handle_registration_request(
           LOG_AMF_APP,
           "UE context was not existing or UE identity type is not GUTI "
           "Periodic Registration Update failed and sending reject message\n");
+      amf_cause = AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED;
+      rc = amf_proc_registration_reject(ue_id, amf_cause);
+      // Haven't received 5G TMSI. Temporary context created to be cleaned up
+      if (ue_context->amf_context.m5_guti.m_tmsi == INVALID_TMSI) {
+        amf_free_ue_context(ue_context);
+      }
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
   } else {
