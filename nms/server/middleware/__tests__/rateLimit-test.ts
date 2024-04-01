@@ -26,6 +26,10 @@ const config = {
   },
 };
 
+Object.defineProperty(global, "performance", {
+  writable: true,
+});
+
 jest.useFakeTimers();
 jest.mock('../../../config/config', () => config);
 
