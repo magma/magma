@@ -26,7 +26,7 @@ const config = {
   },
 };
 
-Object.defineProperty(global, "performance", {
+Object.defineProperty(global, 'performance', {
   writable: true,
 });
 
