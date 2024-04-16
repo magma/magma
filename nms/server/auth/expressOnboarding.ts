@@ -17,6 +17,7 @@ import {NextFunction, Request, RequestHandler, Response, Router} from 'express';
 import {Organization, User} from '../../shared/sequelize_models';
 import {UserRawType} from '../../shared/sequelize_models/models/user';
 import {getPropsToUpdate} from './util';
+import {rateLimitMiddleware} from '../middleware';
 
 export default function () {
   const asyncOnboardingMiddleware = async (
@@ -51,6 +52,7 @@ export default function () {
 
   router.post(
     '/onboarding',
+    rateLimitMiddleware,
     onboardingMiddleware,
     async (req: Request<never, any, Partial<UserRawType>>, res) => {
       try {

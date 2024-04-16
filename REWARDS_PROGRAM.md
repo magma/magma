@@ -28,7 +28,7 @@ The leader of the working group who proposed the reward eligible issue has a wei
 
 Once approved, rewards are paid via a Github sponsorship one-time payment.
 
-### List Of Reward Eligible GIthub Issues
+### List Of Reward Eligible Github Issues
 
 |Link To Issue|Complexity|Working Group Sponsor|Status|
 |---|---|---|---|---|---|
