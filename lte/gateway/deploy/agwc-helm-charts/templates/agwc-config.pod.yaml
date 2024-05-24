@@ -42,6 +42,20 @@ spec:
           name: agwc-secret
         - mountPath: /configs
           name: controlproxy-config
+  initContainers:
+  - name: init-modprobe-vport-gtp
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    image: alpine:latest
+    command:
+    - /bin/sh
+    - -c
+    - modprobe -r openvswitch || true && modprobe vport-gtp
+    securityContext:
+      privileged: true
+    volumeMounts:
+      - mountPath: /lib/modules
+        name: lib-modules
+        readOnly: true
   restartPolicy: Never
   hostNetwork: true
   volumes:
@@ -58,3 +72,6 @@ spec:
     - name: controlproxy-config
       configMap:
         name: controlproxy-config
+    - name: lib-modules
+      hostPath:
+        path: /lib/modules
