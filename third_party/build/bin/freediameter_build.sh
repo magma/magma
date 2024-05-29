@@ -15,7 +15,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 PATCHES_DIR="${SCRIPT_DIR}/../../../lte/gateway/c/core/oai/patches"
 source "${SCRIPT_DIR}"/../lib/util.sh
-GIT_URL=https://github.com/lionelgo/opencord.org.freeDiameter.git
+GIT_URL=https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git
 GIT_COMMIT=13b0e7de0d66906d50e074a339f890d6e59813ad
 PKGVERSION=0.0.1
 ITERATION=1
