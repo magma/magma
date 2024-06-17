@@ -56,7 +56,7 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/services/openvswitch/Dockerfile
-    image: gateway_ovs
+    image: ${DOCKER_REGISTRY}agw_gateway_ovs${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
     profiles: [ ovs ]
     privileged: true
     container_name: openvswitch-switch
@@ -430,6 +430,8 @@ services:
   waitForHealthyPods:
     image: alpine:latest
     depends_on:
+      gateway_ovs:
+        condition: service_healthy
       magmad:
         condition: service_healthy
       redis:

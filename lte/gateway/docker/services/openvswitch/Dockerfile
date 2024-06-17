@@ -39,15 +39,8 @@ RUN apt-get update && apt-get install -y \
     openvswitch-switch \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN mkdir -p /etc/openvswitch/
-# RUN mkdir -p /var/run/openvswitch/
-
-COPY --chmod=755 lte/gateway/docker/services/openvswitch/entrypoint.sh /entrypoint.sh
-
 # Copy necessary files for ovs
-# RUN mkdir -p /etc/network/interfaces.d
-COPY lte/gateway/docker/services/openvswitch/magma_ifaces_gtp /etc/network/interfaces.d/gtp
-COPY lte/gateway/docker/services/openvswitch/magma_modules_load /etc/modules-load.d/magma.conf
-COPY lte/gateway/docker/services/openvswitch/magma-bridge-reset.sh /usr/local/bin/
+COPY --chmod=755 lte/gateway/docker/services/openvswitch/healthcheck.sh /usr/local/bin/
+COPY --chmod=755 lte/gateway/docker/services/openvswitch/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ] 
