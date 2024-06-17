@@ -56,8 +56,9 @@
 int decode_access_point_name_ie(access_point_name_t* access_point_name,
                                 bool is_ie_present, uint8_t* buffer,
                                 const uint32_t len) {
+  int signed_len = len;
   int decoded = 0;
-  uint8_t ielen = 0;
+  int ielen = 0;
 
   *access_point_name = NULL;
 
@@ -73,13 +74,16 @@ int decode_access_point_name_ie(access_point_name_t* access_point_name,
 
   ielen = *(buffer + decoded);
   decoded++;
-  CHECK_LENGTH_DECODER(len - decoded, ielen);
+  CHECK_LENGTH_DECODER(signed_len - decoded, ielen);
 
   if (1 <= ielen) {
     int length_apn = *(buffer + decoded);
     decoded++;
+    CHECK_LENGTH_DECODER(ielen, length_apn + 1);
+    // ^ ielen <= (signed_len - decoded), so that is implicitly checked here too
     *access_point_name = blk2bstr((void*)(buffer + decoded), length_apn);
     decoded += length_apn;
+
     ielen = ielen - 1 - length_apn;
     while (1 <= ielen) {
       bconchar(*access_point_name, '.');
@@ -89,9 +93,10 @@ int decode_access_point_name_ie(access_point_name_t* access_point_name,
 
       // apn terminated by '.' ?
       if (length_apn > 0) {
-        AssertFatal(ielen >= length_apn,
-                    "Mismatch in lengths remaining ielen %d apn length %d",
-                    ielen, length_apn);
+        if (ielen < length_apn) {
+          // Mismatch in lengths remaining between IE length and APN length
+          return TLV_OCTET_STRING_TOO_LONG_FOR_IEI;
+        }
         bcatblk(*access_point_name, (void*)(buffer + decoded), length_apn);
         decoded += length_apn;
         ielen = ielen - length_apn;
@@ -236,6 +241,10 @@ int decode_protocol_configuration_options(
   protocolconfigurationoptions->num_protocol_or_container_id = 0;
 
   while (3 <= ((int32_t)len - (int32_t)decoded)) {
+    if (protocolconfigurationoptions->num_protocol_or_container_id >=
+        PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID) {
+      return TLV_UNEXPECTED_IEI;  // Maximum 30 options
+    }
     DECODE_U16(
         buffer + decoded,
         protocolconfigurationoptions
@@ -492,14 +501,14 @@ int encode_quality_of_service_ie(quality_of_service_t* qualityofservice,
 //------------------------------------------------------------------------------
 int encode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
                         uint8_t* buffer, const uint32_t len) {
-  Fatal("TODO Implement encode_linked_ti_ie");
-  return -1;
+  // Implement encode_linked_ti_ie
+  return TLV_PROTOCOL_NOT_SUPPORTED;
 }
 
 int decode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
                         uint8_t* buffer, const uint32_t len) {
-  Fatal("TODO Implement decode_linked_ti_ie");
-  return -1;
+  // Implement decode_linked_ti_ie
+  return TLV_PROTOCOL_NOT_SUPPORTED;
 }
 
 //------------------------------------------------------------------------------
@@ -618,6 +627,11 @@ static int decode_traffic_flow_template_packet_filter(
     packet_filter_t* packetfilter, const uint8_t* const buffer,
     const uint32_t len) {
   int decoded = 0, j;
+  int signed_len = len;
+
+  if (len < 3) {
+    return TLV_BUFFER_TOO_SHORT;
+  }
 
   if (len - decoded <= 0) {
     /*
@@ -654,6 +668,10 @@ static int decode_traffic_flow_template_packet_filter(
    * Packet filter contents
    */
   int pkfstart = decoded;
+
+  if (len < pkfstart + pkflen) {
+    return TLV_BUFFER_TOO_SHORT;
+  }
 
   while (decoded - pkfstart < pkflen) {
     /*
@@ -803,7 +821,7 @@ static int decode_traffic_flow_template_packet_filter(
     }
   }
 
-  if (len - decoded < 0) {
+  if (signed_len - decoded < 0) {
     /*
      * Decoded more than remaining space in decoding buffer
      */
