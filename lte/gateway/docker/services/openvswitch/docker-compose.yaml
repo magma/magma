@@ -7,13 +7,19 @@ services:
     image: ovs
     privileged: true # remove this after debug!
     container_name: openvswitch-switch
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh" ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      # - /etc/network/interfaces.d/gtp:/etc/network/interfaces.d/gtp:ro
-      - /var/run/openvswitch/:/var/run/openvswitch/
-      # - /usr/src:/usr/src
-      - /lib/modules:/lib/modules
+      - /etc/network:/etc/network # shared ifupdown files with the host
+      - /var/run/openvswitch/:/var/run/openvswitch/ # run time files shared between ovs and magmad
+      - /lib/modules:/lib/modules # used to load/unload modules in hosts kernel
+      - /etc/openvswitch:/etc/openvswitch
     cap_add:
       - NET_ADMIN
       - SYS_MODULE

@@ -74,14 +74,17 @@ firstrun=0
 
 if [ $firstrun -ne 0 ]; then
   # create database
+  echo "Creating the ovs service database"
   ovsdb-tool create /etc/openvswitch/conf.db /usr/share/openvswitch/vswitch.ovsschema
 fi
 
 # Check if openvswitch kernel modules are loaded
-assert_kernel_mod openvswitch
 assert_kernel_mod vport_gtp
 
 check_mod_version
+
+# Give some time for the module to load
+sleep 5
 
 # Start openvswitch daemons
 if [ ! -d "/var/log/openvswitch" ]; then
@@ -93,32 +96,13 @@ if [ ! -d "/var/run/openvswitch" ]; then
 fi
 
 echo "Starting service openvswitch-switch"
-ovsdb-server --detach --pidfile --remote=punix:/var/run/openvswitch/db.sock \
-             --log-file --verbose=off:syslog
-ovs-vswitchd --detach --pidfile --log-file --verbose=off:syslog
+/usr/share/openvswitch/scripts/ovs-ctl start --system-id=random || exit 1
 
 # Activate bridge interfaces
 echo "Activating bridge interfaces"
-ifup --allow=ovs $(ifquery --allow ovs --list)
+ifup --force --allow=ovs $(ifquery --allow ovs --list)
+ifup --force mtr0
 sleep 1
-ifup --allow=ovs $(ifquery --allow gtp_br0 --list)
-sleep 1
-ifup --allow=ovs $(ifquery --allow uplink_br0 --list)
-
-# echo "Bring up gtp_br0"
-# ifup gtp_br0
-
-# echo "Bring up uplink_br0"
-# ifup uplink_br0
-
-# echo "Bring up mtr0"
-# ifup mtr0
-
-# echo "Bring up ipfix0"
-# ifup ipfix0
-
-# echo "Bring up dhcp0"
-# ifup dhcp0
 
 while [ $run ]; do
 	sleep .1
