@@ -25,14 +25,15 @@ RUN apt-get -q update && \
     iputils-clockdiff \
     iputils-ping \
     iputils-tracepath \
-    vim \
-    ifupdown
+    bridge-utils \
+    ifupdown \
+    vim
 
 ## Add the magma apt repo and install the custom openvswitch modules
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN apt-get update && apt-get install -y \
-    linux-headers-"$(uname -r)" \
+    linux-headers-5.4.0-182-generic \
     libopenvswitch \
     openvswitch-common \
     openvswitch-datapath-dkms \

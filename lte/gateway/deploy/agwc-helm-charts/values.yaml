@@ -19,9 +19,9 @@ image:
   repository: 10.0.3.1:5005
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "feg_cwf_arm_port_1a65c34"
+  tag: "exp_ovs_init_container_d895aa3b"
   # Arch is blank for x86 and _arm for ARM64
-  arch: ""
+  arch: "_arm"
 
 config:
   domainName: magmacore.local
