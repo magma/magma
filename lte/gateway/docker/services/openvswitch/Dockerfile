@@ -11,6 +11,8 @@ ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
 
+ENV LINUX_HEADERS_VER 5.4.0-186-generic
+
 ## Install packages
 RUN apt-get -q update && \
     apt-get -y -q --no-install-recommends install \
@@ -33,11 +35,11 @@ RUN apt-get -q update && \
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
 RUN apt-get update && apt-get install -y \
-    linux-headers-5.4.0-182-generic \
     libopenvswitch \
     openvswitch-common \
-    openvswitch-datapath-dkms \
     openvswitch-switch \
+    linux-headers-${LINUX_HEADERS_VER} \
+    openvswitch-datapath-dkms \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy necessary files for ovs

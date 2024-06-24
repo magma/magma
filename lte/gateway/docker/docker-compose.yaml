@@ -60,6 +60,7 @@ services:
     profiles: [ ovs ]
     privileged: true
     container_name: openvswitch-switch
+    command: "load-modules-and-start-ovs"
     healthcheck:
       test: [ "CMD", "healthcheck.sh" ]
       interval: 30s

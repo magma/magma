@@ -50,10 +50,6 @@ spec:
           hostPath:
             path: /etc/openvswitch
             type: Directory
-        - name: lib-modules
-          hostPath:
-            path: /lib/modules
-            type: Directory
         
       containers:
       -
@@ -61,8 +57,9 @@ spec:
 {{- end -}}
 {{- define "openvswitch-switch.container" -}}
 name: openvswitch-switch
-command: ["/entrypoint.sh"]
+command: ["/entrypoint.sh", "start-ovs-only"]
 image: "{{ .Values.image.repository }}/agw_gateway_ovs{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+imagePullPolicy: {{ .Values.image.pullPolicy }}
 securityContext:
   privileged: true
   capabilities:
@@ -70,6 +67,7 @@ securityContext:
       - NET_ADMIN
       - NET_RAW
       - SYS_MODULE
+
 volumeMounts:
   - mountPath: /etc/magma
     name: magma-config
@@ -83,6 +81,4 @@ volumeMounts:
     name: etc-network-volume
   - mountPath: /etc/openvswitch
     name: etc-openvswitch
-  - mountPath: /lib/modules
-    name: lib-modules
 {{- end -}}
