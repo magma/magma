@@ -14,10 +14,15 @@ limitations under the License.
 package sas
 
 import (
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/storage"
 )
 
 type RelinquishmentRequestGenerator struct{}
+
+func (*RelinquishmentRequestGenerator) GenerateActions(_ *storage.DetailedCbsd) []action.Action {
+	return []action.Action{}
+}
 
 func (*RelinquishmentRequestGenerator) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {
 	reqs := make([]*storage.MutableRequest, len(cbsd.Grants))
