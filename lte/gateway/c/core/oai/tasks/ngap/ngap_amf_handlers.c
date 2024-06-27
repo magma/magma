@@ -393,6 +393,9 @@ status_code_e ngap_amf_handle_ng_setup_request(ngap_state_t* state,
 
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie, container,
                              Ngap_ProtocolIE_ID_id_GlobalRANNodeID, true);
+  if (!ie) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
   if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.present ==
       Ngap_GNB_ID_PR_gNB_ID) {
     gnb_id = BIT_STRING_to_uint32(&ie->value.choice.GlobalRANNodeID.choice
@@ -412,6 +415,9 @@ status_code_e ngap_amf_handle_ng_setup_request(ngap_state_t* state,
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie_supported_tas,
                              container, Ngap_ProtocolIE_ID_id_SupportedTAList,
                              true);
+  if (!ie_supported_tas) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
 
   ta_ret = ngap_amf_compare_ta_lists(
       &ie_supported_tas->value.choice.SupportedTAList);
@@ -498,6 +504,9 @@ status_code_e ngap_amf_handle_ng_setup_request(ngap_state_t* state,
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie_default_paging_drx,
                              container, Ngap_ProtocolIE_ID_id_DefaultPagingDRX,
                              true);
+  if (!ie_default_paging_drx) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
 
   gnb_association->default_paging_drx =
       ie_default_paging_drx->value.choice.PagingDRX;
@@ -1690,6 +1699,9 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceReleaseResponseIEs_t, ie,
                              container, Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID,
                              true);
+  if (!ie) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
                     (uint64_t*)&amf_ue_ngap_id);
 
@@ -1705,6 +1717,9 @@ status_code_e ngap_amf_handle_pduSession_release_response(
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceReleaseResponseIEs_t, ie,
                              container, Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID,
                              true);
+  if (!ie) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
   // gNB UE NGAP ID is limited to 24 bits
   gnb_ue_ngap_id = (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID);
 
@@ -2289,6 +2304,9 @@ status_code_e ngap_amf_handle_gnb_reset(ngap_state_t* state,
 
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGResetIEs_t, ie, container,
                              Ngap_ProtocolIE_ID_id_ResetType, true);
+  if (!ie) {
+    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
+  }
 
   Ngap_ResetType_t* resetType = &ie->value.choice.ResetType;
 
