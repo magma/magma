@@ -196,6 +196,34 @@ on UE or the server (on SGi side of the network) while debugging the issue.
     the trace output in a github issue.
 15. If this document does not help to debug the issue, please post output of
     all steps in new github issue.
+16. Check whether GTP port `2152` is listening or not by using `sudo netstat -a|grep 2152`.
+    If it is not listening, check the `OVS` status using `sudo ovs-vsctl show`.
+17. If the below error is observed by running `sudo ovs-vsctl show`
+
+```Port gtp0
+   Interface gtp0
+   type: gtp
+   options: {key=flow, remote_ip=flow}
+   error: "could not add network device gtp0 to ofproto (Address family not supported by protocol)"
+```
+
+   Then GTP tunnel type needs to change from `gtp` to `gtpu` in the
+   `/etc/network/interfaces.d/gtp` file.
+18. OVS debug logging can be dynamically enabled by ```sudo ovs-appctl vlog/set dbg```.
+
+```sudo ovs-appctl vlog/set netdev dbg
+   sudo ovs-appctl vlog/set ofproto dbg
+   sudo ovs-appctl vlog/set vswitchd dbg
+   sudo ovs-appctl vlog/set dpif dbg
+```
+
+   For a specific module.
+19. To debug the traffic issues in fastpath, enable the OVS debug logging and check the logs using ```sudo dmesg```.
+20. Stop and start the `OVS Service` using the below commands:
+
+```sudo /usr/share/openvswitch/scripts/ovs-ctl stop
+   sudo /usr/share/openvswitch/scripts/ovs-ctl start
+```
 
 ## Intermittent packets drop
 

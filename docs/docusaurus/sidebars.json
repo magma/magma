@@ -310,7 +310,8 @@
           "lte/extended_5g_sa_features",
           "lte/suci_extensions",
           "lte/redirectd",
-          "lte/readme_callflow"
+          "lte/readme_callflow",
+          "lte/GTPU_Extension_Header"
         ]
       },
       {
