@@ -1,0 +1,13 @@
+---
+
+- name: Set up an iperf3 trfserver machine
+  hosts: iperfserver
+  become: true
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: true
+    full_provision: true
+
+  roles:
+    - role: trfserver
