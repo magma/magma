@@ -161,7 +161,10 @@ func (r *queryRunner) getState() ([]*DetailedCbsd, error) {
 			Select(db.NewIncludeMask("grant_id", "heartbeat_interval", "last_heartbeat_request_time", "low_frequency", "high_frequency")).
 			Join(db.NewQuery().
 				From(&DBGrantState{}).
-				On(db.On(GrantTable, "state_id", GrantStateTable, "id")).
+				On(sq.And{
+					db.On(GrantTable, "state_id", GrantStateTable, "id"),
+					sq.NotEq{GrantStateTable + ".name": "idle"},
+				}).
 				Select(db.NewIncludeMask("name"))).
 			Nullable()).
 		Nullable().

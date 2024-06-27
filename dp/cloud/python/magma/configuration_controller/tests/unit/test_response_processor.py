@@ -17,9 +17,6 @@ import responses
 from magma.configuration_controller.response_processor.response_db_processor import (
     ResponseDBProcessor,
 )
-from magma.configuration_controller.response_processor.strategies.response_processing import (
-    unset_frequency,
-)
 from magma.configuration_controller.response_processor.strategies.strategies_mapping import (
     processor_strategies,
 )
@@ -28,6 +25,7 @@ from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBGrant,
+    DBGrantState,
     DBRequest,
     DBRequestType,
 )
@@ -164,18 +162,18 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
 
     @parameterized.expand([
         (GRANT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.GRANTED.value]),
-        (GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, []),
+        (GRANT_REQ, ResponseCodes.INTERFERENCE.value, None, [GrantStates.IDLE.value]),
         (
             GRANT_REQ, ResponseCodes.GRANT_CONFLICT.value,
             ['test_grant_id_for_1', 'test_grant_id_for_2'],
             [GrantStates.GRANTED.value, GrantStates.UNSYNC.value],
         ),
-        (GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, []),
+        (GRANT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [GrantStates.IDLE.value]),
         (HEARTBEAT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.AUTHORIZED.value]),
-        (HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, []),
+        (HEARTBEAT_REQ, ResponseCodes.TERMINATED_GRANT.value, None, [GrantStates.IDLE.value]),
         (HEARTBEAT_REQ, ResponseCodes.SUSPENDED_GRANT.value, None, [GrantStates.GRANTED.value]),
         (HEARTBEAT_REQ, ResponseCodes.UNSYNC_OP_PARAM.value, None, [GrantStates.UNSYNC.value]),
-        (RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, []),
+        (RELINQUISHMENT_REQ, ResponseCodes.SUCCESS.value, None, [GrantStates.IDLE.value]),
     ])
     @responses.activate
     def test_preexisting_grant_state_after_response(
@@ -186,9 +184,10 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         db_requests = self._create_db_requests(request_type_name, requests_fixtures)
 
         grant_id = db_requests[0].payload.get('grantId') or "test_grant_id_for_1"
+        grant_state_id = self._get_db_enum(DBGrantState, GrantStates.GRANTED.value).id
         grant = DBGrant(
             cbsd=db_requests[0].cbsd,
-            state_id=1,
+            state_id=grant_state_id,
             grant_id=grant_id,
             low_frequency=3560000000,
             high_frequency=3580000000,
@@ -421,44 +420,6 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
             self.assertTrue(state.name == expected_cbsd_sate)
             for state in states
         ]
-
-    @parameterized.expand([
-        (None, 3560000000, 3580000000, None),
-        ([0b1111, 0b110, 0b1100, 0b1010], 3562500000, 3567500000, [0b0111, 0b110, 0b1100, 0b1010]),  # 5 MHz bw
-        ([0b0, 0b110, 0b1100, 0b1010], 3550000000, 3560000000, [0b0, 0b100, 0b1100, 0b1010]),  # 10 MHz bw
-        ([0b0, 0b110, 0b1111100, 0b1010], 3572500000, 3587500000, [0b0, 0b110, 0b0111100, 0b1010]),  # 15 MHz bw
-        ([0b0, 0b110, 0b1111100, 0b10101], 3560000000, 3580000000, [0b0, 0b110, 0b1111100, 0b00101]),  # 20 MHz bw
-    ])
-    def test_unset_frequency(self, orig_avail_freqs, low_freq, high_freq, expected_avail_freq):
-        # Given
-        cbsd = DBCbsd(
-            cbsd_id="some_cbsd_id",
-            fcc_id="some_fcc_id",
-            cbsd_serial_number="some_serial_number",
-            user_id="some_user_id",
-            state_id=1,
-            desired_state_id=1,
-            available_frequencies=orig_avail_freqs,
-        )
-
-        grant = DBGrant(
-            cbsd=cbsd,
-            state_id=1,
-            grant_id="some_grant_id",
-            low_frequency=low_freq,
-            high_frequency=high_freq,
-            max_eirp=15,
-        )
-
-        self.session.add_all([cbsd, grant])
-        self.session.commit()
-
-        # When
-        unset_frequency(grant)
-        cbsd = self.session.query(DBCbsd).filter(DBCbsd.id == cbsd.id).scalar()
-
-        # Then
-        self.assertEqual(expected_avail_freq, cbsd.available_frequencies)
 
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
