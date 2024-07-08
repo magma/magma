@@ -46,7 +46,7 @@ int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
   }
 
   DECODE_LENGTH_U16(buffer + decoded, ielen, decoded);
-  CHECK_LENGTH_DECODER(len - decoded, ielen);
+  CHECK_LENGTH_DECODER(static_cast<int>(len) - decoded, ielen);
 
   if ((decode_result = decode_bstring(esmmessagecontainer, ielen,
                                       buffer + decoded, len - decoded)) < 0) {
