@@ -60,7 +60,7 @@ For `image.arch`, use `arm` or leave blank for x86
 # Create rootca certificate secret needed to communicate with orc8r
 
 ```sh
-~ kubectl create secret generic agwc-secret-certs --from-file=rootCA.pem=rootCA.pem --namespace magma
+~ kubectl create secret generic agwc-secret-certs --from-file=rootCA.pem --namespace magma
 ```
 
 # Deploy an AGW after updating values.yaml

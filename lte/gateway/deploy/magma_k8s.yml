@@ -1,3 +1,4 @@
+---
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -8,26 +9,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-namespace: magma
 
-# Define which secrets should be mounted by pods.
-secret:
-  certs: agwc-secret-certs
+- name: Deploy kubernetes to the hosts
+  hosts: all
+  become: yes
+  roles:
+    - role: agw_kube_deploy
 
-image:
-  repository: docker.io/ektrumdev
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "exp_magma_kube"
-  # Arch is blank for x86 and _arm for ARM64
-  arch: "_arm"
+- name: Setup master node
+  hosts: master
+  become: yes
+  roles:
+    - role: agw_kube_master
 
-config:
-  domainName: magmacore.local
-  gwChallenge: 
-
-persistant:
-  name: agwc-claim
-
-ressources:
+- name: Setup worker node
+  hosts: workers
+  become: yes
+  roles:
+    - role: agw_kube_worker

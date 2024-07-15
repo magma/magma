@@ -27,8 +27,12 @@ load_kernel_mod() {
   if [[ $? -ne 0 ]]; then
     echo "WARNING: Unable to dynamically load kernel module $module."
     echo "Attempting to build and install dkms module."
-    OVS_DATAPATH_MOD_VER=$(dkms status | awk -F'[,]' '{print $2}')
-    dkms install -m openvswitch -v $OVS_DATAPATH_MOD_VER -k $LINUX_HEADERS_VER
+    OVS_DATAPATH_MOD_VER=$(dkms status | grep openvswitch | sed "s/:.*//" | awk -F'[,]' '{print $2}')
+    echo "Datapath module version is $OVS_DATAPATH_MOD_VER"
+    dkms install -m openvswitch -v $OVS_DATAPATH_MOD_VER
+    if [[ $? -ne 0 ]]; then
+      exit 1
+    fi
     check_mod_version
     modprobe -v "$module"
     if [[ $? -eq 0 ]]; then
@@ -93,13 +97,10 @@ start_ovs () {
     echo "Creating the ovs service database"
     ovsdb-tool create /etc/openvswitch/conf.db /usr/share/openvswitch/vswitch.ovsschema
   fi
+  
   # Start openvswitch daemons
   if [ ! -d "/var/log/openvswitch" ]; then
-  mkdir -p /var/log/openvswitch
-  fi
-
-  if [ ! -d "/var/run/openvswitch" ]; then
-  mkdir -p /var/run/openvswitch
+    mkdir -p /var/log/openvswitch
   fi
 
   echo "Starting service openvswitch-switch"

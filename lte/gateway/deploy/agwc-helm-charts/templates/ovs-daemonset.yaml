@@ -33,6 +33,7 @@ spec:
         - name: ovs-daemonset
           image: "{{ .Values.image.repository }}/agw_gateway_ovs{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # imagePullPolicy: Always
           command: ["/entrypoint.sh", "load-modules-only"]
           resources: {}
           securityContext:
@@ -45,8 +46,13 @@ spec:
           volumeMounts:
             - mountPath: /lib/modules
               name: lib-modules
+            - mountPath: /usr/src
+              name: usr-src
           hostNetwork: true
       volumes:
         - name: lib-modules
           hostPath:
             path: /lib/modules
+        - name: usr-src
+          hostPath:
+            path: /usr/src

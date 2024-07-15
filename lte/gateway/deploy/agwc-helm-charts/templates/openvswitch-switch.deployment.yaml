@@ -50,6 +50,9 @@ spec:
           hostPath:
             path: /etc/openvswitch
             type: Directory
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
         
       containers:
       -
@@ -81,4 +84,6 @@ volumeMounts:
     name: etc-network-volume
   - mountPath: /etc/openvswitch
     name: etc-openvswitch
+  - mountPath: /lib/modules
+    name: lib-modules
 {{- end -}}

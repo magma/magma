@@ -1,3 +1,4 @@
+---
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -8,26 +9,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-namespace: magma
 
-# Define which secrets should be mounted by pods.
-secret:
-  certs: agwc-secret-certs
+kube_admin_username: magma
 
-image:
-  repository: docker.io/ektrumdev
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "exp_magma_kube"
-  # Arch is blank for x86 and _arm for ARM64
-  arch: "_arm"
+magma_pkgrepo_proto: https
+magma_pkgrepo_host: linuxfoundation.jfrog.io/artifactory/magma-packages-test
+magma_pkgrepo_path: ""
+magma_pkgrepo_dist: focal-ci
+magma_pkgrepo_component: main
+magma_pkgrepo_name: "magma"
+magma_pkgrepo_key: "linux_foundation_registry_key.asc"
+magma_use_pkgrepo: yes
 
-config:
-  domainName: magmacore.local
-  gwChallenge: 
-
-persistant:
-  name: agwc-claim
-
-ressources:
+docker_registry: "linuxfoundation.jfrog.io/magma-docker/"
+docker_user: ""
+docker_pass: ""
+image_version: "latest"
+optional_arch_postfix: ""
