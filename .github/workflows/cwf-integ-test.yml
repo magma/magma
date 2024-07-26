@@ -64,12 +64,18 @@ jobs:
           args: 'CWF integration test: docker build step failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}'
   cwf-integ-test:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     needs: docker-build
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
           ref: ${{ github.sha }}
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # pin@v1.3.1
+        with:
+          # this might remove tools that are actually needed,
+          # when set to "true" but frees about 6 GB
+          tool-cache: true
       - name: Cache ubuntu generic box for CWF VMs
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
@@ -85,18 +91,22 @@ jobs:
           if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
           then
             echo "Logging in to vagrant cloud to mitigate rate limiting."
+             wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update && sudo apt install vagrant
+            vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
             vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
-          python-version: '3.8.10'
+          python-version: '3.10.12'
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-reload vagrant-disksize
+          sudo apt install virtualbox
       - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
         with:
           name: docker-images
@@ -120,6 +130,7 @@ jobs:
       - name: Run the integ test
         run: |
           cd cwf/gateway
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
           fab integ-test --destroy-vm --transfer-images --test-result-xml=tests.xml --rerun-fails=3 --skip-docker-load --tar-path="/tmp/cwf-images"
       - name: Upload test results
         if: always()

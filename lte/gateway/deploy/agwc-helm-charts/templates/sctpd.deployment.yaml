@@ -50,7 +50,7 @@ spec:
 name: sctpd
 args:
   - /usr/local/bin/sctpd
-image: "{{ .Values.image.repository }}/agw_gateway_c:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_c{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 securityContext:
   privileged: true
   capabilities:

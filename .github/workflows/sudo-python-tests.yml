@@ -25,9 +25,11 @@ on:
 jobs:
   sudo-python-tests:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
       - name: Cache magma-dev-box
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
         with:
@@ -38,18 +40,22 @@ jobs:
           if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
           then
             echo "Logging in to vagrant cloud to mitigate rate limiting."
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update && sudo apt install vagrant
+            vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
             vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
-          python-version: '3.8.10'
+          python-version: '3.10.12'
       - name: Install pre requisites
         run: |
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
-          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
+          sudo apt install virtualbox
       - name: Open up network interfaces for VM
         run: |
           sudo mkdir -p /etc/vbox/
@@ -60,10 +66,12 @@ jobs:
           cd lte/gateway
           export MAGMA_DEV_CPUS=3
           export MAGMA_DEV_MEMORY_MB=9216
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
           fab provision-magma-dev-vm
       - name: Run the sudo python tests
         run: |
           cd lte/gateway
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
           vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Get test results
         if: always()

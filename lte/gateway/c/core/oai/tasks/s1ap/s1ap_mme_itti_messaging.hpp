@@ -65,7 +65,7 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
 status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
                                              const bool is_success);
 
-void s1ap_mme_itti_s1ap_initial_ue_message(
+status_code_e s1ap_mme_itti_s1ap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id, const uint8_t* const nas_msg,
     const size_t nas_msg_length, const tai_t* const tai,

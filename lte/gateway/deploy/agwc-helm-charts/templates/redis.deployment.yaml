@@ -39,5 +39,5 @@ args:
     /usr/local/bin/generate_service_config.py --service=redis --template=redis &&
     /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
     /usr/bin/redis-cli shutdown
-image: "{{ .Values.image.repository }}/agw_gateway_python:{{ .Values.image.tag | default .Chart.AppVersion }}"
+image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}

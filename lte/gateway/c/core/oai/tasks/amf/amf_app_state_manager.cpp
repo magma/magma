@@ -143,7 +143,10 @@ void AmfNasStateManager::create_state() {
   state_cache_p->amf_ue_contexts.guti_ue_context_htbl.set_name(
       AMF_GUTI_UE_ID_TABLE_NAME);
   state_ue_map.set_name(AMF_UE_ID_UE_CTXT_TABLE_NAME);
-
+  state_cache_p->nb_ue_connected = 0;
+  state_cache_p->nb_ue_attached = 0;
+  state_cache_p->nb_pdu_sessions = 0;
+  state_cache_p->nb_ue_idle = 0;
   // Initialize the local timers, which are non-persistent
   amf_nas_state_init_local_state();
   OAILOG_FUNC_OUT(LOG_AMF_APP);

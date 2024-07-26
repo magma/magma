@@ -42,6 +42,7 @@ Magma has three major components
 - [Code](https://github.com/magma): Source code
 - [Contributing](https://github.com/magma/magma/wiki/Contributor-Guide): Contributor Guide
 - [Wiki](https://wiki.magmacore.org/): Meeting notes and project team resources
+- [Rewards Program](REWARDS_PROGRAM.md): How to participate in the Magma rewards program
 
 ## Join the Magma community
 

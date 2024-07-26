@@ -48,8 +48,12 @@
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
+static void start_stats_timer(void);
+static int ngap_stats_timer_id;
+static size_t ngap_stats_timer_sec = 30;
 
 uint64_t ngap_last_msg_latency = 0;
 
@@ -232,7 +236,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_NGAP);
-  init_task_context(TASK_NGAP, (task_id_t[]){TASK_AMF_APP, TASK_SCTP}, 2,
+  init_task_context(TASK_NGAP,
+                    (task_id_t[]){TASK_AMF_APP, TASK_SCTP, TASK_SERVICE303}, 3,
                     handle_message, &ngap_task_zmq_ctx);
 
   if (ngap_send_init_sctp() < 0) {
@@ -240,6 +245,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
   } else {
     OAILOG_DEBUG(LOG_NGAP, " Sending SCTP_INIT_MSG to SCTP \n");
   }
+  start_stats_timer();
   zloop_start(ngap_task_zmq_ctx.event_loop);
   AssertFatal(0,
               "Asserting as ngap_amg_thread should not be exiting on its own! "
@@ -351,7 +357,7 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
   // NULL reference...
   if (ue_ref == NULL) return;
 
-  gnb_ue_ngap_id_t gnb_ue_ngap_id = ue_ref->gnb_ue_ngap_id;
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
   gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
 
   // Updating number of UE
@@ -361,14 +367,14 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
 
   hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_ngap_id);
-  hashtable_ts_free(&state->amfid2associd, gnb_ue_ngap_id);
-  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, gnb_ue_ngap_id);
+  hashtable_ts_free(&state->amfid2associd, amf_ue_ngap_id);
+  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, amf_ue_ngap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
   ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
 
   hashtable_uint64_ts_get(ngap_imsi_map->amf_ue_id_imsi_htbl,
-                          (const hash_key_t)gnb_ue_ngap_id, &imsi64);
+                          (const hash_key_t)amf_ue_ngap_id, &imsi64);
 
   delete_ngap_ue_state(imsi64);
 
@@ -394,4 +400,21 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   hashtable_uint64_ts_destroy(&gnb_ref->ue_id_coll);
   hashtable_ts_free(&state->gnbs, gnb_ref->sctp_assoc_id);
   state->num_gnbs--;
+}
+
+static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
+  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  application_ngap_stats_msg_t stats_msg;
+
+  stats_msg.nb_gnb_connected = ngap_state_p->num_gnbs;
+  // stats_msg.nb_ngap_last_msg_latency = ngap_last_msg_latency;
+  return send_ngap_stats_to_service303(&ngap_task_zmq_ctx, TASK_NGAP,
+                                       &stats_msg);
+}
+
+static void start_stats_timer(void) {
+  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  ngap_stats_timer_id =
+      start_timer(&ngap_task_zmq_ctx, 1000 * ngap_stats_timer_sec,
+                  TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);
 }

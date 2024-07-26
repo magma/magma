@@ -40,11 +40,33 @@ export default function () {
       unit: '',
     },
     {
+      label: 'Number of Connected gNBs',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(gnb_connected)',
+        },
+      ],
+      legendLabels: ['Connected'],
+      unit: '',
+    },
+    {
       label: 'Number of Connected UEs',
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
           resolveQuery: () => 'sum(ue_connected)',
+        },
+      ],
+      legendLabels: ['Connected'],
+      unit: '',
+    },
+    {
+      label: 'Number of Connected UEs 5G',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(ue_connected_5g)',
         },
       ],
       legendLabels: ['Connected'],
@@ -59,6 +81,28 @@ export default function () {
         },
       ],
       legendLabels: ['Registered'],
+      unit: '',
+    },
+    {
+      label: 'Number of Registered UEs 5G',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(ue_idle_5g)',
+        },
+      ],
+      legendLabels: ['Registered'],
+      unit: '',
+    },
+    {
+      label: 'Number of Active PDU Sessions',
+      basicQueryConfigs: [],
+      customQueryConfigs: [
+        {
+          resolveQuery: () => 'sum(pdu_sessions)',
+        },
+      ],
+      legendLabels: ['PDU_Sessions'],
       unit: '',
     },
     {

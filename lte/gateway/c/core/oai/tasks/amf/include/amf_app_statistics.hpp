@@ -9,12 +9,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-export {default as organizationMiddleware} from './organizationMiddleware';
-export {default as appMiddleware} from './appMiddleware';
-export {default as csrfMiddleware} from './csrfMiddleware';
-export {default as rateLimitMiddleware} from './rateLimitMiddleware';
-export {default as sessionMiddleware} from './sessionMiddleware';
-export {default as webpackSmartMiddleware} from './webpackSmartMiddleware';
+#pragma once
+namespace magma5g {
+/**** Utility Functions to update Statistics ****/
+void update_amf_app_stats_connected_ue_add(void);
+void update_amf_app_stats_connected_ue_sub(void);
+void update_amf_app_stats_registered_ue_add(void);
+void update_amf_app_stats_registered_ue_sub(void);
+void update_amf_app_stats_pdusessions_ue_add(void);
+void update_amf_app_stats_pdusessions_ue_sub(void);
+}  // namespace magma5g
