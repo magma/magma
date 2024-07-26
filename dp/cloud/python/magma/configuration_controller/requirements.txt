@@ -14,4 +14,4 @@ rwmutex==1.1
 six==1.15.0
 sqlalchemy==1.4.15
 tzlocal==2.1
-urllib3==1.26.5
+urllib3==1.26.19
