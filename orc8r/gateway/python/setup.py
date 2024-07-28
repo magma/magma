@@ -65,7 +65,7 @@ setup(
         'fire>=0.4.0',
         'glob2>=0.7',
         'aioh2>=0.2.2',
-        'redis==3.5.3',  # redis-py (Python bindings to redis)
+        'redis==4.4.4',  # redis-py (Python bindings to redis)
         'redis-collections==0.11.0',
         'python-redis-lock>=3.7.0',
         'aiohttp>=3.8.1',
