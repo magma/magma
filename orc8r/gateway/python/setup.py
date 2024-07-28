@@ -87,7 +87,7 @@ setup(
         'pycares>=4.2.1',
         'python-dateutil>=2.8.2',
         # force same requests version as lte/gateway/python/setup.py
-        'requests==2.28.1',
+        'requests==2.31.0',
         'jsonpickle>=2.2.0',
         'bravado-core==5.17.0',
         'jsonschema==3.2.0',
