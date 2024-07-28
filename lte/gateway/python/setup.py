@@ -106,7 +106,7 @@ setup(
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
         'dpkt==1.9.8',
-        'flask==1.1.4',
+        'flask==2.2.5',
         'sentry_sdk>=1.5.0,<1.9',
         'aiodns>=3.0.0',
         'pymemoize>=1.0.3',
