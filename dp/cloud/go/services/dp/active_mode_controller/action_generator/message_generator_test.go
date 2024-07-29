@@ -34,7 +34,7 @@ func TestGenerateMessages(t *testing.T) {
 	data := []struct {
 		name     string
 		cbsd     *storage.DetailedCbsd
-		expected []action_generator.Action
+		expected []action.Action
 	}{{
 		name: "Should do nothing for unregistered non active cbsd",
 		cbsd: NewCbsdBuilder().
@@ -52,7 +52,7 @@ func TestGenerateMessages(t *testing.T) {
 			Inactive().
 			WithDesiredState(unregistered).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Deregistration, &sas.DeregistrationRequest{
 				CbsdId: cbsdId,
 			}),
@@ -62,7 +62,7 @@ func TestGenerateMessages(t *testing.T) {
 		cbsd: NewCbsdBuilder().
 			WithState(unregistered).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Registration, &sas.RegistrationRequest{
 				UserId:           "some_user_id",
 				FccId:            "some_fcc_id",
@@ -73,7 +73,7 @@ func TestGenerateMessages(t *testing.T) {
 		name: "Should generate spectrum inquiry request when there are no available channels",
 		cbsd: NewCbsdBuilder().
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.SpectrumInquiry, &sas.SpectrumInquiryRequest{
 				CbsdId: cbsdId,
 				InquiredSpectrum: []*sas.FrequencyRange{{
@@ -83,7 +83,7 @@ func TestGenerateMessages(t *testing.T) {
 			}),
 		},
 	}, {
-		name: "Should set available frequencies when they are nil but there are channels",
+		name: "Should set available frequencies and request grant, when available frequencies are nil but there are channels",
 		cbsd: NewCbsdBuilder().
 			WithChannel(storage.Channel{
 				LowFrequencyHz:  3590e6,
@@ -91,8 +91,8 @@ func TestGenerateMessages(t *testing.T) {
 				MaxEirp:         37,
 			}).
 			Build(),
-		expected: []action_generator.Action{
-			&action.Update{
+		expected: []action.Action{
+			&action.UpdateCbsd{
 				Data: &storage.DBCbsd{
 					Id: db.MakeInt(dbId),
 					AvailableFrequencies: []uint32{
@@ -104,6 +104,16 @@ func TestGenerateMessages(t *testing.T) {
 				},
 				Mask: db.NewIncludeMask("available_frequencies"),
 			},
+			makeRequest(sas.Grant, &sas.GrantRequest{
+				CbsdId: cbsdId,
+				OperationParam: &sas.OperationParam{
+					MaxEirp: 31,
+					OperationFrequencyRange: &sas.FrequencyRange{
+						LowFrequency:  3590e6,
+						HighFrequency: 3610e6,
+					},
+				},
+			}),
 		},
 	}, {
 		name: "Should generate spectrum inquiry request when no suitable available frequencies",
@@ -111,7 +121,7 @@ func TestGenerateMessages(t *testing.T) {
 			WithChannel(someChannel).
 			WithAvailableFrequencies([]uint32{0, 0, 0, 0}).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.SpectrumInquiry, &sas.SpectrumInquiryRequest{
 				CbsdId: cbsdId,
 				InquiredSpectrum: []*sas.FrequencyRange{{
@@ -126,7 +136,7 @@ func TestGenerateMessages(t *testing.T) {
 			WithChannel(someChannel).
 			WithAvailableFrequencies([]uint32{0, 1 << 15, 0, 0}).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Grant, &sas.GrantRequest{
 				CbsdId: cbsdId,
 				OperationParam: &sas.OperationParam{
@@ -145,7 +155,7 @@ func TestGenerateMessages(t *testing.T) {
 			WithAvailableFrequencies([]uint32{0, 0, 0, 1<<10 | 1<<20}).
 			WithCarrierAggregation().
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Grant, &sas.GrantRequest{
 				CbsdId: cbsdId,
 				OperationParam: &sas.OperationParam{
@@ -174,7 +184,7 @@ func TestGenerateMessages(t *testing.T) {
 			WithAvailableFrequencies(noAvailableFrequencies).
 			WithGrant(granted, someGrant).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Heartbeat, &sas.HeartbeatRequest{
 				CbsdId:         cbsdId,
 				GrantId:        grantId,
@@ -208,7 +218,7 @@ func TestGenerateMessages(t *testing.T) {
 				HighFrequencyHz:          db.MakeInt(3610e6),
 			}).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Heartbeat, &sas.HeartbeatRequest{
 				CbsdId:         cbsdId,
 				GrantId:        grantId,
@@ -222,7 +232,7 @@ func TestGenerateMessages(t *testing.T) {
 			WithAvailableFrequencies(noAvailableFrequencies).
 			WithGrant(unsync, someGrant).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Relinquishment, &sas.RelinquishmentRequest{
 				CbsdId:  cbsdId,
 				GrantId: grantId,
@@ -234,7 +244,7 @@ func TestGenerateMessages(t *testing.T) {
 			Inactive().
 			WithGrant(authorized, someGrant).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Relinquishment, &sas.RelinquishmentRequest{
 				CbsdId:  cbsdId,
 				GrantId: grantId,
@@ -246,7 +256,7 @@ func TestGenerateMessages(t *testing.T) {
 			ForRelinquish().
 			WithGrant(authorized, someGrant).
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Relinquishment, &sas.RelinquishmentRequest{
 				CbsdId:  cbsdId,
 				GrantId: grantId,
@@ -257,7 +267,7 @@ func TestGenerateMessages(t *testing.T) {
 		cbsd: NewCbsdBuilder().
 			Deleted().
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Deregistration, &sas.DeregistrationRequest{
 				CbsdId: cbsdId,
 			}),
@@ -268,15 +278,15 @@ func TestGenerateMessages(t *testing.T) {
 			WithState(unregistered).
 			Deleted().
 			Build(),
-		expected: []action_generator.Action{
-			&action.Delete{Id: dbId},
+		expected: []action.Action{
+			&action.DeleteCbsd{Id: dbId},
 		},
 	}, {
 		name: "Should deregister updated cbsd",
 		cbsd: NewCbsdBuilder().
 			ForDeregistration().
 			Build(),
-		expected: []action_generator.Action{
+		expected: []action.Action{
 			makeRequest(sas.Deregistration, &sas.DeregistrationRequest{
 				CbsdId: cbsdId,
 			}),
@@ -287,8 +297,8 @@ func TestGenerateMessages(t *testing.T) {
 			WithState(unregistered).
 			ForDeregistration().
 			Build(),
-		expected: []action_generator.Action{
-			&action.Update{
+		expected: []action.Action{
+			&action.UpdateCbsd{
 				Data: &storage.DBCbsd{
 					Id:               db.MakeInt(dbId),
 					ShouldDeregister: db.MakeBool(false),
@@ -301,14 +311,44 @@ func TestGenerateMessages(t *testing.T) {
 		cbsd: NewCbsdBuilder().
 			ForRelinquish().
 			Build(),
-		expected: []action_generator.Action{
-			&action.Update{
+		expected: []action.Action{
+			&action.UpdateCbsd{
 				Data: &storage.DBCbsd{
 					Id:               db.MakeInt(dbId),
 					ShouldRelinquish: db.MakeBool(false),
 				},
 				Mask: db.NewIncludeMask("should_relinquish"),
 			},
+		},
+	}, {
+		name: "Should unset freq and remove idle grant from cbsd",
+		cbsd: NewCbsdBuilder().
+			WithChannel(someChannel).
+			WithAvailableFrequencies([]uint32{0b1111, 0b110, 0b1100, 0b1010}).
+			WithGrant(idle, &storage.DBGrant{
+				GrantId:         db.MakeString("idle_grant_id"),
+				LowFrequencyHz:  db.MakeInt(3562500000),
+				HighFrequencyHz: db.MakeInt(3567500000),
+				MaxEirp:         db.MakeFloat(15),
+			}).
+			WithGrant(authorized, someGrant).
+			Build(),
+		expected: []action.Action{
+			&action.UpdateCbsd{
+				Data: &storage.DBCbsd{
+					Id:                   db.MakeInt(dbId),
+					AvailableFrequencies: []uint32{0b0111, 0b110, 0b1100, 0b1010},
+				},
+				Mask: db.NewIncludeMask("available_frequencies"),
+			},
+			&action.DeleteGrant{
+				Id: someGrant.Id.Int64,
+			},
+			makeRequest(sas.Heartbeat, &sas.HeartbeatRequest{
+				CbsdId:         cbsdId,
+				GrantId:        grantId,
+				OperationState: "AUTHORIZED",
+			}),
 		},
 	}}
 	for _, tt := range data {
@@ -330,7 +370,7 @@ func TestGenerateMessages(t *testing.T) {
 	}
 }
 
-func makeRequest(requestType string, payload any) action_generator.Action {
+func makeRequest(requestType string, payload any) action.Action {
 	req := &storage.MutableRequest{
 		Request: &storage.DBRequest{
 			CbsdId:  db.MakeInt(dbId),
@@ -361,6 +401,7 @@ const (
 	granted    = "granted"
 	authorized = "authorized"
 	unsync     = "unsync"
+	idle       = "idle"
 )
 
 var (

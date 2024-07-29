@@ -17,10 +17,15 @@ import (
 	"encoding/json"
 	"strings"
 
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/storage"
 )
 
 type RegistrationRequestGenerator struct{}
+
+func (*RegistrationRequestGenerator) GenerateActions(_ *storage.DetailedCbsd) []action.Action {
+	return []action.Action{}
+}
 
 func (*RegistrationRequestGenerator) GenerateRequests(cbsd *storage.DetailedCbsd) []*storage.MutableRequest {
 	payload := buildRegistrationRequest(cbsd.Cbsd)
