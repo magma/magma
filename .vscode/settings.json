@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.env.linux": {
+        "MAGMA_ROOT": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.osx": {
+        "MAGMA_ROOT": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.windows": {
+        "MAGMA_ROOT": "${workspaceFolder}"
+    }
+}
