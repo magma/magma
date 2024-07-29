@@ -20,6 +20,7 @@ import (
 
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/grant"
 	"magma/dp/cloud/go/services/dp/storage"
+	"magma/dp/cloud/go/services/dp/storage/db"
 )
 
 func TestCalcAvailableFrequencies(t *testing.T) {
@@ -167,6 +168,57 @@ func TestCalcAvailableFrequencies(t *testing.T) {
 			calc := &stubEirpCalculator{eirps: tt.eirps}
 			actual := grant.CalcAvailableFrequencies(tt.channels, calc)
 			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func TestUnsetGrantFrequency(t *testing.T) {
+	testData := []struct {
+		origAvailFreq     []uint32
+		lowFreq           int64
+		highFreq          int64
+		expectedAvailFreq []uint32
+	}{{
+		nil,
+		3560e6,
+		3580e6,
+		nil,
+	}, {
+		[]uint32{0b1111, 0b110, 0b1100, 0b1010},
+		35625e5,
+		35675e5,
+		[]uint32{0b0111, 0b110, 0b1100, 0b1010},
+	}, {
+		[]uint32{0b0, 0b110, 0b1100, 0b1010},
+		3550e6,
+		3560e6,
+		[]uint32{0b0, 0b100, 0b1100, 0b1010},
+	}, {
+		[]uint32{0b0, 0b110, 0b1111100, 0b1010},
+		35725e5,
+		35875e5,
+		[]uint32{0b0, 0b110, 0b0111100, 0b1010},
+	}, {
+		[]uint32{0b0, 0b110, 0b1111100, 0b10101},
+		3560e6,
+		3580e6,
+		[]uint32{0b0, 0b110, 0b1111100, 0b00101},
+	},
+	}
+	for _, tt := range testData {
+		t.Run("", func(t *testing.T) {
+			cbsd := &storage.DBCbsd{
+				Id:                   db.MakeInt(1),
+				AvailableFrequencies: tt.origAvailFreq,
+			}
+			gt := &storage.DBGrant{
+				CbsdId:          cbsd.Id,
+				LowFrequencyHz:  db.MakeInt(tt.lowFreq),
+				HighFrequencyHz: db.MakeInt(tt.highFreq),
+			}
+			newFrequencies := grant.UnsetGrantFrequency(cbsd, gt)
+
+			assert.Equal(t, tt.expectedAvailFreq, newFrequencies)
 		})
 	}
 }
