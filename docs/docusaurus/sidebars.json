@@ -6,6 +6,22 @@
       "basics/quick_start_guide",
       "bazel/agw_with_bazel"
     ],
+    "Tutorials": [
+      {
+        "type": "subcategory",
+        "label": "Operate your own private mobile network with Charmed Magma",
+        "ids": [
+          "tutorials/00_overview",
+          "tutorials/01_getting_started",
+          "tutorials/02_deploying_magma_orchestrator",
+          "tutorials/03_deploying_magma_agw",
+          "tutorials/04_integrating_agw_with_orc8r",
+          "tutorials/05_deploying_the_radio_simulator",
+          "tutorials/06_simulating_user_traffic",
+          "tutorials/06_destroying_the_env"
+        ]
+      }
+    ],
     "Usage": [
       {
         "type": "subcategory",
@@ -98,6 +114,7 @@
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
+          "lte/deploy_agw_using_juju",
           "lte/build_install_magma_pkg_in_agw"
         ]
       },
