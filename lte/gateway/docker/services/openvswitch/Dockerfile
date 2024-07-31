@@ -4,7 +4,7 @@ ARG OS_DIST=ubuntu
 ARG OS_RELEASE=focal
 ARG EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-test
 
-FROM $OS_DIST:$OS_RELEASE AS ovs
+FROM $OS_DIST:$OS_RELEASE AS gateway_ovs
 ARG CPU_ARCH
 ARG DEB_PORT
 ARG OS_DIST
