@@ -3,7 +3,6 @@ id: deploy_agw_kubernetes
 title: Deploy AGW in Kubernetes 
 hide_title: true 
 ---
-# Deploy Access Gateway in Kubernetes - Experimental 
 
 ## Prerequisites 
 
