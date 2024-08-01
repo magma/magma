@@ -21,7 +21,7 @@ on:
       distribution:
         description: Distribution to set?
         type: string
-        default: 'focal-ci'
+        default: 'focal-1.9.0'
         required: true
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
 
       - name: Verify distribution
         run: |
-          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]
+          if [ ${{ env.distribution }} != 'focal-1.9.0' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]
           then
               echo "You have chosen 'distribution' ${{ env.distribution }} as input."
               echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"

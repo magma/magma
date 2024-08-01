@@ -160,7 +160,7 @@ jobs:
         working-directory: "${{ github.workspace }}"
         run: |
           sudo cp keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-          sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
+          sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main'
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet
           sudo rm -rf /var/lib/apt/lists/*

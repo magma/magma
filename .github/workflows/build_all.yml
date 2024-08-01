@@ -13,7 +13,7 @@
 # purpose: Building and publishing cloud and gateway components
 # remediation: https://magma.github.io/magma/docs/next/basics/quick_start_guide#terminal-tab-2-build-orchestrator (orc8r), https://magma.github.io/magma/docs/next/basics/quick_start_guide#using-the-nms-ui (nms-build), https://magma.github.io/magma/docs/next/feg/deploy_build (feg-build)
 
-name: Magma Build & Publish
+name: Magma Builds & Publish
 
 on:
   workflow_dispatch: null
@@ -129,18 +129,15 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --all --nocache
-      - name: Create release Tag
-        if: github.event_name == 'push'
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1')  
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -161,7 +158,7 @@ jobs:
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
+      # Notify the ci channel when push succeeds
       - name: Notify success to Slack
         if: success() && github.event_name == 'push'
         uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
@@ -264,18 +261,15 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Create release Tag
-        if: github.event_name == 'push'
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1')
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -335,18 +329,15 @@ jobs:
         with:
           name: pr
           path: pr/
-      - name: Create release Tag
-        if: github.event_name == 'push'
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1')
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -382,7 +373,6 @@ jobs:
           SLACK_FOOTER: ''
   feg-build:
     if: github.repository_owner == 'magma'
-    name: feg-build
     runs-on: ubuntu-20.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
@@ -416,17 +406,15 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
-      - name: Create release Tag
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV  
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1')
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -479,18 +467,15 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/nms
           COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
-      - name: Create release Tag
-        if: github.event_name == 'push'
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV  
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1') 
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -574,18 +559,15 @@ jobs:
         working-directory: "${{ github.workspace }}/dp"
         run: |
           make _install_skaffold_ci
-      - name: Create release Tag
-        if: github.event_name == 'push'
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1')  
         run: |
-          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-          else
-            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
-          fi
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          echo "Creating release tag for version ${RELEASE_TAG}"
+          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV  
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/heads/v1')
         working-directory: "${{ github.workspace }}/dp"
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"

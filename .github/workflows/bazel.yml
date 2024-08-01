@@ -32,7 +32,8 @@ on:
       - opened
       - reopened
       - synchronize
-
+    branches:
+      - 'release/*'
 env:
   BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
   # Warning: the values of BAZEL_CACHE_PLAIN_IMAGE and BAZEL_CACHE_PROD_IMAGE
@@ -628,7 +629,7 @@ jobs:
       - name: Publish debian packages
         id: publish_agw_deb_pkg
         env:
-          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
+          DEBIAN_META_INFO: deb.distribution=focal-1.9.0;deb.component=main;deb.architecture=amd64
         run: |
           RESPONSE=$(jf rt upload \
                       --recursive=false \
@@ -638,7 +639,7 @@ jobs:
                       --password ${{ secrets.LF_JFROG_PASSWORD }} \
                       ${{ env.IS_DRY }} \
                       --target-props="${DEBIAN_META_INFO}" \
-                      "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb)
+                      "packages/(*).deb" magma-packages-test/pool/focal-1.9.0/{1}.deb)
 
           echo "Response:"
           echo $RESPONSE | jq
