@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-expected_version="1.20.1"
+expected_version="1.21.0"
 all_versions_good=true
 
 while IFS= read -r -d '' file
