@@ -52,10 +52,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/local
 ARG GOLANG_VERSION="1.20.1"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
- && tar -xzf ${GO_TARBALL} \
- && ln -s /usr/local/go/bin/go /usr/local/bin/go \
- && rm ${GO_TARBALL}
+    && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
+    && tar -xzf ${GO_TARBALL} \
+    && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+    && rm ${GO_TARBALL}
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -94,9 +94,9 @@ COPY orc8r/lib/go/protos/go.* $MAGMA_ROOT/orc8r/lib/go/protos/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/cwf/gateway
-RUN go mod download
+RUN go mod tidy
 # Install protoc-gen-go
-RUN go install github.com/golang/protobuf/protoc-gen-go
+RUN go get github.com/golang/protobuf/protoc-gen-go
 
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
