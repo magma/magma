@@ -16,7 +16,7 @@ kind: PersistentVolumeClaim
 metadata:
   labels:
     app.kubernetes.io/component: agwc-claim
-  name: {{ .Values.persistant.name }}
+  name: {{ .Values.persistent.name }}
   namespace: {{ .Values.namespace }}
   annotations:
     "helm.sh/hook": "pre-install"

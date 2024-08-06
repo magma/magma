@@ -27,7 +27,7 @@ config:
   domainName: magmacore.local
   gwChallenge: 
 
-persistant:
+persistent:
   name: agwc-claim
 
 ressources:

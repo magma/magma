@@ -23,19 +23,17 @@ load_kernel_mod() {
   fi
 
   echo "Attempting to load kernel module $module"
-  modprobe -v "$module"
-  if [[ $? -ne 0 ]]; then
+  if ! modprobe -v "$module";
+  then
     echo "WARNING: Unable to dynamically load kernel module $module."
     echo "Attempting to build and install dkms module."
     OVS_DATAPATH_MOD_VER=$(dkms status | grep openvswitch | sed "s/:.*//" | awk -F'[,]' '{print $2}')
     echo "Datapath module version is $OVS_DATAPATH_MOD_VER"
-    dkms install -m openvswitch -v $OVS_DATAPATH_MOD_VER
-    if [[ $? -ne 0 ]]; then
+    if ! dkms install -m openvswitch -v "$OVS_DATAPATH_MOD_VER"; then
       exit 1
     fi
     check_mod_version
-    modprobe -v "$module"
-    if [[ $? -eq 0 ]]; then
+    if ! modprobe -v "$module"; then
       if is_kernel_module_loaded "$module"; then
         echo "kernel module $module is loaded!"
         return 0
@@ -77,7 +75,7 @@ load-datapath-modules () {
     exit 1
   fi
 
-  while [ $run ]; do
+  while [ "$run" ]; do
     sleep 30
   done ;
 }
@@ -108,10 +106,10 @@ start_ovs () {
 
   # Activate bridge interfaces
   echo "Activating bridge interfaces"
-  ifup --force --allow=ovs $(ifquery --allow ovs --list)
+  ifup --force --allow=ovs "$(ifquery --allow ovs --list)"
   ifup --force mtr0
   
-  while [ $run ]; do
+  while [ "$run" ]; do
     sleep .1
   done ;
 }

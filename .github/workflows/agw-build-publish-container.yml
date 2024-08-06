@@ -138,7 +138,6 @@ jobs:
           TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
           TARGET: gateway_python
       - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
-      
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-ovs
         with:

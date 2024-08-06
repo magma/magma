@@ -29,12 +29,14 @@ RUN apt-get -q update && \
     iputils-tracepath \
     bridge-utils \
     ifupdown \
-    vim
+    vim \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ## Add the magma apt repo and install the custom openvswitch modules
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages focal-1.8.0 main" > /etc/apt/sources.list.d/magma.list
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenvswitch \
     openvswitch-common \
     openvswitch-switch \

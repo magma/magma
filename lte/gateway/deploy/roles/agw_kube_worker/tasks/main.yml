@@ -14,11 +14,11 @@
   include_vars:
     file: all.yaml
 
-- name: Checking if Ubuntu 20.04 is installed  
+- name: Checking if Ubuntu 20.04 is installed
   ansible.builtin.meta: end_host
   when:
-  - ansible_distribution != 'Ubuntu'
-  - ansible_distribution_version != '20.04'
+    - ansible_distribution != 'Ubuntu'
+    - ansible_distribution_version != '20.04'
 
 - name: Apt purge unattended upgrades
   shell: apt purge --auto-remove unattended-upgrades -y

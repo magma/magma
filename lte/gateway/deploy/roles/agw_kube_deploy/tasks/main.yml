@@ -12,7 +12,7 @@
 - name: Include vars
   include_vars:
     file: all.yaml
-    
+
 - name: Update apt cache
   apt:
     update_cache: yes

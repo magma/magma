@@ -109,4 +109,3 @@
     creates: /usr/local/bin/helm
   environment:
     DESIRED_VERSION: "{{ helm_version | default('') }}"
-
