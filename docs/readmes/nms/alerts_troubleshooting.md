@@ -380,17 +380,17 @@ If other alerts related to power failure are firing, then the reboot might be re
 - Use last reboot to list the last logged in users and system last reboot time and date.
 - Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.
 - Example of what the log could look like:
-- magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1
+- magma kernel: `[0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1`
 - Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related
 - Verify the commands history matching the timestamp to confirm if AGW was intentionally restarted.
 - If it wasn’t intentional then check the power connection and health of device running AGW
 
 ### Causes / Effects/ Solutions
 
-| Cause                                                                                                  |                                      Possible Effects                                      |                             Solutions |
-| ------------------------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------: | ------------------------------------: |
-| Command run intentionally/AGW reboot due to an unknown cause (power failure)                           | Gateway service(s)/ whole AGW restart causing disruption of services served by the gateway | If expected then it’s not applicable. |
-| However if reboot was happened due to unknown reason, then root cause has to be identified accordingly |
+| Cause                                                                        |                                      Possible Effects                                      |                                                                                              Solutions |
+| ---------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------: | -----------------------------------------------------------------------------------------------------: |
+| Command run intentionally/AGW reboot due to an unknown cause (power failure) | Gateway service(s)/ whole AGW restart causing disruption of services served by the gateway |                                                                  If expected then it’s not applicable. |
+|                                                                              |                                                                                            | However if reboot was happened due to unknown reason, then root cause has to be identified accordingly |
 
 ### How does this affect the SLA?
 
@@ -429,7 +429,7 @@ If AGW reboot alert has fired then service(s) restart would be an outcome of tha
 - Use last reboot to list the last logged in users and system last reboot time and date.
 - Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.
 - Example of what the log could look like:
-- magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1
+- magma kernel: `[0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1`
 - Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related
 - Verify the commands history in syslog matching the timestamp to confirm if the services were intentionally restarted.
 
@@ -477,8 +477,8 @@ If AGW reboot alert has fired then service(s) restart would be an outcome of tha
 - If applicable, revert the recent changes and check if issue is still observed
 - Capture the service crash syslogs and coredumps. Use the approximate time in metrics and look for the events in both syslogs and coredumps
 - In syslogs located in /var/log, look for service terminating events and its previous logs. For example, in below mme service crash there is a segfault reported in mme service before its being terminated.
-- Dec 5 22:25:55 magma kernel: [266759.489500] ITTI 3[13887]: segfault at 1d6d80 ip 000055b0080da0c2 sp 00007f529e6c0310 error 4 in mme[55b0077bd000+e79000]
-- Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV
+- `Dec 5 22:25:55 magma kernel: [266759.489500] ITTI 3[13887]: segfault at 1d6d80 ip 000055b0080da0c2 sp 00007f529e6c0310 error 4 in mme[55b0077bd000+e79000]`
+- `Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV`
 - Service crashes with a segmentation fault will create coredumps in /tmp/ folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in [https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps](https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps)
 - Using latest mme binary, inspect coredumps via gdb and backtrace to find possible root cause
 - **Obtain event that triggered the crash**. Every time a service restarts it will generate a log file (i.e. mme.log). Inside the coredump folder you will find the log (i.e. mme.log) that was generated just before the crash. To understand what was the event that triggered the crash, get the last event (Attach Request, Detach, timer expiring, etc.) in the log file.
