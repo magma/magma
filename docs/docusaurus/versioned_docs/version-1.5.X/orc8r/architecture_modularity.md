@@ -22,8 +22,8 @@ functionality on a per-deployment basis. This logic-based extension occurs compl
 targeting a default set of use-cases, extending an Orchestrator deployment is, practically, as simple as spinning up a new service within
 the cluster.
 
-For more background on microservice patterns, and the extension pattern specifically, refer to [this article on domain-oriented
-microservice architectures](https://www.uber.com/en-AU/blog/microservice-architecture/).
+For more background on microservice patterns, and the extension pattern specifically, refer to the article on domain-oriented
+microservice architectures.
 
 ## Implementation
 
