@@ -3,5 +3,5 @@ grpcio==1.53.2
 grpcio-tools==1.37.1
 prometheus_client==0.3.1
 psycopg2-binary==2.8.6
-requests==2.31.0
+requests==2.32.2
 sqlalchemy==1.4.15
