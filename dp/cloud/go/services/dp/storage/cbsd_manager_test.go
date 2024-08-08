@@ -734,6 +734,41 @@ func (s *CbsdManagerTestSuite) TestFetchCbsdWithoutGrant() {
 	s.Assert().Equal(expected, actual)
 }
 
+func (s *CbsdManagerTestSuite) TestFetchCbsdWithIdleGrant() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
+
+	s.givenResourcesInserted(
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			Cbsd,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			Grant,
+	)
+
+	actual, err := s.cbsdManager.FetchCbsd(someNetwork, someCbsdId)
+	s.Require().NoError(err)
+
+	expected := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(
+			b.NewDBCbsdBuilder().
+				WithIndoorDeployment(false).
+				WithId(someCbsdId).
+				WithCbsdId(someCbsdIdStr).
+				WithNetworkId(someNetwork).Cbsd,
+			registered, registered).
+		Details
+
+	s.Assert().Equal(expected, actual)
+}
+
 func (s *CbsdManagerTestSuite) TestFetchCbsdWithGrant() {
 	state := s.enumMaps[storage.CbsdStateTable][registered]
 	grantState := s.enumMaps[storage.GrantStateTable][authorized]
@@ -909,6 +944,45 @@ func (s *CbsdManagerTestSuite) TestListWithFilter() {
 			WithCbsd(cbsd, unregistered, unregistered).
 			Details
 	}
+	s.Assert().Equal(expected, actual)
+}
+
+func (s *CbsdManagerTestSuite) TestListNotIncludeIdleGrants() {
+	state := s.enumMaps[storage.CbsdStateTable][registered]
+	grantState := s.enumMaps[storage.GrantStateTable]["idle"]
+	s.givenResourcesInserted(
+		b.NewDBCbsdBuilder().
+			WithNetworkId(someNetwork).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithStateId(state).
+			WithDesiredStateId(state).
+			Cbsd,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			Grant,
+		b.NewDBGrantBuilder().
+			WithDefaultTestValues().
+			WithStateId(grantState).
+			WithCbsdId(someCbsdId).
+			Grant,
+	)
+
+	actual, err := s.cbsdManager.ListCbsd(someNetwork, &storage.Pagination{}, nil)
+	s.Require().NoError(err)
+
+	cbsd := b.NewDetailedDBCbsdBuilder().
+		WithCbsd(b.NewDBCbsdBuilder().
+			WithIndoorDeployment(false).
+			WithId(someCbsdId).
+			WithCbsdId(someCbsdIdStr).
+			WithNetworkId(someNetwork).Cbsd,
+			registered, registered).
+		Details
+	expected := b.GetDetailedDBCbsdList(cbsd)
+
 	s.Assert().Equal(expected, actual)
 }
 
