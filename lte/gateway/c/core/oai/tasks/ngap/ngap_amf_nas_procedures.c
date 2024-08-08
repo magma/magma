@@ -1135,6 +1135,31 @@ int ngap_fill_pdu_session_resource_setup_request_transfer(
   qos_flow_add_or_modify_request_list_t* qos_list =
       &session_transfer->qos_flow_add_or_mod_request_list;
 
+  /*Security Indication*/
+  transfer_request_ie =
+      (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
+          1, sizeof(Ngap_PDUSessionResourceSetupRequestTransferIEs_t));
+  transfer_request_ie->id = Ngap_ProtocolIE_ID_id_SecurityIndication;
+  transfer_request_ie->criticality = Ngap_Criticality_reject;
+  transfer_request_ie->value.present =
+      Ngap_PDUSessionResourceSetupRequestTransferIEs__value_PR_SecurityIndication;
+  transfer_request_ie->value.choice.SecurityIndication
+      .integrityProtectionIndication =
+      Ngap_IntegrityProtectionIndication_preferred;
+  transfer_request_ie->value.choice.SecurityIndication
+      .confidentialityProtectionIndication =
+      Ngap_ConfidentialityProtectionIndication_preferred;
+  Ngap_MaximumIntegrityProtectedDataRate_t*
+      Ngap_MaximumIntegrityProtectedDataRate =
+          (Ngap_MaximumIntegrityProtectedDataRate_t*)calloc(
+              1, sizeof(Ngap_MaximumIntegrityProtectedDataRate_t));
+  *Ngap_MaximumIntegrityProtectedDataRate =
+      Ngap_MaximumIntegrityProtectedDataRate_bitrate64kbs;
+  transfer_request_ie->value.choice.SecurityIndication
+      .maximumIntegrityProtectedDataRate_UL =
+      Ngap_MaximumIntegrityProtectedDataRate;
+  ASN_SEQUENCE_ADD(&transfer_request->protocolIEs.list, transfer_request_ie);
+
   /*Qos*/
   transfer_request_ie =
       (Ngap_PDUSessionResourceSetupRequestTransferIEs_t*)calloc(
