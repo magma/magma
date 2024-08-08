@@ -73,6 +73,13 @@
     executable: pip3
   when: full_provision
 
+- name: Install virtualenv
+  pip:
+    name: virtualenv
+    extra_args: --cache-dir $PIP_CACHE_HOME
+    executable: pip3
+  when: full_provision
+
 - name: Generate python types from C headers
   command: "/usr/bin/python3 {{ test_scripts }}/c_parser.py"
   environment:
