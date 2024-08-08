@@ -147,5 +147,5 @@ This is the scope for version 1.
    skb-mark.
 6. IPSec would be only supported on ubuntu and kernel (> 4.14).
 
-[1] <https://www.wireguard.com/performance/>
+[1] `https://www.wireguard.com/performance/`
     <https://core.ac.uk/download/pdf/322886318.pdf>

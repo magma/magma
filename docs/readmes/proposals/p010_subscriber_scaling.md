@@ -123,7 +123,7 @@ Existing guarantees
 
 ### Considered alternatives
 
-**Edge-triggered subscriber push**. This document assumes we want to retain the set-interface pattern throughout Orc8r — for context, see [level-triggered (state) vs. edge-triggered (events)](http://haobaozhong.github.io/design/2019/08/28/level-edge-triggered.html). A principal alternative to combat our scalability issues is to back away from this high bar and instead go with a hybrid approach, where e.g. we send state-based snapshots at infrequent intervals to correct any issues with the more-frequent event-based updates. However, we believe we can achieve reasonable scalability metrics without resorting to edge-triggered designs.
+**Edge-triggered subscriber push**. This document assumes we want to retain the set-interface pattern throughout Orc8r — for context, see level-triggered (state) vs. edge-triggered (events). A principal alternative to combat our scalability issues is to back away from this high bar and instead go with a hybrid approach, where e.g. we send state-based snapshots at infrequent intervals to correct any issues with the more-frequent event-based updates. However, we believe we can achieve reasonable scalability metrics without resorting to edge-triggered designs.
 
 ## ☠️ Objective 1: resolve drop-dead scale cutoffs
 

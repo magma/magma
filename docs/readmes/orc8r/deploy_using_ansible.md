@@ -6,7 +6,7 @@ hide_title: true
 
 # Deploy Orchestrator using Ansible (Beta)
 
-This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment. 
+This how-to guide can be used to deploy Magma's Orchestrator on any cloud environment.
 It contains roles to set up a Kubernetes cluster and deploy Magma Orchestrator using helm charts.
 For more information on Magma Deployer, please visit the project's
 [magma-deployer](https://github.com/magma/magma-deployer).
@@ -15,7 +15,7 @@ For more information on Magma Deployer, please visit the project's
 
 ## Pre-requisites
 
-- Ubuntu Jammy 22.04 VM / Baremetal machine 
+- Ubuntu Jammy 22.04 VM / Baremetal machine
 - RAM: 8GB
 - CPU: 4 cores
 - Storage: 100GB
@@ -24,13 +24,13 @@ For more information on Magma Deployer, please visit the project's
 
 Quick Install:
 
-```
+```bash
 sudo bash -c "$(curl -sL https://github.com/magma/magma-deployer/raw/main/deploy-orc8r.sh)"
 ```
 
 Following roles will be installed:
 
-```
+```bash
 Sunday 02 April 2023  10:22:34 +0530 (0:00:00.044)       0:08:41.557 ********** 
 =============================================================================== 
 kubernetes ------------------------------------------------------------ 197.79s
@@ -53,17 +53,17 @@ total ----------------------------------------------------------------- 521.51s
 
 Switch to `magma` user after deployment has finished:
 
-```
+```bash
 sudo su - magma
 ```
 
 Check if all pods are ready:
 
-```
+```bash
 kubectl get pods
 ```
 
-```
+```bash
 NAME                                            READY   STATUS    RESTARTS   AGE
 elasticsearch-master-0                          1/1     Running   0          10m
 fluentd-7b5ffff8f8-5rr8c                        1/1     Running   0          10m
@@ -112,7 +112,7 @@ postgresql-0                                    1/1     Running   0          12m
 
 Now setup NMS login:
 
-```
+```bash
 cd ~/magma-deployer
 ansible-playbook config-orc8r.yml
 ```
@@ -121,18 +121,18 @@ ansible-playbook config-orc8r.yml
 
 Get the External IP address of the `haproxy` service:
 
-```
+```bash
 kubectl get svc haproxy
 ```
 
-```
+```bash
 NAME      TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                                     AGE
 haproxy   LoadBalancer   10.43.177.100   10.86.113.153   80:31192/TCP,443:32665/TCP,1024:30097/TCP   10m
 ```
 
 Update `/etc/hosts` file with the following entries:
 
-```
+```bash
 10.86.113.153 api.magma.local
 10.86.113.153 magma-test.nms.magma.local
 10.86.113.153 fluentd.magma.local
@@ -144,20 +144,19 @@ Update `/etc/hosts` file with the following entries:
 
 You can access NMS dashboard at the following URL:
 
-https://magma-test.nms.magma.local
-
+`https://magma-test.nms.magma.local`
 
 ## Access Gateway Setup
 
 You can get your `rootCA.pem` file from the following location for connecting your Access Gateway:
 
-```
+```bash
 cat ~/magma-deployer/secrets/rootCA.pem
 ```
 
 Update `/var/opt/magma/configs/control_proxy.yml` file with the following content:
 
-```
+```bash
 cloud_address: controller.magma.local
 cloud_port: 443
 bootstrap_address: bootstrapper-controller.magma.local
@@ -170,7 +169,7 @@ rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 
 Update `/etc/hosts` file in Access Gateway with the following entries:
 
-```
+```bash
 10.86.113.153 fluentd.magma.local
 10.86.113.153 controller.magma.local
 10.86.113.153 bootstrapper-controller.magma.local
