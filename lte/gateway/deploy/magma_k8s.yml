@@ -1,4 +1,4 @@
-{{/*
+---
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -9,21 +9,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-*/}}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app.kubernetes.io/component: agwc-claim
-  name: agwc-claim
-  namespace: {{ .Values.namespace }}
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-weight": "-5"
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+
+- name: Deploy kubernetes to the hosts
+  hosts: all
+  become: yes
+  roles:
+    - role: agw_kube_deploy
+
+- name: Setup master node
+  hosts: master
+  become: yes
+  roles:
+    - role: agw_kube_master
+
+- name: Setup worker node
+  hosts: workers
+  become: yes
+  roles:
+    - role: agw_kube_worker
