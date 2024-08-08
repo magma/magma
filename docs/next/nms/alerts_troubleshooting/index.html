@@ -345,7 +345,7 @@ Major when below 80%.</p>
 <li>Use last reboot to list the last logged in users and system last reboot time and date.</li>
 <li>Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.</li>
 <li>Example of what the log could look like:</li>
-<li>magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (<a href="mailto:debiankernel@lists.debian.org">debiankernel@lists.debian.org</a>) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1</li>
+<li>magma kernel: <code>[0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1</code></li>
 <li>Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related</li>
 <li>Verify the commands history matching the timestamp to confirm if AGW was intentionally restarted.</li>
 <li>If it wasn’t intentional then check the power connection and health of device running AGW</li>
@@ -357,7 +357,7 @@ Major when below 80%.</p>
 </thead>
 <tbody>
 <tr><td>Command run intentionally/AGW reboot due to an unknown cause (power failure)</td><td style="text-align:center">Gateway service(s)/ whole AGW restart causing disruption of services served by the gateway</td><td style="text-align:right">If expected then it’s not applicable.</td></tr>
-<tr><td>However if reboot was happened due to unknown reason, then root cause has to be identified accordingly</td></tr>
+<tr><td></td><td style="text-align:center"></td><td style="text-align:right">However if reboot was happened due to unknown reason, then root cause has to be identified accordingly</td></tr>
 </tbody>
 </table>
 <h3><a class="anchor" aria-hidden="true" id="how-does-this-affect-the-sla-7"></a><a href="#how-does-this-affect-the-sla-7" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>How does this affect the SLA?</h3>
@@ -388,7 +388,7 @@ Major when below 80%.</p>
 <li>Use last reboot to list the last logged in users and system last reboot time and date.</li>
 <li>Confirm the same information in /var/log/syslog, logs like kernel loading should indicate the AGW has been rebooted.</li>
 <li>Example of what the log could look like:</li>
-<li>magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (<a href="mailto:debiankernel@lists.debian.org">debiankernel@lists.debian.org</a>) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1</li>
+<li>magma kernel: <code>[0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1</code></li>
 <li>Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related</li>
 <li>Verify the commands history in syslog matching the timestamp to confirm if the services were intentionally restarted.</li>
 </ul>
@@ -430,8 +430,8 @@ Major when below 80%.</p>
 <li>If applicable, revert the recent changes and check if issue is still observed</li>
 <li>Capture the service crash syslogs and coredumps. Use the approximate time in metrics and look for the events in both syslogs and coredumps</li>
 <li>In syslogs located in /var/log, look for service terminating events and its previous logs. For example, in below mme service crash there is a segfault reported in mme service before its being terminated.</li>
-<li>Dec 5 22:25:55 magma kernel: [266759.489500] ITTI 3[13887]: segfault at 1d6d80 ip 000055b0080da0c2 sp 00007f529e6c0310 error 4 in mme[55b0077bd000+e79000]</li>
-<li>Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV</li>
+<li><code>Dec 5 22:25:55 magma kernel: [266759.489500] ITTI 3[13887]: segfault at 1d6d80 ip 000055b0080da0c2 sp 00007f529e6c0310 error 4 in mme[55b0077bd000+e79000]</code></li>
+<li><code>Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV</code></li>
 <li>Service crashes with a segmentation fault will create coredumps in /tmp/ folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in <a href="https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps">https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps</a></li>
 <li>Using latest mme binary, inspect coredumps via gdb and backtrace to find possible root cause</li>
 <li><strong>Obtain event that triggered the crash</strong>. Every time a service restarts it will generate a log file (i.e. mme.log). Inside the coredump folder you will find the log (i.e. mme.log) that was generated just before the crash. To understand what was the event that triggered the crash, get the last event (Attach Request, Detach, timer expiring, etc.) in the log file.</li>

@@ -129,10 +129,10 @@ This is actually something we looked into way back when this all started but it
 wasn’t open sourced back then. Now it is fully <a href="https://blog.usejournal.com/open-sourcing-victoriametrics-f31e34485c2b">open source</a>
 with some <a href="https://valyala.medium.com/high-cardinality-tsdb-benchmarks-victoriametrics-vs-timescaledb-vs-influxdb-13e6ee64dd6b">insane</a>
 <a href="https://valyala.medium.com/prometheus-vs-victoriametrics-benchmark-on-node-exporter-metrics-4ca29c75590f">benchmarks</a>
-and <a href="https://docs.victoriametrics.com/CaseStudies.html">significant</a> community
+and significant <code>https://docs.victoriametrics.com/CaseStudies.html</code> community
 usage.</p>
-<p>The biggest benefit of VM is that it supports both <a href="https://docs.victoriametrics.com/Single-server-VictoriaMetrics#how-to-import-data-in-prometheus-exposition-format">push</a>
-and <a href="https://docs.victoriametrics.com/Single-server-VictoriaMetrics#how-to-scrape-prometheus-exporters-such-as-node-exporter">pull</a>
+<p>The biggest benefit of VM is that it supports both push <code>https://docs.victoriametrics.com/Single-server-VictoriaMetrics#how-to-import-data-in-prometheus-exposition-format</code>
+and pull <code>https://docs.victoriametrics.com/Single-server-VictoriaMetrics#how-to-scrape-prometheus-exporters-such-as-node-exporter</code>
 natively.</p>
 <p>This means we can completely get rid of prometheus-edge-hub and just push
 metrics directly from orc8r. Even if VM used exactly as much memory/cpu as
@@ -145,7 +145,7 @@ and more tuning could be done to get it higher most likely given that it was
 only using &lt;200% CPU.</p>
 <p>Based on VM’s data this capacity should scale nearly linearly for quite a
 while with more/faster CPUs.</p>
-<p>VM also offers a <a href="https://docs.victoriametrics.com/Cluster-VictoriaMetrics">cluster</a>
+<p>VM also offers a cluster <code>https://docs.victoriametrics.com/Cluster-VictoriaMetrics</code>
 version which is very simply scaled horizontally behind a load balancer. Given
 how well it scales vertically I don’t think this is something we’ll likely have
 to look into for quite a while. Even then if we do I don’t think the
