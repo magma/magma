@@ -19,7 +19,7 @@ image:
   repository: docker.io/ektrumdev
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "exp_magma_kube"
+  tag: "feat_agw_in_k8s_51e29ca"
   # Arch is blank for x86 and _arm for ARM64
   arch: "_arm"
 
