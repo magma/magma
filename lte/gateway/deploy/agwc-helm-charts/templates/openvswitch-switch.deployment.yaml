@@ -11,29 +11,25 @@
 # limitations under the License.
 */}}
 ---
-{{- include "agwc.deployment" (list . "oai-mme.deployment") -}}
-{{- define "oai-mme.deployment" -}}
+{{- include "agwc.deployment" (list . "openvswitch-switch.deployment") -}}
+{{- define "openvswitch-switch.deployment" -}}
 metadata:
   labels:
-    app.kubernetes.io/component: oai-mme
-  name: oai-mme
+    app.kubernetes.io/component: openvswitch-switch
+  name: openvswitch-switch
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: oai-mme
+      app.kubernetes.io/component: openvswitch-switch
   template:
     metadata:
       labels:
-        app.kubernetes.io/component: oai-mme
+        app.kubernetes.io/component: openvswitch-switch
     spec:
       volumes:
         - name: magma-config
           hostPath:
             path: /etc/magma
-            type: Directory
-        - name: mme-logs
-          hostPath:
-            path: /var/log
             type: Directory
         - name: agwc-claim
           persistentVolumeClaim:
@@ -46,33 +42,48 @@ spec:
           hostPath:
             path: /var/run
             type: Directory
+        - name: etc-network-volume
+          hostPath:
+            path: /etc/network
+            type: Directory
+        - name: etc-openvswitch
+          hostPath:
+            path: /etc/openvswitch
+            type: Directory
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        
       containers:
       -
-{{ include "agwc.container" (list . "oai-mme.container")}}
+{{ include "agwc.container" (list . "openvswitch-switch.container")}}
 {{- end -}}
-{{- define "oai-mme.container" -}}
-name: oai-mme
-args:
-  - /bin/bash
-  - -c
-  - /usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
-image: "{{ .Values.image.repository }}/agw_gateway_c{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- define "openvswitch-switch.container" -}}
+name: openvswitch-switch
+command: ["/entrypoint.sh", "start-ovs-only"]
+image: "{{ .Values.image.repository }}/agw_gateway_ovs{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+imagePullPolicy: {{ .Values.image.pullPolicy }}
 securityContext:
   privileged: true
   capabilities:
     add:
       - NET_ADMIN
       - NET_RAW
+      - SYS_MODULE
+
 volumeMounts:
   - mountPath: /etc/magma
     name: magma-config
-  - mountPath: /var/log
-    name: mme-logs
   - mountPath: /var/opt/magma
     name: agwc-claim
   - mountPath: /tmp
     name: tmp-volume
   - mountPath: /var/run
     name: ovs-volume
-
+  - mountPath: /etc/network
+    name: etc-network-volume
+  - mountPath: /etc/openvswitch
+    name: etc-openvswitch
+  - mountPath: /lib/modules
+    name: lib-modules
 {{- end -}}

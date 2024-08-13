@@ -1,0 +1,78 @@
+version: '3'
+services:
+  ovs:
+    build:
+      context: ../../../../../
+      dockerfile: lte/gateway/docker/services/openvswitch/Dockerfile
+    image: ovs
+    privileged: true # remove this after debug!
+    container_name: openvswitch-switch
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh" ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/network:/etc/network # shared ifupdown files with the host
+      - /var/run/openvswitch/:/var/run/openvswitch/ # run time files shared between ovs and magmad
+      - /lib/modules:/lib/modules # used to load/unload modules in hosts kernel
+      - /etc/openvswitch:/etc/openvswitch
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: host
+
+volumes:
+  data:
+    external: true
+
+# # Standard volumes mounted
+# x-ovs-volumes:
+#   # - /lib/modules:/lib/modules
+#   # - /home/magma/ovs/var/ovs/log:/var/log/openvswitch
+#   # - /home/magma/ovs/var/lib/openvswitch:/var/lib/openvswitch
+#   # - /home/magma/ovs/var/run/openvswitch:/var/run/openvswitch
+#   # - /home/magma/ovs/etc/openvswitch:/etc/openvswitch
+#   &volumes_anchor
+#   - /etc/network/interfaces.d/gtp:/etc/network/interfaces.d/gtp
+
+# x-ovs-service: &ovs_service
+#   volumes: *volumes_anchor
+#   restart: always
+#   network_mode: host
+
+# services:
+#   ovs:
+#     build:
+#       context: ../../../../../
+#       dockerfile: lte/gateway/docker/services/openvswitch/Dockerfile
+#     image: ovs
+#   ovsdb-server:
+#     <<: *ovs_service
+#     container_name: ovsdb-server
+#     cap_add:
+#       - NET_ADMIN
+#       - SYS_MODULE
+#       - SYS_NICE
+#     security_opt:
+#       - label=disable
+#     privileged: true
+#     # image: 10.0.3.1:5005/agw_gateway_c:exp_ovs_init_container
+#     image: ovs:latest
+#     command: ovsdb-server
+#   ovs-vswitchd:
+#     <<: *ovs_service
+#     container_name: ovs-vswitchd
+#     cap_add:
+#       - NET_ADMIN
+#       - SYS_MODULE
+#       - SYS_NICE
+#     security_opt:
+#       - label:disable
+#     privileged: true
+#     # image: 10.0.3.1:5005/agw_gateway_c:exp_ovs_init_container
+#     image: ovs:latest
+#     command: ovs-vswitchd

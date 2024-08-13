@@ -18,6 +18,7 @@ set -e -o pipefail
 # Valid deployment types
 FWA="fwa"
 FFWA="federated_fwa"
+AGWC="agwc"
 ALL="all"
 ORC8R_VERSION="1.8"
 
@@ -45,7 +46,7 @@ update_and_send_to_artifactory () {
 }
 
 usage() {
-  echo "Usage: $0 [-v|--version V] [-d|--deployment-type $FWA|$FFWA|$ALL] [-p|--only-package]"
+  echo "Usage: $0 [-v|--version V] [-d|--deployment-type $FWA|$FFWA|$AGWC|$ALL] [-p|--only-package]"
   exit 2
 }
 
@@ -139,6 +140,11 @@ if [[ $ONLY_PACKAGE = false && -z $HELM_CHART_ARTIFACTORY_URL ]]; then
     helm package "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/" $VERSION && helm repo index .
   fi
 
+  if [ "$DEPLOYMENT_TYPE" == "$AGWC" ]; then
+    # shellcheck disable=SC2086
+    helm package "$MAGMA_ROOT/lte/gateway/deploy/agwc-helm-charts/" --dependency-update && helm repo index .
+  fi
+
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
     helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
     # shellcheck disable=SC2086
@@ -147,6 +153,9 @@ if [[ $ONLY_PACKAGE = false && -z $HELM_CHART_ARTIFACTORY_URL ]]; then
     helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
     # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" $VERSION && helm repo index .
+
+    # shellcheck disable=SC2086
+    helm package "$MAGMA_ROOT/lte/gateway/deploy/agwc-helm-charts/" --dependency-update && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
     # shellcheck disable=SC2086
@@ -212,10 +221,15 @@ else
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
   fi
 
+  if [ "$DEPLOYMENT_TYPE" == "$AGWC" ]; then
+    update_and_send_to_artifactory "$MAGMA_ROOT/lte/gateway/deploy/agwc-helm-charts/"
+  fi
+
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
     update_and_send_to_artifactory "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+    update_and_send_to_artifactory "$MAGMA_ROOT/lte/gateway/deploy/agwc-helm-charts/"
     update_and_send_to_artifactory "$MAGMA_ROOT/dp/cloud/helm/dp/charts/domain-proxy"
   fi
 
