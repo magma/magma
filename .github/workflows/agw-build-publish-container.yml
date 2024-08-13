@@ -148,7 +148,7 @@ jobs:
       - name: Create and Push Release Tag
         if: startsWith(github.ref_name, 'v1.')  
         run: |
-         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"  # Debug line to check if GITHUB_REF_NAME is set correctly
+         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"  
          RELEASE_TAG="${GITHUB_REF_NAME}"
          echo "Creating release tag for version ${RELEASE_TAG}"
          git tag -a "${RELEASE_TAG}" -m "Release version ${RELEASE_TAG}" 
