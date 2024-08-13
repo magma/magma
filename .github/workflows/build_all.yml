@@ -130,14 +130,14 @@ jobs:
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --all --nocache
       - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'refs/heads/v1')  
+        if: startsWith(github.ref,'refs/heads/v1')  
         run: |
           RELEASE_TAG="${GITHUB_REF_NAME}"
           echo "Creating release tag for version ${RELEASE_TAG}"
           echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: startsWith(github.ref, 'refs/heads/v1')  
+        if: startsWith(github.ref,'refs/heads/v1')  
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -269,7 +269,7 @@ jobs:
           echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV
       - name: Tag and push to Jfrog Registry
         id: publish_artifacts
-        if: startsWith(github.ref, 'refs/heads/v1')
+        if: startsWith(github.ref,'refs/heads/v1')
         env:
           DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
           DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
@@ -330,7 +330,7 @@ jobs:
           name: pr
           path: pr/
       - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'refs/heads/v1')  
+        if: startsWith(github.ref,'refs/heads/v1')  
         run: |
           RELEASE_TAG="${GITHUB_REF_NAME}"
           echo "Creating release tag for version ${RELEASE_TAG}"
@@ -407,7 +407,7 @@ jobs:
           cd ${MAGMA_ROOT}/feg/gateway/docker
           python3 build.py -e
       - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'refs/heads/v1')  
+        if: startsWith(github.ref,'refs/heads/v1')  
         run: |
           RELEASE_TAG="${GITHUB_REF_NAME}"
           echo "Creating release tag for version ${RELEASE_TAG}"

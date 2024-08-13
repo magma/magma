@@ -146,7 +146,7 @@ jobs:
           TARGET: gateway_go
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
       - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'v1.')  
+        if: startsWith(github.ref,'v1.')  
         run: |
          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"  
          RELEASE_TAG="${GITHUB_REF_NAME}"
