@@ -31,18 +31,22 @@ extern "C" {
 //------------------------------------------------------------------------------
 int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
                        uint32_t len) {
+  int signed_len = len;
   int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
 
   if (iei > 0) {
+    CHECK_LENGTH_DECODER(signed_len - decoded, 1);
     CHECK_IEI_DECODER(iei, *buffer);
     decoded++;
   }
 
+  CHECK_LENGTH_DECODER(signed_len - decoded, 2);
+
   ielen = *(buffer + decoded);
   decoded++;
-  CHECK_LENGTH_DECODER(len - decoded, ielen);
+  CHECK_LENGTH_DECODER(signed_len - decoded, ielen);
   pdnaddress->pdntypevalue = *(buffer + decoded) & 0x7;
   decoded++;
 
