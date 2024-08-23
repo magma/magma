@@ -76,7 +76,7 @@ COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" && \
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main" && \
     add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
 
 RUN apt-get -y update && apt-get -y install \
@@ -88,7 +88,7 @@ RUN apt-get -y update && apt-get -y install \
     libjemalloc2 \
     libssl-dev \
     libsystemd-dev \
-    magma-nghttpx=1.31.1-1 \
+   nghttp2-proxy\
     net-tools \
     openssl \
     pkg-config \

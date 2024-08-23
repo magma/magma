@@ -95,17 +95,17 @@ jobs:
           python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
           go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
 
-          echo image_tag=${commit_hash} >> $GITHUB_OUTPUT
-          if [[ ${{ github.ref_name }} = master ]]
-          then
-            echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
-            echo python_image_tags=${python_image}:${commit_hash},${python_image}:latest >> $GITHUB_OUTPUT
-            echo go_image_tags=${go_image}:${commit_hash},${go_image}:latest >> $GITHUB_OUTPUT
+          echo "image_tag=${commit_hash}" >> $GITHUB_OUTPUT
+          if [[ ${{ github.ref_name }} = master ]]; then
+            echo "c_image_tags=${c_image}:${commit_hash},${c_image}:latest,${c_image}:v1.9" >> $GITHUB_OUTPUT
+            echo "python_image_tags=${python_image}:${commit_hash},${python_image}:latest,${python_image}:v1.9" >> $GITHUB_OUTPUT
+            echo "go_image_tags=${go_image}:${commit_hash},${go_image}:latest,${go_image}:v1.9" >> $GITHUB_OUTPUT
           else
-            echo c_image_tags=${c_image}:${commit_hash} >> $GITHUB_OUTPUT
-            echo python_image_tags=${python_image}:${commit_hash} >> $GITHUB_OUTPUT
-            echo go_image_tags=${go_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo "c_image_tags=${c_image}:${commit_hash},${c_image}:v1.9" >> $GITHUB_OUTPUT
+            echo "python_image_tags=${python_image}:${commit_hash},${python_image}:v1.9" >> $GITHUB_OUTPUT
+            echo "go_image_tags=${go_image}:${commit_hash},${go_image}:v1.9" >> $GITHUB_OUTPUT
           fi
+
 
       - name: Print agwc tags
         run: |
@@ -145,6 +145,16 @@ jobs:
           TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
           TARGET: gateway_go
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref,'v1.')  
+        run: |
+         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"  
+         RELEASE_TAG="${GITHUB_REF_NAME}"
+         echo "Creating release tag for version ${RELEASE_TAG}"
+         git tag -a "${RELEASE_TAG}" -m "Release version ${RELEASE_TAG}" 
+         git push origin refs/tags/"${RELEASE_TAG}" 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-containers-ghz:
     runs-on: ubuntu-20.04

@@ -88,7 +88,7 @@ RUN apt-get install -y --no-install-recommends \
 
 # setup magma artifactories and install magma dependencies
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main' && \
+RUN add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main' && \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         bcc-tools \

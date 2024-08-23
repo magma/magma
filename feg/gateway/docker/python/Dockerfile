@@ -79,7 +79,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main"
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
     add-apt-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
@@ -94,7 +94,7 @@ RUN apt-get -y update && apt-get -y install \
     libjemalloc2 \
     libssl-dev \
     libsystemd-dev \
-    magma-nghttpx=1.31.1-1 \
+   nghttp2-proxy\
     net-tools \
     openssl \
     iputils-ping \

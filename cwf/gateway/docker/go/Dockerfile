@@ -18,7 +18,7 @@ RUN apt-get update && \
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
+RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y \
     libjemalloc-dev \
     libssl-dev \
     libsystemd-dev \
-    magma-nghttpx=1.31.1-1 \
+   nghttp2-proxy\
     make \
     net-tools \
     pkg-config \
