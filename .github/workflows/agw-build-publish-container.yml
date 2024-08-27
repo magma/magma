@@ -149,7 +149,7 @@ jobs:
         run: |
          echo "The current github.ref is: ${GITHUB_REF}"
       - name: Create and Push Release Tag
-        if: startsWith(github.ref_name, 'v1.*')  
+        if: startsWith(github.ref, 'refs/heads/v1.')  
         run: |
          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}" 
          RELEASE_TAG="${GITHUB_REF_NAME}"
