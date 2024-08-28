@@ -153,8 +153,6 @@ jobs:
         run: |
          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}" 
          RELEASE_TAG="${GITHUB_REF_NAME}"
-         git config user.email bindu.akula@veltris.com
-         git config  user.name "himabinduak"
          echo "Creating release tag for version ${RELEASE_TAG}"
          git tag -a "${RELEASE_TAG}" -m "Release version ${RELEASE_TAG}" 
          git push origin refs/tags/"${RELEASE_TAG}" 
