@@ -42,7 +42,6 @@ on:
     branches:
       - master
       - 'v1.*'
-      - focal-1.9.0
   pull_request:
     types: [ opened, reopened, synchronize ]
 
