@@ -81,7 +81,6 @@ jobs:
 
       - name: verify git sha output
         run: echo "Git SHA is ${commit_hash}"
-
       - name: Create possible release Tag
         if: github.event_name == 'push' && github.ref_name != 'master'
         run: |
@@ -145,10 +144,13 @@ jobs:
           TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
           TARGET: gateway_go
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
-      - name: Create and Push Release Tag
-        if: startsWith(github.ref,'v1.')  
+      - name: Print github.ref for debugging
         run: |
-         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"  
+         echo "The current github.ref is: ${GITHUB_REF}"
+      - name: Create and Push Release Tag
+        if: startsWith(github.ref, 'refs/heads/v1.')  
+        run: |
+         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}" 
          RELEASE_TAG="${GITHUB_REF_NAME}"
          echo "Creating release tag for version ${RELEASE_TAG}"
          git tag -a "${RELEASE_TAG}" -m "Release version ${RELEASE_TAG}" 
