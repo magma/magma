@@ -17,7 +17,7 @@ PATCHES_DIR="${SCRIPT_DIR}/../../../lte/gateway/c/core/oai/patches"
 source "${SCRIPT_DIR}"/../lib/util.sh
 GIT_URL=https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git
 GIT_COMMIT=13b0e7de0d66906d50e074a339f890d6e59813ad
-PKGVERSION=0.0.1
+PKGVERSION=0.0.3
 ITERATION=1
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=oai-freediameter
