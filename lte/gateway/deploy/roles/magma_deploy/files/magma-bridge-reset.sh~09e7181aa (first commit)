@@ -1,0 +1,1 @@
+../../magma/files/magma-bridge-reset.sh
