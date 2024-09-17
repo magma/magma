@@ -1,0 +1,346 @@
+{
+  "Parameters": {
+    "paramEksClusterName" : {
+      "Type": "String",
+      "Default": "eksMagmaCluster",
+      "Description": "EKS Cluster Name"
+    },
+    "paramCidr" : {
+      "Type": "String",
+      "Default": "10.19.0.0/16",
+      "Description": "CIDR for EKS VPC"
+    },
+    "paramPub1Cidr" : {
+      "Type": "String",
+      "Default": "10.19.6.0/24",
+      "Description": "CIDR for EKS Public Public 1"
+    },
+    "paramPub2Cidr" : {
+      "Type": "String",
+      "Default": "10.19.8.0/24",
+      "Description": "CIDR for EKS Public Network 2"
+    },
+    "paramPriv1Cidr" : {
+      "Type": "String",
+      "Default": "10.19.4.0/24",
+      "Description": "CIDR for EKS Private Network 1"
+    },
+    "paramPriv2Cidr" : {
+      "Type": "String",
+      "Default": "10.19.2.0/24",
+      "Description": "CIDR for EKS Private Network 2"
+    },
+    "paramAvlZone1" : {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "Default": "ap-northeast-1a",
+      "Description": "Availability Zone 1"
+    },
+    "paramAvlZone2" : {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "Default": "ap-northeast-1d",
+      "Description": "Availability Zone 2"
+    },
+    "paramSecGroupName" : {
+      "Type": "String",
+      "Default": "secGroupMagmaEks",
+      "Description": "Security Group Name"
+    },
+    "paramRoleEksName": {
+      "Type": "String",
+      "Default": "roleMagmaEksCluster",
+      "Description": "Name of Role to manage EKS Cluster"
+    },
+    "paramRoleFargateName": {
+      "Type": "String",
+      "Default": "roleMagmaFargateCluster",
+      "Description": "Name of Role to manage Fargate Cluster"
+    }
+  },
+  "Resources": {
+    "vpcMagmaEks": {
+      "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+          "CidrBlock" : { "Ref": "paramCidr" },
+      	  "EnableDnsHostnames" : "true",
+      	  "EnableDnsSupport" : "true",
+      	  "InstanceTenancy" : "default",
+      	  "Tags" : [ {"Key": "Name", "Value": "${AWS::StackName}-EksVpc"}]
+    	}
+    },
+    "subPubNet1" : {
+       "Type" : "AWS::EC2::Subnet",
+       "Properties" : {
+         "VpcId" : {  "Ref": "vpcMagmaEks" },
+         "CidrBlock" : { "Ref": "paramPub1Cidr" },
+         "AvailabilityZone" : { "Ref": "paramAvlZone1" },
+         "MapPublicIpOnLaunch": "true",
+         "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksPubSubnet1"} ]
+       }
+    },
+    "subPubNet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : {  "Ref": "vpcMagmaEks" },
+        "CidrBlock" : { "Ref": "paramPub2Cidr" },
+        "AvailabilityZone" : { "Ref": "paramAvlZone2" },
+        "MapPublicIpOnLaunch": "true",
+        "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksPublicSubnet2"} ]
+      }
+    },
+    "gwInetPub" : {
+      "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Name", "Value" : "${AWS::StackName}-EksInternetGateway"} ]
+        }
+    },
+    "attachGwInetPub" : {
+      "Type" : "AWS::EC2::VPCGatewayAttachment",
+        "Properties" : {
+          "VpcId" : { "Ref" : "vpcMagmaEks" },
+          "InternetGatewayId" : { "Ref" : "gwInetPub" }
+        }
+    },
+    "rtPub" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagmaEks" },
+        "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksRouteTablePublic" } ]
+       }
+    },
+    "rtePub" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rtPub" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "gwInetPub" }
+      }
+    },
+    "rtPubInetGwAssocSubnet1" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subPubNet1" },
+        "RouteTableId" : { "Ref" : "rtPub" }
+       }
+    },
+    "rtPubInetGwAssocSubnet2" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subPubNet2" },
+        "RouteTableId" : { "Ref" : "rtPub" }
+       }
+    },
+    "subPrivNet1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagmaEks" },
+        "CidrBlock" : { "Ref": "paramPriv1Cidr" },
+        "AvailabilityZone" : { "Ref": "paramAvlZone1" },
+        "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksSubnetPrivate1" } ]
+       }
+    },
+    "gwNatPriv1" : {
+      "Type" : "AWS::EC2::NatGateway",
+        "Properties" : {
+          "AllocationId" : { "Fn::GetAtt" : ["eipNatGwPriv1", "AllocationId"]},
+          "SubnetId" : { "Ref" : "subPubNet1"},
+          "Tags" : [ {"Key" : "Name", "Value" : "${AWS::StackName}-EksNatGwPrivate1" } ]
+        },
+        "DependsOn": [ "subPubNet1", "eipNatGwPriv1" ]
+    },
+    "eipNatGwPriv1" : {
+      "Type" : "AWS::EC2::EIP",
+      "DependsOn": "attachGwInetPub",
+      "Properties" : {
+         "Domain" : "vpc"
+      }
+    },
+    "rtPriv1" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagmaEks" },
+        "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksRouteTablePrivate1" } ]
+       }
+    },
+    "rtePriv1" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rtPriv1" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "gwNatPriv1" }
+      }
+    },
+    "rtPriv1AssocSubnet" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subPrivNet1" },
+        "RouteTableId" : { "Ref" : "rtPriv1" }
+       }
+    },
+    "subPrivNet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : {  "Ref": "vpcMagmaEks" },
+        "CidrBlock" : { "Ref": "paramPriv2Cidr" },
+        "AvailabilityZone" : { "Ref": "paramAvlZone2" },
+        "Tags" : [ { "Key" : "Name", "Value" : "${AWS::StackName}-EksSubnetPrivate2" } ]
+      }
+    },
+    "gwNatPriv2" : {
+      "Type" : "AWS::EC2::NatGateway",
+        "Properties" : {
+          "AllocationId" : { "Fn::GetAtt" : ["eipNatGwPriv2", "AllocationId"]},
+          "SubnetId" : { "Ref" : "subPubNet2"},
+          "Tags" : [ {"Key" : "Name", "Value" : "${AWS::StackName}-EksNatGwPrivate2" } ]
+        },
+        "DependsOn": [ "subPubNet2", "eipNatGwPriv2" ]
+    },
+    "eipNatGwPriv2" : {
+      "Type" : "AWS::EC2::EIP",
+      "DependsOn": "attachGwInetPub",
+      "Properties" : {
+         "Domain" : "vpc"
+      }
+    },
+    "rtPriv2" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagmaEks" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Route Table for Private Network 1 for Internet Gateway" } ]
+       }
+    },
+    "rtePriv2" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rtPriv2" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "gwNatPriv2" }
+       }
+    },
+    "rtPriv2AssocSubnet" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subPrivNet2" },
+        "RouteTableId" : { "Ref" : "rtPriv2" }
+       }
+    },
+    "sgVpc": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Allow all TCP to client host",
+	      "GroupName": { "Ref": "paramSecGroupName" },
+        "VpcId" : {"Ref" : "vpcMagmaEks"},
+        "SecurityGroupIngress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }]
+      }
+    },
+    "roleMagmaEksCluster": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+          "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "eks.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+          },
+          "Path":"/",
+          "ManagedPolicyArns": [
+              "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+          ],
+          "Description": "Magma Role for EKS Clusters",
+          "RoleName": { "Ref": "paramRoleEksName" },
+          "Tags": [
+              {"Key": "Purpose", "Value": "Magma Role for EKS Clusters" },
+              {"Key": "Label", "Value": "lblRoleMagmaEksCluster"}
+          ]
+      }
+    },
+    "roleMagmaFargateCluster": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+          "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "eks-fargate-pods.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+          },
+          "Path":"/",
+          "ManagedPolicyArns": [
+              "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+          ],
+          "Description": "Magma Role for Fargate Clusters",
+          "RoleName": { "Ref": "paramRoleFargateName" },
+          "Tags": [
+              {"Key": "Purpose", "Value": "Magma Role for Fargate Clusters" },
+              {"Key": "Label", "Value": "lblRoleMagmaFargateCluster"}
+          ]
+      }
+    },
+    "clusterMagmaEks": {
+      "Type": "AWS::EKS::Cluster",
+      "DependsOn": [ "vpcMagmaEks", "roleMagmaEksCluster" ],
+      "Properties": {
+          "Name": {"Ref": "paramEksClusterName"},
+          "Version": "1.20",
+          "RoleArn": {"Fn::GetAtt": ["roleMagmaEksCluster", "Arn"]},
+          "ResourcesVpcConfig": {
+              "SecurityGroupIds": [ {"Fn::GetAtt": ["sgVpc", "GroupId"]}],
+              "SubnetIds": [{"Ref": "subPrivNet1"}, {"Ref": "subPrivNet2"}]
+          }
+      }
+    },
+    "profileFargateDefault": {
+      "Type": "AWS::EKS::FargateProfile",
+      "Properties": {
+          "ClusterName": { "Ref": "clusterMagmaEks"},
+          "FargateProfileName": "profileFargateDefault",
+          "PodExecutionRoleArn": {"Fn::GetAtt": ["roleMagmaFargateCluster", "Arn"]},
+          "Selectors":[
+              {
+                  "Labels": [ { "Key": "compute", "Value": "fargate"}],
+                  "Namespace": "default"
+              }
+          ],
+          "Subnets":[{"Ref": "subPrivNet1"}, {"Ref": "subPrivNet2"}]
+      },
+      "DependsOn": [ "clusterMagmaEks", "roleMagmaFargateCluster"]
+    },
+    "profileFargateMagma": {
+      "Type": "AWS::EKS::FargateProfile",
+      "Properties": {
+          "ClusterName": { "Ref": "clusterMagmaEks"},
+          "FargateProfileName": "profileFargateMagma",
+          "PodExecutionRoleArn": {"Fn::GetAtt": ["roleMagmaFargateCluster", "Arn"]},
+          "Selectors":[
+              {
+                  "Labels": [ { "Key": "compute", "Value": "fargate"}],
+                  "Namespace": "magma"
+              }
+          ],
+          "Subnets":[{"Ref": "subPrivNet1"}, {"Ref": "subPrivNet2"}]
+      },
+      "DependsOn": [ "clusterMagmaEks", "roleMagmaFargateCluster", "profileFargateDefault"]
+    }
+  }
+}

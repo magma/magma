@@ -1,0 +1,37 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message AbortSessionRequest {
+    string session_id = 1;
+    string user_name = 2; // IMSI
+}
+
+message AbortSessionResult {
+    enum Code {
+        SESSION_REMOVED = 0;
+        SESSION_NOT_FOUND = 1;
+        USER_NOT_FOUND = 2;
+        GATEWAY_NOT_FOUND = 3;
+        RADIUS_SERVER_ERROR = 4;
+    }
+    Code code = 1;
+    string error_message = 2;
+}
+
+service AbortSessionResponder {
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionResult) {}
+}

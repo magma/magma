@@ -1,0 +1,261 @@
+- name: Initialize terraform
+  ansible.builtin.command: terraform init
+  args:
+    chdir: "{{project_dir}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Get terraform state facts
+  ansible.builtin.command: "{% if cleanup_state is defined %} terraform show -json {{cleanup_state}} {% else %} terraform show -json {% endif %}"
+  register: result
+  args:
+    chdir: "{{project_dir}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Check if terraform state command errors out
+  assert:
+    that:
+      - result.rc == 0
+    msg: [
+      "Error attempting to run 'terraform show' command",
+      "Terraform state not found",
+      "Check if the deployment directory {{project_dir}} contains terraform files"
+    ]
+  tags:
+    - install_precheck
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Check if any resources are present in terraform state
+  assert:
+    that:
+      - "{{ (result.stdout | from_json) | json_query('values') != None }}"
+    msg: [
+      "No resources found in terraform state"
+    ]
+  tags:
+    - upgrade_precheck
+
+- name: Check if no resources are present in terraform state
+  assert:
+    that:
+      - "{{ (result.stdout | from_json) | json_query('values') == None }}"
+    fail_msg: "Prior terraform state present. Cleanup terraform.tfstate files or backend s3 state if necessary"
+  tags:
+    - install_precheck
+
+- name: Set terraform state fact
+  set_fact:
+    terraform_state: "{{result.stdout | from_json}}"
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r namespace
+  set_fact:
+    orc8r_namespace: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_NAMESPACE_QUERY))}}"
+  when: orc8r_namespace is undefined
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r namespace
+  debug:
+    msg: "orc8r_namespace : {{orc8r_namespace}}"
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r secrets
+  set_fact:
+    orc8r_secrets: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_AWS_SECRETS_QUERY))}}"
+  ignore_errors: true
+  when: orc8r_secrets is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r secrets
+  debug:
+    msg: "orc8r_secrets : {{orc8r_secrets}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r ES domain
+  set_fact:
+    orc8r_es_domain: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_ES_DOMAIN_QUERY))}}"
+  ignore_errors: true
+  when: orc8r_es_domain is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r es domain
+  debug:
+    msg: "orc8r_es_domain : {{orc8r_es_domain}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r cluster name
+  set_fact:
+    orc8r_cluster_name: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_CLUSTER_NAME_QUERY))}}"
+  when: orc8r_cluster_name is undefined
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r cluster name
+  debug:
+    msg: "orc8r_cluster_name : {{orc8r_cluster_name}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r db instance id
+  set_fact:
+    orc8r_db_id: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_DB_ID_QUERY))}}"
+  when: orc8r_db_id is undefined
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r db instance
+  debug:
+    msg: "orc8r_db_id : {{orc8r_db_id}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set orc8r db subnet
+  set_fact:
+    orc8r_db_subnet: "{{lookup('flattened', result.stdout | from_json | json_query(ORC8R_DB_SUBNET_QUERY))}}"
+  when: orc8r_db_subnet is undefined
+  ignore_errors: true
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug orc8r db subnet
+  debug:
+    msg: "orc8r_db_subnet : {{orc8r_db_subnet}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set EFS mount targets
+  set_fact:
+    efs_mount_targets: "{{lookup('flattened', result.stdout | from_json | json_query(EFS_MOUNT_TARGET_ID_QUERY), wantlist=True)}}"
+  ignore_errors: true
+  when: efs_mount_targets is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug EFS mount targets
+  debug:
+    msg: "efs_mount_targets : {{efs_mount_targets}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set EFS FS targets
+  set_fact:
+    efs_fs_targets: "{{lookup('flattened', result.stdout | from_json | json_query(EFS_FILE_SYSTEM_ID_QUERY), wantlist=True)}}"
+  ignore_errors: true
+  when: efs_fs_targets is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug EFS FS targets
+  debug:
+    msg: "efs_fs_targets : {{efs_fs_targets}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set vpc
+  set_fact:
+    vpc_name: "{{lookup('flattened', result.stdout | from_json | json_query(VPC_QUERY))}}"
+  ignore_errors: true
+  when: vpc_name is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug vpc
+  debug:
+    msg: "vpc_name : {{vpc_name}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set Domain Name
+  set_fact:
+    domain_name: "{{lookup('flattened', result.stdout | from_json | json_query(HOSTED_ZONE_QUERY))}}"
+  ignore_errors: true
+  when: domain_name is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug hosted zone
+  debug:
+        msg: "domain_name : {{domain_name}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Set region name
+  set_fact:
+    region_name: "{{lookup('flattened', result.stdout | from_json | json_query(REGION_QUERY) | first)}}"
+  ignore_errors: true
+  when: region_name is undefined
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug region name
+  debug:
+    msg: "region_name : {{region_name}}"
+  tags:
+    - upgrade_precheck
+    - cleanup_dryrun
+    - cleanup

@@ -1,0 +1,29 @@
+---
+services:
+  # NOTE: do NOT include dash(-) in your service name. Use underscore instead.
+  # Example service name that contains dash: hello-world-blah
+  # As we use "-" in nghttpx config to connect service name and hostname,
+  # "-" is used as a delimiter in dispatcher to parse out service names.
+
+  # Format:
+  # service:
+  #   host:       Host name to register in registry
+  #   ip_address: IP address used by control_proxy
+  #   port:       Port number used by control_proxy
+
+  # Production Services
+  magmad:
+    ip_address: 127.0.0.1
+    port: 50052
+  control_proxy:
+    ip_address: 127.0.0.1
+    port: 50053
+  aaa_server:
+    ip_address: 127.0.0.1
+    port: 9109
+  abort_session_service:
+    ip_address: 127.0.0.1
+    port: 9109
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 9109

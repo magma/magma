@@ -1,0 +1,12 @@
+---
+- hosts: "{{ aminode }}"
+  roles:
+    - magma-agw
+    - clean-ami
+  vars:
+    ansible_ssh_private_key_file: "{{ dirLocalInventory }}/{{ keyHost }}.pem"
+  vars_files:
+    - roles/vars/defaults.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+    - roles/vars/cluster.yaml
+    - roles/vars/build.yaml

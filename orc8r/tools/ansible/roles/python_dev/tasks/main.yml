@@ -1,0 +1,118 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+##################################
+# Set up dev environment variables
+##################################
+
+- name: Set Python environment variables
+  lineinfile:
+    path: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - PYTHON_BUILD="{{ python_build }}"
+    - PIP_CACHE_HOME="~/.pipcache"
+    - PYTHONDONTWRITEBYTECODE="no"
+  when: preburn
+
+- name: Test for path in /etc/environment file
+  shell: grep "^PATH=" /etc/environment
+  register: test_path
+  ignore_errors: true
+  when: preburn
+
+- name: Add PATH line if it doesn't exist
+  lineinfile:
+    path: /etc/environment
+    state: present
+    line: 'PATH=/usr/lib/ccache:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  when: preburn and test_path.rc != 0
+
+- name: Append virtual env python3 bin if path exists
+  lineinfile:
+    path: /etc/environment
+    state: present
+    backrefs: yes
+    regexp: 'PATH=(["]*)((?!.*?{{ python_bin }}).*?)(["]*)$'
+    line: 'PATH=\1{{ python_bin }}:\2\3'
+  when: preburn
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set convenience functions for virtualenv
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - alias magtivate='source {{ python_build }}/bin/activate'
+    - alias venvsudo='sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env'
+  when: preburn
+
+##############################
+# Install dependency packages
+##############################
+
+- name: Common setup build requirements for python packages
+  retries: 5
+  when: preburn
+  apt:
+    state: present
+    name:
+      # Build requirements
+      - virtualenv
+      - python-babel
+      - python-dev
+      - pkg-config
+      - sshpass
+      # Packaging dependencies
+      - build-essential
+      # Building and shipping client release
+      - autogen
+      - autoconf
+      - libtool
+      - python3-apt
+      - python3-setuptools
+      - python3-requests
+      - python3-pip
+      # Python dev dependencies
+      - protobuf-compiler
+      - python-protobuf
+      - libsystemd-dev
+      - mypy
+      - python3-testresources
+
+- name: install the package, force reinstall to the latest version
+  pip:
+    name: setuptools==49.6.0
+    state: forcereinstall
+    executable: pip3
+  when: preburn
+
+###########################
+# Install dev dependencies
+###########################
+
+- name: Install mypy-protobuf
+  pip:
+    name: mypy-protobuf
+    executable: pip3
+  when: preburn
+
+- name: Install grpcio-tools
+  pip:
+    name: grpcio-tools>=1.46.3,<1.49.0
+    executable: pip3
+  when: preburn

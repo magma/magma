@@ -1,0 +1,2144 @@
+{
+  "networks": [ "test", "test_feg_network", "test_feg_lte_network"],
+  "lte":{
+    "test": {
+      "gateways":{
+        "mpk_dogfooding_kindel_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.0.1/32",
+              "nat_enabled": null
+            },
+            "ran": {
+              "pci": 0,
+              "transmit_enabled": null
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "mpk_dogfooding_magma_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "non_eps_service": {
+              "arfcn_2g": null,
+              "csfb_mcc": "001",
+              "csfb_mnc": "01",
+              "lac": 1,
+              "non_eps_service_control": null
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": true
+            }
+          },
+          "connected_enodeb_serials": [
+            "12020000051696P0013",
+            "120200002618AGP0001",
+            "120200002618AGP0002"
+          ],
+          "description": "mpk_dogfooding",
+          "device": {
+            "hardware_id": "e059637f-cd55-4109-816c-ce6ebc69020d",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEnLLt7pWeI2LRI1LO8mTnQFxlX1qzHqa1VjilD0RRXrw9f1P3eXac2inLNuhPv3KYvPp5t3p3/xSckAYkzqDTImuByi+zXyeOjrHR+5234X5QvhPBFb1ZJToEBBVyZEk3",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "mpk_dogfooding_magma_1",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 301,
+            "checkin_interval": 60,
+            "checkin_timeout": 20,
+            "dynamic_services": [
+              "redirectd",
+              "td-agent-bit",
+              "eventd"
+            ],
+            "logging": {
+              "aggregation": {
+                "target_files_by_tag": {
+                  "enodebd": "/var/log/enodebd.log",
+                  "syslog": "/var/log/syslog"
+                },
+                "throttle_interval": "1m",
+                "throttle_rate": 1000,
+                "throttle_window": 5
+              },
+              "log_level": "INFO"
+            }
+          },
+          "name": "team pod",
+          "status": {
+            "cert_expiration_time": 1598155498,
+            "checkin_time": 1597957164950,
+            "hardware_id": "e059637f-cd55-4109-816c-ce6ebc69020d",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 2,
+                "model_name": "Intel(R) Atom(TM) CPU D525   @ 1.80GHz",
+                "threads_per_core": 2
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.253.1.26/24"
+                    ],
+                    "mac_address": "00:30:18:ca:79:11",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.0.2.1/24"
+                    ],
+                    "mac_address": "00:30:18:ca:79:12",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.0.3.1/24"
+                    ],
+                    "mac_address": "00:30:18:ca:79:13",
+                    "network_interface_id": "eth2",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "00:30:18:ca:79:14",
+                    "network_interface_id": "eth3",
+                    "status": "DOWN"
+                  },
+                  {
+                    "mac_address": "28:c2:dd:ed:d4:7d",
+                    "network_interface_id": "wlan0",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.24.0.34/32"
+                    ],
+                    "network_interface_id": "tun0",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "c6:4a:71:17:b8:c2",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "a6:64:5f:9f:63:4f",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "network_interface_id": "gtp_sys_2152",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.0.2.10/24"
+                    ],
+                    "mac_address": "da:99:bc:cd:45:ae",
+                    "network_interface_id": "mtr0",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "ba:79:62:30:05:43",
+                    "network_interface_id": "uplink_br0",
+                    "status": "DOWN"
+                  },
+                  {
+                    "mac_address": "b6:be:c6:cc:80:0c",
+                    "network_interface_id": "dhcp0",
+                    "status": "DOWN"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.253.1.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.0.2.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.0.2.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "mtr0"
+                  },
+                  {
+                    "destination_ip": "10.0.3.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth2"
+                  },
+                  {
+                    "destination_ip": "10.24.0.0",
+                    "gateway_ip": "10.24.0.33",
+                    "genmask": "255.255.0.0",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "10.24.0.33",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.255",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "10.253.1.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "1",
+              "enodeb_connected": "1",
+              "enodeb_serial": "12020000051696P0013",
+              "enodeb_state": "Completed provisioning eNB. Awaiting new Inform.",
+              "gps_connected": "1",
+              "gps_latitude": "37.484892",
+              "gps_longitude": "-122.147375",
+              "mme_connected": "1",
+              "opstate_enabled": "1",
+              "ptp_connected": "0",
+              "rf_tx_desired": "1",
+              "rf_tx_on": "1"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1597957106
+              },
+              "kernel_version": "4.9.0-8-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-6-amd64",
+                "linux-image-4.9.0-7-amd64",
+                "linux-image-4.9.0-8-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.1.0-1597624799-9bb53b7e"
+                }
+              ],
+              "vpn_ip": "10.24.0.34"
+            },
+            "system_status": {
+              "cpu_idle": 2645390410,
+              "cpu_system": 14831090,
+              "cpu_user": 95056570,
+              "disk_partitions": [
+                {
+                  "device": "/dev/sda1",
+                  "free": 20529995776,
+                  "mount_point": "/",
+                  "total": 29276286976,
+                  "used": 7235506176
+                }
+              ],
+              "mem_available": 964538368,
+              "mem_free": 183881728,
+              "mem_total": 2090508288,
+              "mem_used": 909549568,
+              "swap_free": 2133819392,
+              "swap_total": 2133848064,
+              "swap_used": 28672,
+              "time": 1597957164,
+              "uptime_secs": 697777
+            }
+          },
+          "tier": "default"
+        },
+        "mpk_dogfooding_magma_ttip_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.0.1/32",
+              "nat_enabled": null
+            },
+            "ran": {
+              "pci": 0,
+              "transmit_enabled": null
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "mpk_dogfooding_roof12_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "non_eps_service": {
+              "arfcn_2g": null,
+              "csfb_mcc": "113",
+              "csfb_mnc": "112",
+              "lac": 1,
+              "non_eps_service_control": null
+            },
+            "ran": {
+              "pci": 240,
+              "transmit_enabled": true
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": {
+            "hardware_id": "d145a7fa-6105-4b3f-b5ac-446557132eb3",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAERTwUdiaLqETwgJDl/YXEH8cm7Pr91sW+WwpkcZGmtlljinbW9MBrEBViqj+QMAuF1Ibg6L5f9fSIvwnER7lHUQ4pPuHwqccSOts9JevQIGgFwBsBjU3ppCTC2R2/GsKF",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "mpk_dogfooding_roof12_1",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 301,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "roof12",
+          "tier": "default"
+        },
+        "mpk_dogfooding_roof18_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "non_eps_service": {
+              "arfcn_2g": null,
+              "csfb_mcc": "113",
+              "csfb_mnc": "112",
+              "lac": 1,
+              "non_eps_service_control": null
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": true
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": {
+            "hardware_id": "3c257bfa-23d5-4bd2-876d-adcf5448e2fc",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE5WAIdXyeSAEw5t91BzZL+NGeT3bfN39eiJFqW+rgvLVeUSe0+Yt6h7Pmr1rFQd0ptKbYqIeHGzrC3lNpEZjE+6pTUDHDhWTBQAEImLWayQWM+LgTuZ2S5KzQ3dDi9DTx",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "mpk_dogfooding_roof18_1",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "roof18",
+          "tier": "default"
+        },
+        "mpk_dogfooding_tiplab_1": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "non_eps_service": {
+              "arfcn_2g": [
+                0
+              ],
+              "csfb_mcc": "001",
+              "csfb_mnc": "01",
+              "csfb_rat": 0,
+              "lac": 1,
+              "non_eps_service_control": 0
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": true
+            }
+          },
+          "connected_enodeb_serials": [
+            "120200020718CJP0007",
+            "120200020718CJP0013"
+          ],
+          "description": "",
+          "device": {
+            "hardware_id": "31b05210-90a5-416b-81f8-90bddd5f170e",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEFRuxodM7Re/GVW7t3LSVDPhPUU+mTt20ILTkvwheMO4gbbhmnzCr1VKrVlxr4QcMUVFpgosipx7dLzIx2TvW837JQcpwC9WAIzFC6FT06WGKa/n7qXXp+HSdYpnBehVb",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "mpk_dogfooding_tiplab_1",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": [],
+            "feature_flags": {
+              "newfeature1": true,
+              "newfeature2": false
+            }
+          },
+          "name": "tiplab",
+          "status": {
+            "cert_expiration_time": 1569193480,
+            "checkin_time": 1568846079806,
+            "hardware_id": "31b05210-90a5-416b-81f8-90bddd5f170e",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 2,
+                "model_name": "Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz",
+                "threads_per_core": 1
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.2.15/24"
+                    ],
+                    "mac_address": "00:0c:29:03:98:6c",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.3.15/24"
+                    ],
+                    "mac_address": "00:0c:29:03:98:76",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "72:74:ac:0e:b6:24",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "f2:d4:15:f3:aa:40",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.24.0.162/32"
+                    ],
+                    "network_interface_id": "tun0",
+                    "status": "UP"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.22.2.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.22.2.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.22.3.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.24.0.0",
+                    "gateway_ip": "10.24.0.161",
+                    "genmask": "255.255.0.0",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "10.24.0.161",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.255",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "0",
+              "enodeb_connected": "0",
+              "enodeb_serial": "N/A",
+              "enodeb_state": "N/A",
+              "gps_connected": "0",
+              "gps_latitude": "0.0",
+              "gps_longitude": "0.0",
+              "mme_connected": "0",
+              "opstate_enabled": "0",
+              "ptp_connected": "0",
+              "rf_tx_desired": "N/A",
+              "rf_tx_on": "0"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1568846013
+              },
+              "kernel_version": "4.9.0-8-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-7-amd64",
+                "linux-image-4.9.0-8-amd64",
+                "linux-image-4.9.0-9-amd64",
+                "linux-image-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.0.0-1568436857-c4da5d25"
+                }
+              ],
+              "vpn_ip": "10.24.0.162"
+            },
+            "system_status": {
+              "cpu_idle": 175973200,
+              "cpu_system": 677550,
+              "cpu_user": 1267980,
+              "disk_partitions": [
+                {
+                  "device": "/dev/sda1",
+                  "free": 37861142528,
+                  "mount_point": "/",
+                  "total": 44120981504,
+                  "used": 3988205568
+                }
+              ],
+              "mem_available": 7528284160,
+              "mem_free": 7205470208,
+              "mem_total": 8375922688,
+              "mem_used": 506130432,
+              "swap_free": 8586784768,
+              "swap_total": 8586784768,
+              "time": 1568846018,
+              "uptime_secs": 89178
+            }
+          },
+          "tier": "default"
+        },
+        "usa_agw_headspin_001": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "agw_headspin_001",
+          "device": {
+            "hardware_id": "90d6eaf7-21bf-47e6-b02e-c49782e266f7",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAELLMXiGIYIzqVxsVpvApw+CXu9QnIMhA0JYeCP2vV60X+VSo2W6A/RXlzLY20JKBRj90K2y99irceJTanEjHGs4MJaRlJR2m0RpoPuDRO+6DII3bquKhUTdFCaKt7jLkR",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "usa_agw_headspin_001",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "agw_headspin_001",
+          "status": {
+            "cert_expiration_time": 1598299997,
+            "checkin_time": 1597957155548,
+            "hardware_id": "90d6eaf7-21bf-47e6-b02e-c49782e266f7",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 2,
+                "model_name": "Intel(R) Core(TM) i5-3427U CPU @ 1.80GHz",
+                "threads_per_core": 2
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.2.15/8",
+                      "10.22.2.15/24"
+                    ],
+                    "mac_address": "00:e8:4c:68:f9:a6",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.3.15/24"
+                    ],
+                    "mac_address": "00:e8:4c:68:f9:a7",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "82:e3:34:c2:59:2c",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "8e:26:97:94:c4:45",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "network_interface_id": "gtp_sys_2152",
+                    "status": "DOWN"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.22.2.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.0.0.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.22.2.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.22.3.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "169.254.0.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "0",
+              "enodeb_connected": "0",
+              "enodeb_serial": "N/A",
+              "enodeb_state": "N/A",
+              "gps_connected": "0",
+              "gps_latitude": "0.0",
+              "gps_longitude": "0.0",
+              "mme_connected": "0",
+              "opstate_enabled": "0",
+              "ptp_connected": "0",
+              "rf_tx_desired": "N/A",
+              "rf_tx_on": "0"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1597957147
+              },
+              "kernel_version": "4.9.0-9-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-9-amd64",
+                "linux-image-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.0.2-1576482223-17d04138"
+                }
+              ],
+              "vpn_ip": "N/A"
+            },
+            "system_status": {
+              "cpu_idle": 12965500770,
+              "cpu_system": 23553000,
+              "cpu_user": 68433660,
+              "disk_partitions": [
+                {
+                  "device": "/dev/sda1",
+                  "free": 50289340416,
+                  "mount_point": "/",
+                  "total": 117141835776,
+                  "used": 60857946112
+                }
+              ],
+              "mem_available": 7025991680,
+              "mem_free": 1640521728,
+              "mem_total": 8264785920,
+              "mem_used": 830287872,
+              "swap_free": 8477732864,
+              "swap_total": 8477732864,
+              "time": 1597957155,
+              "uptime_secs": 3277398
+            }
+          },
+          "tier": "default"
+        },
+        "usa_agw_headspin_itl": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "usa_agw_headspin_sb_lab": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "usa_fb_sblab_pf2_agw_2": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "usa_mpk_agw_wr_01": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "Performance",
+          "device": {
+            "hardware_id": "a5302c12-84d5-40cf-a10f-f6185e52b894",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEvbwvmQGboY3UcYxDHwvkKlifvDtCANGSX5IyGQ1f9NYhsVlaa3xV7Z7JgcMhDgBg3HdXHUN1o4+ZljtKAuJdSLoQrLqqOvoA0XjdTpWYfjRJmDfa+izk9fm7MJkcTB/u",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "usa_mpk_agw_wr_01",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "AGW_Windriver",
+          "status": {
+            "cert_expiration_time": 1572989153,
+            "checkin_time": 1572989132554,
+            "hardware_id": "a5302c12-84d5-40cf-a10f-f6185e52b894",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 4,
+                "model_name": "Intel Core Processor (Broadwell)",
+                "threads_per_core": 2
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.25.132/25"
+                    ],
+                    "mac_address": "fa:16:3e:b7:41:74",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.22.25.4/25"
+                    ],
+                    "mac_address": "fa:16:3e:cb:2f:49",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "100.100.100.12/24"
+                    ],
+                    "mac_address": "fa:16:3e:ad:82:f0",
+                    "network_interface_id": "eth2",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "c6:5b:90:fb:30:16",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "ee:f4:86:15:60:4e",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "network_interface_id": "gtp_sys_2152",
+                    "status": "DOWN"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.22.25.129",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.22.25.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.22.3.0",
+                    "gateway_ip": "10.22.25.1",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.22.25.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.128",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.22.25.128",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.128",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "100.100.100.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth2"
+                  },
+                  {
+                    "destination_ip": "169.254.169.254",
+                    "gateway_ip": "10.22.25.2",
+                    "genmask": "255.255.255.255",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "0",
+              "enodeb_connected": "0",
+              "enodeb_serial": "N/A",
+              "enodeb_state": "N/A",
+              "gps_connected": "0",
+              "gps_latitude": "0.0",
+              "gps_longitude": "0.0",
+              "mme_connected": "0",
+              "opstate_enabled": "0",
+              "ptp_connected": "0",
+              "rf_tx_desired": "N/A",
+              "rf_tx_on": "0"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1572987586
+              },
+              "kernel_version": "4.9.0-9-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-11-amd64",
+                "linux-image-4.9.0-9-amd64",
+                "linux-image-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.0.0-1572032201-7ee43cac"
+                }
+              ],
+              "vpn_ip": "N/A"
+            },
+            "system_status": {
+              "cpu_idle": 2727081120,
+              "cpu_system": 535930,
+              "cpu_user": 1263780,
+              "disk_partitions": [
+                {
+                  "device": "/dev/vda1",
+                  "free": 32923942912,
+                  "mount_point": "/",
+                  "total": 42241044480,
+                  "used": 7560998912
+                }
+              ],
+              "mem_available": 7373197312,
+              "mem_free": 3720351744,
+              "mem_total": 8374956032,
+              "mem_used": 611467264,
+              "time": 1572989132,
+              "uptime_secs": 342823
+            }
+          },
+          "tier": "beta"
+        },
+        "usa_mpk_summit_01": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.0.1/32",
+              "nat_enabled": false
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "usa_mpk_summit_02": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "non_eps_service": {
+              "arfcn_2g": null,
+              "csfb_rat": 0,
+              "non_eps_service_control": 0
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "agw_tip_summit_19",
+          "device": {
+            "hardware_id": "8adedcc2-6b08-4bab-9888-b3a8056e4445",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEuqHs1RJ+x12l99p98BS8Fdiki5ki6rUZNvoeLxt0HS2nxxXdPgf3pSmOVCLVzQv+9tJ1rZaO1ZYDYyk8xPDhGBdKi5+tvBEn6RtdSwFD2Ehui6OrP06AFPycW1IZrUnl",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "usa_mpk_summit_02",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "agw_tip_summit_19",
+          "status": {
+            "cert_expiration_time": 1573839798,
+            "checkin_time": 1573745516749,
+            "hardware_id": "8adedcc2-6b08-4bab-9888-b3a8056e4445",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 2,
+                "model_name": "Intel(R) Core(TM) i5-3427U CPU @ 1.80GHz",
+                "threads_per_core": 2
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.0.20/24"
+                    ],
+                    "mac_address": "00:e8:4c:68:f9:1f",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.5.20/24"
+                    ],
+                    "mac_address": "00:e8:4c:68:f9:20",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "72:da:e4:46:0a:4c",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "7e:83:86:e7:78:4a",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "network_interface_id": "gtp_sys_2152",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.24.0.190/32"
+                    ],
+                    "network_interface_id": "tun0",
+                    "status": "UP"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "192.168.5.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.24.0.0",
+                    "gateway_ip": "10.24.0.189",
+                    "genmask": "255.255.0.0",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "10.24.0.189",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.255",
+                    "network_interface_id": "tun0"
+                  },
+                  {
+                    "destination_ip": "169.254.0.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "192.168.0.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "192.168.5.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "0",
+              "enodeb_connected": "0",
+              "enodeb_serial": "N/A",
+              "enodeb_state": "N/A",
+              "gps_connected": "0",
+              "gps_latitude": "0.0",
+              "gps_longitude": "0.0",
+              "mme_connected": "0",
+              "opstate_enabled": "0",
+              "ptp_connected": "0",
+              "rf_tx_desired": "N/A",
+              "rf_tx_on": "0"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1573745485
+              },
+              "kernel_version": "4.9.0-9-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-9-amd64",
+                "linux-image-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.0.0-1572032201-7ee43cac"
+                }
+              ],
+              "vpn_ip": "10.24.0.190"
+            },
+            "system_status": {
+              "cpu_idle": 434270940,
+              "cpu_system": 3547290,
+              "cpu_user": 5900180,
+              "disk_partitions": [
+                {
+                  "device": "/dev/sda1",
+                  "free": 101796204544,
+                  "mount_point": "/",
+                  "total": 117141835776,
+                  "used": 9351081984
+                }
+              ],
+              "mem_available": 7130898432,
+              "mem_free": 4691333120,
+              "mem_total": 8264785920,
+              "mem_used": 763609088,
+              "swap_free": 8460677120,
+              "swap_total": 8477732864,
+              "swap_used": 17055744,
+              "time": 1573745516,
+              "uptime_secs": 112112
+            }
+          },
+          "tier": "default"
+        },
+        "usa_mpk_test_vnf_perf_001": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.0.1/32",
+              "nat_enabled": false
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        },
+        "usa_nrg_agw2_pf2": {
+          "cellular": {
+            "epc": {
+              "ip_block": "192.168.128.0/24",
+              "nat_enabled": true
+            },
+            "ran": {
+              "pci": 260,
+              "transmit_enabled": false
+            }
+          },
+          "connected_enodeb_serials": null,
+          "description": "",
+          "device": null,
+          "id": "",
+          "magmad": null,
+          "name": "",
+          "tier": ""
+        }
+      },
+      "enodebs":{
+        "12020000051696P0013": {
+          "attached_gateway_id": "mpk_dogfooding_magma_1",
+          "config": {
+            "bandwidth_mhz": 20,
+            "cell_id": 138777000,
+            "device_class": "Baicells ID TDD/FDD",
+            "earfcndl": 44390,
+            "pci": 260,
+            "special_subframe_pattern": 7,
+            "subframe_assignment": 2,
+            "tac": 1,
+            "transmit_enabled": true
+          },
+          "name": "Dogfooding Baicells",
+          "serial": "12020000051696P0013"
+        },
+        "120200002618AGP0001": {
+          "attached_gateway_id": "mpk_dogfooding_magma_1",
+          "config": {
+            "bandwidth_mhz": 20,
+            "cell_id": 138777001,
+            "device_class": "Baicells ID TDD/FDD",
+            "earfcndl": 39350,
+            "pci": 264,
+            "special_subframe_pattern": 7,
+            "subframe_assignment": 2,
+            "tac": 3,
+            "transmit_enabled": true
+          },
+          "name": "",
+          "serial": "120200002618AGP0001"
+        },
+        "120200002618AGP0002": {
+          "attached_gateway_id": "mpk_dogfooding_magma_1",
+          "config": {
+            "bandwidth_mhz": 20,
+            "cell_id": 138777001,
+            "device_class": "Baicells ID TDD/FDD",
+            "earfcndl": 39150,
+            "pci": 260,
+            "special_subframe_pattern": 7,
+            "subframe_assignment": 2,
+            "tac": 5,
+            "transmit_enabled": true
+          },
+          "name": "",
+          "serial": "120200002618AGP0002"
+        },
+        "1202000072184AJ0206": {
+          "config": {
+            "bandwidth_mhz": 20,
+            "cell_id": 134218241,
+            "device_class": "Baicells Nova-233 G2 OD FDD",
+            "earfcndl": 44500,
+            "pci": 202,
+            "special_subframe_pattern": 7,
+            "subframe_assignment": 2,
+            "tac": 6,
+            "transmit_enabled": true
+          },
+          "name": "",
+          "serial": "1202000072184AJ0206"
+        },
+        "1202000072184AJ0211": {
+          "config": {
+            "bandwidth_mhz": 20,
+            "cell_id": 134217729,
+            "device_class": "Baicells Nova-233 G2 OD FDD",
+            "earfcndl": 44000,
+            "pci": 201,
+            "special_subframe_pattern": 7,
+            "subframe_assignment": 2,
+            "tac": 5,
+            "transmit_enabled": null
+          },
+          "name": "",
+          "serial": "1202000072184AJ0211"
+        },
+        "120200020718CJP0007": {
+          "attached_gateway_id": "mpk_dogfooding_tiplab_1",
+          "config": {
+            "bandwidth_mhz": 10,
+            "cell_id": 13107201,
+            "device_class": "Baicells Nova-233 G2 OD FDD",
+            "earfcndl": 9410,
+            "pci": 52,
+            "tac": 5,
+            "transmit_enabled": true
+          },
+          "name": "",
+          "serial": "120200020718CJP0007"
+        },
+        "120200020718CJP0013": {
+          "attached_gateway_id": "mpk_dogfooding_tiplab_1",
+          "config": {
+            "bandwidth_mhz": 10,
+            "cell_id": 6553601,
+            "device_class": "Baicells Nova-233 G2 OD FDD",
+            "earfcndl": 9410,
+            "pci": 60,
+            "tac": 6,
+            "transmit_enabled": true
+          },
+          "name": "",
+          "serial": "120200020718CJP0013"
+        }
+      },
+      "enodebState":{
+        "12020000051696P0013" : {
+          "enodeb_configured": true,
+          "enodeb_connected": true,
+          "fsm_state": "Completed provisioning eNB. Awaiting new Inform.",
+          "gps_connected": true,
+          "gps_latitude": "37.484892",
+          "gps_longitude": "-122.147375",
+          "mme_connected": true,
+          "opstate_enabled": true,
+          "ptp_connected": false,
+          "reporting_gateway_id": "mpk_dogfooding_magma_1",
+          "rf_tx_desired": true,
+          "rf_tx_on": true,
+          "time_reported": 1597957592404
+        }
+      }
+    }
+  },
+  "policies" : {
+    "test1": {
+      "flow_list": [],
+      "id": "test1",
+      "priority": 1,
+      "ratingGroup": 1,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    },
+    "test2": {
+      "flow_list": [],
+      "id": "test2",
+      "priority": 2,
+      "ratingGroup": 2,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    }
+  },
+  "apns" : {
+    "internet": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": true,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        },
+        "pdn_type": 0
+      },
+      "apn_name": "internet"
+    }
+  },
+  "networksFull": {
+    "test" : {
+      "type": "lte",
+      "gateways": {
+        "us_test_gw1": {
+          "description": "Test gateway",
+          "device": {
+            "hardware_id": "477fa55a-2fd0-4588-a8bb-b322a9f56064",
+            "key": {
+              "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEW3ZAtNk4vZFGTVisLcnxHjz/Q5/2C8Mz8NYinpbCeVSLe/+4toSK7OSchM49YmJ81lelZPei7eUMC6eX2Dbrf/CBkzQChDsiiTMRAnEeRyFM6OR4a4xARLGfvfKAdioG",
+              "key_type": "SOFTWARE_ECDSA_SHA256"
+            }
+          },
+          "id": "us_test_gw1",
+          "magmad": {
+            "autoupgrade_enabled": true,
+            "autoupgrade_poll_interval": 300,
+            "checkin_interval": 60,
+            "checkin_timeout": 10,
+            "dynamic_services": null
+          },
+          "name": "Test Gateway",
+          "status": {
+            "cert_expiration_time": 1592934955,
+            "checkin_time": 1592592414925,
+            "hardware_id": "477fa55a-2fd0-4588-a8bb-b322a9f56064",
+            "machine_info": {
+              "cpu_info": {
+                "architecture": "x86_64",
+                "core_count": 2,
+                "model_name": "Intel(R) Core(TM) i7-7700 CPU @ 3.60GHz",
+                "threads_per_core": 1
+              },
+              "network_info": {
+                "network_interfaces": [
+                  {
+                    "ip_addresses": [
+                      "127.0.0.1/8"
+                    ],
+                    "mac_address": "00:00:00:00:00:00",
+                    "network_interface_id": "lo",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.11.0.185/24"
+                    ],
+                    "mac_address": "00:0c:29:4c:c6:a8",
+                    "network_interface_id": "eth0",
+                    "status": "UP"
+                  },
+                  {
+                    "ip_addresses": [
+                      "10.0.2.1/24"
+                    ],
+                    "mac_address": "00:0c:29:4c:c6:b2",
+                    "network_interface_id": "eth1",
+                    "status": "UP"
+                  },
+                  {
+                    "mac_address": "16:0b:c7:59:f3:38",
+                    "network_interface_id": "ovs-system",
+                    "status": "DOWN"
+                  },
+                  {
+                    "ip_addresses": [
+                      "192.168.128.1/24"
+                    ],
+                    "mac_address": "72:86:63:2a:71:4c",
+                    "network_interface_id": "gtp_br0",
+                    "status": "UP"
+                  },
+                  {
+                    "network_interface_id": "gtp_sys_2152",
+                    "status": "DOWN"
+                  }
+                ],
+                "routing_table": [
+                  {
+                    "destination_ip": "0.0.0.0",
+                    "gateway_ip": "10.11.0.1",
+                    "genmask": "0.0.0.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "10.0.2.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth1"
+                  },
+                  {
+                    "destination_ip": "10.11.0.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "eth0"
+                  },
+                  {
+                    "destination_ip": "192.168.128.0",
+                    "gateway_ip": "0.0.0.0",
+                    "genmask": "255.255.255.0",
+                    "network_interface_id": "gtp_br0"
+                  }
+                ]
+              }
+            },
+            "meta": {
+              "enodeb_configured": "1",
+              "enodeb_connected": "1",
+              "enodeb_serial": "1202000072181SJ0186",
+              "enodeb_state": "Completed provisioning eNB. Awaiting new Inform.",
+              "gps_connected": "1",
+              "gps_latitude": "41.799182",
+              "gps_longitude": "-88.097308",
+              "mme_connected": "0",
+              "opstate_enabled": "0",
+              "ptp_connected": "0",
+              "rf_tx_desired": "1",
+              "rf_tx_on": "0"
+            },
+            "platform_info": {
+              "config_info": {
+                "mconfig_created_at": 1592592414
+              },
+              "kernel_version": "4.9.0-9-amd64",
+              "kernel_versions_installed": [
+                "linux-image-4.9.0-12-amd64",
+                "linux-image-4.9.0-9-amd64"
+              ],
+              "packages": [
+                {
+                  "name": "magma",
+                  "version": "1.0.1-1580860031-33a94e98"
+                }
+              ],
+              "vpn_ip": "N/A"
+            },
+            "system_status": {
+              "cpu_idle": 13284189910,
+              "cpu_system": 19882830,
+              "cpu_user": 80634920,
+              "disk_partitions": [
+                {
+                  "device": "/dev/sda1",
+                  "free": 28088586240,
+                  "mount_point": "/",
+                  "total": 33685258240,
+                  "used": 3861962752
+                }
+              ],
+              "mem_available": 6799814656,
+              "mem_free": 6063943680,
+              "mem_total": 8375885824,
+              "mem_used": 1197125632,
+              "swap_free": 8529293312,
+              "swap_total": 8587833344,
+              "swap_used": 58540032,
+              "time": 1592592623,
+              "uptime_secs": 6720641
+            }
+          },
+          "tier": "default"
+        }
+      }
+    },
+    "test_feg_lte_network": {
+      "type": "feg_lte",
+        "cellular": {
+          "epc": {
+            "default_rule_id": "default_rule_1",
+            "gx_gy_relay_enabled": true,
+            "hss_relay_enabled": true,
+            "lte_auth_amf": "gAA=",
+            "lte_auth_op": "EREREREREREREREREREREQ==",
+            "mcc": "001",
+            "mnc": "01",
+            "mobility": {
+              "ip_allocation_mode": "NAT",
+              "nat": {
+                "ip_blocks": [
+                  "192.168.0.0/16"
+                ]
+              },
+              "reserved_addresses": [
+                "192.168.0.1"
+              ],
+              "static": {
+                "ip_blocks_by_tac": {
+                  "1": [
+                    "192.168.0.0/16"
+                  ],
+                  "2": [
+                    "172.10.0.0/16",
+                    "172.20.0.0/16"
+                  ]
+                }
+              }
+            },
+            "network_services": [
+              "dpi",
+              "policy_enforcement"
+            ],
+            "sub_profiles": {
+              "additionalProp1": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              },
+              "additionalProp2": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              },
+              "additionalProp3": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              }
+            },
+            "tac": 1
+          },
+          "feg_network_id": "test_feg_network",
+          "ran": {
+            "bandwidth_mhz": 20,
+            "tdd_config": {
+              "earfcndl": 44590,
+              "special_subframe_pattern": 7,
+              "subframe_assignment": 2
+            }
+          }
+        },
+        "description": "Foobar network",
+        "dns": {
+          "enable_caching": false,
+          "local_ttl": 0,
+          "records": [
+            {
+              "a_record": [
+                "192.88.99.142"
+              ],
+              "aaaa_record": [
+                "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+              ],
+              "cname_record": [
+                "cname.example.com"
+              ],
+              "domain": "example.com"
+            }
+          ]
+        },
+        "features": {
+          "features": {
+            "featureName1": "featureProp1",
+            "featureName2": "featureProp2"
+          }
+        },
+        "federation": {
+          "feg_network_id": "test_feg_network"
+        },
+        "id": "test_feg_lte_network",
+        "name": "Test Feg LTE Network Description"
+      }
+  },
+  "subscribers": {
+    "IMSI001010002220018": {
+        "name": "IMSI001010002220018",
+        "active_apns": [
+          "internet"
+        ],
+        "config": {
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "id": "IMSI001010002220018",
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+    "IMSI001010002220019": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+      "id": "IMSI001010002220019",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
+      }
+    },
+    "IMSI001010002220020": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+      "id": "IMSI001010002220020",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
+      }
+    },
+    "IMSI001010002220021": {
+      "active_apns": [
+        "internet"
+      ],
+      "config": {
+        "lte": {
+          "auth_algo": "MILENAGE",
+          "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+          "state": "ACTIVE",
+          "sub_profile": "default"
+        }
+      },
+      "id": "IMSI001010002220021",
+      "lte": {
+        "auth_algo": "MILENAGE",
+        "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+        "state": "ACTIVE",
+        "sub_profile": "default"
+      }
+    }
+  },
+  "subscribers": {
+    "subscribers":
+      {
+        "IMSI001010002220018": {
+          "name": "IMSI001010002220018",
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220018",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220019": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220019",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220020": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220020",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220021": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220021",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220022": {
+          "name": "IMSI001010002220022",
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220022",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        }
+      },
+    "next_page_token": ""
+  },
+  "subscriber_state":{
+    "IMSI001010002220018": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220018-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220018-871689",
+            "active_duration_sec": 116,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415561",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220019": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220019-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATED",
+            "session_id": "IMSI001010002220019-871689",
+            "active_duration_sec": 128,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "11",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220020": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":1,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATING",
+            "session_id": "IMSI001010002220021-00000",
+            "active_duration_sec": 1,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415287",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220021": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP"
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220021-871689",
+            "active_duration_sec": 116528,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415281",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    }
+  },
+  "tiers": [
+    "beta"
+  ],
+  "alerts": [
+    {
+      "annotations": {
+        "description": ""
+      },
+      "endsAt": "2020-08-20T19:08:37.980Z",
+      "fingerprint": "75da2ab1df26fce2",
+      "receivers": [
+        {
+          "name": "mpk_dogfooding_tenant_base_route"
+        }
+      ],
+      "startsAt": "2020-08-15T12:37:22.980Z",
+      "status": {
+        "inhibitedBy": [],
+        "silencedBy": [],
+        "state": "active"
+      },
+      "updatedAt": "2020-08-20T19:05:37.982Z",
+      "generatorURL": "http://orc8r-prometheus-77f497dcc8-wpf7x:9090/graph?g0.expr=vector%280%29&g0.tab=1",
+      "labels": {
+        "alertname": "time test",
+        "monitor": "host",
+        "networkID": "mpk_dogfooding",
+        "severity": "INFO"
+      }
+    }
+  ]
+}

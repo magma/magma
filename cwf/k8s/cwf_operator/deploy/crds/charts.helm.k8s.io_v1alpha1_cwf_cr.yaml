@@ -1,0 +1,134 @@
+# Copyright 2018 The Operator-SDK Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Modifications:
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Default values for cwf helm chart to be deployed by the cwf_operator.
+apiVersion: charts.helm.k8s.io/v1alpha1
+kind: Cwf
+metadata:
+  name: example-cwf
+spec:
+  affinity: {}
+  cwf:
+    image:
+      docker_registry: ""
+      tag: "latest"
+      username: ""
+      password: ""
+    proxy:
+      local_port: 8443
+      cloud_address: orc8r-proxy.magma.svc.cluster.local
+      cloud_port: 9443
+      bootstrap_address: bootstrapper-orc8r-proxy.magma.svc.cluster.local
+      bootstrap_port: 443
+    repo:
+      url: https://github.com/magma/magma.git
+      branch: master
+    type: cwag
+  fullnameOverride: ""
+  image:
+    pullPolicy: IfNotPresent
+    repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+  imagePullSecrets:
+    #- name: orc8r-secrets-registry
+  labels:
+    node_selector_key: extraRuntime
+    node_selector_value: virtlet
+  manifests:
+    configmap_bin: true
+    configmap_env: true
+    deployment: true
+    rbac: true
+    secrets: true
+    service: true
+  nameOverride: ""
+  pod:
+    replicas:
+      server: 1
+    resources:
+      enabled: true
+      server:
+        requests:
+          memory: "4096Mi"
+          cpu: "2000m"
+        limits:
+          memory: "8192Mi"
+          cpu: "3000m"
+    cni:
+     # interface: "calico,bridge01,bridge02,bridge02"
+  release_group: null
+  secret:
+    certs: orc8r-secrets-certs
+    configs:
+      #cwf: cwf01-secrets-configs
+  service:
+    ports:
+      bootstrap:
+        nodePort: ""
+        port: 9444
+        targetport: 9444
+      cloud:
+        nodePort: ""
+        port: 9443
+        targetport: 9443
+      local:
+        nodePort: ""
+        port: 8443
+        targetport: 8443
+      radiusaccount:
+        nodePort: ""
+        port: 1812
+        targetport: 1812
+      radiusauth:
+        nodePort: ""
+        port: 1813
+        targetport: 1813
+      ssh:
+        nodePort: ""
+        port: 22
+        targetport: 22
+    type: LoadBalancer
+    loadBalancerIP: 10.22.20.116
+  tolerations: []
+  virtlet:
+    diskDriver: virtio
+    rootVolumeSize: 20Gi
+    ssh_pwauth: true
+    sshKeys: |
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaJEcFDXEK2ZbX0ZLS1EIYFZRbDAc
+    user:
+      users:
+        - name: testuser
+          gecos: User
+          primary-group: testuser
+          groups: users
+          lock_passwd: false
+          shell: /bin/bash
+          # the password is "testuser"
+          passwd: "$6$rounds=4096$wPs4Hz4tfs$a8ssMnlvH.3GX88yxXKF2cKMlVULsnydoOKgkuStTErTq2dzKZiIx9R/pPWWh5JLxzoZEx7lsSX5T2jW5WISi1"
+          sudo: ALL=(ALL) NOPASSWD:ALL
+    vcpuCount: 4
+  

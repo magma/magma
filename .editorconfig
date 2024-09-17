@@ -1,0 +1,30 @@
+# Ref: https://editorconfig.org/
+# IntelliJ-specific: https://blog.jetbrains.com/idea/2019/06/managing-code-style-on-a-directory-level-with-editorconfig/
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+ij_visual_guides = 79,140
+
+[{*.go,*.go2}]
+indent_style = tab
+ij_go_add_leading_space_to_comments = true
+ij_go_add_parentheses_for_single_import = true
+ij_go_call_parameters_new_line_after_left_paren = true
+ij_go_call_parameters_right_paren_on_new_line = true
+ij_go_group_current_project_imports = true
+ij_go_group_stdlib_imports = true
+ij_go_import_sorting = goimports
+ij_go_keep_indents_on_empty_lines = false
+ij_go_move_all_imports_in_one_declaration = true
+ij_go_move_all_stdlib_imports_in_one_group = true
+ij_go_remove_redundant_import_aliases = true
+ij_go_use_back_quotes_for_imports = false
+ij_go_wrap_func_params_newline_after_lparen = true
+ij_go_wrap_func_params_newline_before_rparen = true
+ij_go_wrap_func_result_newline_after_lparen = true
+ij_go_wrap_func_result_newline_before_rparen = true

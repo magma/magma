@@ -1,0 +1,419 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Definitions of the magma and sctpd debian artifacts. Look at the the comment in the
+":release_build" target for information on how to build the magma and sctpd debian artifacts.
+"""
+
+load("@rules_pkg//pkg:deb.bzl", "pkg_deb")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_filegroup", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load(":deb_dependencies.bzl", "MAGMA_CONFLICTS_THIRDPARTY", "MAGMA_CONFLICTS_UPSTREAM", "MAGMA_DEPS", "OAI_DEPS", "OVS_DEPS", "SCTPD_MIN_VERSION")
+
+SCTPD_PKGNAME = "magma-sctpd"
+
+VERSION = "1.9.0"
+
+VERSION_DEB = "{ver}-VERSION-SUFFIX".format(ver = VERSION)
+
+ARCH = "amd64"
+
+TAR_EXTENSION = "tar.gz"
+
+SCTPD_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = SCTPD_PKGNAME,
+    arch = ARCH,
+    ver = VERSION_DEB,
+)
+
+MAGMA_PKGNAME = "magma"
+
+MAGMA_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = MAGMA_PKGNAME,
+    arch = ARCH,
+    ver = VERSION_DEB,
+)
+
+DHCP_HELPER_CLI_PKGNAME = "magma-dhcp-cli"
+
+DHCP_HELPER_CLI_FILE_NAME = "{name}_{ver}_{arch}".format(
+    name = DHCP_HELPER_CLI_PKGNAME,
+    arch = ARCH,
+    ver = VERSION_DEB,
+)
+
+### META INFO
+
+URL = "https://github.com/magma/magma/"
+
+MAINTAINER = "The Magma Authors <main@lists.magmacore.org>"
+
+LICENSE_BSD_3_CLAUSE = "BSD-3-Clause"
+
+LICENSE_GPL2_CLAUSE = "GPL-2.0"
+
+### SCTPD BUILD
+
+pkg_files(
+    name = "sctpd_license",
+    srcs = ["//:LICENSE"],
+    prefix = "/usr/share/doc/{pkg_name}".format(pkg_name = SCTPD_PKGNAME),
+)
+
+genrule(
+    name = "gen_sctpd_version",
+    outs = ["version"],
+    cmd = "echo \"{ver}\" > \"$@\"".format(ver = VERSION),
+)
+
+pkg_files(
+    name = "sctpd_version",
+    srcs = [":gen_sctpd_version"],
+    prefix = "/usr/local/share/sctpd/",
+)
+
+pkg_files(
+    name = "sctpd_binary",
+    srcs = ["//lte/gateway/c/sctpd/src:sctpd"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/sbin",
+    tags = ["no-cache"],
+)
+
+pkg_tar(
+    name = "sctpd_content",
+    srcs = [
+        ":sctpd_binary",
+        ":sctpd_license",
+        ":sctpd_version",
+        "//lte/gateway/deploy/roles/magma/files/systemd:sctpd_service_definition",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = SCTPD_FILE_NAME,
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_deb(
+    name = "sctpd_deb_pkg",
+    architecture = ARCH,
+    data = ":sctpd_content",
+    description = "Magma SCTPD",
+    homepage = URL,
+    maintainer = MAINTAINER,
+    package = SCTPD_PKGNAME,
+    package_file_name = "{fname}.deb".format(fname = SCTPD_FILE_NAME),
+    tags = ["no-cache"],
+    version = VERSION_DEB,
+)
+
+### MAGMA BUILD
+
+pkg_files(
+    name = "magma_license",
+    srcs = ["//:LICENSE"],
+    prefix = "/usr/share/doc/{pkg_name}".format(pkg_name = MAGMA_PKGNAME),
+)
+
+pkg_filegroup(
+    name = "magma_service_definitions",
+    srcs = [
+        "//lte/gateway/deploy/roles/magma/files/systemd:magma_lte_service_definitions",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_fluent_bit_service_definition",
+        "//orc8r/tools/ansible/roles/gateway_services/files:magma_orc8r_service_definitions",
+    ],
+    prefix = "/etc/systemd/system",
+)
+
+pkg_filegroup(
+    name = "magma_ebpf",
+    srcs = [
+        "//lte/gateway/python/magma/kernsnoopd/ebpf:magma_ebpf_kernsnoopd",
+        "//lte/gateway/python/magma/pipelined/ebpf:magma_ebpf_pipelined",
+    ],
+    prefix = "/var/opt/magma/ebpf",
+)
+
+pkg_filegroup(
+    name = "magma_python_scripts",
+    srcs = [
+        "//lte/gateway/python/scripts:magma_lte_scripts",
+        "//orc8r/gateway/python/scripts:magma_orc8r_scripts",
+    ],
+    tags = ["no-cache"],
+)
+
+pkg_files(
+    name = "magma_go_binaries",
+    srcs = ["//feg/gateway/services/envoy_controller"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+    tags = ["no-cache"],
+)
+
+pkg_files(
+    name = "magma_c_binaries",
+    srcs = [
+        "//lte/gateway/c/connection_tracker/src:connectiond",
+        "//lte/gateway/c/core:agw_of",
+        "//lte/gateway/c/li_agent/src:liagentd",
+        "//lte/gateway/c/session_manager:sessiond",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/usr/local/bin",
+    renames = {"//lte/gateway/c/core:agw_of": "mme"},
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "magma_python_services",
+    srcs = [
+        "//lte/gateway/python:magma_python_lte_services",
+        "//orc8r/gateway/python:magma_python_orc8r_services",
+    ],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "magma_configs",
+    srcs = [
+        "//lte/gateway/configs:magma_config_files",
+        "//lte/gateway/configs/templates:magma_lte_config_template_files",
+        "//orc8r/gateway/configs/templates:magma_orc8r_config_template_files",
+    ],
+    prefix = "/etc/magma",
+)
+
+genrule(
+    name = "gen_magma_sctpd_min_version",
+    outs = ["sctpd_min_version"],
+    cmd = "echo \"{ver}\" > \"$@\"".format(ver = SCTPD_MIN_VERSION),
+)
+
+pkg_files(
+    name = "magma_sctpd_min_version",
+    srcs = [":gen_magma_sctpd_min_version"],
+    prefix = "/usr/local/share/magma/",
+)
+
+pkg_tar(
+    name = "magma_content",
+    srcs = [
+        ":magma_c_binaries",
+        ":magma_configs",
+        ":magma_ebpf",
+        ":magma_go_binaries",
+        ":magma_license",
+        ":magma_python_scripts",
+        ":magma_python_services",
+        ":magma_sctpd_min_version",
+        ":magma_service_definitions",
+        "//lte/gateway/deploy/roles/magma/files:ansible_configs",
+        "//orc8r/tools/ansible/roles/fluent_bit/files:magma_config_fluent_bit",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = MAGMA_FILE_NAME,
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_deb(
+    name = "magma_deb_pkg",
+    architecture = ARCH,
+    data = ":magma_content",
+    depends = MAGMA_DEPS + OAI_DEPS + OVS_DEPS,
+    description = "Magma Access Gateway",
+    homepage = URL,
+    maintainer = MAINTAINER,
+    package = MAGMA_PKGNAME,
+    package_file_name = "{fname}.deb".format(fname = MAGMA_FILE_NAME),
+    postinst = ":magma-postinst-bazel",
+    # This package contains its Python dependencies.
+    # In previous versions of Magma, we would use our custom pydep tool to build separate .deb packages
+    # for the Python dependencies. Given that this package installs its files to the same locations
+    # as the previously separate packages, this package conflicts with the old packages.
+    # In order to make the upgrade from Magma 1.8 to Magma 1.9 seamless, we set the "replaces"
+    # and "provides" fields.
+    provides = MAGMA_CONFLICTS_UPSTREAM + MAGMA_CONFLICTS_THIRDPARTY,
+    replaces = MAGMA_CONFLICTS_UPSTREAM + MAGMA_CONFLICTS_THIRDPARTY,
+    tags = ["no-cache"],
+    version = VERSION_DEB,
+)
+
+### DHCP HELPER CLI BUILD
+
+pkg_files(
+    name = "dhcp_license",
+    srcs = ["//lte/gateway/python/dhcp_helper_cli:LICENSE"],
+    prefix = "/usr/share/doc/{pkg_name}".format(pkg_name = DHCP_HELPER_CLI_PKGNAME),
+)
+
+pkg_tar(
+    name = "dhcp_helper_cli_tar",
+    srcs = [
+        ":dhcp_license",
+        "//lte/gateway/python/dhcp_helper_cli:dhcp_helper_cli_pkg",
+    ],
+    package_dir = PY_DEST,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = DHCP_HELPER_CLI_FILE_NAME,
+    ),
+)
+
+pkg_deb(
+    name = "dhcp_helper_cli_deb_pkg",
+    architecture = ARCH,
+    data = ":dhcp_helper_cli_tar",
+    description = "Magma DHCP helper CLI",
+    homepage = URL,
+    maintainer = MAINTAINER,
+    package = "magma-dhcp-cli",
+    package_file_name = "{fname}.deb".format(fname = DHCP_HELPER_CLI_FILE_NAME),
+    provides = ["magma-dhcp-cli"],
+    replaces = ["magma-dhcp-cli"],
+    version = VERSION_DEB,
+)
+
+### CI BUILDS
+
+config_setting(
+    name = "is_production",
+    values = {"define": "production=1"},
+)
+
+genrule(
+    name = "update_deb_meta_info",
+    srcs = ["update_deb_meta_info.sh.template"],
+    outs = ["update_deb_meta_info.sh"],
+    cmd =
+        " && ".join([
+            "cp $(location update_deb_meta_info.sh.template) $@",
+            "sed -i 's/VERSION=REPLACE_ME/VERSION={ver}/' $@".format(ver = VERSION),
+            "sed -i 's/DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME/DHCP_HELPER_CLI_INPUT_FILE_NAME={name}.deb/' $@".format(name = DHCP_HELPER_CLI_FILE_NAME),
+            "sed -i 's/MAGMA_INPUT_FILE_NAME=REPLACE_ME/MAGMA_INPUT_FILE_NAME={name}.deb/' $@".format(name = MAGMA_FILE_NAME),
+            "sed -i 's/SCTPD_INPUT_FILE_NAME=REPLACE_ME/SCTPD_INPUT_FILE_NAME={name}.deb/' $@".format(name = SCTPD_FILE_NAME),
+            "sed -i 's/MAGMA_LICENSE=REPLACE_ME/MAGMA_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
+            "sed -i 's/SCTPD_LICENSE=REPLACE_ME/SCTPD_LICENSE={license}/' $@".format(license = LICENSE_BSD_3_CLAUSE),
+            "sed -i 's/DHCP_LICENSE=REPLACE_ME/DHCP_LICENSE={license}/' $@".format(license = LICENSE_GPL2_CLAUSE),
+        ]) + select({
+            ":is_production": " && sed -i 's/DEV_BUILD=true/DEV_BUILD=false/' $@",
+            "//conditions:default": "",
+        }),
+    tags = ["manual"],
+)
+
+sh_binary(
+    # Wrapper target for creating magma and sctpd debian artifacts with proper versions.
+    # Creating the debian packages with rules_pkg must be reproducible. A version like
+    # "1.9.0-1667381719-ebd3bb56" (<version>_<timestamp>_<hash>) would produce artifacts
+    # that are not reproducible. This target builds the artifacts and changes the
+    # version afterwards (also the description in case of "dev builds").
+    # Use --config=production in order to create artifacts for production usage and CI, e.g.,
+    # bazel run //lte/gateway/release:release_build --config=production
+    name = "release_build",
+    srcs = [":update_deb_meta_info"],
+    data = [
+        ":dhcp_helper_cli_deb_pkg",
+        ":magma_deb_pkg",
+        ":sctpd_deb_pkg",
+    ],
+    tags = [
+        "manual",
+        "no-cache",
+    ],
+)
+
+### CONTAINERIZED ACCESS GATEWAY
+
+# This target is used to bundle the Python services and scripts,
+# including all runfiles and pip dependencies, used e.g. in the
+# containerized LTE integration tests. The tar file can
+# be copied between builder and runtime Docker images.
+pkg_tar(
+    name = "python_executables_tar",
+    srcs = [
+        ":magma_configs",
+        ":magma_ebpf",
+        ":magma_python_scripts",
+        ":magma_python_services",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "magma_python_executables",
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "magma_orc8r_scripts",
+    srcs = ["//orc8r/gateway/python/scripts:magma_orc8r_scripts"],
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "feg_python_services",
+    srcs = ["//orc8r/gateway/python:magma_python_orc8r_services"],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+)
+
+# This target is used to bundle the Python services and scripts,
+# including all runfiles and pip dependencies, used in the FEG
+# (and CWF) integration tests. The tar file can be copied between
+# builder and runtime Docker images.
+pkg_tar(
+    name = "feg_python_executables_tar",
+    srcs = [
+        ":feg_python_services",
+        ":magma_configs",
+        ":magma_orc8r_scripts",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "feg_python_executables",
+    ),
+    tags = ["no-cache"],
+)
+
+pkg_filegroup(
+    name = "cwf_python_services",
+    srcs = ["//lte/gateway/python:cwf_lte_python_services"],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+)
+
+# This target is used to bundle the Python services,
+# including all runfiles and pip dependencies, used only in the
+# CWF integration tests. The tar file can be copied between builder
+# and runtime Docker images.
+pkg_tar(
+    name = "cwf_python_executables_tar",
+    srcs = [
+        ":cwf_python_services",
+        ":magma_configs",
+    ],
+    extension = TAR_EXTENSION,
+    package_file_name = "{fname}.{ext}".format(
+        ext = TAR_EXTENSION,
+        fname = "cwf_python_executables",
+    ),
+    tags = ["no-cache"],
+)

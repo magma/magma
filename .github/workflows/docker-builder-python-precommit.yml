@@ -1,0 +1,54 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Check if the Python precommit image can be built
+# remediation: -
+
+name: AGW Build Docker Image Python Precommit
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - lte/gateway/docker/python-precommit/Dockerfile
+      - .github/workflows/docker-builder-python-precommit.yml
+      - .github/workflows/composite/**
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - lte/gateway/docker/python-precommit/Dockerfile
+      - .github/workflows/docker-builder-python-precommit.yml
+      - .github/workflows/composite/**
+  schedule:
+    - cron: '0 0,6,12,18 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_STREAM: ${{ github.repository }}/python-precommit
+  IMAGE_TAGS: type=sha
+  DOCKERFILE: lte/gateway/docker/python-precommit/Dockerfile
+
+jobs:
+  build_dockerfile:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE }}
+          PUSH_TO_REGISTRY: false

@@ -1,0 +1,60 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+module "orc8r" {
+  source = "/root/magma/orc8r/cloud/deploy/terraform/orc8r-aws"
+
+  {% for k in cfg['infra'] %}
+  {{k}}=var.{{k}}
+  {% endfor %}
+
+  {% for k in cfg['platform'] %}
+  {{k}}=var.{{k}}
+  {% endfor %}
+
+  global_tags = {
+      magma-uuid = var.magma_uuid
+  }
+}
+
+module "orc8r-app" {
+  source = "/root/magma/orc8r/cloud/deploy/terraform/orc8r-helm-aws"
+
+  {% for k in cfg['service'] %}
+  {{k}}=var.{{k}}
+  {% endfor %}
+
+  region = var.region
+  magma_uuid = var.magma_uuid
+  orc8r_domain_name = module.orc8r.orc8r_domain_name
+  orc8r_route53_zone_id = module.orc8r.route53_zone_id
+  external_dns_role_arn = module.orc8r.external_dns_role_arn
+  secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
+
+  orc8r_db_host = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_name = module.orc8r.orc8r_db_name
+  orc8r_db_user = module.orc8r.orc8r_db_user
+  orc8r_db_pass = module.orc8r.orc8r_db_pass
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+
+  eks_cluster_id = module.orc8r.eks_cluster_id
+  efs_file_system_id = module.orc8r.efs_file_system_id
+  efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
+  elasticsearch_endpoint = module.orc8r.es_endpoint
+  elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
+}
+
+output "nameservers" {
+  value = module.orc8r.route53_nameservers
+}

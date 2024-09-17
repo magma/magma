@@ -1,0 +1,56 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Configure /etc/apt/sources.list to use a local distro snapshot
+  when: distro is defined and distro_archive is defined and distro != "" and distro_archive != ""
+  block:
+    - name: Check existence of {{ distro_archive }}
+      become: no
+      delegate_to: localhost
+      register: snap
+      stat:
+        checksum_algorithm: sha256
+        path: "{{ distro_archive | expanduser }}"
+
+    - name: Exit if missing or invalid configured archive
+      when: snap.stat.exists == false and (distro_sha256 != "" and snap.stat.checksum != distro_sha256)
+      fail:
+        msg: Archive {{ distro_archive }} invalid
+
+    - name: Create destination to unpack archive
+      file:
+        path: /opt/distro_snapshot/
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Upload and unpack archive
+      unarchive:
+        creates: /opt/distro_snapshot/{{ distro_root }}
+        dest: /opt/distro_snapshot
+        src: "{{ snap.stat.path }}"
+        owner: root
+        group: root
+
+    - name: Add archive gpg key
+      apt_key:
+        file: /opt/distro_snapshot/{{ distro_root }}/key.gpg
+        state: present
+
+    - name: Edit /etc/apt/sources.list to only use snapshot
+      copy:
+        backup: yes
+        dest: /etc/apt/sources.list
+        content: deb [arch=amd64] file:///opt/distro_snapshot/{{ distro_root }} {{ distro }} main

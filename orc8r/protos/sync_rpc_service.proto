@@ -1,0 +1,75 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+
+message GatewayRequest {
+    string gwId = 1;
+    // sync_rpc_service leverages the fact that grpc is built on top of http/2.
+    // As pseudo header :method will always be POST, and :scheme will always be http,
+    // they are excluded from the message definition. grpc uses pseudo header :authority
+    // and :path to route the rpc calls to the corresponding services
+    string authority = 2;
+    string path = 3;
+    // non-pseudo headers
+    map<string, string> headers = 5;
+    bytes payload = 6;
+
+}
+
+message GatewayResponse {
+    // pseudo header :status
+    string status = 1;
+    // non-pseudo headers
+    map<string, string> headers = 2;
+    // response body
+    bytes payload = 3;
+    // err message to return to the caller, if any
+    string err = 4;
+    // keepConnActive is used to tell the client that the connection is still active, even if no response has
+    // been received for a while
+    bool keepConnActive = 5;
+}
+
+// SyncRPCRequest is sent down to gateway from cloud
+message SyncRPCRequest {
+    // unique request Id passed in from cloud
+    uint32 reqId = 1;
+    GatewayRequest reqBody = 2;
+    // cloud will send a heartBeat every minute, if no other requests are sent
+    // down to the gateway
+    bool heartBeat = 3;
+    // connClosed is set to true when the client closes the connection
+    bool connClosed = 4;
+}
+
+// SyncRPCResponse is sent from gateway to cloud
+message SyncRPCResponse {
+    uint32 reqId = 1;
+    GatewayResponse respBody = 2;
+    // gateway will send a heartBeat if it hasn't received SyncRPCRequests from cloud for a while.
+    // If it's a heartbeat, reqId and respBody will be ignored.
+    bool heartBeat = 3;
+}
+
+service SyncRPCService {
+    // creates a bidirectional stream from gateway to cloud
+    // so cloud can send in SyncRPCRequest, and wait for SyncRPCResponse.
+    // This will be the underlying service for Synchronous RPC from the cloud.
+    rpc EstablishSyncRPCStream (stream SyncRPCResponse) returns (stream SyncRPCRequest) {}
+
+    // same method as EstablishSyncRPCStream, but named differently for backward compatibility
+    rpc SyncRPC (stream SyncRPCResponse) returns (stream SyncRPCRequest) {}
+}

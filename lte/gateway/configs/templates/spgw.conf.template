@@ -1,0 +1,98 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+S-GW :
+{
+    NETWORK_INTERFACES :
+    {
+        # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
+        SGW_INTERFACE_NAME_FOR_S11              = "{{ s11_iface_name }}";
+        SGW_IPV4_ADDRESS_FOR_S11                = "{{ sgw_s11_ip }}";
+
+        # S-GW binded interface for S1-U communication (GTPV1-U) can be ethernet interface, virtual ethernet interface, we don't advise wireless interfaces
+        SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP    = "{{ s1u_iface_name }}";
+        SGW_IPV4_ADDRESS_FOR_S1U_S12_S4_UP      = "{{ s1u_ip }}";
+        SGW_IPV4_PORT_FOR_S1U_S12_S4_UP         = 2152;                         # INTEGER, port number, PREFER NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING
+
+        SGW_IPV6_ADDRESS_FOR_S1U_S12_S4_UP      = "{{ s1u_ipv6 }}";
+        SGW_IPV6_PORT_FOR_S1U_S12_S4_UP         = 2152;
+
+        # S-GW binded interface for S5 or S8 communication, not implemented, so leave it to none
+        SGW_INTERFACE_NAME_FOR_S5_S8_UP         = "{{ sgw_s5s8_up_iface_name }}";         # STRING, interface name
+        SGW_IPV4_ADDRESS_FOR_S5_S8_UP           = "{{ sgw_s5s8_up_ip }}";                 # STRING, CIDR
+
+        SGW_S1_IPV6_ENABLED = "{{ s1_ipv6_enabled }}";
+    };
+
+    INTERTASK_INTERFACE :
+    {
+        # max queue size per task
+        ITTI_QUEUE_SIZE            = 2000000;                                   # INTEGER
+    };
+
+
+    OVS :
+    {
+      BRIDGE_NAME                          = "{{ ovs_bridge_name }}";
+      GTP_PORT_NUM                         = {{ ovs_gtp_port_number }};
+      MTR_PORT_NUM                         = {{ ovs_mtr_port_number }};
+      INTERNAL_SAMPLING_PORT_NUM           = {{ ovs_internal_sampling_port_number }};
+      INTERNAL_SAMPLING_FWD_TBL_NUM        = {{ ovs_internal_sampling_fwd_tbl_number }};
+      UPLINK_PORT_NUM                      = {{ ovs_uplink_port_number }};
+      UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
+      MULTI_TUNNEL                         = "{{ ovs_multi_tunnel }}";
+      GTP_ECHO                             = "{{ ovs_gtpu_echo_resp }}";
+      GTP_CHECKSUM                         = "{{ ovs_gtpu_checksum }}";
+      AGW_L3_TUNNEL                        = "{{ agw_l3_tunnel }}";
+      PIPELINED_CONFIG_ENABLED             = "{{ pipelined_managed_tbl0 }}";
+      EBPF_ENABLED                         = "{{ ebpf_enabled }}";
+    };
+};
+
+P-GW =
+{
+    NETWORK_INTERFACES :
+    {
+        # P-GW binded interface for S5 or S8 communication, not implemented, so leave it to none
+        PGW_INTERFACE_NAME_FOR_S5_S8          = "none";                         # STRING, interface name, DO NOT CHANGE (NOT IMPLEMENTED YET)
+
+        # P-GW binded interface for SGI (egress/ingress internet traffic)
+        PGW_INTERFACE_NAME_FOR_SGI            = "{{ pgw_uplink }}";
+        PGW_MASQUERADE_SGI                    = "{{ masquerade }}";
+        UE_TCP_MSS_CLAMPING                   = "yes";
+    };
+
+    # Pool of UE assigned IP addresses
+    # Do not make IP pools overlap
+    # first IPv4 address X.Y.Z.1 is reserved for GTP network device on SPGW
+    # Normally no more than 16 pools allowed, but since recent GTP kernel module use, only one pool allowed (TODO).
+    IP_ADDRESS_POOL :
+    {
+        IPV4_LIST = (
+                      "0.0.0.0/24"   # Unused
+                    );
+    };
+
+    # DNS address communicated to UEs
+    DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
+    DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    DNS_SERVER_IPV6_ADDRESS      = "{{ ipv6_dns }}";
+    P_CSCF_IPV4_ADDRESS          = "{{ ipv4_p_cscf_address }}";
+    P_CSCF_IPV6_ADDRESS          = "{{ ipv6_p_cscf_address }}";
+
+    # Non standard feature, normally should be set to "no", but you may need to set to yes for UE that do not explicitly request a PDN address through NAS signalling
+    FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS = "no";                           # STRING, {"yes", "no"}.
+    UE_MTU                                    = 1400         # MTU - (extended GTPv1 hdr(16 Bytes) + UDP hdr(8) -IPv4(20) hdr + additonal bytes(56)) INTEGER
+    RELAY_ENABLED                             = "{{ relay_enabled }}";
+    ENABLE_NAT                                = "{{ enable_nat }}"
+};

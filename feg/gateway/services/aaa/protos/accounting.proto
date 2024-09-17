@@ -1,0 +1,101 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "context.proto";
+
+package aaa.protos;
+option go_package = "magma/feg/gateway/services/aaa/protos";
+
+// update_request with usages & included context
+message update_request {
+    uint32 octets_in = 1;
+    uint32 octets_out = 2;
+    uint32 packets_in = 3;
+    uint32 packets_out = 4;
+    context ctx = 5;
+    uint32 gigawords_in = 6;
+    uint32 gigawords_out = 7;
+}
+
+// stop_request - ctx with termination cause: https://tools.ietf.org/html/rfc2866#page-20
+message stop_request {
+    enum terminate_cause {
+        UNDEFINED = 0;
+        USER_REQUEST = 1;           // User Request
+        LOST_CARRIER = 2;           // Lost Carrier
+        LOST_SERVICE =3;            // Lost Service
+        IDLE_TIMEOUT = 4;           // Idle Timeout
+        SESSION_TIMEOUT = 5;        // Session Timeout
+        ADMIN_RESET = 6;            // Admin Reset
+        ADMIN_REBOOT = 7;           // Admin Reboot
+        PORT_ERROR = 8;             // Port Error
+        NAS_ERROR = 9;              // NAS Error
+        NAS_REQUEST = 10;           // NAS Request
+        NAS_REBOOT = 11;            // NAS Reboot
+        PORT_UNNEEDED = 12;         // Port Unneeded
+        PORT_PREEMPTED = 13;        // Port Preempted
+        PORT_SUSPENDED = 14;        // Port Suspended
+        SERVICE_UNAVAILABLE = 15;   // Service Unavailable
+        CALLBACK = 16;              // Callback
+        USER_ERROR = 17;            // User Error
+        HOST_REQUEST = 18;          // Host Request
+    }
+    terminate_cause cause = 1;
+    context ctx = 2;
+    uint32 octets_in = 3;
+    uint32 octets_out = 4;
+    uint32 gigawords_in = 5;
+    uint32 gigawords_out = 6;
+}
+
+// acct_resp message - RPC message definition for Accounting-Response (currently empty)
+// see: https://tools.ietf.org/html/rfc2866#section-4.2
+message acct_resp {
+}
+
+message create_session_resp {
+    string session_id = 1;
+}
+
+message terminate_session_request {
+    string radius_session_id = 1;
+    string imsi = 2;
+}
+
+message add_sessions_request {
+    repeated context sessions = 1;
+}
+
+// accounting service, provides support for corresponding Radius accounting Acct-Status-Types in Accounting-Requests
+// see: https://tools.ietf.org/html/rfc2866#section-5.1
+service accounting {
+    // External Radius Server RPCs
+    //
+    // Acct-Status-Type Start
+    rpc start(context) returns (acct_resp) {}
+    // Accounting Interim-Update
+    rpc interim_update(update_request) returns (acct_resp) {}
+    // Acct-Status-Type Stop
+    rpc stop(stop_request) returns (acct_resp) {}
+
+    // Local Session Management RPCs
+    //
+    // create_session is an "outbound" RPC for session manager which can be called from start()
+    rpc create_session(context) returns (create_session_resp) {}
+    // terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
+    rpc terminate_session(terminate_session_request) returns (acct_resp) {}
+    // add_sessions is an "inbound" RPC from session manager to bulk add existing sessions
+    rpc add_sessions(add_sessions_request) returns (acct_resp) {}
+}

@@ -1,0 +1,130 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type {GatewayPoolEditProps} from './GatewayPoolEdit';
+import type {MutableCellularGatewayPool} from '../../../generated';
+
+import Button from '@mui/material/Button';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import FormLabel from '@mui/material/FormLabel';
+import GatewayPoolsContext from '../../context/GatewayPoolsContext';
+import List from '@mui/material/List';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import React from 'react';
+import {AltFormField} from '../../components/FormField';
+import {DEFAULT_GW_POOL_CONFIG} from '../../components/GatewayUtils';
+import {getErrorMessage} from '../../util/ErrorUtils';
+import {makeStyles} from '@mui/styles';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
+
+const useStyles = makeStyles({
+  input: {
+    display: 'inline-flex',
+    margin: '5px 0',
+    width: '50%',
+    fullWidth: true,
+  },
+});
+export default function ConfigEdit(props: GatewayPoolEditProps) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const ctx = useContext(GatewayPoolsContext);
+  const [gwPool, setGwPool] = useState<MutableCellularGatewayPool>(
+    Object.keys(props.gwPool || {}).length > 0
+      ? props.gwPool
+      : DEFAULT_GW_POOL_CONFIG,
+  );
+  const handleGwPoolConfigChange = (value: number) => {
+    const newConfig = {
+      ...gwPool,
+      config: {...gwPool.config, ['mme_group_id']: value},
+    };
+    setGwPool(newConfig);
+  };
+  const onSave = async () => {
+    try {
+      await ctx.setState(gwPool.gateway_pool_id, gwPool);
+      enqueueSnackbar('Gateway Pool saved successfully', {
+        variant: 'success',
+      });
+      props.onSave(gwPool);
+    } catch (e) {
+      setError(getErrorMessage(e));
+    }
+  };
+  const classes = useStyles();
+
+  return (
+    <>
+      <DialogContent data-testid="configEdit">
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
+            </AltFormField>
+          )}
+          <AltFormField label={'Name'}>
+            <OutlinedInput
+              data-testid="name"
+              className={classes.input}
+              placeholder="Enter Name"
+              fullWidth={true}
+              value={gwPool.gateway_pool_name}
+              onChange={({target}) =>
+                setGwPool({...gwPool, gateway_pool_name: target.value})
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'ID'}>
+            <OutlinedInput
+              data-testid="poolId"
+              className={classes.input}
+              placeholder="Ex: pool1"
+              fullWidth={true}
+              value={gwPool.gateway_pool_id}
+              disabled={!!props.gwPool.gateway_pool_id}
+              onChange={({target}) =>
+                setGwPool({...gwPool, gateway_pool_id: target.value})
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'MME Group ID'}>
+            <OutlinedInput
+              data-testid="mmeGroupId"
+              className={classes.input}
+              placeholder="Ex: 1"
+              fullWidth={true}
+              type="number"
+              value={gwPool.config.mme_group_id}
+              onChange={({target}) => {
+                handleGwPoolConfigChange(parseInt(target.value));
+              }}
+            />
+          </AltFormField>
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>Cancel</Button>
+        <Button
+          onClick={() => void onSave()}
+          variant="contained"
+          color="primary">
+          {'Save And Continue'}
+        </Button>
+      </DialogActions>
+    </>
+  );
+}

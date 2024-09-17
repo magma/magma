@@ -1,0 +1,45 @@
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: vpc_info
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+- name: Collect all elb information
+  ansible.builtin.shell: aws elb describe-load-balancers
+  register: elb_info
+  ignore_errors: true
+  when: region_name
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug all elbs
+  debug:
+    msg:
+      - "{{item.LoadBalancerName}} from {{ region_name }} will be deleted"
+  when: region_name and vpc_info and item.VPCId == vpc_info.vpcs[0].id and elb_info
+  ignore_errors: true
+  with_items:
+    - "{{ (elb_info.stdout | from_json).LoadBalancerDescriptions }}"
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+- name: Delete all elbs
+  ansible.builtin.shell: aws elb delete-load-balancer --load-balancer-name {{item.LoadBalancerName}}
+  when: region_name and vpc_info and item.VPCId == vpc_info.vpcs[0].id and elb_info
+  ignore_errors: true
+  with_items:
+    - "{{ (elb_info.stdout | from_json).LoadBalancerDescriptions }}"
+  tags:
+    - cleanup
+
+- name: Wait for all elbs to be deleted
+  pause:
+    minutes: 2
+  when: (elb_info.stdout | from_json).LoadBalancerDescriptions | length > 0
+  tags:
+    - cleanup

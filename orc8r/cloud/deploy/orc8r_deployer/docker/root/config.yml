@@ -1,0 +1,20 @@
+project_dir: /root/project
+config_dir: /root/project/configs
+secret_dir: /root/project/secrets
+scripts_dir: /root/scripts
+tf_dir: /root/tf
+main_tf: /root/project/main.tf
+vars_tf: /root/project/vars.tf
+auto_tf: /root/project/terraform.tfvars.json
+data_dir: /root/data
+test_cluster_config: /root/project/cluster.json
+magma_root: /root/magma
+vars_definition: /root/data/vars.yml
+default_template: /root/data/default_template.json
+playbooks: /root/scripts/playbooks
+cloudstrapper_playbooks: /root/magma/experimental/cloudstrapper/playbooks
+
+components:
+  - infra
+  - platform
+  - service

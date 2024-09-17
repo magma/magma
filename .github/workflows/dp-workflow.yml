@@ -1,0 +1,347 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-cloud
+# purpose: Domain Proxy (DP) linting and testing
+# remediation: Check alembic migrations
+
+name: DP Lint & Test
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      cc: ${{ steps.filter.outputs.cc }}
+      rc: ${{ steps.filter.outputs.rc }}
+      db: ${{ steps.filter.outputs.db }}
+      helm: ${{ steps.filter.outputs.helm }}
+      integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: filter
+        with:
+          filters: |
+            cc:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/magma/configuration_controller/**'
+              - 'dp/cloud/docker/python/configuration_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/cloud/python/magma/fluentd_client/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
+            rc:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/magma/radio_controller/**'
+              - 'dp/cloud/docker/python/radio_controller/**'
+              - 'dp/cloud/python/magma/db_service/**'
+              - 'dp/cloud/python/magma/fluentd_client/**'
+              - 'dp/protos/**'
+              - 'dp/cloud/go/protos/**'
+              - 'dp/cloud/go/active_mode_controller/protos'
+            helm:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/helm/**'
+            integration_tests_orc8r:
+              - '.github/workflows/dp-workflow.yml'
+              - '.github/workflows/composite/dp-integ-tests/**'
+              - 'orc8r/**'
+              - 'lte/**'
+              - 'dp/**'
+              - 'src/**'
+              - 'protos/**'
+            db:
+              - '.github/workflows/dp-workflow.yml'
+              - 'dp/cloud/python/magma/db_service/**'
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  configuration_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.cc == 'true' }}
+    name: "Configuration controller unit tests"
+    runs-on: ubuntu-20.04
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}"
+      PYTHON_VERSION: 3.8.10
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/configuration_controller
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/configuration_controller/tests/unit
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        with:
+          flags: unittests,configuration-controller
+          name: codecov-configuration-controller
+          verbose: true
+
+  radio_controller_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.rc == 'true' }}
+    name: "Radio controller unit tests"
+    runs-on: ubuntu-20.04
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+      PYTHON_VERSION: 3.8.10
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/radio_controller
+
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install python3-aioeventlet from the magma apt repo
+        working-directory: "${{ github.workspace }}"
+        run: |
+          sudo cp keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
+          sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
+          sudo apt-get update -y
+          sudo apt-get install -y python3-aioeventlet
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Setup protoc3
+        working-directory: "${{ github.workspace }}"
+        run: |
+          pip3 install protobuf
+          pip3 install setuptools==49.6.0
+          curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.18.0/protoc-3.18.0-linux-x86_64.zip -o protoc3.zip
+          unzip protoc3.zip -d protoc3
+          sudo -E mv protoc3/bin/protoc /bin/protoc
+          sudo -E chmod a+rx /bin/protoc
+          # Workaround: the include files need to be found
+          mv ./protoc3/include/google .
+          sudo -E rm -rf protoc3.zip protoc3
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Generate protobufs
+        working-directory: "${{ github.workspace }}/dp"
+        run: |
+          mkdir -p ${PYTHON_BUILD}
+          make protos
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/radio_controller/tests/unit
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        with:
+          flags: unittests,radio-controller
+          name: codecov-radio-controller
+          verbose: true
+
+  db_migration_check:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.db == 'true' }}
+    name: "Domain proxy db migration test"
+    runs-on: ubuntu-20.04
+    continue-on-error: false
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/db_service
+    env:
+      SQLALCHEMY_DB_URI: postgresql://postgres:postgres@localhost:5432/dp
+      PYTHONPATH: ${{ github.workspace }}/dp/cloud/python
+      PYTHON_VERSION: 3.8.10
+    services:
+      postgres:
+        image: postgres:13.3
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: dp
+          POSTGRES_PASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install alembic-autogen-check
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Database migration check
+        working-directory: "${{ github.workspace }}/dp/cloud/python/magma/db_service/migrations"
+        run: |
+          alembic history
+          alembic upgrade head
+          alembic-autogen-check
+          alembic downgrade base
+
+  db_service_unit_tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.db == 'true' }}
+    name: "DB service unit tests"
+    runs-on: ubuntu-20.04
+    env:
+      COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
+      PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+      PYTHON_VERSION: 3.8.10
+
+    defaults:
+      run:
+        working-directory: dp/cloud/python/magma/db_service
+
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f tests/requirements.txt ]; then pip install -r tests/requirements.txt; fi
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        working-directory: "${{ github.workspace }}/dp/cloud/python"
+        run: |
+          coverage run --source=. -m pytest magma/db_service/tests
+          coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        with:
+          flags: unittests,db-service
+          name: codecov-db-service
+          verbose: true
+
+  integration_tests_orc8r:
+    name: "Domain proxy integration tests with orc8r"
+    runs-on: ubuntu-20.04
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Run DP integration test (with orc8r)
+        uses: ./.github/workflows/composite/dp-integ-tests
+        with:
+          make_tests_target: _ci_integration_tests_orc8r
+
+  helm_chart_tests:
+    name: "Helm chart smoke tests"
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.helm == 'true' }}
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: dp
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Set env
+        run: |
+          echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+
+      - name: Install Minikube
+        uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9 # pin@v2.7.1
+        with:
+          minikube version: 'v1.21.0'
+          kubernetes version: 'v1.20.7'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          driver: "docker"
+
+      - name: Setup Minikube
+        run: |
+          make _ci_init
+
+      - name: Run helm chart smoke tests
+        run: |
+          CI=false make _ci_chart_smoke_tests

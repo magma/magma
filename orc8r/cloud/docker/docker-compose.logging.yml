@@ -1,0 +1,32 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# This docker-compose file only exists so we can have a hook to build the
+# deployment-specific fluentd containers
+version: "3.7"
+
+services:
+  fluentd-forward:
+    build: ./fluentd_forward
+    container_name: fluentd-forward
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    restart: always
+
+  fluentd-daemon:
+    build: ./fluentd_daemon
+    container_name: fluentd-daemon
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    restart: always

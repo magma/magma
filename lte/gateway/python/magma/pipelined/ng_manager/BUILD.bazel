@@ -1,0 +1,38 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "session_state_manager",
+    srcs = ["session_state_manager.py"],
+    deps = [
+        ":session_state_manager_util",
+        "//lte/gateway/python/magma/pipelined:set_interface_client",
+    ],
+)
+
+py_library(
+    name = "session_state_manager_util",
+    srcs = ["session_state_manager_util.py"],
+)
+
+py_library(
+    name = "node_state_manager",
+    srcs = ["node_state_manager.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:set_interface_client",
+        requirement("netifaces"),
+    ],
+)

@@ -1,0 +1,37 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- if .Values.create }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-admin-operator-certificate
+spec:
+  secretName: {{ .Release.Name }}-admin-operator-tls
+  commonName: admin_operator
+  subject:
+    countries:
+      - US
+  duration: {{ .Values.adminOperator.duration }}
+  renewBefore: {{ .Values.adminOperator.renewBefore }}
+  issuerRef:
+{{- if .Values.adminOperator.customIssuer }}
+    name: {{ .Values.adminOperator.customIssuer }}
+{{- else }}
+    name: {{ .Release.Name }}-certifier-issuer
+{{- end }}
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        key: password
+        name: {{ .Release.Name }}-admin-operator-pkcs12-password
+{{- end }}

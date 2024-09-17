@@ -1,0 +1,165 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- if .Values.manifests.deployment }}
+{{- $envAll := . }}
+{{- $saNamespace := $envAll.Release.Namespace }}
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstanceReplicaSet
+metadata:
+  name: {{ $envAll.Release.Name}}
+  labels:
+{{ tuple $envAll "feg" "gateway" | include "labels" | indent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+{{ tuple $envAll "feg" "gateway" | include "selector-labels" | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ tuple $envAll "feg" "gateway" | include "selector-labels" | indent 8 }}
+    spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value | quote }}
+      livenessProbe:
+        initialDelaySeconds: 120
+        periodSeconds: 20
+        tcpSocket:
+          port: 22
+        timeoutSeconds: 10
+      terminationGracePeriodSeconds: 60
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      domain:
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        devices:
+          interfaces:
+          - name: default
+            masquerade: {}
+          {{- if .Values.network }}
+          {{- range .Values.network.interface }}
+          - name: {{ .name }}
+            {{ .type }}: {}
+          {{- end }}
+          {{- end }}
+          disks:
+          - name: containerdisk
+            disk:
+              bus: virtio
+          - name: emptydisk
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            disk:
+              bus: virtio
+          {{- if .Values.secret.gwinfo }}
+          - name: gwinfo
+            disk: {}
+            serial: gwinfo
+          {{- end }}
+          - name: feg-env
+            disk: {}
+            serial: fegenv
+          - name: orc8r-secrets-certs
+            disk: {}
+            serial: orc8r-secrets-certs
+          {{- if .Values.secret.configs }}
+          - name: fegconfigs
+            disk: {}
+            serial: fegconfigs
+          {{- end }}
+      networks:
+      - name: default
+        pod: {}
+      {{- if .Values.network }}
+      {{- range .Values.network.interface }}
+      - name: {{ .name }}
+        multus:
+          networkName: "default/{{ .name }}"
+      {{- end }}
+      {{- end }}
+      volumes:
+      - name: containerdisk
+        containerDisk:
+          image: {{ $envAll.Values.image.repository | quote }}
+      - name: emptydisk
+        emptyDisk:
+          capacity: "30Gi"
+      {{- if .Values.secret.gwinfo }}
+      - name: gwinfo
+        secret:
+          secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+      {{- end }}
+      - name: feg-env
+        configMap:
+          name: {{ .Release.Name}}-env
+      - name: orc8r-secrets-certs
+        secret:
+          secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+      {{- if .Values.secret.configs }}
+      - name: fegconfigs
+        secret:
+          secretName: {{ .Release.Name }}-secrets-configs
+      {{- end }}
+
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            chpasswd: { expire: False }
+            bootcmd:
+              # mount the ConfigMap
+              - "mkdir -p /var/opt/magma/certs"
+              - "mkdir -p /opt/magma"
+              - "mkdir /mnt/gwinfo"
+              - "mkdir /mnt/fegenv"
+              - "mkdir /mnt/certs"
+              - "mount /dev/$(lsblk --nodeps -no name,serial | grep gwinfo | cut -f1 -d' ') /mnt/gwinfo"
+              - "mount /dev/$(lsblk --nodeps -no name,serial | grep fegenv | cut -f1 -d' ') /mnt/fegenv"
+              - "mount /dev/$(lsblk --nodeps -no name,serial | grep orc8r-secrets-certs | cut -f1 -d' ') /mnt/certs"
+              {{- if .Values.secret.configs }}
+              - "mkdir /mnt/fegconfigs"
+              - "mkdir -p /var/opt/magma/configs"
+              - "mount /dev/$(lsblk --nodeps -no name,serial | grep fegconfigs | cut -f1 -d' ') /mnt/fegconfigs"
+              - "cp /mnt/fegconfigs/* /var/opt/magma/configs/"
+              {{- end }}
+              - "cp /mnt/gwinfo/snowflake /etc/snowflake"
+              - "cp /mnt/gwinfo/gw_challenge.key /var/opt/magma/certs/gw_challenge.key"
+              - "cp /mnt/fegenv/* /opt/magma/"
+              - "cp /mnt/fegenv/.env /opt/magma/.env"
+              - "cp /mnt/certs/rootCA.pem /opt/magma/rootCA.pem"
+              - "chmod +x /opt/magma/*"
+            {{ if .Values.kubevirt.ssh_pwauth }}
+            ssh_pwauth: {{ .Values.kubevirt.ssh_pwauth }}
+            {{- end }}
+    {{ if .Values.kubevirt.user }}
+{{ toYaml .Values.kubevirt.user | indent 12 }}
+    {{- end }}
+            runcmd:
+            - /opt/magma/bootstrap.sh
+            - /opt/magma/install_gateway.sh {{ .Values.feg.type }}
+
+{{- end }}

@@ -1,0 +1,197 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# proxy_type refers to the names of the proxy systemd nghttpx services installed.
+# Currently the values supported are: 'clientcert', 'open', 'obsidian', 'internal'
+
+# proxy_aliases refers to proxy config when a service might have more than one
+# port. Example in magma/feg/cloud/configs/service_registry.yml
+
+# poll_frequency sets how frequently the service registry service should reach
+# out to the kube-apiserver to refresh its cache of tracked services.
+# Ref: https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format
+poll_frequency: "@every 30s"
+
+services:
+  analytics:
+    host: "localhost"
+    port: 9200
+    protected_port: 9300
+    proxy_type: "clientcert"
+
+  dp_service:
+    host: "localhost"
+    port: 50053
+    proxy_type: "clientcert"
+
+  orchestrator:
+    host: "localhost"
+    port: 9112
+    protected_port: 9212
+    echo_port: 10112
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/channels,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+        /magma/v1/about,
+
+  streamer:
+    host: "localhost"
+    port: 9082
+    protected_port: 9182
+    proxy_type: "clientcert"
+
+  metricsd:
+    host: "localhost"
+    port: 9084
+    protected_port: 9184
+    echo_port: 10084
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata,
+
+  certifier:
+    host: "localhost"
+    port: 9086
+    protected_port: 9186
+    echo_port: 10089
+    proxy_type: "internal"
+    labels:
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/user,
+
+  bootstrapper:
+    host: "localhost"
+    port: 9088
+    protected_port: 9188
+    proxy_type: "open"
+
+  accessd:
+    host: "localhost"
+    port: 9091
+    protected_port: 9191
+    proxy_type: "clientcert"
+
+  eventd:
+    host: "localhost"
+    port: 9121
+    protected_port: 9221
+    echo_port: 10121
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/logs,
+        /magma/v1/events,
+
+  obsidian:
+    host: "localhost"
+    port: 9093
+    protected_port: 9193
+    proxy_type: "obsidian"
+
+  dispatcher:
+    host: "localhost"
+    port: 9096
+    protected_port: 9196
+    proxy_type: "clientcert"
+
+  directoryd:
+    host: "localhost"
+    port: 9100
+    protected_port: 9102
+    proxy_type: "clientcert"
+
+  state:
+    host: "localhost"
+    port: 9105
+    protected_port: 9305
+    proxy_type: "clientcert"
+
+  orc8r_worker:
+    host: "localhost"
+    port: 9122
+    protected_port: 9222
+    proxy_type: "clientcert"
+
+  device:
+    host: "localhost"
+    port: 9106
+    protected_port: 9306
+    proxy_type: "clientcert"
+
+  configurator:
+    host: "localhost"
+    port: 9108
+    protected_port: 9208
+    proxy_type: "clientcert"
+
+  ctraced:
+    host: "localhost"
+    port: 9118
+    protected_port: 9218
+    echo_port: 10118
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
+  tenants:
+    host: "localhost"
+    port: 9110
+    protected_port: 9210
+    echo_port: 10110
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
+
+  service_registry:
+    host: "localhost"
+    port: 9180
+    protected_port: 9190
+    proxy_type: "clientcert"

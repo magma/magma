@@ -1,0 +1,40 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
+{{- include "agwc.deployment" (list . "mobilityd.deployment") -}}
+{{- define "mobilityd.deployment" -}}
+metadata:
+  labels:
+    app.kubernetes.io/component: mobilityd
+  name: mobilityd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: mobilityd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: mobilityd
+    spec:
+      containers:
+      -
+{{ include "agwc.container" (list . "mobilityd.container")}}
+{{- end -}}
+{{- define "mobilityd.container" -}}
+name: mobilityd
+args:
+  - /bin/bash
+  - -c
+  - sleep 1 && /usr/bin/env python3 -m magma.mobilityd.main
+image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}

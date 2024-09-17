@@ -1,0 +1,98 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{- if .Values.fluentd_forward.create }}
+{{- $serviceName := print .Release.Name "-fluentd-forward" -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: fluentd-forward
+
+spec:
+  replicas: {{ .Values.fluentd_forward.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: fluentd-forward
+
+  template:
+    metadata:
+      labels:
+        k8s-app: fluentd-forward
+        app.kubernetes.io/component: fluentd-forward
+
+    spec:
+      {{- with .Values.fluentd_forward.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+
+      {{- with .Values.fluentd_forward.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.fluentd_forward.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-fluentd-forward-configs
+        - name: certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+            defaultMode: 0444
+
+      containers:
+        - name: {{ $serviceName }}
+          image: {{ required "fluentd_forward.image.repository must be provided" .Values.fluentd_forward.image.repository}}:{{ .Values.fluentd_forward.image.tag }}
+          imagePullPolicy: {{ .Values.fluentd_forward.image.pullPolicy }}
+
+          env:
+            - name:  FLUENT_ELASTICSEARCH_HOST
+              value: {{ .Values.fluentd_forward.env.elastic_host | quote }}
+            - name:  FLUENT_ELASTICSEARCH_PORT
+              value: {{ .Values.fluentd_forward.env.elastic_port | quote }}
+            - name: FLUENT_ELASTICSEARCH_SCHEME
+              value: {{ .Values.fluentd_forward.env.elastic_scheme | quote }}
+            - name: FLUENT_ELASTICSEARCH_BUFFER_FLUSH_INTERVAL
+              value: {{ .Values.fluentd_forward.env.elastic_flush_interval | quote }}
+
+          ports:
+            - containerPort: {{ .Values.fluentd_forward.service.targetPort }}
+
+          volumeMounts:
+            - name: config-volume
+              mountPath: /fluentd/etc
+            - name: certs
+              mountPath: /var/opt/magma/certs/fluentd.pem
+              subPath: fluentd.pem
+            - name: certs
+              mountPath: /var/opt/magma/certs/fluentd.key
+              subPath: fluentd.key
+            - name: certs
+              mountPath: /var/opt/magma/certs/certifier.pem
+              subPath: certifier.pem
+
+          resources:
+{{ toYaml .Values.fluentd_forward.resources | indent 12 }}
+{{- end }}

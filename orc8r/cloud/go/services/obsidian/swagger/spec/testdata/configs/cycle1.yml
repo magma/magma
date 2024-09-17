@@ -1,0 +1,66 @@
+# cycle1.yml and cycle2.yml depend on each other
+
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies:
+    - 'orc8r/cloud/go/swagger/testdata/configs/cycle2.yml'
+    - 'orc8r/cloud/go/swagger/testdata/common/common.yml'
+  temp-gen-filename: cycle1-swagger.yml
+  output-dir: magma/orc8r/cloud/go/swagger/testdata
+  types:
+    - go-struct-name: Chicken
+      filename: chicken_swaggergen.go
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /foo
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: SweetTag
+    description: Tag sweet
+
+paths:
+  /fruitpath/{fruit}:
+    get:
+      summary: Eat fruit
+      tags:
+        - SweetTag
+      parameters:
+        - $ref: './common-swagger.yml#/definitions/fruit'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: integer
+
+definitions:
+  chicken:
+    type: object
+    required:
+      - bar
+      - animal
+    properties:
+      bar:
+        type: integer
+        example : 1
+      animal:
+        $ref: '#/definitions/animal'
+  animal:
+    type: string
+    example: dog

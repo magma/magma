@@ -1,0 +1,159 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/orc8r/lib/go/protos/mconfig";
+
+
+//===========================================================================
+// SharedMConfig is a wrapper around configs that are shared amongst services
+//===========================================================================
+message SharedMconfig {
+  SharedSentryConfig sentry_config = 1;
+}
+
+// --------------------------------------------------------------------------
+// SentryConfig stores the network-wide Sentry.io configuration
+// TODO(hcgatewood): rename, duplicated in lte/.../mconfigs
+// --------------------------------------------------------------------------
+message SharedSentryConfig {
+  // dsn_python initializes the Sentry Python SDK and sets the remote URL.
+  // If set to empty string, Sentry Python SDK will not be initialized.
+  string dsn_python = 1;
+  // dsn_native initializes the Sentry Native SDK for C/C++ and sets the
+  // remote URL. If set to empty string, Sentry Native SDK will not be
+  // initialized.
+  string dsn_native = 2;
+  // upload_mme_log decides whether MME service log file (/var/log/mme.log)
+  // is uploaded along with MME crashreports
+  bool upload_mme_log = 3;
+  // sample_rate sets the rate at which Python error events are sampled.
+  // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+  // of errors sent)
+  float sample_rate = 4;
+  // message patterns that are excluded from Sentry (regex substring match)
+  repeated string exclusion_patterns = 5;
+  // number_of_lines_in_log defines the number of lines from the 
+  // journal log that is uploaded with every crash report
+  uint32 number_of_lines_in_log = 6;
+}
+
+// ===========================================================================
+// Service-specific configs
+// ===========================================================================
+
+
+//------------------------------------------------------------------------------
+// Control Proxy configs
+//------------------------------------------------------------------------------
+message ControlProxy {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// MagmaD configs
+//------------------------------------------------------------------------------
+
+message ImageSpec {
+    string name = 1;
+    int64 order = 2;
+}
+
+message MagmaD {
+    orc8r.LogLevel log_level = 1;
+    // Interval for the gateways to send checkin rpc calls to the cloud.
+    int32 checkin_interval = 2;
+    // Checkin rpc timeout
+    int32 checkin_timeout = 3;
+    // Enables autoupgrading of the magma package
+    bool autoupgrade_enabled = 4;
+    // Interval to poll for package upgrades
+    int32 autoupgrade_poll_interval = 5;
+    // The magma package version the gateway should upgrade to
+    string package_version = 6;
+    // List of upgrade images
+    repeated ImageSpec images = 7;
+
+    // For streamer, should be left unused by gateway
+    string tier_id = 8;
+
+    map<string, bool> feature_flags = 9;
+
+    // List of dynamic_services
+    repeated string dynamic_services = 10;
+
+    // orc8r version
+    // version should be in X.X.X format with only non-negative numbers allowed for X.
+    // in case we cant find orc8r_version, this will be left empty
+    string orc8r_version = 11;
+}
+
+//------------------------------------------------------------------------------
+// EventD configs
+//------------------------------------------------------------------------------
+message EventD {
+    orc8r.LogLevel log_level = 1;
+    // The verbosity level for events.
+    // All events less than or equal to this verbosity will be logged.
+    int32 event_verbosity = 2;
+}
+
+message DirectoryD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// MetricsD configs
+//------------------------------------------------------------------------------
+message MetricsD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// State configs
+//------------------------------------------------------------------------------
+message State {
+    orc8r.LogLevel log_level = 1;
+    uint32 sync_interval = 2;
+}
+
+//------------------------------------------------------------------------------
+// Fluent Bit configs
+//------------------------------------------------------------------------------
+message FluentBit {
+    map<string, string> extra_tags = 1;
+
+    uint32 throttle_rate = 10;
+    uint32 throttle_window = 11;
+    string throttle_interval = 12;
+
+    map<string, string> files_by_tag = 20;
+}
+
+//------------------------------------------------------------------------------
+// OpenVPN client configs
+//------------------------------------------------------------------------------
+message OpenVPN {
+    bool enable_shell_access = 1;
+}
+
+//------------------------------------------------------------------------------
+// CtraceD configs
+//------------------------------------------------------------------------------
+message CtraceD {
+    orc8r.LogLevel log_level = 1;
+}

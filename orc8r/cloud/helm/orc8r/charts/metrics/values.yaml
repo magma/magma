@@ -1,0 +1,363 @@
+# Default values for metrics.
+imagePullSecrets: []
+
+metrics:
+  # Default volume configurations for metrics data - shared across prometheus,
+  # alertmanager, and configmanager pods
+  volumes:
+    prometheusData:
+      volumeSpec:
+        {}
+        # hostPath:
+        #   path: /prometheusData
+        #   type: DirectoryOrCreate
+    prometheusConfig:
+      volumeSpec:
+        {}
+        # hostPath:
+        #   path: /configs/prometheus
+        #   type: DirectoryOrCreate
+
+thanos:
+  enabled: false
+
+  image:
+    repository: docker.io/thanosio/thanos
+    tag: v0.15.0
+    pullPolicy: IfNotPresent
+
+  prometheusRetentionTime: 6h
+
+  query:
+    storeDNSDiscovery: true
+    sidecarDNSDiscovery: true
+    logLevel: debug
+
+  # Use thanosRule.enabled for rule configurations since we are using a custom deployment
+  # instead of the third-party helm chart. Use thanos.rule for all other configs
+  # since those have the helm chart defaults. Thanos rule component must be deployed
+  # as part of prometheus-configurer deployment since configurer manages the shared
+  # config files
+  thanosRule:
+    enabled: true
+
+  rule:
+    enabled: false
+    alertmanagers:
+      - orc8r-alertmanager:9093
+    queryDNSDiscovery: true
+    ruleFile: "/etc/rules/alert_rules/*"
+
+  compact:
+    retentionResolutionRaw: 30d
+    retentionResolution5m: 120d
+    retentionResolution1h: 1y
+
+  bucket:
+    enabled: false
+
+  sidecar:
+    selector:
+      app.kubernetes.io/component: prometheus
+
+  objstore:
+    type: S3
+    config:
+      bucket: ""
+      endpoint: ""
+      region: ""
+      access_key: ""
+      secret_key: ""
+      insecure: false
+      signature_version2: false
+      put_user_metadata: {}
+      http_config:
+        idle_conn_timeout: 0s
+        response_header_timeout: 0s
+        insecure_skip_verify: false
+      trace:
+        enable: false
+      part_size: 0
+
+prometheus:
+  # Enable/Disable chart
+  create: true
+
+  # Preconfigure alerts for orchestrator in prometheus
+  includeOrc8rAlerts: false
+
+  prometheusCacheHostname: "orc8r-prometheus-cache"
+  alertmanagerHostname: "orc8r-alertmanager"
+
+  replicas: 1
+
+  # Set to 1 if using a minikube setup
+  useMinikube:
+
+  # Retention configurations for prometheus
+  retention:
+    time: 30d
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prometheus
+        port: 9090
+        targetPort: 9090
+
+  image:
+    repository: docker.io/prom/prometheus
+    tag: v2.27.1
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  customAlerts: []
+
+alertmanager:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager
+        port: 9093
+        targetPort: 9093
+
+  image:
+    repository: docker.io/prom/alertmanager
+    tag: v0.18.0
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+prometheusConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prom-configmanager
+        port: 9100
+        targetPort: 9100
+
+  prometheusConfigurerPort: 9100
+  rulesDir: "/etc/configs/alert_rules/"
+  prometheusURL: "orc8r-prometheus:9090"
+
+  image:
+    repository: docker.io/facebookincubator/prometheus-configurer
+    tag: 1.0.4
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+alertmanagerConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager-config
+        port: 9101
+        targetPort: 9101
+
+  alertmanagerConfigPort: 9101
+  alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+  alertmanagerURL: "orc8r-alertmanager:9093"
+
+  image:
+    repository: docker.io/facebookincubator/alertmanager-configurer
+    tag: 1.0.4
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+prometheusCache:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+      - name: prometheus-cache-grpc
+        port: 9092
+        targetPort: 9092
+
+  image:
+    repository: docker.io/facebookincubator/prometheus-edge-hub
+    tag: 1.1.0
+    pullPolicy: IfNotPresent
+
+  # Maximum number of datapoints in the cache at one time. Unlimited if <= 0.
+  limit: 0
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign prometheusCache to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+userGrafana:
+  # Enable/Disable chart
+  create: true
+
+  # Reverse proxy setting, root url grafana will be accessed through
+  rootURL: /grafana
+
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: grafana
+        port: 3000
+        targetPort: 3000
+
+  volumes:
+    # Default volume configurations for grafana data.
+    dashboards:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/dashboards
+          type: DirectoryOrCreate
+    datasources:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/datasources
+          type: DirectoryOrCreate
+    dashboardproviders:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/dashboardproviders
+          type: DirectoryOrCreate
+    grafanaData:
+      volumeSpec: {}
+      defaultVolumeSpec:
+        hostPath:
+          path: /usergrafana/grafanaData
+          type: DirectoryOrCreate
+
+  image:
+    repository: grafana/grafana
+    tag: 6.7.6
+    pullPolicy: IfNotPresent
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  # These defaults are suggested as lower limits may cause grafana to crashloop
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 1024Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign grafana to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+configFiles:
+  useDefaults:
+    alertmanagerConf: true
+    internalAlertsConf: true
+
+# can be used to add new config or overwrite the default config files completely after the configFiles default has been disabled
+extraConfigFiles:

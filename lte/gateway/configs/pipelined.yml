@@ -1,0 +1,227 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This configuration represents an access gateway with a local internal OVS
+# device as the "default route", with a single "uplink" port acting as an L2
+# device on port 1. You might need to change this based on the situation.
+# OpenFlow ports can be numerical ports, or they can be 'local', which
+# corresponds to an 'internal' OVS port; we'll translate into the relevant
+# constant for the supported OF protocol by the pipeline.
+
+###############
+## IMPORTANT ##
+###############
+# Changes to this file has to be replicated in pipelined.yml_prod
+
+# Differentiate between the setup type(CWF or LTE)
+setup_type: LTE
+
+# log_level is set in mconfig. it can be overridden here
+
+# Enable the services in PipelineD. Tables will be assigned to the services in
+# the same order as the list. Cloud managed services will be initialized
+# after these static services.
+static_services: [
+  'arpd',
+  'access_control',
+  'proxy',
+  'ryu_rest_service',
+  'startup_flows',
+  'ipv6_solicitation',
+#  'li_mirror',
+#  'packet_tracer',
+]
+
+of_server_port: 3333
+
+default_priority: 10
+default_rule_tag: 0x1
+
+# Pipeline application level configs
+access_control:
+  # Blocks access to all AGW local IPs from UEs.
+  block_agw_local_ips: true
+
+  # Traffic to ip blocks in the specified direction in the blocklist will be
+  # dropped. Each entry in the blocklist should consist of an ip and a
+  # direction('inbound' or 'outbound'). If direction is not specified, then
+  # both inbound traffic to and outbound traffic from the ip will be blocked.
+  # The ip block can be simply an address or an address with a netmask.
+  # Examples:
+  # ip_blocklist:
+  #   - ip: '127.0.0.1'
+  #     direction: 'inbound'
+  #   - ip: '127.0.0.1/24'
+  #     direction: 'outbound
+  #   - ip: '127.0.0.1/255.255.255.0'
+  ip_blocklist: []
+
+meter:
+  enabled: true
+  poll_interval: 5
+  idle_timeout: 0
+
+enforcement:
+  poll_interval: 2
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
+  periodic_stats_reporting: true
+
+# Enable polling mobilityd to identify which subscriber sessions need to be
+# terminated. If disabling this, make sure to set a valid idle_timeout for
+# metering for auto-clearing the sessions
+subscriber:
+  enabled: true
+  poll_interval: 5
+
+dpi:
+  enabled: false
+  mon_port: mon1
+  mon_port_number: 32769
+  idle_timeout: 5
+
+conntrackd:
+  enabled: false
+  zone: 897
+
+# LI mirroring configuration
+# li_local_iface: eth2
+# li_mirror_all: false
+# li_dst_iface: li_port
+
+
+# Interface to address L2 traffic to and answer ARP for UE subnet
+virtual_interface: gtp_br0
+
+# For LTE UE doesn't have an eth src so we need to fake it
+local_ue_eth_addr: True
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
+
+# Interface to NAT traffic to
+nat_iface: eth2
+
+# Interface to eNodeB
+enodeb_iface: eth1
+
+# Bridge name comes from magma_magmad.service.j2
+bridge_name: gtp_br0
+# Bridge ip comes from magma_ifaces_gtp
+bridge_ip_address: 192.168.128.1
+# For ipv6 router solicitation app
+# ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
+
+# QoS parameters
+qos:
+ enable: true
+ impl: linux_tc
+ enable_pyroute2: true
+ max_rate: 1000000000
+ gbr_rate: 80Kbit
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
+ apn_ambr_enabled: true
+
+monitored_ifaces: ['gtp_br0',
+                   'gtp0',
+                   'gtp_sys_2152'
+                  ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: false
+redis_enabled: true
+
+# Logs grpc payload content
+magma_print_grpc_payload: false
+
+# MTR iface
+mtr_interface: mtr0
+
+###############
+## IMPORTANT ##
+###############
+# This is duplicated from spgw.yml - if you change the value here,
+# also change it there
+ovs_gtp_port_number: 32768
+# Internal port for monitoring service
+ovs_mtr_port_number: 15577
+
+# Internal port for processing internal sampling packets
+ovs_internal_sampling_port_number: 15578
+# # Table to forward packets from the internal sampling port
+ovs_internal_sampling_fwd_tbl_number: 201
+# Be careful changing these default values
+# enable_nat: True
+non_nat_gw_probe_frequency: 20
+# non_nat_arp_egress_port: dhcp0
+ovs_uplink_port_name: patch-up
+# virtual_mac: '02:ff:bb:cc:dd:ee'
+uplink_bridge: uplink_br0
+uplink_eth_port_name: eth2
+uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
+dp_router_enabled: true
+sgi_management_iface_ip_addr: '192.168.129.1/24'
+sgi_management_iface_ipv6_addr: '3001::10/64'
+sgi_management_iface_ipv6_gw: '3001::2'
+ovs_gtp_stats_polling_interval: 180
+
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+he_enabled: true
+
+# Make as a True when gnb ip will support for uplink
+ovs_multi_tunnel: False
+# Paging timeout value
+paging_timeout: 30
+classifier_controller_id: 5
+
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202
+
+# For 5G Functionality Support flag
+# Commenting local config parameter for enable5g_features to give
+# precedence to Orc8r streamed config parameter in gateway.mcofnig file
+# enable5g_features: false
+
+upf_node_identifier: 192.168.200.1
+
+dp_irq:
+ enable: True
+ S1_cpu: '1'
+ S1_queue_size: 256
+ SGi_cpu: '2'
+ SGi_queue_size: 256
+
+sgi_tunnel:
+ enabled: false
+ type: wg
+ enable_default_route: false
+ tunnels:
+ - wg_local_ip: 172.168.100.1/24
+   peer_pub_key: 'VQT+tLY6/xF+k1WqrXeQzlfb8hWMVLcPdtCPvwIUNU0='
+   peer_pub_ip: 1.2.3.4
+
+# Use this config only to turn off TSO of physical devices.
+# This is useful to debug perf issues.
+# dp_tso:
+#   gtp_tso_enable: false
+#
+
+ebpf:
+  enabled: false

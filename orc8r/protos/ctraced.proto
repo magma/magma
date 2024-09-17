@@ -1,0 +1,126 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+// --------------------------------------------------------------------------
+// CallTraceService definition (runs on gateway)
+// --------------------------------------------------------------------------
+
+service CallTraceService {
+  // Start a call trace on the gateway with the specified options.
+  // Only a single call trace can be active on a gateway at a time.
+  //
+  rpc StartCallTrace (StartTraceRequest) returns (StartTraceResponse) {}
+
+  // End the call trace that is currently active on the gateway.
+  //
+  rpc EndCallTrace (EndTraceRequest) returns (EndTraceResponse) {}
+}
+
+// StartTraceRequest specifies options for a call trace started on a gateway
+message StartTraceRequest {
+  string trace_id = 8;
+
+  enum TraceType {
+    ALL = 0;
+    SUBSCRIBER = 1;
+    PROTOCOL = 2;
+    INTERFACE = 3;
+    CUSTOM = 4;
+  }
+
+  TraceType trace_type = 1;
+
+  // SPECIFIED ONLY IF trace_type is SUBSCRIBER
+  string imsi = 2; // Include prefix 'IMSI'
+
+  // SPECIFIED ONLY IF trace_type is PROTOCOL
+  enum ProtocolName {
+    SCTP = 0;
+    DIAMETER = 1;
+  }
+  ProtocolName protocol = 3;
+  enum InterfaceName {
+    S1AP = 0;
+    GX = 1;
+    GT = 2;
+  }
+
+  // SPECIFIED IF trace_type is INTERFACE
+  InterfaceName interface = 4;
+
+  // SPECIFIED FOR ALL
+  // After the timeout runs out, the call trace stops automatically.
+  uint32 timeout = 5; // Specified in seconds
+
+  // SPECIFIED ONLY IF trace_type is CUSTOM
+  // TShark capture filters to be used for call tracing, based on BPF syntax
+  // Custom traces are performed using TShark, and capture filters specified
+  // are equivalent to running tshark with the -f option
+  // Example:
+  //    capture_filters = "tcp and port 80"
+  //    Runs `tshark -f 'tcp and port 80'`
+  string capture_filters = 6;
+
+  // SPECIFIED ONLY IF trace_type is CUSTOM
+  // TShark display filters to be used for call tracing
+  // Custom traces are performed using TShark, and display filters specified
+  // are equivalent to running tshark with the -Y option
+  // Example:
+  //    display_filters = "ip.addr == 10.0.0.1"
+  //    Runs `tshark -Y 'ip.addr == 10.0.0.1'`
+  // NOTE:
+  //    While TShark is used to capture traffic during call tracing with
+  //    capture filters, when TShark is stopped, the resultant capture is
+  //    passed through the display filters and saved again, so the final
+  //    capture received has been processed by both the capture and display
+  //    filters.
+  string display_filters = 7;
+}
+
+message StartTraceResponse {
+  bool success = 1; // May fail due to an existing tracing session
+}
+
+message EndTraceRequest {
+  string trace_id = 1;
+}
+
+message EndTraceResponse {
+  bool success = 1; // May fail due to no existing tracing session
+  bytes trace_content = 2; // Max size of 4MB
+}
+
+// --------------------------------------------------------------------------
+// CallTraceController definition (runs on cloud)
+// --------------------------------------------------------------------------
+
+service CallTraceController {
+    // Report that a call trace has ended
+    //
+    rpc ReportEndedCallTrace(ReportEndedTraceRequest) returns (ReportEndedTraceResponse) {}
+}
+
+message ReportEndedTraceRequest {
+    string trace_id = 1;
+    bool success = 2;
+    bytes trace_content = 3;
+}
+
+message ReportEndedTraceResponse {
+}

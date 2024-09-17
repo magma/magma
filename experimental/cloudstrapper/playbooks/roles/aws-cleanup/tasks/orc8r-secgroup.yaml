@@ -1,0 +1,42 @@
+---
+
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ orc8rVpc }}"
+  register: valVpc
+
+- name: set vpc cidr fact
+  set_fact:
+    factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].cidr_block is defined
+
+- name: set vpc id fact
+  set_fact:
+    factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].vpc_id is defined
+
+- name: gather all security groups for this vpc
+  ec2_group_info:
+    filters:
+      vpc_id: "{{ factVpcId }}"
+  register: valSecGroup
+  when: factVpcId is defined
+
+- name: delete all individual rules in each security group
+  ec2_group:
+    name: "{{ item.group_name }}"
+    group_id: "{{ item.group_id }}"
+    description: "{{ item.description }}"
+    purge_rules: True
+  when: factVpcId is defined and valSecGroup is defined and item is defined and item.group_name != "default"
+  with_items:
+    - "{{ valSecGroup.security_groups }}"
+
+- name: delete all security groups in this VPC
+  ec2_group:
+    group_id: "{{ item.group_id }}"
+    state: absent
+  when: factVpcId is defined and valSecGroup is defined and item is defined and item.group_name != "default"
+  with_items:
+    - "{{ valSecGroup.security_groups }}"

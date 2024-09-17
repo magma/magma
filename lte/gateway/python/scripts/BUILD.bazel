@@ -1,0 +1,538 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+load("//bazel:test_constants.bzl", "TAG_UTIL_SCRIPT")
+
+SCRIPTS = [
+    "agw_health_cli",
+    "config_stateless_agw",
+    "cpe_monitoring_cli",
+    "create_oai_certs",
+    "dp_probe_cli",
+    "enodebd_cli",
+    "fake_user",
+    "feg_hello_cli",
+    "generate_dnsd_config",
+    "generate_oai_config",
+    "ha_cli",
+    "hello_cli",
+    "icmpv6",
+    "mobility_cli",
+    "mobility_dhcp_cli",
+    "ocs_cli",
+    "packet_ryu_cli",
+    "packet_tracer_cli",
+    "pcrf_cli",
+    "pipelined_cli",
+    "policydb_cli",
+    "s6a_proxy_cli",
+    "s6a_service_cli",
+    "session_manager_cli",
+    "sgs_cli",
+    "sms_cli",
+    "spgw_service_cli",
+    "state_cli",
+    "subscriber_cli",
+    "user_trace_cli",
+]
+
+expand_runfiles(
+    name = "scripts_expanded",
+    tags = ["no-cache"],
+    targets = [":{script}".format(script = script) for script in SCRIPTS],
+)
+
+[
+    pkg_mklink(
+        name = "{script}_symlink".format(script = script),
+        link_name = "/usr/local/bin/{script}.py".format(script = script),
+        tags = ["no-cache"],
+        target = "{dest}/scripts/{script}.py".format(
+            dest = PY_DEST,
+            script = script,
+        ),
+    )
+    for script in SCRIPTS
+]
+
+pkg_filegroup(
+    name = "magma_lte_scripts",
+    srcs = [":scripts_expanded"] +
+           ["{script}_symlink".format(script = script) for script in SCRIPTS],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
+
+MAGMA_ROOT = "../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+SCRIPTS_ROOT = "{}orc8r/gateway/python/scripts".format(MAGMA_ROOT)
+
+py_binary(
+    name = "agw_health_cli",
+    srcs = ["agw_health_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/health:health_service",
+        requirement("fire"),
+    ],
+)
+
+# Note: Not included in the magma debian package. Only used for integration tests.
+py_binary(
+    name = "config_iface_for_ipv6",
+    srcs = ["config_iface_for_ipv6.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
+)
+
+py_binary(
+    name = "config_stateless_agw",
+    srcs = ["config_stateless_agw.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+    ],
+)
+
+py_binary(
+    name = "cpe_monitoring_cli",
+    srcs = ["cpe_monitoring_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        requirement("fire"),
+    ],
+)
+
+py_binary(
+    name = "create_oai_certs",
+    srcs = ["create_oai_certs.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [requirement("envoy")],
+)
+
+py_binary(
+    name = "dp_probe_cli",
+    srcs = ["dp_probe_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_binary(
+    name = "enodebd_cli",
+    srcs = ["enodebd_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:enodebd_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "fake_user",
+    srcs = ["fake_user.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:imsi",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/gateway/python/magma/configuration:environment",
+        requirement("netifaces"),
+    ],
+)
+
+py_binary(
+    name = "feg_hello_cli",
+    srcs = ["feg_hello_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:hello_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "generate_dnsd_config",
+    srcs = ["generate_dnsd_config.py"],
+    imports = [
+        ORC8R_ROOT,
+        SCRIPTS_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//orc8r/gateway/python/magma/common:misc_utils",
+        "//orc8r/gateway/python/scripts:generate_service_config",
+    ],
+)
+
+py_binary(
+    name = "generate_oai_config",
+    srcs = ["generate_oai_config.py"],
+    imports = [
+        ORC8R_ROOT,
+        SCRIPTS_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        ":create_oai_certs",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+        "//orc8r/gateway/python/scripts:generate_service_config",
+    ],
+)
+
+py_binary(
+    name = "ha_cli",
+    srcs = ["ha_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:ha_service_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "hello_cli",
+    srcs = ["hello_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:hello_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "icmpv6",
+    srcs = ["icmpv6.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:ifaces",
+        requirement("dpkt"),
+    ],
+)
+
+py_binary(
+    name = "mobility_cli",
+    srcs = ["mobility_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "mobility_dhcp_cli",
+    srcs = ["mobility_dhcp_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:dhcp_desc",
+        "//lte/gateway/python/magma/mobilityd:mobility_store",
+    ],
+)
+
+py_binary(
+    name = "ocs_cli",
+    srcs = ["ocs_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:mock_core_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "packet_ryu_cli",
+    srcs = ["packet_ryu_cli.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
+        requirement("dpkt"),
+    ],
+)
+
+py_binary(
+    name = "packet_tracer_cli",
+    srcs = ["packet_tracer_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
+)
+
+py_binary(
+    name = "pcrf_cli",
+    srcs = ["pcrf_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:mock_core_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "pipelined_cli",
+    srcs = ["pipelined_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//lte/gateway/python/load_tests:__pkg__"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:ng_set_session_msg",
+        "//lte/gateway/python/magma/pipelined:pg_set_session_msg",
+        "//lte/gateway/python/magma/pipelined:service_manager",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/qos:common",
+        "//lte/protos:apn_python_proto",
+        "//lte/protos:pipelined_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "policydb_cli",
+    srcs = ["policydb_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/policydb:apn_rule_map_store",
+        "//lte/gateway/python/magma/policydb:basename_store",
+        "//lte/gateway/python/magma/policydb:rating_group_store",
+        "//lte/gateway/python/magma/policydb:rule_map_store",
+        "//lte/gateway/python/magma/policydb:rule_store",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:policydb_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "s6a_proxy_cli",
+    srcs = ["s6a_proxy_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:s6a_proxy_grpc_proto",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "s6a_service_cli",
+    srcs = ["s6a_service_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:s6a_service_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "session_manager_cli",
+    srcs = ["session_manager_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:mock_core_python_grpc",
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/protos:abort_session_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "sgs_cli",
+    srcs = ["sgs_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//feg/protos:csfb_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "sms_cli",
+    srcs = ["sms_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/protos:sms_orc8r_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "spgw_service_cli",
+    srcs = ["spgw_service_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:policydb_python_proto",
+        "//lte/protos:spgw_service_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "state_cli",
+    srcs = ["state_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:serialize_utils",
+        "//lte/protos:keyval_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "//lte/protos/oai:mme_nas_state_python_proto",
+        "//lte/protos/oai:s1ap_state_python_proto",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("fire"),
+        requirement("jsonpickle"),
+    ],
+)
+
+py_binary(
+    name = "subscriber_cli",
+    srcs = ["subscriber_cli.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_binary(
+    name = "user_trace_cli",
+    srcs = ["user_trace_cli.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+)

@@ -1,0 +1,2 @@
+/var/log/mme.log
+/var/log/syslog

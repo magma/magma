@@ -1,0 +1,44 @@
+---
+# id of each test has to match the project ID created on the gHZ API
+load_tests:
+  - name: mobilityd
+    test:
+      - name: allocate
+        result: AllocateIPAddress
+        id: 9
+      - name: release
+        result: ReleaseIPAddress
+        id: 4
+#  - name: pipelined
+#    test:
+#      - name: activate_flows
+#        result: ActivateFlows
+#        id: 5
+#      - name: deactivate_flows
+#        result: DeactivateFlows
+#        id: 6
+  - name: subscriberdb
+    test:
+      - name: add
+        result: AddSubscriber
+        id: 13
+      - name: list
+        result: ListSubscribers
+        id: 15
+      - name: delete
+        result: DeleteSubscriber
+        id: 14
+      - name: get
+        result: GetSubscriberData
+        id: 17
+      - name: update
+        result: UpdateSubscriber
+        id: 16
+
+tag: latest
+docker_repo: linuxfoundation.jfrog.io/magma-docker-agw-test
+magmaRepo: /opt/magma
+MAGMA_ROOT: "{{ magmaRepo }}"
+GHZ_PATH: "{{ magmaRepo }}/lte/gateway/docker/ghz"
+GHZ_API_URL: "http://35.75.138.193"
+GHZ_API_PORT: 80

@@ -1,0 +1,69 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies: 'orc8r/cloud/go/swagger/testdata/common/common.yml'
+  temp-gen-filename: base-swagger.yml
+  output-dir: magma/orc8r/cloud/go/swagger/testdata
+  types:
+    - go-struct-name: FruitBasket
+      filename: fruit_basket_swaggergen.go
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /foo
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: BitterTag
+    description: Tag Bitter
+
+paths:
+  /fruitbasketpath:
+    post:
+      summary: Make Fruit Basket
+      parameters:
+        - $ref: '#/definitions/fruit_basket'
+      responses:
+        '200':
+          description: Basket Made
+          schema:
+            type: integer
+        default:
+          $ref: './common-swagger.yml#/responses/UnexpectedError'
+
+parameters:
+  fruitColor:
+    in: path
+    name: color
+    description: fruit color
+    required: true
+    type: string
+
+definitions:
+  fruit_basket:
+    type: array
+    items:
+      $ref: './common-swagger.yml#/definitions/fruit'
+      maxItems: 2
+      minItems: 2
+      example: ["apple", "orange"]
+  season:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Winter
+

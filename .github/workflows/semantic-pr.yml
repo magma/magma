@@ -1,0 +1,130 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: any
+# purpose: PR format checker
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
+name: PR Check Title Or Commit Message
+
+on:
+  # Semantic PR module only works with pull_request_target
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-semantic-pr:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: amannn/action-semantic-pull-request@01d5fd8a8ebb9aafe902c40c53f0f4744f7381eb # pin@v5.0.2
+        id: semantic-pr
+        if: ${{ ! startsWith(github.event.pull_request.title, 'Revert ') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Configure which types are allowed.
+          # Default: https://github.com/commitizen/conventional-commit-types
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          # Configure which scopes are allowed.
+          scopes: |
+            aaa_server
+            agw
+            amf
+            ci
+            cloud
+            connectiond
+            control_proxy
+            csfb
+            ctraced
+            cwg
+            deps
+            deps-dev
+            directoryd
+            dp
+            eap
+            eap_aka
+            eap_sim
+            enodebd
+            envoy_controller
+            eventd
+            feg
+            feg_hello
+            feg_relay
+            health
+            lte
+            magmad
+            mme
+            mobilityd
+            monitord
+            nms
+            orc8r
+            pipelined
+            policydb
+            radiusd
+            redirectd
+            redis
+            s6a_proxy
+            s8_proxy
+            sctpd
+            session_proxy
+            sessiond
+            smf
+            smsd
+            state
+            subscriberdb
+            swx_proxy
+            td-agent-bit
+            upf
+          # Configure that a scope must always be provided.
+          requireScope: false
+          # For work-in-progress PRs you can typically use draft pull requests
+          # from GitHub. However, private repositories on the free plan don't have
+          # this option and therefore this action allows you to opt in to using the
+          # special "[WIP]" prefix to indicate this state. This will avoid the
+          # validation of the PR title and the pull request checks remain pending.
+          # Note that a second check will be reported if this is enabled.
+          wip: true
+          # When using "Squash and merge" on a PR with only one commit, GitHub
+          # will suggest using that commit message instead of the PR title for the
+          # merge commit, and it's easy to commit this by mistake. Enable this option
+          # to also validate the commit message for one commit PRs.
+          validateSingleCommit: true
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: always()
+      - uses: ./.github/workflows/composite/comment-on-pr
+        if: always()
+        env:
+          check-type: Semantic PR check
+          check-documentation: See [instructions on formatting your commit and pull request titles](https://github.com/magma/magma/wiki/Contributing-Code#pull-request-and-commit-message-title-are-following-conventional-commits-format).
+        with:
+          check-type: ${{ env.check-type }}
+          check-documentation: ${{ env.check-documentation }}
+          job-status: ${{ steps.semantic-pr.outcome }}

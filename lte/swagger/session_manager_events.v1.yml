@@ -1,0 +1,158 @@
+
+---
+swagger: '2.0'
+
+info:
+  title: Session Manager definitions
+  description: These events occur in session_manager
+  version: 1.0.0
+
+definitions:
+  session_created:
+    type: object
+    description: Used to track when a session was created
+    properties:
+      imsi:
+        type: string
+      ip_addr:
+        type: string
+      msisdn:
+        type: string
+      imei:
+        type: string
+      spgw_ip:
+        type: string
+      session_id:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      pdp_start_time:
+        type: integer
+  session_create_failure:
+    type: object
+    description: Used to track when a session creation failed
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      failure_reason:
+        type: string
+  session_updated:
+    type: object
+    description: Used to track when a session update is reported
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      ip_addr:
+        type: string
+  session_update_failure:
+    type: object
+    description: Used to track when a session update has failed
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      ip_addr:
+        type: string
+      failure_reason:
+        type: string
+  session_terminated:
+    type: object
+    description: Used to track total session metrics
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      ip_addr:
+        type: string
+      ipv6_addr:
+        type: string
+      msisdn:
+        type: string
+      session_id:
+        type: string
+      # The following fields are for WiFi sessions only
+      mac_addr:
+        type: string
+      # The following fields are for LTE sessions only
+      imei:
+        type: string
+      spgw_ip:
+        type: string
+      user_location:
+        type: string
+      charging_characteristics:
+        type: string
+      # Session summary
+      pdp_start_time:
+        type: integer
+        description: Time at which the session started
+      pdp_end_time:
+        type: integer
+        description: Time at which the session ended
+      duration:
+        type: integer
+      cause_for_rec_closing:
+        type: integer
+        description: As defined in 3GPP TS 32.298 v8.4.0 - 5.1.2.2.5
+      record_sequence_number:
+        type: integer
+      # Data usage
+      total_tx:
+        type: integer
+        minimum: 0
+        description: Total Tx of all data usage tracked by any monitoring key or rating group
+      total_rx:
+        type: integer
+        minimum: 0
+        description: Total Rx of all data usage tracked by any monitoring key or rating group
+      charging_tx:
+        type: integer
+        minimum: 0
+        description: Total Tx of all data usage tracked by any rating group
+      charging_rx:
+        type: integer
+        minimum: 0
+        description: Total Tx of all data usage tracked by any rating group
+      monitoring_tx:
+        type: integer
+        minimum: 0
+      monitoring_rx:
+        type: integer
+        minimum: 0
+      # Service Data
+      list_of_service_data:
+        type: array
+        description: Summaries of rating group tracked credits based on 3GPP TS 32.298 v8.4.0 - 5.1.2.2.22A
+        items:
+          type: object
+          properties:
+            rating_group:
+              type: integer
+            service_identifier:
+              type: integer
+            data_volume_downlink:
+              type: integer
+              minimum: 0
+            data_volume_uplink:
+              type: integer
+              minimum: 0
+            time_of_first_usage:
+              type: integer
+            time_of_last_usage:
+              type: integer
+            service_condition_change:
+              type: integer

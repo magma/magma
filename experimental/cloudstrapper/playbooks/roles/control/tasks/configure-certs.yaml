@@ -1,0 +1,27 @@
+---
+
+- name: create certs directory
+  file:
+    name: "{{ dirSecretsLocal }}"
+    state: directory
+    mode: '0775'
+
+- name: generate self-signed certs
+  command: "{{ dirSourceLocal }}/orc8r/cloud/deploy/scripts/self_sign_certs.sh {{ orc8rDomainName }}"
+  args:
+    chdir: "{{ dirSecretsLocal }}"
+
+- name: generate domain certs
+  command: "{{ dirSourceLocal }}/orc8r/cloud/deploy/scripts/create_application_certs.sh {{ orc8rDomainName }}"
+  args:
+    chdir: "{{ dirSecretsLocal }}"
+
+- name: generate pfx file
+  openssl_pkcs12:
+    action: export
+    path: "{{ dirSecretsLocal }}/admin_operator.pfx"
+    friendly_name: orc8rpfx
+    privatekey_path: "{{ dirSecretsLocal }}/admin_operator.key.pem"
+    certificate_path: "{{ dirSecretsLocal }}/admin_operator.pem"
+    state: present
+

@@ -1,0 +1,59 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+
+// --------------------------------------------------------------------------
+// GatewayConfigs structure is a container for all Access Gateway's (AG) Cloud
+// Managed Configs (CMC). Each and every field of GatewayConfigs represents
+// one AG service config
+// --------------------------------------------------------------------------
+// NOTE: a service config field name (control_proxy, enodebd, etc.) must match
+// the corresponding gateway service's name exactly
+message GatewayConfigs {
+    map<string, google.protobuf.Any> configs_by_key = 10;
+
+    GatewayConfigsMetadata metadata = 11;
+}
+
+// Deterministic hash of a serialized GatewayConfigs proto
+message GatewayConfigsDigest {
+    // Hexadecimal MD5 hash of the UTF-8-encoded stringified full mconfigs
+    string md5_hex_digest = 1;
+}
+
+// Metadata about the configs.
+message GatewayConfigsMetadata {
+    // Unix timestamp of Cloud at the time of config generation.
+    uint64 created_at = 11;
+    GatewayConfigsDigest digest = 12;
+}
+
+// Wraps a gateway config and a stream offset that the config was computed
+// from
+message OffsetGatewayConfigs {
+    GatewayConfigs configs = 1;
+    int64 offset = 2;
+}
+
+// Stream request passed as extra args to the streaming mconfig streamer policy.
+// Contains a single field, the offset of the mconfig currently stored on
+// the device.
+message MconfigStreamRequest {
+    int64 offset = 1;
+}

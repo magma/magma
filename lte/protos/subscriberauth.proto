@@ -1,0 +1,55 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//
+// This is a proxy for Diamater application S6a/S6d 3GPP 29.272
+// It is watered down for use with OpenAirInterface EPC with extensibility in mind
+//
+
+syntax = "proto3";
+
+import "lte/protos/diam_errors.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// Authentication Information Request (Section 7.2.5)
+message M5GAuthenticationInformationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Resync related information
+    bytes resync_info = 2;
+    // Name of the serving network (snni)
+    string serving_network_name = 3;
+}
+
+// Authentication Information Answer (Section 7.2.6)
+message M5GAuthenticationInformationAnswer {
+    // 3GPP TS 29.272, 7.3.18 E-UTRAN-Vector
+    // For details about fields read 3GPP 33.401
+    message M5GAuthenticationVector {
+        bytes rand = 1;
+        bytes xres_star = 2;
+        bytes autn = 3;
+        bytes kseaf = 4;
+    }
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated M5GAuthenticationVector m5gauth_vectors = 2;
+}
+
+service M5GSubscriberAuthentication {
+    // Authentication-Information (Code 318)
+    rpc M5GAuthenticationInformation (M5GAuthenticationInformationRequest) returns (M5GAuthenticationInformationAnswer) {}
+}
+

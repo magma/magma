@@ -1,0 +1,24 @@
+- name: install ntpd
+  package:
+    name: ntp
+
+- name: install nfs-common
+  package:
+    name: nfs-common
+
+- name: Raise max inotify watches
+  sysctl:
+    name: "fs.inotify.max_user_watches"
+    state: present
+    sysctl_file: "{{ sysctl_file_path }}"
+    value: 524288
+    reload: yes
+
+- name: Raise max pids
+  sysctl:
+    name: "kernel.pid_max"
+    state: present
+    sysctl_file: "{{ sysctl_file_path }}"
+    value: 4194303
+    reload: yes
+

@@ -1,0 +1,52 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageId" : {
+        "Type": "AWS::EC2::Image::Id",
+	"Default": "ami-0a91cd140a1fc148a",
+	"Description": "Base image for Bootstrap: Ubuntu Focal"
+      },
+      "paramKeyName" : {
+        "Type": "String",
+	"Default": "keyMagmaBootProto",
+	"Description": "Bootstrap key"
+      },
+      "paramSecGroup" : {
+        "Type": "AWS::EC2::SecurityGroup::Id",
+	"Default": "sg-0c290ac2a7d8189b7",
+	"Description": "Bootstrap Security Group"
+      },
+      "paramInstanceSize" : {
+        "Type": "String",
+	"Default": "t2.medium",
+	"Description": "Bootstrap Node Instance Size"
+      },
+
+      "paramTagName" : {
+        "Type": "String",
+	"Default": "ec2MagmaDevOpsBootstrap",
+	"Description": "Bootstrap Devops Node"
+      },
+      "paramTagId": {
+        "Type": "String",
+	"Default": "SanRamon",
+	"Description": "Cluster Identifier"
+      }
+    },
+    "Resources": {
+        "Bootstrapper": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": { "Ref": "paramImageId" },
+                "InstanceType": { "Ref": "paramInstanceSize" },
+                "SecurityGroupIds": [ { "Ref": "paramSecGroup" }],
+                "KeyName": { "Ref": "paramKeyName" },
+                "Tags": [
+			{"Key": "Name", "Value": { "Ref": "paramTagName" } },
+			{"Key": "Purpose","Value":"DevOps Bootstrapper node to create a MagmaBootstrap image"},
+			{"Key": "ClusterId","Value": { "Ref": "paramTagId" }}
+	       	]
+            }
+        }
+    }
+}

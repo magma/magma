@@ -1,0 +1,54 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "device_utils",
+    srcs = ["device_utils.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/gateway/python/magma/enodebd:exceptions",
+        "//lte/gateway/python/magma/enodebd:logger",
+    ],
+)
+
+py_library(
+    name = "device_map",
+    srcs = [
+        "baicells_old.py",
+        "baicells_qafa.py",
+        "baicells_qafb.py",
+        "baicells_rts.py",
+        "device_map.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":baicells",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+        "//lte/gateway/python/magma/enodebd/device_config:enodeb_config_postprocessor",
+        "//lte/gateway/python/magma/enodebd/devices/baicells_qrtb",
+        "//lte/gateway/python/magma/enodebd/devices/experimental:cavium",
+        "//lte/gateway/python/magma/enodebd/devices/freedomfi_one",
+    ],
+)
+
+py_library(
+    name = "baicells",
+    srcs = ["baicells.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":device_utils",
+        "//lte/gateway/python/magma/enodebd/data_models:transform_for",
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_impl",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)

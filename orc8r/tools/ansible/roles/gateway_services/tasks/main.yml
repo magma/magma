@@ -1,0 +1,74 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+########################################
+# Install basic tools
+########################################
+
+- name: Install basic tools
+  apt:
+    name:
+      - zip
+      - unzip
+      - curl
+      - daemontools
+      - git
+      - vim
+    state: present
+  retries: 5
+  when: preburn
+
+########################################
+# Install python dependencies
+########################################
+
+- name: Install python dependencies
+  apt:
+    name:
+      - python3-pip
+      - pkg-config
+      - libsystemd-dev
+    state: present
+  retries: 5
+  when: preburn
+
+########################################
+# Set up control proxy
+########################################
+
+- name: Install nghttpx and its deps for Ubuntu
+  apt:
+    name:
+      - gcc
+      - libssl-dev
+      - libev-dev
+      - libevent-dev
+      - libjansson-dev
+      - libjemalloc-dev
+      - libc-ares-dev
+      - magma-nghttpx=1.31.1-1
+    state: present
+  retries: 5
+  when: preburn
+
+#################################
+# Copy service files
+#################################
+
+- name: Copy main magma service unit file
+  copy:
+    src: "{{ item.src }}.service"
+    dest: "/etc/systemd/system/{{ item.dest }}.service"
+  with_items:
+    - {src: 'magma', dest: 'magma@'}
+    - {src: 'magma_control_proxy', dest: 'magma@control_proxy'}
+  when: full_provision

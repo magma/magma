@@ -1,0 +1,39 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# These steps are executed in preburn and full_provision to make
+# registry switches e.g. for upcoming releases easier.
+
+- name: Collect all registries
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d/
+    patterns: "*.list*"
+  register: registries_to_be_delete
+
+- name: Remove all old registries
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ registries_to_be_delete.files }}"
+
+- name: Adding the key for the registry
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
+
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.apt_repository:
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main
+    filename: magma
+    state: present
+    update_cache: true

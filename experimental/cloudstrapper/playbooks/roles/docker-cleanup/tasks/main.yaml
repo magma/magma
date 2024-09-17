@@ -1,0 +1,33 @@
+---
+
+- name: Gather information about instances
+  ec2_instance_info:
+    region: "{{ awsAgwRegion }}"
+    filters:
+      "tag:agw": "{{ tag_host }}"
+  register: ec2_node_info
+
+- name: Delete instance
+  ec2:
+    state: 'absent'
+    aws_access_key: "{{ awsAccessKey }}"
+    aws_secret_key: "{{ awsSecretKey }}"
+    region: "{{ awsAgwRegion }}"
+    instance_ids: "{{ item.instance_id }}"
+  ignore_errors: true
+  with_items:
+    - "{{ ec2_node_info.instances }}"
+
+- name: find key by tag
+  command: aws ec2 describe-key-pairs --key-names "{{ tag_host }}" --filters "Name=tag:agw,Values="{{ tag_host }}"" --query 'KeyPairs[0].KeyName' --output text
+  environment:
+    AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
+  register: keyFound
+  ignore_errors: true
+
+- name: Delete Key
+  ec2_key:
+    name: "{{ tag_host }}"
+    state: absent
+    region: "{{ awsAgwRegion }}"
+  when: keyFound.stdout == tag_host

@@ -1,0 +1,205 @@
+{
+ "configsByKey": {
+  "hss": {
+   "@type": "type.googleapis.com/magma.mconfig.HSSConfig",
+   "server": {
+    "protocol": "sctp",
+    "address": "localhost:3868",
+    "localAddress": "localhost:3869",
+    "destHost": "hw-hss.epc.mnc001.mcc01.3gppnetwork.org",
+    "destRealm": "epc.mnc001.mcc01.3gppnetwork.org"
+   },
+   "lteAuthOp": "EREREREREREREREREREREQ==",
+   "lteAuthAmf": "Z0E=",
+   "subProfiles": {
+    "additionalProp1": {
+     "maxUlBitRate": "100000000",
+     "maxDlBitRate": "200000000"
+    },
+    "additionalProp2": {
+     "maxUlBitRate": "100000000",
+     "maxDlBitRate": "200000000"
+    },
+    "additionalProp3": {
+     "maxUlBitRate": "100000000",
+     "maxDlBitRate": "200000000"
+    }
+   },
+   "defaultSubProfile": {
+    "maxUlBitRate": "100000000",
+    "maxDlBitRate": "200000000"
+   }
+  },
+  "swx_proxy": {
+   "@type": "type.googleapis.com/magma.mconfig.SwxConfig",
+   "logLevel": "INFO",
+   "server": {
+    "protocol": "sctp",
+    "address": "localhost:3868",
+    "retransmits": 0,
+    "watchdogInterval": 0,
+    "retryCount": 0,
+    "localAddress": "localhost:3869",
+    "productName": "magma",
+    "realm": "epc.mnc001.mcc01.3gppnetwork.org",
+    "host": "swx-mgm1.epc.mnc001.mcc01.3gppnetwork.org",
+    "destRealm": "epc.mnc001.mcc01.3gppnetwork.org",
+    "destHost": "hw-hss.epc.mnc001.mcc01.3gppnetwork.org"
+   },
+   "verifyAuthorization": false
+  },
+  "sessiond": {
+   "@type": "type.googleapis.com/magma.mconfig.SessionD",
+   "logLevel": "INFO",
+   "relayEnabled": true
+  },
+  "aaa_server": {
+   "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
+   "logLevel": "INFO",
+   "IdleSessionTimeoutMs": 21600000,
+   "CreateSessionOnAuth": true,
+   "AccountingEnabled": true
+  },
+  "control_proxy": {
+   "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
+   "logLevel": "INFO"
+  },
+  "directoryd": {
+   "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
+   "logLevel": "INFO"
+  },
+  "eap_aka": {
+   "@type": "type.googleapis.com/magma.mconfig.EapAkaConfig",
+   "logLevel": "INFO",
+   "timeout": {
+    "ChallengeMs": 20000,
+    "ErrorNotificationMs": 10000,
+    "SessionMs": 43200000,
+    "SessionAuthenticatedMs": 5000
+   }
+  },
+  "magmad": {
+   "@type": "type.googleapis.com/magma.mconfig.MagmaD",
+   "logLevel": "INFO",
+   "checkinInterval": 60,
+   "checkinTimeout": 10,
+   "autoupgradeEnabled": true,
+   "autoupgradePollInterval": 300,
+   "packageVersion": "0.0.0-0",
+   "images": [
+   ],
+   "tierId": "default",
+   "featureFlags": {
+    "newfeature1": true,
+    "newfeature2": false
+   },
+   "dynamicServices": [
+   ]
+  },
+  "metricsd": {
+   "@type": "type.googleapis.com/magma.mconfig.MetricsD",
+   "logLevel": "INFO"
+  },
+  "pipelined": {
+   "@type": "type.googleapis.com/magma.mconfig.PipelineD",
+   "logLevel": "INFO",
+   "ueIpBlock": "192.168.128.0/24",
+   "natEnabled": true,
+   "defaultRuleId": "default_rule_1",
+   "relayEnabled": true,
+   "services": [
+      "ENFORCEMENT"
+   ],
+   "allowedGrePeers": [
+    {"ip": "192.168.70.102"}
+   ]
+  },
+  "state": {
+   "@type": "type.googleapis.com/magma.mconfig.State",
+   "logLevel": "INFO"
+  },
+  "session_proxy": {
+   "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
+   "logLevel": "INFO",
+   "gx": {
+    "disableGx": false,
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50003",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50004",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      },
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50013",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50014",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ]
+   },
+   "gy": {
+    "disableGy": false,
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50001",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50002",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      },
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50011",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50012",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ],
+    "initMethod": "PER_KEY"
+   },
+   "requestFailureThreshold": 0.5,
+   "minimumRequestThreshold": 1
+  },
+  "td-agent-bit": {
+   "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+   "extraTags": {},
+   "throttleRate": 1000,
+   "throttleWindow": 5,
+   "throttleInterval": "1m"
+  }
+ },
+ "metadata": {
+  "createdAt": "1561709117"
+ }
+}

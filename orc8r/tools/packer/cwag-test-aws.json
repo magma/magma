@@ -1,0 +1,51 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-west-1",
+    "subnet_id" : "{{user `subnet`}}",
+    "vpc_id" : "{{user `vpc`}}",
+    "source_ami": "ami-08fd8ae3806f09a08",
+    "instance_type": "t2.medium",
+    "ssh_username": "ubuntu",
+    "ami_name": "cwag-test-bionic"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done"
+      ]
+    },
+    {
+        "type": "shell",
+        "script": "scripts/code_deploy.sh",
+        "execute_command": "echo 'ubuntu' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+        "start_retry_timeout" : "1m"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'ubuntu' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/ansible.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'ubuntu' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/add_vagrant_user.sh"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../../../cwf/gateway/deploy/cwag_test.yml",
+      "inventory_groups": "cwag_test",
+      "role_paths": [
+        "../../../orc8r/tools/ansible/roles/golang"
+      ],
+      "extra_arguments": [ "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"]
+    }
+  ]
+}

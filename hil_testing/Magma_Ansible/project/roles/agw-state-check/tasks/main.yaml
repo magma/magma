@@ -1,0 +1,48 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Get State CLI states for IMSIs
+  tags: state-check
+  shell: state_cli.py keys IMSI | grep {{ item }} | wc -l
+  async: 120
+  poll: 1
+  register: svc_state
+  loop:
+    - MME
+    - S1AP
+    - SPGW
+
+- name: Get OVS table flows
+  tags: state-check
+  shell: ovs-ofctl dump-flows gtp_br0 table={{ item }}|wc -l
+  async: 120
+  poll: 1
+  register: table_state
+  loop:
+    - 0
+    - 12
+    - 13
+
+- name: Get mobility state for IMSIs
+  tags: state-check
+  shell: mobility_cli.py get_subscriber_table | grep -v SID|wc -l
+  async: 120
+  poll: 2
+  register: mobility_state
+
+- name: set fact with state checks
+  tags: state-checks
+  set_fact:
+    svc_state: "{{ svc_state.results }}"
+    table_state: "{{ table_state.results }}"
+    mobility_state: "{{ mobility_state.stdout }}"
+    cacheable: yes

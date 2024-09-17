@@ -1,0 +1,84 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Run CWF deployer unit tests
+# remediation: -
+
+name: CWAG Lint & Test Operator
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    # Map a step output to a job output
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/cwf-operator.yml", "cwf/**", "k8s/**"]
+  cwf-operator-precommit:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: cwf operator pre-commit job
+    runs-on: ubuntu-20.04
+    env:
+      GO111MODULE: on
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
+        with:
+          go-version: '1.20.1'
+      - name: Run golang_before_install.sh script
+        run: ./.github/workflows/scripts/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2.8.2
+        with:
+          command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
+          timeout_minutes: 10
+      - name: Run precommit
+        run: |
+          cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+          make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "CWF-operator-precommit tests failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ''

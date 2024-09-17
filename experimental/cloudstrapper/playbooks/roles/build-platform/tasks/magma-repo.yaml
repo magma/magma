@@ -1,0 +1,15 @@
+---
+
+- name: create magma directory
+  file:
+    path: "{{ magmaRootDir }}"
+    state: directory
+    mode: u+rwx
+    owner: "{{ usrName }}"
+  become: true
+
+- name: download github repo
+  git:
+    repo: "{{ buildMagmaRepo }}"
+    dest: "{{ magmaRootDir }}"
+    version: "{{ buildMagmaVersion }}"

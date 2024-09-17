@@ -1,0 +1,70 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "eventd",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//orc8r/gateway/python:__pkg__",
+    ],
+    deps = [
+        ":eventd_lib",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_library(
+    name = "eventd_lib",
+    srcs = [
+        "event_validator.py",
+        "rpc_servicer.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cwf/swagger:cwf_swagger_specs",
+        "//feg/swagger:feg_swagger_specs",
+        "//lte/swagger:lte_swagger_specs",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/swagger:orc8r_swagger_specs",
+        requirement("bravado_core"),
+    ],
+)
+
+py_library(
+    name = "eventd_client",
+    srcs = ["eventd_client.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/protos:eventd_python_grpc",
+    ],
+)

@@ -1,0 +1,39 @@
+---
+################################################################################
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Set up Magma environment based on debian package for integration testing
+  hosts: deb
+  become: yes
+
+  vars:
+    user: "{{ ansible_user }}"
+    magma_root: /home/{{ ansible_user }}/magma
+    # The install task for docker is guared by preburn.
+    # Docker is installed by e.g., 'INSTALL_DOCKER=true vagrant up magma_deb'
+    preburn: "{{ lookup('env', 'INSTALL_DOCKER', default=false) }}"
+    # The setup role for the test certs is guarded by full_provision.
+    # The test certs are setup by e.g., 'SETUP_TEST_CERTS=true vagrant up magma_deb'
+    full_provision: "{{ lookup('env', 'SETUP_TEST_CERTS', default=false) }}"
+
+  roles:
+    - role: gai_config
+    - role: magma_deb
+    - role: service_aliases
+    - role: test_certs
+
+  tasks:
+    # Only run installation for docker
+    - include_role:
+        name: docker
+        tasks_from: install

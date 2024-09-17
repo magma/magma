@@ -1,0 +1,900 @@
+From a92b39e7031fdf856e7d29bd8eeb301d307930ea Mon Sep 17 00:00:00 2001
+From: prabina pattnaik <prabinak@wavelabs.ai>
+Date: Thu, 14 Jul 2022 12:21:35 +0000
+Subject: [PATCH 24/24] QFI support in OVS
+
+Signed-off-by: prabina pattnaik <prabinak@wavelabs.ai>
+---
+ datapath/linux/compat/gtp.c               | 149 ++++++++++++----------
+ datapath/linux/compat/include/linux/gtp.h |   1 +
+ debian/changelog                          |   2 +-
+ include/openvswitch/match.h               |   2 +
+ include/openvswitch/meta-flow.h           |  17 +++
+ include/openvswitch/ofp-actions.h         |  13 ++
+ include/openvswitch/packets.h             |   3 +-
+ lib/flow.c                                |   6 +
+ lib/match.c                               |  17 +++
+ lib/meta-flow.c                           |  19 +++
+ lib/meta-flow.xml                         |   9 ++
+ lib/nx-match.c                            |   2 +-
+ lib/odp-util.c                            |  13 +-
+ lib/ofp-actions.c                         |  73 +++++++++++
+ lib/packets.h                             |  11 +-
+ tests/ofproto.at                          |   4 +-
+ tests/system-layer3-tunnels.at            | 108 ++++++++++++++++
+ tests/tunnel.at                           |  21 +++
+ 18 files changed, 395 insertions(+), 75 deletions(-)
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index a7033031d..d4d49920d 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -101,10 +101,8 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
+ 		struct metadata_dst *tun_dst = &buf.dst;
+ #endif
+ 
+-		int opts_len = 0;
+-		if (unlikely(type != GTP_TPDU)) {
+-			opts_len = sizeof (struct gtpu_metadata);
+-		}
++		int opts_len;
++	 	opts_len = sizeof (struct gtpu_metadata);
+ #ifndef USE_UPSTREAM_TUNNEL
+ 		//udp_tun_rx_dst
+ 		ovs_udp_tun_rx_dst(tun_dst, skb, sk->sk_family, TUNNEL_KEY, tid, opts_len);
+@@ -113,18 +111,37 @@ static int gtp_rx(struct sock *sk, struct gtp_dev *gtp, struct sk_buff *skb,
+ 			udp_tun_rx_dst(skb, sk->sk_family, TUNNEL_KEY, tid, opts_len);
+ #endif
+ 		netdev_dbg(gtp->dev, "attaching metadata_dst to skb, gtp ver %d hdrlen %d\n", gtp_version, hdrlen);
+-		if (unlikely(opts_len)) {
+-			struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
+-			struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
+-
+-			opts->ver = GTP_METADATA_V1;
+-			opts->flags = gtp1->flags;
+-			opts->type = gtp1->type;
+-			netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
+-			tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
+-			tun_dst->u.tun_info.options_len = opts_len;
+-			skb->protocol = 0xffff;         // Unknown
++                if (unlikely(opts_len)) {
++                    struct gtpu_metadata *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
++                    struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
++		    if (likely(type == GTP_TPDU)){
++	                struct gtpu_ext_hdr *geh;
++			geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
++			if (geh->type == 0x85) {
++			    struct gtpu_ext_hdr_pdu_sc *pdu_sc_hd;
++			    pdu_sc_hd = (struct gtpu_ext_hdr_pdu_sc *) (geh + 1);
++			    if (pdu_sc_hd->qfi) {
++                                opts_len = sizeof (struct gtpu_metadata);
++                                opts->ver = GTP_METADATA_V1;
++                                opts->flags = gtp1->flags;
++                                opts->type = gtp1->type;
++                                opts->qfi = pdu_sc_hd->qfi;
++                                opts_len = opts_len + sizeof(struct gtpu_ext_hdr) + sizeof(struct gtpu_ext_hdr_pdu_sc);
++                                tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++                                tun_dst->u.tun_info.options_len = opts_len;
++                            }
++                        }
++		    } else {
++		        opts->ver = GTP_METADATA_V1;
++                        opts->flags = gtp1->flags;
++                        opts->type = gtp1->type;
++                        netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
++                        tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTPU_OPT;
++                        tun_dst->u.tun_info.options_len = opts_len;
++                        skb->protocol = 0xffff;         // Unknown
++                    }
+ 		}
++
+ 		/* Get rid of the GTP + UDP headers. */
+ 		if (iptunnel_pull_header(skb, hdrlen, skb->protocol,
+ 					!net_eq(sock_net(sk), dev_net(gtp->dev)))) {
+@@ -189,7 +206,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+ 
+ 	gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
+ 
+-		netdev_dbg(gtp->dev, "flags %x type: %x\n", gtp1->flags, gtp1->type);
++	netdev_dbg(gtp->dev, "flags %x type: %x\n", gtp1->flags, gtp1->type);
+ 	if ((gtp1->flags >> 5) != GTP_V1)
+ 		return 1;
+ 
+@@ -205,7 +222,7 @@ static int gtp1u_udp_encap_recv(struct sock *sk, struct gtp_dev *gtp, struct sk_
+ 				u8 next_hdr;
+ 
+ 				geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
+-				netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
++				netdev_dbg(gtp->dev, "ext type type %d, seq:%d, n_pdu:%d\n", geh->type, geh->seq_num, geh->n_pdu);
+ 
+ 				hdrlen += sizeof (struct gtpu_ext_hdr);
+ 				next_hdr = geh->type;
+@@ -322,17 +339,6 @@ static void gtp_dev_uninit(struct net_device *dev)
+ 	free_percpu(dev->tstats);
+ }
+ 
+-const struct gtpu_ext_hdr n_hdr = {
+-	.type = 0x85,
+-};
+-
+-const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
+-	.len = 1,
+-	.pdu_type = 0x0, /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
+-	.qfi = 9,
+-		.next_type = 0,
+-};
+-
+ static unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
+ {
+ 		const struct skb_shared_info *shinfo = skb_shinfo(skb);
+@@ -405,11 +411,17 @@ static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb,
+ 				/* TODO: Suppport for extension header, sequence number and N-PDU.
+ 				 *       Update the length field if any of them is available.
+ 				 */
+-				next_hdr = (struct gtpu_ext_hdr *) (gtp1 + 1);
+-				*next_hdr = n_hdr;
++				struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr;
++				pdu_sc_hdr.len = 1;
++                                pdu_sc_hdr.pdu_type = 0x0; /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
++                                pdu_sc_hdr.qfi = qfi;
++                                pdu_sc_hdr.next_type = 0;
++
++			        next_hdr = (struct gtpu_ext_hdr *) (gtp1 + 1);
++				next_hdr->type = 0x85;
+ 				pdu_sc = (struct gtpu_ext_hdr_pdu_sc *) (next_hdr + 1);
+ 				*pdu_sc = pdu_sc_hdr;
+-				pdu_sc->qfi = qfi;
++				netdev_dbg(dev,"Update QFI value for downlink %d for teid %d\n", pdu_sc->qfi, tid);
+ 		}
+ 
+ }
+@@ -571,23 +583,25 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 
+ 		netdev_dbg(dev, "packet with opt len %d", info->options_len);
+ 		if (info->options_len == 0) {
+-			if (info->key.tun_flags & TUNNEL_OAM) {
+-			   set_qfi = 9;
+-			}
+-			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++		    gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
+ 		} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
+-				struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
+-				__be32 tid = tunnel_id_to_key32(info->key.tun_id);
+-				int err;
+-
+-				err = gtp1_push_control_header(skb, tid, opts, dev);
+-			   if (err) {
+-						netdev_info(dev, "cntr pkt error %d", err);
+-						goto err_rt;
+-				}
++		    struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
++		    __be32 tid = tunnel_id_to_key32(info->key.tun_id);
++		    if (info->key.tun_flags & TUNNEL_OAM) {
++                        set_qfi = opts->qfi;
++			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                    }
++                    else {
++		        int err;
++			err = gtp1_push_control_header(skb, tid, opts, dev);
++			if (err) {
++			    netdev_info(dev, "cntr pkt error %d", err);
++			    goto err_rt;
++			}
++		    }
+ 		} else {
+-			netdev_dbg(dev, "Missing tunnel OPT");
+-			goto err_rt;
++		    netdev_dbg(dev, "Missing tunnel OPT");
++		    goto err_rt;
+ 		}
+ 		udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
+ 					fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
+@@ -607,32 +621,33 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 		csum = !!(info->key.tun_flags & TUNNEL_CSUM);
+ 		err = udp_tunnel_handle_offloads(skb, csum);
+ 		if (err)
+-				goto err_rt;
++		    goto err_rt;
+ 		netdev_dbg(dev, "skb->protocol %d\n", skb->protocol);
+ 		ovs_skb_set_inner_protocol(skb, cpu_to_be16(ETH_P_IPV6));
+ 
+ 		ttl = info->key.ttl;
+ 		skb_scrub_packet(skb, !net_eq(sock_net(gtp->sk1u), dev_net(dev)));
+-		netdev_dbg(dev, "packet with opt len %d", info->options_len);
+-		if (info->options_len == 0) {
+-			if (info->key.tun_flags & TUNNEL_OAM) {
+-			   set_qfi = 9;
+-			}
+-			gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
+-		} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
+-				struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
+-				__be32 tid = tunnel_id_to_key32(info->key.tun_id);
+-				int err;
+-
+-				err = gtp1_push_control_header(skb, tid, opts, dev);
+-			   if (err) {
+-						netdev_info(dev, "cntr pkt error %d", err);
+-						goto err_rt;
+-				}
+-		} else {
+-					netdev_dbg(dev, "Missing tunnel OPT");
+-					goto err_rt;
+-			}
++	        if (info->options_len == 0) {
++                    gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                } else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
++                    struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
++                    __be32 tid = tunnel_id_to_key32(info->key.tun_id);
++                    if (info->key.tun_flags & TUNNEL_OAM) {
++                        set_qfi = opts->qfi;
++                        gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++                    } else {
++                        int err;
++                        err = gtp1_push_control_header(skb, tid, opts, dev);
++                        if (err) {
++                            netdev_info(dev, "cntr pkt error %d", err);
++                            goto err_rt;
++                        }
++                    }
++                } else {
++                    netdev_dbg(dev, "Missing tunnel OPT");
++                    goto err_rt;
++                }
++
+ 		udp_tunnel6_xmit_skb(ndst, gtp->sk1u_v6, skb, dev,
+ 					&fl6.saddr, &fl6.daddr, RT_TOS(info->key.tos), ttl,
+ 					info->key.label, gtp->gtph_port, gtp->gtph_port,
+diff --git a/datapath/linux/compat/include/linux/gtp.h b/datapath/linux/compat/include/linux/gtp.h
+index 57d7a128e..04e26ef55 100644
+--- a/datapath/linux/compat/include/linux/gtp.h
++++ b/datapath/linux/compat/include/linux/gtp.h
+@@ -15,6 +15,7 @@ struct gtpu_metadata {
+ 	__u8	ver;
+ 	__u8	flags;
+ 	__u8	type;
++	__u8    qfi;
+ };
+ 
+ enum {
+diff --git a/debian/changelog b/debian/changelog
+index 78fe2ab32..327e5e019 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-openvswitch (2.15.4-8) unstable; urgency=low
++openvswitch (2.15.4-9-magma) unstable; urgency=low
+    [ Open vSwitch team ]
+    * New upstream version
+ 
+diff --git a/include/openvswitch/match.h b/include/openvswitch/match.h
+index 2e8812048..45c6ca5ba 100644
+--- a/include/openvswitch/match.h
++++ b/include/openvswitch/match.h
+@@ -300,6 +300,8 @@ char *minimatch_to_string(const struct minimatch *,
+                           const struct ofputil_port_map *, int priority);
+ 
+ bool minimatch_has_default_hidden_fields(const struct minimatch *);
++void match_set_qfi(struct match *, uint8_t qfi);
++void match_set_qfi_masked(struct match *, uint8_t qfi, uint8_t mask);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/include/openvswitch/meta-flow.h b/include/openvswitch/meta-flow.h
+index fc1808482..72b6f2931 100644
+--- a/include/openvswitch/meta-flow.h
++++ b/include/openvswitch/meta-flow.h
+@@ -1960,6 +1960,23 @@ enum OVS_PACKED_ENUM mf_field_id {
+      */
+     MFF_NSH_TTL,
+ 
++    /* "qfi".
++     *
++     * The "qfi" in a packet received via a keyed
++     * tunnel. For non-keyed
++     * tunnels and packets not received via a tunnel, the value is 0.
++     *
++     * Type: u8.
++     * Maskable: bitwise.
++     * Formatting: hexadecimal.
++     * Prerequisites: none.
++     * Access: read/write.
++     * NXM: NXM_NX_QFI(126) since v1.1.
++     * OXM: OXM_OF_TUNNEL_QFI(46) since OF1.3 and v1.10.
++     * Prefix lookup member: tunnel.qfi.
++     */
++    MFF_QFI,
++
+     MFF_N_IDS
+ };
+ 
+diff --git a/include/openvswitch/ofp-actions.h b/include/openvswitch/ofp-actions.h
+index 4b2491d63..d21829aea 100644
+--- a/include/openvswitch/ofp-actions.h
++++ b/include/openvswitch/ofp-actions.h
+@@ -95,6 +95,7 @@ struct vl_mff_map;
+     OFPACT(POP_MPLS,        ofpact_pop_mpls,    ofpact, "pop_mpls")     \
+     OFPACT(DEC_NSH_TTL,     ofpact_null,        ofpact, "dec_nsh_ttl")  \
+     OFPACT(DELETE_FIELD,    ofpact_delete_field, ofpact, "delete_field") \
++    OFPACT(SET_TUNNEL_QFI,  ofpact_tun_qfi,      ofpact, "qfi")         \
+                                                                         \
+     /* Generic encap & decap */                                         \
+     OFPACT(ENCAP,           ofpact_encap,       props, "encap")         \
+@@ -652,6 +653,17 @@ struct ofpact_check_pkt_larger {
+         uint16_t pkt_len;
+     );
+ };
++
++/* OFPACT_SET_TUN_QFI.
++ *
++ * Used for NXAST_SET_TUN_QFI. */
++struct ofpact_tun_qfi {
++    OFPACT_PADDED_MEMBERS(
++        struct ofpact ofpact;
++        uint8_t qfi;
++    );
++};
++
+ /* OFPACT_WRITE_ACTIONS, OFPACT_CLONE.
+  *
+  * Used for OFPIT11_WRITE_ACTIONS, NXAST_CLONE. */
+@@ -659,6 +671,7 @@ struct ofpact_nest {
+     OFPACT_PADDED_MEMBERS(struct ofpact ofpact;);
+     struct ofpact actions[];
+ };
++
+ BUILD_ASSERT_DECL(offsetof(struct ofpact_nest, actions) % OFPACT_ALIGNTO == 0);
+ BUILD_ASSERT_DECL(offsetof(struct ofpact_nest, actions)
+                   == sizeof(struct ofpact_nest));
+diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
+index e1f3c17b5..54976188e 100644
+--- a/include/openvswitch/packets.h
++++ b/include/openvswitch/packets.h
+@@ -45,7 +45,8 @@ struct flow_tnl {
+     uint8_t erspan_hwid;
+     uint8_t gtpu_flags;
+     uint8_t gtpu_msgtype;
+-    uint8_t pad1[4];     /* Pad to 64 bits. */
++    uint8_t qfi;
++    uint8_t pad1[3];     /* Pad to 64 bits. */
+     struct tun_metadata metadata;
+ };
+ 
+diff --git a/lib/flow.c b/lib/flow.c
+index 910e52ad9..c74200764 100644
+--- a/lib/flow.c
++++ b/lib/flow.c
+@@ -1237,6 +1237,9 @@ flow_get_metadata(const struct flow *flow, struct match *flow_metadata)
+     if (flow->tunnel.gtpu_msgtype) {
+         match_set_tun_gtpu_msgtype(flow_metadata, flow->tunnel.gtpu_msgtype);
+     }
++    if (flow->tunnel.qfi) {
++        match_set_qfi(flow_metadata, flow->tunnel.qfi);
++    }
+     tun_metadata_get_fmd(&flow->tunnel, flow_metadata);
+     if (flow->metadata != htonll(0)) {
+         match_set_metadata(flow_metadata, flow->metadata);
+@@ -1800,6 +1803,9 @@ flow_wildcards_init_for_packet(struct flow_wildcards *wc,
+         WC_MASK_FIELD(wc, tunnel.erspan_hwid);
+         WC_MASK_FIELD(wc, tunnel.gtpu_flags);
+         WC_MASK_FIELD(wc, tunnel.gtpu_msgtype);
++        if (flow->tunnel.qfi) {
++            WC_MASK_FIELD(wc, tunnel.qfi);
++        }
+ 
+         if (!(flow->tunnel.flags & FLOW_TNL_F_UDPIF)) {
+             if (flow->tunnel.metadata.present.map) {
+diff --git a/lib/match.c b/lib/match.c
+index ba716579d..3d325cbd7 100644
+--- a/lib/match.c
++++ b/lib/match.c
+@@ -1398,6 +1398,9 @@ format_flow_tunnel(struct ds *s, const struct match *match)
+                             FLOW_TNL_F_MASK);
+         ds_put_char(s, ',');
+     }
++    if (wc->masks.tunnel.qfi) {
++        ds_put_format(s, "qfi=%"PRIu8",", tnl->qfi);
++    }
+     tun_metadata_match_format(s, match);
+ }
+ 
+@@ -1982,3 +1985,17 @@ minimatch_has_default_hidden_fields(const struct minimatch *m)
+     return (minimatch_has_default_recirc_id(m)
+             && minimatch_has_default_dp_hash(m));
+ }
++
++void
++match_set_qfi(struct match *match, uint8_t qfi)
++{
++   match_set_qfi_masked(match, qfi, UINT8_MAX);
++}
++
++
++void
++match_set_qfi_masked(struct match *match, uint8_t qfi, uint8_t mask)
++{
++    match->wc.masks.tunnel.qfi = mask;
++    match->flow.tunnel.qfi = qfi & mask;
++}
+diff --git a/lib/meta-flow.c b/lib/meta-flow.c
+index e03cd8d0c..1d534ba2b 100644
+--- a/lib/meta-flow.c
++++ b/lib/meta-flow.c
+@@ -273,6 +273,8 @@ mf_is_all_wild(const struct mf_field *mf, const struct flow_wildcards *wc)
+         return ipv6_mask_is_any(&wc->masks.ct_ipv6_src);
+     case MFF_CT_IPV6_DST:
+         return ipv6_mask_is_any(&wc->masks.ct_ipv6_dst);
++    case MFF_QFI:
++        return !wc->masks.tunnel.qfi;
+     CASE_MFF_REGS:
+         return !wc->masks.regs[mf->id - MFF_REG0];
+     CASE_MFF_XREGS:
+@@ -584,6 +586,7 @@ mf_is_value_valid(const struct mf_field *mf, const union mf_value *value)
+     case MFF_ND_TLL:
+     case MFF_ND_RESERVED:
+     case MFF_ND_OPTIONS_TYPE:
++    case MFF_QFI:
+         return true;
+ 
+     case MFF_IN_PORT_OXM:
+@@ -723,6 +726,9 @@ mf_get_value(const struct mf_field *mf, const struct flow *flow,
+     case MFF_TUN_GTPU_MSGTYPE:
+         value->u8 = flow->tunnel.gtpu_msgtype;
+         break;
++    case MFF_QFI:
++        value->u8 = flow->tunnel.qfi;
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_read(&flow->tunnel, mf, value);
+         break;
+@@ -1060,6 +1066,9 @@ mf_set_value(const struct mf_field *mf,
+     case MFF_TUN_GTPU_MSGTYPE:
+         match_set_tun_gtpu_msgtype(match, value->u8);
+         break;
++    case MFF_QFI:
++        match_set_qfi(match, value->u8);
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, value, NULL, match, err_str);
+         break;
+@@ -1477,6 +1486,9 @@ mf_set_flow_value(const struct mf_field *mf,
+     case MFF_TUN_ERSPAN_HWID:
+         flow->tunnel.erspan_hwid = value->u8;
+         break;
++    case MFF_QFI:
++        flow->tunnel.qfi = value->u8;
++        break;
+     case MFF_TUN_GTPU_FLAGS:
+         flow->tunnel.gtpu_flags = value->u8;
+         break;
+@@ -1827,6 +1839,7 @@ mf_is_pipeline_field(const struct mf_field *mf)
+     CASE_MFF_XREGS:
+     CASE_MFF_XXREGS:
+     case MFF_PACKET_TYPE:
++    case MFF_QFI:
+         return true;
+ 
+     case MFF_DP_HASH:
+@@ -2015,6 +2028,9 @@ mf_set_wild(const struct mf_field *mf, struct match *match, char **err_str)
+     case MFF_TUN_GTPU_MSGTYPE:
+         match_set_tun_gtpu_msgtype_masked(match, 0, 0);
+         break;
++    case MFF_QFI:
++        match_set_qfi_masked(match, 0, 0);
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, NULL, NULL, match, err_str);
+         break;
+@@ -2422,6 +2438,9 @@ mf_set(const struct mf_field *mf,
+     case MFF_TUN_GTPU_MSGTYPE:
+         match_set_tun_gtpu_msgtype_masked(match, value->u8, mask->u8);
+         break;
++    case MFF_QFI:
++        match_set_qfi_masked(match, value->u8, mask->u8);
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, value, mask, match, err_str);
+         break;
+diff --git a/lib/meta-flow.xml b/lib/meta-flow.xml
+index fbbf4d67a..10cc06456 100644
+--- a/lib/meta-flow.xml
++++ b/lib/meta-flow.xml
+@@ -1601,6 +1601,15 @@ ovs-ofctl add-flow br-int 'in_port=3,tun_src=192.168.1.1,tun_id=5001 actions=1'
+       </diagram>
+     </field>
+ 
++    <field id="MFF_QFI" title="qfi">
++      <p>
++        When a packet is received from a tunnel, this field is the
++        source address in the outer IP header of the tunneled packet.
++        This field is zero if the packet was not received over a
++        tunnel.
++      </p>
++    </field>
++
+     <field id="MFF_TUN_IPV6_SRC" title="Tunnel IPv6 Source">
+       Similar to <ref field="tun_src"/>, but for tunnels over IPv6.
+     </field>
+diff --git a/lib/nx-match.c b/lib/nx-match.c
+index 440f5f763..c8267565a 100644
+--- a/lib/nx-match.c
++++ b/lib/nx-match.c
+@@ -1201,7 +1201,7 @@ nx_put_raw(struct ofpbuf *b, enum ofp_version oxm, const struct match *match,
+                match->wc.masks.tunnel.gtpu_flags);
+     nxm_put_8m(&ctx, MFF_TUN_GTPU_MSGTYPE, oxm, flow->tunnel.gtpu_msgtype,
+                match->wc.masks.tunnel.gtpu_msgtype);
+-
++    nxm_put_8m(&ctx, MFF_QFI, oxm, flow->tunnel.qfi, match->wc.masks.tunnel.qfi);
+     /* Network Service Header */
+     nxm_put_8m(&ctx, MFF_NSH_FLAGS, oxm, flow->nsh.flags,
+             match->wc.masks.nsh.flags);
+diff --git a/lib/odp-util.c b/lib/odp-util.c
+index f2c077827..2a6835195 100644
+--- a/lib/odp-util.c
++++ b/lib/odp-util.c
+@@ -3092,6 +3092,9 @@ odp_tun_key_from_attr__(const struct nlattr *attr, bool is_mask,
+             if (opts->ver == GTP_METADATA_V1) {
+                 tun->gtpu_flags = opts->flags;
+                 tun->gtpu_msgtype = opts->msgtype;
++                if (opts->qfi) {
++                    tun->qfi = opts->qfi;
++                }
+             } else {
+                 VLOG_WARN("%s invalid gtp opts version : %d\n", __func__, opts->ver);
+             }
+@@ -3212,12 +3215,15 @@ tun_key_to_attr(struct ofpbuf *a, const struct flow_tnl *tun_key,
+     }
+ 
+     if ((!tnl_type || !strcmp(tnl_type, "gtpu")) &&
+-        (tun_key->gtpu_flags && tun_key->gtpu_msgtype)) {
++        ((tun_key->gtpu_flags && tun_key->gtpu_msgtype) || tun_key->qfi)) {
+         struct gtpu_metadata opts;
+ 
+         opts.flags = tun_key->gtpu_flags;
+         opts.msgtype = tun_key->gtpu_msgtype;
+         opts.ver = GTP_METADATA_V1;
++        if (tun_key->qfi) {
++            opts.qfi = tun_key->qfi;
++        }
+         nl_msg_put_unspec(a, OVS_TUNNEL_KEY_ATTR_GTPU_OPTS,
+                           &opts, sizeof(opts));
+     }
+@@ -3747,8 +3753,11 @@ format_odp_tun_gtpu_opt(const struct nlattr *attr,
+     if (opts->ver == GTP_METADATA_V1) {
+         format_u8x(ds, "flags", opts->flags, !!mask ? &mask->flags : NULL, verbose);
+         format_u8x(ds, "msgtype", opts->msgtype, !!mask ? &mask->msgtype : NULL, verbose);
++        if (opts->qfi) {
++            format_u8x(ds, "qfi", opts->qfi, !!mask ? &mask->qfi : NULL, verbose);
++        }
+         ds_chomp(ds, ',');
+-    } else {
++    }else {
+         ds_put_format(ds, "Unknown opt ver %d", opts->ver);
+     }
+ }
+diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
+index 8f499c386..f3ef8e298 100644
+--- a/lib/ofp-actions.c
++++ b/lib/ofp-actions.c
+@@ -363,6 +363,8 @@ enum ofp_raw_action_type {
+ 
+     /* NX1.0+(50): struct nx_action_delete_field. VLMFF */
+     NXAST_RAW_DELETE_FIELD,
++    /* NX1.0+(51): uint8_t. */
++    NXAST_RAW_SET_TUNNEL_QFI,
+ 
+ /* ## ------------------ ## */
+ /* ## Debugging actions. ## */
+@@ -504,6 +506,7 @@ ofpact_next_flattened(const struct ofpact *ofpact)
+     case OFPACT_DEC_NSH_TTL:
+     case OFPACT_CHECK_PKT_LARGER:
+     case OFPACT_DELETE_FIELD:
++    case OFPACT_SET_TUNNEL_QFI:
+         return ofpact_next(ofpact);
+ 
+     case OFPACT_CLONE:
+@@ -2502,6 +2505,7 @@ OFP_ASSERT(sizeof(struct onf_action_copy_field) == 24);
+  *   - NXM_NX_PKT_MARK
+  *   - NXM_NX_TUN_IPV4_SRC
+  *   - NXM_NX_TUN_IPV4_DST
++ *   - NXM_NX_QFI
+  *
+  * The following nxm_header values are potentially acceptable as 'dst':
+  *
+@@ -4170,6 +4174,70 @@ check_SET_TUNNEL(const struct ofpact_tunnel *a OVS_UNUSED,
+ {
+     return 0;
+ }
++
++static void
++encode_SET_TUNNEL_QFI(const struct ofpact_tun_qfi *tun_qfi,
++                  enum ofp_version ofp_version, struct ofpbuf *out)
++{
++    uint8_t qfi = tun_qfi->qfi;
++    VLOG_DBG(" tun qfi:%d\n", qfi);
++    if (ofp_version < OFP12_VERSION) {
++        put_NXAST_SET_TUNNEL_QFI(out, qfi);
++    } else {
++        put_set_field(out, ofp_version, MFF_QFI, qfi);
++    }
++}
++
++static enum ofperr
++decode_NXAST_RAW_SET_TUNNEL_QFI(uint8_t qfi,
++                            enum ofp_version ofp_version OVS_UNUSED,
++                            struct ofpbuf *out)
++{
++    struct ofpact_tun_qfi *tunnel_qfi = ofpact_put_SET_TUNNEL_QFI(out);
++    tunnel_qfi->ofpact.raw = NXAST_RAW_SET_TUNNEL_QFI;
++    tunnel_qfi->qfi = qfi;
++    VLOG_DBG(" RAW tun qfi:%d\n", qfi);
++    return 0;
++}
++
++static char * OVS_WARN_UNUSED_RESULT
++parse_set_tunnel_qfi(char *arg, const struct ofpact_parse_params *pp)
++{
++    char *error;
++    uint8_t qfi;
++    struct ofpact_tun_qfi *tunnel_qfi;
++
++    error = str_to_u8(arg, "qfi", &qfi);
++    if (error) {
++        return error;
++    }
++    tunnel_qfi = ofpact_put_SET_TUNNEL_QFI(pp->ofpacts);
++    tunnel_qfi->ofpact.raw = NXAST_RAW_SET_TUNNEL_QFI;
++    tunnel_qfi->qfi = qfi;
++    return NULL;
++}
++
++static char * OVS_WARN_UNUSED_RESULT
++parse_SET_TUNNEL_QFI(char *arg, const struct ofpact_parse_params *pp)
++{
++    return parse_set_tunnel_qfi(arg, pp);
++}
++
++static void
++format_SET_TUNNEL_QFI(const struct ofpact_tun_qfi *a,
++                  const struct ofpact_format_params *fp)
++{
++    ds_put_format(fp->s, "%sqfi:%s%d", colors.param,
++                  colors.end, a->qfi);
++}
++
++static enum ofperr
++check_SET_TUNNEL_QFI(const struct ofpact_tun_qfi *a OVS_UNUSED,
++                 const struct ofpact_check_params *cp OVS_UNUSED)
++{
++    return 0;
++}
++
+ 
+ /* Delete field action. */
+ 
+@@ -8005,6 +8073,7 @@ action_set_classify(const struct ofpact *a)
+     case OFPACT_SET_TUNNEL:
+     case OFPACT_SET_VLAN_PCP:
+     case OFPACT_SET_VLAN_VID:
++    case OFPACT_SET_TUNNEL_QFI:
+         return ACTION_SLOT_SET_OR_MOVE;
+ 
+     case OFPACT_BUNDLE:
+@@ -8238,6 +8307,7 @@ ovs_instruction_type_from_ofpact_type(enum ofpact_type type,
+     case OFPACT_DEC_NSH_TTL:
+     case OFPACT_CHECK_PKT_LARGER:
+     case OFPACT_DELETE_FIELD:
++    case OFPACT_SET_TUNNEL_QFI:
+     default:
+         return OVSINST_OFPIT11_APPLY_ACTIONS;
+     }
+@@ -9150,6 +9220,7 @@ ofpact_outputs_to_port(const struct ofpact *ofpact, ofp_port_t port)
+     case OFPACT_DEC_NSH_TTL:
+     case OFPACT_CHECK_PKT_LARGER:
+     case OFPACT_DELETE_FIELD:
++    case OFPACT_SET_TUNNEL_QFI:
+     default:
+         return false;
+     }
+@@ -9403,6 +9474,8 @@ ofpacts_parse__(char *str, const struct ofpact_parse_params *pp,
+             error = parse_pop_vlan(pp);
+         } else if (!strcasecmp(key, "set_tunnel64")) {
+             error = parse_set_tunnel(value, NXAST_RAW_SET_TUNNEL64, pp);
++        } else if (!strcasecmp(key, "qfi")) {
++            error = parse_set_tunnel_qfi(value, pp);
+         } else if (!strcasecmp(key, "load")) {
+             error = parse_reg_load(value, pp);
+         } else if (!strcasecmp(key, "bundle_load")) {
+diff --git a/lib/packets.h b/lib/packets.h
+index 6edf85f05..84af52598 100644
+--- a/lib/packets.h
++++ b/lib/packets.h
+@@ -1436,8 +1436,9 @@ struct gtpu_metadata {
+     uint8_t ver;
+     uint8_t flags;
+     uint8_t msgtype;
++    uint8_t qfi;
+ };
+-BUILD_ASSERT_DECL(sizeof(struct gtpu_metadata) == 3);
++BUILD_ASSERT_DECL(sizeof(struct gtpu_metadata) == 4);
+ 
+ /*
+  * GTP flags:
+@@ -1463,6 +1464,14 @@ struct gtpuhdr_opt {
+ };
+ BUILD_ASSERT_DECL(sizeof(struct gtpuhdr_opt) == 4);
+ 
++struct gtpu_ext_hdr {
++    uint8_t len;
++    uint8_t pdu_type;
++    uint8_t qfi;
++    uint8_t next_type;
++};
++BUILD_ASSERT_DECL(sizeof(struct gtpu_ext_hdr) == 4);
++
+ /* VXLAN protocol header */
+ struct vxlanhdr {
+     union {
+diff --git a/tests/ofproto.at b/tests/ofproto.at
+index dc03347d5..7e26429cd 100644
+--- a/tests/ofproto.at
++++ b/tests/ofproto.at
+@@ -2350,9 +2350,9 @@ head_table () {
+       instructions: meter apply_actions clear_actions write_actions write_metadata goto_table
+       Write-Actions and Apply-Actions features:
+         actions: output group set_field strip_vlan push_vlan mod_nw_ttl dec_ttl set_mpls_ttl dec_mpls_ttl push_mpls pop_mpls set_queue
+-        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtpu_{flags,msgtype},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl}
++        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtpu_{flags,msgtype},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl} qfi
+     matching:
+-      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtpu_{flags,msgtype},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
++      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtpu_{flags,msgtype},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4} qfi
+       exact match or wildcard: recirc_id packet_type conj_id in_{port,port_oxm} actset_output ct_{zone,nw_proto} eth_type vlan_pcp mpls_{label,tc,bos,ttl} nw_{proto,tos} ip_dscp nw_{ecn,ttl} arp_op icmp_{type,code} icmpv6_{type,code} nd_{reserved,options_type} nsh_{mdtype,np,spi,si,ttl}
+ 
+ ' "$1"
+diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
+index 6e5e8a01a..c78175860 100644
+--- a/tests/system-layer3-tunnels.at
++++ b/tests/system-layer3-tunnels.at
+@@ -1046,3 +1046,111 @@ dnl sleep 1000
+ OVS_TRAFFIC_VSWITCHD_STOP
+ AT_CLEANUP
+ 
++
++AT_SETUP([layer3 - Qfi value set for uplink over GTP])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++OVS_CHECK_GTP_L3()
++OVS_CHECK_MIN_KERNEL(4,10)
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++AT_CHECK([modprobe vport_gtp])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++dnl kernel 4.9
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
++dnl Now add rules with qfi for OVS to forward to the tunnel and local port
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,tun_id=0,nw_dst=10.1.1.2,qfi=6 action=output:at_gtp0"])
++dnl Now add rules for OVS to forward to the tunnel and local port
++AT_CHECK([ovs-ofctl add-flow br0 "priority=1 action=drop"])
++
++sleep 1
++NS_CHECK_EXEC([at_ns0], [python3 $srcdir/gtp-packet.py 172.31.1.1 172.31.1.100 10.1.1.1 10.1.1.2 5555 p0 False 1234 2>/dev/null], [0], [dnl
++.
++Sent 1 packets.
++])
++sleep 1
++
++AT_CHECK([ovs-ofctl dump-flows br0 | ofctl_strip | grep ip], [0], [dnl
++ n_packets=1, n_bytes=43, priority=100,ip,tun_id=0,qfi=6,nw_dst=10.1.1.2 actions=output:1
++])
++dnl sleep 10000
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
++
++AT_SETUP([layer3 - Qfi value set for downlink over GTP])
++OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
++OVS_CHECK_GTP_L3()
++OVS_CHECK_MIN_KERNEL(4,10)
++
++ADD_BR([br-underlay])
++
++ADD_NAMESPACES(at_ns0)
++
++dnl Set up underlay link from host into the namespace using veth pair.
++ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
++AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
++AT_CHECK([ip link set dev br-underlay up])
++AT_CHECK([modprobe vport_gtp])
++
++dnl Set up tunnel endpoints on OVS outside the namespace and with a native
++dnl linux device inside the namespace.
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:key=flow])
++AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
++NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
++dnl for 4.9
++NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
++NS_CHECK_EXEC([at_ns0], [ip addr add dev at_gtp1 10.1.1.1/24])
++NS_CHECK_EXEC([at_ns0], [ip link set dev at_gtp1 mtu 1450 up])
++NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
++
++AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
++
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
++dnl Now add rules with qfi for OVS to forward to the tunnel and local port
++AT_CHECK([ovs-ofctl add-flow br0 "priority=1 action=drop"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.1 action=output:at_gtp0"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.2 action=mod_dl_src:00:12:34:56:78:aa,mod_dl_dst:00:12:34:56:78:bb,local"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 table=99,action=set_field:0->tun_id,set_field:0x1->tun_flags,set_field:0x6->qfi,output:at_gtp0"])
++
++sleep 1
++
++NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
++3 packets transmitted, 3 received, 0% packet loss, time 0ms
++])
++
++OVS_WAIT_UNTIL([ip netns exec at_ns0 ping -c 1 10.1.1.2])
++
++NS_CHECK_EXEC([at_ns0], [tcpdump -l -n -xx -U udp -i p0 > p1.pcap &])
++sleep 2
++
++AT_CHECK([ovs-ofctl -O OpenFlow15 packet-out br0 "in_port=local packet=50540000000a5054000000008000, actions=set_field:0->tun_id,set_field:172.31.1.1->tun_dst,set_field:0x1->tun_flags,set_field:0x6->qfi,output:at_gtp0"])
++sleep 2
++
++
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0000:.*0800 4500"                                2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0010:.*ac1f 0164 ac1f"                           2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0018 0000 34ff 0008 0000"  2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:.*0085 0100 0600"                           2>&1 1>/dev/null])
++
++dnl sleep 10000
++OVS_TRAFFIC_VSWITCHD_STOP
++AT_CLEANUP
++
+diff --git a/tests/tunnel.at b/tests/tunnel.at
+index bf18a5e4c..3c5d01601 100644
+--- a/tests/tunnel.at
++++ b/tests/tunnel.at
+@@ -1307,3 +1307,24 @@ AT_CHECK([tail -1 stdout], [0],
+ ])
+ OVS_VSWITCHD_STOP
+ AT_CLEANUP
++
++AT_SETUP([tunnel - validate QFI Value Set])
++OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtpu \
++                    options:remote_ip=1.1.1.1 options:csum=true ofport_request=1 \
++                    -- add-port br0 p2 -- set Interface p2 type=dummy \
++                    ofport_request=2 ofport_request=2 \
++                    -- add-port br0 p3 -- set Interface p3 type=gtpu \
++                    options:remote_ip=2.2.2.2 options:csum=false options:key=123 ofport_request=3])
++OVS_VSWITCHD_DISABLE_TUNNEL_PUSH_POP
++
++AT_DATA([flows.txt], [dnl
++actions=load:0x6->NXM_NX_QFI[],output:1
++])
++AT_CHECK([ovs-ofctl -Oopenflow14 add-flows br0 flows.txt])
++
++AT_CHECK([ovs-appctl ofproto/trace ovs-dummy 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:00:07),eth_type(0x0800),ipv4(src=192.168.0.1,dst=192.168.0.2,proto=6,tos=4,ttl=128,frag=no),tcp(src=8,dst=9)'], [0], [stdout])
++AT_CHECK([tail -1 stdout], [0],
++  [Datapath actions: set(tunnel(dst=1.1.1.1,ttl=64,tp_dst=2152,gtpu(ver=0,flags=0,msgtype=0,qfi=0x6),flags(df|csum))),pop_eth,2152
++])
++OVS_VSWITCHD_STOP
++AT_CLEANUP
+-- 
+2.25.1
+

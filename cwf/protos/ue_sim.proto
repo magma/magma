@@ -1,0 +1,122 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "google/protobuf/wrappers.proto";
+
+package magma.cwf;
+option go_package = "magma/cwf/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// UE config
+// --------------------------------------------------------------------------
+
+
+message AuthenticateRequestHssLess {
+	// MSISDN
+    string msisdn = 1;
+
+    // APN
+    string apn = 2;
+
+    //RAT
+    uint32 rat = 3;
+}
+
+message UEConfig {
+    // Unique identifier for the UE.
+    string imsi = 1;
+
+    // Authentication key (k).
+    bytes auth_key = 2;
+
+    // Operator configuration field (Op) signed with authentication key (k).
+    bytes auth_opc = 3;
+
+    // Sequence Number (SEQ).
+    uint64 seq = 4;
+
+    // HSSLess Configuration
+    AuthenticateRequestHssLess hssless_cfg = 5;
+}
+
+message AuthenticateRequest {
+    string imsi = 1;
+    string calledStationID = 2;
+}
+
+message AuthenticateResponse {
+    bytes radiusPacket = 1;
+    string sessionId = 2;
+}
+
+message DisconnectRequest {
+    string imsi = 1;
+    string calledStationID = 2;
+}
+
+message DisconnectResponse {
+    bytes radiusPacket = 1;
+}
+
+message GenTrafficRequest {
+    string imsi = 1;
+    google.protobuf.StringValue volume = 2;
+    google.protobuf.StringValue bitrate = 3;
+    uint64 timeInSecs = 4;
+    uint64 reportingIntervalInSecs = 5;
+    bool reverseMode = 6;
+    // Configure a max timeout iperf client will run
+    uint32 timeout = 7;
+    // Enables/Disable a function to check if server is alive before sending any traffic
+    bool disableServerReachabilityCheck = 8;
+}
+
+message GenTrafficResponse {
+    bytes output = 1;
+    TrafficOutput end_output = 2;
+}
+
+message TrafficOutput {
+    TrafficSummary sum_sent = 1;
+    TrafficSummary sum_received = 2;
+}
+
+message TrafficSummary {
+    double start = 1;
+    double end = 2;
+    double seconds = 3;
+    int32 bytes = 4;
+    double bits_per_second = 5;
+    int32 retransmits = 6;
+}
+
+// --------------------------------------------------------------------------
+// UE Simulator service definition
+// --------------------------------------------------------------------------
+service UESim {
+    // Adds a new UE to the store.
+    //
+    rpc AddUE (UEConfig) returns (orc8r.Void) {}
+
+    // Triggers an authentication for the UE with the specified imsi.
+    //
+    rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
+
+    rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
+
+    // Triggers iperf traffic towards the CWAG
+    rpc GenTraffic(GenTrafficRequest) returns (GenTrafficResponse) {}
+}

@@ -1,0 +1,12 @@
+# Intro: https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes
+# Ref: https://git-scm.com/docs/gitattributes
+# GitHub-specific: https://github.com/github/linguist/blob/master/docs/overrides.md
+
+# Monolithic swagger.yml is generated
+/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml linguist-generated
+# NMS bindings are generated
+/nms/generated/** linguist-generated
+# SBI openapi interface generated files
+/feg/gateway/sbi/specs/** linguist-generated
+# requirements.txt for bazel builds is generated from requirements.in
+/bazel/external/requirements.txt linguist-generated

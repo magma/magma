@@ -1,0 +1,148 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Run integration tests (utilized by agw-build-publish-container.yml)
+# remediation: -
+
+name: AGW Test LTE Integration With Make Containerized Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        type: string
+        default: 'latest'
+        required: true
+      registry:
+        type: string
+        default: 'linuxfoundation.jfrog.io/magma-docker-test'
+        required: true
+      test_targets:
+        type: choice
+        options: [ precommit, extended_tests, extended_tests_long ]
+        required: true
+  workflow_call:
+    inputs:
+      image_tag:
+        type: string
+        required: true
+      registry:
+        type: string
+        required: true
+      test_targets:
+        type: string  # It seems we cannot define a choice with options in workflow_call
+        required: true
+
+jobs:
+  lte-integ-test-containerized:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show inputs
+        run: |
+          echo "Docker image tag ${{ inputs.image_tag }}"
+          echo "Docker registry ${{ inputs.registry }}"
+          echo "Test targets ${{ inputs.test_targets }}"
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - id: set-registry
+        name: Set registry and image_prefix
+        run: |
+          echo registry=${{ inputs.registry }} >> $GITHUB_OUTPUT
+          if [ ${{ inputs.registry }} = docker.io ]
+          then
+            echo image_prefix=${{ secrets.LF_JFROG_USERNAME }}/ >> $GITHUB_OUTPUT  # dockerhub image URLs have the form docker.io/<username>/image
+          fi
+      - name: Write image tag to docker-compose.yaml
+        working-directory: lte/gateway/docker
+        run: |
+          sed -i "s#image:.*agw_gateway_c.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i "s#image:.*agw_gateway_python.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python:${{ inputs.image_tag }}#" docker-compose.yaml
+          sed -i "s#image:.*gateway_go.*#image: ${{ inputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go:${{ inputs.image_tag }}#" docker-compose.yaml
+      - name: Show docker-compose yaml to verify correct docker images hashes
+        run: cat lte/gateway/docker/docker-compose.yaml
+      - name: Cache magma-dev-box
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev-v1.3.20221230
+      - name: Cache magma-test-box
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
+          key: vagrant-box-magma-test-v1.3.20221230
+      - name: Cache magma-trfserver-box
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
+          key: vagrant-box-magma-trfserver-v1.3.20221230
+      - uses: ./.github/workflows/composite/bazel-gh-cache
+        with:
+          cache-key-prefix: magma_test
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.10.12'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric jsonpickle PyYAML requests
+          sudo apt update && sudo apt install virtualbox
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install vagrant
+          vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
+          echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
+      - name: Run the integration test
+        env:
+          MAGMA_DEV_CPUS: 3
+          MAGMA_DEV_MEMORY_MB: 9216
+        working-directory: lte/gateway
+        # the image is directly concatenated to the registry, so we need the slash as delimiter
+        run: |
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          fab --debug integ-test-containerized --test-mode=${{ inputs.test_targets }} --docker-registry=${{ inputs.registry }}/
+      - name: Get test results
+        if: always()
+        working-directory: lte/gateway
+        run: |
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          fab get-test-summaries --integration-tests
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: LTE containerizes integ test results - ${{ inputs.test_targets }}
+          junit_files: lte/gateway/test_results/**/*.xml
+          check_run_annotations: all tests
+      - name: Adapt name of file containing final status
+        if: always()
+        run: |
+          if [ -f test_status.txt ]
+          then
+            mv test_status.txt test_status_${{ inputs.test_targets }}.txt
+          else
+            echo fail > test_status_${{ inputs.test_targets }}.txt
+          fi
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test_results_${{ inputs.test_targets }}
+          path: lte/gateway/test_results/**/*.xml
+      - name: Upload final_status
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test-status-${{ inputs.test_targets }}
+          path: test_status_${{ inputs.test_targets }}.txt

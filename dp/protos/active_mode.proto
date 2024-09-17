@@ -1,0 +1,137 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "magma/dp/cloud/go/services/dp/active_mode_controller/protos/active_mode";
+
+service ActiveModeController {
+  rpc GetState(GetStateRequest) returns (State) {}
+  rpc UploadRequests(RequestPayload) returns (google.protobuf.Empty);
+  rpc DeleteCbsd(DeleteCbsdRequest) returns (google.protobuf.Empty) {}
+  rpc AcknowledgeCbsdUpdate(AcknowledgeCbsdUpdateRequest) returns (google.protobuf.Empty) {}
+  rpc AcknowledgeCbsdRelinquish(AcknowledgeCbsdRelinquishRequest) returns (google.protobuf.Empty) {}
+  rpc StoreAvailableFrequencies(StoreAvailableFrequenciesRequest) returns (google.protobuf.Empty) {}
+}
+
+message GetStateRequest {}
+
+message State {
+  repeated Cbsd cbsds = 1;
+}
+
+message Cbsd {
+  string cbsd_id = 1;
+  CbsdState state = 2;
+  CbsdState desired_state = 3;
+  repeated Grant grants = 4;
+  repeated Channel channels = 5;
+  int64 last_seen_timestamp = 6;
+  SasSettings sas_settings = 7;
+  InstallationParams installation_params = 8;
+  EirpCapabilities eirp_capabilities = 9;
+  DatabaseCbsd db_data = 10;
+  FrequencyPreferences preferences = 11;
+  GrantSettings grant_settings = 12;
+}
+
+message SasSettings {
+  bool single_step_enabled = 1;
+  string cbsd_category = 2;
+  string serial_number = 3;
+  string fcc_id = 4;
+  string user_id = 5;
+}
+
+message InstallationParams {
+  float latitude_deg = 1;
+  float longitude_deg = 2;
+  float height_m = 3;
+  string height_type = 4;
+  bool indoor_deployment = 5;
+  float antenna_gain_dbi = 6;
+}
+
+enum CbsdState {
+  Unregistered = 0;
+  Registered = 1;
+}
+
+message Grant {
+  string id = 1;
+  GrantState state = 2;
+  int64 heartbeat_interval_sec = 3;
+  int64 last_heartbeat_timestamp = 4;
+  int64 low_frequency_hz = 5;
+  int64 high_frequency_hz = 6;
+}
+
+enum GrantState {
+  Granted = 0;
+  Authorized = 1;
+  Unsync = 2;
+}
+
+message Channel {
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
+  google.protobuf.FloatValue max_eirp = 3;
+}
+
+message EirpCapabilities {
+  float min_power = 1;
+  float max_power = 2;
+  int32 number_of_ports = 3;
+}
+
+message DatabaseCbsd {
+  int64 id = 1;
+  bool should_deregister = 2;
+  bool should_relinquish = 3;
+  bool is_deleted = 4;
+}
+
+message FrequencyPreferences {
+  int32 bandwidth_mhz = 1;
+  repeated int32 frequencies_mhz = 2;
+}
+
+message GrantSettings {
+  bool grant_redundancy_enabled = 1;
+  bool carrier_aggregation_enabled = 2;
+  int32 max_ibw_mhz = 3;
+  repeated uint32 available_frequencies = 4;
+}
+
+message RequestPayload {
+  string payload = 1;
+}
+
+message DeleteCbsdRequest {
+  int64 id = 1;
+}
+
+message AcknowledgeCbsdUpdateRequest {
+  int64 id = 1;
+}
+
+message AcknowledgeCbsdRelinquishRequest {
+  int64 id = 1;
+}
+
+message StoreAvailableFrequenciesRequest {
+  int64 id = 1;
+  repeated uint32 available_frequencies = 2;
+}

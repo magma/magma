@@ -1,0 +1,79 @@
+{
+	"folders": [
+		{
+			"path": "/home/vagrant/magma"
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"llvm-vs-code-extensions.vscode-clangd",
+			"stackbuild.bazel-stack-vscode",
+			"coolchyni.beyond-debug",
+			"stackbuild.bazel-stack-vscode-cc",
+			"augustocdias.tasks-shell-input",
+			"ryuta46.multi-command",
+			"ms-python.python",
+			"njpwerner.autodocstring",
+			"ms-python.vscode-pylance",
+		]
+	},
+	"settings": {
+		"files.watcherExclude": {
+			"**/.bazel-cache/**": true,
+			"**/.bazel-cache-repo/**": true,
+		},
+		"bsv.bazel.buildFlags": [],
+		"bsv.bazel.testFlags": [],
+		"bsv.bes.enabled": false,
+		"bsv.bzl.codesearch.enabled": false,
+		"bsv.bzl.invocation.buildEventPublishAllActions": false,
+		"bsv.bzl.invocation.enabled": false,
+		"bsv.bzl.invocation.invokeWithBuildEventStreaming": false,
+		"bsv.bzl.lsp.enableCodelensStarlarkDebug": false,
+		"bsv.bzl.lsp.enableCodelensRun": false,
+		"bsv.bzl.remoteCache.enabled": false,
+		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "/usr/bin/clangd-12",
+		"clangd.arguments": [
+			"-log=verbose",
+			"-pretty",
+			"--background-index",
+		],
+		// Update this field with any new Bazel targets that need compilation database generation
+		"bsv.cc.compdb.targets": [
+			"//orc8r/gateway/c/...",
+			"//lte/gateway/c/...",
+		],
+		"multiCommand.commands": [
+			{
+				"command": "multiCommand.generateCcWithBazelAndRestartClangd",
+				"sequence": [
+					"bsv.cc.compdb.generate",
+					"clangd.restart",
+				],
+			}
+		],
+		"python.analysis.extraPaths": [
+			"/home/vagrant/magma/orc8r/gateway/python/",
+			"/home/vagrant/magma/lte/gateway/python/",
+			"/home/vagrant/build/python/gen/",
+			"/home/vagrant/build/python/gen/orc8r/",
+			"/home/vagrant/build/python/gen/lte/",
+		],
+		"python.defaultInterpreterPath": "/home/vagrant/build/python/bin/python",
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintPath": "pylint",
+		"python.testing.pytestEnabled": false,
+		"python.testing.unittestEnabled": false,
+		"editor.formatOnSave": true,
+		"python.formatting.autopep8Args": [
+			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
+			"--select=W191,W291,W292,W293,W391,E131,E2,E3",
+		],
+		"[python]": {
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		},
+	},
+}

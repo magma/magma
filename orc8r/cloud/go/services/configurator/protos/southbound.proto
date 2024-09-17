@@ -1,0 +1,44 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "orc8r/protos/mconfig.proto";
+import "orc8r/protos/common.proto";
+
+package magma.orc8r.configurator;
+option go_package = "magma/orc8r/cloud/go/services/configurator/protos";
+
+message GetMconfigRequest {
+    string hardwareID = 1;
+}
+
+message GetMconfigResponse {
+    // configs contains the mconfigs for the requested hardware ID
+    // The contained configs_by_key should be str->any.Any, where the any.Any
+    // is a BytesValue wrapper containing the the config.
+    // Each config is (1) marshaled to an any.Any then (2) JSON-serialized
+    // before being placed into the BytesValue wrapper.
+    // TODO(#2310): revert configs.configs_by_key to containing each config just marshaled to any.Any (not additionally serialized to JSON)
+    GatewayConfigs configs = 1;
+    // logicalID is the entity ID of the gateway in the configurator graph
+    string logicalID = 2;
+}
+
+service SouthboundConfigurator {
+    rpc GetMconfig(magma.orc8r.Void) returns (GatewayConfigs) {}
+
+    // GetMconfigInternal exists to support the existing streamer mconfig
+    // policy. This should be removed when we migrate gateway mconfig updates
+    // from streamer to this southbound configurator servicer.
+    rpc GetMconfigInternal(GetMconfigRequest) returns (GetMconfigResponse) {}
+}

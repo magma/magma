@@ -1,0 +1,11 @@
+layout:
+  models:
+    - name: definition
+      source: asset:model
+      target: "{{ joinFilePath .Target .ModelPackage }}"
+      # Why is this not .sw.go? Well, it looks like golang's text/template
+      # parser changes all .'s to underscores except for the last one
+      # designating the file extension. So I decided it would be better
+      # to explicitly set an underscore-delim'ed suffix which would be
+      # unlikely to collide with any 'real' source files.
+      file_name: "{{ (snakize (pascalize .Name)) }}_swaggergen.go"

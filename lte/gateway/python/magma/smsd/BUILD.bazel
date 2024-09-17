@@ -1,0 +1,56 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "smsd",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
+    deps = [
+        ":smsd_lib",
+        "//lte/protos:sms_orc8r_python_grpc",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_library(
+    name = "smsd_lib",
+    srcs = ["relay.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/protos:sms_orc8r_python_grpc",
+        "//orc8r/gateway/python/magma/common:job",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/protos:directoryd_python_grpc",
+    ],
+)

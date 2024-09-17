@@ -1,0 +1,134 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
+
+cc_library(
+    name = "spgw_test_core",
+    srcs = [
+        "mock_spgw_op.cpp",
+        "spgw_test.cpp",
+        "spgw_test_util.cpp",
+        "state_creators.cpp",
+    ],
+    hdrs = [
+        "mock_spgw_op.hpp",
+        "spgw_test_util.h",
+        "state_creators.hpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "pgw_pco_test",
+    size = "small",
+    srcs = [
+        "test_pgw_pco.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_library(
+    name = "spgw_procedures_test_fixture",
+    srcs = ["spgw_procedures_test_fixture.cpp"],
+    hdrs = ["spgw_procedures_test_fixture.hpp"],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_session_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures_session.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_dedicated_bearer_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures_dedicated_bearer.cpp",
+    ],
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "//lte/gateway/c/core/oai/test/spgw_task:spgw_procedures_test_fixture",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_procedures_with_injected_state_test",
+    size = "small",
+    srcs = [
+        "test_spgw_procedures_with_injected_state.cpp",
+    ],
+    data = ["//lte/gateway/c/core/oai/test/spgw_task/data"],
+    flaky = True,
+    deps = [
+        ":spgw_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "spgw_service_impl_test",
+    size = "small",
+    srcs = [
+        "test_spgw_service_impl.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+  nginx:
+    build:
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/nginx/Dockerfile
+
+  controller:
+    build:
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/controller/Dockerfile
+
+  test:
+    # Test service to spin up a dev container for running unit tests,
+    # precommit tests (go fmt), and code gen tools (swagger, protobuf).
+    build:
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/controller/Dockerfile
+      target: src
+    volumes:
+      - $PWD/../../../nms:/src/magma/nms
+    depends_on:
+      - postgres_test
+    working_dir: /src/magma/orc8r/cloud
+    entrypoint: /bin/bash -lc
+    command: ["echo Hello World!"]
+
+  # Test instance of psql
+  postgres_test:
+    image: postgres
+    ports:
+      - 5433:5432/tcp
+    environment:
+      POSTGRES_USER: magma_test
+      POSTGRES_PASSWORD: magma_test
+      POSTGRES_DB: magma_test
+    command:
+      - "postgres"
+      - "-c"
+      - "log_duration=true"
+      - "-c"
+      - "log_statement=all"
+    restart: always

@@ -1,0 +1,60 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "service_configs",
+    srcs = [
+        "__init__.py",
+        "exceptions.py",
+        "service_configs.py",
+    ],
+    deps = [
+        "//cwf/protos:mconfigs_python_proto",
+        "//feg/protos:mconfigs_python_proto",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/protos:mconfigs_python_proto",
+        requirement("pyyaml"),
+    ],
+)
+
+py_library(
+    name = "mconfig_managers",
+    srcs = [
+        "events.py",
+        "mconfig_managers.py",
+    ],
+    deps = [
+        ":mconfigs",
+        "//orc8r/gateway/python/magma/common:serialization_utils",
+        "//orc8r/gateway/python/magma/eventd:eventd_client",
+        "//orc8r/protos:mconfig_python_proto",
+        requirement("snowflake"),
+    ],
+)
+
+py_library(
+    name = "environment",
+    srcs = ["environment.py"],
+)
+
+py_library(
+    name = "mconfigs",
+    srcs = ["mconfigs.py"],
+    deps = [
+        ":service_configs",
+        requirement("protobuf"),
+    ],
+)

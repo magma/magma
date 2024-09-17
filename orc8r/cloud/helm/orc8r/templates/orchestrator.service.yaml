@@ -1,0 +1,39 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- include "orc8rlib.service" (list . "orchestrator.service") -}}
+{{- define "orchestrator.service" -}}
+metadata:
+  name: orc8r-orchestrator
+  labels:
+    {{- with .Values.orchestrator.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.orchestrator.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: orchestrator
+  ports:
+    - name: grpc
+      port: 9180
+      targetPort: 9112
+    - name: grpc-internal
+      port: 9190
+      targetPort: 9212
+    - name: http
+      port: 8080
+      targetPort: 10112
+{{- end -}}

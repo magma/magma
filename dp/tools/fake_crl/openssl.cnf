@@ -1,0 +1,502 @@
+####################################################################
+# OpenSSL Configuration file for WInnForum CA                      #
+# v0.2
+# ============
+#   Copyright 2016 SAS Project Authors. All Rights Reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+# =============                                                    #
+####################################################################
+
+# Default ENV values.  If these strings appear in a generated certificate or
+# error message, then a script should've set the environment variable prior
+# to invoking openssl.
+OPENSSL_CNF_CA_DIR = _ca_dir_not_set_by_environment_
+OPENSSL_CNF_CRLDP = _crldp_not_set_by_environment_
+
+####################################################################
+# Defining OIDS registered by The Wireless Innovation Forum
+
+oid_section = new_oids
+
+[ new_oids ]
+ROLE_SAS = 1.3.6.1.4.1.46609.1.1.1
+ROLE_INSTALLER = 1.3.6.1.4.1.46609.1.1.2
+ROLE_CBSD = 1.3.6.1.4.1.46609.1.1.3
+ROLE_OPERATOR = 1.3.6.1.4.1.46609.1.1.4
+ROLE_CA = 1.3.6.1.4.1.46609.1.1.5
+ROLE_PAL = 1.3.6.1.4.1.46609.1.1.6
+
+ZONE = 1.3.6.1.4.1.46609.1.2
+FREQUENCY = 1.3.6.1.4.1.46609.1.3
+FCCID = 1.3.6.1.4.1.46609.1.4
+SERIAL = 1.3.6.1.4.1.46609.1.5
+FRN = 1.3.6.1.4.1.46609.1.6
+TEST = 1.3.6.1.4.1.46609.1.999
+
+####################################################################
+[ ca ]
+default_ca = CA_default  # The default ca section
+####################################################################
+[ CA_default ]
+dir = ${ENV::OPENSSL_CNF_CA_DIR}
+certs = $dir/certs
+crl_dir = $dir/crl
+new_certs_dir = $dir
+database = $dir/index.txt
+serial = $dir/serial
+RANDFILE = $dir/private/.rand
+
+# For certificate revocation lists.
+#crlnumber = $dir/crlnumber
+#crl = $dir/crl/ca.crl.pem
+#crl_extensions = crl_ext
+#default_crl_days = 30
+
+default_md = sha384
+
+name_opt = ca_default
+cert_opt = ca_default
+default_days = 1095
+preserve = no
+policy = policy_match
+
+# Extension copying option: use with caution.
+# This can be commented in for testing, but don't use this with a production system.
+# It shouldn't be necessary if using the scripts on WInnForum's GitHub repo
+# copy_extensions = copy
+
+# For the CA policy
+[ policy_match ]
+countryName = match
+stateOrProvinceName = match
+localityName = optional
+organizationName = match
+organizationalUnitName = optional
+commonName = supplied
+
+# For the 'anything' policy
+# At this point in time, you must list all acceptable 'object' types.
+[ policy_anything ]
+countryName = optional
+stateOrProvinceName = optional
+localityName = optional
+organizationName = optional
+organizationalUnitName = optional
+commonName = supplied
+
+####################################################################
+[ req ]
+default_bits = 2048
+distinguished_name = req_distinguished_name
+x509_extensions = v3_ca
+string_mask = utf8only
+default_md = sha384
+
+#req_extensions = v3_ca  # The extensions to add to a certificate request
+
+[ req_distinguished_name ]
+
+# values
+countryName = Country Name (2 letter code)
+stateOrProvinceName = State or Province Name (full name)
+localityName = Locality Name (eg, city)
+0.organizationName = Organization Name (eg, company)
+organizationalUnitName = Organizational Unit Name (eg, section)
+commonName = Common Name
+
+# min and max
+countryName_min = 2
+countryName_max = 2
+commonName_max = 64
+
+# defaults
+countryName_default = US
+stateOrProvinceName_default = Washington, D.C.
+localityName_default = Washington, D.C.
+0.organizationName_default = Wireless Innovation Forum
+organizationalUnitName_default = www.wirelessinnovation.org
+
+[ v3_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+####################################################################
+
+[ crl_section ]
+
+URI.0 = ${ENV::OPENSSL_CNF_CRLDP}
+
+####################################################################
+# Not used yet
+[ ocsp_section ]
+
+caIssuers;URI.0 = http://cacerts.digicert.com/WinnForumCA.crt
+OCSP;URI.0 = http://ocsp.digicert.com
+
+####################################################################
+[ root_ca ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+CPS.1 = "https://www.digicert.com/CPS"
+
+####################################################################
+[ sas_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_SAS
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ oper_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_OPERATOR
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ pi_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_INSTALLER
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ pal_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_PAL
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ cbsd_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:1
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ cbsd_oem_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ sas_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, cRLSign
+extendedKeyUsage = serverAuth, clientAuth
+certificatePolicies = @cps, ROLE_SAS
+crlDistributionPoints = @crl_section
+#subjectAltName = DNS:localhost, otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
+
+####################################################################
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+CPS.1 = "https://www.digicert.com/CPS"
+
+
+[ sas_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+certificatePolicies = @cps, ROLE_SAS, ZONE
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ oper_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_OPERATOR
+crlDistributionPoints = @crl_section
+#subjectAltName = otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
+
+[ oper_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_OPERATOR, ZONE
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ pi_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies = @cps, ROLE_INSTALLER
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ pal_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies = @cps, ROLE_PAL
+crlDistributionPoints = @crl_section
+#subjectAltName = otherName:1.3.6.1.4.1.46609.1.2;UTF8:zone_id, otherName:1.3.6.1.4.1.46609.1.3;UTF8:3650
+
+####################################################################
+[ cbsd_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+#subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:fcc_id, otherName:1.3.6.1.4.1.46609.1.5;UTF8:serial
+
+[ cbsd_req_device_a_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_a, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_a
+
+[ cbsd_req_device_b_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_b, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_b
+
+[ cbsd_req_device_c_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_c, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_c
+
+[ cbsd_req_device_d_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_d, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_d
+
+[ cbsd_req_device_e_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_e, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_e
+
+[ cbsd_req_device_f_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_f, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_f
+
+[ cbsd_req_device_g_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_g, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_g
+
+[ cbsd_req_device_h_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_h, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_h
+
+[ cbsd_req_device_i_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_i, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_i
+
+[ cbsd_req_device_j_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_j, otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_j
+
+[ cbsd_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_CBSD, ZONE
+crlDistributionPoints = @crl_section
+
+[ wrong_cbsd_req_sign ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies = @cps, ROLE_SAS
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ cbsd_oem_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
+
+####################################################################
+[ crl_ext ]
+
+authorityKeyIdentifier = keyid:always
+
+####################################################################
+[ ocsp ]
+
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid, issuer
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, OCSPSigning
+
+####################################################################
+# Probably won't be used
+[ tsa ]
+
+default_tsa = tsa_config1  # the default TSA section
+
+[ tsa_config ]
+
+# These are used by the TSA reply generation only.
+
+# TSA root directory
+dir = ./demoCA
+# The current serial number (mandatory)
+serial = $dir/tsaserial
+# OpenSSL engine to use for signing
+crypto_device = builtin
+# The TSA signing certificate (optional)
+signer_cert = $dir/tsacert.pem
+# Certificate chain to include in reply (optional)
+certs = $dir/cacert.pem
+# The TSA private key (optional)
+signer_key = $dir/private/tsakey.pem
+
+# Policy if request did not specify it (optional)
+default_policy = tsa_policy1
+# acceptable policies (optional)
+other_policies = tsa_policy2, tsa_policy3
+# Acceptable message digests (mandatory)
+digests = md5, sha1
+# (optional)
+accuracy = secs:1, millisecs:500, microsecs:100
+# number of digits after dot. (optional)
+clock_precision_digits = 0
+# Is ordering defined for timestamps? (optional, default: no)
+ordering = yes
+# Must the TSA name be included in the reply? (optional, default: no)
+tsa_name = yes
+# Must the ESS cert id chain be included? (optional, default: no)
+ess_cert_id_chain = no

@@ -1,0 +1,13 @@
+---
+version: "3.7"
+
+services:
+  gateway_c:
+    build:
+      context: .
+      target: agw_c_ghz
+
+  gateway_python:
+    build:
+      context: .
+      target: agw_python_ghz

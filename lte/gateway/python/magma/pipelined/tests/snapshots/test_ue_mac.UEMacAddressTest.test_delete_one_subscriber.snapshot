@@ -1,0 +1,13 @@
+ cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=12,dl_src=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ue_mac(scratch_table_0)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(main_table), n_packets=2, n_bytes=28, priority=12,dl_dst=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ue_mac(scratch_table_0)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=10,arp actions=resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,udp,tp_src=68,tp_dst=67 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,udp,tp_src=67,tp_dst=68 actions=set_field:0x1->reg6,resubmit(,ue_mac(scratch_table_1)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,udp,tp_dst=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,tcp,tp_dst=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,tcp,tp_dst=853 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,udp,tp_src=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,tcp,tp_src=53 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=0, n_bytes=0, priority=15,tcp,tp_src=853 actions=set_field:0x1->reg6,resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_0), n_packets=3, n_bytes=42, priority=0 actions=resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ue_mac(scratch_table_1), n_packets=0, n_bytes=0, priority=15 actions=CONTROLLER:65535,resubmit(,ingress(main_table))

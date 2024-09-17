@@ -1,0 +1,76 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
+{{- include "agwc.deployment" (list . "pipelined.deployment") -}}
+{{- define "pipelined.deployment" -}}
+metadata:
+  labels:
+    app.kubernetes.io/component: pipelined
+  name: pipelined
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: pipelined
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: pipelined
+    spec:
+      volumes:
+        - name: magma-config
+          hostPath:
+            path: /etc/magma
+            type: Directory
+        - name: agwc-claim
+          persistentVolumeClaim:
+            claimName: agwc-claim
+        - name: tmp-volume
+          hostPath:
+            path: /tmp
+            type: Directory
+        - name: ovs-volume
+          hostPath:
+            path: /var/run
+            type: Directory
+      containers:
+      -
+{{ include "agwc.container" (list . "pipelined.container")}}
+{{- end -}}
+{{- define "pipelined.container" -}}
+name: pipelined
+args:
+  - /bin/bash
+  - -c
+  - /usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
+    /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+    /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+    /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
+    /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
+    /usr/bin/env python3 -m magma.pipelined.main
+image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+securityContext:
+  privileged: true
+  capabilities:
+    add:
+      - NET_ADMIN
+      - NET_RAW
+volumeMounts:
+  - mountPath: /etc/magma
+    name: magma-config
+  - mountPath: /var/opt/magma
+    name: agwc-claim
+  - mountPath: /tmp
+    name: tmp-volume
+  - mountPath: /var/run
+    name: ovs-volume
+{{- end -}}

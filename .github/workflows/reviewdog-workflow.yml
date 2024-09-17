@@ -1,0 +1,301 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: any
+# purpose: Linting various components
+# remediation: -
+
+name: PR Lint Reviewdog
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number}}
+  cancel-in-progress: true
+# Applies on all review jobs below
+# See Reviewdog doc provided at https://github.com/reviewdog/reviewdog
+# github-pr-check: Adds lint as annotations in the PR that can be toggled by pressing 'a'
+# github-pr-review: Adds lint as GitHub comments
+jobs:
+  files_changed:
+    runs-on: ubuntu-20.04
+    outputs:
+      changed_cpp: ${{ steps.changes.outputs.cpp }}
+      changed_javascript: ${{ steps.changes.outputs.javascript }}
+      changed_python: ${{ steps.changes.outputs.python }}
+      changed_terraform: ${{ steps.changes.outputs.terraform }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            cpp:
+              - ["lte/gateway/c/**", "orc8r/gateway/c/**", "lte/gateway/python/**"]
+            javascript:
+              - ["nms/**", "**/*.js"]
+            python:
+              - ["**/*.py"]
+            terraform:
+              - ["**/*.tf"]
+
+  cpplint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_cpp == 'true' }}
+    ##
+    #  Cpplint aims to lint to the Google Style guide. For detailed
+    #  rationale on each linting rule, see
+    #  https://google.github.io/styleguide/cppguide.html
+    ##
+    #  To suppress false-positive errors of a certain category, add a
+    #  'NOLINT(category)' comment to the line.  NOLINT or NOLINT(*)
+    #  suppresses errors of all categories on that line.
+    ##
+    #  For details on cpplint options see the detailed comments in
+    #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
+    ##
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      # TODO: Switch to a release version, once a release of action-cpplint is available.
+      # See also https://github.com/reviewdog/action-cpplint/issues/29
+      - name: cpplint
+        uses: reviewdog/action-cpplint@a5d486c641b1ae5fd018b4fe6bf7bef3bc6e506e
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          flags: --linelength=120
+          filter: "-build/include_subdir\
+            ,-build/c++11\
+            ,-build/include_what_you_use\
+            "
+          reviewdog_flags: -fail-on-error
+
+  golangci-lint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_go == 'true' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@53f8eabb87b40b1a2c63ec75b0d418bd0f4aa919 # pin@v2.2.2
+        with:
+          golangci_lint_flags: '--config=../../.golangci.yml'
+          reporter: github-pr-review
+          workdir: src/go/
+
+  hadolint:
+    name: dockerfile-lint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: hadolint
+        uses: reviewdog/action-hadolint@55be5d2c4b0b80d439247b128a9ded3747f92a29 # pin@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          # Ignore DL3005-"Do not use apt-get upgrade or dist-upgrade"
+          hadolint_ignore: DL3005
+
+  eslint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_javascript == 'true' }}
+    name: eslint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: setup node
+        uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516 # pin@v3.5.1
+        with:
+          node-version: 16
+      - name: install dependencies
+        run: yarn install
+        working-directory: 'nms/'
+      - name: eslint
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          workdir: 'nms/'
+
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: markdownlint
+        uses: reviewdog/action-markdownlint@v0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          filter_mode: added
+          reporter: github-pr-review
+          fail_on_error: false
+          markdownlint_flags: "--config ./docs/readmes/.markdownlint.yaml ."
+
+  misspell:
+    name: misspell
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: misspell
+        uses: reviewdog/action-misspell@811b1e15f531430be3a5784e3d591bd657df18b0 # pin@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          locale: "US"
+          exclude: |
+            ./nms/yarn.lock
+
+  mypy:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
+    name: mypy
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Run mypy with reviewdog
+        uses: tsuyoshicho/action-mypy@176f65a2ad781202baffaf870e5715d768d799a8 # pin@v3.9.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: file
+          reporter: github-pr-review
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: shellcheck
+        uses: reviewdog/action-shellcheck@66c9a47bf02255b250284a82251cb4cadf5043f5 # pin@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          pattern: "*.sh" # Optional.
+
+  tflint:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_terraform == 'true' }}
+    name: tflint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Run tflint with reviewdog
+        uses: reviewdog/action-tflint@86b1913cb664b079cb435014ad64835acf66c639 # pin@v1.16.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          fail_on_error: true
+          level: info
+
+  wemake-python-styleguide:
+    needs: files_changed
+    if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
+    name: wemake-python-styleguide
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Get changed Python files
+        id: py-changes
+        # Set outputs.py_files_list to be a list of modified python files.
+        # It is important to use the github.event.pull_request.head.sha here,
+        # because the github.sha is identical to the github.event.pull_request.base.sha
+        # due to the pull_request_target trigger.
+        run: |
+          echo "py_files_list=$(git diff --name-only --diff-filter=ACMRT \
+            ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} \
+            | grep .py$ | xargs)" >> $GITHUB_OUTPUT
+      - name: wemake-python-styleguide
+        uses: wemake-services/wemake-python-styleguide@657508a0b169e15faeda641c4d9c7bc2afda484b # pin@0.17.0
+        with:
+          reporter: github-pr-review
+          path: ${{ steps.py-changes.outputs.py_files_list }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+      - name: Info for local execution
+        if: failure()
+        run: |
+          echo "Running linting tools failed. This should be equivalent to running './lte/gateway/python/precommit.py --lint --diff' locally."
+          exit 1
+
+  yamllint:
+    name: yamllint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: yamllint
+        uses: reviewdog/action-yamllint@8c429dfe4fc47b1ce1fa99a64e94693880d5dc30 # pin@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          filter_mode: added
+          reporter: github-pr-review
+          level: warning
+          yamllint_flags: "-d .github/workflows/config/yamllint_config.yml ."

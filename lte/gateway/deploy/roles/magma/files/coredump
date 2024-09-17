@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+if [ -z "$1" ]
+then
+    NAME=core
+else
+    NAME=$1
+fi
+
+gzip -c > "/var/$NAME.gz"
+
+rm -rf /tmp/"$NAME"_bundle
+mkdir /tmp/"$NAME"_bundle
+mv /var/$NAME.gz /tmp/"$NAME"_bundle
+
+apt-cache policy magma | grep Installed > /tmp/"$NAME"_bundle/version
+
+for FILE in `cat /etc/magma/logfiles.txt`
+do
+  cp $FILE /tmp/"$NAME"_bundle 2>/dev/null || echo "Couldn't copy $FILE to bundle"
+done
+
+tar czf /var/core/"$NAME".tgz -C /tmp/"$NAME"_bundle .
+
+rm -rf /tmp/"$NAME"_bundle

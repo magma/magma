@@ -1,0 +1,10 @@
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=10,in_port=LOCAL actions=set_field:0x10->reg1,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=10,in_port=1 actions=set_field:0x10->reg1,resubmit(,li_mirror(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=0 actions=set_field:0x1->reg1,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=15,reg6=0x1 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=10 actions=resubmit(,li_mirror(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=li_mirror(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10 actions=output:2,resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=li_mirror(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x1 actions=output:2,resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=li_mirror(main_table), n_packets=0, n_bytes=0, priority=0,in_port=1 actions=output:2
+ cookie=0x0, table=egress(main_table), n_packets=0, n_bytes=0, priority=0,reg1=0x10 actions=output:32768
+ cookie=0x0, table=egress(main_table), n_packets=0, n_bytes=0, priority=0,reg1=0x1 actions=LOCAL

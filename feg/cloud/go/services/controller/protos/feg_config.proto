@@ -1,0 +1,164 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package feg;
+option go_package = "magma/feg/cloud/go/services/controller/protos";
+
+message DiamClientConfig {
+  string protocol = 1; // tcp/sctp/...
+  string address = 2; // server's host:port
+  uint32 retransmits = 3;
+  uint32 watchdog_interval = 4;
+  uint32 retry_count = 5;
+  string local_address = 6; // client's local address to bind socket to IP:port OR :port
+  string product_name = 7;
+  string realm = 8; // diameter realm
+  string host = 9; // diameter host
+  string dest_realm = 10; // server diameter realm
+  string dest_host = 11; // server diameter host
+}
+
+message DiamServerConfig {
+    string protocol = 1; // tcp/sctp/...
+    string address = 2; // host:port
+    string local_address = 3; // IP:port or :port
+    string dest_host = 4; // diameter host
+    string dest_realm = 5; // diameter realm
+}
+
+message S6aConfig {
+    DiamClientConfig server = 1;
+    repeated string PlmnIds = 2;
+}
+
+message GxConfig {
+    DiamClientConfig server = 1;
+    repeated DiamClientConfig servers = 2;
+    bool DisableGx = 3;
+}
+
+enum GyInitMethod {
+    RESERVED = 0; // proto enums must start with 0
+    PER_SESSION = 1;
+    PER_KEY = 2;
+}
+
+message GyConfig {
+    DiamClientConfig server = 1;
+    GyInitMethod init_method = 2;
+    repeated DiamClientConfig servers = 3;
+    bool DisableGy = 4;
+}
+
+message SwxConfig {
+    DiamClientConfig server = 1;
+    // After auth, verify Non-3GPP IP Access enabled
+    bool verify_authorization = 2;
+    uint32 CacheTTLSeconds = 3;
+    repeated DiamClientConfig servers = 4;
+}
+
+message HSSConfig {
+    DiamServerConfig server = 1;
+
+    // Operator configuration field for LTE.
+    bytes lte_auth_op = 2;
+
+    // Authentication management field for LTE.
+    bytes lte_auth_amf = 3;
+
+    message SubscriptionProfile {
+      // Maximum uplink bit rate (AMBR-UL)
+      uint64 max_ul_bit_rate = 1;
+      // Maximum downlink bit rate (AMBR-DL)
+      uint64 max_dl_bit_rate = 2;
+    }
+    // Maps from IMSI to SubscriptionProfile.
+    map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // If an IMSI if not found in sub_profiles, the default profile is used instead.
+    SubscriptionProfile default_sub_profile = 5;
+
+    // Whether to stream subscribers from the cloud subscriberdb service.
+    bool stream_subscribers = 6;
+}
+
+message HealthConfig {
+    // Services the health service is responsible for tracking
+    repeated string health_services = 1;
+    // Frequency of FeG health manager updates to the cloud
+    uint32 update_interval_secs = 2;
+    // Period to disable connection creation when requested to from cloud
+    uint32 cloud_disable_period_secs = 3;
+    // Period to disable connection creation when locally determined
+    uint32 local_disable_period_secs = 4;
+    // The number of consecutive health update failures before locally disabling
+    uint32 update_failure_threshold = 5;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 6;
+    // Minimum number of requests necessary to consider a metrics interval valid
+    uint32 minimum_request_threshold = 7;
+    // Cpu utilization healthy threshold
+    float cpu_utilization_threshold = 8;
+    // Available memory healthy threshold
+    float memory_available_threshold = 9;
+}
+
+message EapAkaConfig {
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 1;
+    repeated string PlmnIds = 2;
+}
+
+// EapProviderTimeouts is a generic EAP provider timeout config for all new providers
+// TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
+// of the switch farther planning is required
+message EapProviderTimeouts {
+    uint32 ChallengeMs = 1;
+    uint32 ErrorNotificationMs = 2;
+    uint32 SessionMs = 3;
+    uint32 SessionAuthenticatedMs = 4;
+}
+
+message EapSimConfig {
+    EapProviderTimeouts timeout = 1;
+    repeated string PlmnIds = 2;
+}
+
+message AAAConfig {
+    uint32 IdleSessionTimeoutMs = 1; // Idle session TTL
+    bool AccountingEnabled = 2; // enable accounting & maintain long term user sessions
+    bool CreateSessionOnAuth = 3; // Postpone Auth success until successful accounting CreateSession completion
+    bool AcctReportingEnabled = 4; // enable accounting reporting to the module's orc8r service
+}
+
+message Config {
+    // FeG config params
+    S6aConfig s6a = 4;
+    GxConfig gx = 5;
+    GyConfig gy = 6;
+    repeated string served_network_ids = 7;
+    HSSConfig hss = 8;
+    SwxConfig swx = 9;
+    HealthConfig health = 10;
+    EapAkaConfig eap_aka = 11;
+    AAAConfig aaa_server = 12;
+    EapSimConfig eap_sim = 13;
+
+}

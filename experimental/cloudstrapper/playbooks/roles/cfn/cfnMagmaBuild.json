@@ -1,0 +1,60 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageId": {
+        "Type": "AWS::EC2::Image::Id",
+	"Default": "ami-0a91cd140a1fc148a",
+	"Description": "Base image for Build instance"
+      },
+      "paramSecGroup": {
+        "Type": "AWS::EC2::SecurityGroup::Id",
+	"Default": "sg-09eb50f05d956bee9",
+	"Description": "Primary Security Group"
+      },
+      "paramAvlZone": {
+        "Type": "AWS::EC2::AvailabilityZone::Name",
+	"Default": "us-east-2a",
+	"Description": "Primary Region"
+      },
+      "paramKeyHost": {
+        "Type": "AWS::EC2::KeyPair::KeyName",
+	"Default": "keyMagmaHostProto",
+	"Description": "Host key for instance"
+      },
+      "paramInstanceType": {
+        "Type":"String",
+        "Default": "t2.xlarge",
+	"Description": "Instance type required to do a full Magma Build"
+      },
+      "paramTagName": {
+        "Type": "String",
+	"Default": "ec2MagmaBuild",
+	"Description": "Searchable Tag For Build instance"
+      }
+    },
+    "Resources": {
+        "Builder": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": { "Ref": "paramImageId" },
+		"AvailabilityZone": { "Ref": "paramAvlZone" },
+                "InstanceType": { "Ref" : "paramInstanceType" },
+                "KeyName": { "Ref" : "paramKeyHost" },
+                "SecurityGroupIds": [ {"Ref" : "paramSecGroup"} ],
+		"BlockDeviceMappings": [
+          				{
+            				"DeviceName": "/dev/sda1", 
+					"Ebs": {
+              					"VolumeType": "gp2",
+              					"VolumeSize": "64",
+              					"DeleteOnTermination":"false",
+              					"Encrypted": "true" 
+						} 
+					}
+        	], 
+                "Tags": [ {"Key": "Name", "Value": {"Ref": "paramTagName"} }, 
+			  {"Key": "Purpose","Value":"To run Magma in a Box"} ]
+            }
+        }
+    }
+}

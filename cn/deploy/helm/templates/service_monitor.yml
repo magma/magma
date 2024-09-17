@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: agw-metrics
+  labels:
+    app: agw-metrics
+    release: prometheus
+  namespace: kubevirt
+spec:
+  selector:
+    matchLabels:
+      app: agw-metrics
+      release: prometheus
+  namespaceSelector:
+    matchNames:
+    - kubevirt 
+  endpoints:
+  - port: web
+    interval: 10s
+    honorLabels: true

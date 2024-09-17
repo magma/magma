@@ -1,0 +1,1 @@
+sysctl_file_path: /etc/sysctl.d/99-magma.conf

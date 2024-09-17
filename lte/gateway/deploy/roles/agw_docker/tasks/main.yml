@@ -1,0 +1,133 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+  tags:
+    - agwc
+    - base
+
+- name: Install aptitude using apt
+  apt: name=aptitude state=latest force_apt_get=yes
+  tags:
+    - agwc
+
+- name: create directories for magma configs and files
+  tags:
+    - agwc
+    - base
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/var/opt/magma"
+    - "/var/opt/magma/configs"
+    - "/var/opt/magma/configs/tmp"
+    - "/var/opt/magma/certs"
+    - "/etc/magma"
+    - "/etc/magma/templates/"
+    - "/var/opt/magma/docker"
+
+- name: Enable IP forwarding
+  become: true
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+  tags:
+    - agwc
+    - base
+
+- name: touch snowflake
+  shell: touch /etc/snowflake
+  tags:
+    - agwc
+    - base
+
+- name: start docker service
+  systemd: name=docker state=started enabled=yes
+  tags:
+    - agwc
+
+- name: Set ARM Architecture AGW variable
+  when: ansible_architecture == "aarch64"
+  tags:
+    - agwc
+    - base
+  set_fact:
+    optional_arch_postfix: "_arm"
+
+- name: create the env file
+  tags:
+    - agwc
+  template:
+    src: env.j2
+    dest: /var/opt/magma/docker/.env
+    mode: 0400
+
+- name: copy the config files for magma
+  shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
+  tags:
+    - agwc
+    - base
+
+- name: copy the config files for orchestrator
+  shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+  tags:
+    - agwc
+    - base
+
+- name: copy docker compose config file
+  shell: cp -r /opt/magma/lte/gateway/docker/docker-compose.yaml /var/opt/magma/docker/
+  tags:
+    - agwc
+
+- name: update nat interface
+  shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
+  tags:
+    - agwc
+    - base
+
+- name: replace magmad init system
+  ansible.builtin.replace:
+    path: /etc/magma/magmad.yml
+    regexp: 'init_system: systemd'
+    replace: 'init_system: docker'
+  tags:
+    - agwc
+    - base
+
+- name: copy the python scripts
+  shell: cp -r /opt/magma/lte/gateway/python/scripts/* /usr/local/bin/
+  tags:
+    - agwc
+    - base
+
+- name: docker login
+  shell: docker login -u {{ docker_user }} -p {{ docker_pass }}  {{ docker_registry }}
+  args:
+    chdir: "/var/opt/magma/docker/"
+  when: docker_pass != ""
+  tags:
+    - agwc
+
+- name: copy the recreate script
+  copy:
+    src: agw_upgrade.sh
+    dest: /var/opt/magma/docker/
+    mode: '0755'
+  tags:
+    - agwc
+
+- name: bring up the containers.
+  script: agw_upgrade.sh
+  tags:
+    - agwc

@@ -1,0 +1,289 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/feg/cloud/go/protos/mconfig";
+
+//------------------------------------------------------------------------------
+// FeG configs
+//------------------------------------------------------------------------------
+message DiamClientConfig {
+    string protocol = 1; // tcp/sctp/...
+    string address = 2; // server's host:port
+    uint32 retransmits = 3;
+    uint32 watchdog_interval = 4;
+    uint32 retry_count = 5;
+    string local_address = 6; // client's local address to bind socket to IP:port OR :port
+    string product_name = 7;
+    string realm = 8; // diameter realm
+    string host = 9; // diameter host
+    string dest_realm = 10; // server diameter realm
+    string dest_host = 11; // server diameter host
+    bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
+    bool   overwrite_dest_host = 13; // overwrite dest_host AVP in diameter requests even if the message includes it
+    uint32 request_timeout = 14; // timeout to wait before ignore response
+}
+
+message DiamServerConfig {
+    string protocol = 1; // tcp/sctp/...
+    string address = 2; // host:port
+    string local_address = 3; // IP:port or :port
+    string dest_host = 4; // diameter host
+    string dest_realm = 5; // diameter realm
+}
+
+message S6aConfig {
+    orc8r.LogLevel log_level = 1;
+    DiamClientConfig server = 5;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 6;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 7;
+    repeated string PlmnIds = 8;
+}
+
+message VirtualApnRule {
+    // apn_filter is a Regex to match APN values
+    string apn_filter = 1;
+    // apn_overwrite is the new APN to overwrite with when filters match
+    string apn_overwrite = 2;
+    // charging_characteristics_filter is a Regex to match
+    // ChargingCharacteristics values
+    string charging_characteristics_filter = 3;
+}
+
+message GxConfig {
+    DiamClientConfig server = 1;
+    string OverwriteApn = 2; // Deprecated
+    repeated DiamClientConfig servers = 3;
+    bool DisableGx = 4;
+    repeated VirtualApnRule virtual_apn_rules = 5;
+}
+
+enum GyInitMethod {
+    RESERVED = 0; // proto enums must start with 0
+    PER_SESSION = 1;
+    PER_KEY = 2;
+}
+
+message GyConfig {
+    DiamClientConfig server = 1;
+    GyInitMethod init_method = 2;
+    string OverwriteApn = 3;
+    repeated DiamClientConfig servers = 4;
+    bool DisableGy = 5;
+    repeated VirtualApnRule virtual_apn_rules = 6;
+}
+
+message SessionProxyConfig {
+    orc8r.LogLevel log_level = 1;
+    GxConfig gx = 5;
+    GyConfig gy = 6;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 7;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 8;
+}
+
+message SwxConfig {
+    orc8r.LogLevel log_level = 1;
+    DiamClientConfig server = 2;
+    // Flag to ensure that a user is authorized for Non-3GPP IP Access
+    bool verify_authorization = 3;
+    uint32 CacheTTLSeconds = 4;
+     // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 5;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 6;
+    // Flag to ensure that we send SAR with REGISTER following successful MAA
+    bool register_on_auth = 7;
+    // use returned maa.AAAServerName to derive Origin Realm from
+    bool derive_unregister_realm = 8;
+    // PLMN IDs served by HLR
+    repeated string hlr_plmn_ids = 9;
+    // Server where SWx points to (can be one or more than one)
+    repeated DiamClientConfig servers = 10;
+
+}
+
+message EapAkaConfig {
+    orc8r.LogLevel log_level = 1;
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 2;
+    repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
+}
+
+// EapProviderTimeouts is a generic EAP provider timeout config for all new providers
+// TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
+// of the switch farther planning is required
+message EapProviderTimeouts {
+    uint32 ChallengeMs = 1;
+    uint32 ErrorNotificationMs = 2;
+    uint32 SessionMs = 3;
+    uint32 SessionAuthenticatedMs = 4;
+}
+
+message EapSimConfig {
+    orc8r.LogLevel log_level = 1;
+    EapProviderTimeouts timeout = 2;
+    repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
+}
+
+message AAAConfig {
+    orc8r.LogLevel log_level = 1;
+    // Idle session TTL
+    uint32 IdleSessionTimeoutMs = 2;
+    // enable accounting & maintain long term user sessions
+    bool AccountingEnabled = 3;
+    // Postpone Auth success until successful accounting CreateSession completion
+    bool CreateSessionOnAuth = 4;
+    // enable event logging for aaa events
+    bool EventLoggingEnabled = 5;
+    RadiusConfig RadiusConfig = 6;
+    // Enable accounting reporting to the module's orc8r service
+    bool AcctReportingEnabled = 7;
+}
+
+message RadiusConfig {
+    // Radius server secret
+    bytes Secret = 1;
+    // Radius server network (udp/tcp/etc.
+    string Network = 2;
+    // Authentication Radius server address
+    string AuthAddr = 3;
+    // Accounting Radius server address
+    string AcctAddr = 4;
+    // DAE server Address
+    string DAEAddr = 5;
+}
+
+message GatewayHealthConfig {
+    repeated string required_services = 1;
+    uint32 update_interval_secs = 2;
+    uint32 update_failure_threshold = 3;
+    uint32 cloud_disconnect_period_secs = 4;
+    uint32 local_disconnect_period_secs = 5;
+}
+
+message HSSConfig {
+    DiamServerConfig server = 1;
+
+    // Operator configuration field for LTE.
+    bytes lte_auth_op = 2;
+
+    // Authentication management field for LTE.
+    bytes lte_auth_amf = 3;
+
+    message SubscriptionProfile {
+        // Maximum uplink bit rate (AMBR-UL)
+        uint64 max_ul_bit_rate = 1;
+        // Maximum downlink bit rate (AMBR-DL)
+        uint64 max_dl_bit_rate = 2;
+    }
+    // Maps from IMSI to SubscriptionProfile.
+    map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // If an IMSI if not found in sub_profiles, the default profile is used instead.
+    SubscriptionProfile default_sub_profile = 5;
+
+    // Whether to stream subscribers from the cloud subscriberdb service.
+    bool stream_subscribers = 6;
+}
+
+message RadiusdConfig {
+    // Port the metrics server is running on
+    uint32 radius_metrics_port = 1;
+    // The path to access the prometheus metrics on the server
+    string radius_metrics_path = 2;
+    // Interval in seconds between fetching and updating metrics
+    uint32 update_interval_secs = 3;
+    // Hostname for prometheus metrics
+    string radius_metrics_host = 4;
+}
+
+
+message SCTPClientConfig {
+    string server_address = 1; // server's host:port
+    string local_address = 2; // client's local address to bind socket to IP:port OR :port
+}
+
+message CsfbConfig {
+    orc8r.LogLevel log_level = 1;
+    SCTPClientConfig client = 2;
+}
+
+message EnvoyControllerConfig {
+    orc8r.LogLevel log_level = 1;
+}
+
+message S8Config {
+    orc8r.LogLevel log_level = 1;
+    string local_address = 2;
+    string pgw_address = 3;
+    string apn_operator_suffix = 4;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 5;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 6;
+}
+
+message SbiServerConfig {
+    // Base URL pointing to the HTTP2 SBI server
+    string api_root = 1;
+    // Token URL for getting the OAuth2 token
+    string token_url = 2;
+    // OAuth2 Client ID that will be used for getting the bearer token
+    string client_id = 3;
+    // OAuth2 Client secret used for getting the bearer token
+    string client_secret = 4;
+}
+
+message N7ClientConfig {
+    // LocalAddr on which the notification listener listens
+    string local_addr = 1;
+    // Notification API Root on which the notification will be invoked
+    string notify_api_root = 2;
+}
+
+message N7Config {
+    // Disables N7 interface
+    bool disable_n7 = 1;
+    // PCF configuration
+    SbiServerConfig server = 2;
+    // N7 consumer config for handling notifications
+    N7ClientConfig client = 3;
+}
+
+message N7N40ProxyConfig {
+    // Service log level
+    orc8r.LogLevel log_level = 1;
+    // N7 Interface configuration
+    N7Config n7_config = 2;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 3;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 4;
+}

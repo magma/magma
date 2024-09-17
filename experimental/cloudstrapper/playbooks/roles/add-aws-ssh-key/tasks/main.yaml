@@ -1,0 +1,7 @@
+---
+
+- include_tasks: kms-key.yaml
+  when: KMSKeyID is defined
+
+- include_tasks: ssh-key.yaml
+  when: sshKey is defined

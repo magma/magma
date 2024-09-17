@@ -1,0 +1,148 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Ensure documentation changes are formatted and in sync
+# remediation: https://magma.github.io/magma/docs/docs/docs_overview#precommit
+
+name: Docs Lint & Check Generated Files In Sync
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/docs-workflow.yml", "docs/**"]
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/pr_number
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+          echo -n "false" > ./pr/is_reverted_pr
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  # Fail if Markdown doesn't pass linter
+  markdown-lint:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Markdown lint check
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: Run docs precommit
+        shell: bash
+        run: |
+          cd ${MAGMA_ROOT}/docs
+          make precommit
+
+  markdown-insync:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Markdown insync check
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: Run docs `make`
+        shell: bash
+        run: |
+          cd ${MAGMA_ROOT}/docs
+          make
+      - name: Check all generated files are checked in after running `make -C $MAGMA_ROOT/docs`
+        shell: bash
+        run: |
+          git status
+          git diff-index --quiet HEAD
+
+  # Fail if there are broken symlinks in the repository
+  check-for-missing-sidebar-pages:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Check for missing sidebar pages
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check for broken symlinks
+        shell: bash
+        run: |
+          make -C ${MAGMA_ROOT}/docs sidebar_check
+
+  # Fail if there are broken symlinks in the repository
+  check-for-broken-symlinks:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Check for broken symlinks
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check for broken symlinks
+        shell: bash
+        run: |
+          BROKEN_SYMLINKS=$(find "${MAGMA_ROOT}" -xtype l)
+          if [ -n "$BROKEN_SYMLINKS" ]; then
+            echo "Found broken symlinks: $BROKEN_SYMLINKS"
+            exit 1
+          fi
+
+  check-markdown-links:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: Check for broken URLs in markdown files
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: gaurav-nelson/github-action-markdown-link-check@d53a906aa6b22b8979d33bc86170567e619495ec # pin@v1.0.15
+        with:
+          use-verbose-mode: 'yes'
+          config-file: '.github/workflows/config/markdown_link_check_config.json'
+          folder-path: './docs'

@@ -1,0 +1,264 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/certifier.proto";
+import "orc8r/protos/common.proto";
+import "orc8r/protos/identity.proto";
+import "google/protobuf/timestamp.proto";
+
+package magma.orc8r.certifier;
+option go_package = "magma/orc8r/cloud/go/services/certifier/protos";
+
+// ===========================================================================
+// Generic message types for certifier service
+// ===========================================================================
+
+message CertificateInfo {
+  Identity id = 1;
+
+  google.protobuf.Timestamp not_before = 2;
+  google.protobuf.Timestamp not_after = 3;
+
+  CertType cert_type = 4;
+}
+
+message CertificateInfoMap {
+  map<string, CertificateInfo> certificates = 1;
+}
+
+
+message SerialNumbers {
+  repeated string sns = 1;
+}
+
+message TokenList {
+  repeated string tokens = 1;
+}
+
+message User {
+  string username = 1;
+  bytes password = 2;
+  TokenList tokens = 3;
+}
+
+enum Effect {
+  UNKNOWN = 0;
+  DENY = 1;
+  ALLOW = 2;
+}
+
+enum Action {
+  NONE = 0;
+  READ = 1;
+  WRITE = 2;
+}
+
+// Request is the representation of the requested resource from an API call
+message Request {
+  // action is the action requested on the resource, either READ or WRITE.
+  Action action = 1;
+  // resource contains the path of the requested resource
+  string resource = 2;
+  // resource_id is the network/tenant to which the request is scoped, if applicable
+  oneof resource_id {
+    string network_id = 3;
+    int64 tenant_id = 4;
+  }
+}
+
+// Policy specifies whether a request and its user is able to access that resource
+message Policy {
+  // effect is the effect to take on the requested resource, i.e. ALLOW or DENY
+  Effect effect = 1;
+  // action is the action allowed for a given resource, either READ or WRITE.
+  Action action = 2;
+  oneof resource {
+    PathResource path = 3;
+    NetworkResource network = 4;
+    TenantResource tenant = 5;
+  }
+}
+
+message PathResource {
+  string path = 1;
+}
+
+message NetworkResource {
+  repeated string networks = 1;
+}
+
+message TenantResource {
+  repeated int64 tenants = 1;
+}
+
+message PolicyList {
+  string token = 1;
+  repeated Policy policies = 2;
+}
+
+// ===========================================================================
+// RPC function request and response message types
+// ===========================================================================
+message AddCertRequest {
+  Identity id = 1;
+  bytes cert_der = 2; // signed certificate in DER encoding
+  CertType cert_type = 3;
+}
+
+message GetCARequest {
+  CertType cert_type = 1;
+}
+
+message GetPolicyDecisionRequest {
+  string username = 1;
+  string token = 2;
+  Request request = 3;
+}
+
+message GetPolicyDecisionResponse {
+  Effect effect = 1;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message CreateUserResponse {}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUserRequest {
+  User user = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+}
+
+message UpdateUserResponse {}
+
+message DeleteUserRequest {
+  User user = 1;
+}
+
+message DeleteUserResponse {}
+
+message ListUserTokensRequest {
+  User user = 1;
+}
+
+message ListUserTokensResponse {
+  repeated PolicyList policyLists = 1;
+}
+
+message AddUserTokenRequest {
+  string username = 1;
+  repeated Policy policies = 2;
+}
+
+message AddUserTokenResponse {}
+
+message DeleteUserTokenRequest {
+  string username = 1;
+  string token = 2;
+}
+
+message DeleteUserTokenResponse {}
+
+message LoginRequest {
+  User user = 1;
+}
+
+message LoginResponse {
+  repeated PolicyList policyLists = 1;
+}
+
+service Certifier {
+
+  // Returns the cert of the requested CA
+  rpc GetCA (GetCARequest) returns (CACert) {}
+
+  // Signs and adds a new certificate to the store.
+  // Returns signed certificate.
+  //
+  rpc SignAddCertificate (CSR) returns (Certificate) {}
+
+  // Returns the CertificateInfo for a certificate.
+  // Throws NOT_FOUND if the certificate is missing.
+  //
+  rpc GetIdentity (Certificate.SN) returns (CertificateInfo) {}
+
+  // Revoke an existing certificate.
+  // If the certificate does not exist or is expired, this request is ignored.
+  //
+  rpc RevokeCertificate (Certificate.SN) returns (Void) {}
+
+  // Add provided Certificate (AddCertRequest.cert_der) into Certifier table and
+  // associates its Serial Number with given Identity (AddCertRequest.id)
+  rpc AddCertificate(AddCertRequest) returns (Void) {}
+
+  // Finds & returns Serial Numbers of all Certificates associated with the
+  // given Identity
+  rpc FindCertificates(Identity) returns (SerialNumbers) {}
+
+  // Returns serial numbers of all certificates in the table
+  rpc ListCertificates(Void) returns  (SerialNumbers) {}
+
+  // Returns all registered Certificates
+  rpc GetAll(Void) returns (CertificateInfoMap) {}
+
+  // cleanup expired certificates
+  rpc CollectGarbage (Void) returns (Void) {}
+
+  // Returns a policy decision given a token, the request method's action
+  // (read/write), and the requested resource
+  rpc GetPolicyDecision (GetPolicyDecisionRequest) returns (GetPolicyDecisionResponse) {}
+
+  // Create a new user with their username and password
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
+
+  // List all users and their information
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+
+  // Get a user based on their username
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+
+  // Update a user's authentication information
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
+
+  // Delete a user
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+
+  // List a user's tokens with their policies
+  rpc ListUserTokens(ListUserTokensRequest) returns (ListUserTokensResponse) {}
+
+  // Add a token to user's existing set of tokens
+  rpc AddUserToken(AddUserTokenRequest) returns (AddUserTokenResponse) {}
+
+  // Revoke a user's token and removes the policy associated with the token
+  rpc DeleteUserToken(DeleteUserTokenRequest) returns (DeleteUserTokenResponse) {}
+
+  // Authenticates a user by checking their password and return a list of their
+  // Tokens
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+}

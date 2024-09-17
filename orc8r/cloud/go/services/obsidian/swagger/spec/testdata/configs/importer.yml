@@ -1,0 +1,75 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/swagger
+  dependencies:
+    - 'orc8r/cloud/go/swagger/testdata/configs/base.yml'
+  temp-gen-filename: importer-swagger.yml
+  output-dir: orc8r/cloud/go/swagger/testdata
+  types:
+    - go-struct-name: Gift
+      filename: gift_swaggergen.go
+
+info:
+  title: Test
+  description: Test API
+  version: 1.0.0
+
+basePath: /foo
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+tags:
+  - name: SpicyTag
+    description: Tag Spicy
+
+paths:
+  /fruitbasketpath/{color}:
+    get:
+      summary: Get Random Fruit Basket with Color
+      parameters:
+        - $ref: './base-swagger.yml#/parameters/fruitColor'
+      responses:
+        '200':
+          description: Random Fruit Basket
+          schema:
+            $ref: './base-swagger.yml#/definitions/fruitBasket'
+  /vegetablebasket/:
+    get:
+      summary: Get Vegetables
+      parameters:
+        - in: query
+          name: active
+          required: false
+          type: boolean
+          description: Retrieve active alerts. Default true.
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: integer
+
+definitions:
+  gift:
+    type: object
+    required:
+      - fruitBasket
+      - fruitColor
+      - name
+    properties:
+      fruitBasket:
+        $ref: './base-swagger.yml#/definitions/fruit_basket'
+      fruitColor:
+        $ref: './base-swagger.yml#/definitions/season'
+      name:
+        type: string
+        minLength: 1

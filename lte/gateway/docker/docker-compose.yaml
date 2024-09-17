@@ -1,0 +1,449 @@
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: ${LOG_DRIVER}
+
+# Standard volumes mounted
+x-standard-volumes: &volumes_anchor
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
+  - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
+  - ./:/var/opt/magma/docker
+  - /var/run:/var/run
+  - /tmp:/tmp
+  - /var/log:/var/log
+  - /etc/openvswitch:/etc/openvswitch
+
+# Magmad volumes mounted
+x-magmad-volumes: &magmad_volumes_anchor
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_OVERRIDE_TMP_VOLUME}:/var/opt/magma/tmp
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
+  - /var/opt/magma/fluent-bit:/var/opt/magma/fluent-bit
+  - ./:/var/opt/magma/docker
+  - /var/run:/var/run
+  - /tmp:/tmp
+  - /var/log:/var/log
+  - /etc/openvswitch:/etc/openvswitch
+  - /var/run/docker.sock:/var/run/docker.sock
+
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Generic python anchor to avoid repetition for agw python services
+x-agw-python-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}agw_gateway_python${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+
+# Generic anchor for lte c services
+x-agw-c-service: &cservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+
+services:
+  magmad:
+    <<: *pyservice
+    container_name: magmad
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50052"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    volumes: *magmad_volumes_anchor
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: >
+      /bin/bash -c "
+        /usr/bin/env python3 /usr/local/bin/generate_oai_config.py &&
+        /usr/bin/env python3 -m magma.magmad.main"
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50067"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.directoryd.main
+
+  subscriberdb:
+    <<: *pyservice
+    container_name: subscriberdb
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50051"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.subscriberdb.main
+
+  enodebd:
+    <<: *pyservice
+    container_name: enodebd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "60055"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    cap_add:
+      - NET_ADMIN  # The container is invoking iptables and needs NET_ADMIN for that
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.enodebd.main
+
+  state:
+    <<: *pyservice
+    container_name: state
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50074"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    depends_on:
+      - redis
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.state.main
+
+  policydb:
+    <<: *pyservice
+    container_name: policydb
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50068"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.policydb.main
+
+  health:
+    <<: *pyservice
+    container_name: health
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50080"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.health.main
+
+  monitord:
+    <<: *pyservice
+    container_name: monitord
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50076"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    cap_add:
+      - NET_RAW
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.monitord.main
+
+  redirectd:
+    <<: *pyservice
+    container_name: redirectd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50071"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    command: /usr/bin/env python3 -m magma.redirectd.main
+
+  smsd:
+    <<: *pyservice
+    container_name: smsd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50078"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.smsd.main
+
+  control_proxy:
+    <<: *pyservice
+    container_name: control_proxy
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "8443"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             sed -i 's/errorlog-syslog=yes/errorlog-syslog=no/' /var/opt/magma/tmp/nghttpx.conf &&
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
+  ctraced:
+    <<: *pyservice
+    container_name: ctraced
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50079"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.ctraced.main
+
+  sctpd:
+    <<: *cservice
+    container_name: sctpd
+    ulimits:
+      core: -1
+    healthcheck:
+      test: ["CMD", "test", "-S", "/tmp/sctpd_downstream.sock"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/local/bin/sctpd
+
+  oai_mme:
+    <<: *cservice
+    container_name: oai_mme
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50073"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+      start_period: "10s"
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    depends_on:
+      - magmad
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command: >
+      sh -c "/usr/local/bin/oai_mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf"
+
+  pipelined:
+    <<: *pyservice
+    container_name: pipelined
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    pid: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50063"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    command: >
+      bash -c "/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set &&
+        /usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+        /usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure &&
+        /usr/bin/ovs-vsctl set-manager ptcp:6640 &&
+        /usr/bin/env python3 -m magma.pipelined.main"
+
+  sessiond:
+    <<: *cservice
+    container_name: sessiond
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    depends_on:
+      - directoryd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    cap_drop:
+      - ALL
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/local/bin/sessiond
+
+  mobilityd:
+    <<: *pyservice
+    container_name: mobilityd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "60051"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command:
+      sh -c "sleep 5 && /usr/bin/env python3 -m magma.mobilityd.main"
+
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "5140"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    logging:
+      driver: "json-file"
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50075"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/bin/env python3 -m magma.eventd.main
+
+  connectiond:
+    <<: *cservice
+    container_name: connectiond
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50082"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    cap_add:
+      - NET_ADMIN
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/local/bin/connectiond
+
+  liagentd:
+    <<: *cservice
+    container_name: liagentd
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /usr/local/bin/liagentd
+    restart: "no"
+
+  envoy_controller:
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+    container_name: envoy_controller
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "50081"]
+      interval: "4s"
+      timeout: "4s"
+      retries: 3
+    environment:
+      MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
+    command: /var/opt/magma/bin/envoy_controller
+
+  # for docker compose v1: https://github.com/docker/compose/issues/8351#issuecomment-1085811366
+  # also see https://docs.docker.com/compose/compose-file/#depends_on
+  waitForHealthyPods:
+    image: alpine:latest
+    depends_on:
+      magmad:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      directoryd:
+        condition: service_healthy
+      subscriberdb:
+        condition: service_healthy
+      enodebd:
+        condition: service_healthy
+      state:
+        condition: service_healthy
+      policydb:
+        condition: service_healthy
+      health:
+        condition: service_healthy
+      monitord:
+        condition: service_healthy
+      redirectd:
+        condition: service_healthy
+      smsd:
+        condition: service_healthy
+      control_proxy:
+        condition: service_healthy
+      ctraced:
+        condition: service_healthy
+      sctpd:
+        condition: service_healthy
+      oai_mme:
+        condition: service_healthy
+      pipelined:
+        condition: service_healthy
+      sessiond:
+        condition: service_healthy
+      mobilityd:
+        condition: service_healthy
+      td-agent-bit:
+        condition: service_healthy
+      eventd:
+        condition: service_healthy
+      connectiond:
+        condition: service_healthy
+      envoy_controller:
+        condition: service_healthy

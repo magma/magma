@@ -1,0 +1,112 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+package(default_visibility = ["//lte/gateway/c/sctpd/src:__subpackages__"])
+
+cc_binary(
+    name = "sctpd",
+    srcs = ["sctpd.cpp"],
+    linkstatic = True,
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
+    deps = [
+        ":config",
+        ":sctpd_downlink_impl",
+        ":sctpd_event_handler",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+        "//orc8r/gateway/c/common/service_registry",
+        "//orc8r/protos:mconfigs_cpp_proto",
+        "@system_libraries//:libsystemd",
+    ],
+)
+
+cc_library(
+    name = "sctpd_event_handler",
+    srcs = ["sctpd_event_handler.cpp"],
+    hdrs = ["sctpd_event_handler.hpp"],
+    deps = [
+        ":sctp_connection",
+        ":sctpd_uplink_client",
+    ],
+)
+
+cc_library(
+    name = "sctpd_uplink_client",
+    srcs = ["sctpd_uplink_client.cpp"],
+    hdrs = ["sctpd_uplink_client.hpp"],
+    deps = [
+        ":util",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctpd_downlink_impl",
+    srcs = ["sctpd_downlink_impl.cpp"],
+    hdrs = ["sctpd_downlink_impl.hpp"],
+    deps = [
+        ":sctp_connection",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctp_connection",
+    srcs = ["sctp_connection.cpp"],
+    hdrs = ["sctp_connection.hpp"],
+    deps = [
+        ":sctp_desc",
+        "//lte/protos:sctpd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "sctp_desc",
+    srcs = ["sctp_desc.cpp"],
+    hdrs = ["sctp_desc.hpp"],
+    deps = [
+        ":sctp_assoc",
+    ],
+)
+
+cc_library(
+    name = "sctp_assoc",
+    srcs = ["sctp_assoc.cpp"],
+    hdrs = ["sctp_assoc.hpp"],
+    deps = [
+        ":util",
+    ],
+)
+
+cc_library(
+    name = "util",
+    srcs = ["util.cpp"],
+    hdrs = ["util.hpp"],
+    deps = [
+        ":config",
+        "//lte/protos:sctpd_cpp_grpc",
+        "//orc8r/gateway/c/common/logging",
+        "@system_libraries//:sctp",
+    ],
+)
+
+cc_library(
+    name = "config",
+    hdrs = ["sctpd.hpp"],
+)

@@ -1,0 +1,68 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+log_level: INFO
+# List of services for magmad to control
+magma_services:
+  - aaa_server
+
+# List of services that don't provide service303 interface
+non_service303_services:
+
+# Init system to use to control services
+init_system: procd
+
+# static (persistent) gateway.mconfig dir
+static_mconfig_dir: /etc/magma/configs
+
+# interval in minutes to copy over dynamic gateway.mconfig (from /var/opt/magma/configs) to static dir
+static_mconfig_update_interval_minutes: 1440
+
+# bootstrap_manager config
+bootstrap_config:
+  # location of the challenge key
+  challenge_key: /etc/magma/certs/gw_challenge.key
+
+# Flags indicating the magmad features to be enabled
+enable_config_streamer: True
+enable_upgrade_manager: True
+enable_network_monitor: False
+enable_sync_rpc: True
+
+upgrader_factory:
+  gateway_module: openwrt
+
+mconfig_modules:
+
+metricsd:
+  log_level: INFO
+  collect_interval: 120 # How frequently to collect metrics samples in seconds
+  sync_interval: 120 # How frequently to sync to cloud in seconds
+  grpc_timeout: 10 # Timeout in seconds
+  # List of services for metricsd to poll
+  services:
+    - magmad
+    - aaa_server
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: printenv
+      command: "env"
+      allow_params: False
+    - name: echo
+      command: "echo {}"
+      allow_params: True

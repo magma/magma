@@ -1,0 +1,122 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "enodebd",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":enodebd_lib",
+        "//lte/gateway/python/magma/enodebd/tr069:server",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_library(
+    name = "enodebd_lib",
+    srcs = [
+        "enodebd_iptables_rules.py",
+        "rpc_servicer.py",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":logger",
+        ":stats_manager",
+        "//lte/protos:enodebd_python_grpc",
+    ],
+)
+
+py_library(
+    name = "stats_manager",
+    srcs = ["stats_manager.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        requirement("aiohttp"),
+        ":enodeb_status",
+    ],
+)
+
+py_library(
+    name = "enodeb_status",
+    srcs = [
+        "enodeb_status.py",
+        "s1ap_client.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":metrics",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_util",
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs",
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_manager",
+        "//lte/protos:enodebd_python_proto",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:s1ap_service_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:serialization_utils",
+        requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "exceptions",
+    srcs = ["exceptions.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "lte_utils",
+    srcs = ["lte_utils.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "dp_client",
+    srcs = ["dp_client.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//dp/protos:cbsd_python_grpc",
+    ],
+)
+
+py_library(
+    name = "logger",
+    srcs = ["logger.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "metrics",
+    srcs = ["metrics.py"],
+    visibility = ["//visibility:public"],
+    deps = [requirement("prometheus_client")],
+)

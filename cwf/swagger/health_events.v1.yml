@@ -1,0 +1,27 @@
+---
+swagger: '2.0'
+
+info:
+  title: CWAG Health Event definitions
+  description: These events occur in the health service
+  version: 1.0.0
+
+definitions:
+  gateway_promotion_succeeded:
+    type: object
+    description: Gateway successfully promoted to active
+  gateway_promotion_failed:
+    type: object
+    description: Gateway promotion to active failed
+    properties:
+      failure_reason:
+        type: string
+  gateway_demotion_succeded:
+    type: object
+    description: Gateway successfully demoted to standby
+  gateway_demotion_failed:
+    type: object
+    description: Gateway demotion to standby failed
+    properties:
+      failure_reason:
+        type: string

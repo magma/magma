@@ -1,0 +1,12 @@
+---
+
+#Parameters for Tokyo Site Networking
+
+cidrVpc: 10.11.0.0/16
+cidrSgi: 10.11.4.0/24
+cidrEnodeb: 10.11.2.0/24
+cidrBridge: 10.11.6.0/24
+azHome: "{{ awsAgwAz }}"
+secGroup: "{{ secgroupDefault }}"
+sshKey: "{{ keyHost }}"
+siteName: DevOps

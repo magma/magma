@@ -1,0 +1,12 @@
+- hosts: kube-master[0]
+  become: yes
+  become_user: root
+  roles:
+    - role: magma/mariadb
+      when: deploy_mariadb | default(true)
+    - role: magma/elasticsearch
+      when: deploy_elasticsearch | default(true)
+    - magma/fluentd
+    - role: magma/kibana
+      when: deploy_kibana | default(true)
+    - magma/orc8r

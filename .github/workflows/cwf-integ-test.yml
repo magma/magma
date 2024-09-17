@@ -1,0 +1,180 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: CWAG building and integration testing
+# remediation: https://magma.github.io/magma/docs/cwf/dev_testing
+
+name: CWAG Build & Test Integration
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+      - 'v1.*'
+
+jobs:
+  docker-build:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Run docker compose
+        run: |
+          cd cwf/gateway/docker
+          docker compose --compatibility -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.nginx.yml -f docker-compose.integ-test.yml build
+      - name: Export docker images to deploy them
+        run: |
+          mkdir images
+          cd images
+          docker save cwf_gateway_sessiond:latest | gzip > cwf_gateway_sessiond.tar.gz
+          docker save cwf_nginx:latest  | gzip > cwf_nginx.tar.gz
+          docker save cwf_gateway_python:latest | gzip > cwf_gateway_python.tar.gz
+          docker save cwf_cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
+          docker save cwf_gateway_go:latest | gzip > cwf_gateway_go.tar.gz
+          docker save cwf_gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: docker-images
+          path: images
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        with:
+          args: 'CWF integration test: docker build step failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}'
+  cwf-integ-test:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          ref: ${{ github.sha }}
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # pin@v1.3.1
+        with:
+          # this might remove tools that are actually needed,
+          # when set to "true" but frees about 6 GB
+          tool-cache: true
+      - name: Cache ubuntu generic box for CWF VMs
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/generic-VAGRANTSLASH-ubuntu2004
+          key: vagrant-box-generic-ubuntu2004-v4.0.2
+      - name: Cache magma-trfserver-box
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
+          key: vagrant-box-magma-trfserver-v1.3.20221230
+      - name: Log in to vagrant cloud
+        run: |
+          if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
+          then
+            echo "Logging in to vagrant cloud to mitigate rate limiting."
+             wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update && sudo apt install vagrant
+            vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
+            vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
+          else
+            echo "Vagrant cloud token is not configured. Skipping login."
+          fi
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.10.12'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
+          sudo apt install virtualbox
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: docker-images
+      - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
+        with:
+          name: docker-images
+      - name: Copy docker images into /tmp/cwf-images
+        run: |
+          for IMAGES in `ls -a1 *.gz`
+          do
+            gzip -d $IMAGES
+          done
+          mkdir -p /tmp/cwf-images
+          cp cwf_*.tar /tmp/cwf-images
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          sudo touch /etc/vbox/networks.conf
+          sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
+          sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
+      - name: Run the integ test
+        run: |
+          cd cwf/gateway
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          fab integ-test --destroy-vm --transfer-images --test-result-xml=tests.xml --rerun-fails=3 --skip-docker-load --tar-path="/tmp/cwf-images"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: test-results
+          path: cwf/gateway/tests.xml
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: CWF integration test results
+          junit_files: cwf/gateway/tests.xml
+          check_run_annotations: all tests
+      - name: Fetch logs
+        if: always()
+        run: |
+          cd cwf/gateway
+          fab transfer-artifacts --services="sessiond session_proxy pcrf ocs pipelined ingress"
+          mkdir -p logs
+          cp *.log logs/
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: test-logs
+          path: cwf/gateway/logs
+      - name: Publish results to Firebase
+        if: always() && github.event_name == 'push'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "cwf_integ_test_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -f "cwf/gateway/tests.xml" ] && { xunit-viewer -r cwf/gateway/tests.xml -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} cwf --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_AVATAR: ":boom:"
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        with:
+          args: 'CWF integration test: tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}'

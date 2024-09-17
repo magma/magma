@@ -1,0 +1,60 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.orc8r.device;
+option go_package = "magma/orc8r/cloud/go/services/device/protos";
+
+message PhysicalEntity {
+    // Globally unique identifier per type (MAC/SN)
+    string deviceID = 1;
+    // Used to deserialize info
+    string type = 2;
+    // Any other information (manufacturer, location, owner, etc)
+    bytes info = 3;
+}
+
+message RegisterOrUpdateDevicesRequest {
+    string networkID = 1;
+    repeated PhysicalEntity entities = 2;
+}
+
+message DeviceID {
+    string deviceID = 1;
+    string type = 2;
+}
+
+message GetDeviceInfoRequest {
+    string networkID = 1;
+    repeated DeviceID deviceIDs = 2;
+}
+
+message GetDeviceInfoResponse {
+    // A map of device IDs to corresponding PhysicalEntity structure
+    map<string, PhysicalEntity> deviceMap = 1;
+}
+
+message DeleteDevicesRequest {
+    string networkID = 1;
+    repeated DeviceID deviceIDs = 2;
+}
+
+service Device {
+    rpc RegisterDevices(RegisterOrUpdateDevicesRequest) returns (magma.orc8r.Void) {}
+    rpc UpdateDevices(RegisterOrUpdateDevicesRequest) returns (magma.orc8r.Void) {}
+    rpc GetDeviceInfo(GetDeviceInfoRequest) returns (GetDeviceInfoResponse) {}
+    rpc DeleteDevices(DeleteDevicesRequest) returns (magma.orc8r.Void) {}
+}
+

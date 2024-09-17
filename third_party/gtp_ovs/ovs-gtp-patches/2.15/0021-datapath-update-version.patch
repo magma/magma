@@ -1,0 +1,22 @@
+From bcdfb8d8ea9e239eff725455157e67d5f743f596 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Tue, 21 Sep 2021 22:39:41 +0000
+Subject: [PATCH 21/22] datapath: update version
+
+---
+ debian/changelog | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/debian/changelog b/debian/changelog
+index 83eec2410..0ed655123 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-openvswitch (2.15.4-1) unstable; urgency=low
++openvswitch (2.15.4-8) unstable; urgency=low
+    [ Open vSwitch team ]
+    * New upstream version
+ 
+-- 
+2.25.1
+

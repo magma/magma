@@ -1,0 +1,88 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+package(default_visibility = ["//lte/gateway/c/li_agent/src:__subpackages__"])
+
+cc_binary(
+    name = "liagentd",
+    srcs = ["main.cpp"],
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
+    deps = [
+        ":interface_monitor",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)
+
+cc_library(
+    name = "interface_monitor",
+    srcs = ["InterfaceMonitor.cpp"],
+    hdrs = ["InterfaceMonitor.hpp"],
+    deps = [
+        ":pdu_generator",
+        "@system_libraries//:libpcap",
+    ],
+)
+
+cc_library(
+    name = "pdu_generator",
+    srcs = ["PDUGenerator.cpp"],
+    hdrs = ["PDUGenerator.hpp"],
+    deps = [
+        ":mobilityd_client",
+        ":proxy_connector",
+        ":utilities",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "@libtins",
+        "@system_libraries//:libuuid",
+    ],
+)
+
+cc_library(
+    name = "proxy_connector",
+    srcs = ["ProxyConnector.cpp"],
+    hdrs = ["ProxyConnector.hpp"],
+    deps = [
+        "//orc8r/gateway/c/common/logging",
+    ],
+)
+
+cc_library(
+    name = "mobilityd_client",
+    srcs = ["MobilitydClient.cpp"],
+    hdrs = ["MobilitydClient.hpp"],
+    deps = [
+        "//lte/protos:mobilityd_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+    ],
+)
+
+cc_library(
+    name = "utilities",
+    srcs = ["Utilities.cpp"],
+    hdrs = ["Utilities.hpp"],
+    deps = [
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)

@@ -1,0 +1,106 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# log_level is set in mconfig. It can be overridden here
+
+# Append GRPC content to the log
+print_grpc_payload: false
+
+tr069:
+  interface: eth1 # NOTE: this value must be consistent with dnsmasq.conf
+  port: 48080
+  perf_mgmt_port: 8081
+  # NOTE: this is the IP which enodeb will communicate with enodebd
+  #       if this is ever changed in dnsd.yml, this needs to be updated too
+  public_ip: 192.88.99.142
+
+# TODO: @amar: This is a temp workaround to allow for testing until we
+# connect enodebd with the domain proxy which is responsible for talking to
+# SAS.
+sas:
+  dp_mode: True
+  sas_server_url: "https://spectrum-connect.federatedwireless.com/v1.2/"
+  sas_uid: "INVALID_ID"
+  sas_category: "A"
+  sas_channel_type: "GAA"
+  sas_cert_subject: "INVALID_CERT_SUBJECT"
+  sas_icg_group_id: ""
+  sas_location: "indoor"
+  sas_height_type: "AMSL"
+
+# TODO: @xbend TR069 Firmware Upgrade config (TR069 download flow)
+# This config section emulates a per eNB firmware upgrade mechanism
+# Eventually we would want this to be passed from Orchestrator as part
+# of mconfig
+# Currently only supported/used by FreedomFi One eNB
+
+# Main config section for TR069 Download request for FW Upgrade
+# `firmwares` is a dictionary of available firmwares with download details
+#   key is the firmware version signature. Value is an object with:
+#     "url": string, full url to the firmware file
+#     "username": [optional] string, auth credentials
+#     "password": [optional] string, auth credentials
+#     "md5": [optional, Baicells mandatory] string, 32 character md5 sum
+#     "rawmode": [optional, Baicells mandatory] bool, Raw mode flag
+#    "md5" and "rawmode" params will be added to Download request if present in the config.
+# `enbs` is a dictionary with serial-level eNB specific firmware upgrade configuration.
+#   key is the eNB serial number.
+#   value is a string matching firmware version listed in the `firmwares` section.
+#   Takes priority over model-level definition.
+#   Currently only works if serial number is part of eNB's data model.
+# `models` is a dictionary with model-level eNB firmware upgrade configuration.
+#   key is the device model name as stated in enodebd device_utils.py.
+#   value is a string matching firmware version listed in the `firmwares` section.
+#   If specified, applies to all eNBs for that device model that do not
+#   have individual firmware upgrade config in `enbs` section
+# Example:
+# firmware_upgrade_download:
+#   firmwares:
+#     "some_version":
+#       url: "http://some_url/some_fw_file.ffw"
+#       username: "user"
+#       password: "password"
+#       md5: "12345678901234567890123456789012"
+#       rawmode: false
+#     "some_other_version":
+#       url: "http://some_other_url/some_other_fw_file.ffw"
+#     "some_yet_unused_version":
+#       url: "some_url"
+#   enbs:
+#     "some_serial": "some_version"
+#     "some_other_serial": "some_other_version"
+#   models:
+#     "some_model": "some_version"
+
+firmware_upgrade_download:
+  firmwares: {}
+  enbs: {}
+  models: {}
+
+# primSync determines the primary source for synchronization.
+# Used by FreedomFi One eNB.
+# "GNSS" - When using SAS client in eNB, GPS is used.
+# "FREE_RUNNING" - When using Domain Proxy, GPS is not required.
+prim_src: "GNSS"
+
+# Reboot eNodeB if eNodeB should be connected to MME but isn't
+# This is a workaround for a bug with BaiCells eNodeB where the S1 connection
+# gets into a bad state
+reboot_enodeb_on_mme_disconnected: True
+
+# Enable webui for debugging for a list of eNB serial numbers.
+# Not supported on all enodeb models
+web_ui_enable_list: []
+
+# Network interface to terminate S1
+s1_interface: eth1

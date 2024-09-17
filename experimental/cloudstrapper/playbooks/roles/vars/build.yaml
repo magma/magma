@@ -1,0 +1,33 @@
+---
+#Tune for custom builds and verify before build
+buildMagmaVersion: v1.5
+buildOrc8rLabel: magmaalpha
+buildHelmRepo: helmalpha
+buildTagName: buildOrc8r
+
+#Build defaults
+buildAwsRegion: ap-northeast-1
+
+#AZ in same region as above
+buildAwsAz: ap-northeast-1a
+buildInstanceType: t2.xlarge
+buildGwInstanceType: t2.medium
+
+#AMI IDs are different across regions
+buildGwTagName: buildAgw
+buildAgwAmi: ami-0aac5cd08e351ff0f
+buildAgwAmiName: imgMagmaAgw15Delta
+buildAgwVersion: v1.6
+buildAgwPackage: 1.6.0
+packageRepoHost: linuxfoundation.jfrog.io/artifactory/magma-packages
+taggedVersion: 1.6.0
+
+#Repo variables
+buildControlRegistry: controller
+buildNginxRegistry: nginx
+buildNmsRegistry: magmalte
+buildDockerTag: latest
+buildHelmRepoUrl: "https://{{ gitUser }}:{{ gitPat }}@github.com/{{ gitUser }}/{{ buildHelmRepo }}"
+buildPackageDir: "{{ dirSourceRemote }}/orc8r/tools/helm/"
+buildDeploymentType: all
+buildMagmaRepo: https://github.com/magma/magma.git

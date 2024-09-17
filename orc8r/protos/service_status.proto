@@ -1,0 +1,55 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.orc8r;
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+// --------------------------------------------------------------------------
+// Service exit status
+// --------------------------------------------------------------------------
+
+message ServiceExitStatus {
+  // ServiceResult enumeration as defined in service "result" by systemd
+  enum ServiceResult {
+    UNUSED = 0;
+    SUCCESS = 1;
+    PROTOCOL = 2;
+    TIMEOUT = 3;
+    EXIT_CODE = 4;
+    SIGNAL = 5;
+    CORE_DUMP = 6;
+    WATCHDOG = 7;
+    START_LIMIT_HIT = 8;
+    RESOURCES = 9;
+  }
+  ServiceResult latest_service_result = 1;
+
+  // ExitCode enumeration as defined in service "result" by systemd
+  enum ExitCode {
+    UNUSED_EXIT_CODE = 0;
+    EXITED = 1;
+    KILLED = 2;
+    DUMPED = 3;
+  }
+  ExitCode latest_exit_code = 2;
+
+  // Optional return code returned by the service during exit
+  uint32 latest_rc = 3;
+
+  // Clean exit, e.g. SIGNKILL
+  uint32 num_clean_exits = 4;
+  // Unclean exit e.g. CORE_DUMP or non zero exit code.
+  uint32 num_fail_exits = 5;
+}

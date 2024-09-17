@@ -1,0 +1,39 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cpp_proto_library(
+    name = "context_cpp_proto",
+    protos = [":context_proto"],
+)
+
+proto_library(
+    name = "context_proto",
+    srcs = ["context.proto"],
+    # TODO: Clean up proto directory structures to be consistent across the project - #8625
+    strip_import_prefix = "/feg/gateway/services/aaa/protos",
+)
+
+cpp_grpc_library(
+    name = "accounting_cpp_grpc",
+    protos = [":accounting_proto"],
+    deps = [":context_cpp_proto"],
+)
+
+proto_library(
+    name = "accounting_proto",
+    srcs = ["accounting.proto"],
+    deps = [":context_proto"],
+)

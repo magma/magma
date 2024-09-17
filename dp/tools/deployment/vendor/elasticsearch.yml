@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          imagePullPolicy: IfNotPresent
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+          ports:
+            - containerPort: 9200
+              name: http
+              protocol: TCP
+          env:
+            - name: discovery.type
+              value: single-node
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    service: elasticsearch
+spec:
+  type: NodePort
+  ports:
+    - port: 9200
+      targetPort: 9200
+  selector:
+    app: elasticsearch

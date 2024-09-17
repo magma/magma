@@ -1,0 +1,15 @@
+{
+  "Comment": "Delete all route53 records",
+  "Changes": [
+      {%- for record in (record_info.stdout|from_json).ResourceRecordSets %}
+      {%-     if record.Type not in ['NS','SOA'] %}
+      {%-         if loop.index > 3 %},{% endif %}
+      {
+          "Action": "DELETE",
+          "ResourceRecordSet":
+          {{ record | to_json}}
+      }
+      {%      endif %}
+      {% endfor %}
+  ]
+}

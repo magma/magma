@@ -1,0 +1,46 @@
+- hosts: localhost
+  tags: addcerts
+  tasks:
+    - name: Open configuration file
+      shell: "jq .orc8r_domain_name {{ config_dir }}/infra.tfvars.json"
+      ignore_errors: true
+      register: result
+
+    - name: Check for a valid orc8r domain name
+      assert:
+        that:
+          - result.rc == 0
+          - result.stdout != 'null'
+        fail_msg:
+          - "Failed reading valid orc8r domain name. "
+          - "Configure orc8r domain name 'orcl configure set -k orc8r_domain_name -v <value>"
+
+    - name: Set orc8r domain name
+      set_fact:
+        orc8r_domain_name: "{{ result.stdout | from_json }}"
+
+    - name: Create certs directory
+      file:
+        name: "{{ secret_dir }}"
+        state: directory
+        mode: '0775'
+
+    - name: Generate self-signed certs
+      command: "{{ magma_root }}/orc8r/cloud/deploy/scripts/self_sign_certs.sh {{ orc8r_domain_name }}"
+      args:
+        chdir: "{{ secret_dir }}"
+      tags: self_signed
+
+    - name: Generate application certs
+      command: "{{ magma_root }}/orc8r/cloud/deploy/scripts/create_application_certs.sh {{ orc8r_domain_name }}"
+      args:
+        chdir: "{{ secret_dir }}"
+
+    - name: Generate admin operator certs as pfx bundle
+      openssl_pkcs12:
+        action: export
+        path: "{{ secret_dir }}/admin_operator.pfx"
+        friendly_name: orc8rpfx
+        privatekey_path: "{{ secret_dir }}/admin_operator.key.pem"
+        certificate_path: "{{ secret_dir }}/admin_operator.pem"
+        state: present

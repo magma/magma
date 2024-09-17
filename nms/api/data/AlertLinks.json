@@ -1,0 +1,12 @@
+{
+  "S1 Setup Failure": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#s1-setup-failure",
+  "UE attach Failure": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#ue-attach-failure",
+  "Gateway Checkin Failure": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#gateway-checkin-failure",
+  "eNodeB Failure To Connect": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#enodeb-failure-to-connect",
+  "No Metrics Available": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#no-metrics-available",
+  "S6A Authentication Success Rate": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#s6a-authentication-success-rate",
+  "Service Request Success Rate": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#service-request-success-rate",
+  "AGW Reboot": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#agw-reboot",
+  "Expected Service Restart": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#expected-service-restart",
+  "Unexpected Service Restart": "https://docs.magmacore.org/docs/nms/alerts_troubleshooting#unexpected-service-restart"
+}

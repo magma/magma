@@ -1,0 +1,10 @@
+ priority=65534,udp,in_port=3,tp_dst=68 actions=output:1,LOCAL
+ priority=0,in_port=LOCAL actions=output:3
+ priority=65534,in_port=1 actions=output:3
+ priority=100,in_port=2 actions=mod_dl_src:02:bb:5e:36:06:4b,output:3
+ priority=101,ip,in_port=3,nw_dst=1.1.11.1 actions=LOCAL
+ priority=101,ipv6,in_port=3,ipv6_dst=fe80::48a3:2cff:fe1a:abcd actions=LOCAL
+ priority=101,ipv6,in_port=3,ipv6_dst=ff02::1:ff00:0/104 actions=LOCAL
+ priority=100,ip,in_port=3,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=100,ipv6,in_port=3,dl_dst=02:bb:5e:36:06:4b actions=output:2
+ priority=0,arp,in_port=3 actions=output:1,output:2,LOCAL

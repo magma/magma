@@ -1,0 +1,5 @@
+---
+
+buildMagmaVersion: master
+buildMagmaRepo: https://github.com/magma/magma.git
+usrName: ubuntu

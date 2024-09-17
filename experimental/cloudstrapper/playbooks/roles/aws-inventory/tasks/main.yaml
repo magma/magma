@@ -1,0 +1,13 @@
+---
+
+- name: folder for dynamic inventory file
+  file:
+    path: "{{ dirLocalInventory }}"
+    mode: '0755'
+    state: directory
+
+- name: templatizing dynamic inventory file
+  template:
+    src: roles/aws-inventory/templates/instance_aws_ec2.yaml.j2
+    dest: "{{ dirLocalInventory }}/common_instance_aws_ec2.yaml"
+    mode: '0644'

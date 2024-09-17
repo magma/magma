@@ -1,0 +1,8 @@
+---
+
+- name: delete elasticsearch
+  command: aws es delete-elasticsearch-domain --domain-name "{{ orc8rElasticsearch }}"
+  register: result
+  failed_when:
+    - result.stderr != ''
+    - not 'ResourceNotFoundException' in result.stderr

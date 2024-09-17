@@ -1,0 +1,72 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "flow_query",
+    testonly = True,
+    srcs = ["flow_query.py"],
+    deps = [
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:constants",
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
+    ],
+)
+
+py_library(
+    name = "packet_builder",
+    testonly = True,
+    srcs = ["packet_builder.py"],
+    deps = [requirement("scapy")],
+)
+
+py_library(
+    name = "packet_injector",
+    testonly = True,
+    srcs = ["packet_injector.py"],
+    deps = [requirement("scapy")],
+)
+
+py_library(
+    name = "table_isolation",
+    testonly = True,
+    srcs = ["table_isolation.py"],
+    deps = [
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:constants",
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
+    ],
+)
+
+py_library(
+    name = "subscriber",
+    srcs = ["subscriber.py"],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "start_pipelined",
+    testonly = True,
+    srcs = [
+        "exceptions.py",
+        "start_pipelined.py",
+    ],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:internal_ip_allocator",
+        "//lte/gateway/python/magma/pipelined/app:base",
+        "//lte/gateway/python/magma/pipelined/qos:common",
+    ],
+)

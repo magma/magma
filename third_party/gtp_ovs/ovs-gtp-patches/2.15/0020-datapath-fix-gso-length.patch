@@ -1,0 +1,176 @@
+From 21818da9db7ab7644f8e169cc21db4552fdf21f4 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Tue, 21 Sep 2021 22:26:20 +0000
+Subject: [PATCH 20/22] datapath: fix gso length
+
+In some cases GSO lngth is not calculated in case
+of TSO.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ datapath/linux/compat/gtp.c | 84 +++++++++++++++++++++++++++++++------
+ 1 file changed, 71 insertions(+), 13 deletions(-)
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 16c06f91e..529d6080e 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -20,6 +20,7 @@
+ #include <linux/net.h>
+ #include <linux/file.h>
+ #include <linux/gtp.h>
++#include <linux/sctp.h>
+ 
+ #include <net/dst_metadata.h>
+ #include <net/net_namespace.h>
+@@ -328,14 +329,55 @@ const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
+         .next_type = 0,
+ };
+ 
+-static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid, __u8 qfi)
++static unsigned int skb_gso_transport_seglen(const struct sk_buff *skb)
++{
++        const struct skb_shared_info *shinfo = skb_shinfo(skb);
++        unsigned int thlen = 0;
++
++        if (skb->encapsulation) {
++                thlen = skb_inner_transport_header(skb) -
++                        skb_transport_header(skb);
++
++                if (likely(shinfo->gso_type & (SKB_GSO_TCPV4 | SKB_GSO_TCPV6)))
++                        thlen += inner_tcp_hdrlen(skb);
++        } else if (likely(shinfo->gso_type & (SKB_GSO_TCPV4 | SKB_GSO_TCPV6))) {
++                thlen = tcp_hdrlen(skb);
++        } else if (unlikely(skb_is_gso_sctp(skb))) {
++                thlen = sizeof(struct sctphdr);
++        } else if (shinfo->gso_type & SKB_GSO_UDP_L4) {
++                thlen = sizeof(struct udphdr);
++        }
++        /* UFO sets gso_size to the size of the fragmentation
++         * payload, i.e. the size of the L4 (UDP) header is already
++         * accounted for.
++         */
++        return thlen + shinfo->gso_size;
++}
++
++static unsigned int skb_gso_network_seglen(const struct sk_buff *skb)
++{
++        unsigned int hdr_len = skb_transport_header(skb) -
++                               skb_network_header(skb);
++
++        return hdr_len + skb_gso_transport_seglen(skb);
++}
++
++static inline void gtp1_push_header(struct net_device *dev, struct sk_buff *skb, __be32 tid, __u8 qfi)
+ {
+ 	struct gtpu_ext_hdr *next_hdr;
+ 	struct gtpu_ext_hdr_pdu_sc *pdu_sc;
+ 	struct gtp1_header *gtp1;
+-	int payload_len = skb->len;
++	int payload_len;
+ 	__u8 flags = 0x30;
+ 
++	if (skb_is_gso(skb)) {
++		payload_len = skb_gso_network_seglen(skb);
++		netdev_dbg(dev, "gso_size %d skb_gso_network_seglen(skb) %d skb->len %d\n",
++				skb_shinfo(skb)->gso_size, skb_gso_network_seglen(skb), skb->len);
++	} else {
++		netdev_dbg(dev,"No gso len %d\n", skb->len);
++		payload_len = skb->len;
++	}
+ 	if (qfi) {
+ 		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1) + sizeof (*next_hdr) + sizeof (*pdu_sc));
+ 		payload_len += (sizeof(*next_hdr) + sizeof(*pdu_sc));
+@@ -436,18 +478,20 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 	struct gtp_dev *gtp = netdev_priv(dev);
+ 	struct rtable *rt;
+ 	struct flowi4 fl4;
++	int min_headroom;
+ 	__be16 df;
+         __u8 ttl;
+         __u8 set_qfi = 0;
+         __u8 csum;
+         int err;
++	int mtu;
+ 
+ 	/* Read the IP destination address and resolve the PDP context.
+ 	 * Prepend PDP header with TEI/TID from PDP ctx.
+ 	 */
+ 
+ 	if (!info) {
+-		netdev_dbg(dev, "no info for FB tunnel xmit\n");
++		netdev_dbg(dev, "no info for tunnel xmit\n");
+ 		goto err;
+ 	}
+ 	rt = gtp_get_v4_rt(skb, dev, gtp->sk1u, &fl4, info);
+@@ -456,23 +500,38 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 		dev->stats.tx_carrier_errors++;
+ 		goto err;
+ 	}
+-
+ 	skb_dst_drop(skb);
+         csum = !!(info->key.tun_flags & TUNNEL_CSUM);
+-        err = udp_tunnel_handle_offloads(skb, csum);
+-        if (err)
+-                goto err_rt;
+-        netdev_dbg(dev, "skb->protocol %d\n", skb->protocol);
+-        ovs_skb_set_inner_protocol(skb, cpu_to_be16(ETH_P_IP));
++	err = udp_tunnel_handle_offloads(skb, csum);
++	if (err)
++		goto err_rt;
++	ovs_skb_set_inner_protocol(skb, cpu_to_be16(ETH_P_IP));
+ 
+         ttl = info->key.ttl;
+         df = info->key.tun_flags & TUNNEL_DONT_FRAGMENT ? htons(IP_DF) : 0;
++
++	/* hack to handle MTU */
++	if (df) {
++		mtu = dst_mtu(&rt->dst) - dev->hard_header_len -
++			sizeof(struct iphdr) - sizeof(struct udphdr);
++		mtu -= sizeof(struct gtp1_header);
++	} else {
++		mtu = dst_mtu(&rt->dst);
++	}
++	min_headroom = LL_RESERVED_SPACE(rt->dst.dev) + rt->dst.header_len
++			+ sizeof(struct gtp1_header) + sizeof(struct iphdr)
++			+ info->options_len;
++
++	err = skb_cow_head(skb, min_headroom);
++	if (unlikely(err))
++		goto err_rt;
++
+         netdev_dbg(dev, "packet with opt len %d", info->options_len);
+         if (info->options_len == 0) {
+             if (info->key.tun_flags & TUNNEL_OAM) {
+                set_qfi = 5;
+             }
+-            gtp1_push_header(skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++            gtp1_push_header(dev, skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
+         } else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
+                 struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
+                 __be32 tid = tunnel_id_to_key32(info->key.tun_id);
+@@ -644,11 +703,11 @@ static void gtp_link_setup(struct net_device *dev)
+ 
+ 	netif_keep_dst(dev);
+ 
+-	/* Assume largest header, ie. GTPv0. */
+ 	dev->needed_headroom	= LL_MAX_HEADER +
+ 				  sizeof(struct iphdr) +
+ 				  sizeof(struct udphdr) +
+-				  sizeof(struct gtp0_header);
++				  sizeof(struct gtp1_header);
++
+ }
+ 
+ #ifdef HAVE_EXT_ACK_IN_RTNL_LINKOPS
+@@ -756,7 +815,6 @@ static int gtp_configure(struct net *net, struct net_device *dev)
+ 	dev->features   |= NETIF_F_LLTX;
+ 	netif_keep_dst(dev);
+ 
+-	/* Assume largest header, ie. GTPv0. */
+ 	dev->needed_headroom    = LL_MAX_HEADER +
+ 		sizeof(struct iphdr) +
+ 		sizeof(struct udphdr) +
+-- 
+2.25.1
+

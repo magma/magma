@@ -1,0 +1,124 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+message HealthRequest {
+  HealthStats health_stats = 1;
+}
+
+// Object to be stored in the health service's database
+message HealthStats {
+
+  // System resources, cpu, memory, etc.
+  SystemHealthStats system_status = 1;
+
+  // ServiceType name mapped to service stats
+  map<string, ServiceHealthStats> service_status = 2;
+
+  // Gateway's perceived health of itself
+  HealthStatus health = 3;
+
+  // Unix time of when this object is stored
+  uint64 time = 4;
+}
+
+message SystemHealthStats {
+  // Unix time on the gateway
+  uint64 time = 1;
+
+  // Total cpu utilization system-wide (as a percentage)
+  float cpu_util_pct = 2;
+
+  // Total physical memory on the system
+  uint64 mem_total_bytes = 3;
+
+  // Total memory available
+  uint64 mem_available_bytes = 4;
+}
+
+message ServiceHealthStats {
+  enum ServiceState {
+    AVAILABLE = 0;
+    UNAVAILABLE = 1;
+  }
+  ServiceState service_state = 1;
+
+  HealthStatus service_health_status = 2;
+}
+
+message HealthStatus {
+  enum HealthState {
+    HEALTHY = 0;
+    UNHEALTHY = 1;
+  }
+
+  HealthState health = 1;
+
+  // String to provide description for health status
+  string health_message = 2;
+}
+
+message HealthResponse {
+  enum RequestedAction {
+    NONE = 0; // Everything is OK, do nothing
+    SYSTEM_DOWN = 1;
+    SYSTEM_UP = 2;
+  }
+  RequestedAction action = 1;
+
+  // Unix time of when the update occurred
+  uint64 time = 2;
+}
+
+message ClusterState {
+  // The logical id of the currently active gateway
+  string active_gateway_logical_id = 1;
+
+  // Unix time of when the cluster state update occurred
+  uint64 time = 2;
+}
+
+message ClusterStateRequest {
+  // NetworkID that the cluster is registered in
+  string network_id = 1;
+
+  // Cluster's clusterID
+  string cluster_id = 2;
+}
+
+message GatewayStatusRequest {
+  // Gateway's network id
+  string network_id = 1;
+  // Gateway's logical id
+  string logical_id = 2;
+}
+
+// --------------------------------------------------------------------------
+// Health service definition.
+// --------------------------------------------------------------------------
+service Health {
+  // Update the cloud representation of gateway health
+  rpc UpdateHealth (HealthRequest) returns (HealthResponse) {}
+}
+
+service CloudHealth {
+  // Get the health statistics of a gateway
+  rpc GetHealth (GatewayStatusRequest) returns (HealthStats) {}
+
+  // Get cluster state for (networkID, clusterID) tuple
+  rpc GetClusterState (ClusterStateRequest) returns (ClusterState) {}
+}

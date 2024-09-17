@@ -1,0 +1,21 @@
+# Deploy kubernetes
+- name: Deploy haproxy/keepalived
+  import_playbook: deploy-haproxy.yml
+  tags:
+    - haproxy
+- name: Deploy Kubespray
+  import_playbook: kubespray/cluster.yml
+  tags:
+    - kubespray
+- name: Kubernetes postinstall
+  import_playbook: deploy-kubernetes-postinstall.yml
+
+- name: Magma infra helm charts
+  import_playbook: deploy-magma-infra.yml
+  tags:
+    - magma-infra
+- name: Magma helm charts
+  import_playbook: deploy-magma.yml
+  tags:
+    - magma
+

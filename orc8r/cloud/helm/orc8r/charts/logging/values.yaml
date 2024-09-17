@@ -1,0 +1,79 @@
+imagePullSecrets: []
+
+secret:
+  certs: orc8r-secrets-certs
+
+fluentd_daemon:
+  create: false
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "elasticsearch-logging"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+fluentd_forward:
+  create: false
+
+  # Domain-proxy output
+  dp_output: true
+
+  replicas: 1
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "elasticsearch-logging"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+    elastic_flush_interval: 5s
+
+  resources: {}
+
+  service:
+    targetPort: 24224
+    type: ClusterIP
+
+elasticsearch-curator:
+  create: false
+
+  configMaps:
+    config_yml: |-
+      ---
+      client:
+        hosts:
+          - CHANGEME.host
+        port: 9200
+        # url_prefix:
+        # use_ssl: True
+        # certificate:
+        # client_cert:
+        # client_key:
+        # ssl_no_validate: True
+        # http_auth:
+        # timeout: 30
+        # master_only: False
+      # logging:
+      #   loglevel: INFO
+      #   logfile:
+      #   logformat: default
+      #   blacklist: ['elasticsearch', 'urllib3']

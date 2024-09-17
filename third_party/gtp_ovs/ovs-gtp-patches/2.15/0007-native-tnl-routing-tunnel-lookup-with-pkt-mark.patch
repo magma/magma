@@ -1,0 +1,112 @@
+From ef6fbd9c38c8a6ec4285263c72237340c6e3179e Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Sun, 27 Sep 2020 19:46:24 +0000
+Subject: [PATCH 07/22] native-tnl: routing: tunnel lookup with pkt-mark
+
+In case of zero packet mark ignore packet mark in lookup.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ lib/ovs-router.c    |  6 ++++--
+ tests/ovs-router.at | 31 +++++++++++++++++++++----------
+ 2 files changed, 25 insertions(+), 12 deletions(-)
+
+diff --git a/lib/ovs-router.c b/lib/ovs-router.c
+index 09b81c6e5..39b07d33a 100644
+--- a/lib/ovs-router.c
++++ b/lib/ovs-router.c
+@@ -160,8 +160,10 @@ static void rt_init_match(struct match *match, uint32_t mark,
+     memset(match, 0, sizeof *match);
+     match->flow.ipv6_dst = dst;
+     match->wc.masks.ipv6_dst = mask;
+-    match->wc.masks.pkt_mark = UINT32_MAX;
+-    match->flow.pkt_mark = mark;
++    if (mark) {
++        match->wc.masks.pkt_mark = UINT32_MAX;
++        match->flow.pkt_mark = mark;
++    }
+ }
+ 
+ static int
+diff --git a/tests/ovs-router.at b/tests/ovs-router.at
+index 6dacc2954..6d6e648a5 100644
+--- a/tests/ovs-router.at
++++ b/tests/ovs-router.at
+@@ -19,14 +19,15 @@ AT_CHECK([ovs-appctl netdev-dummy/ip4addr br0 192.0.2.1/24], [0], [OK
+ ])
+ AT_CHECK([ovs-appctl ovs/route/add 198.51.100.0/24 br0 192.0.2.254], [0], [OK
+ ])
+-AT_CHECK([ovs-appctl ovs/route/add 192.0.2.1/24 br0 pkt_mark=123], [0], [OK
++AT_CHECK([ovs-appctl ovs/route/add 198.0.2.1/24 br0 192.0.2.123 pkt_mark=123], [0], [OK
+ ])
+ 
+-AT_CHECK([ovs-appctl ovs/route/add 198.51.100.200/24 br0 192.0.2.250 pkt_mark=1234], [0], [OK
++AT_CHECK([ovs-appctl ovs/route/add 198.0.2.1/24 br0 192.0.2.250 pkt_mark=1234], [0], [OK
+ ])
+ 
+-AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [User: 192.0.2.0/24 MARK 123 dev br0 SRC 192.0.2.1
+-User: 198.51.100.0/24 MARK 1234 dev br0 GW 192.0.2.250 SRC 192.0.2.1
++AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [dnl
++User: 198.0.2.0/24 MARK 123 dev br0 GW 192.0.2.123 SRC 192.0.2.1
++User: 198.0.2.0/24 MARK 1234 dev br0 GW 192.0.2.250 SRC 192.0.2.1
+ User: 198.51.100.0/24 dev br0 GW 192.0.2.254 SRC 192.0.2.1
+ ])
+ 
+@@ -36,12 +37,22 @@ dev br0
+ ])
+ 
+ AT_CHECK([ovs-appctl ovs/route/lookup 198.51.100.1 pkt_mark=1234], [0], [src 192.0.2.1
++gateway 192.0.2.254
++dev br0
++])
++AT_CHECK([ovs-appctl ovs/route/lookup 198.0.2.100 pkt_mark=1234], [0], [src 192.0.2.1
+ gateway 192.0.2.250
+ dev br0
+ ])
+-AT_CHECK([ovs-appctl ovs/route/del 198.51.100.0/24 pkt_mark=1234], [0], [OK
++AT_CHECK([ovs-appctl ovs/route/lookup 198.0.2.100 pkt_mark=123], [0], [src 192.0.2.1
++gateway 192.0.2.123
++dev br0
++])
++
++AT_CHECK([ovs-appctl ovs/route/del 198.0.2.0/24 pkt_mark=1234], [0], [OK
+ ])
+-AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [User: 192.0.2.0/24 MARK 123 dev br0 SRC 192.0.2.1
++AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [dnl
++User: 198.0.2.0/24 MARK 123 dev br0 GW 192.0.2.123 SRC 192.0.2.1
+ User: 198.51.100.0/24 dev br0 GW 192.0.2.254 SRC 192.0.2.1
+ ])
+ 
+@@ -55,12 +66,12 @@ AT_CHECK([ovs-appctl netdev-dummy/ip6addr br0 2001:db8:cafe::1/64], [0], [OK
+ ])
+ AT_CHECK([ovs-appctl ovs/route/add 2001:db8:babe::/64 br0 2001:db8:cafe::2], [0], [OK
+ ])
+-AT_CHECK([ovs-appctl ovs/route/add 2001:db8:babe::/64 br0 2001:db8:cafe::3 pkt_mark=321], [0], [OK
++AT_CHECK([ovs-appctl ovs/route/add 2001:db9:babe::/64 br0 2001:db8:cafe::3 pkt_mark=321], [0], [OK
+ ])
+ 
+ AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [dnl
+-User: 2001:db8:babe::/64 MARK 321 dev br0 GW 2001:db8:cafe::3 SRC 2001:db8:cafe::1
+ User: 2001:db8:babe::/64 dev br0 GW 2001:db8:cafe::2 SRC 2001:db8:cafe::1
++User: 2001:db9:babe::/64 MARK 321 dev br0 GW 2001:db8:cafe::3 SRC 2001:db8:cafe::1
+ ])
+ 
+ AT_CHECK([ovs-appctl ovs/route/lookup 2001:db8:babe::1eaf], [0], [src 2001:db8:cafe::1
+@@ -68,12 +79,12 @@ gateway 2001:db8:cafe::2
+ dev br0
+ ])
+ 
+-AT_CHECK([ovs-appctl ovs/route/lookup 2001:db8:babe::1eaf pkt_mark=321], [0], [src 2001:db8:cafe::1
++AT_CHECK([ovs-appctl ovs/route/lookup 2001:db9:babe::1eaf pkt_mark=321], [0], [src 2001:db8:cafe::1
+ gateway 2001:db8:cafe::3
+ dev br0
+ ])
+ 
+-AT_CHECK([ovs-appctl ovs/route/del 2001:db8:babe::/64 pkt_mark=321], [0], [OK
++AT_CHECK([ovs-appctl ovs/route/del 2001:db9:babe::/64 pkt_mark=321], [0], [OK
+ ])
+ AT_CHECK([ovs-appctl ovs/route/show | grep User | sort], [0], [dnl
+ User: 2001:db8:babe::/64 dev br0 GW 2001:db8:cafe::2 SRC 2001:db8:cafe::1
+-- 
+2.25.1
+

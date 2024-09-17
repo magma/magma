@@ -1,0 +1,83 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "context.proto";
+
+package aaa.protos;
+option go_package = "magma/feg/gateway/services/aaa/protos";
+
+enum eap_type { // also known as EAP Methods
+    // Mandatory EAP Method types
+    Reserved = 0;
+    Identity = 1;
+    Notification = 2;
+    Legacy_Nak = 3;
+    MD5_Challenge = 4;
+
+    Expanded = 254;
+    Experimental= 255;
+
+    // EAP Method Authenticator types
+    TLS = 13;
+    SIM = 18;
+    AKA = 23;
+    AKAPrime = 50;
+}
+
+enum eap_code {
+    Undefined = 0;
+    Request = 1;
+    Response = 2;
+    Success = 3;
+    Failure = 4;
+}
+
+message eap {
+    bytes payload = 1;
+    context ctx = 2;
+}
+
+message eap_identity {
+    bytes payload = 1;
+    context ctx = 2;
+    uint32 method = 3;
+}
+
+message eap_method_list {
+    bytes methods = 1;
+}
+
+service authenticator {
+    // handle_identity passes Identity EAP payload to corresponding method provider & returns corresponding
+    // EAP result
+    // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support
+    rpc handle_identity(eap_identity) returns (eap) {}
+    // handle handles passed EAP payload & returns corresponding EAP result
+    rpc handle(eap) returns (eap) {}
+    // supported_methods returns sorted list (ascending, by type) of registered EAP Provider Methods
+    rpc supported_methods(Void) returns (eap_method_list) {}
+}
+
+// NOTE: Depreciated, use authenticator service instead
+service eap_router {
+    // handle_identity passes Identity EAP payload to corresponding method provider & returns corresponding
+    // EAP result
+    // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support
+    rpc handle_identity(eap_identity) returns (eap) {}
+    // handle handles passed EAP payload & returns corresponding EAP result
+    rpc handle(eap) returns (eap) {}
+    // supported_methods returns sorted list (ascending, by type) of registered EAP Provider Methods
+    rpc supported_methods(Void) returns (eap_method_list) {}
+}

@@ -1,0 +1,27 @@
+---
+
+- name: find all filesystems
+  efs_info:
+  register: valEfs
+
+- name: debug filesystem
+  debug:
+    msg: "{{ valEfs }}"
+
+- name: delete mount targets, because the efs module doesn't do it on it's own
+  command: aws efs delete-mount-target --mount-target-id "{{ item.mount_target_id }}"
+  with_items:
+    - "{{ valEfs.efs[0].mount_targets }}"
+  when: valEfs.efs is defined and valEfs.efs[0].mount_targets is defined
+
+- name: sleep for a while before deleting filesystem
+  pause:
+    minutes: "{{ varDefaultSleep }}"
+
+- name: delete orc8r efs volume
+  command: aws efs delete-file-system --file-system-id "{{ item.file_system_id }}"
+  when: item is defined and  item.file_system_id is defined
+  with_items:
+    - "{{ valEfs.efs }}"
+  environment:
+    AWS_REGION: "{{ awsOrc8rRegion }}"

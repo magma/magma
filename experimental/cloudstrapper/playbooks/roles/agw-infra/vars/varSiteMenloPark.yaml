@@ -1,0 +1,12 @@
+---
+
+#Parameters for Menlo Park Site Networking
+
+cidrVpc: 10.7.0.0/16
+cidrSgi: 10.7.4.0/24
+cidrEnodeb: 10.7.2.0/24
+cidrBridge: 10.7.6.0/24
+azHome: "{{ awsAgwAz }}"
+secGroup: "{{ secgroupDefault }}"
+sshKey: "{{ keyHost }}"
+siteName: MenloPark

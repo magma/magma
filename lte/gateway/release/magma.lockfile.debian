@@ -1,0 +1,1196 @@
+{
+  "dependencies": {
+    "aiodns": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-aiodns",
+      "version": "1.1.1"
+    },
+    "aioeventlet": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-aioeventlet",
+      "version": "0.5.1"
+    },
+    "aioh2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-aioh2",
+      "version": "0.2.2"
+    },
+    "aiohttp": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-aiohttp",
+      "version": "1.2.0"
+    },
+    "argparse": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-argparse",
+      "version": "1.4.0"
+    },
+    "astroid": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-astroid",
+      "version": "2.4.2"
+    },
+    "attrs": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-attrs",
+      "version": "20.3.0"
+    },
+    "bravado-core": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-bravado-core",
+      "version": "5.16.1"
+    },
+    "certifi": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-certifi",
+      "version": "2019.6.16"
+    },
+    "cffi": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-cffi",
+      "version": "1.14.5"
+    },
+    "chardet": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-chardet",
+      "version": "3.0.4"
+    },
+    "click": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-click",
+      "version": "7.1.2"
+    },
+    "cryptography": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-cryptography",
+      "version": "3.2.1"
+    },
+    "cython": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-cython",
+      "version": "0.29.1"
+    },
+    "dnspython": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-dnspython",
+      "version": "1.16.0"
+    },
+    "docker": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-docker",
+      "version": "4.0.2"
+    },
+    "envoy": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-envoy",
+      "version": "0.0.3"
+    },
+    "eventlet": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-eventlet",
+      "version": "0.26.1"
+    },
+    "fire": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-fire",
+      "version": "0.2.0"
+    },
+    "flask": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-flask",
+      "version": "1.0.2"
+    },
+    "freezegun": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-freezegun",
+      "version": "0.3.15"
+    },
+    "glob2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-glob2",
+      "version": "0.7"
+    },
+    "greenlet": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-greenlet",
+      "version": "0.4.16"
+    },
+    "grpcio": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-grpcio",
+      "version": "1.36.1"
+    },
+    "h2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-h2",
+      "version": "3.2.0"
+    },
+    "hpack": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-hpack",
+      "version": "3.0.0"
+    },
+    "hyperframe": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-hyperframe",
+      "version": "5.2.0"
+    },
+    "idna": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-idna",
+      "version": "2.8"
+    },
+    "importlib-metadata": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-importlib-metadata",
+      "version": "2.1.1"
+    },
+    "importlib-resources": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-importlib-resources",
+      "version": "3.0.0"
+    },
+    "isort": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-isort",
+      "version": "4.3.21"
+    },
+    "itsdangerous": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-itsdangerous",
+      "version": "1.1.0"
+    },
+    "jinja2": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-jinja2",
+      "version": "2.10"
+    },
+    "js-regex": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-js-regex",
+      "version": "1.0.1"
+    },
+    "jsonpickle": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-jsonpickle",
+      "version": "0.9.3"
+    },
+    "jsonpointer": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-jsonpointer",
+      "version": "2.0"
+    },
+    "jsonref": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-jsonref",
+      "version": "0.2"
+    },
+    "jsonschema": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-jsonschema",
+      "version": "3.1.0"
+    },
+    "lazy-object-proxy": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-lazy-object-proxy",
+      "version": "1.4.3"
+    },
+    "lxml": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-lxml",
+      "version": "4.6.2"
+    },
+    "markupsafe": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-markupsafe",
+      "version": "1.1.1"
+    },
+    "mccabe": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-mccabe",
+      "version": "0.6.1"
+    },
+    "monotonic": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-monotonic",
+      "version": "1.5"
+    },
+    "msgpack": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-msgpack",
+      "version": "1.0.0"
+    },
+    "netaddr": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-netaddr",
+      "version": "0.8.0"
+    },
+    "netifaces": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-netifaces",
+      "version": "0.10.9"
+    },
+    "oslo.config": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-oslo.config",
+      "version": "2.5.0"
+    },
+    "ovs": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-ovs",
+      "version": "2.6.0"
+    },
+    "pbr": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pbr",
+      "version": "5.4.5"
+    },
+    "priority": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-priority",
+      "version": "1.3.0"
+    },
+    "prometheus-client": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-prometheus-client",
+      "version": "0.3.1"
+    },
+    "protobuf": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-protobuf",
+      "version": "3.14.0"
+    },
+    "psutil": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-psutil",
+      "version": "5.6.6"
+    },
+    "pycares": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pycares",
+      "version": "3.1.1"
+    },
+    "pycparser": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pycparser",
+      "version": "2.20"
+    },
+    "pycryptodome": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pycryptodome",
+      "version": "3.9.9"
+    },
+    "pylint": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pylint",
+      "version": "2.6.2"
+    },
+    "pymemoize": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pymemoize",
+      "version": "1.0.2"
+    },
+    "pyroute2": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pyroute2",
+      "version": "0.5.14"
+    },
+    "pyrsistent": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pyrsistent",
+      "version": "0.17.3"
+    },
+    "pystemd": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-pystemd",
+      "version": "0.8.0"
+    },
+    "python-dateutil": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-python-dateutil",
+      "version": "2.8.1"
+    },
+    "python-redis-lock": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-python-redis-lock",
+      "version": "3.7.0"
+    },
+    "pytz": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-pytz",
+      "version": "2020.1"
+    },
+    "pyyaml": {
+      "root": true,
+      "source": "apt",
+      "sysdep": "python3-yaml",
+      "version": "3.12"
+    },
+    "redis": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-redis",
+      "version": "3.5.3"
+    },
+    "redis-collections": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-redis-collections",
+      "version": "0.9.0"
+    },
+    "repoze.lru": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-repoze.lru",
+      "version": "0.7"
+    },
+    "requests": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-requests",
+      "version": "2.22.0"
+    },
+    "rfc3987": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-rfc3987",
+      "version": "1.3.8"
+    },
+    "routes": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-routes",
+      "version": "2.4.1"
+    },
+    "ryu": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-ryu",
+      "version": "4.30"
+    },
+    "scapy": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-scapy",
+      "version": "2.4.4"
+    },
+    "sentry-sdk": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-sentry-sdk",
+      "version": "1.0.0"
+    },
+    "simplejson": {
+      "root": false,
+      "source": "apt",
+      "sysdep": "python3-simplejson",
+      "version": "3.10.0"
+    },
+    "six": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-six",
+      "version": "1.12.0"
+    },
+    "snowflake": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-snowflake",
+      "version": "0.0.3"
+    },
+    "spyne": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-spyne",
+      "version": "2.12.16"
+    },
+    "stevedore": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-stevedore",
+      "version": "1.32.0"
+    },
+    "strict-rfc3339": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-strict-rfc3339",
+      "version": "0.7"
+    },
+    "swagger-spec-validator": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-swagger-spec-validator",
+      "version": "2.7.3"
+    },
+    "systemd-python": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-systemd-python",
+      "version": "234"
+    },
+    "termcolor": {
+      "root": false,
+      "source": "apt",
+      "sysdep": "python3-termcolor",
+      "version": "1.1.0"
+    },
+    "tinyrpc": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-tinyrpc",
+      "version": "1.0.4"
+    },
+    "toml": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-toml",
+      "version": "0.10.2"
+    },
+    "typed-ast": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-typed-ast",
+      "version": "1.4.2"
+    },
+    "urllib3": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-urllib3",
+      "version": "1.25.3"
+    },
+    "webcolors": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-webcolors",
+      "version": "1.11.1"
+    },
+    "webob": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-webob",
+      "version": "1.2"
+    },
+    "websocket-client": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-websocket-client",
+      "version": "0.56.0"
+    },
+    "werkzeug": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-werkzeug",
+      "version": "0.14"
+    },
+    "wrapt": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-wrapt",
+      "version": "1.12.1"
+    },
+    "wsgiserver": {
+      "root": true,
+      "source": "pypi",
+      "sysdep": "python3-wsgiserver",
+      "version": "1.3"
+    },
+    "zipp": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-zipp",
+      "version": "1.2.0"
+    }
+  },
+  "override": {
+    "focal": {
+      "dependencies": {
+        "aiodns": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-aiodns",
+          "version": "2.0.0"
+        },
+        "aioh2": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-aioh2",
+          "version": "0.2.2"
+        },
+        "aiohttp": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-aiohttp",
+          "version": "3.7.3"
+        },
+        "astroid": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-astroid",
+          "version": "2.4.2"
+        },
+        "async-timeout": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-async-timeout",
+          "version": "3.0.1"
+        },
+        "attrs": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-attrs",
+          "version": "19.3.0"
+        },
+        "bravado-core": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-bravado-core",
+          "version": "5.16.1"
+        },
+        "certifi": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-certifi",
+          "version": "2019.11.28"
+        },
+        "click": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-click",
+          "version": "7.1.2"
+        },
+        "cryptography": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-cryptography",
+          "version": "2.8"
+        },
+        "docker": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-docker",
+          "version": "4.0.2"
+        },
+        "fire": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-fire",
+          "version": "0.2.1"
+        },
+        "flask": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-flask",
+          "version": "1.1.1"
+        },
+        "freezegun": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-freezegun",
+          "version": "0.3.15"
+        },
+        "grpcio": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-grpcio",
+          "version": "1.34.0"
+        },
+        "hpack": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-hpack",
+          "version": "3.0.0"
+        },
+        "hyperframe": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-hyperframe",
+          "version": "5.2.0"
+        },
+        "idna": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-idna",
+          "version": "2.8"
+        },
+        "importlib-metadata": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-importlib-metadata",
+          "version": "1.5.0"
+        },
+        "isort": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-isort",
+          "version": "5.7.0"
+        },
+        "itsdangerous": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-itsdangerous",
+          "version": "1.1.0"
+        },
+        "jinja2": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-jinja2",
+          "version": "2.10.1"
+        },
+        "js-regex": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-js-regex",
+          "version": "1.0.1"
+        },
+        "jsonpickle": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-jsonpickle",
+          "version": "1.2"
+        },
+        "jsonpointer": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-jsonpointer",
+          "version": "2.0"
+        },
+        "jsonref": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-jsonref",
+          "version": "0.2"
+        },
+        "jsonschema": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-jsonschema",
+          "version": "3.1.0"
+        },
+        "lazy-object-proxy": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-lazy-object-proxy",
+          "version": "1.4.3"
+        },
+        "mccabe": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-mccabe",
+          "version": "0.6.1"
+        },
+        "multidict": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-multidict",
+          "version": "5.1.0"
+        },
+        "netifaces": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-netifaces",
+          "version": "0.10.4"
+        },
+        "priority": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-priority",
+          "version": "1.3.0"
+        },
+        "prometheus-client": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-prometheus-client",
+          "version": "0.3.1"
+        },
+        "protobuf": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-protobuf",
+          "version": "3.14.0"
+        },
+        "psutil": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-psutil",
+          "version": "5.6.6"
+        },
+        "pycares": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-pycares",
+          "version": "3.1.1"
+        },
+        "pylint": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-pylint",
+          "version": "2.6.0"
+        },
+        "pyrsistent": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-pyrsistent",
+          "version": "0.15.5"
+        },
+        "pytz": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-pytz",
+          "version": "2020.1"
+        },
+        "pyyaml": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-yaml",
+          "version": "5.3.1"
+        },
+        "redis": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-redis",
+          "version": "3.3.11"
+        },
+        "redis-collections": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-redis-collections",
+          "version": "0.8.1"
+        },
+        "rfc3987": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-rfc3987",
+          "version": "1.3.8"
+        },
+        "ryu": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-ryu",
+          "version": "4.30"
+        },
+        "sentry-sdk": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-sentry-sdk",
+          "version": "1.0.0"
+        },
+        "simplejson": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-simplejson",
+          "version": "3.16.0"
+        },
+        "six": {
+          "root": true,
+          "source": "apt",
+          "sysdep": "python3-six",
+          "version": "1.14.0"
+        },
+        "snowflake": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-snowflake",
+          "version": "0.0.3"
+        },
+        "strict-rfc3339": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-strict-rfc3339",
+          "version": "0.7"
+        },
+        "swagger-spec-validator": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-swagger-spec-validator",
+          "version": "2.7.3"
+        },
+        "systemd-python": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-systemd-python",
+          "version": "234"
+        },
+        "toml": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-toml",
+          "version": "0.10.2"
+        },
+        "typing-extensions": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-typing-extensions",
+          "version": "3.7.4.3"
+        },
+        "webcolors": {
+          "root": true,
+          "source": "pypi",
+          "sysdep": "python3-webcolors",
+          "version": "1.11.1"
+        },
+        "werkzeug": {
+          "root": false,
+          "source": "apt",
+          "sysdep": "python3-werkzeug",
+          "version": "0.14"
+        },
+        "wrapt": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-wrapt",
+          "version": "1.11.2"
+        },
+        "yarl": {
+          "root": false,
+          "source": "pypi",
+          "sysdep": "python3-yarl",
+          "version": "1.6.3"
+        }
+      },
+      "root_packages": {
+        "aiodns": {
+          "version": "2.0.0"
+        },
+        "aioh2": {
+          "version": "0.2.2"
+        },
+        "aiohttp": {
+          "version": "3.7.3"
+        },
+        "bravado-core": {
+          "version": "5.16.1"
+        },
+        "certifi": {
+          "version": "2019.11.28"
+        },
+        "click": {
+          "version": "7.1.2"
+        },
+        "cryptography": {
+          "version": "2.8"
+        },
+        "fire": {
+          "version": "0.2.1"
+        },
+        "flask": {
+          "version": "1.1.1"
+        },
+        "grpcio": {
+          "version": "1.34.0"
+        },
+        "itsdangerous": {
+          "version": "1.1.0"
+        },
+        "jinja2": {
+          "version": "2.10.1"
+        },
+        "jsonpickle": {
+          "version": "1.2"
+        },
+        "jsonpointer": {
+          "version": "2.0"
+        },
+        "jsonschema": {
+          "version": "3.1.0"
+        },
+        "netifaces": {
+          "version": "0.10.4"
+        },
+        "prometheus-client": {
+          "version": "0.3.1"
+        },
+        "protobuf": {
+          "version": "3.14.0"
+        },
+        "psutil": {
+          "version": "5.6.6"
+        },
+        "pycares": {
+          "version": "3.1.1"
+        },
+        "pylint": {
+          "version": "2.6.0"
+        },
+        "pystemd": {
+          "version": "0.8.0"
+        },
+        "pytz": {
+          "version": "2020.1"
+        },
+        "pyyaml": {
+          "version": "5.3.1"
+        },
+        "redis": {
+          "version": "3.3.11"
+        },
+        "redis-collections": {
+          "version": "0.8.1"
+        },
+        "rfc3987": {
+          "version": "1.3.8"
+        },
+        "sentry-sdk": {
+          "version": "1.0.0"
+        },
+        "setuptools": {
+          "version": "49.6.0"
+        },
+        "six": {
+          "version": "1.14.0"
+        },
+        "snowflake": {
+          "version": "0.0.3"
+        },
+        "strict-rfc3339": {
+          "version": "0.7"
+        },
+        "systemd-python": {
+          "version": "234"
+        },
+        "webcolors": {
+          "version": "1.11.1"
+        }
+      }
+    }
+  },
+  "root_packages": {
+    "aiodns": {
+      "version": "1.1.1"
+    },
+    "aioeventlet": {
+      "version": "0.5.1"
+    },
+    "aioh2": {
+      "version": "0.2.2"
+    },
+    "aiohttp": {
+      "version": "1.2.0"
+    },
+    "bravado-core": {
+      "version": "5.16.1"
+    },
+    "certifi": {
+      "version": "2019.6.16"
+    },
+    "chardet": {
+      "version": "3.0.4"
+    },
+    "click": {
+      "version": "7.1.2"
+    },
+    "cryptography": {
+      "version": "3.2.1"
+    },
+    "cython": {
+      "version": "0.29.1"
+    },
+    "docker": {
+      "version": "4.0.2"
+    },
+    "envoy": {
+      "version": "0.0.3"
+    },
+    "eventlet": {
+      "version": "0.26.1"
+    },
+    "fire": {
+      "version": "0.2.0"
+    },
+    "flask": {
+      "version": "1.0.2"
+    },
+    "freezegun": {
+      "version": "0.3.15"
+    },
+    "glob2": {
+      "version": "0.7"
+    },
+    "grpcio": {
+      "version": "1.36.1"
+    },
+    "h2": {
+      "version": "3.2.0"
+    },
+    "hpack": {
+      "version": "3.0.0"
+    },
+    "idna": {
+      "version": "2.8"
+    },
+    "itsdangerous": {
+      "version": "1.1.0"
+    },
+    "jinja2": {
+      "version": "2.10"
+    },
+    "jsonpickle": {
+      "version": "0.9.3"
+    },
+    "jsonpointer": {
+      "version": "2.0"
+    },
+    "jsonschema": {
+      "version": "3.1.0"
+    },
+    "lxml": {
+      "version": "4.6.2"
+    },
+    "netifaces": {
+      "version": "0.10.9"
+    },
+    "prometheus-client": {
+      "version": "0.3.1"
+    },
+    "protobuf": {
+      "version": "3.14.0"
+    },
+    "psutil": {
+      "version": "5.6.6"
+    },
+    "pycares": {
+      "version": "3.1.1"
+    },
+    "pycryptodome": {
+      "version": "3.9.9"
+    },
+    "pylint": {
+      "version": "2.6.2"
+    },
+    "pymemoize": {
+      "version": "1.0.2"
+    },
+    "pyroute2": {
+      "version": "0.5.14"
+    },
+    "pystemd": {
+      "version": "0.8.0"
+    },
+    "python-dateutil": {
+      "version": "2.8.1"
+    },
+    "python-redis-lock": {
+      "version": "3.7.0"
+    },
+    "pytz": {
+      "version": "2020.1"
+    },
+    "pyyaml": {
+      "version": "3.12"
+    },
+    "redis": {
+      "version": "3.5.3"
+    },
+    "redis-collections": {
+      "version": "0.9.0"
+    },
+    "requests": {
+      "version": "2.22.0"
+    },
+    "rfc3987": {
+      "version": "1.3.8"
+    },
+    "ryu": {
+      "version": "4.30"
+    },
+    "scapy": {
+      "version": "2.4.4"
+    },
+    "sentry-sdk": {
+      "version": "1.0.0"
+    },
+    "setuptools": {
+      "version": "49.6.0"
+    },
+    "six": {
+      "version": "1.12.0"
+    },
+    "snowflake": {
+      "version": "0.0.3"
+    },
+    "spyne": {
+      "version": "2.12.16"
+    },
+    "strict-rfc3339": {
+      "version": "0.7"
+    },
+    "systemd-python": {
+      "version": "234"
+    },
+    "urllib3": {
+      "version": "1.25.3"
+    },
+    "webcolors": {
+      "version": "1.11.1"
+    },
+    "websocket-client": {
+      "version": "0.56.0"
+    },
+    "wsgiserver": {
+      "version": "1.3"
+    }
+  }
+}

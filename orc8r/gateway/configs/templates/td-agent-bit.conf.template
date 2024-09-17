@@ -1,0 +1,150 @@
+[SERVICE]
+    # Flush
+    # =====
+    # Set an interval of seconds before to flush records to a destination
+    Flush        5
+    # Path for filesystem based buffering
+    storage.path /tmp/flb-storage
+
+    # Daemon
+    # ======
+    # Instruct Fluent Bit to run in foreground or background mode.
+    Daemon       Off
+
+    # Log_Level
+    # =========
+    # Set the verbosity level of the service, values can be:
+    #
+    # - error
+    # - warning
+    # - info
+    # - debug
+    # - trace
+    #
+    # By default 'info' is set, that means it includes 'error' and 'warning'.
+    Log_Level    info
+
+    # Parsers_File
+    # ============
+    # Specify an optional 'Parsers' configuration file
+    Parsers_File ../../../../etc/td-agent-bit/parsers.conf
+    Plugins_File ../../../../etc/td-agent-bit/plugins.conf
+
+    # HTTP Server
+    # ===========
+    # Enable/Disable the built-in HTTP Server for metrics
+    HTTP_Server  On
+    HTTP_Listen  127.0.0.1
+    HTTP_Port    2020
+
+[INPUT]
+    Name     syslog
+    Tag      gateway.syslog
+    Parser   syslog-rfc3164
+    Listen   0.0.0.0
+    Port     5140
+    Mode     tcp
+
+[INPUT]
+    Name     forward
+    Tag      docker.log
+    Listen   0.0.0.0
+    port     24221
+
+# Input from the EventD service
+[INPUT]
+    Name          tcp
+    Alias         eventlogs
+    Listen        0.0.0.0
+    Port          5170
+    Format        json
+    Tag           eventd
+    # Set the maximum in-memory buffer to 5MB. We will use the filesystem once
+    # we exceed the limit. Since we retry forwarding for some events, we need
+    # to place a limit to avoid OOM.
+    mem_buf_limit 5MB
+    storage.type  filesystem
+
+{% for t,f in files %}
+[INPUT]
+    Name tail
+    Path {{ f }}
+    Tag gateway.{{ t }}
+    DB /var/opt/magma/fluent-bit/fluent-bit-tail.db
+    Refresh_Interval 5
+    Key message
+{% endfor %}
+
+# Modify eventd logs with retry-on-failure set
+[FILTER]
+    Name          rewrite_tag
+    Match         eventd
+    Rule          $retry_on_failure True $TAG.retry_on_failure false
+
+[FILTER]
+    Name grep
+    Match *
+    Exclude log ^\s*$
+
+[FILTER]
+    Name modify
+    Match *
+    Set hw_id {{ snowflake }}
+{% for k, v in extra_tags %}
+    Set {{k}} {{v}}
+{% endfor %}
+
+[FILTER]
+    Name     throttle
+    Match    *
+    Rate     {{ throttle_rate }}
+    Window   {{ throttle_window }}
+    Interval {{ throttle_interval}}
+
+# For any logs with retry_on_failure tag, set the retry limit to false
+# At the moment, this only applies to event logs with retry_on_failure flag set
+[OUTPUT]
+    Name          forward
+    Alias         eventlogs_with_retries
+    Match_Regex   ^(eventd).*(retry_on_failure).*$
+    Host          {{ host }}
+    Port          {{ port }}
+    # Re-tag as eventd so we don't affect FluentD
+    Tag           eventd
+    Retry_Limit   False
+
+    {% if is_tls_enabled %}
+    tls on
+    {% else %}
+    tls off
+    {% endif %}
+    tls.verify off
+    tls.debug 3
+    tls.ca_file {{ cacert }}
+    tls.crt_file {{ certfile }}
+    tls.key_file {{ keyfile }}
+
+# Everything else is forwarded without retry
+[OUTPUT]
+    Name          forward
+    Match_Regex   ^((?!retry_on_failure).)*$
+    Host          {{ host }}
+    Port          {{ port }}
+
+    {% if is_tls_enabled %}
+    tls on
+    {% else %}
+    tls off
+    {% endif %}
+    tls.verify off
+    tls.debug 3
+    tls.ca_file {{ cacert }}
+    tls.crt_file {{ certfile }}
+    tls.key_file {{ keyfile }}
+
+[OUTPUT]
+    Name              stdout
+    Match_Regex       eventd*
+
+# LEAVE THIS LINE HERE, FLUENT-BIT REQUIRES NEWLINE
+

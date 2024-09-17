@@ -1,0 +1,2285 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_pyvenv//:venv.bzl", "py_venv")
+load("//bazel:python_test.bzl", "pytest_test")
+load(
+    "//bazel:test_constants.bzl",
+    "TAG_EXTENDED_TEST",
+    "TAG_EXTENDED_TEST_SETUP",
+    "TAG_EXTENDED_TEST_TEARDOWN",
+    "TAG_NON_SANITY_TEST",
+    "TAG_NON_SANITY_TEST_SETUP",
+    "TAG_NON_SANITY_TEST_TEARDOWN",
+    "TAG_PRECOMMIT_TEST",
+    "TAG_TRAFFIC_SERVER_TEST",
+)
+
+genrule(
+    name = "integ_tests_pth",
+    outs = ["integ_tests.pth"],
+    cmd = "\n".join([
+        'echo /home/vagrant/magma/lte/gateway/python >> \"$@\"',
+        'echo /home/vagrant/magma/orc8r/gateway/python >> \"$@\"',
+    ]),
+)
+
+py_library(
+    # needs to be wrapped in a py_library so that py_env can consume it
+    name = "integ_tests_pth_wrapper",
+    data = [":integ_tests_pth"],
+    imports = ["."],
+)
+
+py_venv(
+    # This target creates a Python environment for running integration tests.
+    # Usage: `bazel run //path:python_env <path of your choice>`
+    # Note that this cannot update an existing Python environment, thus for updating you need
+    # to run something like `rm -rf ~/python_env` before recreating the environment.
+    # NOTE: until https://github.com/cedarai/rules_pyvenv/issues/1 is resolved, the environment does
+    # not cover magma libraries without adaptions - but all external and generated dependencies.
+    # The magma source is setup via a .pth-file that points to the magma reporsitory.
+    name = "python_env",
+    deps = [
+        ":gpp_types",
+        ":integ_tests_pth_wrapper",
+        ":s1ap_wrapper",
+        requirement("pytest"),
+        requirement("flaky"),
+    ],
+)
+
+MAGMA_ROOT = "../../../../../"
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_library(
+    name = "s1ap_utils",
+    srcs = [
+        "s1ap_utils.py",
+    ],
+    deps = [
+        "//lte/gateway/python/integ_tests/s1aptests/ovs:rest_api",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:abort_session_python_grpc",
+        "//lte/protos:ha_service_python_grpc",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "//lte/protos:session_manager_python_grpc",
+        "//lte/protos:spgw_service_grpc_proto",
+        "//orc8r/protos:directoryd_python_grpc",
+        "@s1ap_test_util//:s1ap_types",
+    ],
+)
+
+py_library(
+    name = "gpp_types",
+    srcs = ["gpp_types.py"],
+)
+
+py_library(
+    name = "s1ap_wrapper",
+    srcs = ["s1ap_wrapper.py"],
+    deps = [
+        ":s1ap_utils",
+        "//lte/gateway/python/integ_tests/common:magmad_client",
+        "//lte/gateway/python/integ_tests/common:mobility_service_client",
+        "//lte/gateway/python/integ_tests/common:service303_utils",
+        "//lte/gateway/python/integ_tests/common:subscriber_db_client",
+        "//lte/gateway/python/integ_tests/s1aptests/util:traffic_util",
+    ],
+)
+
+pytest_test(
+    name = "test_services_are_running",
+    size = "small",
+    srcs = ["test_services_are_running.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach",
+    size = "small",
+    srcs = ["test_attach_detach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_static_ip",
+    size = "small",
+    srcs = ["test_attach_detach_static_ip.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_gateway_metrics_attach_detach",
+    size = "small",
+    srcs = ["test_gateway_metrics_attach_detach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_looped",
+    size = "small",
+    srcs = ["test_attach_detach_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_emergency",
+    size = "small",
+    srcs = ["test_attach_emergency.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_combined_eps_imsi",
+    size = "small",
+    srcs = ["test_attach_combined_eps_imsi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_via_guti",
+    size = "small",
+    srcs = ["test_attach_via_guti.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_without_ips_available",
+    size = "small",
+    srcs = ["test_attach_without_ips_available.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_after_ue_context_release",
+    size = "small",
+    srcs = ["test_attach_detach_after_ue_context_release.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_duplicate_nas_resp_messages",
+    size = "medium",
+    srcs = ["test_attach_detach_duplicate_nas_resp_messages.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_security_mode_reject",
+    size = "small",
+    srcs = ["test_attach_security_mode_reject.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_esm_information",
+    size = "small",
+    srcs = ["test_attach_esm_information.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_esm_information_wrong_apn",
+    size = "small",
+    srcs = ["test_attach_esm_information_wrong_apn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ue_ctxt_release_cmp_delay",
+    size = "small",
+    srcs = ["test_attach_ue_ctxt_release_cmp_delay.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_auth_failure",
+    size = "small",
+    srcs = ["test_attach_auth_failure.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_nas_non_delivery_for_smc",
+    size = "small",
+    srcs = ["test_nas_non_delivery_for_smc.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_nas_non_delivery_for_identity_req",
+    size = "small",
+    srcs = ["test_nas_non_delivery_for_identity_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_no_initial_context_resp",
+    size = "small",
+    srcs = ["test_attach_no_initial_context_resp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_no_ueContext_release_comp",
+    size = "small",
+    srcs = ["test_attach_detach_no_ueContext_release_comp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_attach_complete",
+    size = "small",
+    srcs = ["test_no_attach_complete.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_auth_response",
+    size = "small",
+    srcs = ["test_no_auth_response.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_security_mode_complete",
+    size = "small",
+    srcs = ["test_no_security_mode_complete.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_tau_periodic_inactive",
+    size = "small",
+    srcs = ["test_tau_periodic_inactive.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_tau_periodic_active",
+    size = "small",
+    srcs = ["test_tau_periodic_active.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_tau_ta_updating_connected_mode",
+    size = "small",
+    srcs = ["test_tau_ta_updating_connected_mode.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_eps_bearer_context_status_def_bearer_deact",
+    size = "small",
+    srcs = ["test_eps_bearer_context_status_def_bearer_deact.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_eps_bearer_context_status_ded_bearer_deact",
+    size = "small",
+    srcs = ["test_eps_bearer_context_status_ded_bearer_deact.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_service",
+    size = "small",
+    srcs = ["test_attach_service.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_service",
+    size = "small",
+    srcs = ["test_attach_detach_service.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_ue_radio_capability",
+    size = "small",
+    srcs = ["test_attach_service_ue_radio_capability.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_service_multi_ue",
+    size = "small",
+    srcs = ["test_attach_service_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_ipv4v6_pdn_type",
+    size = "small",
+    srcs = ["test_attach_ipv4v6_pdn_type.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_service_info",
+    size = "small",
+    srcs = ["test_service_info.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_ovs",
+    size = "small",
+    srcs = ["test_attach_detach_with_ovs.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":s1ap_wrapper",
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+    ],
+)
+
+pytest_test(
+    name = "test_resync",
+    size = "small",
+    srcs = ["test_resync.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_standalone_pdn_conn_req",
+    size = "small",
+    srcs = ["test_standalone_pdn_conn_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_act_dflt_ber_ctxt_rej",
+    size = "small",
+    srcs = ["test_attach_act_dflt_ber_ctxt_rej.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_security_algo_eea0_eia0",
+    size = "small",
+    srcs = ["test_attach_detach_security_algo_eea0_eia0.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_security_algo_eea1_eia1",
+    size = "small",
+    srcs = ["test_attach_detach_security_algo_eea1_eia1.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_security_algo_eea2_eia2",
+    size = "small",
+    srcs = ["test_attach_detach_security_algo_eea2_eia2.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_emm_status",
+    size = "small",
+    srcs = ["test_attach_detach_emm_status.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_enb_rlf_initial_ue_msg",
+    size = "small",
+    srcs = ["test_attach_detach_enb_rlf_initial_ue_msg.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_ICS_Failure",
+    size = "small",
+    srcs = ["test_attach_detach_ICS_Failure.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_missing_imsi",
+    size = "small",
+    srcs = ["test_attach_missing_imsi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_duplicate_attach",
+    size = "small",
+    srcs = ["test_duplicate_attach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_partial_reset_con_dereg",
+    size = "small",
+    srcs = ["test_enb_partial_reset_con_dereg.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_partial_reset",
+    size = "small",
+    srcs = ["test_enb_partial_reset.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_complete_reset",
+    size = "small",
+    srcs = ["test_enb_complete_reset.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_nas_non_delivery_for_auth",
+    size = "small",
+    srcs = ["test_nas_non_delivery_for_auth.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_outoforder_attach_complete_ICSR",
+    size = "small",
+    srcs = ["test_outoforder_attach_complete_ICSR.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1setup_failure_incorrect_plmn",
+    size = "small",
+    srcs = ["test_s1setup_failure_incorrect_plmn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1setup_failure_incorrect_tac",
+    size = "small",
+    srcs = ["test_s1setup_failure_incorrect_tac.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1setup_success_secondary_plmn",
+    size = "small",
+    srcs = ["test_s1setup_success_secondary_plmn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_abort_after_auth_req",
+    size = "small",
+    srcs = ["test_sctp_abort_after_auth_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_abort_after_identity_req",
+    size = "small",
+    srcs = ["test_sctp_abort_after_identity_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_abort_after_smc",
+    size = "small",
+    srcs = ["test_sctp_abort_after_smc.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_shutdown_after_auth_req",
+    size = "small",
+    srcs = ["test_sctp_shutdown_after_auth_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_shutdown_after_identity_req",
+    size = "small",
+    srcs = ["test_sctp_shutdown_after_identity_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_shutdown_after_smc",
+    size = "small",
+    srcs = ["test_sctp_shutdown_after_smc.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_shutdown_after_multi_ue_attach",
+    size = "small",
+    srcs = ["test_sctp_shutdown_after_multi_ue_attach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multi_ue",
+    size = "small",
+    srcs = ["test_attach_detach_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_qci_0",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_qci_0.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_multi_ue",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_bearer_deactivation_invalid_imsi",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_bearer_activation_invalid_imsi",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_bearer_activation_invalid_imsi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_activation_reject",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_activation_reject.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multiple_dedicated",
+    size = "small",
+    srcs = ["test_attach_detach_multiple_dedicated.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_multi_ue",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_invalid_apn",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_invalid_apn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_disconnect_dedicated_bearer",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_disconnect_dedicated_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_disconnect_invalid_bearer",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_disconnect_invalid_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_no_disconnect",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_no_disconnect.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_disconnect_default_pdn",
+    size = "small",
+    srcs = ["test_attach_detach_disconnect_default_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_maxbearers_twopdns",
+    size = "small",
+    srcs = ["test_attach_detach_maxbearers_twopdns.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multiple_secondary_pdn",
+    size = "small",
+    srcs = ["test_attach_detach_multiple_secondary_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_nw_triggered_delete_secondary_pdn",
+    size = "small",
+    srcs = ["test_attach_detach_nw_triggered_delete_secondary_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_nw_triggered_delete_last_pdn",
+    size = "small",
+    srcs = ["test_attach_detach_nw_triggered_delete_last_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_different_enb_s1ap_id_same_ue",
+    size = "small",
+    srcs = ["test_different_enb_s1ap_id_same_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_pcscf_address",
+    size = "small",
+    srcs = ["test_attach_detach_with_pcscf_address.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_with_pcscf_address",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_with_pcscf_address.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn",
+    size = "small",
+    srcs = ["test_secondary_pdn_reject_multiple_sessions_not_allowed_per_apn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_secondary_pdn_reject_unknown_pdn_type",
+    size = "small",
+    srcs = ["test_secondary_pdn_reject_unknown_pdn_type.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_standalone_act_dflt_ber_ctxt_rej",
+    size = "small",
+    srcs = ["test_attach_standalone_act_dflt_ber_ctxt_rej.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ics_timer_expiry_ue_registered",
+    size = "small",
+    srcs = ["test_ics_timer_expiry_ue_registered.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_ics_timer_expiry_ue_unregistered",
+    size = "small",
+    srcs = ["test_ics_timer_expiry_ue_unregistered.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_identity_timer_3470_expiry",
+    size = "small",
+    srcs = ["test_identity_timer_3470_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_with_multi_pdns_and_bearers_multi_ue",
+    size = "medium",
+    srcs = ["test_attach_service_with_multi_pdns_and_bearers_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_service_with_multi_pdns_and_bearers_failure",
+    size = "small",
+    srcs = ["test_attach_service_with_multi_pdns_and_bearers_failure.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_dedicated_bearer_activation_idle_mode_multi_ue",
+    size = "small",
+    srcs = ["test_dedicated_bearer_activation_idle_mode_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_multi_enb_multi_ue",
+    size = "small",
+    srcs = ["test_multi_enb_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_multi_enb_multi_ue_diff_enbtype",
+    size = "small",
+    srcs = ["test_multi_enb_multi_ue_diff_enbtype.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_multi_enb_partial_reset",
+    size = "small",
+    srcs = ["test_multi_enb_partial_reset.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_multi_enb_complete_reset",
+    size = "small",
+    srcs = ["test_multi_enb_complete_reset.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_multi_enb_sctp_shutdown",
+    size = "small",
+    srcs = ["test_multi_enb_sctp_shutdown.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv6_paging_with_dedicated_bearer",
+    size = "small",
+    srcs = ["test_ipv6_paging_with_dedicated_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_ipv4v6_paging_with_dedicated_bearer",
+    size = "small",
+    srcs = ["test_ipv4v6_paging_with_dedicated_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_tcp_data",
+    size = "small",
+    srcs = ["test_attach_ul_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_attach_ul_tcp_data",
+    size = "small",
+    srcs = ["test_attach_detach_attach_ul_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_dl_udp_data",
+    size = "small",
+    srcs = ["test_attach_dl_udp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_dl_tcp_data",
+    size = "small",
+    srcs = ["test_attach_dl_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_attach_dl_tcp_data",
+    size = "small",
+    srcs = ["test_attach_detach_attach_dl_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multiple_rar_tcp_data",
+    size = "small",
+    srcs = ["test_attach_detach_multiple_rar_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_with_multi_pdns_and_bearers_mt_data",
+    size = "small",
+    srcs = ["test_attach_service_with_multi_pdns_and_bearers_mt_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_asr",
+    size = "small",
+    srcs = ["test_attach_asr.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_sctpd_restart",
+    size = "small",
+    srcs = ["test_attach_detach_with_sctpd_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_nw_initiated_detach_with_mme_restart",
+    size = "small",
+    srcs = ["test_attach_nw_initiated_detach_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multiple_ip_blocks_mobilityd_restart",
+    size = "small",
+    srcs = ["test_attach_detach_multiple_ip_blocks_mobilityd_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data_with_mme_restart",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data_with_mobilityd_restart",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data_with_mobilityd_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data_with_multiple_service_restart",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data_with_multiple_service_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data_with_pipelined_restart",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data_with_pipelined_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ul_udp_data_with_sessiond_restart",
+    size = "small",
+    srcs = ["test_attach_ul_udp_data_with_sessiond_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_service_req_ul_udp_data_with_mme_restart",
+    size = "medium",
+    srcs = ["test_service_req_ul_udp_data_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_setsessionrules_tcp_data",
+    size = "medium",
+    srcs = ["test_attach_detach_setsessionrules_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_PRECOMMIT_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_modify_mme_config_for_sanity",
+    size = "medium",
+    srcs = ["test_modify_mme_config_for_sanity.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST_SETUP,
+    deps = [
+        ":s1ap_utils",
+        "//lte/gateway/python/integ_tests/common:magmad_client",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_flaky_retry_success",
+    size = "small",
+    srcs = ["test_attach_detach_flaky_retry_success.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_multi_ue_looped",
+    size = "small",
+    srcs = ["test_attach_detach_multi_ue_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_ps_service_not_available",
+    size = "small",
+    srcs = ["test_attach_detach_ps_service_not_available.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_he_policy",
+    size = "small",
+    srcs = ["test_attach_detach_with_he_policy.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_rar_tcp_he",
+    size = "small",
+    srcs = ["test_attach_detach_rar_tcp_he.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_restricted_plmn",
+    size = "small",
+    srcs = ["test_attach_restricted_plmn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_imei_restriction_smc",
+    size = "small",
+    srcs = ["test_imei_restriction_smc.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_imei_restriction_no_imeisv_in_smc",
+    size = "small",
+    srcs = ["test_imei_restriction_no_imeisv_in_smc.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_imei_restriction_wildcard_snr",
+    size = "small",
+    srcs = ["test_imei_restriction_wildcard_snr.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_looped",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_bearer_deactivation_invalid_lbi",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_bearer_deactivation_invalid_lbi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_bearer_deactivation_invalid_ebi",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_bearer_deactivation_invalid_ebi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_bearer_activation_invalid_lbi",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_bearer_activation_invalid_lbi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_activation_timer_expiry",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_activation_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_dedicated_deactivation_timer_expiry",
+    size = "small",
+    srcs = ["test_attach_detach_dedicated_deactivation_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_dedicated_bearer_activation_idle_mode",
+    size = "small",
+    srcs = ["test_dedicated_bearer_activation_idle_mode.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_looped",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_with_multi_pdns_and_bearers",
+    size = "small",
+    srcs = ["test_attach_service_with_multi_pdns_and_bearers.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_with_dedicated_bearer",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_with_dedicated_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_secondary_pdn_with_dedicated_bearer_looped",
+    size = "small",
+    srcs = ["test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_with_multi_pdns_and_bearers_looped",
+    size = "small",
+    srcs = ["test_attach_service_with_multi_pdns_and_bearers_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_dedicated_bearer_activation_idle_mode_paging_timer_expiry",
+    size = "small",
+    srcs = ["test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_multi_enb_multi_ue_diff_plmn",
+    size = "small",
+    srcs = ["test_multi_enb_multi_ue_diff_plmn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_x2_handover",
+    size = "small",
+    srcs = ["test_x2_handover.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_x2_handover_ping_pong",
+    size = "small",
+    srcs = ["test_x2_handover_ping_pong.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1_handover",
+    size = "small",
+    srcs = ["test_s1_handover.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_rar_tcp_data",
+    size = "small",
+    srcs = ["test_attach_detach_rar_tcp_data.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_mme_restart",
+    size = "medium",
+    srcs = ["test_attach_detach_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_mobilityd_restart",
+    size = "medium",
+    srcs = ["test_attach_detach_with_mobilityd_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_idle_mode_with_mme_restart",
+    size = "small",
+    srcs = ["test_idle_mode_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_3485_timer_for_dedicated_bearer_with_mme_restart",
+    size = "small",
+    srcs = ["test_3485_timer_for_dedicated_bearer_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_3485_timer_for_default_bearer_with_mme_restart",
+    size = "small",
+    srcs = ["test_3485_timer_for_default_bearer_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_paging_after_mme_restart",
+    size = "small",
+    srcs = ["test_paging_after_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_nw_initiated_detach_fail",
+    size = "small",
+    srcs = ["test_attach_nw_initiated_detach_fail.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_tau_ta_updating",
+    size = "small",
+    srcs = ["test_tau_ta_updating.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_tau_ta_updating_reject",
+    size = "small",
+    srcs = ["test_tau_ta_updating_reject.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_tau_mixed_partial_lists",
+    size = "small",
+    srcs = ["test_tau_mixed_partial_lists.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_eps_bearer_context_status_multiple_ded_bearer_deact",
+    size = "small",
+    srcs = ["test_eps_bearer_context_status_multiple_ded_bearer_deact.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_guti_attach_with_zero_mtmsi",
+    size = "small",
+    srcs = ["test_guti_attach_with_zero_mtmsi.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_ics_timer_expiry_with_mme_restart",
+    size = "small",
+    srcs = ["test_ics_timer_expiry_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_mobile_reachability_timer_expiry",
+    size = "large",
+    srcs = ["test_attach_mobile_reachability_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_implicit_detach_timer_expiry",
+    size = "large",
+    srcs = ["test_attach_implicit_detach_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_mobile_reachability_tmr_with_mme_restart",
+    size = "large",
+    srcs = ["test_mobile_reachability_tmr_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_implicit_detach_timer_with_mme_restart",
+    size = "large",
+    srcs = ["test_implicit_detach_timer_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_non_nat_dhcp_multi_ue_looped",
+    size = "large",
+    srcs = ["test_attach_detach_with_non_nat_dhcp_multi_ue_looped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_restore_mme_config_after_sanity",
+    size = "small",
+    srcs = ["test_restore_mme_config_after_sanity.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_EXTENDED_TEST_TEARDOWN,
+    deps = [
+        ":s1ap_utils",
+        "//lte/gateway/python/integ_tests/common:magmad_client",
+    ],
+)
+
+pytest_test(
+    name = "test_modify_config_for_non_sanity",
+    size = "medium",
+    srcs = ["test_modify_config_for_non_sanity.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST_SETUP,
+    deps = [
+        ":s1ap_utils",
+        "//lte/gateway/python/integ_tests/common:magmad_client",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_detach_non_nat_dp_ul_tcp",
+    size = "large",
+    srcs = ["test_attach_detach_non_nat_dp_ul_tcp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_auth_resp_with_mme_restart_reattach",
+    size = "small",
+    srcs = ["test_no_auth_resp_with_mme_restart_reattach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_rar_activation_reject",
+    size = "small",
+    srcs = ["test_attach_detach_rar_activation_reject.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_paging_with_mme_restart",
+    size = "medium",
+    srcs = ["test_paging_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_no_identity_rsp_with_mme_restart",
+    size = "small",
+    srcs = ["test_no_identity_rsp_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_agw_offload_idle_active_ue",
+    size = "small",
+    srcs = ["test_agw_offload_idle_active_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_standalone_pdn_conn_req_with_apn_correction",
+    size = "medium",
+    srcs = ["test_standalone_pdn_conn_req_with_apn_correction.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_esm_info_with_apn_correction",
+    size = "medium",
+    srcs = ["test_attach_esm_info_with_apn_correction.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_partial_reset_multi_ue",
+    size = "small",
+    srcs = ["test_enb_partial_reset_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_pco_ipcp",
+    size = "small",
+    srcs = ["test_attach_detach_with_pco_ipcp.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_complete_after_ics_timer_expiry",
+    size = "small",
+    srcs = ["test_attach_complete_after_ics_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_send_error_ind_for_dl_nas_with_auth_req",
+    size = "small",
+    srcs = ["test_send_error_ind_for_dl_nas_with_auth_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_send_error_ind_for_erab_setup_req",
+    size = "small",
+    srcs = ["test_send_error_ind_for_erab_setup_req.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_ipv6_pcscf_and_dns_addr",
+    size = "small",
+    srcs = ["test_attach_detach_with_ipv6_pcscf_and_dns_addr.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_concurrent_secondary_pdns",
+    size = "small",
+    srcs = ["test_concurrent_secondary_pdns.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_concurrent_secondary_pdn_reject",
+    size = "small",
+    srcs = ["test_concurrent_secondary_pdn_reject.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_ipv6",
+    size = "small",
+    srcs = ["test_attach_detach_ipv6.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn_rs_retransmit",
+    size = "small",
+    srcs = ["test_ipv4v6_secondary_pdn_rs_retransmit.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer",
+    size = "small",
+    srcs = ["test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv6_secondary_pdn_rs_retransmit",
+    size = "small",
+    srcs = ["test_ipv6_secondary_pdn_rs_retransmit.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn",
+    size = "small",
+    srcs = ["test_ipv4v6_secondary_pdn.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn_multi_ue",
+    size = "medium",
+    srcs = ["test_ipv4v6_secondary_pdn_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn_with_ded_bearer",
+    size = "small",
+    srcs = ["test_ipv4v6_secondary_pdn_with_ded_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv6_secondary_pdn_with_ded_bearer",
+    size = "small",
+    srcs = ["test_ipv6_secondary_pdn_with_ded_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue",
+    size = "medium",
+    srcs = ["test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_outoforder_erab_setup_rsp_dedicated_bearer",
+    size = "small",
+    srcs = ["test_outoforder_erab_setup_rsp_dedicated_bearer.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_secondary_pdn_with_dedicated_bearer_multiple_services_restart",
+    size = "medium",
+    srcs = ["test_secondary_pdn_with_dedicated_bearer_multiple_services_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_esm_info_timerexpiration_max_retries",
+    size = "small",
+    srcs = ["test_attach_esm_info_timerexpiration_max_retries.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_service_without_mac",
+    size = "small",
+    srcs = ["test_attach_service_without_mac.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_paging_request",
+    size = "small",
+    srcs = ["test_paging_request.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_multi_enb_paging_request",
+    size = "small",
+    srcs = ["test_multi_enb_paging_request.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST + TAG_TRAFFIC_SERVER_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_multi_enb_multi_ue_diff_tac",
+    size = "small",
+    srcs = ["test_multi_enb_multi_ue_diff_tac.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_partial_reset_with_unknown_ue_s1ap_ids",
+    size = "small",
+    srcs = ["test_enb_partial_reset_with_unknown_ue_s1ap_ids.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_auth_mac_failure",
+    size = "small",
+    srcs = ["test_attach_auth_mac_failure.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_esm_information_timerexpiration",
+    size = "small",
+    srcs = ["test_attach_esm_information_timerexpiration.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_inactive_tau_with_combined_tala_update_reattach",
+    size = "small",
+    srcs = ["test_attach_inactive_tau_with_combined_tala_update_reattach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_attach_active_tau_with_combined_tala_update_reattach",
+    size = "small",
+    srcs = ["test_attach_active_tau_with_combined_tala_update_reattach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [
+        ":gpp_types",
+        ":s1ap_wrapper",
+    ],
+)
+
+pytest_test(
+    name = "test_activate_deactivate_multiple_dedicated",
+    size = "small",
+    srcs = ["test_activate_deactivate_multiple_dedicated.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_sctp_shutdown_while_mme_is_stopped",
+    size = "small",
+    srcs = ["test_sctp_shutdown_while_mme_is_stopped.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_3495_timer_for_default_bearer_with_mme_restart",
+    size = "small",
+    srcs = ["test_3495_timer_for_default_bearer_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_3495_timer_for_dedicated_bearer_with_mme_restart",
+    size = "small",
+    srcs = ["test_3495_timer_for_dedicated_bearer_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_detach_with_corrupt_stateless_mme",
+    size = "medium",
+    srcs = ["test_attach_detach_with_corrupt_stateless_mme.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_enb_partial_reset_multi_ue_with_mme_restart",
+    size = "small",
+    srcs = ["test_enb_partial_reset_multi_ue_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ics_drop_with_mme_restart",
+    size = "small",
+    srcs = ["test_attach_ics_drop_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_mme_restart_detach_multi_ue",
+    size = "small",
+    srcs = ["test_attach_mme_restart_detach_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_auth_response_with_mme_restart",
+    size = "medium",
+    srcs = ["test_no_auth_response_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_esm_information_rsp_with_mme_restart",
+    size = "small",
+    srcs = ["test_no_esm_information_rsp_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_smc_with_mme_restart_reattach",
+    size = "small",
+    srcs = ["test_no_smc_with_mme_restart_reattach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_no_attach_complete_with_mme_restart",
+    size = "small",
+    srcs = ["test_no_attach_complete_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_ics_failure_with_mme_restart",
+    size = "small",
+    srcs = ["test_attach_ics_failure_with_mme_restart.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_continuous_random_attach",
+    size = "medium",
+    srcs = ["test_continuous_random_attach.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1_handover_ping_pong",
+    size = "small",
+    srcs = ["test_s1_handover_ping_pong.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1_handover_cancel",
+    size = "small",
+    srcs = ["test_s1_handover_cancel.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1_handover_failure",
+    size = "small",
+    srcs = ["test_s1_handover_failure.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_s1_handover_timer_expiry",
+    size = "small",
+    srcs = ["test_s1_handover_timer_expiry.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue",
+    size = "large",
+    srcs = ["test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST,
+    deps = [":s1ap_wrapper"],
+)
+
+pytest_test(
+    name = "test_restore_config_after_non_sanity",
+    size = "medium",
+    srcs = ["test_restore_config_after_non_sanity.py"],
+    imports = [LTE_ROOT],
+    tags = TAG_NON_SANITY_TEST_TEARDOWN,
+    deps = [
+        ":s1ap_utils",
+        "//lte/gateway/python/integ_tests/common:magmad_client",
+    ],
+)

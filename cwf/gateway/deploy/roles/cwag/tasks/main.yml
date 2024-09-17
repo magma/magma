@@ -1,0 +1,80 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Configure Red Hat interfaces
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  become: true
+  block:
+    - name: Install interface files
+      copy: src={{ item }} dest=/etc/sysconfig/network-scripts/
+      with_items:
+        - ifcfg-cwag_br0
+        - ifcfg-cwag_patch
+        - ifcfg-gre0
+        - ifcfg-gw0
+        - ifcfg-uplink_br0
+        - ifcfg-uplink_patch
+        - ifcfg-li_port
+        - ifcfg-mon1
+    - name: Activate interfaces
+      shell: ifup {{ item }}
+      with_items:
+        - cwag_br0
+        - uplink_br0
+        - gw0
+        - gre0
+        - cwag_patch
+        - uplink_patch
+        - li_port
+        - mon1
+    - name: Enable firewalld
+      systemd:
+        name: firewalld
+        enabled: yes
+        state: started
+
+- name: Create OVS bridge cwag_br0 and GRE tunnel gre0
+  become: true
+  script: create_gre_tunnel.sh
+
+- name: Create OVS bridge uplink_br0 and add peer patch port to connect it to cwag_br0
+  become: true
+  script: setup_default_uplink_bridge.sh {{ uplink_ports | default() }}
+
+- name: Create internal LI port on cwag_br0 and rules to forward RADIUS traffic to cwag_br0
+  become: true
+  when: li_port is defined
+  script: setup_li_mirror_br.sh {{ ingress_port }} {{ li_port }}
+
+- name: Setup internal port and interface for DPI
+  become: true
+  script: setup_dpi_port.sh
+
+- name: Enable IP forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Configure Debian interfaces
+  when: ansible_distribution == 'Ubuntu'
+  block:
+    - name: Add static IP to cwag_br0
+      become: true
+      copy:
+        src: 99-ovscfg.yaml
+        dest: /etc/netplan
+
+    - name: Apply netplan for OVS cwag_br0 interface
+      become: true
+      shell: netplan apply
+
+- name: Configure gw0 and uplink_br0 flows
+  become: true
+  script: configure_default_uplink_flows.sh {{ uplink_ports | default() }}

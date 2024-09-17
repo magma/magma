@@ -1,0 +1,67 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// smsd-gw component of service
+service SMSOrc8rService {
+    rpc SMOUplink (SMOUplinkUnitdata) returns (magma.orc8r.Void) {}
+}
+
+// MME component of service
+service SMSOrc8rGatewayService {
+    rpc SMODownlink (SMODownlinkUnitdata) returns (magma.orc8r.Void) {}
+}
+
+// section 8.4
+message SMODownlinkUnitdata {
+    string imsi = 1;
+    bytes nas_message_container = 2;
+}
+
+// section 8.22
+message SMOUplinkUnitdata {
+    string imsi = 1;
+    bytes nas_message_container = 2;
+    bytes imeisv = 3;
+    bytes ue_time_zone = 4;
+    bytes mobile_station_classmark2 = 5;
+    bytes tai = 6;
+    bytes e_cgi = 7;
+}
+
+// smsd-cloud service definition
+service SmsD {
+    rpc ReportDelivery(ReportDeliveryRequest) returns (ReportDeliveryResponse) {}
+
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+}
+
+message ReportDeliveryResponse {}
+
+message ReportDeliveryRequest {
+    SMOUplinkUnitdata report = 1;
+}
+
+message GetMessagesRequest {
+    repeated string imsis = 1;
+}
+
+message GetMessagesResponse {
+    repeated SMODownlinkUnitdata messages = 1;
+}

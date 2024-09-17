@@ -1,0 +1,11 @@
+---
+- include_tasks: provision-networks.yaml
+  tags: createNet
+- include_tasks: provision-bridge.yaml
+  tags: createBridge
+- include_tasks: provision-instances.yaml
+  tags: createGw
+- include_tasks: cleanup-bridge.yaml
+  tags: cleanupBridge
+- include_tasks: cleanup-networks.yaml
+  tags: cleanupNet

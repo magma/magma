@@ -1,0 +1,83 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Build Docker image
+description: Build a docker image and push it to a registry on a imagestream with a certain tag
+
+inputs:
+  REGISTRY:
+    required: true
+    default: ghcr.io
+  IMAGE_STREAM:
+    required: true
+  IMAGE_TAGS:
+    required: true
+    default: |
+      type=sha
+      type=schedule
+      type=ref,event=branch
+      type=ref,event=tag
+      type=ref,event=pr
+  DOCKERFILE:
+    required: true
+  PUSH_TO_REGISTRY:
+    required: true
+  REMOVE_DOCKERIGNORE_FILE:
+    default: false
+  BUILD_ARG_1:
+    default: ''
+  BUILD_ARG_2:
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Check Out Repo
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+    - name: Remove .dockerignore (optional step)
+      # The .dockerignore file excludes testing and release code that is needed during
+      # bazel builds but not for production environments. This step should only be run
+      # when building docker images with bazel cache for CI use.
+      if: ${{ inputs.REMOVE_DOCKERIGNORE_FILE == 'true' }}
+      shell: bash
+      run: rm .dockerignore
+    - name: Set up Docker meta
+      id: meta
+      uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # pin@v4.1.1
+      with:
+        # defines the image stream the image is pushed to
+        images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_STREAM }}
+        # defines the image tags added to the image
+        tags: ${{ inputs.IMAGE_TAGS }}
+        flavor: latest=true
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # pin@v2.2.1
+    - name: Login to GHCR
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # pin v2.1.0
+      with:
+        registry: ${{ inputs.REGISTRY }}
+        username: ${{ github.repository_owner }}
+        password: ${{ github.token }}
+      if: ${{ inputs.PUSH_TO_REGISTRY == 'true' }}
+    - name: Build and push Docker image
+      id: docker_build
+      uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
+      with:
+        context: .
+        file: ${{ inputs.DOCKERFILE }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        # without docker/metadata-action will only be accessible by hash
+        push: ${{ inputs.PUSH_TO_REGISTRY == 'true' }}
+        build-args: |
+          ${{ inputs.BUILD_ARG_1 }}
+          ${{ inputs.BUILD_ARG_2 }}

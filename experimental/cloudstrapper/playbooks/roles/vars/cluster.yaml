@@ -1,0 +1,44 @@
+---
+#------------------
+#Cluster-specific Variables
+#Use them to customize each deployment
+#------------------
+#Orc8r deployment variables
+orc8rClusterName: Sydney
+orc8rDomainName: bbbath.fbmagma.ninja
+orc8rLabel: 1.5.0
+orc8rVersion: v1.5
+gitHelmRepo: helm15
+
+
+#AWS variables
+awsBootKey: "{{ keyBoot }}"
+awsHostKey: "{{ keyHost }}"
+awsAgwRegion: us-west-2
+awsOrc8rRegion: us-west-2
+awsAgwAz: "{{ awsAgwRegion }}a"
+awsAgwVersion: v1.5
+awsInstanceType: "t2.medium"
+
+awsAgwAmi: ami-06447b6fef489a898
+#awsCloudstrapperAmi: ami-03865ac2b925f8056
+# awsAgwAmi: ami-00f8fdefbca05fe8e
+awsCloudstrapperAmi: ami-051d6db85d3a56804
+
+#------------------
+#Cluster-specific Presets
+#------------------
+
+#AWS Resource Names
+orc8rTfSecrets: orc8r-secrets
+orc8rTfVpc: orc8r
+orc8rTfCluster: orc8r
+orc8rTfEs: orc8r-es
+orc8rTfRdsNotifs: orc8r-rds-events
+orc8rTfSnsTopic: orc8r-sns
+
+#------------------
+#Cluster-specific Variables ends
+#------------------
+
+ansibleUser: ubuntu

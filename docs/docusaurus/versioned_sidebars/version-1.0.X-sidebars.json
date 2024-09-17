@@ -1,0 +1,44 @@
+{
+  "version-1.0.X-docs": {
+    "Basics": [
+      "version-1.0.X-basics/introduction",
+      "version-1.0.X-basics/prerequisites",
+      "version-1.0.X-basics/quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "subcategory",
+        "label": "Deploying Orchestrator",
+        "ids": [
+          "version-1.0.X-orc8r/deploy_intro",
+          "version-1.0.X-orc8r/deploy_build",
+          "version-1.0.X-orc8r/deploy_terraform",
+          "version-1.0.X-orc8r/deploy_install",
+          "version-1.0.X-orc8r/deploy_dns"
+        ]
+      }
+    ],
+    "Access Gateway": [
+      "version-1.0.X-lte/setup_deb",
+      "version-1.0.X-lte/config_agw",
+      "version-1.0.X-lte/enodebd",
+      "version-1.0.X-lte/tr069"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploying FeG",
+        "ids": [
+          "version-1.0.X-feg/deploy_intro",
+          "version-1.0.X-feg/deploy_build",
+          "version-1.0.X-feg/deploy_install"
+        ]
+      }
+    ],
+    "Symphony": [
+      "version-1.0.X-symphony/quick_start",
+      "version-1.0.X-symphony/download_requirements",
+      "version-1.0.X-symphony/building_the_symphony_agent"
+    ]
+  }
+}

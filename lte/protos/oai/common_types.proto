@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
+
+// Proto file to serialize the structures in
+// magma/lte/gateway/c/oai/common/common_types.h
+
+// guti_t
+message Guti {
+  bytes plmn = 1;
+  uint32 mme_gid = 2;
+  uint32 mme_code = 3;
+  uint32 m_tmsi = 4;
+}
+
+// ecgi_t
+message Ecgi {
+  bytes plmn = 1; //char[] as plmn_t is 3 bytes
+  // serializing struct eci_t here without creating a new message
+  uint32 enb_id = 2;
+  uint32 cell_id = 3;
+  uint32 empty = 4;
+}
+
+// Messages for APN configuration
+
+// eps_subscribed_qos_profile_t
+message EpsSubscribedQosProfile {
+  uint32 qci = 1; // qci_t
+  // serializing allocation_retention_priority_t here instead of adding a
+  // new message type
+  uint32 priority_level = 2; // priority_level_t
+  uint32 pre_emption_vulnerability = 3; // pre_emption_vulnerability_t
+  uint32 pre_emption_capability = 4; // pre_emption_capability_t
+}
+
+// ambr_t
+message Ambr {
+  uint64 br_ul = 1;
+  uint64 br_dl = 2;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+        }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 3;
+
+}
+
+// apn_configuration_t
+message ApnConfig {
+  uint32 context_identifier = 1;
+  repeated string ip_address = 2;
+  uint32 pdn_type = 3;
+  bytes service_selection = 4;
+  EpsSubscribedQosProfile subscribed_qos = 5;
+  Ambr ambr = 6;
+}
+
+// apn_config_profile
+message ApnConfigProfile {
+  uint32 context_identifier = 1;
+  uint32 all_apn_conf_ind = 2; // all_apn_conf_ind_t
+  repeated ApnConfig apn_configs = 3;
+}

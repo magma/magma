@@ -1,0 +1,57 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+
+message Identity {
+    message Wildcard {
+        enum Type {
+            Gateway = 0;
+            Operator = 1;
+            Network = 2;
+        }
+        Type type = 1;
+    }
+
+    message Gateway {
+        string hardware_id = 1; // unique hardware ID of a gateway encoded in CN of GW certificate
+        string network_id = 2;
+        string logical_id = 3;
+    }
+    // NOTE: Every Value type below should have corresponding entry in
+    // identityTypeNameTable in magma/protos/identity_helper.go
+    oneof Value {
+        Gateway gateway = 1;
+        string  operator = 2; // unique operator ID (user name), encoded in CN of operator certificate
+        string  network = 3; // unique network ID, used by REST access control
+        Wildcard wildcard = 11;
+    }
+
+    // Identities list wrapper
+    message List {
+        repeated Identity list = 1;
+    }
+}
+
+
+// --------------------------------------------------------------------------
+// AccessGatewayID uniquely identifies an access gateway across the system
+// Based on the usage context it could represent either hardware or logical
+// AG ID.
+// --------------------------------------------------------------------------
+message AccessGatewayID {
+    string id = 1;
+}

@@ -1,0 +1,27 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# interval after which cbsd is considered inactive
+# time is measured since last get state grpc request to
+# radio controller service in domain proxy
+dp_backend:
+  cbsd_inactivity_interval_sec: 14400
+  log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
+active_mode_controller:
+  dial_timeout_sec: 60
+  heartbeat_send_timeout_sec: 10
+  request_timeout_sec: 5
+  request_processing_interval_sec: 10
+  polling_interval: 10
+  grpc_service: 'domain-proxy-radio-controller'
+  grpc_port: 50053
+  cbsd_inactivity_interval_sec: 14400

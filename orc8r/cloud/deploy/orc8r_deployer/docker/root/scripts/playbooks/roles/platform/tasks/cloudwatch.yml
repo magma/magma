@@ -1,0 +1,35 @@
+---
+- name: Check if required infra variables are set
+  ansible.builtin.command: "orcl configure check -c infra"
+  register: result
+  failed_when: result.rc != 0
+  tags: install_precheck
+
+- name: Open configuration file
+  shell: "cat {{ config_dir }}/infra.tfvars.json"
+  register: result
+  tags: install_precheck
+
+- name: Set Infra Configs
+  set_fact:
+    infra_configs: "{{ result.stdout | from_json }}"
+  tags: install_precheck
+
+- name: Get all cloudwatch log groups
+  ansible.builtin.shell: aws logs describe-log-groups --output json
+  register: result
+  tags: install_precheck
+
+- name: Check if orc8r cloudwatch log group exists
+  fail:
+    msg:
+      - "Cloudwatch Log group still exists"
+      - "Remove log group 'aws logs delete-log-group --log-group-name {{ item.logGroupName | quote }}'"
+  when: '"eks/{{infra_configs.cluster_name}}/cluster" in item.logGroupName'
+  with_items: "{{ (result.stdout|from_json).logGroups }}"
+  tags: install_precheck
+
+- name: Delete orchestrator cloudwatch group
+  command: aws logs delete-log-group --log-group-name "/aws/eks/{{ orc8r_cluster_name }}/cluster"
+  ignore_errors: true
+  tags: cleanup

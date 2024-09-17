@@ -1,0 +1,51 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+{{- include "orc8rlib.deployment" (list . "analytics.deployment") -}}
+{{- define "analytics.deployment" -}}
+metadata:
+  name: orc8r-analytics
+  labels:
+    app.kubernetes.io/component: analytics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: analytics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: analytics
+    spec:
+      containers:
+      -
+{{ include "orc8rlib.container" (list . "analytics.container")}}
+{{- end -}}
+{{- define "analytics.container" -}}
+name: analytics
+command: ["/usr/bin/envdir"]
+args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/analytics", "-logtostderr=true", "-v=0"]
+ports:
+  - name: grpc
+    containerPort: 9200
+  - name: grpc-internal
+    containerPort: 9300
+livenessProbe:
+  tcpSocket:
+    port: 9200
+  initialDelaySeconds: 10
+  periodSeconds: 30
+readinessProbe:
+  tcpSocket:
+    port: 9200
+  initialDelaySeconds: 5
+  periodSeconds: 10
+{{- end -}}

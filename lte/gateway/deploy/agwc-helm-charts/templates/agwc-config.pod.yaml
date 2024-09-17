@@ -1,0 +1,60 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app.kubernetes.io/component: agwc-config
+  name: agwc-config
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": "pre-install"
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": "hook-succeeded"
+spec:
+  containers:
+    - args:
+      - sh
+      - -c
+      - mkdir -p /var/opt/magma/configs && cp -f /configs/control_proxy.yml /var/opt/magma/configs/  &&
+        mkdir -p /var/opt/magma/certs &&  cp -f /certs/rootCA.pem /var/opt/magma/certs/ &&
+        /usr/local/bin/generate_nghttpx_config.py
+      image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+      name: agwc-config
+      resources: {}
+      volumeMounts:
+        - mountPath: /etc/magma
+          name: magma-config
+        - mountPath: /var/opt/magma
+          name: agwc-claim
+        - mountPath: /certs
+          name: agwc-secret
+        - mountPath: /configs
+          name: controlproxy-config
+  restartPolicy: Never
+  hostNetwork: true
+  volumes:
+    - name: magma-config
+      hostPath:
+        path: /etc/magma
+        type: DirectoryOrCreate
+    - name: agwc-claim
+      persistentVolumeClaim:
+        claimName: agwc-claim
+    - name: agwc-secret
+      secret:
+        secretName: {{ .Values.secret.certs }}
+    - name: controlproxy-config
+      configMap:
+        name: controlproxy-config

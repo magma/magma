@@ -1,0 +1,233 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package magma.orc8r.configurator.storage;
+option go_package = "magma/orc8r/cloud/go/services/configurator/storage";
+
+import "google/protobuf/wrappers.proto";
+
+// A network represents a tenant. Networks can be configured in a hierarchical
+// manner - network-level configurations are assumed to apply across multiple
+// entities within the network.
+message Network {
+    string ID = 1;
+    string Type = 2;
+
+    string name = 10;
+    string description = 11;
+
+    // Configs maps between a type value and a serialized representation of the
+    // configuration value. The type value will point to the Serde
+    // implementation which can deserialize the associated value.
+    map<string, bytes> configs = 20;
+
+    uint64 version = 30;
+}
+
+message NetworkLoadFilter {
+    // If IDs is provided, the query will return all entities matching the
+    // provided ids. TypeFilter is ignored if IDs is
+    // provided.
+    repeated string ids = 1;
+    // If TypeFilter is provided, the query will return all entities matching
+    // the given type.
+    google.protobuf.StringValue type_filter = 2;
+}
+
+
+// NetworkLoadCriteria specifies how much of a network to load
+message NetworkLoadCriteria {
+    // Set LoadMetadata to true to load metadata fields (name, description)
+    bool load_metadata = 1;
+
+    bool load_configs = 2;
+}
+
+message NetworkLoadResult {
+    repeated Network networks = 1;
+    repeated string networkIDs_not_found = 2;
+}
+
+// NetworkUpdateCriteria specifies how to update a network
+message NetworkUpdateCriteria {
+    // ID of the network to update
+    string ID = 1;
+
+    // Set DeleteNetwork to true to delete the network
+    bool delete_network = 10;
+
+    // Set NewName, NewDescription, or NewType to nil to indicate that no update is
+    // desired. To clear the value of name or description, set these fields to
+    // a wrapper to an empty string.
+    google.protobuf.StringValue new_name = 20;
+    google.protobuf.StringValue new_description = 21;
+    google.protobuf.StringValue new_type = 22;
+
+    // New config values to add or existing ones to update
+    map<string, bytes> configs_to_add_or_update = 30;
+
+    // Config values to delete
+    repeated string configs_to_delete = 31;
+}
+
+message EntityID {
+    string type = 1;
+    string key = 2;
+}
+
+// NetworkEntity is the storage representation of a logical component of a
+// network. Networks are partitioned into DAGs of entities.
+message NetworkEntity {
+    string networkID = 1;
+    // (Type, Key) forms a unique identifier for the network entity within its
+    // network.
+    string type = 2;
+    string key = 3;
+
+    string name = 10;
+    string description = 11;
+
+    // PhysicalID will be non-empty if the entity corresponds to a physical
+    // asset.
+    string physicalID = 20;
+
+    // Serialized view of the entity's configuration. The value of the Type
+    // field will determine the Serde implementation for this value.
+    bytes config = 30;
+
+    // GraphID is a mostly-internal field to designate the DAG that this
+    // network entity belongs to.
+    // This field is system-generated and will be ignored if set during entity
+    // creation.
+    string graphID = 40;
+
+    // pk is the internal field storing the entity's unique primary key.
+    // This field is system-generated and will be ignored if set during entity
+    // creation.
+    string pk = 41;
+
+    // Associations are the directed edges originating from this entity.
+    repeated EntityID associations = 50;
+
+    // ParentAssociations are the directed edges ending at this entity.
+    // This is a read-only field and will be ignored if set during entity
+    // creation.
+    repeated EntityID parent_associations = 51;
+
+    uint64 version = 70;
+}
+
+// EntityLoadFilter specifies which entities to load from storage
+message EntityLoadFilter {
+    // If TypeFilter is provided, the query will return all entities matching
+    // the given type.
+    google.protobuf.StringValue type_filter = 1;
+
+    // If KeyFilter is provided, the query will return all entities matching the
+    // given ID.
+    google.protobuf.StringValue key_filter = 2;
+
+    // If IDs is provided, the query will return all entities matching the
+    // provided TKs. TypeFilter and KeyFilter are ignored if IDs is
+    // provided.
+    repeated EntityID IDs = 3;
+
+    // Internal-only
+    google.protobuf.StringValue graphID = 4;
+
+    // If PhysicalID is provided, the query will return all entities matching
+    // the provided ID. All other fields are ignored if this is set.
+    google.protobuf.StringValue physicalID = 5;
+}
+
+// EntityLoadCriteria specifies how much of an entity to load
+message EntityLoadCriteria {
+    // Set LoadMetadata to true to load the metadata fields (name, description)
+    bool load_metadata = 1;
+
+    bool load_config = 2;
+
+    bool load_assocs_to_this = 3;
+    bool load_assocs_from_this = 4;
+
+    // The following parameters allow for pagination of entity loads.
+
+    // page_size is the maximum number of entities returned per load.
+    uint32 page_size = 6;
+    // page_token is a serialized entity page token for paginated loads.
+    string page_token = 7;
+}
+
+message EntityLoadResult {
+    repeated NetworkEntity entities = 1;
+    repeated EntityID entities_not_found = 2;
+    // next_page_token is a serialized entity page token for paginated loads.
+    string next_page_token = 3;
+}
+
+message EntityCountResult {
+    uint64 count = 1;
+}
+
+// EntityPageToken is an opaque token provided to load the next page of
+// entities.
+message EntityPageToken {
+  // last_included_entity is the key of the last returned entity in the page.
+  string last_included_entity = 1;
+}
+
+// EntityUpdateCriteria specifies a patch operation on a network entity.
+message EntityUpdateCriteria {
+    // (Type, Key) of the entity to update
+    string type = 1;
+    string key = 2;
+
+    // Set DeleteEntity to true to mark the entity for deletion
+    bool delete_entity = 10;
+
+    google.protobuf.StringValue new_name = 20;
+    google.protobuf.StringValue new_description = 21;
+    google.protobuf.StringValue new_physicalID = 22;
+
+    // A nil value here indicates no update.
+    google.protobuf.BytesValue new_config = 23;
+
+    // Wrap the repeated field in a message because a nil struct and a struct
+    // with an empty associations list mean different things.
+    EntityAssociationsToSet associations_to_set = 30;
+    repeated EntityID associations_to_add = 31;
+    repeated EntityID associations_to_delete = 32;
+}
+
+message EntityAssociationsToSet {
+    repeated EntityID associations_to_set = 1;
+}
+
+// EntityGraph represents a DAG of associated network entities.
+message EntityGraph {
+    // All nodes in the graph
+    repeated NetworkEntity entities = 1;
+
+    // All nodes in the graph which don't have any edges terminating at them.
+    repeated EntityID root_entities = 2;
+
+    // All edges in the graph.
+    repeated GraphEdge edges = 3;
+}
+
+// GraphEdge represents a directed edge within a graph
+message GraphEdge {
+    EntityID to = 1;
+    EntityID from = 2;
+}

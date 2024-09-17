@@ -1,0 +1,137 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+find_package(Protobuf REQUIRED)
+set(MAGMA_ROOT $ENV{MAGMA_ROOT})
+set(ORC8R_PROTO_DIR ${MAGMA_ROOT}/orc8r/protos)
+set(LTE_PROTO_DIR ${MAGMA_ROOT}/lte/protos)
+set(FEG_PROTO_DIR ${MAGMA_ROOT}/feg/protos)
+set(CWF_PROTO_DIR ${MAGMA_ROOT}/feg/gateway/services/aaa/protos)
+set(PROMETHEUS_PATH ${ORC8R_PROTO_DIR}/prometheus)
+set(GRPC_CPP_PLUGIN_PATH "/usr/local/bin" CACHE STRING "Path for grpc_cpp_plugin")
+
+include_directories("/usr/local/include/prometheus")
+
+macro(create_proto_dir MODULE_TYPE OUT_DIR)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TYPE})
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TYPE}/protos)
+  set(${OUT_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TYPE}/protos)
+endmacro()
+
+macro(generate_prometheus_proto PROTO_SRCS PROTO_HDRS OUT_DIR)
+  list(APPEND PROTO_SRCS "${OUT_DIR}/metrics.pb.cc")
+  list(APPEND PROTO_HDRS "${OUT_DIR}/metrics.pb.h")
+
+  add_custom_command(
+    OUTPUT "${OUT_DIR}/metrics.pb.h"
+           "${OUT_DIR}/metrics.pb.cc"
+    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    ARGS -I ${PROMETHEUS_PATH}
+    --cpp_out=${OUT_DIR} ${PROMETHEUS_PATH}/metrics.proto
+    DEPENDS ${PROMETHEUS_PATH}/metrics.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+    COMMENT "Running C++ protobuf compiler on ${PROMETHEUS_PATH}/metrics.proto"
+    VERBATIM )
+endmacro()
+
+macro(generate_cwf_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
+  foreach(PROTO_NAME ${PROTO_NAME_LIST})
+    list(APPEND PROTO_SRCS "${OUT_DIR}/${PROTO_NAME}.pb.cc")
+    list(APPEND PROTO_HDRS "${OUT_DIR}/${PROTO_NAME}.pb.h")
+
+    add_custom_command(
+      OUTPUT "${OUT_DIR}/${PROTO_NAME}.pb.h"
+             "${OUT_DIR}/${PROTO_NAME}.pb.cc"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS -I ${CWF_PROTO_DIR}
+      --cpp_out=${OUT_DIR} ${IN_DIR}/${PROTO_NAME}.proto
+      DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+      COMMENT "Running C++ protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
+      VERBATIM )
+  endforeach()
+endmacro()
+
+macro(generate_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
+  foreach(PROTO_NAME ${PROTO_NAME_LIST})
+    list(APPEND PROTO_SRCS "${OUT_DIR}/${PROTO_NAME}.pb.cc")
+    list(APPEND PROTO_HDRS "${OUT_DIR}/${PROTO_NAME}.pb.h")
+
+    add_custom_command(
+      OUTPUT "${OUT_DIR}/${PROTO_NAME}.pb.h"
+             "${OUT_DIR}/${PROTO_NAME}.pb.cc"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} -I ${MAGMA_ROOT}
+      --cpp_out=${CMAKE_CURRENT_BINARY_DIR} ${IN_DIR}/${PROTO_NAME}.proto
+      DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+      COMMENT "Running C++ protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
+      VERBATIM )
+  endforeach()
+endmacro()
+
+macro(generate_cwf_grpc_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
+  foreach(PROTO_NAME ${PROTO_NAME_LIST})
+    list(APPEND PROTO_SRCS ${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc)
+    list(APPEND PROTO_HDRS ${OUT_DIR}/${PROTO_NAME}.grpc.pb.h)
+
+    add_custom_command(
+      OUTPUT "${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc"
+           "${OUT_DIR}/${PROTO_NAME}.grpc.pb.h"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS -I ${CWF_PROTO_DIR} -I ${IN_DIR}
+          --grpc_out=${OUT_DIR}
+          --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_PATH}/grpc_cpp_plugin
+          ${IN_DIR}/${PROTO_NAME}.proto
+          DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+          COMMENT "Running GRPC protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
+      VERBATIM )
+  endforeach()
+endmacro()
+
+macro(generate_grpc_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
+  foreach(PROTO_NAME ${PROTO_NAME_LIST})
+    list(APPEND PROTO_SRCS ${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc)
+    list(APPEND PROTO_HDRS ${OUT_DIR}/${PROTO_NAME}.grpc.pb.h)
+
+    add_custom_command(
+      OUTPUT "${OUT_DIR}/${PROTO_NAME}.grpc.pb.cc"
+           "${OUT_DIR}/${PROTO_NAME}.grpc.pb.h"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} -I ${IN_DIR}
+          --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+          --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_PATH}/grpc_cpp_plugin
+          ${IN_DIR}/${PROTO_NAME}.proto
+          DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+          COMMENT "Running GRPC protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
+      VERBATIM )
+  endforeach()
+endmacro()
+
+macro(generate_all_protos LTE_PROTO_LIST ORC8R_PROTO_LIST LTE_GRPC_PROTO_LIST
+ORC8R_GRPC_PROTO_LIST PROTO_SRCS PROTO_HDRS)
+  if(NOT "${LTE_PROTO_LIST}" STREQUAL "")
+    create_proto_dir("lte" LTE_OUT_DIR)
+    generate_cpp_protos("${LTE_PROTO_LIST}" "${PROTO_SRCS}"
+      "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+    if(NOT "${LTE_GRPC_PROTO_LIST}" STREQUAL "")
+      generate_grpc_protos("${LTE_GRPC_PROTO_LIST}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+    endif(NOT "${LTE_GRPC_PROTO_LIST}" STREQUAL "")
+  endif(NOT "${LTE_PROTO_LIST}" STREQUAL "")
+  if(NOT "${ORC8R_PROTO_LIST}" STREQUAL "")
+    create_proto_dir("orc8r" ORC8R_OUT_DIR)
+    generate_cpp_protos("${ORC8R_PROTO_LIST}" "${PROTO_SRCS}"
+      "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
+    if(NOT "${ORC8R_GRPC_PROTO_LIST}" STREQUAL "")
+      generate_grpc_protos("${ORC8R_GRPC_PROTO_LIST}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
+    endif(NOT "${ORC8R_GRPC_PROTO_LIST}" STREQUAL "")
+  endif(NOT "${ORC8R_PROTO_LIST}" STREQUAL "")
+endmacro()

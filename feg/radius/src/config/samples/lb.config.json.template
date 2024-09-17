@@ -1,0 +1,86 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "server": {
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "filters": [
+            "lbcanary",
+            "lballocate"
+        ],
+        "loadBalance": {
+            "serviceTiers": [
+                {
+                    "name": "authMainTier",
+                    "upstreamHosts": [
+                        "radserver1:3800",
+                        "radserver2:3801"
+                    ]
+                }, {
+                    "name": "authTierC1",
+                    "upstreamHosts": [
+                        "radserver3:3802"
+                    ]
+                }, {
+                    "name": "authTierC2",
+                    "upstreamHosts": [
+                        "radserver4:3803",
+                        "radserver5:3804"
+                    ]
+                }
+            ],
+            "liveTier": {
+                "tierRoutes": [
+                    {
+                        "listener": "auth",
+                        "serviceTier": "authMainTier"
+                    }
+                ]
+            },
+            "canaries": [
+                {
+                    "name": "c1",
+                    "trafficSlicePercent": 5,
+                    "routing": {
+                        "tierRoutes": [
+                            { 
+                                "listener": "auth",
+                                "serviceTier": "authTierC1"
+                            }
+                        ]
+                    }
+                }, {
+                    "name": "c2",
+                    "trafficSlicePercent": 25,
+                    "routing": {
+                        "tierRoutes": [
+                            { 
+                                "listener": "auth",
+                                "serviceTier": "authTierC2"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "listeners": [
+            {
+                "name": "auth",
+                "type": "udp",
+                "extra": {
+                    "port": $RADIUS_AUTH_PORT
+                },
+                "modules": [
+                    {
+                        "name": "lbserve",
+                        "config": {}
+                    }
+                ]
+            },
+        ]
+    }
+}

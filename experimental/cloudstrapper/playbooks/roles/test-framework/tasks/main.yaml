@@ -1,0 +1,11 @@
+---
+- include_tasks: cleanup-gateway-instance.yaml
+  tags: clusterGatewayCleanup
+- include_tasks: provision-test-instances.yaml
+  tags: clusterStart
+- include_tasks: configure-test-instances.yaml
+  tags: clusterConfigure
+- include_tasks: cleanup-test-instances.yaml
+  tags: clusterCleanup
+- include_tasks: configure-ssh-forwarding.yaml
+  tags: clusterJump

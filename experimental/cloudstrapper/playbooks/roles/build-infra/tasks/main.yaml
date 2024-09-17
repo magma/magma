@@ -1,0 +1,7 @@
+---
+
+- include_tasks: orc8r-devops.yaml
+  tags: devopsOrc8r
+
+- include_tasks: agw-devops.yaml
+  tags: devopsAgw

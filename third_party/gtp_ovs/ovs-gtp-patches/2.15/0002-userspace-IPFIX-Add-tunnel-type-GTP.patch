@@ -1,0 +1,198 @@
+From 71e80cf136045a3d58aa3a9d05ac97f7488dc8b3 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Mon, 24 Feb 2020 04:29:56 +0000
+Subject: [PATCH 02/22] userspace: IPFIX: Add tunnel type GTP
+
+Add support for ingress/egress tunnel type GTP
+in IPFIX.
+This also fixes gtp udp csum calc.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ lib/netdev-native-tnl.c      | 13 +++++++++----
+ lib/netdev-vport.c           |  7 ++++++-
+ lib/netdev.h                 |  2 ++
+ ofproto/ofproto-dpif-ipfix.c |  6 ++++++
+ ofproto/ofproto-dpif-sflow.c |  6 +++++-
+ tests/tunnel-push-pop.at     |  2 +-
+ 6 files changed, 29 insertions(+), 7 deletions(-)
+
+diff --git a/lib/netdev-native-tnl.c b/lib/netdev-native-tnl.c
+index b89dfdd52..50f95e637 100644
+--- a/lib/netdev-native-tnl.c
++++ b/lib/netdev-native-tnl.c
+@@ -328,6 +328,9 @@ udp_build_header(struct netdev_tunnel_config *tnl_cfg,
+ 
+     udp = netdev_tnl_ip_build_header(data, params, IPPROTO_UDP);
+     udp->udp_dst = tnl_cfg->dst_port;
++    if (!tnl_cfg->gtp_random_src_port) {
++        udp->udp_src = tnl_cfg->dst_port;
++    }
+ 
+     if (params->is_ipv6 || params->flow->tunnel.flags & FLOW_TNL_F_CSUM) {
+         /* Write a value in now to mark that we should compute the checksum
+@@ -795,10 +798,6 @@ netdev_gtpu_push_header(const struct netdev *netdev,
+     payload_len = dp_packet_size(packet);
+     udp = netdev_tnl_push_ip_header(packet, data->header,
+                                     data->header_len, &ip_tot_size);
+-    udp->udp_src = netdev_tnl_get_src_port(packet);
+-    udp->udp_len = htons(ip_tot_size);
+-    netdev_tnl_calc_udp_csum(udp, packet, ip_tot_size);
+-
+     gtpuh = ALIGNED_CAST(struct gtpuhdr *, udp + 1);
+ 
+     tnl_cfg = &dev->tnl_cfg;
+@@ -808,6 +807,12 @@ netdev_gtpu_push_header(const struct netdev *netdev,
+         payload_len += sizeof(struct gtpuhdr_opt);
+     }
+     gtpuh->len = htons(payload_len);
++
++    if (tnl_cfg->gtp_random_src_port) {
++        udp->udp_src = netdev_tnl_get_src_port(packet);
++    }
++    udp->udp_len = htons(ip_tot_size);
++    netdev_tnl_calc_udp_csum(udp, packet, ip_tot_size);
+ }
+ 
+ int
+diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
+index a1e2a7adf..af4a1808e 100644
+--- a/lib/netdev-vport.c
++++ b/lib/netdev-vport.c
+@@ -583,6 +583,7 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+     memset(&tnl_cfg, 0, sizeof tnl_cfg);
+ 
+     /* Add a default destination port for tunnel ports if none specified. */
++    tnl_cfg.gtp_random_src_port = true;
+     if (!strcmp(type, "geneve")) {
+         tnl_cfg.dst_port = htons(GENEVE_DST_PORT);
+     }
+@@ -601,11 +602,11 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+ 
+     if (!strcmp(type, "gtpu")) {
+         tnl_cfg.dst_port = htons(GTPU_DST_PORT);
++        tnl_cfg.gtp_random_src_port = false;
+     }
+ 
+     needs_dst_port = netdev_vport_needs_dst_port(dev_);
+     tnl_cfg.dont_fragment = true;
+-
+     SMAP_FOR_EACH (node, args) {
+         if (!strcmp(node->key, "remote_ip")) {
+             err = parse_tunnel_ip(node->value, false, &tnl_cfg.ip_dst_flow,
+@@ -650,6 +651,10 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+             }
+         } else if (!strcmp(node->key, "dst_port") && needs_dst_port) {
+             tnl_cfg.dst_port = htons(atoi(node->value));
++        } else if (!strcmp(node->key, "gtp_random_src_port") && !strcmp(type, "gtpu")) {
++            if (!strcmp(node->value, "true")) {
++                tnl_cfg.gtp_random_src_port = true;
++            }
+         } else if (!strcmp(node->key, "csum") && has_csum) {
+             if (!strcmp(node->value, "true")) {
+                 tnl_cfg.csum = true;
+diff --git a/lib/netdev.h b/lib/netdev.h
+index 799cafeb5..b67ae08f8 100644
+--- a/lib/netdev.h
++++ b/lib/netdev.h
+@@ -141,6 +141,8 @@ struct netdev_tunnel_config {
+     bool erspan_idx_flow;
+     bool erspan_dir_flow;
+     bool erspan_hwid_flow;
++
++    bool gtp_random_src_port;
+ };
+ 
+ void netdev_run(void);
+diff --git a/ofproto/ofproto-dpif-ipfix.c b/ofproto/ofproto-dpif-ipfix.c
+index 796eb6f88..ed0a4ace0 100644
+--- a/ofproto/ofproto-dpif-ipfix.c
++++ b/ofproto/ofproto-dpif-ipfix.c
+@@ -88,6 +88,7 @@ enum dpif_ipfix_tunnel_type {
+     DPIF_IPFIX_TUNNEL_LISP = 0x03,
+     DPIF_IPFIX_TUNNEL_STT = 0x04,
+     DPIF_IPFIX_TUNNEL_GENEVE = 0x07,
++    DPIF_IPFIX_TUNNEL_GTP = 0x08,
+     NUM_DPIF_IPFIX_TUNNEL
+ };
+ 
+@@ -389,6 +390,7 @@ static uint8_t tunnel_protocol[NUM_DPIF_IPFIX_TUNNEL] = {
+     IPPROTO_TCP,    /* DPIF_IPFIX_TUNNEL_STT*/
+     0          ,    /* reserved */
+     IPPROTO_UDP,    /* DPIF_IPFIX_TUNNEL_GENEVE*/
++    IPPROTO_UDP,    /* DPIF_IPFIX_TUNNEL_GTP*/
+ };
+ 
+ OVS_PACKED(
+@@ -509,6 +511,7 @@ BUILD_ASSERT_DECL(sizeof(struct ipfix_data_record_aggregated_tcp) == 48);
+  * support tunnel key for:
+  * VxLAN: 24-bit VIN,
+  * GRE: 32-bit key,
++ * GTP: 32-bit key,
+  * LISP: 24-bit instance ID
+  * STT: 64-bit key
+  */
+@@ -807,6 +810,8 @@ dpif_ipfix_tunnel_type(const struct ofport *ofport)
+         return DPIF_IPFIX_TUNNEL_VXLAN;
+     } else if (strcmp(type, "lisp") == 0) {
+         return DPIF_IPFIX_TUNNEL_LISP;
++    } else if (strcmp(type, "gtpu") == 0) {
++        return DPIF_IPFIX_TUNNEL_GTP;
+     } else if (strcmp(type, "geneve") == 0) {
+         return DPIF_IPFIX_TUNNEL_GENEVE;
+     } else if (strcmp(type, "stt") == 0) {
+@@ -822,6 +827,7 @@ dpif_ipfix_tunnel_key_length(enum dpif_ipfix_tunnel_type tunnel_type)
+ 
+     switch (tunnel_type) {
+         case DPIF_IPFIX_TUNNEL_GRE:
++        case DPIF_IPFIX_TUNNEL_GTP:
+             /* 32-bit key gre */
+             return 4;
+         case DPIF_IPFIX_TUNNEL_VXLAN:
+diff --git a/ofproto/ofproto-dpif-sflow.c b/ofproto/ofproto-dpif-sflow.c
+index 864c136b5..4bb8f0b59 100644
+--- a/ofproto/ofproto-dpif-sflow.c
++++ b/ofproto/ofproto-dpif-sflow.c
+@@ -61,7 +61,8 @@ enum dpif_sflow_tunnel_type {
+     DPIF_SFLOW_TUNNEL_VXLAN,
+     DPIF_SFLOW_TUNNEL_GRE,
+     DPIF_SFLOW_TUNNEL_LISP,
+-    DPIF_SFLOW_TUNNEL_GENEVE
++    DPIF_SFLOW_TUNNEL_GENEVE,
++    DPIF_SFLOW_TUNNEL_GTP
+ };
+ 
+ struct dpif_sflow_port {
+@@ -624,6 +625,8 @@ dpif_sflow_tunnel_type(struct ofport *ofport) {
+             return DPIF_SFLOW_TUNNEL_LISP;
+         } else if (strcmp(type, "geneve") == 0) {
+             return DPIF_SFLOW_TUNNEL_GENEVE;
++        } else if (strcmp(type, "gtpu") == 0) {
++            return DPIF_SFLOW_TUNNEL_GTP;
+         }
+     }
+     return DPIF_SFLOW_TUNNEL_UNKNOWN;
+@@ -642,6 +645,7 @@ dpif_sflow_tunnel_proto(enum dpif_sflow_tunnel_type tunnel_type)
+ 
+     case DPIF_SFLOW_TUNNEL_VXLAN:
+     case DPIF_SFLOW_TUNNEL_LISP:
++    case DPIF_SFLOW_TUNNEL_GTP:
+     case DPIF_SFLOW_TUNNEL_GENEVE:
+         ipproto = IPPROTO_UDP;
+ 
+diff --git a/tests/tunnel-push-pop.at b/tests/tunnel-push-pop.at
+index d628ce6ac..ef8784cfa 100644
+--- a/tests/tunnel-push-pop.at
++++ b/tests/tunnel-push-pop.at
+@@ -442,7 +442,7 @@ AT_CHECK([ovs-ofctl add-flow int-br "actions=9"])
+ AT_CHECK([ovs-appctl ofproto/trace ovs-dummy 'in_port(2),eth(src=f8:bc:12:44:34:b6,dst=aa:55:aa:55:00:00),eth_type(0x0800),ipv4(src=1.1.3.88,dst=1.1.3.112,proto=47,tos=0,ttl=64,frag=no)'],
+ [0], [stdout])
+ AT_CHECK([tail -1 stdout], [0],
+-  [Datapath actions: pop_eth,clone(tnl_push(tnl_port(2152),header(size=50,type=110,eth(dst=f8:bc:12:44:34:b6,src=aa:55:aa:55:00:00,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=17,tos=0,ttl=64,frag=0x4000),udp(src=0,dst=2152,csum=0x0),gtpu(flags=0x30,msgtype=255,teid=0x7b)),out_port(100)),1)
++  [Datapath actions: pop_eth,clone(tnl_push(tnl_port(2152),header(size=50,type=110,eth(dst=f8:bc:12:44:34:b6,src=aa:55:aa:55:00:00,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=17,tos=0,ttl=64,frag=0x4000),udp(src=2152,dst=2152,csum=0x0),gtpu(flags=0x30,msgtype=255,teid=0x7b)),out_port(100)),1)
+ ])
+ AT_CHECK([ovs-ofctl del-flows int-br])
+ 
+-- 
+2.25.1
+

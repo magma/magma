@@ -1,0 +1,77 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//
+// This is a proxy for MAP application C/D 3GPP 29.002
+//
+syntax = "proto3";
+
+package magma.feg.hlr;
+option go_package = "magma/feg/cloud/go/protos/hlr";
+
+// This RPC converts Result-Code from Altran MAP Protocol into gRPC status codes
+// ErrorCode reflects Experimental-Result values which are 3GPP failures
+// to be processed by HLR Proxy. 
+enum ErrorCode {
+    // Default success code
+    SUCCESS                         = 0;
+    UNABLE_TO_DELIVER               = 1;
+    AUTHENTICATION_REJECTED         = 2;
+    AUTHENTICATION_DATA_UNAVAILABLE = 3;
+    UNKNOWN_SUBSCRIBER              = 4;
+    NO_PATH_TO_HLR                  = 5;
+    NO_HLR_IN_ACTIVE_STATE          = 6;
+    NO_RESP_FROM_PEER               = 7;
+}
+
+// Authentication Information Request (MAP 29.002 section 8.5.2)
+message AuthInfoReq {
+    // Subscriber identifier
+    string user_name = 1;
+    // Number of umts vectors to request in response
+    uint32 num_requested_umts_vectors = 2;
+    //ResyncInfo containing RAND and AUTS in the case of a resync attach
+    ResyncInfo resync_info = 3;
+
+    message ResyncInfo {
+      enum Len {
+          option allow_alias = true;
+          ZERO_LEN = 0;
+          RAND_LEN = 16;
+          AUTH_LEN = 16;
+      }
+      bytes rand = 1;
+      bytes autn = 2;
+    }
+}
+
+// Authentication Information Answer (MAP 29.002 Section 8.5.2)
+message AuthInfoAns {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated UMTSVector umts_vectors = 2;
+
+    // For details about fields read 3GPP 33.401
+    message UMTSVector {
+        bytes rand = 1;
+        bytes xres = 2;
+        bytes ck = 3;
+        bytes ik = 4;
+        bytes autn = 5;
+    }
+}
+
+service HlrProxy {
+    rpc AuthInfo (AuthInfoReq) returns (AuthInfoAns) {}
+}
+

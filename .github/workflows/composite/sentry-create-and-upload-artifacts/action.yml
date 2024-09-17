@@ -1,0 +1,67 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: sentry-create-upload
+description: Create and upload sentry release artifacts
+
+inputs:
+  EXECUTABLE_NAME:
+    required: true
+    default: sessiond
+  SENTRY_ORG:
+    required: true
+    default: lf-9c
+  PATH_TO_EXEC:
+    required: true
+    default: lte/gateway/magma-packages
+  SENTRY_AUTH_TOKEN:
+    required: true
+  PROJECTS:
+    required: false
+    default: ('lab-agws-native' 'radtonics_lab_native' 'magma-staging-native' 'si-agw-native')
+
+runs:
+  using: composite
+  steps:
+    - name: Create debug artifacts to be uploaded to Sentry.io
+      shell: bash
+      run: |
+        # The assumption here is that packages.tar.gz was copied out and untarred
+        echo "${{ inputs.PATH_TO_EXEC }} ${{ inputs.EXECUTABLE_NAME }}"
+        cd "${{ inputs.PATH_TO_EXEC }}"
+        ls -R
+
+        objcopy --only-keep-debug "${{ inputs.EXECUTABLE_NAME }}" "${{ inputs.EXECUTABLE_NAME }}".debug
+        objcopy --strip-debug --strip-unneeded "${{ inputs.EXECUTABLE_NAME }}"
+        objcopy --add-gnu-debuglink="${{ inputs.EXECUTABLE_NAME }}".debug "${{ inputs.EXECUTABLE_NAME }}"
+    - name: Upload debug artifacts for an executable to Sentry.io
+      shell: bash
+      env:
+        SENTRY_AUTH_TOKEN: "${{ inputs.SENTRY_AUTH_TOKEN }}"
+      run: |
+        # The assumption here is that debug artifacts already exist for this executable
+        # This should be true if sentry-create-artifacts was run before this
+        cd "${{ inputs.PATH_TO_EXEC }}"
+
+        declare -a PROJECTS=${{ inputs.PROJECTS }}
+        for NATIVE_PROJECT in $PROJECTS
+        do
+          # [Optional] Log included debug information
+          sentry-cli difutil check "${{ inputs.EXECUTABLE_NAME }}"
+          sentry-cli difutil check "${{ inputs.EXECUTABLE_NAME }}".debug
+          echo "$NATIVE_PROJECT"
+
+          # Upload the debug artifact with `symtab`, `debug`, and `sources`
+          sentry-cli upload-dif --log-level=info --org="${{ inputs.SENTRY_ORG }}" --project="$NATIVE_PROJECT" --include-sources  "${{ inputs.EXECUTABLE_NAME }}".debug
+          # Upload the stripped executable with `unwind`
+          sentry-cli upload-dif --log-level=info --org="${{ inputs.SENTRY_ORG }}" --project="$NATIVE_PROJECT" "${{ inputs.EXECUTABLE_NAME }}"
+        done
+

@@ -1,0 +1,116 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Mount magma directory
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+
+  config.vm.define :cwag, primary: true do |cwag|
+    cwag.vm.box = "generic/ubuntu2004"
+    cwag.vm.box_version = "4.0.2"
+    cwag.vbguest.auto_update = false
+    cwag.vm.hostname = "cwag-dev"
+    cwag.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    cwag.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
+    cwag.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
+    cwag.ssh.password = "vagrant"
+    cwag.ssh.insert_key = true
+
+    cwag.vm.provider "virtualbox" do |vb|
+      vb.name = "cwag-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    cwag.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/cwag_dev.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.extra_vars = {
+        ingress_port: "eth1",
+        uplink_ports: "eth2 eth3",
+        li_port: "eth4",
+      }
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :cwag_centos7, primary: false do |cwag_centos7|
+    # mutually exclusive with :cwag
+    # INTENTIONAL IP ADDRESS CONFLICT
+    cwag_centos7.vm.box = "bento/centos-7"
+    cwag_centos7.vm.box_version = "202005.21.0"
+    cwag_centos7.vbguest.auto_update = false
+    cwag_centos7.vm.hostname = "cwag-dev-centos7"
+    cwag_centos7.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
+    cwag_centos7.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
+    cwag_centos7.ssh.insert_key = true
+
+    cwag_centos7.vm.provider "virtualbox" do |vb|
+      vb.name = "cwag-dev-centos7"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    cwag_centos7.vm.provision "shell",
+                              inline: "yum updateinfo; yum install -y python python3 python-setuptools python3-setuptools python-pip python3-pip libselinux-python3 git"
+    cwag_centos7.vm.provision "shell",
+                              inline: "touch /home/vagrant/.profile"
+    
+    cwag_centos7.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/cwag_dev_centos7.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :cwag_test, primary: true do |cwag_test|
+    cwag_test.vm.box = "generic/ubuntu2004"
+    cwag_test.vm.box_version = "4.0.2"
+    cwag_test.vbguest.auto_update = false
+    cwag_test.vm.hostname = "cwag-test"
+    cwag_test.vm.network "private_network", ip: "192.168.70.102", nic_type: "82540EM"
+    cwag_test.vm.network "private_network", ip: "192.168.40.12", nic_type: "82540EM"
+    cwag_test.vm.network "forwarded_port", guest: 40000, host: 40000
+    cwag_test.ssh.password = "vagrant"
+    cwag_test.ssh.insert_key = true
+
+    cwag_test.vm.provider "virtualbox" do |vb|
+      vb.name = "cwag-test"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    cwag_test.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/cwag_test.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.verbose = 'v'
+    end
+  end
+end

@@ -1,0 +1,59 @@
+diff --git a/ryu/ofproto/nx_match.py b/ryu/ofproto/nx_match.py
+index 6d886853..81b32c43 100644
+--- a/ryu/ofproto/nx_match.py
++++ b/ryu/ofproto/nx_match.py
+@@ -44,6 +44,7 @@ FWW_ARP_SHA = 1 << 3
+ FWW_ARP_THA = 1 << 6
+ FWW_IPV6_LABEL = 1 << 7
+ FWW_NW_TTL = 1 << 8
++FWW_QFI = 1 << 9
+ FWW_ALL = (1 << 13) - 1
+ 
+ FLOW_NW_FRAG_ANY = 1 << 0
+@@ -94,6 +95,7 @@ class Flow(ofproto_parser.StringifyMixin):
+         self.ipv6_label = 0
+         self.pkt_mark = 0
+         self.tcp_flags = 0
++        self.qfi = 0
+ 
+ 
+ class FlowWildcards(ofproto_parser.StringifyMixin):
+@@ -318,6 +320,10 @@ class ClsRule(ofproto_parser.StringifyMixin):
+         self.flow.tcp_flags = tcp_flags
+         self.wc.tcp_flags_mask = mask
+ 
++    def set_qfi(self, qfi):
++        self.wc.wildcards &= ~FWW_QFI
++        self.flow.qfi = qfi
++
+     def flow_format(self):
+         # Tunnel ID is only supported by NXM
+         if self.wc.tun_id_mask != 0:
+@@ -959,6 +965,16 @@ class MFPktMark(MFField):
+ 
+ 
+ @_register_make
++@_set_nxm_headers([ofproto_v1_0.NXM_NX_QFI])
++class MFPQfi(MFField):
++    @classmethod
++    def make(cls, header):
++        return cls(header, MF_PACK_STRING_8)
++
++    def put(self, buf, offset, rule):
++        return self.put(buf, offset, rule.flow.qfi)
++
++@_register_make
+ @_set_nxm_headers([ofproto_v1_0.NXM_NX_TCP_FLAGS,
+                    ofproto_v1_0.NXM_NX_TCP_FLAGS_W])
+ class MFTcpFlags(MFField):
+@@ -1159,6 +1175,10 @@ def serialize_nxm_match(rule, buf, offset):
+             header = ofproto_v1_0.NXM_NX_TUN_ID_W
+         offset += nxm_put(buf, offset, header, rule)
+ 
++    # QFI Value
++    if not rule.wc.wildcards & FWW_QFI:
++         offset += nxm_put(buf, offset, ofproto_v1_0.NXM_NX_QFI, rule)
++
+     # XXX: Cookie
+ 
+     for i in range(FLOW_N_REGS):

@@ -1,0 +1,64 @@
+
+---
+swagger: '2.0'
+
+info:
+  title: AAA Server Event definitions
+  description: These events occur in aaa_server
+  version: 1.0.0
+
+definitions:
+  authentication_succeeded:
+    type: object
+    description: Used to track successful subscriber authentications
+    properties:
+      imsi:
+        type: string
+      session_id:
+        type: string
+      mac_addr:
+        type: string
+      apn:
+        type: string
+  authentication_failed:
+    type: object
+    description: Used to track failed subscriber authentications
+    properties:
+      imsi:
+        type: string
+      mac_addr:
+        type: string
+      apn:
+        type: string
+      failure_reason:
+        type: string
+  session_termination_succeeded:
+    type: object
+    description:  Used to track AAA server produced session terminations
+    properties:
+      imsi:
+        type: string
+      session_id:
+        type: string
+      mac_addr:
+        type: string
+      apn:
+        type: string
+      session_termination_reason:
+        type: string
+  session_termination_failed:
+    type: object
+    description:  Used to track AAA server produced session termination failures
+    properties:
+      imsi:
+        type: string
+      session_id:
+        type: string
+      mac_addr:
+        type: string
+      apn:
+        type: string
+      session_termination_reason:
+        type: string
+      failure_reason:
+        type: string

@@ -1,0 +1,324 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "baicells_old_tests",
+    size = "small",
+    srcs = ["baicells_old_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+    ],
+)
+
+pytest_test(
+    name = "baicells_qafb_tests",
+    size = "small",
+    srcs = ["baicells_qafb_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+    ],
+)
+
+pytest_test(
+    name = "baicells_qrtb_tests",
+    size = "small",
+    srcs = ["baicells_qrtb_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//dp/protos:cbsd_python_proto",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/devices/baicells_qrtb",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+        requirement("parameterized"),
+    ],
+)
+
+pytest_test(
+    name = "baicells_tests",
+    size = "small",
+    srcs = ["baicells_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+    ],
+)
+
+pytest_test(
+    name = "cavium_tests",
+    size = "small",
+    srcs = ["cavium_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+    ],
+)
+
+pytest_test(
+    name = "configuration_init_tests",
+    size = "small",
+    srcs = ["configuration_init_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
+        "//lte/gateway/python/magma/enodebd/devices:baicells",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:config_builder",
+    ],
+)
+
+pytest_test(
+    name = "data_model_tests",
+    size = "small",
+    srcs = ["data_model_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/devices:baicells",
+    ],
+)
+
+pytest_test(
+    name = "device_utils_tests",
+    size = "small",
+    srcs = ["device_utils_tests.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        requirement("parameterized"),
+    ],
+)
+
+pytest_test(
+    name = "enb_acs_manager_tests",
+    size = "small",
+    srcs = ["enb_acs_manager_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_manager",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:spyne_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+    ],
+)
+
+pytest_test(
+    name = "enodeb_acs_states_tests",
+    size = "small",
+    srcs = ["enodeb_acs_states_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_impl",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+pytest_test(
+    name = "enodeb_configuration_tests",
+    size = "small",
+    srcs = ["enodeb_configuration_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/device_config:enodeb_configuration",
+        "//lte/gateway/python/magma/enodebd/devices/experimental:cavium",
+    ],
+)
+
+pytest_test(
+    name = "enodeb_status_tests",
+    size = "small",
+    srcs = ["enodeb_status_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd:enodeb_status",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:spyne_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+        "//lte/protos:enodebd_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "freedomfi_one_tests",
+    size = "small",
+    srcs = ["freedomfi_one_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//dp/protos:cbsd_python_proto",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/device_config:cbrs_consts",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_util",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/devices/freedomfi_one",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:config_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:tr069_msg_builder",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:service",
+        requirement("parameterized"),
+    ],
+)
+
+pytest_test(
+    name = "get_params_tests",
+    size = "small",
+    srcs = ["get_params_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
+        "//lte/gateway/python/magma/enodebd/devices/baicells_qrtb",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enodeb_handler",
+        requirement("parameterized"),
+    ],
+)
+
+pytest_test(
+    name = "spyne_mods_tests",
+    size = "small",
+    srcs = ["spyne_mods_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/enodebd/tr069:models"],
+)
+
+pytest_test(
+    name = "stats_manager_tests",
+    size = "small",
+    srcs = ["stats_manager_tests.py"],
+    data = ["pm_file_example.xml"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd:metrics",
+        "//lte/gateway/python/magma/enodebd:stats_manager",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model_parameters",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+        "//lte/gateway/python/magma/enodebd/state_machines:enb_acs_manager",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:config_builder",
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+    ],
+)
+
+pytest_test(
+    name = "timer_tests",
+    size = "small",
+    srcs = ["timer_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/enodebd/state_machines:timer"],
+)
+
+pytest_test(
+    name = "tr069_tests",
+    size = "small",
+    srcs = ["tr069_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/enodebd/tests/test_utils:enb_acs_builder",
+        "//lte/gateway/python/magma/enodebd/tr069:rpc_methods",
+        requirement("lxml"),
+    ],
+)
+
+pytest_test(
+    name = "transform_for_enb_tests",
+    size = "small",
+    srcs = ["transform_for_enb_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/enodebd/data_models:transform_for"],
+)
+
+pytest_test(
+    name = "transform_for_magma_tests",
+    size = "small",
+    srcs = ["transform_for_magma_tests.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/enodebd/data_models:transform_for"],
+)

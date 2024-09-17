@@ -1,0 +1,33 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "server": {
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "coa_grpc",
+                "type": "grpc",
+                "extra": {
+                    "port": 9108
+                },
+                "modules": [
+                    {
+                        "name": "analytics",
+                        "config": {}
+                    },
+                    {
+                        "name": "coafixedip",
+                        "config": {
+                            "Target": "127.0.0.1:4799"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

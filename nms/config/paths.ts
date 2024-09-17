@@ -1,0 +1,30 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import fs from 'fs';
+import path from 'path';
+
+const appDirectory = fs.realpathSync(process.cwd());
+
+const resolveApp = (relativePath: string) =>
+  path.resolve(appDirectory, relativePath);
+
+const paths = {
+  appSrc: resolveApp('app'),
+  appIndexJs: resolveApp('app/main.tsx'),
+  loginJs: resolveApp('app/login.tsx'),
+  hostJs: resolveApp('app/host.tsx'),
+  distPath: resolveApp('static/dist'),
+  resolveApp,
+};
+export default paths;

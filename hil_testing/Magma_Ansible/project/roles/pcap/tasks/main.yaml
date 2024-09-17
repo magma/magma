@@ -1,0 +1,51 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Starting pcap collection for TC
+  tags: pcap_start
+  shell: tshark -i {{ interface }} -f "{{ capture_filter }}" -c {{ packet_count }} -w {{ output_file }} &
+  async: 30
+  poll: 0
+
+- name: Capture tshark PID
+  tags: pcap_start
+  shell: pgrep tshark
+  register: tshark_pid
+  until: tshark_pid is not failed
+  retries: 5
+  delay: 3
+
+- name: set fact with tshark pid
+  tags: pcap_start
+  set_fact:
+    tshark_pid: "{{ tshark_pid.stdout }}"
+    cacheable: yes
+
+- name: Get PID of tshark (if any) on SUT
+  tags: pcap_check
+  shell: pidof tshark
+  register: tshark_pid_post_run
+  ignore_errors: yes
+
+- name: set fact tshark PID post run (if any)
+  tags: pcap_check
+  set_fact:
+    tshark_pid_post_run: "{{ tshark_pid_post_run.stdout }}"
+    cacheable: yes
+
+- name: Clear pcap on SUT
+  tags: pcap_cleanup
+  shell: rm -f {{ output_file }}
+
+- name: kill hung pcap
+  tags: pcap_kill
+  shell: kill -9 {{ tshark_id }}

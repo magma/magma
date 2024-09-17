@@ -1,0 +1,24 @@
+CELL_ID                  1
+TAC                      1
+ENB_IP_ADDR              192.168.60.141
+MME_ID                   1
+MME_ADDR                 192.168.60.142
+SCTP_IP_ADDR             192.168.60.141
+ENB_NAME                 "RADISYS"
+PLMN_ID                  00101
+HEARTBEAT_INTERVAL       5000
+RTO_INITIAL              200
+RTO_MIN                  200
+RTO_MAX                  1000
+S1_PREP_TIMER_VAL        5000
+S1_OVERALL_TIMER_VAL     10000
+SCTP_UDP_SERVICE_TYPE    0
+INACTIVITY_TIMER_VAL     120000
+MAX_EXPIRY               3
+S1_SETUP_TMR_VAL         2000
+NO_OF_SCTP_IN_STREAMS    3
+NO_OF_SCTP_OUT_STREAMS   3
+UE_ETH_INTF              eth2
+UE_ETH_INTF_IPV6         eth3
+VS_IP_ADDR               192.168.129.42
+CFGEND

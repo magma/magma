@@ -1,0 +1,27 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: get current installed sw
+  tags: get-sw
+  shell: apt-cache policy magma| grep Installed| cut -d':' -f2
+  async: 120
+  poll: 2
+  register: installed_sw
+- name: set fact with sw version
+  tags: get-sw
+  set_fact:
+    agw_magma_build: "{{ installed_sw.stdout }}"
+    cacheable: yes
+- name: remove cores if there are any
+  shell: rm -f /var/core/*
+  async: 120
+  poll: 2

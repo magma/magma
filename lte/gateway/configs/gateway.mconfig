@@ -1,0 +1,167 @@
+{
+  "configs_by_key": {
+    "connectiond": {
+      "@type": "type.googleapis.com/magma.mconfig.ConnectionD",
+      "logLevel": "INFO"
+    },
+    "control_proxy": {
+      "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
+      "logLevel": "INFO"
+    },
+    "ctraced": {
+      "@type": "type.googleapis.com/magma.mconfig.CtraceD",
+      "logLevel": "INFO"
+    },
+    "directoryd": {
+      "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
+      "logLevel": "INFO"
+    },
+    "dnsd": {
+      "@type": "type.googleapis.com/magma.mconfig.DnsD",
+      "dhcpServerEnabled": true,
+      "enableCaching": false,
+      "localTTL": 0,
+      "logLevel": "INFO"
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
+    },
+    "enodebd": {
+      "@type": "type.googleapis.com/magma.mconfig.EnodebD",
+      "allowEnodebTransmit": false,
+      "bandwidthMhz": 20,
+      "earfcndl": 44490,
+      "logLevel": "INFO",
+      "pci": 260,
+      "plmnidList": "00101",
+      "specialSubframePattern": 7,
+      "subframeAssignment": 2,
+      "tac": 1
+    },
+    "lighttpd": {
+      "@type": "type.googleapis.com/magma.mconfig.LighttpD",
+      "enableCaching": false,
+      "logLevel": "INFO"
+    },
+    "magmad": {
+      "@type": "type.googleapis.com/magma.mconfig.MagmaD",
+      "autoupgradeEnabled": false,
+      "autoupgradePollInterval": 300,
+      "checkinInterval": 60,
+      "checkinTimeout": 10,
+      "dynamic_services": [],
+      "logLevel": "INFO",
+      "package_version": "0.0.0-0"
+    },
+    "mme": {
+      "@type": "type.googleapis.com/magma.mconfig.MME",
+      "amfDefaultSliceDifferentiator": "ffffff",
+      "amfDefaultSliceServiceType": 1,
+      "amfName": "MAGMAAMF1",
+      "amfPointer": "0",
+      "amfRegionId": "1",
+      "amfSetId": "1",
+      "attachedEnodebTacs": [],
+      "cloudSubscriberdbEnabled": false,
+      "congestionControlEnabled": true,
+      "csfbMcc": "001",
+      "csfbMnc": "01",
+      "dnsPrimary": "8.8.8.8",
+      "dnsSecondary": "8.8.4.4",
+      "enable5gFeatures": false,
+      "enableDnsCaching": false,
+      "hssRelayEnabled": false,
+      "ipv4PCscfAddress": "172.27.23.150",
+      "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
+      "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
+      "lac": 1,
+      "logLevel": "INFO",
+      "mcc": "001",
+      "mmeCode": 1,
+      "mmeGid": 1,
+      "mmeRelativeCapacity": 11,
+      "mnc": "01",
+      "natEnabled": true,
+      "nonEpsServiceControl": 0,
+      "relayEnabled": false,
+      "tac": 1
+    },
+    "mobilityd": {
+      "@type": "type.googleapis.com/magma.mconfig.MobilityD",
+      "ipBlock": "192.168.128.0/24",
+      "ip_allocator_type": "IP_POOL",
+      "ipv6Block": "fdee:5:6c::/48",
+      "ipv6PrefixAllocationType": "RANDOM",
+      "logLevel": "INFO",
+      "multi_apn_ip_alloc": true,
+      "static_ip_enabled": true
+    },
+    "monitord": {
+      "@type": "type.googleapis.com/magma.mconfig.MonitorD",
+      "logLevel": "INFO",
+      "pollingInterval": 60
+    },
+    "pipelined": {
+      "@type": "type.googleapis.com/magma.mconfig.PipelineD",
+      "allowedGrePeers": [],
+      "apps": [],
+      "enable5gFeatures": false,
+      "liUes": {},
+      "logLevel": "INFO",
+      "natEnabled": true,
+      "services": [
+        "DPI",
+        "ENFORCEMENT"
+      ],
+      "ueIpBlock": "192.168.128.0/24",
+      "upfNodeIdentifier": "192.168.60.142"
+    },
+    "policydb": {
+      "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
+      "logLevel": "INFO"
+    },
+    "redirectd": {
+      "@type": "type.googleapis.com/magma.mconfig.RedirectD",
+      "logLevel": "INFO"
+    },
+    "sessiond": {
+      "@type": "type.googleapis.com/magma.mconfig.SessionD",
+      "enable5gFeatures": false,
+      "gxGyRelayEnabled": false,
+      "logLevel": "INFO",
+      "relayEnabled": false
+    },
+    "shared_mconfig": {
+      "@type": "type.googleapis.com/magma.mconfig.SharedMconfig",
+      "sentry_config": {
+        "dsn_native": "",
+        "dsn_python": "",
+        "exclusion_patterns": [],
+        "number_of_lines_in_log": 0,
+        "sample_rate": 1.0,
+        "upload_mme_log": false
+      }
+    },
+    "state": {
+      "@type": "type.googleapis.com/magma.mconfig.State",
+      "logLevel": "INFO",
+      "sync_interval": 60
+    },
+    "subscriberdb": {
+      "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
+      "enable5gFeatures": false,
+      "logLevel": "INFO",
+      "lteAuthAmf": "gAA=",
+      "lteAuthOp": "EREREREREREREREREREREQ==",
+      "sync_interval": 300
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {},
+      "throttleInterval": "1m",
+      "throttleRate": 1000,
+      "throttleWindow": 5
+    }
+  }
+}

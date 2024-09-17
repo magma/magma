@@ -1,0 +1,415 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Check that Ansible version is >=2.2
+  assert:
+    that: ansible_version.major > 2 or
+      (ansible_version.major == 2 and ansible_version.minor >= 2)
+    msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
+  when: preburn
+
+- name: Install ansible for Ubuntu systems
+  apt:
+    name: ansible
+    state: present
+  retries: 5
+  when: preburn
+
+- name: Copy over the timesyncd config
+  become: yes
+  copy:
+    src: timesyncd.conf
+    dest: /etc/systemd/timesyncd.conf
+
+- name: Make sure timesyncd is started
+  systemd:
+    name: systemd-timesyncd.service
+    state: started
+
+- name: Copy ssh keepAlive configs
+  become: yes
+  copy:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+
+- name: Install ansible community collection
+  become: yes
+  become_method: su
+  become_user: "{{ ansible_user }}"
+  command: ansible-galaxy collection install community.general
+  ignore_errors: yes
+  when: preburn
+
+- name: Set build environment variables
+  lineinfile:
+    path: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    -  MAGMA_ROOT={{ magma_root }}
+    -  OAI_BUILD={{ oai_build }}
+    -  C_BUILD={{ c_build }}
+    -  GO_BUILD={{ go_build }}
+    -  CCACHE_DIR="{{magma_root}}/.cache/gateway/ccache"
+    -  MAGMA_DEV_MODE=1
+    -  XDG_CACHE_HOME="{{magma_root}}/.cache"
+    -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
+    -  CODEGEN_ROOT={{ codegen_root }}
+    -  ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1:fast_unwind_on_malloc=0
+    -  LSAN_OPTIONS=suppressions=/usr/local/suppressions.txt
+  when: full_provision
+
+- name: Create LSAN suppressions file
+  copy:
+    dest: "/usr/local/suppressions.txt"
+    content: |
+      leak:libczmq.so.4
+      leak:libzmq.so.5
+      leak:fluid_base::BaseOFConnection::OFReadBuffer::read_notify
+  when: preburn
+
+- name: "Go export"
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.profile"
+    state: present
+    line: export PATH=$PATH:"/usr/local/go/bin"
+  when: preburn
+
+- name: Create the ccache directory
+  file:
+    path: "{{magma_root}}/.cache/gateway/ccache"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: preburn
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+  when: preburn
+
+##############################
+# Install dependency packages
+##############################
+
+- name: Install convenience packages for development
+  apt:
+    name:
+      - byobu
+      - vim
+      - aptitude
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn
+
+- name: Install debugger packages
+  apt:
+    name: gdb
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn
+
+- name: Install monitoring packages
+  apt:
+    name:
+      - htop
+      - iotop
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn
+
+# TODO: remove this after migrating magma_test box image to plain Debian
+- name: Install lxml
+  apt:
+    name: python3-lxml
+    state: present
+    update_cache: no
+  when: preburn
+
+- name: Install prereqs for FPM
+  tags: dev
+  apt:
+    name:
+      - ruby
+      - ruby-dev
+      - build-essential
+      - rubygems
+      - libffi-dev
+      - python3-setuptools
+      - python-setuptools
+      - libssl-dev
+      - apt-transport-https
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn
+
+- name: Setup FPM so we can build packages
+  tags: dev
+  shell: gem install fpm
+  when: preburn
+
+- name: Common install dependencies for building and shipping client release
+  tags: dev
+  apt:
+    name:
+      - autogen
+      - autoconf
+      - ccache
+      - ninja-build
+      - git
+      - libtool
+      - python3-apt
+      - python3-requests
+      - python3-pip
+      - python3-debian
+      - python3-venv
+      - net-tools # ifconfig
+      - tcpdump
+      - curl
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn
+
+- name: Install build requirements for Ubuntu systems
+  # python3-aioeventlet manually built with fpm and uploaded to jfrog focal-dev repo
+  # due to upstream versioning bug
+  apt:
+    name:
+      - clang
+      - cmake
+      - make
+      - python3-aioeventlet
+    state: present
+  retries: 5
+  when: preburn
+
+# /etc/environment doesn't expand variables, so if we want to modify the path,
+# we need to do it in profile.d
+- name: Override the default compiler with cache
+  lineinfile:
+    path: /etc/profile.d/env.sh
+    state: present
+    create: true
+    line: PATH="/usr/lib/ccache:{{ ansible_env.PATH }}"
+  when: full_provision
+
+########################################
+# Install Bazel
+########################################
+- name: Install bazelisk
+  # yamllint disable rule:truthy
+  become: yes
+  get_url:
+    url: "https://github.com/bazelbuild/bazelisk/releases/download/v1.10.0/bazelisk-linux-amd64"
+    dest: /usr/sbin/bazelisk-linux-amd64
+    mode: ugo+x
+  when: preburn
+
+- name: Create a symlink for /usr/sbin/bazel
+  # yamllint disable rule:truthy
+  become: yes
+  file:
+    src: /usr/sbin/bazelisk-linux-amd64
+    path: /usr/sbin/bazel
+    state: link
+    force: yes
+  when: preburn
+
+- name: Setup Bazel Bash completion
+  ansible.builtin.shell: "{{ magma_root }}/bazel/scripts/setup_bazel_bash_completion.sh $(cat {{ magma_root }}/.bazelversion)"
+  become: yes
+  become_user: "{{ ansible_user }}"
+  when: full_provision
+
+########################################
+# Install common Magma dev dependencies
+########################################
+
+- name: Install common Magma gateway dev dependencies
+  apt:
+    name:
+      # install gRPC
+      - grpc-dev
+      # install protobuf
+      - libprotobuf-dev
+      - libprotoc-dev
+      - libxml2-dev
+      - libxslt-dev
+      - protobuf-compiler
+      # install ethtool for disabling TCP checksumming
+      - ethtool
+      - ifupdown
+      - libffi-dev
+      - iperf3
+      - libsystemd-dev
+      - pkg-config
+      - libpcap-dev
+      - libtins-dev
+      - libmnl-dev
+      - libcurl4-openssl-dev
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  apt:
+    name:
+      - libprotobuf17
+      - libprotobuf-lite17
+      - libprotoc17
+      - libssl-dev
+    state: present
+    update_cache: no
+  when: preburn
+
+###############################################
+# Download and build sentry-native
+###############################################
+
+- name: Install Sentry Native SDK
+  get_url:
+    url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native.zip"
+  vars:
+    sentry_native_version: "0.4.12"
+  when: preburn
+
+- name: Create a directory for Sentry Native
+  file:
+    path: "{{ tmp_directory }}/sentry-native"
+    state: directory
+  when: preburn
+
+- name: Unpack Sentry Native SDK
+  unarchive:
+    src: "{{ tmp_directory }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native"
+    remote_src: yes
+  when: preburn
+
+- name: Build and Install Sentry Native SDK
+  shell: |
+    cd {{ tmp_directory }}/sentry-native && \
+    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+    cmake --build build --parallel && \
+    cmake --install build --prefix install --config RelWithDebInfo && \
+    cd build && make install
+  when: preburn
+
+###############################################
+# Download swagger-codegen
+###############################################
+
+- name: Setup build requirements for python sdk
+  become: yes
+  apt:
+    name: openjdk-8-jdk
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Make sure swagger download destination dir exists
+  file:
+    path: "{{ swagger_codegen_jar | dirname }}"
+    state: directory
+  when: preburn
+
+- name: Download swagger code-gen
+  get_url:
+    url: "https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar"
+    dest: "{{ swagger_codegen_jar }}"
+    checksum: "sha1:{{ swagger_sha1 }}"
+  when: preburn
+
+- name: Download gHZ binary from artifactory
+  get_url:
+    url: https://linuxfoundation.jfrog.io/artifactory/magma-blob/ghz
+    dest: /usr/local/bin/ghz
+    mode: 0755
+  when: preburn
+
+- name: Fix kernel commandline for interface naming.
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
+- file:
+    path: /var/tmp/test_results
+    state: directory
+    mode: 0777
+  when: preburn
+
+- name: Install multipath-tools
+  become: yes
+  apt:
+    name: multipath-tools
+    state: present
+    update_cache: yes
+  retries: 5
+  when: preburn
+
+- name: Patch multipath conf
+  become: yes
+  patch:
+    src: patches/multipath-conf.patch
+    dest: /etc/multipath.conf
+  when: preburn
+  ignore_errors: true
+
+- name: Copy Interface file.
+  copy:
+    src: magma_interfaces
+    dest: /etc/network/interfaces
+  when: preburn
+
+- name: Remove netplan and enable networking.
+  shell: |
+    systemctl unmask networking
+    systemctl enable networking
+    apt-get --assume-yes purge nplan netplan.i
+  when: preburn
+  ignore_errors: true
+
+- name: Copy Resolve file.
+  copy:
+    src: magma_resolv.conf
+    dest: /etc/systemd/resolved.conf
+
+- name: Install LLDB debugger
+  apt:
+    name: lldb
+    state: present
+    update_cache: no
+  retries: 5
+  when: preburn

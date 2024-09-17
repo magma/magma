@@ -1,0 +1,17 @@
+Host {{testGwInst.instances[0].public_ip_address}}
+  User ubuntu
+  HostName {{testGwInst.instances[0].public_ip_address}}
+  Port 22
+  IdentityFile {{ dirLocalInventory }}/{{ keyHost }}.pem
+  ControlMaster auto
+  ControlPath ~/.ssh/ansible-%r@%h:%p
+  ControlPersist 5m
+
+{% for item in agwNodes.instances %}
+{% if item.instance_id != testGwInst.instances[0].instance_id %}
+Host {{ item.private_dns_name }}
+    User ubuntu
+    IdentityFile {{ dirLocalInventory }}/{{ keyHost }}.pem
+    ProxyCommand ssh -o StrictHostKeyChecking=no -W %h:%p {{testGwInst.instances[0].public_ip_address}}
+{% endif %}
+{% endfor %}

@@ -1,0 +1,174 @@
+---
+imagePullSecrets:
+  - name: orc8r-secrets-registry
+
+secret:
+  certs: orc8r-secrets-certs
+  configs:
+    orc8r: orc8r-secrets-configs-orc8r
+  envdir: orc8r-secrets-envdir
+
+
+controller:
+  tolerations: []
+  affinity: {}
+  nodeSelector: {}
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+  image:
+    repository: controller
+    tag: "latest"
+    pullPolicy: IfNotPresent
+    env:
+      orc8r_domain_name: magma.test
+  migration:
+    new_handlers: 1
+    new_mconfigs: 1
+  spec:
+    database:
+      driver: postgres  # mysql/postgres
+      sql_dialect: psql  # maria/psql
+      db: dp
+      host: db
+      port: 5432
+      user: postgres
+      pass: postgres
+    service_registry:
+      mode: k8s
+
+logging:
+  enabled: true
+
+  fluentd_forward:
+    create: true
+    image:
+      repository: fluentd_forward
+      tag: latest
+    dp_output: true
+
+    env:
+      elastic_host: elasticsearch
+      elastic_flush_interval: 1s
+
+#
+## Metrics
+metrics:
+  enabled: true
+  imagePullSecrets:
+    - name: orc8r-secrets-registry
+
+  metrics:
+    volumes:
+      prometheusData:
+        volumeSpec:
+          emptyDir: {}
+      prometheusConfig:
+        volumeSpec:
+          hostPath:
+            path: /configs/prometheus
+            type: DirectoryOrCreate
+  prometheus:
+    create: true
+
+  prometheusConfigurer:
+    create: true
+  alertmanagerConfigurer:
+    create: true
+
+  alertmanager:
+    create: true
+  prometheusCache:
+    create: true
+    limit: 500000
+  userGrafana:
+    create: true
+    volumes:
+      datasources:
+        emptyDir: {}
+      dashboardproviders:
+        emptyDir: {}
+      dashboards:
+        emptyDir: {}
+      grafanaData:
+        emptyDir: {}
+
+nginx:
+  secret:
+    certs: orc8r-secrets-certs
+  create: true
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+
+  service:
+    name: bootstrapper-orc8r-nginx-proxy
+    type: LoadBalancer
+
+  image:
+    repository: nginx
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  spec:
+    hostname: localhost
+nms:
+  enabled: false
+  nginx:
+    deployment:
+      spec:
+        ssl_cert_name: controller.crt
+        ssl_cert_key_name: controller.key
+  secret:
+    certs: orc8r-secrets-certs
+  imagePullSecrets:
+    - name: orc8r-secrets-registry
+  pod:
+    replicas:
+      nginx:
+        server: 1
+      magmalte:
+        server: 1
+  magmalte:
+    manifests:
+      configmap: true
+      secrets: true
+      deployment: true
+      service: true
+    env:
+      api_host: orc8r-nginx-proxy:443
+      mysql_db: dp
+      mysql_dialect: postgres
+      mysql_host: db
+      mysql_pass: postgres
+      mysql_port: 5432
+      mysql_user: postgres
+    image:
+      repository: magmalte
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    deployment:
+      spec:
+        ssl_cert_key_name: controller.key
+        ssl_cert_name: controller.crt
+    service:
+      type: LoadBalancer
+      port:
+        api:
+          targetPort: 9443
+dp:
+  enabled: true
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: /magma/v1/dp
+
+secrets:
+  configs:
+    enabled: true
+    orc8r:
+      elastic.yml: |-
+        elasticHost: "elasticsearch"
+        elasticPort: 9200

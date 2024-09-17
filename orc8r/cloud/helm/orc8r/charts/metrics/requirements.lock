@@ -1,0 +1,6 @@
+dependencies:
+- name: thanos
+  repository: https://kubernetes-charts.banzaicloud.com
+  version: 0.3.28
+digest: sha256:ea189d2877a31a3d24d96ecad29be793fc222d85164afe07ab012bad725f0b8a
+generated: "2020-10-08T10:32:51.359786-07:00"

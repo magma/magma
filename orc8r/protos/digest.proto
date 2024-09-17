@@ -1,0 +1,56 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+import "google/protobuf/any.proto";
+
+// DigestTree contains the full set of digest information for a particular network.
+// DigestTree is similar to a depth=2 Merkle tree.
+message DigestTree {
+  // root_digest is the amalgum of all leaf digests.
+  Digest root_digest = 1;
+  // leaf_digests contains per-object digests, along with the object IDs, sorted by ID.
+  repeated LeafDigest leaf_digests = 2;
+}
+
+// Digest contains the digest (hash) of some object.
+message Digest {
+  // md5_base64_digest is a base64-encoded MD5 digest.
+  string md5_base64_digest = 1;
+}
+
+message LeafDigest {
+  // id is the network-wide unique identifier of the object.
+  string id = 1;
+  // digest is the deterministic digest of the object.
+  Digest digest = 2;
+}
+
+// LeafDigests is used to encapsulate a list of leaf digests exclusively for
+// serialization en masse.
+// NOTE: In a proto message used by gRPC endpoints (e.g. DigestTree), the leaf
+// digests should still be represented directly as a list for simplicity.
+message LeafDigests {
+  repeated LeafDigest digests = 1;
+}
+
+// Changeset contains the set of differences between two lists of objects.
+message Changeset {
+  // to_renew contains all objects which were added or updated, sorted by ID.
+  repeated google.protobuf.Any to_renew = 1;
+  // deleted lists the IDs for all objects which were deleted.
+  repeated string deleted = 2;
+}

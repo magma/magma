@@ -1,0 +1,76 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "common_go_proto",
+    srcs = [
+        "common.pb.go",
+        "digest.pb.go",
+        "mconfig.pb.go",
+        "metricsd.pb.go",
+        "service303.pb.go",
+        "service_registry.pb.go",
+    ],
+    importpath = "magma/orc8r/lib/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_prometheus_client_model//go",
+        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_library(
+    name = "fillin",
+    srcs = ["fillin.go"],
+    importpath = "magma/orc8r/lib/go/protos",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "fill_in_test",
+    srcs = ["fill_in_test.go"],
+    deps = [
+        ":fillin",
+        "@com_github_stretchr_testify//assert",
+    ],
+)
+
+go_library(
+    name = "marshaler",
+    srcs = ["marshaler.go"],
+    embed = [":common_go_proto"],
+    importpath = "magma/orc8r/lib/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_golang_glog//:glog",
+        "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)
+
+go_test(
+    name = "marshaler_test",
+    srcs = ["marshaler_test.go"],
+    deps = [
+        ":marshaler",
+        "//orc8r/lib/go/protos/mconfig",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

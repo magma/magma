@@ -1,0 +1,10 @@
+comment: false
+github_checks:
+    annotations: false
+flag_management:
+    default_rules:
+        carryforward: true
+        statuses:
+            - type: project
+              target: auto
+              threshold: 0%

@@ -1,0 +1,230 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- if .Values.manifests.deployment }}
+{{- $envAll := . }}
+
+{{- $saNamespace := $envAll.Release.Namespace }}
+{{- $serviceAccountName := printf "%s-%s" .Release.Name "cwf" }}
+{{- if .Values.manifests.rbac }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $serviceAccountName }}
+  namespace: {{ $saNamespace }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $serviceAccountName }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - endpoints
+      - nodes
+      - pods
+      - secrets
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - pods
+      - secrets
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - get
+      - create
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccountName }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ $serviceAccountName }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $envAll.Release.Name}}
+  labels:
+{{ tuple $envAll "cwf" "gateway" | include "labels" | indent 4 }}
+spec:
+  replicas: {{ .Values.pod.replicas.server }}
+  selector:
+    matchLabels:
+{{ tuple $envAll "cwf" "gateway" | include "selector-labels" | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ tuple $envAll "cwf" "gateway" | include "selector-labels" | indent 8 }}
+      annotations:
+        {{ if .Values.pod.cni.interface }}
+        cni: {{ .Values.pod.cni.interface | quote }}
+        {{- end }}
+        kubernetes.io/target-runtime: virtlet.cloud
+        VirtletVCPUCount: {{ .Values.virtlet.vcpuCount | quote }}
+        VirtletRootVolumeSize: {{ .Values.virtlet.rootVolumeSize }}
+        VirtletDiskDriver: {{ .Values.virtlet.diskDriver }}
+        {{ if .Values.virtlet.sshKeys }}
+        VirtletSSHKeys: |
+          {{ .Values.virtlet.sshKeys }}
+        {{- end }}
+        VirtletCloudInitUserData: |
+          {{ if .Values.virtlet.ssh_pwauth }}
+          ssh_pwauth: {{ .Values.virtlet.ssh_pwauth }}
+          {{- end }}
+{{ if .Values.virtlet.user }}
+{{ toYaml .Values.virtlet.user | indent 10 }}
+{{- end }}
+          runcmd:
+          - /opt/magma/bootstrap.sh
+          - /opt/magma/install_gateway.sh {{ .Values.cwf.type }}
+    spec:
+      {{- if .Values.manifests.rbac }}
+      serviceAccountName: {{ $serviceAccountName }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value | quote }}
+      terminationGracePeriodSeconds: 120
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $envAll.Release.Name}}
+          image: {{ $envAll.Values.image.repository | quote }}
+          imagePullPolicy: {{ $envAll.Values.image.pullPolicy }}
+{{ tuple $envAll $envAll.Values.pod.resources.server | include "kubernetes_resources" | indent 10 }}
+          tty: true
+          stdin: true
+          volumeMounts:
+            {{- if .Values.secret.gwinfo }}
+            - name: hwid
+              mountPath: /etc/snowflake
+              subPath: snowflake
+            {{- end }}
+            {{- if .Values.secret.gwinfo }}
+            - name: gw-challenge-key
+              mountPath: /var/opt/magma/certs/gw_challenge.key
+              subPath: gw_challenge.key
+            {{- end }}
+            - name: cwf-env
+              mountPath: /opt/magma
+            - name: orc8r-secrets-certs
+              mountPath: /opt/magma/rootCA.pem
+              subPath: rootCA.pem
+            {{- if .Values.secret.configs }}
+            - name: {{ $envAll.Values.secret.configs.cwf }}
+              mountPath: /var/opt/magma/configs
+            {{- end }}
+            {{- if .Values.secret.dpi_license }}
+            - name: cwf-dpi-license
+              mountPath: /opt/magma/{{ $envAll.Values.cwf.dpi.dpi_license_name }}
+              subPath: {{ $envAll.Values.cwf.dpi.dpi_license_name }}
+            {{- end }}
+      volumes:
+        {{- if .Values.secret.gwinfo }}
+        - name: hwid
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+            defaultMode: 0755
+        {{- end}}
+        {{- if .Values.secret.gwinfo }}
+        - name: gw-challenge-key
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+            defaultMode: 0755
+        {{- end }}
+        - name: cwf-env
+          configMap:
+            name: {{ $envAll.Release.Name}}-env
+            defaultMode: 0755
+        - name: orc8r-secrets-certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+            defaultMode: 0444
+        {{- if .Values.secret.configs }}
+        - name: {{ $envAll.Values.secret.configs.cwf }}
+          secret:
+            secretName: {{ $envAll.Values.secret.configs.cwf }}
+        {{- end }}
+        {{- if .Values.secret.dpi_license }}
+        - name: cwf-dpi-license
+          secret:
+            secretName: {{ required "secret.dpi_license must be provided" .Values.secret.dpi_license }}
+        {{- end }}
+{{- end }}

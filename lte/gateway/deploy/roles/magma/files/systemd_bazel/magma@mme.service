@@ -1,0 +1,43 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+[Unit]
+Description=Magma OAI MME service
+PartOf=magma@mobilityd.service
+After=magma@mobilityd.service
+PartOf=magma@pipelined.service
+After=magma@pipelined.service
+PartOf=magma@sessiond.service
+After=magma@sessiond.service
+Requires=sctpd.service
+After=sctpd.service
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/environment
+ExecStart=/home/vagrant/magma/bazel-bin/lte/gateway/c/core/agw_of -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
+MemoryAccounting=yes
+MemoryLimit=13%
+MemoryMin=512M
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_oai_config.py
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py reset_sctpd_for_stateful
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py mme
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=mme
+User=root
+Restart=always
+RestartSec=5
+LimitCORE=infinity
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

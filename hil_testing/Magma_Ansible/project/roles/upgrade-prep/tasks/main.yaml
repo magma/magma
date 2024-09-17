@@ -1,0 +1,48 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: do fact module to get latest information
+  setup:
+
+- name: Remove existing apt repo
+  tags: prep
+  ansible.builtin.file:
+    path: "{{ source_apt_list }}/"
+    state: absent
+
+- name: Add an Apt signing key, for Magma new repo
+  ansible.builtin.copy:
+    src: linux_foundation_registry_key.asc
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
+
+- name: Add specified repository into sources list for Debian Magma AGW
+  tags: prep
+  ansible.builtin.apt_repository:
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test stretch-{{ UpgradeTag }} main
+    state: present
+    filename: packages_magma_etagecom_io
+    update_cache: true
+  when: ansible_distribution == 'Debian'
+
+- name: Add specified repository into sources list for Ubuntu Magma AGW
+  tags: prep
+  ansible.builtin.apt_repository:
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-{{ UpgradeTag }} main
+    state: present
+    filename: packages_magma_etagecom_io
+  when: ansible_distribution == 'Ubuntu'
+
+  # TODO we may have to purge last sw and start clean
+  # dpkg --purge remove magma magma-sctpd
+
+  # and then delete all the /usr/local/ files

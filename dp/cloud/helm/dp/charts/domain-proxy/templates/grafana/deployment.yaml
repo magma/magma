@@ -1,0 +1,116 @@
+{{/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{- if and .Values.dp.create .Values.dp.grafana.enabled -}}
+apiVersion:  {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.grafana.fullname" . }}
+  labels:
+    {{- include "domain-proxy.grafana.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.grafana.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.dp.grafana.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.grafana.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.dp.grafana.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.grafana.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.dp.grafana.podSecurityContext | nindent 8 }}
+      {{- if .Values.dp.grafana.persistdata.enabled }}
+      initContainers:
+        - name: grafana-init-chown
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command: ["chown", "-R", "grafana:root", "/var/lib/grafana"]
+          image: {{ .Values.dp.grafana.image.repository -}}:{{- .Values.dp.grafana.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.dp.grafana.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dp.grafana.service.port }}
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/grafana
+      {{- end }}
+      containers:
+        - name: {{ .Values.dp.grafana.name }}
+          securityContext:
+            {{- toYaml .Values.dp.grafana.securityContext | nindent 12 }}
+          image: {{ .Values.dp.grafana.image.repository -}}:{{- .Values.dp.grafana.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.dp.grafana.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dp.grafana.service.port }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/grafana/provisioning/datasources/automatic.yml
+              subPath: datasources
+            {{- if .Values.dp.grafana.persistdata.enabled }}
+            - name: storage
+              mountPath: /var/lib/grafana
+            {{- end }}
+          env:
+            {{- range $key, $value := .Values.dp.grafana.env }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+            {{- if and (not .Values.dp.grafana.env.GF_SECURITY_ADMIN_USER) (not .Values.dp.grafana.env.GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION) }}
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "domain-proxy.grafana.fullname" . }}
+                  key: admin-user
+            {{- end }}
+            {{- if and (not .Values.dp.grafana.env.GF_SECURITY_ADMIN_PASSWORD) (not .Values.dp.grafana.env.GF_SECURITY_ADMIN_PASSWORD__FILE) (not .Values.dp.grafana.env.GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION) }}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{  include "domain-proxy.grafana.fullname" . }}
+                  key: admin-password
+            {{- end }}
+      {{- with .Values.dp.grafana.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.grafana.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.grafana.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "domain-proxy.grafana.fullname" . }}
+      {{- if .Values.dp.grafana.persistdata.enabled }}
+        - name: storage
+        {{- if .Values.dp.grafana.persistdata.volumeSpec }}
+          {{- toYaml .Values.dp.grafana.persistdata.volumeSpec | nindent 10 }}
+        {{- else }}
+          persistentVolumeClaim:
+            claimName: {{  include "domain-proxy.grafana.fullname" . }}
+      {{- end }}
+      {{- end }}
+{{- end }}

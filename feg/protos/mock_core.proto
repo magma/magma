@@ -1,0 +1,475 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "feg/protos/csfb.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/session_manager.proto";
+import "lte/protos/subscriberdb.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// grpc service held in mock core server in feg
+// for configuring the server and set the content of reply
+service MockCoreConfigurator {
+    rpc ConfigServer (ServerConfiguration) returns (magma.orc8r.Void) {}
+    rpc Reset (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+}
+
+message Reply {
+    enum ServerBehavior {
+        REPLY_INSTANTLY = 0;
+        REPLY_LATE = 1;
+        NO_REPLY = 2;
+    }
+    ServerBehavior server_behavior = 1;
+
+    // reply delaying time in sec
+    int32 reply_delay = 2;
+
+    oneof sgs_message {
+        AlertRequest alert_request = 3;
+        DownlinkUnitdata downlink_unitdata = 4;
+        EPSDetachAck eps_detach_ack = 5;
+        IMSIDetachAck imsi_detach_ack = 6;
+        LocationUpdateAccept location_update_accept = 7;
+        LocationUpdateReject location_update_reject = 8;
+        MMInformationRequest mm_information_request = 9;
+        PagingRequest paging_request = 10;
+        ReleaseRequest release_request = 11;
+        ServiceAbortRequest service_abort_request = 12;
+        ResetAck reset_ack = 13;
+        ResetIndication reset_indication = 14;
+        Status status = 15;
+    }
+
+    oneof gxgy_message {
+        magma.lte.CreateSessionResponse create_session_response = 16;
+        magma.lte.UpdateSessionResponse update_session_response = 17;
+        magma.lte.SessionTerminateResponse session_terminate_response = 18;
+    }
+}
+
+message ExpectedRequest {
+    oneof sgs_message {
+        AlertAck alert_ack = 1;
+        AlertReject alert_reject = 2;
+        EPSDetachIndication eps_detach_indication = 3;
+        IMSIDetachIndication imsi_detach_indication = 4;
+        LocationUpdateRequest location_update_request = 5;
+        PagingReject paging_reject = 6;
+        ServiceRequest service_request = 7;
+        TMSIReallocationComplete tmsi_reallocation_complete = 8;
+        UEActivityIndication ue_activity_indication = 9;
+        UEUnreachable ue_unreachable = 10;
+        UplinkUnitdata uplink_unitdata = 11;
+        ResetAck reset_ack = 12;
+        ResetIndication reset_indication = 13;
+        Status status = 14;
+    }
+
+    oneof gxgy_message {
+        magma.lte.CreateSessionRequest create_session_request = 15;
+        magma.lte.UpdateSessionRequest update_session_request = 16;
+        magma.lte.SessionTerminateRequest session_terminate_request = 17;
+    }
+}
+
+message RequestReply {
+    ExpectedRequest request = 1;
+    Reply reply = 2;
+}
+
+message ServerConfiguration {
+    repeated RequestReply request_reply = 1;
+}
+
+service MockOCS {
+    rpc SetOCSSettings(OCSConfig) returns (magma.orc8r.Void) {}
+    rpc SetCredit(CreditInfo) returns (magma.orc8r.Void) {}
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
+    rpc GetCredits(magma.lte.SubscriberID) returns (CreditInfos) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
+
+    // Todo
+    rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GyCreditControlResult) {}
+}
+
+enum FinalUnitAction {
+    Terminate = 0;
+    Redirect = 1;
+    Restrict = 2;
+}
+
+message RedirectServer {
+    string RedirectServerAddress = 1;
+}
+
+message FinalUnitIndication {
+    RedirectServer redirect_server = 1;
+    FinalUnitAction final_unit_action = 2;
+    repeated string restrict_rules = 3;
+}
+
+message OCSConfig {
+    Octets max_usage_octets = 1;
+    uint32 max_usage_time = 2;
+    uint32 validity_time = 3;
+    bool use_mock_driver = 4;
+    FinalUnitIndication final_unit_indication = 5;
+    // defines what field will OCS check. Only Total and TX are implemented
+    GrantType grant_type_procedure = 6;
+    enum GrantType{
+      TotalOnly = 0;
+      TxOnly = 1;       // output Octets
+    }
+}
+
+message CreditInfo {
+    enum UnitType {
+        Bytes = 0;
+        Time = 1;
+    }
+    string imsi = 1;
+    uint32 charging_key = 2;
+    Octets volume = 3;
+    UnitType unit_type = 4;
+}
+
+message CreditInfos {
+    map<uint32, CreditInfo> creditInformation = 1;
+}
+
+message ChargingReAuthTarget {
+    string imsi = 1;
+    uint32 rating_group = 2;
+}
+
+message ChargingReAuthAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+}
+
+service MockPCRF {
+    rpc SetPCRFConfigs(PCRFConfigs) returns (magma.orc8r.Void) {}
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc SetRules (AccountRules) returns (magma.orc8r.Void) {}
+    rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc ReAuth(PolicyReAuthTarget) returns (PolicyReAuthAnswer) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
+
+    rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
+}
+
+message PCRFConfigs {
+    bool use_mock_driver = 1;
+}
+
+message AccountRules {
+    string imsi = 1;
+    repeated string static_rule_names = 2;
+    repeated string static_rule_base_names = 3;
+    repeated RuleDefinition dynamic_rule_definitions = 4;
+}
+
+message RuleDefinition {
+    string rule_name = 1;
+    uint32 rating_group = 2;
+    uint32 precedence = 3;
+    string monitoring_key = 4;
+    repeated string flow_descriptions = 5;
+    magma.lte.RedirectInformation redirect_information = 7;
+    magma.lte.FlowQos qos_information = 8;
+}
+
+message UsageMonitorConfiguration {
+    string imsi = 1;
+    repeated UsageMonitor usage_monitor_credits = 2;
+}
+
+enum MonitoringLevel {
+    SessionLevel = 0;
+    RuleLevel = 1;
+}
+
+message UsageMonitor {
+    // the usage monitoring information the PCRF sends per answer
+    UsageMonitoringInformation monitor_info_per_request = 1;
+    // the total amount of quota assigned to the monitoring key
+    Octets total_quota = 2;
+}
+
+enum CCRequestType {
+    // proto3 requires enums to start at value 0. This should not be used.
+    _INVALID = 0;
+    INITIAL = 1;
+    UPDATE = 2;
+    TERMINATION = 3;
+}
+
+enum UnexpectedRequestBehavior {
+    // Answer with a permanent failure diameter code, then the session will
+    // be terminated. This will be the default behavior unless a default answer
+    // is specified
+    CONTINUE_WITH_ERROR = 0;
+    CONTINUE_WITH_DEFAULT_ANSWER = 1;
+}
+
+message GxCreditControlExpectations {
+    repeated GxCreditControlExpectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GxCreditControlAnswer gx_default_cca = 3;
+    Octets total_expected_usage = 4;
+}
+
+message GxCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
+message ErrorByIndex {
+    int32 index = 1;
+    string error = 2;
+}
+
+message ExpectationResult {
+    int32 expectation_index = 1;
+    bool expectation_met = 2;
+}
+
+message GxCreditControlExpectation {
+    GxCreditControlRequest expected_request = 1;
+    GxCreditControlAnswer answer = 2;
+}
+
+message GxCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    google.protobuf.Int32Value request_number = 3;
+
+    repeated UsageMonitoringInformation usage_monitoring_reports = 11;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
+    google.protobuf.Int32Value event_trigger = 13;
+}
+
+message GxCreditControlAnswer {
+    // request type and request number will be taken from the request
+    uint32 result_code = 1;
+
+    repeated UsageMonitoringInformation usage_monitoring_infos = 11;
+    RuleInstalls rule_installs = 12;
+    RuleRemovals rule_removals = 13;
+    repeated uint32 event_triggers = 14;
+    google.protobuf.Timestamp revalidation_time = 15;
+}
+
+message GyCreditControlExpectations {
+    repeated GyCreditControlExpectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GyCreditControlAnswer gy_default_cca = 3;
+}
+
+message GyCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
+message GyCreditControlExpectation {
+    GyCreditControlRequest expected_request = 1;
+    GyCreditControlAnswer answer = 2;
+}
+
+message GyCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    google.protobuf.Int32Value request_number = 3;
+    QosInfo qos_info = 21;
+    repeated MultipleServicesCreditControl mscc = 22;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
+}
+
+message GyCreditControlAnswer {
+    CCRequestType request_type = 1;
+    uint32 request_number = 2;
+    uint32 result_code = 3;
+    repeated QuotaGrant quota_grants = 4;
+    bool link_failure = 5;
+}
+
+message QuotaGrant {
+    uint32 rating_group = 1;
+    Octets granted_service_unit = 2;
+    uint32 validity_time = 3;
+    uint32 result_code = 4;
+    bool is_final_credit = 11;
+    FinalUnitIndication final_unit_indication = 12;
+}
+
+// AVP: 1067
+message UsageMonitoringInformation {
+    bytes monitoring_key = 1;
+    MonitoringLevel monitoring_level = 2;
+    Octets octets = 3;
+}
+
+message MultipleServicesCreditControl {
+    uint32 rating_group = 1;
+    Octets used_service_unit = 2;
+    int32 update_type = 3;
+}
+
+message QosInfo {
+    // AVP: 1041
+    uint32 apn_agg_max_bit_rate_ul = 1;
+    // AVP: 1040
+    uint32 apn_agg_max_bit_rate_dl = 2;
+}
+
+message RuleInstalls {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
+    repeated RuleDefinition rule_definitions = 3;
+    google.protobuf.Timestamp activation_time = 4;
+    google.protobuf.Timestamp deactivation_time = 5;
+}
+
+message RuleRemovals {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
+}
+
+message Octets {
+    uint64 total_octets = 1;
+    uint64 input_octets = 2;
+    uint64 output_octets = 3;
+}
+
+message PolicyReAuthTarget {
+    string imsi = 1;
+    RuleRemovals rules_to_remove = 2;
+    RuleInstalls rules_to_install = 3;
+    repeated UsageMonitoringInformation usage_monitoring_infos = 4;
+    // TODO repeated magma.lte.EventTrigger event_triggers = 5;
+    // TODO google.protobuf.Timestamp revalidation_time = 6;
+}
+
+message PolicyReAuthAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+    map<string, uint32> failed_rules = 3;
+}
+
+enum AbortCauseType {
+    BearerReleased = 0;
+    InsufficientServerResources = 1;
+    InsufficientBearerResources = 2;
+}
+message AbortSessionRequest {
+    string imsi = 1;
+}
+
+message AbortSessionAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+    string error_message = 3;
+}
+
+// Mock PCF service
+service MockPCF {
+    rpc SetPCFConfigs(PCFConfigs) returns (magma.orc8r.Void) {}
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc SetAccountRules(PolicyDecision) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc SmPolicyUpdateNotify(PolicyDecision) returns (UpdateNotificationAnswer) {}
+    rpc SmPolicyTerminate(TerminateNotification) returns (TerminateNotificationAnswer) {}
+
+    rpc SetExpectations(N7Expectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (N7ExpectationResult) {}
+}
+
+// Configuration for PCF service
+message PCFConfigs {
+    bool use_mock_driver = 1;
+}
+
+// Policy Decision that will be sent back to SMF during CreateSession, UpdateSession or UpdateNotify
+message PolicyDecision {
+    // IMSI for which the PCF rule is applicable
+    string imsi = 1;
+    // PDU session ID for which the PCF rule is applicable. If this is set to 0, then the rule is applicable for all pdu_session ids.
+    uint32 pdu_session_id = 2;
+    // SmPolicyDecision in json string as defined in TS29512_Npcf_SMPpolicyControl.yaml
+    string policy_decision_json = 3;
+}
+
+message UpdateNotificationAnswer {
+    // HTTP status code received from SMF
+    uint32 status_code = 1;
+    // Partial success report received from SMF in case of error when installing the rules
+    string partial_success_report_json = 2;
+}
+
+// Notification that will be sent to SMF for a PCF intitiated termination
+message TerminateNotification {
+    // Subscriber ID for which the terminate is to be sent
+    string imsi = 1;
+    // PDU session for which terminate is to be sent. If this is 0, Terminate is sent to all pdu sessions of this subscriber
+    uint32 pdu_session_id = 2;
+    // Release cause for Terminate as defined TS29507_Npcf_AMPolicyControl.yaml:PolicyAssociationReleaseCause
+    string release_cause = 4;
+}
+
+message TerminateNotificationAnswer {
+    // HTTP status code received from SMF
+    uint32 status_code = 1;
+}
+
+message N7Expectations {
+    repeated N7Expectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    string default_answer = 3;
+}
+
+message N7Expectation {
+    enum RequestType {
+        CREATE = 0;
+        UPDATE = 1;
+        TERMINATE = 2;
+    }
+    RequestType request_type = 1;
+    string expected_request = 2;
+    string answer = 3;
+}
+
+message N7ExpectationResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}

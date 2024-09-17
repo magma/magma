@@ -1,0 +1,1190 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/cwf/cloud/go/services/cwf/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
+    - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
+    - 'feg/cloud/go/services/feg/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: cwf-swagger.yml
+  output-dir: cwf/cloud/go/services/cwf/obsidian
+  types:
+    - go-struct-name: CwfNetwork
+      filename: cwf_network_swaggergen.go
+    - go-struct-name: CwfGateway
+      filename: cwf_gateway_swaggergen.go
+    - go-struct-name: MutableCwfGateway
+      filename: mutable_cwf_gateway_swaggergen.go
+    - go-struct-name: NetworkCarrierWifiConfigs
+      filename: network_carrier_wifi_configs_swaggergen.go
+    - go-struct-name: GatewayCWFConfigs
+      filename: gateway_cwf_configs_swaggergen.go
+    - go-struct-name: allowedGrePeer
+      filename: allowed_gre_peer_swaggergen.go
+    - go-struct-name: allowedGrePeers
+      filename: allowed_gre_peers_swaggergen.go
+    - go-struct-name: ipdrExportDst
+      filename: ipdr_export_dst_swaggergen.go
+    - go-struct-name: liUes
+      filename: li_ues_swaggergen.go
+    - go-struct-name: CwfSubscriberDirectoryRecord
+      filename: cwf_subscriber_directory_record_swaggergen.go
+    - go-struct-name: GatewayHealthConfigs
+      filename: gateway_health_configs_swaggergen.go
+    - go-struct-name: CarrierWifiHAPairStatus
+      filename: carrier_wifi_ha_pair_status_swaggergen.go
+    - go-struct-name: CarrierWifiGatewayHealthStatus
+      filename: carrier_wifi_gateway_health_status_swaggergen.go
+    - go-struct-name: CwfHaPair
+      filename: cwf_ha_pair_swaggergen.go
+    - go-struct-name: MutableCwfHaPair
+      filename: mutable_cwf_ha_pair_swaggergen.go
+
+
+info:
+  title: Carrier Wifi Network Management
+  description: Carrier Wifi REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+tags:
+  - name: Carrier Wifi Networks
+    description: Endpoints related to Carrier Wifi Network management
+  - name: Carrier Wifi Gateways
+    description: Endpoints related to Carrier Wifi Network management
+
+paths:
+  /cwf:
+    get:
+      summary: List all Carrier Wifi network IDs
+      tags:
+      - Carrier Wifi Networks
+      responses:
+        '200':
+          description: List of Carrier Wifi network IDs
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+            - cwf_network1
+            - cwf_network2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - name: cwf_network
+        in: body
+        description: Configuration of the network to create
+        required: true
+        schema:
+          $ref: '#/definitions/cwf_network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}:
+    get:
+      summary: Describe a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Full description of a Carrier Wifi network
+          schema:
+            $ref: '#/definitions/cwf_network'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: cwf_network
+        in: body
+        description: Full desired configuration of the network
+        required: true
+        schema:
+          $ref: '#/definitions/cwf_network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/name:
+    get:
+      summary: Get name of a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Name of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: name
+        in: body
+        description: New name for the network
+        required: true
+        schema:
+          $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/description:
+    get:
+      summary: Get description of a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a Carrier Wifi network
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: description
+        in: body
+        description: New name for the network
+        required: true
+        schema:
+          $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/carrier_wifi:
+    get:
+      summary: Retrieve Network Carrier Wifi Configs
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Retrieve Network Carrier Wifi Configs
+          schema:
+            $ref: '#/definitions/network_carrier_wifi_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify Network Carrier Wifi Configs
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: config
+        description: Updated config
+        required: true
+        schema:
+          $ref: '#/definitions/network_carrier_wifi_configs'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete Network Carrier Wifi Configs
+      tags:
+      - Carrier Wifi Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs:
+    get:
+      summary: List all high availability gateway pairs in Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: All high availability gateway pairs in Carrier Wifi network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/cwf_ha_pair'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new high availability gateway pair in Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: HA pair
+          description: Carrier Wifi HA gateway pair
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cwf_ha_pair'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs/{ha_pair_id}:
+    get:
+      summary: Retrieve high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '200':
+          description: Retrieve high availability gateway pair for Carrier Wifi network
+          schema:
+            $ref: '#/definitions/cwf_ha_pair'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+        - in: body
+          name: ha pair
+          description: Carrier Wifi HA gateway pair
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_cwf_ha_pair'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete high availability gateway pair for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs/{ha_pair_id}/status:
+    get:
+      summary: Retrieve status of a Carrier Wifi HA pair
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '200':
+          description: Status of a HA pair
+          schema:
+            $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/li_ues:
+    get:
+      summary: Get monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Monitored LI UEs
+          schema:
+            $ref: '#/definitions/li_ues'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/li_ues'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscribers/{subscriber_id}/directory_record:
+    get:
+      summary: Get the directory record of a subscriber
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: The directory record of a subscriber
+          schema:
+            $ref: '#/definitions/cwf_subscriber_directory_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways:
+    get:
+      summary: List all gateways for a carrier wifi network
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all carrier wifi gateways inside the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/cwf_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a new carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: gateway
+        in: body
+        description: Full desired configuration of the gateway
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cwf_gateway'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}:
+    get:
+      summary: Get a specific carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The requested carrier wifi gateway
+          schema:
+            $ref: '#/definitions/cwf_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire carrier wifi gateway record
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: gateway
+        in: body
+        description: Full desired configuration of the gateway
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cwf_gateway'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/name:
+    get:
+      summary: Get the name of a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The name of the gateway
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: name
+        in: body
+        required: true
+        schema:
+          $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/description:
+    get:
+      summary: Get the description of a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The description of the gateway
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: description
+        in: body
+        required: true
+        schema:
+          $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/device:
+    get:
+      summary: Get the physical device for a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The physical device for the gateway
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the physical device for a carrier wifi gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: device
+        in: body
+        description: New device for the carrier wifi gateway
+        required: true
+        schema:
+          $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/magmad:
+    get:
+      summary: Get magmad agent configuration
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Magmad agent configuration
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Reconfigure magmad agent
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: magmad
+        in: body
+        description: New magmad configuration
+        required: true
+        schema:
+          $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/carrier_wifi:
+    get:
+      summary: Get gateway carrier Wifi configuration
+      tags:
+        - Carrier Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Carrier Wifi configuration
+          schema:
+            $ref: '#/definitions/gateway_cwf_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update gateway carrier Wifi configuration
+      tags:
+        - Carrier Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New carrier Wifi configuration
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_cwf_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/tier:
+    get:
+      summary: Get the ID of the upgrade tier a gateway belongs to
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The ID of the upgrade tier
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/tier_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the ID of the upgrade tier a gateway belongs to
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: tier_id
+        in: body
+        required: true
+        schema:
+          $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/status:
+    get:
+      summary: Get the status of a gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The status of the gateway
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/health_status:
+    get:
+      summary: Retrieve Health Status of a Carrier Wifi Gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Health Status of Carrier Wifi Gateway
+          schema:
+            $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  ha_pair_id:
+    description: HA Gateway Pair ID
+    in: path
+    name: ha_pair_id
+    required: true
+    type: string
+
+definitions:
+  cwf_network:
+    type: object
+    description: Carrier Wifi Network spec
+    required:
+      - id
+      - name
+      - description
+      - carrier_wifi
+      - dns
+      - federation
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      carrier_wifi:
+        $ref: '#/definitions/network_carrier_wifi_configs'
+      federation:
+        $ref: './feg-swagger.yml#/definitions/federated_network_configs'
+      dns:
+        $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
+      features:
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        x-omitempty: true
+        $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+
+  cwf_gateway:
+    type: object
+    description: Full description of a CWF gateway
+    required:
+    - id
+    - name
+    - description
+    - magmad
+    - tier
+    - carrier_wifi
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      registration_info:
+        $ref: './orc8r-swagger-common.yml#/definitions/registration_info'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      carrier_wifi:
+        $ref: '#/definitions/gateway_cwf_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      status:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+
+  mutable_cwf_gateway:
+    type: object
+    description: CWF gateway object with read-only fields omitted
+    required:
+    - id
+    - name
+    - description
+    - magmad
+    - tier
+    - carrier_wifi
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      carrier_wifi:
+        $ref: '#/definitions/gateway_cwf_configs'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+
+  network_carrier_wifi_configs:
+    description: Carrier WiFi configuration for a network
+    type: object
+    minLength: 1
+    required:
+      - default_rule_id
+      - network_services
+      - eap_aka
+      - aaa_server
+    properties:
+      default_rule_id:
+        type: string
+        example: 'default_rule_1'
+      network_services:
+        description: Configuration for network services. Services will be instantiated in the listed order.
+        type: array
+        x-omitempty: true
+        items:
+          type: string
+          enum:
+          - 'dpi'
+          - 'policy_enforcement'
+        example:
+          - 'dpi'
+          - 'policy_enforcement'
+      eap_aka:
+        $ref: './feg-swagger.yml#/definitions/eap_aka'
+      eap_sim:
+        $ref: './feg-swagger.yml#/definitions/eap_sim'
+      aaa_server:
+        $ref: './feg-swagger.yml#/definitions/aaa_server'
+      li_ues:
+        $ref: '#/definitions/li_ues'
+
+  allowed_gre_peer:
+    type: object
+    required:
+      - ip
+    properties:
+      ip:
+        type: string
+        minLength: 5
+        maxLength: 49
+        x-nullable: false
+        example: '192.168.128.0/32'
+      key:
+        type: integer
+        format: uint32
+        x-nullable: true
+        example: 1
+  allowed_gre_peers:
+    type: array
+    items:
+      $ref: '#/definitions/allowed_gre_peer'
+  li_ues:
+    type: object
+    required:
+      - imsis
+      - msisdns
+      - macs
+      - ips
+    properties:
+      imsis:
+        type: array
+        items:
+          type: string
+      msisdns:
+        type: array
+        items:
+          type: string
+      macs:
+        type: array
+        items:
+          type: string
+      ips:
+        type: array
+        items:
+          type: string
+  ipdr_export_dst:
+    type: object
+    required:
+      - ip
+      - port
+    properties:
+      ip:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: '192.168.128.88'
+      port:
+        type: integer
+        format: uint32
+        x-nullable: false
+        example: 2040
+  gateway_cwf_configs:
+    type: object
+    description: CWF configuration for a gateway
+    required:
+      - allowed_gre_peers
+    properties:
+      allowed_gre_peers:
+        $ref: '#/definitions/allowed_gre_peers'
+      ipdr_export_dst:
+        $ref: '#/definitions/ipdr_export_dst'
+      gateway_health_configs:
+        $ref: '#/definitions/gateway_health_configs'
+
+  cwf_subscriber_directory_record:
+    type: object
+    description: CWF subscriber directory record
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
+      ipv4_addr:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: "192.168.127.1"
+      mac_addr:
+        type: string
+        x-nullable: false
+        example: "aa:bb:cc:dd:ee:ff"
+
+  gateway_health_configs:
+    type: object
+    description: Configuration threshold for gateway health service
+    properties:
+      cpu_util_threshold_pct:
+        type: number
+        format: float
+        example: 0.90
+      mem_util_threshold_pct:
+        type: number
+        format: float
+        example: 0.90
+      gre_probe_interval_secs:
+        type: integer
+        format: uint32
+        example: 5
+      icmp_probe_pkt_count:
+        type: integer
+        format: uint32
+        example: 3
+
+  carrier_wifi_ha_pair_state:
+    type: object
+    description: Full state object of an ha pair
+    properties:
+        ha_pair_status:
+          $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        gateway1_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        gateway2_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+
+  carrier_wifi_ha_pair_status:
+    description: Status of a Carrier Wifi HA pair status
+    type: object
+    required:
+      - active_gateway
+    properties:
+      active_gateway:
+        type: string
+        x-nullable: false
+        example: 'active_gatewayID'
+
+  carrier_wifi_gateway_health_status:
+    description: Health status of a Carrier Wifi Gateway
+    type: object
+    required:
+      - status
+      - description
+    properties:
+      status:
+        type: string
+        x-nullable: false
+        enum:
+          - "HEALTHY"
+          - "UNHEALTHY"
+      description:
+        type: string
+        x-nullable: false
+
+  cwf_ha_pair:
+    description: HA Gateway pair in a Carrier Wifi Network
+    type: object
+    required:
+      - ha_pair_id
+      - gateway_id_1
+      - gateway_id_2
+      - config
+    properties:
+      ha_pair_id:
+        type: string
+        x-nullable: false
+        example: "pair1"
+      gateway_id_1:
+        type: string
+        x-nullable: false
+        example: "gateway1"
+      gateway_id_2:
+        type: string
+        x-nullable: false
+        example: "gateway2"
+      config:
+        $ref: "#/definitions/cwf_ha_pair_configs"
+      state:
+        $ref: "#/definitions/carrier_wifi_ha_pair_state"
+
+  mutable_cwf_ha_pair:
+   description: HA Gateway pair with read-only fields omitted
+   type: object
+   required:
+     - ha_pair_id
+     - gateway_id_1
+     - gateway_id_2
+     - config
+   properties:
+     ha_pair_id:
+       type: string
+       x-nullable: false
+       example: "pair1"
+     gateway_id_1:
+       type: string
+       x-nullable: false
+       example: "gateway1"
+     gateway_id_2:
+       type: string
+       x-nullable: false
+       example: "gateway2"
+     config:
+       $ref: "#/definitions/cwf_ha_pair_configs"
+
+  cwf_ha_pair_configs:
+    description: Configuration for HA Gateway pair in a Carrier Wifi Network
+    type: object
+    required:
+      - transport_virtual_ip
+    properties:
+      transport_virtual_ip:
+        type: string
+        minLength: 5
+        maxLength: 49
+        x-nullable: false
+        example: '192.168.128.0/32'

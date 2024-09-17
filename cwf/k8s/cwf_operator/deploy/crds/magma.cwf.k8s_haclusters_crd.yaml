@@ -1,0 +1,132 @@
+# Copyright 2018 The Operator-SDK Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Modifications:
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: haclusters.magma.cwf.k8s
+spec:
+  group: magma.cwf.k8s
+  names:
+    kind: HACluster
+    listKind: HAClusterList
+    plural: haclusters
+    singular: hacluster
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: HACluster is the Schema for the haclusters API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: HAClusterSpec defines the desired state of HACluster
+          properties:
+            gatewayResources:
+              description: GatewayResources denotes the list of all gateway resources
+                in the HACluster
+              items:
+                description: GatewayResource defines a gateway in the HACluster
+                properties:
+                  gatewayID:
+                    type: string
+                  helmReleaseName:
+                    type: string
+                required:
+                - gatewayID
+                - helmReleaseName
+                type: object
+              maxItems: 2
+              minItems: 1
+              type: array
+            haPairID:
+              description: HAPairID specifies the associate pair ID in the orchestrator
+                with this HACluster
+              minLength: 1
+              type: string
+            maxConsecutiveActiveErrors:
+              description: MaxConsecutiveActiveErrors denotes the maximum number of
+                errors the HACluster's active can have fetching health status before
+                a failover occurs
+              maximum: 5
+              minimum: 1
+              type: integer
+          required:
+          - gatewayResources
+          - haPairID
+          - maxConsecutiveActiveErrors
+          type: object
+        status:
+          description: HAClusterStatus defines the observed state of HACluster
+          properties:
+            active:
+              description: Active contains the resource name of the active gateway
+                in the HACluster
+              type: string
+            activeInitState:
+              description: ActiveInitState denotes the initialization state of the
+                active in the HACluster
+              type: string
+            consecutiveActiveErrors:
+              description: ConsecutiveActiveErrors denotes the number of consecutive
+                errors that have occurred when the active has been called for health
+                status
+              type: integer
+            consecutiveStandbyErrors:
+              description: ConsecutiveStandbyErrors denotes the number of consecutive
+                errors that have occurred when the standby has been called for health
+                status
+              type: integer
+            standbyInitState:
+              description: StandbyInitState denotes the initialization state of the
+                standby in the HACluster
+              type: string
+          required:
+          - active
+          - activeInitState
+          - consecutiveActiveErrors
+          - consecutiveStandbyErrors
+          - standbyInitState
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true

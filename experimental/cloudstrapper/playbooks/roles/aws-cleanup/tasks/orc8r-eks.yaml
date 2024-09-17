@@ -1,0 +1,9 @@
+---
+
+- name: cleaning up orchestator eks cluster
+  aws_eks_cluster:
+    name: "{{ orc8rEksCluster }}"
+    wait: yes
+    state: absent
+
+

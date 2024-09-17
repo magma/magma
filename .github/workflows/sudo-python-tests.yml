@@ -1,0 +1,114 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Run sudo Python tests (pipelined tests that need OVS, mobilityd tests that need a certain network setup)
+# remediation: -
+
+name: AGW Test Sudo Python
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+      - 'v1.*'
+
+jobs:
+  sudo-python-tests:
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Cache magma-dev-box
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        with:
+          path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
+          key: vagrant-box-magma-dev-v1.3.20221230
+      - name: Log in to vagrant cloud
+        run: |
+          if [[ -n "${{ secrets.VAGRANT_TOKEN }}" ]]
+          then
+            echo "Logging in to vagrant cloud to mitigate rate limiting."
+            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+            sudo apt update && sudo apt install vagrant
+            vagrant plugin install vagrant-vbguest vagrant-disksize vagrant-reload
+            vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
+          else
+            echo "Vagrant cloud token is not configured. Skipping login."
+          fi
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.10.12'
+      - name: Install pre requisites
+        run: |
+          pip3 install --upgrade pip
+          pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
+          sudo apt install virtualbox
+      - name: Open up network interfaces for VM
+        run: |
+          sudo mkdir -p /etc/vbox/
+          echo '* 192.168.0.0/16' | sudo tee /etc/vbox/networks.conf
+          echo '* 3001::/64' | sudo tee -a /etc/vbox/networks.conf
+      - name: Provision the magma-dev VM
+        run: |
+          cd lte/gateway
+          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_MEMORY_MB=9216
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          fab provision-magma-dev-vm
+      - name: Run the sudo python tests
+        run: |
+          cd lte/gateway
+          [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
+          vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
+      - name: Get test results
+        if: always()
+        run: |
+          cd lte/gateway
+          fab get-test-summaries --sudo-tests
+          ls -R
+      - name: Upload test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test_results
+          path: lte/gateway/test_results/**/*.xml
+      - name: Publish Unit Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: Sudo Python test results
+          junit_files: lte/gateway/test_results/**/*.xml
+          check_run_annotations: all tests
+      - name: Publish results to Firebase
+        if: always() && github.event_name == 'push'
+        env:
+          FIREBASE_SERVICE_CONFIG: ${{ secrets.FIREBASE_SERVICE_CONFIG }}
+          REPORT_FILENAME: "sudo_python_tests_${{ github.sha }}.html"
+        run: |
+          npm install -g xunit-viewer
+          [ -d "lte/gateway/test_results/" ] && { xunit-viewer -r lte/gateway/test_results/ -o "$REPORT_FILENAME"; }
+          [ -f "$REPORT_FILENAME" ] && { python ci-scripts/firebase_upload_file.py -f "$REPORT_FILENAME" -o out_url.txt; }
+          [ -f "out_url.txt" ] && { URL=$(cat out_url.txt); }
+          python ci-scripts/firebase_publish_report.py -id ${{ github.sha }} --verdict ${{ job.status }} --run_id ${{ github.run_id }} sudo_python_tests --url $URL
+      - name: Notify failure to slack
+        if: failure() && github.repository_owner == 'magma'
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_AVATAR: ":boom:"
+        with:
+          args: "Sudo python tests failed in run <https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.run_id}}> from commit ${{ github.sha }}: ${{ github.event.head_commit.message || github.event.pull_request.title }}"

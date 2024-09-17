@@ -1,0 +1,155 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "orc8r/protos/mconfig.proto";
+import "google/protobuf/struct.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+
+
+message PingParams {
+  string host_or_ip = 1;
+  int32 num_packets = 2;
+}
+
+message TracerouteParams {
+  string host_or_ip = 1;
+  int32 max_hops = 2;
+  int32 bytes_per_packet = 3;
+}
+
+message NetworkTestRequest {
+  repeated PingParams pings = 1;
+  repeated TracerouteParams traceroutes = 2;
+}
+
+message PingResult {
+  string host_or_ip = 1;
+  int32 num_packets = 2;
+  string error = 3;
+  int32 packets_transmitted = 4;
+  int32 packets_received = 5;
+  float avg_response_ms = 6;
+}
+
+message TracerouteProbe {
+  string hostname = 1;
+  string ip = 2;
+  float rtt_ms = 3;
+}
+
+message TracerouteHop {
+  int32 idx = 1;
+  repeated TracerouteProbe probes = 2;
+}
+
+message TracerouteResult {
+  string error = 1;
+  string host_or_ip = 2;
+  repeated TracerouteHop hops = 3;
+}
+
+message NetworkTestResponse {
+  repeated PingResult pings = 1;
+  repeated TracerouteResult traceroutes = 2;
+}
+
+message GetGatewayIdResponse {
+  string gateway_id = 1;
+}
+
+message RestartServicesRequest {
+  repeated string services = 1;
+}
+
+message GenericCommandParams {
+  string command = 1;
+  google.protobuf.Struct params = 2;
+}
+
+message GenericCommandResponse {
+  google.protobuf.Struct response = 1;
+}
+
+message TailLogsRequest {
+  string service = 1;
+}
+
+message LogLine {
+  string line = 1;
+}
+
+message CheckStatelessResponse{
+  enum AGWMode {
+    INVALID = 0;
+    STATELESS = 1;
+    STATEFUL = 2;
+    CORRUPT = 3;
+  }
+  AGWMode agw_mode = 1;
+}
+
+message ConfigureStatelessRequest {
+  enum Cmd {
+    CHECK = 0;
+    DISABLE = 1;
+    ENABLE = 2;
+  }
+  Cmd config_cmd = 1;
+}
+
+// --------------------------------------------------------------------------
+// Magmad service definition.
+// --------------------------------------------------------------------------
+service Magmad {
+
+  // Starts all magma services
+  rpc StartServices (Void) returns (Void) {}
+
+  // Stops all magma services
+  rpc StopServices (Void) returns (Void) {}
+
+  // Reboot the gateway device
+  rpc Reboot (Void) returns (Void) {}
+
+  // Restart specified magma services
+  rpc RestartServices (RestartServicesRequest) returns (Void) {}
+
+  // Updates AG configs and restarts affected AG services
+  rpc SetConfigs (GatewayConfigs) returns (Void) {}
+
+  // Get current AG configs
+  rpc GetConfigs (Void) returns (GatewayConfigs) {}
+
+  // Execute some network commands to check gateway network health
+  rpc RunNetworkTests (NetworkTestRequest) returns (NetworkTestResponse) {}
+
+  // Get gateway hardware ID
+  rpc GetGatewayId (Void) returns (GetGatewayIdResponse) {}
+
+  // Execute generic command
+  rpc GenericCommand (GenericCommandParams) returns (GenericCommandResponse) {}
+
+  // Get stream of logs
+  rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
+
+  // CheckStateless returns whether AGW is stateless or stateful
+  rpc CheckStateless (Void) returns (CheckStatelessResponse) {}
+
+  // ConfigureStateless configures the stateless mode of AGW
+  rpc ConfigureStateless (ConfigureStatelessRequest) returns (Void) {}
+}

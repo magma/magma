@@ -1,0 +1,6 @@
+- name: Delete yace user added
+  command: aws iam delete-user --user-name yace_user
+  ignore_errors: true
+  tags:
+    - cleanup_dryrun
+    - cleanup

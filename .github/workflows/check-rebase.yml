@@ -1,0 +1,52 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Check if your PR needs a rebase on the current master
+# remediation: Rebase your PR on the current master branch
+
+name: PR Check Rebase
+
+on:
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+
+jobs:
+  checkRebase:
+    runs-on: ubuntu-20.04
+    env:
+      HEAD_FULL_NAME: "${{github.event.pull_request.head.repo.full_name}}"
+      BASE_FULL_NAME: "${{github.event.pull_request.base.repo.full_name}}"
+      HEAD_SHA: "${{ github.event.pull_request.head.sha }}"
+      BASE_SHA: "${{ github.event.pull_request.base.sha }}"
+    steps:
+      - name: Checkout Head
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          repository: "${{env.HEAD_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Checkout Base
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          repository: "${{env.BASE_FULL_NAME}}"
+          fetch-depth: 0
+      - name: Check Commits Hash
+        run: |
+          COMMON_SHA="$(git merge-base $BASE_SHA $HEAD_SHA)"
+          if [ "${COMMON_SHA}" = "$BASE_SHA" ]; then
+            echo "Merge Succeeded : It is rebased"
+            exit 0
+          else
+            echo "Merge Failed : It is not rebased"
+            exit 1
+          fi

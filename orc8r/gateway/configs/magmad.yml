@@ -1,0 +1,93 @@
+---
+log_level: INFO
+
+# List of services for magmad to control
+magma_services:
+  - control_proxy
+
+# List of services that don't provide service303 interface
+non_service303_services:
+  - control_proxy
+
+# list of services that are required to have meta before checking in
+# (meta = data gathered via MagmaService.register_get_status_callback())
+# skip limit specified by config 'max_skipped_checkins'
+skip_checkin_if_missing_meta_services: []
+
+# default = 3, use 0 for "infinity"
+# max_skipped_checkins: 3
+
+# Init system to use to control services
+# Supported systems include: [systemd, runit, docker]
+init_system: docker
+
+# bootstrap_manager config
+bootstrap_config:
+  # location of the challenge key
+  challenge_key: /var/opt/magma/certs/gw_challenge.key
+
+# Flags indicating the magmad features to be enabled
+enable_config_streamer: True
+enable_upgrade_manager: False
+enable_network_monitor: False
+enable_sync_rpc: True
+enable_kernel_version_checking: False
+
+network_monitor_config:
+  # How long to sleep between statistic collections
+  sampling_period: 60
+
+  # ping stats config
+  ping_config:
+    hosts:
+      - 8.8.8.8
+    num_packets: 1
+    timeout_secs: 20
+
+upgrader_factory:
+  # Module where the UpgraderFactory implementation is located
+  module: magma.magmad.upgrade.magma_upgrader
+  # Name of the UpgraderFactory implementation
+  class: MagmaUpgraderFactory
+mconfig_modules:
+  - orc8r.protos.mconfig.mconfigs_pb2
+
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 30 # Timeout in seconds
+  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
+
+  # An optional function  to mutate metrics before they are sent to the cloud
+  # A string in the form path.to.module.fn_name
+  # @see magma.magmad.metrics_collector.example_metrics_postprocessor
+  post_processing_fn: magma.magmad.metrics_collector.do_nothing_metrics_postprocessor
+  # List of services for metricsd to poll
+  services:
+    - magmad
+
+  # List of prometheus scrape targets (not magma services) to poll
+  #  url: url of the metrics source
+  #  name: name to tag metrics with {scrape_target=<name>}
+  #  interval: time (in seconds) between scrapes
+  #
+  # Example:
+  # metric_scrape_targets:
+  #   - url: http://localhost:9091/metrics
+  #     name: node_exporter
+  #     interval: 5
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True

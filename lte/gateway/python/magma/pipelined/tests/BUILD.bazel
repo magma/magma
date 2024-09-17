@@ -1,0 +1,927 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:python_test.bzl", "pytest_test")
+load("//bazel:test_constants.bzl", "TAG_SUDO_TEST")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_library(
+    name = "pipelined_test_util",
+    testonly = True,
+    srcs = ["pipelined_test_util.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:service_manager",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_access_control",
+    size = "small",
+    srcs = ["test_access_control.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:access_control",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_arp",
+    size = "small",
+    srcs = ["test_arp.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:arp",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_arp_non_nat",
+    size = "small",
+    srcs = ["test_arp_non_nat.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:arp",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_check_quota",
+    size = "small",
+    srcs = ["test_check_quota.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_classifier",
+    size = "small",
+    srcs = ["test_classifier.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_classifier_mme_flow_dl",
+    size = "small",
+    srcs = ["test_classifier_mme_flow_dl.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_classifier_traffic",
+    size = "small",
+    srcs = ["test_classifier_traffic.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:classifier",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_conntrack",
+    size = "small",
+    srcs = ["test_conntrack.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:conntrack",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_cwf_restart_resilience",
+    size = "small",
+    srcs = ["test_cwf_restart_resilience.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:base",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_dpi",
+    size = "small",
+    srcs = ["test_dpi.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_ebpf_dl_dp",
+    size = "small",
+    srcs = ["test_ebpf_dl_dp.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
+        "//lte/protos:mobilityd_python_proto",
+        requirement("scapy"),
+    ],
+)
+
+pytest_test(
+    name = "test_ebpf_ul_dp",
+    size = "small",
+    srcs = ["test_ebpf_ul_dp.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
+        "//lte/protos:mobilityd_python_proto",
+        requirement("scapy"),
+    ],
+)
+
+pytest_test(
+    name = "test_encoding",
+    size = "small",
+    srcs = ["test_encoding.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:encoding",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_enforcement",
+    size = "small",
+    srcs = ["test_enforcement.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:he",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_enforcement_5g",
+    size = "small",
+    srcs = ["test_enforcement_5g.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_enforcement_stats",
+    size = "small",
+    srcs = ["test_enforcement_stats.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_gy",
+    size = "small",
+    srcs = ["test_gy.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:gy",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_he",
+    size = "small",
+    srcs = ["test_he.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:he",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_imsi_encoding",
+    size = "small",
+    srcs = ["test_imsi_encoding.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/pipelined:imsi"],
+)
+
+pytest_test(
+    name = "test_inout",
+    size = "small",
+    srcs = ["test_inout.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+    ],
+)
+
+pytest_test(
+    name = "test_inout_non_nat",
+    size = "small",
+    srcs = ["test_inout_non_nat.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+    ],
+)
+
+# This test checks production code that needs a patched ryu library
+# See bazel/python_repositories.bzl ryu_repo
+pytest_test(
+    name = "test_internal_pkt_ipfix_export",
+    size = "small",
+    srcs = ["test_internal_pkt_ipfix_export.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:dpi",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_ipv6_prefix_mapper",
+    size = "small",
+    srcs = ["test_ipv6_prefix_mapper.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = ["//lte/gateway/python/magma/pipelined:ipv6_prefix_store"],
+)
+
+pytest_test(
+    name = "test_ipv6_solicitation",
+    size = "small",
+    srcs = ["test_ipv6_solicitation.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:ipv6_solicitation",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_li_mirror",
+    size = "small",
+    srcs = ["test_li_mirror.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+    ],
+)
+
+pytest_test(
+    name = "test_ng_servicer_node",
+    size = "small",
+    srcs = ["test_ng_servicer_node.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:session_manager_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_ng_servicer_session",
+    size = "small",
+    srcs = ["test_ng_servicer_session.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined:ng_set_session_msg",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_paging",
+    size = "small",
+    srcs = ["test_paging.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:classifier",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:mobilityd_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_pull_stats",
+    size = "small",
+    srcs = ["test_pull_stats.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_qos",
+    size = "small",
+    srcs = ["test_qos.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/qos:common",
+        "//lte/protos:policydb_python_proto",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_qos_pyroute2",
+    size = "small",
+    srcs = ["test_qos_pyroute2.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/qos:qos_tc_impl",
+    ],
+)
+
+pytest_test(
+    name = "test_redirect",
+    size = "small",
+    srcs = ["test_redirect.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_restart_resilience",
+    size = "small",
+    srcs = ["test_restart_resilience.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:rule_mappers",
+        "//lte/gateway/python/magma/pipelined/app:base",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_rpc_servicer",
+    size = "small",
+    srcs = ["test_rpc_servicer.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:rpc_servicer",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_rule_mappers",
+    size = "small",
+    srcs = ["test_rule_mappers.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+        "//lte/gateway/python/magma/pipelined:rule_mappers",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_service_manager",
+    size = "small",
+    srcs = ["test_service_manager.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:service_manager",
+        "//lte/gateway/python/magma/pipelined/app:access_control",
+        "//lte/gateway/python/magma/pipelined/app:arp",
+        "//lte/gateway/python/magma/pipelined/app:dpi",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:gy",
+        "//lte/gateway/python/magma/pipelined/app:he",
+        "//lte/gateway/python/magma/pipelined/app:ipfix",
+        "//lte/protos:mconfigs_python_proto",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_ifaces",
+    size = "small",
+    srcs = ["test_ifaces.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/pipelined:ifaces"],
+)
+
+pytest_test(
+    name = "test_tunnel_id_mapper",
+    size = "small",
+    srcs = ["test_tunnel_id_mapper.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = ["//lte/gateway/python/magma/pipelined:tunnel_id_store"],
+)
+
+pytest_test(
+    name = "test_tunnel_learn",
+    size = "small",
+    srcs = ["test_tunnel_learn.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/app:tunnel_learn",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:subscriber",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_ue_mac",
+    size = "small",
+    srcs = ["test_ue_mac.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/app:ue_mac",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+    ],
+)
+
+pytest_test(
+    name = "test_ue_passthrough",
+    size = "small",
+    srcs = ["test_ue_passthrough.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:mandatory_apps",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/app:ue_mac",
+        "//lte/gateway/python/magma/pipelined/tests/app:flow_query",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_builder",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_uplink_bridge",
+    size = "small",
+    srcs = ["test_uplink_bridge.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+    ],
+)
+
+pytest_test(
+    name = "test_vlan_learn",
+    size = "small",
+    srcs = ["test_vlan_learn.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+    ],
+)
+
+pytest_test(
+    name = "ng_node_rpc_servicer",
+    size = "small",
+    srcs = ["ng_node_rpc_servicer.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/pipelined/ng_manager:node_state_manager",
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/protos:common_python_proto",
+        "@ryu_repo//:ryu_patched",
+        requirement("grpcio"),
+    ],
+)
+
+pytest_test(
+    name = "test_gtp_stats_collector",
+    size = "small",
+    srcs = ["test_gtp_stats_collector.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = ["//lte/gateway/python/magma/pipelined:gtp_stats_collector"],
+)
+
+pytest_test(
+    name = "test_non_nat",
+    size = "small",
+    srcs = ["test_non_nat.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_qfi_gtp",
+    size = "small",
+    srcs = ["test_qfi_gtp.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "test_ipv6_solicitation_5g",
+    size = "small",
+    srcs = ["test_ipv6_solicitation_5g.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        ":pipelined_test_util",
+        "//lte/gateway/python/magma/pipelined/app:ipv6_solicitation",
+        "//lte/gateway/python/magma/pipelined/app:testing",
+        "//lte/gateway/python/magma/pipelined/tests/app:packet_injector",
+        "//lte/gateway/python/magma/pipelined/tests/app:start_pipelined",
+        "//lte/gateway/python/magma/pipelined/tests/app:table_isolation",
+        "//lte/protos:mconfigs_python_proto",
+    ],
+)

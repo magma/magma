@@ -1,0 +1,1177 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/subscriberdb.proto";
+import "google/protobuf/timestamp.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message RuleRecord {
+  // IMSI. This value along with teid uniquely identifies a session.
+  string sid = 1;
+  string rule_id = 2;
+  uint64 bytes_tx = 3;
+  uint64 bytes_rx = 4;
+  // Used for HE
+  string ue_ipv4 = 5;
+  // Used for HE
+  string ue_ipv6 = 6;
+  uint64 dropped_tx = 7;
+  uint64 dropped_rx = 8;
+  // Rule version with which the flow was installed with
+  uint64 rule_version = 9;
+  // Uplink TEID
+  uint32 teid = 10;
+  //Indicates that the report is final and the flow will be deleted
+  bool final_record = 11;
+}
+
+message RuleRecordTable {
+  repeated RuleRecord records = 1;
+  // Time at which PipelineD started
+  uint64 epoch = 2;
+  // If policy rule versions need to be incremented(only used for startup)
+  bool update_rule_versions = 3;
+}
+
+///////////////////
+// LocalSessionManager service
+///////////////////
+enum RATType {
+  // Maps to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_LTE = 0;
+  // Maps to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_WLAN = 1;
+  TGPP_NR = 2;
+}
+
+message LocalCreateSessionRequest {
+  CommonSessionContext common_context = 16;
+  RatSpecificContext rat_specific_context = 17;
+}
+
+message Teids{
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
+}
+
+message CommonSessionContext {
+  SubscriberID sid = 1;
+  string ue_ipv4 = 3;
+  string apn = 4;
+  bytes msisdn = 5;
+  RATType rat_type = 6;
+  // PDU session state to mirror with AMF or MME
+  SMSessionFSMState sm_session_state = 7;
+  uint32 sm_session_version = 9;
+  string ue_ipv6 = 10;
+  // TEIDs corresponding to the default bearer
+  Teids teids = 11;
+}
+
+message RatSpecificContext {
+  oneof context {
+    LTESessionContext lte_context = 17;
+    WLANSessionContext wlan_context = 18;
+    M5GSMSessionContext m5gsm_session_context = 19;
+  }
+}
+
+message TeidSet {
+  // Obsolete to be cleared once AMF code clean up happens
+  uint32 teid = 1;
+  string end_ipv4_addr = 2;
+  uint32 teid_value = 3;
+  string end_ipv4_addr_string = 4;
+}
+
+enum NotifyUeEvents {
+   // AMF <=> SMF
+   PDU_SESSION_INACTIVE_NOTIFY = 0;
+   // AMF <=> SMF
+   UE_IDLE_MODE_NOTIFY = 1;
+   // SMF  => AMF
+   UE_PAGING_NOTIFY = 2;
+   // AMF  => SMF
+   UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY = 3;
+   // SMF => AMF
+   PDU_SESSION_STATE_NOTIFY = 4;
+   // AMF -> SMF && SMF -> AMF response
+   UE_SERVICE_REQUEST_ON_PAGING = 5;
+}
+
+message RatSpecificNotification {
+  uint32 pdu_session_id = 1;
+  RequestType request_type = 2;
+  AccessType access_type = 3;
+  PduSessionType pdu_session_type = 4;
+  M5GSMCapability m5g_sm_capability = 5;
+  M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
+}
+
+message SetSmNotificationContext {
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;
+  RatSpecificNotification rat_specific_notification = 2;
+}
+
+
+message LTESessionContext {
+  string spgw_ipv4 = 1;
+  string imei = 2;
+  string plmn_id = 3;
+  string imsi_plmn_id = 4;
+  bytes user_location = 5;
+  QosInformationRequest qos_info = 6;
+  uint32 bearer_id = 7;
+  // Taken from S6A UpdateLocationAnswer
+  string charging_characteristics = 8;
+}
+
+message WLANSessionContext {
+  bytes mac_addr_binary = 1;
+  string mac_addr = 2;
+  string radius_session_id = 3;
+}
+
+message LocalCreateSessionResponse {
+  string session_id = 1;
+}
+
+message LocalEndSessionRequest {
+  SubscriberID sid = 1;
+  string apn = 2;
+}
+
+message LocalEndSessionResponse {
+}
+
+message UpdateTunnelIdsRequest {
+  SubscriberID sid = 1;
+  // default bearerID
+  uint32 bearer_id = 2;
+  // TEID for default bearerID
+  uint32 enb_teid = 3;
+  // TEID for default bearerID
+  uint32 agw_teid = 4;
+  string session_id = 5;
+}
+
+message UpdateTunnelIdsResponse {
+}
+
+message PolicyBearerBindingRequest {
+  SubscriberID sid = 1;
+  // default bearer ID
+  uint32 linked_bearer_id = 2;
+  string policy_rule_id = 3;
+  // dedicated bearer ID
+  // 0 means that the binding failed
+  uint32 bearer_id = 4;
+  // teids for the dedicated bearer
+  Teids teids = 5;
+}
+
+message PolicyBearerBindingResponse {
+}
+
+message ChargingReAuthRequest {
+  string session_id = 1;
+  uint32 charging_key = 2;
+  string sid = 3;
+  enum Type {
+    SINGLE_SERVICE = 0;
+    ENTIRE_SESSION = 1;
+  }
+  Type type = 4;
+  ServiceIdentifier service_identifier = 5;
+}
+
+message ChargingReAuthAnswer {
+  ReAuthResult result = 1;
+}
+
+enum EventTrigger {
+  SGSN_CHANGE = 0;
+  QOS_CHANGE = 1;
+  RAT_CHANGE = 2;
+  TFT_CHANGE = 3;
+  PLMN_CHANGE = 4;
+  LOSS_OF_BEARER = 5;
+  RECOVERY_OF_BEARER = 6;
+  IP_CAN_CHANGE = 7;
+  // 8, 9, 10 are unused
+  QOS_CHANGE_EXCEEDING_AUTHORIZATION = 11;
+  RAI_CHANGE = 12;
+  USER_LOCATION_CHANGE = 13;
+  NO_EVENT_TRIGGERS = 14;
+  OUT_OF_CREDIT = 15;
+  REALLOCATION_OF_CREDIT = 16;
+  REVALIDATION_TIMEOUT = 17;
+  UE_IP_ADDRESS_ALLOCATE = 18;
+  UE_IP_ADDRESS_RELEASE = 19;
+  DEFAULT_EPS_BEARER_QOS_CHANGE = 20;
+  AN_GW_CHANGE = 21;
+  SUCCESSFUL_RESOURCE_ALLOCATION = 22;
+  RESOURCE_MODIFICATION_REQUEST = 23;
+  PGW_TRACE_CONTROL = 24;
+  UE_TIME_ZONE_CHANGE = 25;
+  TAI_CHANGE = 26;
+  ECGI_CHANGE = 27;
+  CHARGING_CORRELATION_EXCHANGE = 28;
+  APN_AMBR_MODIFICATION_FAILURE = 29;
+  USER_CSG_INFORMATION_CHANGE = 30;
+  // 31, 32 are unused
+  USAGE_REPORT = 33;
+  DEFAULT_EPS_BEARER_QOS_MODIFICATION_FAILURE = 34;
+  USER_CSG_HYBRID_SUBSCRIBED_INFORMATION_CHANGE = 35;
+  USER_CSG_HYBRID_UNSUBSCRIBED_INFORMATION_CHANGE = 36;
+  ROUTING_RULE_CHANGE = 37;
+  // 38 is unused
+  APPLICATION_START = 39;
+  APPLICATION_STOP = 40;
+  // 41 is unused
+  CS_TO_PS_HANDOVER = 42;
+  UE_LOCAL_IP_ADDRESS_CHANGE = 43;
+  HENB_LOCAL_IP_ADDRESS_CHANGE = 44;
+  ACCESS_NETWORK_INFO_REPORT = 45;
+  CREDIT_MANAGEMENT_SESSION_FAILURE = 46;
+  DEFAULT_QOS_CHANGE = 47;
+  CHANGE_OF_UE_PRESENCE_IN_PRESENCE_REPORTING_AREA_REPORT = 48;
+  // UNSUPPORTED is not defined in 3GPP
+  UNSUPPORTED = 49;
+}
+
+message PolicyReAuthRequest {
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
+  string session_id = 1;
+  string imsi = 2;
+  repeated string rules_to_remove = 3;
+  repeated StaticRuleInstall rules_to_install = 6;
+  repeated DynamicRuleInstall dynamic_rules_to_install = 7;
+  repeated EventTrigger event_triggers = 8;
+  google.protobuf.Timestamp revalidation_time = 9;
+  repeated UsageMonitoringCredit usage_monitoring_credits = 10;
+  QoSInformation qos_info = 11;
+}
+
+enum QCI {
+  QCI_0 = 0;
+  QCI_1 = 1;
+  QCI_2 = 2;
+  QCI_3 = 3;
+  QCI_4 = 4;
+  QCI_5 = 5;
+  QCI_6 = 6;
+  QCI_7 = 7;
+  QCI_8 = 8;
+  QCI_9 = 9;
+  QCI_65 = 65;
+  QCI_66 = 66;
+  QCI_67 = 67;
+  QCI_70 = 70;
+  QCI_75 = 75;
+  QCI_79 = 79;
+}
+
+message QoSInformation {
+  string bearer_id = 1;
+  QCI qci = 2;
+}
+
+enum ReAuthResult {
+  UPDATE_INITIATED = 0;
+  UPDATE_NOT_NEEDED = 1;
+  SESSION_NOT_FOUND = 2;
+  OTHER_FAILURE = 3;
+}
+
+message PolicyReAuthAnswer {
+  enum FailureCode {
+    // We want to map these directly to the diameter return codes, so use a
+    // placeholder for 0
+    UNUSED = 0;
+    UNKNOWN_RULE_NAME = 1;
+    RATING_GROUP_ERROR = 2;
+    SERVICE_IDENTIFIER_ERROR = 3;
+    GW_PCEF_MALFUNCTION = 4;
+    RESOURCES_LIMITATION = 5;
+    MAX_NR_BEARERS_REACHED = 6;
+    UNKNOWN_BEARER_ID = 7;
+    MISSING_BEARER_ID = 8;
+    MISSING_FLOW_INFORMATION = 9;
+    RESOURCE_ALLOCATION_FAILURE = 10;
+    UNSUCCESSFUL_QOS_VALIDATION = 11;
+    INCORRECT_FLOW_INFORMATION = 12;
+    PS_TO_CS_HANDOVER = 13;
+    TDF_APPLICATION_IDENTIFIER_ERROR = 14;
+    NO_BEARER_FOUND = 15;
+    FILTER_RESTRICTIONS = 16;
+    AN_GW_FAILED = 17;
+    MISSING_REDIRECT_SERVER_ADDRESS = 18;
+    CM_END_USER_SERVICE_DENIED = 19;
+    CM_CREDIT_CONTROL_NOT_APPLICABLE = 20;
+    CM_AUTHORIZATION_REJECTED = 21;
+    CM_USER_UNKNOWN = 22;
+    CM_RATING_FAILED = 23;
+    ROUTING_RULE_REJECTION = 24;
+    UNKNOWN_ROUTING_ACCESS_INFORMATION = 25;
+    NO_NBIFOM_SUPPORT = 26;
+  }
+
+  string session_id = 1;
+  ReAuthResult result = 2;
+  map<string, FailureCode> failed_rules = 3;
+}
+
+message RuleSet {
+  // If true, apply the rules to all sessions for the subscriber
+  bool apply_subscriber_wide = 1;
+  string apn = 2;
+  repeated StaticRuleInstall static_rules = 3;
+  repeated DynamicRuleInstall dynamic_rules = 4;
+}
+
+message RulesPerSubscriber {
+  string imsi = 1;
+  repeated RuleSet rule_set = 3;
+}
+
+message SessionRules {
+  repeated RulesPerSubscriber rules_per_subscriber = 1;
+}
+
+service LocalSessionManager {
+  rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
+
+  rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
+
+  rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
+
+  // A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
+  rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+
+  // A set interface of subscribers -> currently active rules
+  rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
+
+  rpc UpdateTunnelIds(UpdateTunnelIdsRequest) returns (UpdateTunnelIdsResponse) {}
+}
+
+service SessionProxyResponder {
+  rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
+
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
+  rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
+}
+
+///////////////////
+// CentralSessionController service
+///////////////////
+
+message Timezone {
+  // Describe a timezone by offset from UTC in minutes
+  int32 offset_minutes = 1;
+}
+
+message CreditUnit {
+  bool is_valid = 1;
+  uint64 volume = 2;
+}
+
+message GrantedUnits {
+  CreditUnit total = 1;
+  CreditUnit tx = 2;
+  CreditUnit rx = 3;
+}
+
+message RedirectServer {
+  enum RedirectAddressType {
+    IPV4 = 0;
+    IPV6 = 1;
+    URL = 2;
+    SIP_URI = 3;
+  }
+  RedirectAddressType redirect_address_type = 1;
+  string redirect_server_address = 2;
+}
+
+// OCS CHARGING
+
+message ChargingCredit {
+  enum UnitType {
+      BYTES = 0;
+      SECONDS = 1;
+  }
+  UnitType type = 2;
+  // The number of seconds the credit is valid for
+  uint32 validity_time = 3;
+  bool is_final = 4;
+  enum FinalAction {
+    TERMINATE = 0;
+    REDIRECT = 1;
+    RESTRICT_ACCESS = 2;
+  }
+  FinalAction final_action = 5;
+  GrantedUnits granted_units = 6;
+  RedirectServer redirect_server = 7;
+  repeated string restrict_rules = 8;
+}
+
+message RequestedUnits {
+  uint64 total = 1;
+  uint64 tx = 2;
+  uint64 rx = 3;
+}
+
+
+message CreditUsage {
+  uint64 bytes_tx = 1;
+  uint64 bytes_rx = 2;
+  uint32 charging_key = 4;
+  enum UpdateType {
+    THRESHOLD = 0;
+    QHT = 1;
+    // FINAL - UE disconnected, flow not in use
+    TERMINATED = 2;
+    // UE hit credit limit
+    QUOTA_EXHAUSTED = 3;
+    // Credit expired
+    VALIDITY_TIMER_EXPIRED = 4;
+    OTHER_QUOTA_TYPE = 5;
+    RATING_CONDITION_CHANGE = 6;
+    // FORCED_REAUTHORISATION
+    REAUTH_REQUIRED = 7;
+    POOL_EXHAUSTED = 8;
+  }
+  UpdateType type = 5;
+  bytes monitoring_key = 6;
+  ServiceIdentifier service_identifier = 7;
+  RequestedUnits requested_units = 8;
+}
+
+message CreditUsageUpdate {
+  CreditUsage usage = 1;
+  string session_id = 2;
+  // unique among session
+  uint32 request_number = 3;
+  string spgw_ipv4 = 7;
+  string imei = 9;
+  string plmn_id = 10;
+  string imsi_plmn_id = 11;
+  bytes user_location = 12;
+  // MAC Address for WLAN
+  bytes hardware_addr = 14;
+  TgppContext tgpp_ctx = 15;
+  CommonSessionContext common_context = 16;
+  RatSpecificContext rat_specific_context = 17;
+  string charging_characteristics = 18;
+}
+
+enum CreditLimitType {
+  FINITE = 0;
+  INFINITE_UNMETERED = 1;
+  INFINITE_METERED = 2;
+}
+
+message CreditUpdateResponse {
+  bool success = 1;
+  // SubscriberID/IMSI
+  string sid = 2;
+  uint32 charging_key = 3;
+  ChargingCredit credit = 4;
+  uint32 result_code = 6;
+  ServiceIdentifier service_identifier = 7;
+  // When this is set to an infinite limit, field 'credit' should be ignored
+  CreditLimitType limit_type = 9;
+  TgppContext tgpp_ctx = 10;
+  string session_id = 11;
+}
+
+// PCRF USAGE MONITORING
+
+enum MonitoringLevel {
+  SESSION_LEVEL = 0;
+  PCC_RULE_LEVEL = 1;
+}
+
+// Used amount for a usage monitor
+message UsageMonitorUpdate {
+  bytes monitoring_key = 1;
+  MonitoringLevel level = 2;
+  uint64 bytes_tx = 3;
+  uint64 bytes_rx = 4;
+}
+
+// New received threshold for a usage monitor
+message UsageMonitoringCredit {
+  enum Action {
+    // continue monitoring as normal
+    CONTINUE = 0;
+    // no need to monitor any more  `AVP: Usage-Monitor-Support`
+    DISABLE = 1;
+    // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` TODO: not implemented on sessiond
+    FORCE = 2;
+  }
+  Action action = 1;
+  bytes monitoring_key = 2;
+  MonitoringLevel level = 3;
+  GrantedUnits granted_units = 5;
+}
+
+// A request to update a usage monitor given its usage and session information
+// TODO this message name is misleading since we don't only use it for
+// usage reporting
+message UsageMonitoringUpdateRequest {
+  UsageMonitorUpdate update = 1;
+  string session_id = 2;
+  // unique among session
+  uint32 request_number = 3;
+  // SubscriberID/IMSI
+  string sid = 4;
+  string ue_ipv4 = 5;
+  // MAC Address for WLAN
+  bytes hardware_addr = 6;
+  RATType rat_type = 7;
+  TgppContext tgpp_ctx = 8;
+  EventTrigger event_trigger = 9;
+  string charging_characteristics = 10;
+}
+
+// Response to a usage monitor update with the credit received and session info
+message UsageMonitoringUpdateResponse {
+  UsageMonitoringCredit credit = 1;
+  string session_id = 2;
+  // SubscriberID/IMSI
+  string sid = 3;
+  bool success = 4;
+  repeated EventTrigger event_triggers = 5;
+  google.protobuf.Timestamp revalidation_time = 6;
+  uint32 result_code = 7;
+  repeated string rules_to_remove = 8;
+  repeated StaticRuleInstall static_rules_to_install = 9;
+  repeated DynamicRuleInstall dynamic_rules_to_install = 10;
+  TgppContext tgpp_ctx = 11;
+}
+
+
+// COMBINED MESSAGES
+
+// QoS Information to be sent in CCR-Init message
+message QosInformationRequest {
+  uint32 apn_ambr_dl = 1;
+  uint32 apn_ambr_ul = 2;
+  uint32 priority_level = 3;
+  uint32 preemption_capability = 4;
+  uint32 preemption_vulnerability = 5;
+  uint32 qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
+}
+
+message M5GQosInformationRequest {
+  uint64 apn_ambr_dl = 1;
+  uint64 apn_ambr_ul = 2;
+  uint32 priority_level = 3;
+  prem_capab preemption_capability = 4;
+  prem_vuner preemption_vulnerability = 5;
+  QCI qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
+}
+
+// TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
+message TgppContext {
+  string gx_dest_host = 1;
+  string gy_dest_host = 2;
+}
+
+message CreateSessionRequest {
+  Timezone access_timezone = 1;
+  string session_id = 2;
+  RequestedUnits requested_units = 3;
+  CommonSessionContext common_context = 16;
+  RatSpecificContext rat_specific_context = 17;
+}
+
+message CreateSessionResponse {
+  // List of charging credits that should be installed for the session
+  repeated CreditUpdateResponse credits = 1;
+  // List of usage monitors that should be installed for the session
+  repeated UsageMonitoringUpdateResponse usage_monitors = 6;
+  repeated StaticRuleInstall static_rules = 7;
+  repeated DynamicRuleInstall dynamic_rules = 8;
+  string session_id = 9;
+  TgppContext tgpp_ctx = 10;
+  repeated EventTrigger event_triggers = 11;
+  google.protobuf.Timestamp revalidation_time = 12;
+  bool online = 13;
+  bool offline = 15;
+}
+
+message StaticRuleInstall {
+  string rule_id = 1;
+  google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
+  google.protobuf.Timestamp deactivation_time = 3;
+}
+
+message DynamicRuleInstall {
+  PolicyRule policy_rule = 1;
+  google.protobuf.Timestamp activation_time = 2;
+  // Optional field. Set as 0 to mark as unused
+  google.protobuf.Timestamp deactivation_time = 3;
+}
+
+message UpdateSessionRequest {
+  repeated CreditUsageUpdate updates = 1;
+  repeated UsageMonitoringUpdateRequest usage_monitors = 3;
+}
+
+message UpdateSessionResponse {
+  repeated CreditUpdateResponse responses = 1;
+  repeated UsageMonitoringUpdateResponse usage_monitor_responses = 3;
+}
+
+message SessionTerminateResponse {
+  // IMSI
+  string sid = 1;
+  string session_id = 2;
+}
+
+message SessionTerminateRequest {
+  string session_id = 2;
+  uint32 request_number = 4;
+  repeated CreditUsage credit_usages = 5;
+  repeated UsageMonitorUpdate monitor_usages = 6;
+  string spgw_ipv4 = 9;
+  string imei = 10;
+  string plmn_id = 11;
+  string imsi_plmn_id = 12;
+  bytes user_location = 13;
+  // MAC Address for WLAN
+  bytes hardware_addr = 15;
+  TgppContext tgpp_ctx = 16;
+  CommonSessionContext common_context = 17;
+  string charging_characteristics = 18;
+}
+
+service CentralSessionController {
+  // Notify OCS/PCRF of new session and return rules associated with subscriber
+  // along with credits for each rule
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
+
+  // Updates OCS/PCRF with used credit and terminations from gateway
+  rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse) {}
+
+  // Terminates session in OCS/PCRF for a subscriber
+  rpc TerminateSession(SessionTerminateRequest) returns (SessionTerminateResponse) {}
+}
+
+////////////5GSMCONTEXT/////////////
+
+message NodeID {
+  enum NodeIDType {
+    IPv4 = 0;
+    IPv6 = 1;
+    FQDN = 2;
+    }
+  NodeIDType node_id_type = 1;
+  string node_id = 2;
+}
+
+// PduSessionType
+enum PduSessionType {
+   IPV4 = 0;
+   IPV6 = 1;
+   IPV4IPV6 = 2;
+   UNSTRUCTURED = 3;
+}
+
+
+// SscMode
+enum SscMode {
+   SSC_MODE_1 = 0;
+   SSC_MODE_2 = 1;
+   SSC_MODE_3 = 2;
+}
+// M5GSMCapability
+message M5GSMCapability {
+   bool reflective_qos = 1;
+   bool multi_homed_ipv6_pdu_session = 2;
+}
+// M5GSMCause
+enum M5GSMCause {
+     OPERATOR_DETERMINED_BARRING = 0;                              //actual value 8
+     INSUFFICIENT_RESOURCES = 1;                                   //actual value 26
+     MISSING_OR_UNKNOWN_DNN = 2;                                   //actual value 27
+     UNKNOWN_PDU_SESSION_TYPE = 3;                                 //actual value 28
+     USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED = 4;              //actual value 29
+     REQUEST_REJECTED_UNSPECIFIED = 5;                             //actual value 31
+     SERVICE_OPTION_NOT_SUPPORTED = 6;                             //actual value 32
+     REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 7;                  //actual value 33
+     SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 8;                  //actual value 34
+     REGULAR_DEACTIVATION = 10;                                    //actual value 36
+     NETWORK_FAILURE = 11;                                         //actual value 38
+     REACTIVATION_REQUESTED = 12;                                  //actual value 39
+     INVALID_PDU_SESSION_IDENTITY = 13;                            //actual value 43
+     SEMANTIC_ERRORS_IN_PACKET_FILTER = 14;                        //actual value 44
+     SYNTACTICAL_ERROR_IN_PACKET_FILTER = 15;                      //actual value 45
+     OUT_OF_LADN_SERVICE_AREA = 16;                                //actual value 46
+     PTI_MISMATCH = 17;                                            //actual value 47
+     PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED = 18;                      //actual value 5
+     PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED = 19;                      //actual value 51
+     PDU_SESSION_DOES_NOT_EXIST = 20;                              //actual value 54
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN = 21;       //actual value 67
+     NOT_SUPPORTED_SSC_MODE = 22;                                  //actual value 68
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE = 23;               //actual value 69
+     MISSING_OR_UNKNOWN_DNN_IN_A_SLICE = 24;                       //actual value 70
+     INVALID_PTI_VALUE = 25;                                       //actual value 81
+     MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW = 26;//actual value 82
+     SEMANTIC_ERROR_IN_THE_QOS_OPERATION = 27;                     //actual value 83
+     SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION = 28;                  //actual value 84
+     INVALID_MAPPED_EPS_BEARER_IDENTITY = 29;                      //actual value 85
+     SEMANTICALLY_INCORRECT_MESSAGE = 30;                          //actual value 95
+     INVALID_MANDATORY_INFORMATION = 31;                           //actual value 96
+     MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED = 32;            //actual value 97
+     MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 33;     //actual value 98
+     INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 34;     //actual value 99
+     CONDITIONAL_IE_ERROR = 35;                                    //actual value 100
+     MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 36;          //actual value 101
+     PROTOCOL_ERROR_UNSPECIFIED = 37;
+     PTI_ALREADY_IN_USE = 38;                                      //actual value 111
+     OPERATION_SUCCESS = 40;//Response other than failure
+}
+// RequestType
+enum RequestType {
+   INITIAL_REQUEST = 0;
+   EXISTING_PDU_SESSION = 1;
+   INITIAL_EMERGENCY_REQUEST =2;
+   EXISTING_EMERGENCY_PDU_SESSION = 3;
+   MODIFICATION_REQUEST = 4;
+}
+// AccessType
+enum AccessType {
+  M_3GPP_ACCESS_3GPP = 0;
+  NON_3GPP_ACCESS = 1;
+}
+// DnnSelectionMode
+enum DnnSelectionMode {
+    VERIFIED = 0;
+    UE_DNN_NOT_VERIFIED = 1;
+    NW_DNN_NOT_VERIFIED = 2;
+}
+
+// RatType
+// Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
+
+// RequestedQosRules and AuthorizedQosRules
+message QosRules {
+   uint32 qos_rule_identifier = 1;
+   bool dqr = 2;
+   uint32 number_of_packet_filters = 3;
+   repeated int32 packet_filter_identifier = 4;
+   uint32 qos_rule_precedence = 5;
+   bool segregation = 6;
+   uint32 qos_flow_identifier = 7;
+}
+
+message QosPolicy {
+   enum PolicyState {
+	INSTALL=0;
+	PENDING=1;
+	REJECT=2;
+   }
+   PolicyState policy_state=1;
+   uint32 version=2;
+   enum PolicyAction {
+        ADD=0;
+        DEL=1;
+        MOD=2;
+  }
+  PolicyAction policy_action=3;
+  PolicyRule qos =4;
+}
+
+enum prem_capab {
+  SHALL_NOT_TRIGGER_PRE_EMPTION = 0;
+  MAY_TRIGGER_PRE_EMPTION = 1;
+}
+enum  prem_vuner {
+  NOT_PREMTABLE = 0;
+  PRE_EMPTABLE = 1;
+}
+
+message allocation_and_retention_prio {
+   uint32       prio_level = 1;
+   prem_capab   pre_emtion_cap = 2;
+   prem_vuner   pre_emtion_vul = 3;
+}
+
+message qos_characteristics {
+   uint32 fiveQi = 1;
+}
+
+message flow_level_params {
+    qos_characteristics qos_chars = 1;
+    allocation_and_retention_prio alloc_reten_prio = 2;
+}
+message qos_flow {
+   uint32  qos_flow_ident = 1;
+   flow_level_params  param = 2;
+}
+message  qos_flow_request_list {
+   qos_flow flow  = 1;
+}
+
+
+message LadnServiceArea {
+   string dnn_value = 1;
+   repeated TrackingAreaIdentityList identity_list = 2;
+}
+message TrackingAreaIdentityList {
+   repeated TypeOfList type_of_list = 1;
+   repeated int32 number_of_elements = 2;
+   // 3 bytes
+   string MCC=3;
+   // 3 bytes
+   string MNC=4;
+   // 8 bytes
+   string TAC= 5;
+}
+enum TypeOfList  {
+   LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES = 0;
+   LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_CONSECUTIVE_TAC_VALUES = 1;
+   LIST_OF_TAIS_BELONGING_TO_DIFFERENT_PLMNS = 2;
+}
+enum priorityaccess  {
+   High = 0;
+   Normal = 1;
+   Low = 2;
+}
+
+enum SMSessionFSMState {
+        CREATING_0 = 0;
+        CREATE_1 = 1;
+        ACTIVE_2 = 2;
+        INACTIVE_3 =3;
+        RELEASED_4 = 4;
+}
+
+// PDU session Establishment from AMF to SMF
+// SET MESSSAGE
+message M5GSMSessionContext {
+  uint32 pdu_session_id = 1;
+ // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial request, existing pdusession etc...
+  RequestType request_type = 2;
+  // IP address. Imported from session_manager.proto file
+  RedirectServer pdu_address = 3;
+  priorityaccess priority_access = 4;
+  // Define enum TS-29.571 - section 5.4.3
+  AccessType access_type = 5;
+  // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
+  string imei = 6;
+  // Length is 10 bytes + 2 bytes country code generic public subscription id.
+  string gpsi = 7;
+  // up to 6 byte. TS-23.003 - 28.15.3
+  string user_location_info = 8;
+  // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
+  string pcf_id = 9;
+  // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+  repeated LadnServiceArea ladn_service_area = 10;
+  // Subscription For PDU Session Status Notification true or false
+  bool pdu_session_status_notification_sub = 11;
+  // TS-29-502 - 6.1.6.3.10
+  DnnSelectionMode dnn_selection_mode = 12;
+  // TS-29.571 5.6.
+  string trace_requirement = 13;
+  // Length is 3 bytes, TS-24.501 9.11.4.7
+  bytes integrity_protection_max_data_rate = 14;
+  PduSessionType pdu_session_type = 15;
+  SscMode ssc_mode = 16;
+  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  M5GSMCapability m5g_sm_capability = 17;  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  // Maximum no. of supported packet filters
+  uint32 max_pkt_filter_supported = 18;
+  // Always-on PDU session requested TS-24.501 9.11.4.4
+  bool pdu_session_req_always_on = 19;
+  // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
+  string sm_pdu_dn_req = 20;
+  M5GSMCause m5gsm_cause = 21;
+  // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  QosRules requested_qos_rules = 22;
+  TeidSet gnode_endpoint = 23;
+  TeidSet upf_endpoint = 24;
+  // Procedure transaction identity
+  uint32 procedure_trans_identity = 25;
+  M5GQosInformationRequest subscribed_qos = 26;
+  repeated QosPolicy qos_policy = 27;
+}
+
+message SetSMSessionContext {
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;
+  RatSpecificContext   rat_specific_context = 2;
+}
+
+// TODO This supposed to be empty message and the element will be removed later
+message SmContextVoid {
+  string output = 1;
+}
+
+
+
+// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE
+
+// 4G response message has not been refactored yet. Hence only considering M5G.
+message RatSpecificContextAccess {
+  // oneof context {//TODO need to be implemented after 4G refactored
+    // LTESessionContextAccess lte_context = 1;
+    M5GSMSessionContextAccess m5g_session_context_rsp = 2;
+  //}
+}
+
+// AuthorizedQosRules
+// The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
+// where each QoS rule is a set of parameters.
+// a) for classification and marking of uplink user traffic; and
+// b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
+// As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
+// e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
+// description provided by the UE in an IMS session.
+
+message M5GSMSessionContextAccess{
+    // received from UE. For 5G pdu_session_id.
+    uint32 pdu_session_id = 1;
+    // selected PDU session TS-24501 - 9.11.4.11
+    PduSessionType    pdu_session_type = 2;
+    // selected session and service continuty mode TS-24501 - 9.11.4.16
+    SscMode selected_ssc_mode = 3;
+    // TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
+    repeated QosRules authorized_qos_rules = 4;
+    // TS-24501 - 9.11.4.14 PDU session  Bit Rate imported from subscriberdb.proto
+
+    M5GQosInformationRequest subscribed_qos = 5;
+
+    // TS-24501 - 9.11.4.2
+    M5GSMCause M5gsm_cause = 10;
+    // PDU session is requested to be established as always-on PDU session.
+    bool always_on_pdu_session_indication = 11;
+    // Indicates SSC mode.
+    SscMode allowed_ssc_mode = 12;
+    bool M5G_sm_congestion_reattempt_indicator = 13;
+    // IP address. Imported from session_manager.proto file.
+    RedirectServer pdu_address = 14;
+    TeidSet upf_endpoint = 15;
+    // Procedure transaction identity One byte TS-24501 9.6
+    uint32 procedure_trans_identity = 16;
+    // Mutiple Qos policy support
+    repeated QosPolicy qos_policy = 17;
+}
+
+message SetSMSessionContextAccess {
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;
+  RatSpecificContextAccess   rat_specific_context = 2;
+}
+
+
+
+// Node Level Messages from UPF. Purely Event Based.
+message UPFNodeState {
+    string upf_id = 1;
+
+    oneof upf_node_messages {
+         // Message for establishing association
+         UPFAssociationState associaton_state = 2;
+
+         // Contains node information and any GTPU Peer failure report.
+         UPFNodeReport node_report = 3;
+
+    }
+}
+
+// 15.8 (Sec 8.2.82 User Plane IP Resource Information)
+message UserPlaneIPResourceSchema {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid_range_indication = 3;
+    uint32 teid_range = 4;
+    string assoc_network_instance = 5;
+    // 15.8 (Sec 8.2.2) Source Interface
+    enum InterfaceValue {
+       ACCESS = 0;
+       CORE = 1;
+       LAN  = 2;
+       CP_FUNCTION = 3;
+    }
+    uint32 assoc_source_interface = 6;
+}
+
+
+
+// 15.8 (Sec 7.4.4.3) : PFCP Association Update Reqest.
+message UPFAssociationState {
+
+  // Version of the associated state
+  uint32 state_version = 2;
+
+  enum AssociationState {
+     STARTED=0;
+     INITIATED=1;
+     ESTABLISHED=2;
+     MODIFIED=3;
+     RELEASE=4;
+  }
+
+  // Association state of the UPF
+  AssociationState assoc_state = 3;
+
+  // Time when UPF got started
+  google.protobuf.Timestamp recovery_time_stamp = 4;
+
+  // Feature set supported by UPF
+  UPFFeatureSet feature_set = 5;
+
+  // User plane IP Resource schema
+  repeated UserPlaneIPResourceSchema ip_resource_schema = 6;
+
+  google.protobuf.Timestamp graceful_release_period = 7;
+
+}
+
+
+message UPFFeatureSet {
+  // 15.8 (Sec 8.2.25) :  UP Function Features
+  // Downlink Data Buffering in CP function supported in UPF
+  bool downlink_data_buffering_cp = 1;
+  // Buffering parameter, Downlink DataNotification Delay supported by UPF
+  bool downlink_data_notification_delay = 2;
+  // Buffering parameter, DL Buffering Duration is supported by UPF
+  bool dl_buffering_duration = 3;
+  // Traffic Steering is supported by the UPF
+  bool traffic_steering = 4;
+  // F-TEID allocation/release in the UP function is supported by UPF
+  bool f_teid = 5;
+  // PFD Management is supported by UPF
+  bool pfd_management = 6;
+  // Header enrichment of Uplink Traffic is supported by UPF
+  bool header_enrichment_uplink = 7;
+  // Traffic Redirection Enforcement in the UP function is supported in UPF
+  bool traffic_redirection_enforcement = 8;
+  // Sending End of Marker packets supported by the UPF
+  bool end_of_marker_packet = 9;
+  // Support PDI optimized signaling in UPF
+  bool pdi_optimization_signaling = 10;
+  // Support of UL/DL Buffering Control
+  bool ul_dl_buffering_control = 11;
+  // The UPF supports being provisioned with the Quota Action to apply
+  bool quota_application_to_apply = 12;
+  // The UPF supports Trace
+  bool trace = 13;
+  // UPF supports Framed Routing
+  bool frame_routing = 14;
+  bool pfd_contents = 15;
+}
+
+
+// 15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+message UPFNodeReport {
+    // Version of the report
+    uint32 state_version = 2;
+    // Load Control Information
+    LoadControlInformation load_control_info = 3;
+    // OverLoad Control Information
+    OverloadControlInformation overload_control_info = 4;
+}
+
+// 15.8 (Table 7.5.3.3-1) : Load Control Information
+message LoadControlInformation {
+   // Sec 6.2.3.3.2.1
+   uint32 load_control_seq_number = 1;
+   // Sec 6.2.3.3.2.2
+   uint32 load_metric = 2;
+}
+
+// 15.8 (Sec 8.2.35) : Timer
+message OverloadTimer {
+  uint32 timer_unit = 1;
+  uint32 timer_value = 2;
+}
+
+// 15.8 (Sec 7.5.3.4) : Overload Control Information
+message OverloadControlInformation {
+   uint32 overload_ctrl_seqno = 1;
+   uint32 overload_reduction_metric = 2;
+   OverloadTimer period_of_validity = 3;
+   uint32 flags = 4;
+}
+
+// Current Session snapshot in UPF.
+message UPFSessionState {
+  // Subscriber ID
+  string subscriber_id = 1;
+  // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
+  uint32 session_version = 2;
+  // Local TEID to uniquely identify the session
+  uint32 local_f_teid = 3;
+}
+
+// Perodic Session snapshot information from UPF to SMF
+message UPFSessionConfigState {
+     repeated UPFSessionState upf_session_state = 1;
+}
+
+
+message UPFPagingInfo {
+  uint32 local_f_teid = 1;
+  string ue_ip_addr = 2;
+}
+
+// Set Interface from Pipelined
+service SetInterfaceForUserPlane {
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
+    rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
+}
+
+// SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  // PDU session related configuration from amf to smf
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  // PDU session related notification from amf to smf
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);
+}
+
+// RPC service and method from SMF to AMF
+service SmfPduSessionSmContext {
+ rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}
+ rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
+}
+

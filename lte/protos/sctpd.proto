@@ -1,0 +1,129 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.sctpd;
+
+option go_package = "magma/lte/cloud/go/protos";
+
+// InitReq - request for sctpd to initialize sctp connection
+message InitReq {
+    bool use_ipv4 = 1; // whether to use ipv4 for sctp connection
+    bool use_ipv6 = 2; // whether to use ipv6 for sctp connection
+    repeated string ipv4_addrs = 3; // ipv4 addresses to listen on
+    repeated string ipv6_addrs = 4; // ipv6 addresses to listen on
+    uint32 port = 5; // port to listen on
+    uint32 ppid = 6; // ppid used with new associations
+    bool force_restart = 7; // whether to force a new sctp connection setup
+}
+
+// InitRes - response with status of sctp initialization
+message InitRes {
+    enum InitResult {
+        INIT_UNKNOWN = 0; // invalid return code
+        INIT_OK = 1;
+        INIT_FAIL = 2;
+    }
+    InitResult result = 1;
+}
+
+
+// SendDlReq - requests a downlink packet to be sent to eNB
+message SendDlReq {
+    uint32 assoc_id = 1; // association ID of eNB
+    uint32 stream = 2; // stream id within association
+    bytes payload = 3; // data to be sent
+    uint32  ppid = 4;
+}
+
+// SendDlRes - response with status of downlink packet send
+message SendDlRes {
+    enum SendDlResult {
+        SEND_DL_UNKNOWN = 0; // invalid return code
+        SEND_DL_OK = 1;
+        SEND_DL_FAIL = 2;
+    }
+    SendDlResult result = 1;
+}
+
+// SendUlReq - requests an uplink packet to be sent to MME
+message SendUlReq {
+    uint32 assoc_id = 1; // association ID of eNB
+    uint32 stream = 2; // stream id within association
+    bytes payload = 3; // data to be sent
+    uint32  ppid = 4;
+}
+
+// SendUlRes - response for SendUlReq, present for forwards compat
+message SendUlRes {
+}
+
+// NewAssocReq - request to notify MME of new eNB association
+message NewAssocReq {
+    uint32 assoc_id = 1; // association ID of eNB
+    uint32 instreams = 2; // number of instreams for eNB
+    uint32 outstreams = 3; // number of outstreams for eNB
+    bytes ran_cp_ipaddr = 4; // sctp ran end point IP address
+    uint32  ppid = 5;
+}
+
+// NewAssocRes - response for NewAssocReq, present for forwards compat
+message NewAssocRes {
+}
+
+// CloseAssocReq - request to notify MME of a closing/resetting assocation
+message CloseAssocReq {
+    uint32 assoc_id = 1; // association ID of eNB
+    bool is_reset = 2; // whether the request represents a reset or shutdown
+    uint32  ppid = 3;
+}
+
+// CloseAssocRes - response for CloseAssocReq, present for forwards compat
+message CloseAssocRes {
+}
+
+// facilitates MME -> eNB messages
+//  - server lives in sctpd
+//  - sctp task calls in response to itti messages
+service SctpdDownlink {
+    // Init - initialize sctp connection according to InitReq
+    // @param InitReq request specifying desired sctp configuration
+    // @return InitRes response w/ init success status
+    rpc Init (InitReq) returns (InitRes) {}
+
+    // SendDl - send a downlink packet to eNB
+    // @param SendDlReq request specifying packet data and destination
+    // @return SendDlRes response w/ send success status
+    rpc SendDl (SendDlReq) returns (SendDlRes) {}
+}
+
+// facilitates eNB -> MME messages
+//  - server lives in MME
+//  - sctpd calls from sctp listener loop
+service SctpdUplink {
+    // SendUl - send an uplink packet to MME
+    // @param SendUlReq request specifying packet data and destination
+    // @return SendUlRes void response object
+    rpc SendUl (SendUlReq) returns (SendUlRes) {}
+
+    // NewAssoc - notify MME of new eNB association
+    // @param NewAssocReq request specifying new association's information
+    // @return NewAssocRes void response object
+    rpc NewAssoc (NewAssocReq) returns (NewAssocRes) {}
+
+    // CloseAssoc - notify MME of closing/resetting eNB association
+    // @param CloseAssocReq request specifying closing association and close type
+    // @return CloseAssocRes void response object
+    rpc CloseAssoc (CloseAssocReq) returns (CloseAssocRes) {}
+}

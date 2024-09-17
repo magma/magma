@@ -1,0 +1,27 @@
+- name: kibana | Ensure stable helm repo
+  command: helm repo add stable https://charts.helm.sh/stable/
+
+- name: kibana | Update repo metadata
+  command: helm repo update
+
+- name: kibana | Ensure namespace
+  command: kubectl create ns {{ magma_namespace }}
+  failed_when: false
+
+- name: kibana | Ensure charts dir
+  file:
+    path: "{{ charts_dir }}"
+    state: directory
+    recurse: yes
+
+- name: kibana | Template out helm chart values
+  template:
+    src: kibana-values.yaml.j2
+    dest: "{{ charts_dir }}/{{ item }}-values.yaml"
+  with_items:
+    - kibana
+
+- name: kibana | Install/upgrade helm charts
+  command: helm upgrade --install -n {{ magma_namespace }} {{ item }} stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
+  with_items:
+    - kibana

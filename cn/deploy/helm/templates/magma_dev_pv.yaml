@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: magma-dev
+  namespace: kubevirt
+  labels:
+    type: local
+spec:
+  storageClassName: hostpath
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/magma_dev"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: magma-dev-scratch
+  namespace: kubevirt
+  labels:
+    type: local
+spec:
+  storageClassName: hostpath
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/magma_dev_scratch"

@@ -1,0 +1,25 @@
+esJavaOpts: -Xmx2G -Xms2G
+imageTag: {{ elasticsearch_image_tag }}
+minimumMasterNodes: 1
+nodeGroup: data
+replicas: 1
+resources:
+  limits:
+    cpu: "1"
+    memory: 4Gi
+  requests:
+    cpu: "1"
+    memory: 2Gi
+roles:
+  data: "true"
+  ingest: "true"
+  master: "false"
+  ml: "false"
+  remote_cluster_client: "false"
+volumeClaimTemplate:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: {{ storage_class }}

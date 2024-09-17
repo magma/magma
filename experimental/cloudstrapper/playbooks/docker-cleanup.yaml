@@ -1,0 +1,10 @@
+---
+
+- hosts: localhost
+  roles:
+    - docker-cleanup
+  vars_files:
+    - "{{ dirLocalInventory }}/secrets.yaml"
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"

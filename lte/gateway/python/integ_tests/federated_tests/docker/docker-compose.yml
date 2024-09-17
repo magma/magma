@@ -1,0 +1,179 @@
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: ${LOG_DRIVER}
+
+# Standard volumes mounted
+x-volumes: &volumes_anchor
+  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+
+# Standard volumes plus the snowflake
+x-snowflake-volumes: &snowflake_volumes
+  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
+
+# Use generic go anchor to avoid repetition for go services
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Use generic anchor to defined dependence on td-agent-bit container
+x-log-forward: &depends_on_logs
+  depends_on:
+    td-agent-bit:
+      condition: service_healthy
+
+# Use generic python anchor to avoid repetition for python services
+x-pyservice_base: &pyservice_base
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
+# Use generic python anchor with logging capabilities to avoid repetition for python services
+x-pyservice: &pyservice
+  <<: [*pyservice_base, *depends_on_logs]
+
+# Use generic go anchor to avoid repetition for go services
+x-goservice: &goservice
+  <<: [*service, *depends_on_logs]
+  image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+
+
+services:
+  csfb:
+    <<: *goservice
+    container_name: csfb
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
+
+  eap_aka:
+    <<: *goservice
+    container_name: eap_aka
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
+  eap_sim:
+    <<: *goservice
+    container_name: eap_sim
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_sim -logtostderr=true -v=0
+
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.8 -m magma.eventd.main
+
+  aaa_server:
+    <<: *goservice
+    container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
+
+  feg_hello:
+    <<: *goservice
+    container_name: feg_hello
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
+
+  health:
+    <<: *goservice
+    volumes: *snowflake_volumes
+    container_name: health
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+
+  session_proxy:
+    <<: *goservice
+    environment:
+      USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
+      GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
+      GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
+      DISABLE_REQUESTED_SERVICE_UNIT_AVP: ${DISABLE_REQUESTED_SERVICE_UNIT_AVP}
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
+    container_name: session_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+
+  swx_proxy:
+    <<: *goservice
+    container_name: swx_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
+
+  s6a_proxy:
+    <<: *goservice
+    container_name: s6a_proxy
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 2
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=9
+
+
+  s8_proxy:
+    <<: *goservice
+    container_name: s8_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s8_proxy -logtostderr=true -v=0
+
+  radiusd:
+    <<: *goservice
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
+  control_proxy:
+    <<: *pyservice
+    container_name: control_proxy
+    volumes: *snowflake_volumes
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
+  magmad:
+    <<: *pyservice
+    container_name: magmad
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_VOLUME}:/var/opt/magma/configs
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.8 -m magma.magmad.main
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+  td-agent-bit:
+    <<: *pyservice_base
+    container_name: td-agent-bit
+    logging:
+      driver: json-file
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:2020"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

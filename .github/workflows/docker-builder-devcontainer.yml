@@ -1,0 +1,233 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Building the bazel-base and devcontainer Docker images
+# remediation: -
+
+name: Magma Build Docker Image Bazel Base & DevContainer
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+    paths:
+      - bazel/docker/Dockerfile.bazel.cache
+      - .devcontainer/bazel-base/Dockerfile
+      - .devcontainer/Dockerfile
+      - .github/workflows/docker-builder-devcontainer.yml
+      - .github/workflows/composite/**
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - bazel/docker/Dockerfile.bazel.cache
+      - .devcontainer/bazel-base/Dockerfile
+      - .devcontainer/Dockerfile
+      - .github/workflows/docker-builder-devcontainer.yml
+      - .github/workflows/composite/**
+  schedule:
+    - cron: '17 4 * * 6' # At 04:17 on Saturday
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAGS: type=sha
+  IMAGE_STREAM_BAZEL_BASE: ${{ github.repository }}/bazel-base
+  DOCKERFILE_BAZEL_BASE: .devcontainer/bazel-base/Dockerfile
+  IMAGE_STREAM_DEVCONTAINER: ${{ github.repository }}/devcontainer
+  DOCKERFILE_DEVCONTAINER: .devcontainer/Dockerfile
+  IMAGE_STREAM_BAZEL_CACHE_ASAN: ${{ github.repository }}/bazel-cache-asan
+  IMAGE_STREAM_BAZEL_CACHE_PLAIN: ${{ github.repository }}/bazel-cache-plain
+  IMAGE_STREAM_BAZEL_CACHE_PROD: ${{ github.repository }}/bazel-cache-prod
+  DOCKERFILE_BAZEL_CACHE: bazel/docker/Dockerfile.bazel.cache
+
+jobs:
+  build_dockerfile_bazel_base:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_BASE }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_BASE }}
+          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name != 'pull_request' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel-Base Docker Build"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  build_dockerfile_devcontainer:
+    needs: build_dockerfile_bazel_base
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_DEVCONTAINER }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_DEVCONTAINER }}
+          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name != 'pull_request' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Devcontainer Docker Build"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  build_dockerfile_bazel_cache_asan:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_ASAN }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
+          BUILD_ARG_2: "BAZEL_CONFIG=--config=asan"
+          PUSH_TO_REGISTRY: "true"
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure()
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Docker Cache ASAN Build"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  build_dockerfile_bazel_cache_plain:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PLAIN }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=.*_test"
+          PUSH_TO_REGISTRY: "true"
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure()
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Docker Cache Plain Build"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  build_dockerfile_bazel_cache_prod:
+    needs: build_dockerfile_bazel_base
+    if: |
+      (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
+      github.ref_name == 'master' &&
+      github.repository_owner == 'magma'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - uses: ./.github/workflows/composite/docker-builder
+        with:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_CACHE_PROD }}
+          IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
+          DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_CACHE }}
+          # The .dockerignore file excludes testing and release code that is needed during
+          # bazel builds but not for production environments.
+          REMOVE_DOCKERIGNORE_FILE: "true"
+          BUILD_ARG_1: "BAZEL_TARGET_RULE=cc_test"
+          BUILD_ARG_2: "BAZEL_CONFIG=--config=production"
+          PUSH_TO_REGISTRY: "true"
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure()
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Docker Cache Production Build"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit

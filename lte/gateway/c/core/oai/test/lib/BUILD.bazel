@@ -1,0 +1,51 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
+
+cc_test(
+    name = "lib_3gpp_test",
+    size = "small",
+    srcs = [
+        "test_3gpp.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "lib_bstr_test",
+    size = "small",
+    srcs = [
+        "test_bstr.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "lib_ula_subdata_test",
+    size = "small",
+    srcs = [
+        "test_ula_subData.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

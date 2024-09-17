@@ -1,0 +1,32 @@
+esJavaOpts: -Xmx1G -Xms1G
+imageTag: {{ elasticsearch_image_tag }}
+minimumMasterNodes: 1
+replicas: 1
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+roles:
+  data: "false"
+  ingest: "false"
+  master: "true"
+  ml: "false"
+  remote_cluster_client: "false"
+volumeClaimTemplate:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: {{ storage_class }}
+replicas: 1
+minimumMasterNodes: 1
+rbac:
+  create: true
+antiAffinity: "soft"
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: elasticsearch.{{ orc8r_domain }}

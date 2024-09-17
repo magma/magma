@@ -1,0 +1,23 @@
+---
+
+- name: allocate key
+  ec2_key:
+    name: "{{keyName}}"
+  register: key_val
+
+- name: find key id
+  command: aws ec2 describe-key-pairs --key-names "{{keyName}}" --query 'KeyPairs[0].KeyPairId' --output text --region {{ awsAgwRegion }}
+  register: key_id
+
+- name: Tag key
+  ec2_tag:
+    resource: "{{ key_id.stdout }}"
+    tags:
+      agw: "{{tag_host}}"
+
+- name: copy .pem file
+  copy:
+    content: "{{ key_val.key.private_key }}"
+    dest: "{{ dirLocalInventory }}/dockerAMI.pem"
+    mode: 0600
+  when: key_val.changed

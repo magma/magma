@@ -1,0 +1,286 @@
+{
+  "version-1.6.X-docs": {
+    "Getting Started": [
+      "version-1.6.X-basics/introduction",
+      "version-1.6.X-basics/prerequisites",
+      "version-1.6.X-basics/quick_start_guide"
+    ],
+    "Usage": [
+      {
+        "type": "subcategory",
+        "label": "How-To",
+        "ids": [
+          "version-1.6.X-howtos/ue_metering",
+          "version-1.6.X-howtos/config_agw_bridged",
+          "version-1.6.X-howtos/call_tracing",
+          "version-1.6.X-howtos/events_monitoring",
+          "version-1.6.X-howtos/he_api",
+          "version-1.6.X-howtos/inbound_roaming"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "version-1.6.X-nms/overview",
+          "version-1.6.X-nms/dashboard",
+          "version-1.6.X-nms/equipment",
+          "version-1.6.X-nms/network",
+          "version-1.6.X-nms/subscriber",
+          "version-1.6.X-nms/traffic",
+          "version-1.6.X-nms/metrics",
+          "version-1.6.X-nms/alerts",
+          "version-1.6.X-nms/federation",
+          "version-1.6.X-nms/admin",
+          "version-1.6.X-nms/tips_and_tricks"
+        ]
+      }
+    ],
+    "Architecture": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/architecture_overview"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/architecture_overview",
+          "version-1.6.X-orc8r/architecture_modularity",
+          "version-1.6.X-orc8r/architecture_security"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "version-1.6.X-nms/architecture_overview"
+        ]
+      }
+    ],
+    "Deploy": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/deploy_install",
+          "version-1.6.X-lte/deploy_config_agw",
+          "version-1.6.X-lte/deploy_config_enodebd",
+          "version-1.6.X-lte/deploy_config_apn",
+          "version-1.6.X-lte/build_install_magma_pkg_in_agw"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/deploy_intro",
+          "version-1.6.X-orc8r/deploy_install",
+          "version-1.6.X-orc8r/deploy_orcl",
+          "version-1.6.X-orc8r/deploy_terraform_options",
+          "version-1.6.X-orc8r/deploy_using_juju",
+          "version-1.6.X-orc8r/deploy_faq"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "version-1.6.X-nms/deploy_setup"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "version-1.6.X-feg/deploy_intro",
+          "version-1.6.X-feg/deploy_build",
+          "version-1.6.X-feg/deploy_install"
+        ]
+      }
+    ],
+    "Configure": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/configure_agw_ha",
+          "version-1.6.X-lte/configure_sentry"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/configure_thanos"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
+        "ids": [
+          "version-1.6.X-feg/configure_federation"
+        ]
+      }
+    ],
+    "Upgrade": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/upgrade_debian_to_ubuntu",
+          "version-1.6.X-lte/upgrade_1_6",
+          "version-1.6.X-lte/upgrade_1_5",
+          "version-1.6.X-lte/upgrade_1_4",
+          "version-1.6.X-lte/upgrade_1_3",
+          "version-1.6.X-lte/upgrade_1_2",
+          "version-1.6.X-lte/upgrade_1_1"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/upgrade_intro",
+          "version-1.6.X-orc8r/upgrade_1_6",
+          "version-1.6.X-orc8r/upgrade_1_5",
+          "version-1.6.X-orc8r/upgrade_1_4",
+          "version-1.6.X-orc8r/upgrade_1_3",
+          "version-1.6.X-orc8r/upgrade_1_2",
+          "version-1.6.X-orc8r/upgrade_1_1"
+        ]
+      }
+    ],
+    "Debug": [
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "version-1.6.X-howtos/troubleshooting/agw_unable_to_checkin",
+          "version-1.6.X-howtos/troubleshooting/user_unable_to_attach",
+          "version-1.6.X-howtos/troubleshooting/update_certificates",
+          "version-1.6.X-howtos/troubleshooting/generate_admin_operator_certificates",
+          "version-1.6.X-howtos/troubleshooting/analyze_service_crashes_in_agw",
+          "version-1.6.X-howtos/troubleshooting/datapath_connectivity"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/debug_show_tech",
+          "version-1.6.X-lte/debug_dp_probe"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federated Gateway",
+        "ids": [
+          "version-1.6.X-feg/debug_cli"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/debug_logs"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "version-1.6.X-nms/alerts_troubleshooting"
+        ]
+      }
+    ],
+    "Contribute": [
+      {
+        "type": "subcategory",
+        "label": "Contribute",
+        "ids": [
+          "version-1.6.X-contributing/contribute_onboarding",
+          "version-1.6.X-contributing/contribute_workflow",
+          "version-1.6.X-contributing/contribute_conventions",
+          "version-1.6.X-contributing/contribute_id_mappings",
+          "version-1.6.X-contributing/contribute_ci_checks"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Maintain",
+        "ids": [
+          "version-1.6.X-contributing/contribute_proposals",
+          "version-1.6.X-contributing/contribute_codeowners"
+        ]
+      }
+    ],
+    "Technical Reference": [
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "version-1.6.X-resources/ref_pcap",
+          "version-1.6.X-resources/ref_useful_links"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "version-1.6.X-lte/dev_notes",
+          "version-1.6.X-lte/dev_unit_testing",
+          "version-1.6.X-lte/tr069",
+          "version-1.6.X-lte/s1ap_tests",
+          "version-1.6.X-lte/eventd",
+          "version-1.6.X-lte/access_service_restrictions"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "version-1.6.X-orc8r/dev_build",
+          "version-1.6.X-orc8r/dev_testing",
+          "version-1.6.X-orc8r/dev_minikube",
+          "version-1.6.X-orc8r/dev_security",
+          "version-1.6.X-orc8r/dev_indexers",
+          "version-1.6.X-orc8r/dev_dependencies",
+          "version-1.6.X-orc8r/rds_upgrade"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "version-1.6.X-nms/dev_spacing",
+          "version-1.6.X-nms/dev_themes",
+          "version-1.6.X-nms/dev_components"
+        ]
+      }
+    ],
+    "Proposals": [
+      "version-1.6.X-proposals/p001_vpn_config_from_api",
+      "version-1.6.X-proposals/p002_scaled_prometheus_pipeline",
+      "version-1.6.X-proposals/p003_qos_enforcement",
+      "version-1.6.X-proposals/p004_fua_restrict_feature",
+      "version-1.6.X-proposals/p005_call_tracing",
+      "version-1.6.X-proposals/p007_header_enrichment",
+      "version-1.6.X-proposals/p008_apn_correction",
+      "version-1.6.X-proposals/p009_nms_mariadb_migration",
+      "version-1.6.X-proposals/p010_subscriber_scaling",
+      "version-1.6.X-proposals/p011_victoriametrics",
+      "version-1.6.X-proposals/p013_Ubuntu_upgrade",
+      "version-1.6.X-proposals/p014_proposal_process",
+      "version-1.6.X-proposals/p015_tech_debt_week",
+      "version-1.6.X-proposals/p016_nms_regression_testing",
+      "version-1.6.X-proposals/p017_apn_refactoring"
+    ],
+    "FAQ": [
+      "version-1.6.X-faq/faq_magma"
+    ]
+  }
+}

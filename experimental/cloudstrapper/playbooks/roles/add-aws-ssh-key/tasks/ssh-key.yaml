@@ -1,0 +1,16 @@
+---
+
+- name: Verify public key format
+  command: ssh-keygen -l -f "{{sshKey}}"
+  delegate_to: localhost
+
+- name: Get ssh key content from localhost
+  command: cat "{{sshKey}}"
+  delegate_to: localhost
+  register: public_key
+
+- name: Add ssh key to authorized key
+  ansible.posix.authorized_key:
+    user: "{{ userAgw }}"
+    state: present
+    key: "{{public_key.stdout}}"

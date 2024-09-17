@@ -1,0 +1,108 @@
+# Copyright 2023 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# See https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+# for an introduction to bazel for the Magma AGW 
+
+startup --output_base=/var/tmp/bazel
+startup --host_jvm_args="-Xmx8g"
+
+# STYLE CONFIGS
+build --announce_rc
+build --color=yes
+
+build:production 
+build:production --define=production=1
+
+# experimental_allow_tags_propagation means that tags will be propagated from
+# a target to the actions' execution requirements.
+# See https://github.com/bazelbuild/bazel/issues/8830 for details.
+common --experimental_allow_tags_propagation
+
+# C/C++ CONFIGS
+build --cxxopt=-std=c++14
+# Create debug information only for magma binaries (not for external dependencies).
+# --compilation_mode=dbg would also create debug information of external dependencies 
+# and increase the size of artifacts drastically.
+# Needs --strip=never so that debug information is not removed by the linker.
+# See https://bazel.build/docs/user-manual#compilation-mode and
+# https://bazel.build/docs/user-manual#strip
+build --strip=never
+build --per_file_copt=^lte/gateway/c/.*$@-g
+# Exclude a couple of warnings from compiling external libraries (note: the external folder
+# does not belong to the magma repo, only exists for a build and contains the external
+# c/c++ libraries)
+build --per_file_copt=^external/.*$@-Wno-all,-Wno-format-security,-Wno-deprecated-declarations
+
+# DEFAULT TEST CONFIGURATION
+# Please read the GH issue #13073 before adding "test" options.
+test --test_output=errors
+
+# MAGMA VM CONFIGS
+build:specify_vm_cc --action_env=CC=/usr/bin/gcc
+build:vm --config=specify_vm_cc
+
+# DISK CACHE CONFIGS
+# The locations of the disk_cache/repository_cache are symlinks in the
+# docker containers/magma-vm. They point to the correct cache locations
+# $MAGMA/.bazel-cache and $MAGMA/.bazel-cache-repo inside the magma repository.
+build --disk_cache=/var/cache/bazel-cache
+common --repository_cache=/var/cache/bazel-cache-repo
+
+# TEST CONFIGS
+# Bazel test runtime default: PATH=/bin:/usr/bin:/usr/local/bin
+# Some python tests require access to /usr/sbin binaries (e.g. route, ifconfig)
+build --test_env=PATH=/bin:/usr/bin:/usr/local/bin:/usr/sbin
+# Use MAGMA_ROOT from the host system in tests.
+# Needed by python tests (e.g. freedomfi_one_tests in enodebd)
+build --test_env=MAGMA_ROOT
+build --test_env=S1AP_TESTER_ROOT
+
+# Needed for go tests to generate the test result XML in the correct format  
+build --test_env=GO_TEST_WRAP_TESTV=1
+
+# MME specific compile time defines
+# Compile mme libraries with unit test flag
+test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST  # See GH issue #13073
+build:mme_unit_test --per_file_copt=^lte/gateway/c/core/.*$@-DMME_UNIT_TEST  # See GH issue #13073
+# TODO: deprecate these flags used for logging if possible
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_BUGREPORT=\"TBD\"
+build --per_file_copt=^lte/gateway/c/core/.*$@-DPACKAGE_VERSION=\"0.1\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/amf/.*$@-DPACKAGE_NAME=\"AMF\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/mme_app/.*$@-DPACKAGE_NAME=\"MME\"
+build --per_file_copt=^lte/gateway/c/core/oai/tasks/sgw/.*$@-DPACKAGE_NAME=\"S/P-GW\"
+
+# CODE COVERAGE CONFIGS
+build --javacopt="-source 8"
+build --javacopt="-target 8"
+build --java_runtime_version=remotejdk_11
+
+coverage --config=coverage
+build:coverage --combined_report=lcov
+build:coverage --instrumentation_filter="//(orc8r|lte)/gateway/(c|python)[/:],-//(orc8r|lte)/protos[/:],-/*/test[/:]"
+
+# ASAN
+build:asan --linkopt=-fsanitize=address
+build:asan --linkopt=-fsanitize=undefined
+build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+build:asan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=address,-fsanitize=undefined,-O0,-fno-omit-frame-pointer
+
+# LSAN
+build:lsan --linkopt=-fsanitize=leak
+build:lsan --per_file_copt=^.*/gateway/c/.*$@-fsanitize=leak,-fno-omit-frame-pointer
+
+# Config for running Bazel with limited memory
+# see https://bazel.build/docs/memory-saving-mode
+# This is helpful for builds on the VM on github runners where only 14g are available.
+build:limit_mem --discard_analysis_cache --nokeep_state_after_build --notrack_incremental_state
+
+# system bazelrc should include config specific to different build envs (--config=vm, --config=devcontainer, etc.)
+try-import /etc/bazelrc

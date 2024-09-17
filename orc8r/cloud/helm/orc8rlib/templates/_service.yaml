@@ -1,0 +1,42 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- define "orc8rlib.service.tpl" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-svc
+  labels:
+    app.kubernetes.io/component: controller
+{{ include "default-labels" . | indent 4 }}
+{{ include "controller-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+spec:
+  selector:
+{{ include "default-selector-labels" . | indent 4 }}
+  type: ClusterIP
+  # Standardize on service ports for gRPC and HTTP servers
+  ports:
+    - name: grpc
+      port: 9180
+      targetPort: 9180
+    - name: grpc-internal
+      port: 9190
+      targetPort: 9190
+    - name: http
+      port: 8080
+      targetPort:  8080
+{{- end }}
+{{- define "orc8rlib.service" -}}
+{{- include "orc8rlib.util.merge" (append . "orc8rlib.service.tpl") -}}
+{{- end -}}

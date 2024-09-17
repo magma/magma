@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  readmes:
+    volumes:
+      - ./../readmes:/readmes
+    image: magma_readmes
+

@@ -1,0 +1,1302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PmFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="PmFileFormat.xsd">
+ <FileHeader>
+  <InfoModelReferenced>NanoCell-eNB-PM-V2.5.0</InfoModelReferenced>
+  <DnPrefix>CMCC</DnPrefix>
+  <SenderName>CMCC\\,SubNetwork=1\\,ManagementNode=1</SenderName>
+  <VendorName></VendorName>
+  <JobId>{}</JobId>
+  <BeginTime>2018-05-25T14:24:00+08:00</BeginTime>
+  <EndTime>2018-05-25T14:25:00+08:00</EndTime>
+ </FileHeader>
+ <Measurements>
+  <ObjectType>EutranCellTdd</ObjectType>
+   <PmName>
+    <N i="1">RRC.SetupTimeMean</N>
+    <N i="2">RRC.SetupTimeMax</N>
+    <N i="3">RRC.ConnMean</N>
+    <N i="4">RRC.ConnMax</N>
+    <N i="5">RRC.AttConnEstab</N>
+    <N i="6">RRC.AttConnEstab._Cause</N>
+    <N i="7">RRC.SuccConnEstab</N>
+    <N i="8">RRC.SuccConnEstab._Cause</N>
+    <N i="9">RRC.AttConnReestab</N>
+    <N i="10">RRC.AttConnReestab._Cause</N>
+    <N i="11">RRC.SuccConnReestab</N>
+    <N i="12">RRC.SuccConnReestab.NonSrccell</N>
+    <N i="13">RRC.SuccConnReestab._Cause</N>
+    <N i="14">RRC.ConnReleaseCsfb</N>
+    <N i="15">RRC.ConnRelease.RedirectTo2G</N>
+    <N i="16">RRC.ConnRelease.RedirectTo3G</N>
+    <N i="17">ERAB.NbrMeanEstab</N>
+    <N i="18">ERAB.NbrMeanEstab._Qci</N>
+    <N i="19">ERAB.EstabTimeMean</N>
+    <N i="20">ERAB.EstabTimeMax</N>
+    <N i="21">ERAB.NbrHoInc</N>
+    <N i="22">ERAB.NbrHoInc._Qci</N>
+    <N i="23">ERAB.NbrAttEstab</N>
+    <N i="24">ERAB.NbrAttEstab._Qci</N>
+    <N i="25">ERAB.NbrSuccEstab</N>
+    <N i="26">ERAB.NbrSuccEstab._Qci</N>
+    <N i="27">ERAB.NbrFailEstab</N>
+    <N i="28">ERAB.NbrFailEstab.CauseTransport</N>
+    <N i="29">ERAB.NbrFailEstab.CauseRadioResourcesNotAvailable</N>
+    <N i="30">ERAB.NbrFailEstab.CauseFailureInRadioInterfaceProcedure</N>
+    <N i="31">ERAB.NbrFailEstab._Cause</N>
+    <N i="32">ERAB.NbrReqRelEnb</N>
+    <N i="33">ERAB.NbrReqRelEnb.CauseUserInactivity</N>
+    <N i="34">ERAB.NbrReqRelEnb._Cause</N>
+    <N i="35">ERAB.NbrReqRelEnb._Qci</N>
+    <N i="36">ERAB.NbrReqRelEnb.Normal</N>
+    <N i="37">ERAB.NbrReqRelEnb.Normal._Qci</N>
+    <N i="38">ERAB.HoFail</N>
+    <N i="39">ERAB.HoFail._Qci</N>
+    <N i="40">ERAB.NbrLeft</N>
+    <N i="41">ERAB.NbrLeft._Qci</N>
+    <N i="42">CONTEXT.AttInitalSetup</N>
+    <N i="43">CONTEXT.AttInitalSetup.Csfb</N>
+    <N i="44">CONTEXT.SuccInitalSetup</N>
+    <N i="45">CONTEXT.SuccInitalSetup.Csfb</N>
+    <N i="46">CONTEXT.FailInitalSetup</N>
+    <N i="47">CONTEXT.FailInitalSetup._Cause</N>
+    <N i="48">CONTEXT.AttMod</N>
+    <N i="49">CONTEXT.AttMod.Csfb</N>
+    <N i="50">CONTEXT.SuccMod</N>
+    <N i="51">CONTEXT.SuccMod.Csfb</N>
+    <N i="52">CONTEXT.AttRelEnb</N>
+    <N i="53">CONTEXT.AttRelEnb._Cause</N>
+    <N i="54">CONTEXT.AttRelEnb.CauseUserInactivity</N>
+    <N i="55">CONTEXT.AttRelEnb.Normal</N>
+    <N i="56">CONTEXT.NbrLeft</N>
+    <N i="57">HO.AttOutInterEnbS1</N>
+    <N i="58">HO.AttOutInterEnbS1.1</N>
+    <N i="59">HO.PreSuccOutInterEnbS1</N>
+    <N i="60">HO.PreSuccOutInterEnbS1.1</N>
+    <N i="61">HO.ExecOutInterEnbS1</N>
+    <N i="62">HO.ExecOutInterEnbS1.1</N>
+    <N i="63">HO.SuccOutPrepInterEnbS1</N>
+    <N i="64">HO.SuccOutPrepInterEnbS1.1</N>
+    <N i="65">HO.AttOutExecInterEnbS1</N>
+    <N i="66">HO.AttOutExecInterEnbS1.1</N>
+    <N i="67">HO.SuccOutInterEnbS1</N>
+    <N i="68">HO.SuccOutInterEnbS1.1</N>
+    <N i="69">HO.AvgTimeInterEnbS1</N>
+    <N i="70">HO.AttOutInterEnbX2</N>
+    <N i="71">HO.AttOutInterEnbX2.1</N>
+    <N i="72">HO.SuccOutPrepInterEnbX2</N>
+    <N i="73">HO.SuccOutPrepInterEnbX2.1</N>
+    <N i="74">HO.AttOutExecInterEnbX2</N>
+    <N i="75">HO.AttOutExecInterEnbX2.1</N>
+    <N i="76">HO.SuccOutInterEnbX2</N>
+    <N i="77">HO.SuccOutInterEnbX2.1</N>
+    <N i="78">HO.AvgTimeInterEnbX2</N>
+    <N i="79">HO.FailOut</N>
+    <N i="80">HO.FailOut._Cause</N>
+    <N i="81">IRATHO.AttOutGeran</N>
+    <N i="82">IRATHO.SuccPrepOutGeran</N>
+    <N i="83">IRATHO.FailPrepOutGeran</N>
+    <N i="84">IRATHO.FailPrepOutGeran._Cause</N>
+    <N i="85">IRATHO.SuccOutGeran</N>
+    <N i="86">IRATHO.AvgTimeOutGeran</N>
+    <N i="87">IRATHO.AttOutUtran</N>
+    <N i="88">IRATHO.SuccPrepOutUtran</N>
+    <N i="89">IRATHO.FailPrepOutUtran</N>
+    <N i="90">IRATHO.FailPrepOutUtran._Cause</N>
+    <N i="91">IRATHO.SuccOutUtran</N>
+    <N i="92">PAG.PagReceived</N>
+    <N i="93">PAG.PagDiscarded</N>
+    <N i="94">PDCP.UpOctUl</N>
+    <N i="95">PDCP.UpOctUl._Qci</N>
+    <N i="96">PDCP.UpOctDl</N>
+    <N i="97">PDCP.UpOctDl._Qci</N>
+    <N i="98">PDCP.CpOctUl</N>
+    <N i="99">PDCP.CpOctDl</N>
+    <N i="100">PDCP.NbrPktUl</N>
+    <N i="101">PDCP.NbrPktUl._Qci</N>
+    <N i="102">PDCP.NbrPktLossUl</N>
+    <N i="103">PDCP.NbrPktLossUl._Qci</N>
+    <N i="104">PDCP.NbrPktDl</N>
+    <N i="105">PDCP.NbrPktDl._Qci</N>
+    <N i="106">PDCP.NbrPktLossDl</N>
+    <N i="107">PDCP.NbrPktLossDl._Qci</N>
+    <N i="108">PDCP.UpPktDelayDl</N>
+    <N i="109">PDCP.UpPktDelayDl._Qci</N>
+    <N i="110">PDCP.UpPktDiscardDl</N>
+    <N i="111">PDCP.UpPktDiscardDl._Qci</N>
+    <N i="112">RRU.DtchPrbAssnMeanUl</N>
+    <N i="113">RRU.DtchPrbAssnMeanDl</N>
+    <N i="114">RRU.PuschPrbTotMeanUl</N>
+    <N i="115">RRU.PdschPrbTotMeanDl</N>
+    <N i="116">RRU.PdcchCceUtilRatio</N>
+    <N i="117">RRU.PuschPrbMeanTot</N>
+    <N i="118">RRU.PdschPrbMeanTot</N>
+    <N i="119">RRU.TtiTotUl</N>
+    <N i="120">RRU.TtiTotDl</N>
+    <N i="121">RRU.DtchPrbAssnTotalUl.1</N>
+    <N i="122">RRU.DtchPrbAssnTotalDl.1</N>
+    <N i="123">MAC.NbrTbUl</N>
+    <N i="124">MAC.NbrTbUl.1</N>
+    <N i="125">MAC.NbrInitTbUl</N>
+    <N i="126">MAC.NbrInitTbUl.Qpsk</N>
+    <N i="127">MAC.NbrInitTbUl.16Qam</N>
+    <N i="128">MAC.NbrInitTbUl.64Qam</N>
+    <N i="129">MAC.NbrSuccInitTbUl</N>
+    <N i="130">MAC.NbrSuccInitTbUl.Qpsk</N>
+    <N i="131">MAC.NbrSuccInitTbUl.16Qam</N>
+    <N i="132">MAC.NbrSuccInitTbUl.64Qam</N>
+    <N i="133">MAC.NbrSuccInitTbUl.Qpsk.1</N>
+    <N i="134">MAC.NbrSuccInitTbUl.16Qam.1</N>
+    <N i="135">MAC.NbrSuccInitTbUl.64Qam.1</N>
+    <N i="136">MAC.NbrResErrTbUl</N>
+    <N i="137">MAC.NbrTbDl</N>
+    <N i="138">MAC.NbrTbDl.1</N>
+    <N i="139">MAC.NbrTbDl.Rank1</N>
+    <N i="140">MAC.NbrTbDl.Rank2</N>
+    <N i="141">MAC.NbrTbDl.Tm1</N>
+    <N i="142">MAC.NbrTbDl.Tm2</N>
+    <N i="143">MAC.NbrTbDl.Tm3</N>
+    <N i="144">MAC.NbrTbDl.Tm4</N>
+    <N i="145">MAC.NbrTbDl.Tm5</N>
+    <N i="146">MAC.NbrTbDl.Tm6</N>
+    <N i="147">MAC.NbrTbDl.Tm7</N>
+    <N i="148">MAC.NbrTbDl.Tm8</N>
+    <N i="149">MAC.NbrInitTbDl</N>
+    <N i="150">MAC.NbrInitTbDl.Qpsk</N>
+    <N i="151">MAC.NbrInitTbDl.16Qam</N>
+    <N i="152">MAC.NbrInitTbDl.64Qam</N>
+    <N i="153">MAC.NbrSuccInitTbDl</N>
+    <N i="154">MAC.NbrSuccInitTbDl.Qpsk</N>
+    <N i="155">MAC.NbrSuccInitTbDl.16Qam</N>
+    <N i="156">MAC.NbrSuccInitTbDl.64Qam</N>
+    <N i="157">MAC.NbrSuccInitTbDl.Qpsk.1</N>
+    <N i="158">MAC.NbrSuccInitTbDl.16Qam.1</N>
+    <N i="159">MAC.NbrSuccInitTbDl.64Qam.1</N>
+    <N i="160">MAC.NbrResErrTbDl</N>
+    <N i="161">PHY.NbrCqi0</N>
+    <N i="162">PHY.NbrCqi1</N>
+    <N i="163">PHY.NbrCqi2</N>
+    <N i="164">PHY.NbrCqi3</N>
+    <N i="165">PHY.NbrCqi4</N>
+    <N i="166">PHY.NbrCqi5</N>
+    <N i="167">PHY.NbrCqi6</N>
+    <N i="168">PHY.NbrCqi7</N>
+    <N i="169">PHY.NbrCqi8</N>
+    <N i="170">PHY.NbrCqi9</N>
+    <N i="171">PHY.NbrCqi10</N>
+    <N i="172">PHY.NbrCqi11</N>
+    <N i="173">PHY.NbrCqi12</N>
+    <N i="174">PHY.NbrCqi13</N>
+    <N i="175">PHY.NbrCqi14</N>
+    <N i="176">PHY.NbrCqi15</N>
+    <N i="177">PHY.ULMaxNL._PRB</N>
+    <N i="178">PHY.ULMeanNL._PRB</N>
+    <N i="179">PHY.CellMaxTxPower</N>
+    <N i="180">PHY.CellMeanTxPower</N>
+    <N i="181">S1SIG.ConnEstabSucc</N>
+    <N i="182">S1SIG.ConnEstabAtt</N>
+   </PmName>
+   <PmData>
+   <Pm Dn="CMCC,SubNetwork=1,ManagedElement=1,EnbFunction=1,EutranCellTdd=1" UserLabel="BJ01">
+    <V i="1">0</V>
+    <V i="2">0</V>
+    <V i="3">0</V>
+    <V i="4">0</V>
+    <V i="5">123</V>
+    <CV i="6">
+      <SN>RRC.AttConnEstab.Emergency</SN>
+      <SV>0</SV>
+      <SN>RRC.AttConnEstab.HI_PRIO_ACCESS</SN>
+      <SV>0</SV>
+      <SN>RRC.AttConnEstab.MT_ACCESS</SN>
+      <SV>0</SV>
+      <SN>RRC.AttConnEstab.MO_SIGNAL</SN>
+      <SV>0</SV>
+      <SN>RRC.AttConnEstab.MO_DATA</SN>
+      <SV>0</SV>
+      <SN>RRC.AttConnEstab.DeToAccess</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="7">99</V>
+    <CV i="8">
+      <SN>RRC.SuccConnEstab.EMERGENCY</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnEstab.HIGHPRIORITYACCES</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnEstab.MTACCESS</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnEstab.MOSIGNALLING</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnEstab.MODATA</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnEstab.DE_TO_ACCESS</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="9">0</V>
+    <CV i="10">
+      <SN>RRC.AttConnReestab.RECONF_FAIL</SN>
+      <SV>654</SV>
+      <SN>RRC.AttConnReestab.HO_FAIL</SN>
+      <SV>321</SV>
+      <SN>RRC.AttConnReestab.OTHER</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="11">0</V>
+    <V i="12">0</V>
+    <CV i="13">
+      <SN>RRC.SuccConnReestab.RECONF_FAIL</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnReestab.HO_FAIL</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnReestab.OTHER</SN>
+      <SV>0</SV>
+      <SN>RRC.SuccConnReestab.Sum</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="14">0</V>
+    <V i="15">0</V>
+    <V i="16">0</V>
+    <V i="17">0</V>
+    <CV i="18">
+      <SN>ERAB.NbrMeanEstab.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrMeanEstab.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="19">0</V>
+    <V i="20">0</V>
+    <V i="21">0</V>
+    <CV i="22">
+      <SN>ERAB.NbrHoInc.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrHoInc.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="23">0</V>
+    <CV i="24">
+      <SN>ERAB.NbrAttEstab.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrAttEstab.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="25">0</V>
+    <CV i="26">
+      <SN>ERAB.NbrSuccEstab.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrSuccEstab.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="27">0</V>
+    <V i="28">0</V>
+    <V i="29">0</V>
+    <V i="30">0</V>
+    <CV i="31">
+      <SN>ERAB.NbrFailEstab.InvalidQoSCombinations</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrFailEstab.MultipleERABIDInstances</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrFailEstab.NotSupportedQCIValue</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrFailEstab.S1IntraSystemHandoverTriggered</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrFailEstab.S1InterSystemHandoverTriggered</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrFailEstab.X2HandoverTriggered</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="32">0</V>
+    <V i="33">0</V>
+    <CV i="34">
+      <SN>ERAB.NbrReqRelEnb.CauseRADIORESOURCESNOTAVAILABLE</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.CauseREDUCELOADINSERVINGCELL</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.CauseFAILUREINTHERADIOINTERFACEPROCEDURE</SN>
+      <SV>135</SV>
+      <SN>ERAB.NbrReqRelEnb.CauseRELEASEDUETOEUTRANGENERATEDREASONS</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.CauseRADIOCONNECTIONWITHUELOST</SN>
+      <SV>65537</SV>
+      <SN>ERAB.NbrReqRelEnb.CauseOAMINTERVENTION</SN>
+      <SV>0</SV>
+    </CV>
+    <CV i="35">
+      <SN>ERAB.NbrReqRelEnb.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="36">0</V>
+    <CV i="37">
+      <SN>ERAB.NbrReqRelEnb.Normal.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrReqRelEnb.Normal.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="38">0</V>
+    <CV i="39">
+      <SN>ERAB.HoFail.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.HoFail.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="40">0</V>
+    <CV i="41">
+      <SN>ERAB.NbrLeft.1</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.2</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.3</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.4</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.5</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.6</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.7</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.8</SN>
+      <SV>0</SV>
+      <SN>ERAB.NbrLeft.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="42">0</V>
+    <V i="43">0</V>
+    <V i="44">0</V>
+    <V i="45">0</V>
+    <V i="46">0</V>
+    <V i="47">0</V>
+    <V i="48">0</V>
+    <V i="49">0</V>
+    <V i="50">0</V>
+    <V i="51">0</V>
+    <V i="52">0</V>
+    <CV i="53">
+      <SN>CONTEXT.AttRelEnb.Cause1</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="54">0</V>
+    <V i="55">0</V>
+    <V i="56">0</V>
+    <V i="57">0</V>
+    <V i="58">0</V>
+    <V i="59">0</V>
+    <V i="60">0</V>
+    <V i="61">0</V>
+    <V i="62">0</V>
+    <V i="63">0</V>
+    <V i="64">0</V>
+    <V i="65">0</V>
+    <V i="66">0</V>
+    <V i="67">0</V>
+    <V i="68">0</V>
+    <V i="69">0</V>
+    <V i="70">0</V>
+    <V i="71">0</V>
+    <V i="72">0</V>
+    <V i="73">0</V>
+    <V i="74">0</V>
+    <V i="75">0</V>
+    <V i="76">0</V>
+    <V i="77">0</V>
+    <V i="78">0</V>
+    <V i="79">0</V>
+    <CV i="80">
+      <SN>HO.FailOut.1</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.2</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.3</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.4</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.5</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.6</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.7</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.8</SN>
+      <SV>0</SV>
+      <SN>HO.FailOut.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="81">0</V>
+    <V i="82">0</V>
+    <V i="83">0</V>
+    <CV i="84">
+      <SN>IRATHO.FailPrepOutGeran.Cause1</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="85">0</V>
+    <V i="86">0</V>
+    <V i="87">0</V>
+    <V i="88">0</V>
+    <V i="89">0</V>
+    <CV i="90">
+      <SN>IRATHO.FailPrepOutUtran.Cause1</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="91">0</V>
+    <V i="92">0</V>
+    <V i="93">0</V>
+    <V i="94">1000</V>
+    <CV i="95">
+      <SN>PDCP.UpOctUl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctUl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="96">500</V>
+    <CV i="97">
+      <SN>PDCP.UpOctDl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpOctDl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="98">0</V>
+    <V i="99">0</V>
+    <V i="100">0</V>
+    <CV i="101">
+      <SN>PDCP.NbrPktUl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktUl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="102">0</V>
+    <CV i="103">
+      <SN>PDCP.NbrPktLossUl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossUl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="104">0</V>
+    <CV i="105">
+      <SN>PDCP.NbrPktDl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktDl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="106">0</V>
+    <CV i="107">
+      <SN>PDCP.NbrPktLossDl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.NbrPktLossDl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="108">0</V>
+    <CV i="109">
+      <SN>PDCP.UpPktDelayDl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDelayDl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="110">0</V>
+    <CV i="111">
+      <SN>PDCP.UpPktDiscardDl.1</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.2</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.3</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.4</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.5</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.6</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.7</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.8</SN>
+      <SV>0</SV>
+      <SN>PDCP.UpPktDiscardDl.9</SN>
+      <SV>0</SV>
+    </CV>
+    <V i="112">0</V>
+    <V i="113">0</V>
+    <V i="114">0</V>
+    <V i="115">0</V>
+    <V i="116">0</V>
+    <V i="117">100</V>
+    <V i="118">100</V>
+    <V i="119">12000</V>
+    <V i="120">48002</V>
+    <V i="121">0</V>
+    <V i="122">0</V>
+    <V i="123">2</V>
+    <V i="124">0</V>
+    <V i="125">0</V>
+    <V i="126">0</V>
+    <V i="127">0</V>
+    <V i="128">0</V>
+    <V i="129">470</V>
+    <V i="130">0</V>
+    <V i="131">0</V>
+    <V i="132">0</V>
+    <V i="133">0</V>
+    <V i="134">0</V>
+    <V i="135">0</V>
+    <V i="136">2</V>
+    <V i="137">7456</V>
+    <V i="138">0</V>
+    <V i="139">0</V>
+    <V i="140">0</V>
+    <V i="141">0</V>
+    <V i="142">0</V>
+    <V i="143">0</V>
+    <V i="144">0</V>
+    <V i="145">0</V>
+    <V i="146">0</V>
+    <V i="147">0</V>
+    <V i="148">0</V>
+    <V i="149">7456</V>
+    <V i="150">0</V>
+    <V i="151">0</V>
+    <V i="152">0</V>
+    <V i="153">7456</V>
+    <V i="154">0</V>
+    <V i="155">0</V>
+    <V i="156">0</V>
+    <V i="157">0</V>
+    <V i="158">0</V>
+    <V i="159">0</V>
+    <V i="160">0</V>
+    <V i="161">0</V>
+    <V i="162">0</V>
+    <V i="163">0</V>
+    <V i="164">0</V>
+    <V i="165">0</V>
+    <V i="166">0</V>
+    <V i="167">0</V>
+    <V i="168">0</V>
+    <V i="169">0</V>
+    <V i="170">0</V>
+    <V i="171">0</V>
+    <V i="172">0</V>
+    <V i="173">0</V>
+    <V i="174">0</V>
+    <V i="175">0</V>
+    <V i="176">0</V>
+    <CV i="177">
+      <SN>PHY.ULMaxNL.1</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.2</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.3</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.4</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.5</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.6</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.7</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.8</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.9</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.10</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.11</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.12</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.13</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.14</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.15</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.16</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.17</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.18</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.19</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.20</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.21</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.22</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.23</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.24</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.25</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.26</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.27</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.28</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.29</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.30</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.31</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.32</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.33</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.34</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.35</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.36</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.37</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.38</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.39</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.40</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.41</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.42</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.43</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.44</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.45</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.46</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.47</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.48</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.49</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.50</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.51</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.52</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.53</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.54</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.55</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.56</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.57</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.58</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.59</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.60</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.61</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.62</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.63</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.64</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.65</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.66</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.67</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.68</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.69</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.70</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.71</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.72</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.73</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.74</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.75</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.76</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.77</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.78</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.79</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.80</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.81</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.82</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.83</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.84</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.85</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.86</SN>
+      <SV>-91</SV>
+      <SN>PHY.ULMaxNL.87</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.88</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.89</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.90</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.91</SN>
+      <SV>-90</SV>
+      <SN>PHY.ULMaxNL.92</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.93</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.94</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.95</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.96</SN>
+      <SV>-94</SV>
+      <SN>PHY.ULMaxNL.97</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.98</SN>
+      <SV>-93</SV>
+      <SN>PHY.ULMaxNL.99</SN>
+      <SV>-92</SV>
+      <SN>PHY.ULMaxNL.100</SN>
+      <SV>-93</SV>
+    </CV>
+    <CV i="178">
+      <SN>PHY.ULMeanNL.1</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.2</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.3</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.4</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.5</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.6</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.7</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.8</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.9</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.10</SN>
+      <SV>0</SV>
+      <SN>PHY.ULMeanNL.11</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.12</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.13</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.14</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.15</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.16</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.17</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.18</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.19</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.20</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.21</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.22</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.23</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.24</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.25</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.26</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.27</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.28</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.29</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.30</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.31</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.32</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.33</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.34</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.35</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.36</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.37</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.38</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.39</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.40</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.41</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.42</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.43</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.44</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.45</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.46</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.47</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.48</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.49</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.50</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.51</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.52</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.53</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.54</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.55</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.56</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.57</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.58</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.59</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.60</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.61</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.62</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.63</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.64</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.65</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.66</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.67</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.68</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.69</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.70</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.71</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.72</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.73</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.74</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.75</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.76</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.77</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.78</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.79</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.80</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.81</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.82</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.83</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.84</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.85</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.86</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.87</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.88</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.89</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.90</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.91</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.92</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.93</SN>
+      <SV>-104</SV>
+      <SN>PHY.ULMeanNL.94</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.95</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.96</SN>
+      <SV>-100</SV>
+      <SN>PHY.ULMeanNL.97</SN>
+      <SV>-103</SV>
+      <SN>PHY.ULMeanNL.98</SN>
+      <SV>-101</SV>
+      <SN>PHY.ULMeanNL.99</SN>
+      <SV>-102</SV>
+      <SN>PHY.ULMeanNL.100</SN>
+      <SV>-104</SV>
+    </CV>
+    <V i="179">-7</V>
+    <V i="180">-10</V>
+    <V i="181">0</V>
+    <V i="182">0</V>
+   </Pm>
+   </PmData>
+ </Measurements>
+ <Measurements>
+  <ObjectType>ManagedElement</ObjectType>
+   <PmName>
+    <N i="1">EQPT.MeanMeLoad</N>
+    <N i="2">EQPT.MaxMeLoad</N>
+   </PmName>
+   <PmData>
+   <Pm Dn="CMCC,SubNetwork=1,ManagedElement=1" UserLabel="BJ01">
+    <V i="1">0</V>
+    <V i="2">0</V>
+   </Pm>
+   </PmData>
+ </Measurements>
+ <Measurements>
+  <ObjectType>SctpAssoc</ObjectType>
+   <PmName>
+    <N i="1">SIG.SctpCongestionDuration</N>
+    <N i="2">SIG.SctpUnavailableDuration</N>
+   </PmName>
+   <PmData>
+   <Pm Dn="CMCC,SubNetwork=1,ManagedElement=1,SctpAssoc=1" UserLabel="BJ01">
+    <V i="1">0</V>
+    <V i="2">0</V>
+   </Pm>
+   </PmData>
+ </Measurements>
+</PmFile>
+
+
+
+<!--For reference, the XML schema for PM file uploads is:-->
+
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!-- 2011 rel. 2 sp1 (FoodHacker) use XMLSpy vCZTECH edit (http://www.altova.com) by -->
+<!--Telecom Network Management,Performance Management-->
+<!--Northbound Interface-->
+<!--Unified Performance Measurements File Format V1.0.0-->
+<!--Drafted by Li Jian, CMCC-->
+<!--Last Modified on 2012.02.08-->
+<!--
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0.0">
+    <xs:element name="PmFile">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="FileHeader">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="InfoModelReferenced" type="xs:string"/>
+                            <xs:element name="DnPrefix" type="xs:string"/>
+                            <xs:element name="SenderName" type="xs:string"/>
+                            <xs:element name="VendorName" type="xs:string"/>
+                            <xs:element name="JobId" type="xs:string" nillable="true" minOccurs="1"/>
+                            <xs:element name="BeginTime" type="xs:dateTime"/>
+                            <xs:element name="EndTime" type="xs:dateTime"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="Measurements" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="ObjectType" type="xs:string"/>
+                            <xs:element name="PmName">
+                                <xs:complexType>
+                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                        <xs:element name="N">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute name="i" type="xs:integer" use="required"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="PmData">
+                                <xs:complexType>
+                                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                        <xs:element name="Pm">
+                                            <xs:complexType>
+                                                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                                    <xs:element name="V">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:string">
+                                                                    <xs:attribute name="i" type="xs:integer" use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <xs:element name="CV">
+                                                        <xs:complexType>
+                                                            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:element name="SN" type="xs:string"/>
+                                                                <xs:element name="SV" type="xs:string"/>
+                                                            </xs:sequence>
+                                                            <xs:attribute name="i" type="xs:integer" use="required"/>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                </xs:choice>
+                                                <xs:attribute name="Dn" type="xs:string" use="required"/>
+                                                <xs:attribute name="UserLabel" type="xs:string" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+-->

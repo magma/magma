@@ -1,0 +1,90 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type {SectionsConfigs} from '../layout/Section';
+
+import * as React from 'react';
+import AlarmIcon from '@mui/icons-material/Alarm';
+import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
+import LineStyleIcon from '@mui/icons-material/LineStyle';
+import LteDashboard from '../../views/dashboard/lte/LteDashboard';
+import LteMetrics from './LteMetrics';
+import NetworkCheckIcon from '@mui/icons-material/NetworkCheck';
+import NetworkDashboard from '../../views/network/NetworkDashboard';
+import PeopleIcon from '@mui/icons-material/People';
+import RouterIcon from '@mui/icons-material/Router';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
+import TracingDashboard from '../../views/tracing/TracingDashboard';
+import TrafficDashboard from '../../views/traffic/TrafficOverview';
+import WifiTetheringIcon from '@mui/icons-material/WifiTethering';
+
+export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
+  const sections: SectionsConfigs = [
+    'dashboard', // landing path
+    [
+      {
+        path: 'dashboard',
+        label: 'Dashboard',
+        icon: <DashboardIcon />,
+        component: LteDashboard,
+      },
+      {
+        path: 'equipment',
+        label: 'Equipment',
+        icon: <RouterIcon />,
+        component: EquipmentDashboard,
+      },
+      {
+        path: 'network',
+        label: 'Network',
+        icon: <NetworkCheckIcon />,
+        component: NetworkDashboard,
+      },
+      {
+        path: 'subscribers',
+        label: 'Subscriber',
+        icon: <PeopleIcon />,
+        component: SubscriberDashboard,
+      },
+      {
+        path: 'traffic',
+        label: 'Traffic',
+        icon: <WifiTetheringIcon />,
+        component: TrafficDashboard,
+      },
+      {
+        path: 'tracing',
+        label: 'Call Tracing',
+        icon: <LineStyleIcon />,
+        component: TracingDashboard,
+      },
+      {
+        path: 'metrics',
+        label: 'Metrics',
+        icon: <ShowChartIcon />,
+        component: LteMetrics,
+      },
+    ],
+  ];
+  if (alertsEnabled) {
+    sections[1].push({
+      path: 'alerts',
+      label: 'Alerts',
+      icon: <AlarmIcon />,
+      component: AlarmsDashboard,
+    });
+  }
+  return sections;
+}

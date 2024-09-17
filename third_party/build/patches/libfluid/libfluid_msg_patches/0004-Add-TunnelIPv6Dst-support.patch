@@ -1,0 +1,149 @@
+From e4cf47a607d670007437bae43c0698880ac501fc Mon Sep 17 00:00:00 2001
+From: Nick Yurchenko <urchennko@gmail.com>
+Date: Mon, 4 Oct 2021 19:22:18 +0000
+Subject: [PATCH 4/4] Add TunnelIPv6Dst support
+
+Signed-off-by: Nick Yurchenko <urchennko@gmail.com>
+---
+ fluid/of13/of13match.cc  | 67 ++++++++++++++++++++++++++++++++++++++++
+ fluid/of13/of13match.hh  | 31 +++++++++++++++++++
+ fluid/of13/openflow-13.h |  3 +-
+ 3 files changed, 100 insertions(+), 1 deletion(-)
+
+diff --git a/fluid/of13/of13match.cc b/fluid/of13/of13match.cc
+index 522f415..2ab36ed 100644
+--- a/fluid/of13/of13match.cc
++++ b/fluid/of13/of13match.cc
+@@ -2262,6 +2262,73 @@ of_error TunnelIPv4Dst::unpack(uint8_t *buffer) {
+     return 0;
+ }
+ 
++TunnelIPv6Dst::TunnelIPv6Dst()
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_TUNNEL_IPV6_DST, false,
++          of13::OFP_OXM_IPV6_LEN),
++      value_((uint32_t) 0),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x86dd, 0, 0, 0);
++}
++
++TunnelIPv6Dst::TunnelIPv6Dst(IPAddress value)
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_TUNNEL_IPV6_DST, false,
++          of13::OFP_OXM_IPV6_LEN),
++      value_(value),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x86dd, 0, 0, 0);
++}
++
++TunnelIPv6Dst::TunnelIPv6Dst(IPAddress value, IPAddress mask)
++    : OXMTLV(of13::OFPXMC_NXM_1, of13::NXM_TUNNEL_IPV6_DST, true,
++          of13::OFP_OXM_IPV6_LEN),
++      value_(value),
++      mask_(mask) {
++    create_oxm_req(0x86dd, 0, 0, 0);
++}
++
++bool TunnelIPv6Dst::equals(const OXMTLV &other) {
++
++    if (const TunnelIPv6Dst * field = dynamic_cast<const TunnelIPv6Dst *>(&other)) {
++        return ((OXMTLV::equals(other)) && (this->value_ == field->value_)
++            && (this->has_mask_ ? this->mask_ == field->mask_ : true));
++    }
++    else {
++        return false;
++    }
++}
++
++OXMTLV& TunnelIPv6Dst::operator=(const OXMTLV& field) {
++    const TunnelIPv6Dst& dst = dynamic_cast<const TunnelIPv6Dst&>(field);
++    OXMTLV::operator=(field);
++    this->value_ = dst.value_;
++    this->mask_ = dst.mask_;
++    return *this;
++}
++
++size_t TunnelIPv6Dst::pack(uint8_t *buffer) {
++    OXMTLV::pack(buffer);
++    size_t len = this->length_;
++    if (this->has_mask_) {
++        len = this->length_ / 2;
++        memcpy(buffer + (of13::OFP_OXM_HEADER_LEN + len), this->mask_.getIPv6(),
++                    len);
++    }
++    memcpy(buffer + of13::OFP_OXM_HEADER_LEN, this->value_.getIPv6(), len);
++    return 0;
++}
++
++of_error TunnelIPv6Dst::unpack(uint8_t *buffer) {
++    struct in6_addr *ip =
++            (struct in6_addr *) (buffer + of13::OFP_OXM_HEADER_LEN);
++    OXMTLV::unpack(buffer);
++    this->value_ = IPAddress(*ip);
++    if (this->has_mask_) {
++        size_t len = this->length_ / 2;
++        ip += 1;
++        this->mask_ = IPAddress(*ip);
++    }
++    return 0;
++}
+ 
+ IPv6Exthdr::IPv6Exthdr()
+     : mask_(0),
+diff --git a/fluid/of13/of13match.hh b/fluid/of13/of13match.hh
+index 9fd35cd..5780370 100644
+--- a/fluid/of13/of13match.hh
++++ b/fluid/of13/of13match.hh
+@@ -1146,6 +1146,37 @@ public:
+     }
+ };
+ 
++class TunnelIPv6Dst: public OXMTLV {
++protected:
++    IPAddress value_;
++    IPAddress mask_;
++public:
++    TunnelIPv6Dst();
++    TunnelIPv6Dst(IPAddress value);
++    TunnelIPv6Dst(IPAddress value, IPAddress mask);
++    ~TunnelIPv6Dst() {
++    }
++    virtual bool equals(const OXMTLV & other);
++    OXMTLV& operator=(const OXMTLV& field);
++    virtual TunnelIPv6Dst* clone() const {
++        return new TunnelIPv6Dst(*this);
++    }
++    size_t pack(uint8_t *buffer);
++    of_error unpack(uint8_t *buffer);
++    IPAddress value() const {
++        return this->value_;
++    }
++    IPAddress mask() const {
++        return this->mask_;
++    }
++    void value(IPAddress value) {
++        this->value_ = value;
++    }
++    void mask(IPAddress mask) {
++        this->mask_ = mask;
++    }
++};
++
+ class IPv6Exthdr: public OXMTLV {
+ private:
+     uint16_t value_;
+diff --git a/fluid/of13/openflow-13.h b/fluid/of13/openflow-13.h
+index e96bd1c..7fa030a 100644
+--- a/fluid/of13/openflow-13.h
++++ b/fluid/of13/openflow-13.h
+@@ -346,7 +346,8 @@ enum oxm_ofb_match_fields {
+ 
+ enum nxm_match_fields {
+   NXM_REG8 	      = 8,
+-  NXM_TUNNEL_IPV4_DST = 32
++  NXM_TUNNEL_IPV4_DST = 32,
++  NXM_TUNNEL_IPV6_DST = 110
+ };
+ 
+ /* The VLAN id is 12-bits, so we can use the entire 16 bits to indicate
+-- 
+2.25.1
+

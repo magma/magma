@@ -1,0 +1,159 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Add labels to a PR based on changed code
+# remediation: -
+
+name: PR Generate Labels
+on:
+  # Use pull_request_target to gain write permissions.
+  # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
+  pull_request_target:
+    types: [ opened, reopened, synchronize ]
+    paths:
+      - '.github/**'
+      - 'ci-scripts/**'
+      - 'cn/**'
+      - 'cwf/**'
+      - 'docs/**'
+      - 'dp/**'
+      - 'example/**'
+      - 'experimental/**'
+      - 'feg/**'
+      - 'lte/**'
+      - 'nms/**'
+      - 'openwrt/**'
+      - 'orc8r/**'
+      - 'protos/**'
+      - 'scripts/**'
+      - 'secrets/**'
+      - 'show-tech/**'
+      - 'third_party/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  AutoLabelPR:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        with:
+          script: |
+            let newCompLbls = new Set(); // Set of new label strings
+
+            // Fetch files modified in the PR
+            const pulledFiles = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            // Identify new component labels based on the files modified in the PR
+            for (const f of pulledFiles['data']) {
+             switch (true) {
+              case /^ci-scripts\/.*/.test(f.filename):
+              case /^\.github\/workflows\/.*/.test(f.filename):
+              case /^third_party\/build\/.*/.test(f.filename):
+              case /^orc8r\/tools\/packer\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal\/.*/.test(f.filename):
+              case /^orc8r\/cloud\/deploy\/bare-metal-ansible\/.*/.test(f.filename):
+              case /^lte\/gateway\/docker\/.*/.test(f.filename):
+              case /^lte\/gateway\/release\/.*/.test(f.filename):
+              case /^lte\/gateway\/Vagrantfile/.test(f.filename):
+              case /^cwf\/gateway\/Vagrantfile/.test(f.filename):
+                console.log("file changed under CI component : " + f['filename']);
+                newCompLbls.add("component: ci");
+                break;
+              case /^nms\/.*/.test(f.filename):
+                console.log("file changed under NMS component : " + f['filename']);
+                newCompLbls.add("component: nms");
+                break;
+              case /^cwf\/.*/.test(f.filename):
+              case /^feg\/radius\/.*/.test(f.filename):
+                console.log("file changed under CWF component : " + f['filename']);
+                newCompLbls.add("component: cwf");
+                break;
+              case /^feg\/.*/.test(f.filename):
+                console.log("file changed under FEG component : " + f['filename']);
+                newCompLbls.add("component: feg");
+                break;
+              case /^openwrt\/.*/.test(f.filename):
+                console.log("file changed under OPENWRT component : " + f['filename']);
+                newCompLbls.add("component: openwrt");
+                break;
+              case /^lte\/gateway\/.*/.test(f.filename):
+              case /^lte\/protos\/.*/.test(f.filename):
+              case /^orc8r\/gateway\/c\/.*/.test(f.filename):
+              case /^third_party\/gtp_ovs\/.*/.test(f.filename):
+                console.log("file changed under AGW component : " + f['filename']);
+                newCompLbls.add("component: agw");
+                break;
+              case /.*\/cloud\/.*/.test(f.filename):
+              case /^\.golangci\.yml/.test(f.filename):
+              case /^orc8r\/.*/.test(f.filename):
+                console.log("file changed under ORC8R component : " + f['filename']);
+                newCompLbls.add("component: orc8r");
+                break;
+              case /^show-tech\/.*/.test(f.filename):
+                console.log("file changed under SHOW-TECH component : " + f['filename']);
+                newCompLbls.add("component: show-tech");
+                break;
+              case /^docs\/.*/.test(f.filename):
+                console.log("file changed under DOCS: " + f['filename']);
+                newCompLbls.add("component: docs");
+                break;
+              case /^dp\/.*/.test(f.filename):
+                console.log("file changed under DP component: " + f['filename']);
+                newCompLbls.add("component: dp");
+                break;
+             } // end of switch case
+            } // end of for loop
+
+
+            const curLblObjs = await github.rest.issues.listLabelsOnIssue({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            // Delete current component labels from PR that are no more valid
+            for (const l of curLblObjs['data']) {
+              //console.log("Current LabelName: " + l['name'] + " LabelDescription: " + l['description']);
+              if(l['name'].startsWith("component: "))  {
+                if(newCompLbls.has(l['name']))  {
+                  newCompLbls.delete(l['name']);
+                }
+                else  {
+                  github.rest.issues.removeLabel({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: l['name'],
+                  });
+                }
+              } // end of if block
+            } // end of for loop
+
+            if( newCompLbls.size == 0 )  {
+              console.log("No new component files changed in this PR: " + context.issue.number);
+            }
+            else  {
+              let uniqLbls = Array.from(newCompLbls);
+              github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: uniqLbls,
+              });
+            } // end of else block

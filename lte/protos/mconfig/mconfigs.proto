@@ -1,0 +1,546 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/lte/cloud/go/protos/mconfig";
+
+// --------------------------------------------------------------------------
+// SentryConfig stores the network-wide Sentry.io configuration
+// TODO(hcgatewood): remove this after 1.7 release, duplicated in the shared_mconfig
+// --------------------------------------------------------------------------
+message SentryConfig {
+    // dsn_python initializes the Sentry Python SDK and sets the remote URL.
+    // If set to empty string, Sentry Python SDK will not be initialized.
+    string dsn_python = 1;
+    // dsn_native initializes the Sentry Native SDK for C/C++ and sets the
+    // remote URL. If set to empty string, Sentry Native SDK will not be
+    // initialized.
+    string dsn_native = 2;
+    // upload_mme_log decides whether MME service log file (/var/log/mme.log)
+    // is uploaded along with MME crashreports
+    bool upload_mme_log = 3;
+    // sample_rate sets the rate at which Python error events are sampled.
+    // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+    // of errors sent)
+    float sample_rate = 4;
+    // message patterns that are excluded from Sentry (regex substring match)
+    repeated string exclusion_patterns = 5;
+    // number_of_lines_in_log defines the number of lines from the 
+    // journal log that is uploaded with every crash report
+    uint32 number_of_lines_in_log = 6;
+}
+
+//------------------------------------------------------------------------------
+// EnodebD configs
+//------------------------------------------------------------------------------
+message EnodebD {
+    enum CSFBRat {
+        CSFBRAT_2G = 0;
+        CSFBRAT_3G = 1;
+    }
+
+    message FDDConfig {
+        int32 earfcndl = 1;
+        int32 earfcnul = 2;
+    }
+    message TDDConfig {
+        int32 earfcndl = 1;
+        // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+        int32 subframe_assignment = 2;
+        // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+        int32 special_subframe_pattern = 3;
+    }
+    message EnodebConfig {
+        // Device-unique serial ID. Used to identify the eNodeB, and ties the
+        // config to that device
+        int32 earfcndl = 1;
+        int32 subframe_assignment = 2;
+        int32 special_subframe_pattern = 3;
+        int32 pci = 4;
+        bool transmit_enabled = 5;
+        string device_class = 6;
+        int32 bandwidth_mhz = 7;
+        int32 tac = 8;
+        int32 cell_id = 9;
+        string ip_address = 10;
+    }
+
+    orc8r.LogLevel log_level = 1;
+
+    // Physical cell ID (0-504)
+    int32 pci = 2;
+    // Frequency channel number. See niviuk.free.fr/lte_band.php for mapping to
+    // frequency
+    int32 earfcndl = 3;
+    // Bandwidth in MHz, from set {1.4, 3, 5, 10, 15, 20}
+    int32 bandwidth_mhz = 4;
+    // Network operator identifier.
+    string plmnid_list = 5;
+    // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+    int32 subframe_assignment = 6;
+    // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+    int32 special_subframe_pattern = 7;
+    // Enable eNodeB
+    bool allow_enodeb_transmit = 8;
+    // Tracking area code. 16-bit
+    int32 tac = 9;
+    // RAT type (2G/3G), used by eNB
+    CSFBRat csfb_rat = 10;
+    // 2G RAT frequencies /ARFCNs for redirection, used by eNB
+    repeated int32 arfcn_2g = 11;
+    TDDConfig tdd_config = 12;
+    FDDConfig fdd_config = 13;
+    map<string, EnodebConfig> enb_configs_by_serial = 14;
+}
+
+//------------------------------------------------------------------------------
+// PipelineD configs
+//------------------------------------------------------------------------------
+message PipelineD {
+    enum NetworkServices {
+        METERING = 0 [deprecated=true];  // deprecated
+        DPI = 1;
+        ENFORCEMENT = 2;
+    }
+    orc8r.LogLevel log_level = 1;
+    // Range of IPs allocated to UEs
+    string ue_ip_block = 2;
+    // Whether NAT is enabled
+    bool nat_enabled = 3;
+    // repeated PolicyRule policy_rules = 5; // Policies have moved to policydb.proto
+    string default_rule_id = 6; // This should match a rule id in policy_rules
+    repeated NetworkServices services = 8;
+    message AllowedGrePeer {
+      string ip = 1;
+      uint32 key = 2;
+    }
+    repeated AllowedGrePeer allowed_gre_peers = 9;
+    message IPDRExportDst {
+      string ip = 1;
+      uint32 port = 2;
+    }
+    IPDRExportDst ipdr_export_dst = 10;
+    message LiUes {
+        repeated string imsis = 1;
+        repeated string msisdns = 2;
+        repeated string macs = 3;
+        repeated string ips = 4;
+        repeated string imeis = 5;
+    }
+    LiUes li_ues = 12;
+
+    string sgi_management_iface_vlan = 13;
+    string sgi_management_iface_ip_addr = 14;
+    string sgi_management_iface_gw = 15;
+
+    message HEConfig {
+        enum EncryptionAlgorithm {
+            RC4 = 0;
+            AES256_CBC_HMAC_MD5 = 1;
+            AES256_ECB_HMAC_MD5 = 2;
+            GZIPPED_AES256_ECB_SHA1 = 3;
+        }
+        enum HashFunction{
+            MD5 = 0;
+            HEX = 1;
+            SHA256 = 2;
+        }
+        enum EncodingType {
+            BASE64 = 0;
+            HEX2BIN = 1;
+        }
+
+        // enable_header_enrichment is true if header enrichment feature is
+        // enabled for gateway
+        bool enable_header_enrichment = 1;
+        bool enable_encryption = 2;
+        // encryption/hashing/encoding information for headers
+        EncryptionAlgorithm encryptionAlgorithm = 3;
+        HashFunction hashFunction = 4;
+        EncodingType encodingType = 5;
+        string encryption_key = 6;
+        string hmac_key = 7;
+    }
+    HEConfig he_config = 17;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 18;
+    string upf_node_identifier = 19;
+
+    // SGi management IPv6 address with network mask
+    string sgi_management_iface_ipv6_addr = 20;
+    // IPv6 address of SGi management network GW
+    string sgi_management_iface_ipv6_gw = 21;
+
+    // DEPRECATED
+    reserved 4, 11;
+}
+
+//------------------------------------------------------------------------------
+// SessionD configs
+//------------------------------------------------------------------------------
+message SessionD {
+    orc8r.LogLevel log_level = 1;
+    // DEPRECATED
+    // Enable forwarding S6a related requests to Federated GW
+    bool relay_enabled = 2 [deprecated = true];
+    WalletExhaustDetection wallet_exhaust_detection = 3;
+    // Enable relaying Gx/Gy messages via FeG RPC
+    bool gx_gy_relay_enabled = 4;
+    // DEPRECATED: now configured in "shared_mconfig"
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 5 [deprecated = true];
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 6;
+}
+
+message WalletExhaustDetection {
+    // Enable the feature where session is terminated on wallet exhaust
+    bool terminate_on_exhaust = 1;
+    enum Method {
+        // If # of Gx Tracked Rules are > 0, then the wallet is still valid
+        GxTrackedRules = 0;
+    }
+    // How wallet exhast is detected on SessionD
+    Method method = 2;
+    // How long to wait before terminating a out-of-wallet subscriber on attach
+    uint32 timeout_ms = 3;
+}
+
+//------------------------------------------------------------------------------
+// PolicyDB configs
+//------------------------------------------------------------------------------
+message PolicyDB {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// RedirectD configs
+//------------------------------------------------------------------------------
+message RedirectD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// MobilityD configs
+//------------------------------------------------------------------------------
+message MobilityD {
+    // UE allocator type.
+    enum IpAllocatorType {
+        IP_POOL = 0;
+        DHCP = 1;
+    }
+    orc8r.LogLevel log_level = 1;
+    // An IP block is a range of IP addresses specified by a network address and
+    // a prefix-length of the netmask. For example,
+    //    IPv4 IP block:      "192.168.0.0/24"
+    string ip_block = 2;
+    // ip allocation type, either dhcp or ip_pool
+    // default is ip_pool
+    IpAllocatorType ip_allocator_type = 3;
+    // Enable Static IP from subscriberDB
+    bool static_ip_enabled = 4;
+    // Enable multi APN IP allocation
+    bool multi_apn_ip_alloc = 5;
+
+    // IPv6 block for IPv6 allocator, for example:
+    // IPv6 IP block:      "fdee:5:6c::/48"
+    string ipv6_block = 10;
+    // Select ipv6 session prefix allocation type, example:
+    // "RANDOM", "HASH"
+    string ipv6_prefix_allocation_type = 11;
+}
+
+//------------------------------------------------------------------------------
+// MME configs
+//------------------------------------------------------------------------------
+message MME {
+    // (0)Turning off NonEPS service, (1)Both CSFB and SMS, (2)only SMS
+    enum NonEPSServiceControl {
+        NON_EPS_SERVICE_CONTROL_OFF = 0;
+        NON_EPS_SERVICE_CONTROL_CSFB_SMS = 1;
+        NON_EPS_SERVICE_CONTROL_SMS = 2;
+        NON_EPS_SERVICE_CONTROL_SMS_ORC8R = 3;
+    }
+
+    orc8r.LogLevel log_level = 1;
+    // Mobile country code
+    string mcc = 2;
+    // Mobile network code
+    string mnc = 3;
+    // [deprecated] Tracking area code. 16-bit
+    // Is overrideen by field 15
+    int32 tac = 4;
+    // MME group identifier - unique within a PLMN. 16-bit
+    int32 mme_gid = 5;
+    // MME code - unique within an MME group. 8-bit
+    int32 mme_code = 6;
+    // Enable DNS Caching. Will be filled by DnsD
+    bool enable_dns_caching = 7;
+    // DEPRECATED
+    // Enable credit control tracking with OCS and forwarding S6a related
+    // requests to Federated GW
+    bool relay_enabled = 8;
+    // For indicating one of the four modes
+    NonEPSServiceControl non_eps_service_control = 9;
+    // Mobile country code for CSFB
+    string csfb_mcc = 10;
+    // Mobile network code for CSFB
+    string csfb_mnc = 11;
+    // Location area code. 16-bit
+    int32 lac = 12;
+    // If relay_enabled is false, this determines whether cloud subscriberdb
+    // or local subscriberdb is used for authentication requests.
+    bool cloud_subscriberdb_enabled = 14;
+    // The Tracking Area Code of every connected eNodeB needs to be
+    // registered the MME.
+    // Overrides field 4 if this is not empty. Field 4 is in the process of
+    // being deprecated
+    repeated int32 attached_enodeb_tacs = 15;
+    // MME relative capacity - capacity within an MME group. 8-bit
+    int32 mme_relative_capacity = 16;
+
+    // DEPRECATED
+    // Use relay_enabled instead
+    // bool s6a_relay_enabled = 13;
+
+    // Primary DNS server
+    string dns_primary = 20;
+    // Secondary DNS server
+    string dns_secondary = 21;
+    // Whether NAT is enabled
+    bool nat_enabled = 22;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 23;
+
+    // Apn Correction feature
+    bool enable_apn_correction = 24;
+    message ApnCorrectionMap {
+      string imsi_prefix = 1;
+      string apn_override = 2;
+    }
+    repeated ApnCorrectionMap apn_correction_map_list = 25;
+
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
+
+    // PLMN restriction configs
+    message PlmnConfig {
+        string mcc = 1;
+        string mnc = 2;
+    }
+    repeated PlmnConfig restricted_plmns = 32;
+
+    message TacList {
+        repeated uint32 tac = 1;
+    }
+    map<string, TacList> service_area_maps = 33;
+
+    FederatedModeMap federated_mode_map = 34;
+
+    // IMEI restriction configs
+    message ImeiConfig {
+        string tac = 1;
+        string snr = 2;
+    }
+    repeated ImeiConfig restricted_imeis = 35;
+
+    // MME congestion control configs
+    bool congestion_control_enabled = 40;
+
+    // DEPRECATED: now configured in "shared_mconfig"
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 45 [deprecated = true];
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 46;
+
+    // AMF Slice Service Type (SST)
+    uint32 amf_default_slice_service_type = 47;
+
+    // AMF Slice Descriptor (SD)
+    string amf_default_slice_differentiator = 48;
+
+    // AMF Name
+    string amf_name = 50;
+
+    // AMF Region ID
+    string amf_region_id = 51;
+
+    // AMF Set ID
+    string amf_set_id = 52;
+
+    // AMF pointer
+    string amf_pointer = 53;
+
+    // SGW S1U ipv6 endpoint on AGW
+    string ipv6_sgw_s1u_addr = 54;
+}
+
+message FederatedModeMap {
+    bool enabled = 1;
+    repeated ModeMapItem mapping = 2;
+}
+
+message ModeMapItem {
+    enum FederatedMode {
+        SPGW_SUBSCRIBER = 0;           // default mode is HSS + spgw_task
+        LOCAL_SUBSCRIBER = 1;          // will use subscriberDb + policydb
+        S8_SUBSCRIBER = 2;             // will use HSS (feg) + s8_task
+    }
+    FederatedMode mode = 1;
+    string plmn = 2;
+    string imsi_range = 3;
+    string apn = 4;
+}
+
+//------------------------------------------------------------------------------
+// SubscriberDB configs
+//------------------------------------------------------------------------------
+message SubscriberDB {
+    orc8r.LogLevel log_level = 1;
+    // Operator configuration field for LTE
+    bytes lte_auth_op = 2;
+    // Authentication management field for LTE
+    bytes lte_auth_amf = 3;
+
+    message SubscriptionProfile {
+        // Maximum uplink bit rate (AMBR-UL)
+        uint64 max_ul_bit_rate = 1;
+        // Maximum downlink bit rate (AMBR-DL)
+        uint64 max_dl_bit_rate = 2;
+    }
+    map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // DEPRECATED
+    // Enable forwarding S6a related requests to Federated GW
+    bool relay_enabled = 5;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 6;
+
+    // Interval in seconds between gateway and cloud sync
+    uint32 sync_interval = 7;
+
+    // Enables 5G Standalone (SA) at a network level
+    bool enable5g_features = 8;
+}
+
+//------------------------------------------------------------------------------
+// LighttpD configs
+//------------------------------------------------------------------------------
+message LighttpD {
+    orc8r.LogLevel log_level = 1;
+    bool enable_caching = 2;
+}
+
+//------------------------------------------------------------------------------
+// MonitorD configs
+//------------------------------------------------------------------------------
+message MonitorD {
+    orc8r.LogLevel log_level = 1;
+    int32 polling_interval = 60;
+}
+
+//------------------------------------------------------------------------------
+// DPID configs
+//------------------------------------------------------------------------------
+message DPID {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// ConnectionD configs
+//------------------------------------------------------------------------------
+message ConnectionD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// LIAgentD configs
+//------------------------------------------------------------------------------
+message LIAgentD {
+    orc8r.LogLevel log_level = 1;
+    repeated NProbeTask nprobe_tasks = 2;
+}
+
+message NProbeTask {
+    string task_id = 1;
+    string target_id = 2;
+    string target_type = 3;
+    string delivery_type = 4;
+    uint64 correlation_id = 5;
+    string domain_id = 6;
+}
+
+//------------------------------------------------------------------------------
+// DnsD configs
+//------------------------------------------------------------------------------
+message DnsD {
+    orc8r.LogLevel log_level = 1;
+    bool enable_caching = 2;
+    int32 localTTL = 3;
+    repeated GatewayDNSConfigRecordsItems records = 4;
+    bool dhcp_server_enabled = 5;
+}
+
+message GatewayDNSConfigRecordsItems {
+  repeated string a_record = 1;
+  repeated string aaaa_record = 2;
+  repeated string cname_record = 3;
+  string domain = 4;
+}
+
+//----------------------------------------------------------------------------
+// AgwD configs
+//----------------------------------------------------------------------------
+message AgwD {
+  enum LogLevel {
+    UNSET = 0;
+    DEBUG = 1;
+    INFO = 2;
+    WARN = 3;
+    ERROR = 4;
+  }
+  LogLevel log_level = 1;
+
+  string sctpd_downstream_service_target = 2;
+  string sctpd_upstream_service_target = 3;
+  string mme_sctpd_downstream_service_target = 4;
+  string mme_sctpd_upstream_service_target = 5;
+
+  // Sentry Client Options.
+  // The DSN to use. If the data source name is not set, the client is effectively
+  // disabled.
+  string sentry_dsn = 6;
+}
+
+//------------------------------------------------------------------------------
+// SctpD configs
+//------------------------------------------------------------------------------
+message SctpD {
+  orc8r.LogLevel log_level = 1;
+}

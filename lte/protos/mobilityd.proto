@@ -1,0 +1,198 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "lte/protos/subscriberdb.proto";
+import "orc8r/protos/common.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// IP Address definition. A generic type for both IPv4 and IPv6 addresses.
+// --------------------------------------------------------------------------
+message IPAddress {
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version  = 1;
+  bytes address = 2; // network byte order
+}
+
+message AllocateIPAddressResponse {
+  repeated IPAddress ip_list = 1;
+  string vlan = 2;
+}
+
+message IPLookupRequest {
+  SubscriberID sid = 1;
+  string apn = 2;
+
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version = 3;
+}
+
+// --------------------------------------------------------------------------
+// IP Block definition.
+//
+// An IP block is a range of IP addresses specified by a network address and
+// a prefix-length of the netmask. For example,
+//    IPv4 IP block:      192.168.0.0/24
+//    IPv6 IP block:      2401:db00:1116:301b::/64
+// --------------------------------------------------------------------------
+message IPBlock {
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version = 1;
+  bytes net_address = 2; // network byte order
+  uint32 prefix_len = 3;
+}
+
+message ListAddedIPBlocksResponse {
+  // List of IP blocks assigned
+  repeated IPBlock ip_block_list = 1;
+}
+
+// --------------------------------------------------------------------------
+// Subscriber IP table definition
+// --------------------------------------------------------------------------
+message SubscriberIPTableEntry {
+  SubscriberID sid = 1;
+  IPAddress ip = 2;
+  string apn = 3;
+}
+
+message SubscriberIPTable {
+  repeated SubscriberIPTableEntry entries = 1;
+}
+
+// --------------------------------------------------------------------------
+// IP allocation service definition
+// --------------------------------------------------------------------------
+message AllocateIPRequest {
+  // sid: SubscriberID an IP is allocated for
+  // version: IP version requested
+  // apn: Access Point Name (e.g., "ims", "internet")
+  SubscriberID sid = 1;
+
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+    IPV4V6 = 2;
+  }
+  IPVersion version = 2;
+  string apn = 3;
+}
+
+message ListAllocatedIPsResponse {
+  // List of IP addresses allocated from a given IP block
+  repeated IPAddress ip_list = 1;
+}
+
+message ReleaseIPRequest {
+  // sid: SubscriberID associated with the IP address
+  // ip: IP address to release
+  // apn: Access Point Name to release apn-specific IP address
+  SubscriberID sid = 1;
+  IPAddress ip = 2;
+  string apn = 3;
+}
+
+message RemoveIPBlockRequest {
+  // ip_blocks: List of IP blocks to remove
+  repeated IPBlock ip_blocks = 1;
+  // force: If true, remove all IP blocks regardless of whether IPs have been
+  // allocated
+  bool force = 2;
+}
+
+message RemoveIPBlockResponse {
+  // ip_blocks: List of IP blocks successfully removed
+  repeated IPBlock ip_blocks = 1;
+}
+
+// This msg is used for get/set API for mobilityD UplinkGatewayInfo object
+// This object has information about Internet Gateway
+message GWInfo {
+  IPAddress ip = 1;
+  string mac = 2;
+  string vlan = 3;
+}
+
+message ListGWInfoResponse {
+  // List of IP addresses allocated from a given IP block
+  repeated GWInfo gw_list = 1;
+}
+
+service MobilityService {
+
+  // Add a range of IP addresses into the free IP pool
+  // Throws INVALID_ARGUMENT if IPBlock is invalid
+  // Throws FAILED_PRECONDITION if IPBlock overlaps with existing ones
+  //
+  rpc AddIPBlock (IPBlock) returns (magma.orc8r.Void);
+
+  // Return a list of assigned IP blocks
+  //
+  rpc ListAddedIPv4Blocks (magma.orc8r.Void) returns (ListAddedIPBlocksResponse);
+
+  // Return a list of assigned IPv6 blocks
+  //
+  rpc ListAddedIPv6Blocks (magma.orc8r.Void) returns (ListAddedIPBlocksResponse);
+
+  // Return a list of allocated IPs inside a IP block
+  // Throws INVALID_ARGUMENT if IPBlock is invalid
+  // Throws FAILED_PRECONDITION if IPBlock is not previously assigned
+  //
+  rpc ListAllocatedIPs (IPBlock) returns (ListAllocatedIPsResponse);
+
+  // Allocate an IP address from the free IP pool
+  // Throws RESOURCE_EXHAUSTED if no free IP available
+  // Throws ALREADY_EXISTS if an IP has been allocated for the subscriber
+  //
+  rpc AllocateIPAddress (AllocateIPRequest) returns (AllocateIPAddressResponse);
+
+  // Release and recycle an allocated IP address
+  // Throws NOT_FOUND if the requested (SID, IP) pair is not found
+  //
+  rpc ReleaseIPAddress (ReleaseIPRequest) returns (magma.orc8r.Void);
+
+  // Gets subscriber's IP address. Throws NOT_FOUND if it doesn't exist
+  rpc GetIPForSubscriber (IPLookupRequest) returns (IPAddress);
+
+  // Gets subscriber's ID from an IP Address.
+  // Throws NOT_FOUND if it doesn't exist
+  rpc GetSubscriberIDFromIP (IPAddress) returns (SubscriberID);
+
+  // Get the full subscriber table
+  rpc GetSubscriberIPTable (magma.orc8r.Void) returns (SubscriberIPTable);
+
+  // Remove allocated IP blocks
+  // Default behavior is to only remove all IP blocks that have no IP addresses
+  // allocated from them. If force is set, then will remove all IP blocks,
+  // regardless of whether any IPs have been allocated.
+  rpc RemoveIPBlock (RemoveIPBlockRequest) returns (RemoveIPBlockResponse);
+
+  // Get Internet Gateway and  mac addresss
+  rpc ListGatewayInfo (magma.orc8r.Void) returns (ListGWInfoResponse);
+
+  // Set ip and mac address of def Internet Gateway
+  rpc SetGatewayInfo(GWInfo) returns (magma.orc8r.Void);
+}

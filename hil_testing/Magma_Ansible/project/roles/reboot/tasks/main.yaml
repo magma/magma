@@ -1,0 +1,76 @@
+---
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Reboot SUT with all defaults
+  tags: reboot
+  reboot:
+- pause: seconds=60
+  tags: reboot
+- name: Get SUT Magma services status
+  tags: reboot
+  service_facts:
+  register: services_state
+- debug: msg="Some process are yet to start or not running"
+  tags: reboot
+  when: services_state.ansible_facts.services["{{ item }}"].state != "running"
+  with_items:
+    - magma@mme.service
+    - magma@smsd.service
+    - magma@ctraced.service
+    - magma@directoryd.service
+    - magma@state.service
+    - magma@pipelined.service
+    - magma@mobilityd.service
+    - magma@health.service
+    # - magma@monitord.service # TODO do we need this, this doesnot come up after reboot
+    - magma@policydb.service
+    - magma@magmad.service
+    - magma@redis.service
+    - magma@eventd.service
+    - magma@sessiond.service
+    - magma@dnsd.service
+    - magma@envoy_controller.service
+    - magma@enodebd.service
+    - magma@subscriberdb.service
+    - magma@control_proxy.service
+    - sctpd.service
+  ignore_errors: yes
+- pause: seconds=60
+  tags: reboot
+- name: Get SUT Magma services status
+  tags: reboot
+  service_facts:
+  register: services_state
+- fail: msg="Some process are yet to start or not running"
+  tags: reboot
+  when: services_state.ansible_facts.services["{{ item }}"].state != "running"
+  with_items:
+    - magma@mme.service
+    - magma@smsd.service
+    - magma@ctraced.service
+    - magma@directoryd.service
+    - magma@state.service
+    - magma@pipelined.service
+    - magma@mobilityd.service
+    - magma@health.service
+    # - magma@monitord.service
+    - magma@policydb.service
+    - magma@magmad.service
+    - magma@redis.service
+    - magma@eventd.service
+    - magma@sessiond.service
+    - magma@dnsd.service
+    - magma@envoy_controller.service
+    - magma@enodebd.service
+    - magma@subscriberdb.service
+    - magma@control_proxy.service
+    - sctpd.service

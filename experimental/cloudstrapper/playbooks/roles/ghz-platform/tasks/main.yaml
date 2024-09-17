@@ -1,0 +1,5 @@
+---
+- include_tasks: setup-tests.yaml
+  tags: setupTests
+- include_tasks: run-tests.yaml
+  tags: runTests

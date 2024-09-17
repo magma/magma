@@ -1,0 +1,158 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+analytics:
+  minUserThreshold: 100
+  metrics:
+    subscriber_attach_success_percent:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_accept_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
+
+    subscriber_attach_reject_percent:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID, gatewayID) (increase(ue_attach{action="attach_reject_sent"}[{{.Duration}}]))) * 100 / (sum by(networkID, gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort"}[{{.Duration}}]))))
+
+    subscriber_duplicate_attach_count:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: sum(increase(duplicate_attach_request[{{.Duration}}])) by (networkID, gatewayID)
+
+    service_request_success_percent:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID) (increase(service_request{result="success"}[{{.Duration}}]))) *100 / ((sum by(networkID)(increase(service_request{result="failure"}[{{.Duration}}]))) + (sum by(networkID) (increase(service_request{ result="success"}[{{.Duration}}])))))
+
+    session_create_success_percent:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: reliability
+      expr: round((sum by(networkID) (increase(mme_spgw_create_session_rsp{result="success"}[{{.Duration}}]) * 100)) / (sum by(networkID) (increase(mme_spgw_create_session_rsp[{{.Duration}}]))))
+
+    backhaul_latency:
+      register: false
+      export: true
+      labels:
+        class: reliability
+      expr: sum(magmad_ping_rtt_ms{service="magmad",host="8.8.8.8",metric="rtt_ms"}) by (gatewayID, networkID)
+
+    gateway_throughput_dl:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_dl_bytes[{{.Duration}}])) by (networkID, gatewayID)
+
+    enodeb_throughput_dl:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_dl_bytes[{{.Duration}}])) by (networkID, gatewayID, ip_addr)
+
+    gateway_throughput_ul:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_ul_bytes[{{.Duration}}])) by (networkID, gatewayID)
+
+    enodeb_throughput_ul:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(increase(gtp_port_user_plane_ul_bytes[{{.Duration}}])) by (networkID, gatewayID, ip_addr)
+
+    connected_ues:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: network
+      expr: sum(ue_connected) by (gatewayID, networkID)
+
+    unique_subscribers:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+      expr: sum(group(ue_reported_usage) by (networkID, IMSI))
+
+    new_subscribers:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+      expr: sum(group(ue_reported_usage) by (IMSI)  unless group(ue_reported_usage offset 1d) by (IMSI))
+
+    subscriber_throughput:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+    enodeb_connected:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: site
+
+    actual_subscriber:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+    active_sessions_apn:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+    configured_subscribers:
+      register: false
+      export: true
+      enforceMinUserThreshold: true
+      labels:
+        class: engagement
+
+
+# defaultSubscriberdbSyncInterval is the default interval in seconds between
+# gateway requests to sync its subscriberdb with the cloud. This default is used
+# in the subscriberdb mconfig when subscriberdb_sync_interval is not set in the
+# orc8r (neither network-wide nor gateway-specific)
+defaultSubscriberdbSyncInterval: 300

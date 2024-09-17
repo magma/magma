@@ -1,0 +1,302 @@
+---
+apiVersion: skaffold/v2beta28
+kind: Config
+metadata:
+  name: domain-proxy
+build:
+  tagPolicy:
+    sha256: {}
+  local:
+    push: false
+    useBuildkit: true
+    concurrency: 1
+  artifacts:
+    - image: configuration-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/configuration_controller/Dockerfile
+    - image: radio-controller
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/radio_controller/Dockerfile
+    - image: db-service
+      context: ..
+      docker:
+        dockerfile: dp/cloud/docker/python/db_service/Dockerfile
+    - image: fake_sas
+      context: tools/fake_sas
+      docker:
+        dockerfile: Dockerfile
+    - image: fluentd_forward
+      context: ..
+      docker:
+        dockerfile: orc8r/cloud/docker/fluentd_forward/Dockerfile
+    - image: dp-postgres
+      context: ../dp/cloud/docker/postgresql
+      docker:
+        dockerfile: Dockerfile
+
+deploy:
+  kubeContext: minikube
+  helm:
+    hooks:
+      before:
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/postgresql.yml"]
+        - host:
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "statefulset/postgres-database"]
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/elasticsearch.yml"]
+        - host:
+            command: ["kubectl", "rollout", "status", "--watch", "--timeout=600s", "deployment/elasticsearch-deployment"]
+        - host:
+            command: ["kubectl", "apply", "-f", "./tools/deployment/vendor/fake_sas.yml"]
+        - host:
+            command: ["dp/tools/skaffold_hooks/hooks.sh", "create_secrets"]
+            dir: ..
+        - host:
+            command: ["dp/tools/skaffold_hooks/hooks.sh", "deploy_fluentd_forwarder"]
+            dir: ..
+    releases:
+      - name: domain-proxy
+        createNamespace: true
+        chartPath: ./cloud/helm/dp/charts/domain-proxy
+        valuesFiles:
+          - ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values.yaml
+        namespace: default
+        version: "0.1.0"
+        artifactOverrides:
+          dp.configuration_controller:
+            image: configuration-controller
+          dp.radio_controller:
+            image: radio-controller
+          dp.db_service:
+            image: db-service
+        imageStrategy:
+          helm: {}
+  kubectl:
+    defaultNamespace: default
+profiles:
+  - name: integration-tests
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: test_runner_image
+          context: ..
+          docker:
+            dockerfile: dp/cloud/docker/python/test_runner/Dockerfile
+      - op: add
+        path: /deploy/helm/releases/0/setValueTemplates
+        value:
+          dp:
+            configuration_controller:
+              extraEnv:
+                APP_CONFIG: "TestConfig"
+                REQUEST_PROCESSING_INTERVAL_SEC: "'1'"  #  bug in helm: https://github.com/helm/helm/issues/4775
+            radio_controller:
+              extraEnv:
+                APP_CONFIG: "TestConfig"
+            db_service:
+              enabled: true
+              extraEnv:
+                APP_CONFIG: "TestConfig"
+      - op: add
+        path: /deploy/kubectl/flags
+        value:
+          apply:
+            - "--force=true"
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_orc8r.yml"
+      - op: add
+        path: /deploy/helm/releases/1/overrides
+        value:
+          nms:
+            magmalte:
+              env:
+                mysql_db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/overrides
+        value:
+          controller:
+            spec:
+              database:
+                db: dp_test
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_integration_tests.yaml
+  - name: integration-tests-dev
+    patches:
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/tests/test_runner_deployment_dev.yml"
+
+  - name: remote
+    deploy:
+      kubeContext: dp_orc8r
+    activation:
+      - env: "REMOTE_NAMESPACE=orc8r"
+    patches:
+      - op: replace
+        path: /build/local/push
+        value: true
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/0
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/aws_nginx_values.yaml
+      - op: replace
+        path: /deploy/kubectl/defaultNamespace
+        value: "{{.REMOTE_NAMESPACE}}"
+      - op: replace
+        path: /deploy/helm/releases/0/namespace
+        value: "{{.REMOTE_NAMESPACE}}"
+
+  - name: nginx-ingress
+    patches:
+      - op: replace
+        path: /deploy/helm/releases/0/valuesFiles/0
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/minikube_values_nginx.yaml
+
+  - name: orc8r-deployment
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: controller
+          context: ..
+          custom:
+            buildCommand: "dp/tools/skaffold_hooks/hooks.sh build_controller"
+            dependencies:
+              paths:
+                - nms
+                - dp/cloud/go/**
+                - lte/**
+                - orc8r/**
+              ignore:
+                - lte/cloud/helm/lte-orc8r/charts/**
+                - orc8r/cloud/helm/orc8r/charts/**
+                - "**/*.swp"
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: orcnginx
+          context: ..
+          custom:
+            buildCommand: "dp/tools/skaffold_hooks/hooks.sh build_nginx"
+            dependencies:
+              paths:
+                - lte/**
+                - orc8r/**
+              ignore:
+                - lte/cloud/helm/lte-orc8r/charts/**
+                - orc8r/cloud/helm/orc8r/charts/**
+                - "**/*.swp"
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: magmalte
+          context: ..
+          custom:
+            buildCommand: "dp/tools/skaffold_hooks/hooks.sh build_magmalte"
+            dependencies:
+              paths:
+                - nms/**
+                - lte/**
+                - orc8r/**
+              ignore:
+                - lte/cloud/helm/lte-orc8r/charts/**
+                - orc8r/cloud/helm/orc8r/charts/**
+                - "**/*.swp"
+      - op: add
+        path: /deploy/helm/releases/-
+        value:
+          name: orc8r-lte
+          createNamespace: true
+          chartPath: ../lte/cloud/helm/lte-orc8r
+          valuesFiles:
+            - ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_minikube_values.yaml
+          namespace: default
+          version: "0.2.5"
+          artifactOverrides:
+            controller:
+              image: controller
+          imageStrategy:
+            helm: {}
+      - op: add
+        path: /deploy/helm/releases/-
+        value:
+          name: orc8r
+          createNamespace: true
+          chartPath: ../orc8r/cloud/helm/orc8r
+          valuesFiles:
+            - ./cloud/helm/dp/charts/domain-proxy/examples/orc8r_minikube_values.yaml
+          namespace: default
+          version: "1.5.23"
+          artifactOverrides:
+            nginx:
+              image: orcnginx
+            controller:
+              image: controller
+            nms:
+              magmalte:
+                image: magmalte
+          imageStrategy:
+            helm: {}
+      - op: add
+        path: /deploy/helm/hooks/after
+        value:
+          - container:
+              podName: orc8r-accessd*
+              command:
+                - "sh"
+                - "-c"
+                - "/var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || exit 0"
+      - op: remove
+        path: /deploy/helm/hooks/before/6
+  - name: nms-deployment
+    patches:
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/nms_overrides.yaml
+  - name: metrics
+    patches:
+      - op: add
+        path: /deploy/helm/releases/0/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: ./cloud/helm/dp/charts/domain-proxy/examples/metrics_overrides.yaml
+  - name: crl
+    patches:
+      - op: add
+        path: /build/artifacts/-
+        value:
+          image: fake_crl
+          context: tools/fake_crl
+          docker:
+            dockerfile: Dockerfile
+      - op: add
+        path: /deploy/kubectl
+        value:
+          manifests:
+            - "./tools/deployment/vendor/fake_crl.yml"
+  - name: harness
+    patches:
+      - op: replace
+        path: /build/artifacts/4/context
+        value: tools/harness
+      - op: replace
+        path: /deploy/helm/hooks/before/4/host/command/3
+        value: "./tools/deployment/vendor/harness.yml"
+  - name: remote-push
+    patches:
+      - op: remove
+        path: /build/artifacts/3  # remove fake sas image
+      - op: remove
+        path: /build/artifacts/3  # remove fluentd-forward image
+      - op: remove
+        path: /build/artifacts/3  # remove postgresql image

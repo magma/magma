@@ -1,0 +1,31 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Create GRE tunnel gre0
+  become: true
+  script: create_gre_tunnel.sh
+
+- name: Add static IP to cwag_test_br0
+  become: true
+  copy:
+    src: 99-ovscfg.yaml
+    dest: /etc/netplan
+
+- name: Apply netplan for OVS cwag_test_br0 interface
+  become: true
+  shell: netplan apply
+
+- name: Install iperf3 to use for traffic tests
+  apt: pkg=iperf3 state=present update_cache=yes
+
+- name: Install libipfix to use for ipfix tests
+  apt: pkg=libipfix-dev state=present update_cache=yes

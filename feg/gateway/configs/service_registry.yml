@@ -1,0 +1,76 @@
+---
+services:
+  # NOTE: do NOT include dash(-) in your service name. Use underscore instead.
+  # Example service name that contains dash: hello-world-blah
+  # As we use "-" in nghttpx config to connect service name and hostname,
+  # "-" is used as a delimiter in dispatcher to parse out service names.
+
+  # Format:
+  # service:
+  #   host:       Host name to register in registry
+  #   ip_address: IP address used by control_proxy
+  #   port:       Port number used by control_proxy
+
+  # Production Services
+  magmad:
+    ip_address: 127.0.0.1
+    port: 50052
+  control_proxy:
+    ip_address: 127.0.0.1
+    port: 50053
+  session_proxy:
+    ip_address: 127.0.0.1
+    port: 9097
+  s6a_proxy:
+    ip_address: 127.0.0.1
+    port: 9098
+  s8_proxy:
+    ip_address: 127.0.0.1
+    port: 9099
+  swx_proxy:
+    ip_address: 127.0.0.1
+    port: 9110
+  eap_sim:
+    ip_address: 127.0.0.1
+    port: 9118
+  eap_aka:
+    ip_address: 127.0.0.1
+    port: 9123
+  aaa_server:
+    ip_address: 127.0.0.1
+    port: 9109
+  csfb:
+    ip_address: 127.0.0.1
+    port: 9101
+  n7_n40_proxy:
+    ip_address: 127.0.0.1
+    port: 9119
+  feg_hello:
+    ip_address: 127.0.0.1
+    port: 9093
+  health:
+    ip_address: 127.0.0.1
+    port: 9107
+  radiusd:
+    ip_address: 127.0.0.1
+    port: 9115
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
+
+  # Development/Test Services
+  mock_ocs:
+    ip_address: 127.0.0.1
+    port: 9201
+  mock_pcrf:
+    ip_address: 127.0.0.1
+    port: 9202
+  mock_vlr:
+    ip_address: 127.0.0.1
+    port: 9203
+  hss:
+    ip_address: 127.0.0.1
+    port: 9204

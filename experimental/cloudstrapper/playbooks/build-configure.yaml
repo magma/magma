@@ -1,0 +1,21 @@
+---
+
+- hosts: "{{ buildnode }}"
+  roles:
+    - { role: build-platform, tags: platform }
+  vars:
+    awsTargetRegion: "{{ awsOrc8rRegion }}"
+    ansible_ssh_private_key_file: "{{ dirLocalInventory }}/{{ keyHost }}.pem"
+    script_path:
+      PATH: /home/ubuntu/.pyenv/bin:/home/ubuntu/.pyenv/shim:$PATH
+  vars_files:
+    - roles/vars/cluster.yaml
+    - roles/vars/defaults.yaml
+    - roles/vars/build.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+  environment:
+    GITHUB_REPO: "{{ buildHelmRepo }}"
+    GITHUB_REPO_URL: "{{ buildHelmRepoUrl }}"
+    GITHUB_USERNAME: "{{ gitUser }}"
+    GITHUB_ACCESS_TOKEN: "{{ gitPat }}"
+    MAGMA_ROOT: "{{ dirSourceRemote }}"

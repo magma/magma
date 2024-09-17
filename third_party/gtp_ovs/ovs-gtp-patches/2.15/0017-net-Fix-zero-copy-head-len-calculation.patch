@@ -1,0 +1,106 @@
+From 8454ad2413165f449a81bf60b1a62388db68a942 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Sun, 4 Jul 2021 19:31:58 +0000
+Subject: [PATCH 17/22] net: Fix zero-copy head len calculation.
+
+In some cases skb head could be locked and all header
+data pull from skb. When skb_zerocopy() called in such cases, following
+BUG is triggerd. This patch fixes it by copying entire skb in such
+cases.
+This could be optimized incase this is performance bottleneck.
+
+---8<---
+kernel BUG at net/core/skbuff.c:2961!
+invalid opcode: 0000 [#1] SMP PTI
+CPU: 2 PID: 0 Comm: swapper/2 Tainted: G           OE     5.4.0-77-generic #86-Ubuntu
+Hardware name: OpenStack Foundation OpenStack Nova, BIOS 1.13.0-1ubuntu1.1 04/01/2014
+RIP: 0010:skb_zerocopy+0x37a/0x3a0
+RSP: 0018:ffffbcc70013ca38 EFLAGS: 00010246
+Call Trace:
+ <IRQ>
+ queue_userspace_packet+0x2af/0x5e0 [openvswitch]
+ ovs_dp_upcall+0x3d/0x60 [openvswitch]
+ ovs_dp_process_packet+0x125/0x150 [openvswitch]
+ ovs_vport_receive+0x77/0xd0 [openvswitch]
+ netdev_port_receive+0x87/0x130 [openvswitch]
+ netdev_frame_hook+0x4b/0x60 [openvswitch]
+ __netif_receive_skb_core+0x2b4/0xc90
+ __netif_receive_skb_one_core+0x3f/0xa0
+ __netif_receive_skb+0x18/0x60
+ process_backlog+0xa9/0x160
+ net_rx_action+0x142/0x390
+ __do_softirq+0xe1/0x2d6
+ irq_exit+0xae/0xb0
+ do_IRQ+0x5a/0xf0
+ common_interrupt+0xf/0xf
+
+Code that triggers it:
+int
+skb_zerocopy(struct sk_buff *to, struct sk_buff *from, int len, int hlen)
+{
+        int i, j = 0;
+        int plen = 0; /* length of skb->head fragment */
+        int ret;
+        struct page *page;
+        unsigned int offset;
+
+        BUG_ON(!from->head_frag && !hlen);
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ datapath/linux/compat/include/linux/skbuff.h | 2 --
+ datapath/linux/compat/skbuff-openvswitch.c   | 8 +++++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/datapath/linux/compat/include/linux/skbuff.h b/datapath/linux/compat/include/linux/skbuff.h
+index 396a5e406..e6de8e37e 100644
+--- a/datapath/linux/compat/include/linux/skbuff.h
++++ b/datapath/linux/compat/include/linux/skbuff.h
+@@ -261,10 +261,8 @@ static inline int skb_orphan_frags(struct sk_buff *skb, gfp_t gfp_mask)
+ #define skb_get_hash skb_get_rxhash
+ #endif /* HAVE_SKB_GET_HASH */
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0)
+ #define skb_zerocopy_headlen rpl_skb_zerocopy_headlen
+ unsigned int rpl_skb_zerocopy_headlen(const struct sk_buff *from);
+-#endif
+ 
+ #ifndef HAVE_SKB_ZEROCOPY
+ #define skb_zerocopy rpl_skb_zerocopy
+diff --git a/datapath/linux/compat/skbuff-openvswitch.c b/datapath/linux/compat/skbuff-openvswitch.c
+index 4cdeedc58..9db943da1 100644
+--- a/datapath/linux/compat/skbuff-openvswitch.c
++++ b/datapath/linux/compat/skbuff-openvswitch.c
+@@ -19,7 +19,6 @@ void __skb_warn_lro_forwarding(const struct sk_buff *skb)
+ 
+ #endif
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0)
+ 
+ static inline bool head_frag(const struct sk_buff *skb)
+ {
+@@ -40,9 +39,11 @@ rpl_skb_zerocopy_headlen(const struct sk_buff *from)
+ 
+ 	if (!head_frag(from) ||
+ 	    skb_headlen(from) < L1_CACHE_BYTES ||
+-	    skb_shinfo(from)->nr_frags >= MAX_SKB_FRAGS)
++	    skb_shinfo(from)->nr_frags >= MAX_SKB_FRAGS) {
+ 		hlen = skb_headlen(from);
+-
++                if (hlen == 0)
++                        hlen = from->len;
++        }
+ 	if (skb_has_frag_list(from))
+ 		hlen = from->len;
+ 
+@@ -50,6 +51,7 @@ rpl_skb_zerocopy_headlen(const struct sk_buff *from)
+ }
+ EXPORT_SYMBOL_GPL(rpl_skb_zerocopy_headlen);
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0)
+ #ifndef HAVE_SKB_ZEROCOPY
+ /**
+  *	skb_zerocopy - Zero copy skb to skb
+-- 
+2.25.1
+

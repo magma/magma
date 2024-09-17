@@ -1,0 +1,38 @@
+---
+
+- name: query all security groups
+  ec2_group_info:
+    filters:
+      group-name: "{{ secgroupDefault }}"
+  register: regSecGroup
+  tags: infra-agw
+
+- name: assign security group id to variable
+  set_fact:
+    factSecGroup: "{{ regSecGroup.security_groups[0].group_id }}"
+  tags: infra-agw
+
+- name: Find out Ubuntu 20.04 AMI ID
+  amazon.aws.ec2_ami_info:
+    filters:
+      name: "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"
+  register: ubuntuAmiSearchResult
+
+- name: Set Ubuntu AMI fact
+  set_fact:
+    factUbuntuAmi: "{{ ubuntuAmiSearchResult.images[0].image_id }}"
+
+- name: launch AGW AMI devops node
+  cloudformation:
+    stack_name: "stackBuildUbuntuAgw"
+    state: "present"
+    template: "roles/cfn/cfnMagmaAgwAmiPublicDual.json"
+    template_parameters:
+      paramImageBase: "{{ factUbuntuAmi }}"
+      paramSecGroup: "{{ factSecGroup }}"
+      paramAvlZone: "{{ buildAwsAz }}"
+      paramKeyHost: "{{ keyHost }}"
+      paramInstanceType: "{{ buildGwInstanceType }}"
+      paramTagName: "{{ buildGwTagName }}"
+  tags:
+     - infra-agw

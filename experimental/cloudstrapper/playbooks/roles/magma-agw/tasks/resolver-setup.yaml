@@ -1,0 +1,20 @@
+---
+
+- name: start resolv.conf service
+  systemd:
+    state: started
+    name: resolvconf
+
+- name: add dns entry to resolv.conf
+  lineinfile:
+    path: /etc/resolvconf/resolv.conf.d/head
+    line: nameserver 8.8.8.8
+    create: yes
+
+- name: restart resolv.conf
+  systemd:
+    state: restarted
+    name: resolvconf
+
+- name: manually update resolv.conf
+  command: /usr/sbin/resolvconf -u

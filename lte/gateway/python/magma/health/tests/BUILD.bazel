@@ -1,0 +1,24 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "test_state_recovery",
+    size = "small",
+    srcs = ["test_state_recovery.py"],
+    imports = [ORC8R_ROOT],
+    deps = ["//lte/gateway/python/magma/health:health_lib"],
+)

@@ -1,0 +1,125 @@
+---
+- name: Set hostname in /etc/hosts
+  shell: echo "127.0.0.1 {{ansible_hostname}}" | sudo tee -a /etc/hosts > /dev/null
+
+- name: Force new snowflake ID
+  shell: snowflake -m --force-new-key
+  become: true
+
+- name: Create cert and config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  become: true
+  with_items:
+    - "{{ agwCertsPath }}"
+    - "{{ agwConfigPath }}"
+
+- name: Copy keys to certificate directory
+  become: true
+  copy:
+    src: "{{ dirSecretsLocal }}/rootCA.pem"
+    dest: "{{ agwCertsPath }}/rootCA.pem"
+
+- name: Copy control_proxy
+  become: true
+  template:
+    src: roles/agw-platform/files/control_proxy.j2
+    dest: "{{ agwConfigPath }}/control_proxy.yml"
+
+- name: Read magmad yaml file
+  command: cat /etc/magma/magmad.yml
+  register: magmad_raw_config
+
+- name: Check if avalanche exists on gateway
+  stat:
+    path: /usr/bin/avalanche
+  register: avalanche_gw_binary
+
+# Install avalanche for metric scaling
+- name: Check if avalanche exists
+  when: not avalanche_gw_binary.stat.exists
+  delegate_to: localhost
+  stat:
+    path: /usr/local/bin/avalanche
+  register: avalanche_binary
+
+- name: Check if avalanche exists
+  when: not avalanche_gw_binary.stat.exists
+  delegate_to: localhost
+  assert:
+    that: avalanche_binary.stat.exists
+
+- name: Copy avalanche to gateways
+  become: true
+  when: not avalanche_gw_binary.stat.exists
+  ansible.builtin.copy:
+    src: /usr/local/bin/avalanche
+    dest: /usr/bin/avalanche
+    owner: root
+    group: root
+    mode: 0744
+
+- name: create systemd service unit
+  become: true
+  template:
+    src: avalanche.j2
+    dest: /etc/systemd/system/avalanche.service
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: reenable avalanche service
+  become: true
+  command: systemctl reenable avalanche.service
+
+- name: restart avalanche
+  become: true
+  service:
+    name: avalanche
+    state: restarted
+
+- name: ensure avalanche service is enabled and started
+  service:
+    name: avalanche
+    state: started
+    enabled: yes
+
+- name: Add avalanche and node exporter as metric scrape targets
+  set_fact:
+      magmad_new_config: "{{ magmad_config | combine ({'metricsd': metrics_config})}}"
+  vars:
+    magmad_config: "{{ magmad_raw_config.stdout | from_yaml }}"
+    metrics_config: "{{ magmad_config['metricsd'] | combine({'metric_scrape_targets': metric_scrape_targets})}}"
+    metric_scrape_targets: [
+      {
+        'url' : "http://{{ node_exporter_listen_address }}/metrics",
+        'name': 'node_exporter',
+        'interval': 60
+      },
+      {
+        'url' : "http://0.0.0.0:{{ avalanche_port }}/metrics",
+        'name': 'avalanche',
+        'interval': 60
+      }
+    ]
+
+- name: Debug magmad config
+  debug:
+    var: magmad_new_config
+
+- name: Rewriting magmad config with metric scrape configs
+  become: true
+  copy:
+    dest: "/etc/magma/magmad.yml"
+    content: "{{magmad_new_config | to_yaml}}"
+
+- name: Restart magma services
+  become: true
+  systemd:
+    state: restarted
+    name: "{{ item }}"
+    no_block: true
+  with_items:
+    - "{{ servicesMagma }}"

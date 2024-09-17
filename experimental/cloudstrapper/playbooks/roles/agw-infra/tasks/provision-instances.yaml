@@ -1,0 +1,105 @@
+---
+- name: Find out Ubuntu 20.04 AMI ID
+  amazon.aws.ec2_ami_info:
+    filters:
+      name: "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220610"
+  register: ubuntuAmiSearchResult
+
+- name: Set Ubuntu AMI fact
+  set_fact:
+    factUbuntuAmi: "{{ ubuntuAmiSearchResult.images[0].image_id }}"
+
+- name: check if gateway name is defined
+  assert:
+    that:
+      - idGw is defined
+
+- name: identify sgi subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-SgiSubnet"
+  register: valSgiSubnet
+
+- name: identify bridge subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-BridgeSubnet"
+  register: valBridgeSubnet
+
+
+- name: identify s1 subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-EnodebSubnet"
+  register: valEnodebSubnet
+
+- name: set sgi subnet fact
+  set_fact:
+    factSgiSubnetId: "{{ valSgiSubnet.subnets[0].subnet_id }}"
+
+- name: set s1 subnet fact
+  set_fact:
+    factEnodebSubnetId: "{{ valEnodebSubnet.subnets[0].subnet_id }}"
+
+- name: set bridge subnet fact
+  set_fact:
+    factBridgeSubnetId: "{{ valBridgeSubnet.subnets[0].subnet_id }}"
+
+
+- name: identify security group using tag, of the form sitename-secgroup
+  ec2_group_info:
+    filters:
+      group-name: "{{ secGroup }}{{ siteName }}"
+  register: valSecGroup
+
+- name: set security group fact
+  set_fact:
+    factSecGroup: "{{ valSecGroup.security_groups[0].group_id }}"
+
+
+- name: provision agw with dual nics for deploy
+  cloudformation:
+    stack_name: "stack{{ siteName }}{{ idGw }}"
+    state: present
+    template: "roles/cfn/cfnMagmaAgwPrivateDual.json"
+    template_parameters:
+      paramImageBase: "{{ awsAgwAmi }}"
+      paramSubnetSgi: "{{ factSgiSubnetId }}"
+      paramSubnetEnodeb: "{{ factEnodebSubnetId }}"
+      paramAzHome: "{{ awsAgwAz }}"
+      paramSecGroup: "{{ factSecGroup }}"
+      paramSshKey: "{{ awsHostKey }}"
+      paramAgwTagName: "{{ idGw }}"
+      paramAgwTagSite: "{{ siteName }}"
+      paramAgwInstanceType: "{{ awsInstanceType }}"
+  when: agwDevops is undefined
+
+- name: Get EBS encryption default
+  command: aws ec2 get-ebs-encryption-by-default --query 'EbsEncryptionByDefault' --output text
+  register: ebsEncryptiondefault
+  when: agwDevops is defined
+
+- name: Disable EBS encryption to permit export of ami
+  command: aws ec2 disable-ebs-encryption-by-default
+  when: agwDevops is defined and ebsEncryptiondefault.stdout == 'True'
+
+- name: provision agw with dual NICs for devops
+  cloudformation:
+    stack_name: "stack{{ siteName }}{{ idGw }}"
+    state: present
+    template: "roles/cfn/cfnMagmaAgwPublicDual.json"
+    template_parameters:
+      paramImageBase: "{{ factUbuntuAmi }}"
+      paramSubnetPublic: "{{ factBridgeSubnetId }}"
+      paramSubnetPrivate: "{{ factSgiSubnetId }}"
+      paramAzHome: "{{ awsAgwAz }}"
+      paramSecGroup: "{{ factSecGroup }}"
+      paramSshKey: "{{ awsHostKey }}"
+      paramAgwTagName: "{{ idGw }}"
+      paramAgwTagSite: "{{ siteName }}"
+      paramAgwInstanceType: "{{ awsInstanceType }}"
+  when: agwDevops is defined
+
+- name: Enable EBS encryption to permit export of ami
+  command: aws ec2 enable-ebs-encryption-by-default
+  when: agwDevops is defined and ebsEncryptiondefault.stdout == 'True'

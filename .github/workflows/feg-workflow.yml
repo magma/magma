@@ -1,0 +1,170 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: FeG linting and testing
+# remediation: https://magma.github.io/magma/docs/next/feg/dev_testing
+
+name: FeG Lint & Test
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - [".github/workflows/feg-workflow.yml", "orc8r/**", "lte/**", "feg/**"]
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  feg-lint-precommit:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: feg lint and precommit
+    runs-on: ubuntu-20.04
+    env:
+      GO111MODULE: on
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
+        with:
+          go-version: '1.20.1'
+      - run: go version
+      - name: Run golang_before_install.sh script
+        run: ./.github/workflows/scripts/golang_before_install.sh
+      - name: Run go mod download with retry
+        uses: nick-fields/retry@3e91a01664abd3c5cd539100d10d33b9c5b68482 # pin@v2.8.2
+        if: always()
+        id: feg-lint-init
+        with:
+          command: make -C ${MAGMA_ROOT}/feg/gateway download
+          timeout_minutes: 10
+      - name: Generate test coverage
+        if: always() && steps.feg-lint.outcome=='success'
+        id: feg-lint-cov
+        run: |
+          make -C ${MAGMA_ROOT}/feg/gateway cover
+      - uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        if: always()
+        id: feg-lint-codecov
+        with:
+          files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
+          flags: feg-lint
+      - name: Install gotestsum
+        if: always()
+        run: |
+          go install gotest.tools/gotestsum@v1.8.0
+      - name: Run precommit steps
+        if: always()
+        id: feg-precommit
+        run: |
+          make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - name: Upload Test Results
+        id: feg-precommit-upload
+        if: always()
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: Unit Test Results
+          path: "/tmp/test-results"
+      - name: Lint radius src
+        if: always()
+        id: radius-src-lint
+        working-directory: feg/radius/src
+        run: |
+          ./run.sh lint
+      - name: Run radius src unit tests
+        if: always()
+        id: radius-src-unit-tests
+        working-directory: feg/radius/src
+        run: |
+          ./run.sh test
+      - name: Lint radius lib
+        if: always()
+        id: radius-lib-lint
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh lint); done
+      - name: Run radius lib unit tests
+        if: always()
+        id: radius-lib-unit-tests
+        working-directory: feg/radius/lib/go/
+        run: |
+          for dir in */; do (cd "$dir" && $MAGMA_ROOT/feg/radius/src/run.sh test); done
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: |
+          ( steps.feg-lint-init.outcome=='failure' ||
+          steps.feg-lint.outcome=='failure' ||
+          steps.feg-lint-cov.outcome=='failure' ||
+          steps.feg-lint-codecov.outcome=='failure' ||
+          steps.radius-src-lint.outcome=='failure' ||
+          steps.radius-lib-lint.outcome=='failure' ) &&
+          github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_TITLE: "FeG-lint tests failed"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: |
+          ( steps.feg-precommit.outcome=='failure' ||
+          steps.feg-precommit-upload.outcome=='failure' ||
+          steps.radius-src-unit-tests.outcome=='failure' ||
+          steps.radius-lib-unit-tests.outcome=='failure' ) &&
+          github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "FeG-precommit tests failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

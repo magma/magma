@@ -1,0 +1,112 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
+
+cc_test(
+    name = "amf_algorithm_selection_test",
+    size = "small",
+    srcs = [
+        "test_amf_algorithm_selection.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_map_test",
+    size = "small",
+    srcs = [
+        "test_amf_map.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_procedures_test",
+    size = "small",
+    srcs = [
+        "test_amf_procedures.cpp",
+    ],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_stateless_test",
+    size = "small",
+    srcs = [
+        "test_amf_stateless.cpp",
+    ],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "amf_common_utils_test",
+    size = "small",
+    srcs = ["test_amf_common_utils.cpp"],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "amf_app_test_util",
+    srcs = [
+        "amf_app_test_util.cpp",
+        "util_nas5g_auth_fail_pkt.cpp",
+        "util_nas5g_registration_pkt.cpp",
+        "util_nas5g_security_mode_reject_pkt.cpp",
+        "util_nas5g_service_request_pkt.cpp",
+        "util_nas5g_ul_nas_pdu_decode.cpp",
+        "util_s6a_update_location.cpp",
+    ],
+    hdrs = [
+        "amf_app_test_util.h",
+        "util_nas5g_pkt.hpp",
+        "util_s6a_update_location.hpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "amf_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_amf_encode_decode.cpp",
+    ],
+    deps = [
+        ":amf_app_test_util",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -1,0 +1,62 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "configuration_util",
+    srcs = [
+        "configuration_util.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cbrs_consts",
+        "//lte/gateway/python/magma/enodebd:exceptions",
+    ],
+)
+
+py_library(
+    name = "cbrs_consts",
+    srcs = ["cbrs_consts.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "enodeb_config_postprocessor",
+    srcs = ["enodeb_config_postprocessor.py"],
+    visibility = ["//visibility:public"],
+    deps = [":enodeb_configuration"],
+)
+
+py_library(
+    name = "enodeb_configuration",
+    srcs = ["enodeb_configuration.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lte/gateway/python/magma/enodebd:exceptions",
+        "//lte/gateway/python/magma/enodebd:logger",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+    ],
+)
+
+py_library(
+    name = "configuration_init",
+    srcs = ["configuration_init.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":enodeb_config_postprocessor",
+        "//lte/gateway/python/magma/enodebd:lte_utils",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+    ],
+)

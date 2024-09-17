@@ -1,0 +1,168 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.prometheusConfigurer.create }}
+{{- $serviceName := print .Release.Name "-prometheus-configurer" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: prometheus-configurer
+{{ include "metrics.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.prometheusConfigurer.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: prometheus-configurer
+{{ include "selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: prometheus-configurer
+{{ include "selector-labels" . | indent 8 }}
+    spec:
+      {{- with .Values.prometheusConfigurer.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusConfigurer.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusConfigurer.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      volumes:
+  {{ if .Values.thanos.enabled }}
+  {{ if .Values.thanos.thanosRule.enabled }}
+        - name: thanos-data
+          emptyDir: {}
+        - name: thanos-objstore-config
+          configMap:
+            name: thanos-objstore-config
+        {{ if .Values.thanos.rule.certSecretName }}
+        - name: {{ .Values.thanos.rule.certSecretName }}
+          secret:
+            defaultMode: 420
+            secretName: {{ .Values.thanos.rule.certSecretName }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+        - name: "prometheus-config"
+{{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
+
+      containers:
+        - name: "prometheus-configurer"
+          image: {{ required "prometheusConfigurer.image.repository must be provided" .Values.prometheusConfigurer.image.repository }}:{{ .Values.prometheusConfigurer.image.tag }}
+          imagePullPolicy: {{ .Values.prometheusConfigurer.image.pullPolicy }}
+          ports:
+            - containerPort: 9100
+          volumeMounts:
+            - name: "prometheus-config"
+              mountPath: /etc/configs
+          args:
+            - "-port={{ .Values.prometheusConfigurer.prometheusConfigurerPort }}"
+            - "-rules-dir={{ .Values.prometheusConfigurer.rulesDir }}"
+            - "-prometheusURL={{ .Values.prometheusConfigurer.prometheusURL }}"
+            - "-multitenant-label=networkID"
+            - "-restrict-queries"
+          resources:
+{{ toYaml .Values.prometheusConfigurer.resources | indent 12 }}
+        {{ if .Values.thanos.enabled }}
+        {{ if .Values.thanos.thanosRule.enabled }}
+        - name: thanos-rule
+          image: "{{ .Values.thanos.image.repository }}:{{ .Values.thanos.image.tag }}"
+          imagePullPolicy: {{ .Values.thanos.image.pullPolicy }}
+          resources: {{ toYaml .Values.thanos.rule.resources | nindent 12 }}
+          {{- with .Values.thanos.rule.extraEnv }}
+          env: {{ toYaml . | nindent 10 }}
+          {{- end }}
+          args:
+            - "rule"
+            - "--data-dir=/var/thanos/store"
+            - "--log.level={{ .Values.thanos.rule.logLevel }}"
+            - "--log.format={{ .Values.thanos.rule.logFormat }}"
+            - "--http-address=0.0.0.0:{{ .Values.thanos.rule.http.port }}"
+            - "--grpc-address=0.0.0.0:{{ .Values.thanos.rule.grpc.port }}"
+            - "--objstore.config-file=/etc/thanos/objstore.yaml"
+            - "--rule-file={{ .Values.thanos.rule.ruleFile }}"
+            {{- range $key, $val := .Values.thanos.rule.ruleLabels }}
+            - '--label={{ $key }}={{ $val | quote }}'
+            {{- end }}
+            {{- if .Values.thanos.rule.resendDelay }}
+            - "--resend-delay={{ .Values.thanos.rule.resendDelay }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.evalInterval }}
+            - "--eval-interval={{ .Values.thanos.rule.evalInterval }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.tsdbBlockDuration }}
+            - "--tsdb.block-duration={{ .Values.thanos.rule.tsdbBlockDuration }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.tsdbRetention }}
+            - "--tsdb.retention={{ .Values.thanos.rule.tsdbRetention }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.webRoutePrefix }}
+            - "--web.route-prefix={{ .Values.thanos.rule.webRoutePrefix }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.webExternalPrefix }}
+            - "--web.external-prefix={{ .Values.thanos.rule.webExternalPrefix }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.webPrefixHeader }}
+            - "--web.prefix-header={{ .Values.thanos.rule.webPrefixHeader }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.queryDNSDiscovery }}
+            - "--query=dnssrv+_http._tcp.orc8r-thanos-query-http.{{ .Release.Namespace }}.svc.cluster.local"
+            {{- end  }}
+            {{- range .Values.thanos.rule.alertmanagers }}
+            - "--alertmanagers.url={{ . }}"
+            {{- end  }}
+            {{- if .Values.thanos.rule.alertmanagersSendTimeout }}
+            - "--alertmanagers.send-timeout={{ .Values.thanos.rule.alertmanagersSendTimeout }}"
+            {{- end }}
+            {{- if .Values.thanos.rule.alertQueryUrl }}
+            - "--alert.query-url={{ .Values.thanos.rule.alertQueryUrl }}"
+            {{- end }}
+            {{- range .Values.thanos.rule.alertLabelDrop }}
+            - "--alert.label-drop={{ . }}"
+            {{- end  }}
+            {{- if .Values.thanos.rule.extraArgs }}
+            {{- toYaml .Values.thanos.rule.extraArgs | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.thanos.rule.http.port }}
+            - name: grpc
+              containerPort: {{ .Values.thanos.rule.grpc.port }}
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/rules
+              readOnly: true
+            - name: thanos-objstore-config
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: thanos-data
+              mountPath: /var/thanos/store
+            {{- if .Values.thanos.rule.certSecretName }}
+            - mountPath: /etc/certs
+              name: {{ .Values.thanos.rule.certSecretName }}
+              readOnly: true
+            {{- end }}
+        {{- end }}
+        {{- end }}
+{{- end }}

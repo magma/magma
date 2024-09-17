@@ -1,0 +1,38 @@
+{"common": {
+    "fdcfg": "{{ conf_dir }}/hss_oai_fd.conf",
+    "originhost": "{{ identity }}",
+    "originrealm": "{{ realm }}" 
+ },
+ "hss": {
+    "gtwhost": "*",
+    "gtwport" : 9080,
+    "restport" : 9081,
+    "ossport" : 9082,
+    "casssrv": "127.0.0.1", 
+    "cassusr": "root",
+    "casspwd": "root",
+    "cassdb" : "vhss",
+    "casscoreconnections" : 2,
+    "cassmaxconnections" : 8,
+    "cassioqueuesize" : 32768,
+    "cassiothreads" : 2,    
+    "randv"  : true,
+    "optkey" : "11111111111111111111111111111111",
+    "reloadkey"  : true,
+    "roamallow"  : true,
+    "logsize": 20,
+    "lognumber": 5,
+    "logname": "/tmp/hss.log",
+    "logqsize": 8192,
+    "statlogsize": 20,
+    "statlognumber": 5,
+    "statlogname": "/tmp/hss_stat.log",
+    "auditlogsize": 20,
+    "auditlognumber": 5,
+    "auditlogname": "/tmp/hss_audit.log",
+    "statfreq": 2000,
+    "numworkers": 4,
+    "concurrent": 10,
+    "ossfile": "{{ conf_dir }}/oss.json"    
+ }
+}

@@ -1,0 +1,124 @@
+# Vagrant
+.vagrant
+*.retry
+
+# Vim
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# Python: byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+.mypy_cache/
+
+# Python: virtual environments
+.env/
+.coverage
+.python-version
+
+# C/C++ extensions
+*.so
+.clangd/
+
+# Distribution / packaging
+.Python
+env/
+/build/
+develop-eggs/
+dist/
+eggs/
+build/lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+orc8r/gateway/python/build
+lte/gateway/python/build
+
+# Ignore generated Swagger files
+orc8r/cloud/swagger/specs
+
+# Node
+node_modules/
+orc8r/cloud/openapitools.json
+
+# Docusaurus
+docs/docusaurus/build/
+
+# Ignore apt/build cache
+.cache/*
+
+# Packer build artifacts
+*.box
+*.iso
+*.vdi
+
+# Terraform
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+terraform.tfstate
+terraform.tfstate.backup
+*.plan
+aws_keys.tfvars
+
+# AWS EKS config file
+kubeconfig_orc8r
+
+# Helm
+orc8r/cloud/helm/**/.secrets/
+orc8r/cloud/helm/**/secrets/
+
+# Certs for accessing the cloud
+.certs
+
+# Log files
+*.log
+
+# Cscope and tags
+cscope.*
+tags
+
+# CI files
+archives/
+test_results_magma_converged_mme.html
+orc8r/cloud/test-results/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+.venv/
+
+# FB internal
+fb
+fbcinternal
+
+# MacOS artifacts
+.DS_Store
+
+# Code coverage
+orc8r/cloud/coverage/
+feg/gateway/coverage/
+
+# Bazel
+bazel-bin
+bazel-magma
+bazel-out
+bazel-testlogs
+help
+compile_commands.json
+
+# Domain Proxy
+dp/cloud/helm/dp/charts/domain-proxy/certificates/**/*
+dp/tools/deployment/certificates/certs
+orc8r/cloud/helm/orc8r/charts/secrets

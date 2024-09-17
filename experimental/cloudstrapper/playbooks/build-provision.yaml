@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  roles:
+    - { role: build-infra, tags: infra }
+    - { role: aws-inventory, tags: inventory }
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"
+    AWS_DEFAULT_REGION: "{{ buildAwsRegion }}"
+  vars_files:
+    - roles/vars/defaults.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+    - roles/vars/cluster.yaml
+    - roles/vars/build.yaml

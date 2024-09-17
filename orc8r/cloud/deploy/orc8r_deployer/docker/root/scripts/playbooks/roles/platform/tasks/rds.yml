@@ -1,0 +1,58 @@
+- name: Get orderable DB instance options in the region
+  ansible.builtin.shell: aws rds describe-orderable-db-instance-options --engine postgres --db-instance-class "{{platform_configs.orc8r_db_instance_class}}"
+  register: orderable_instances
+  tags: 
+    - install_precheck
+    - upgrade_precheck
+
+- name: Check if RDS instance class can be deployed in the region
+  assert:
+    that: "{{(orderable_instances.stdout| from_json).OrderableDBInstanceOptions | length > 0}}"
+    fail_msg:
+      - "Provided instance class {{platform_configs.orc8r_db_instance_class}} is not available in the configured region"
+  tags: 
+    - install_precheck
+    - upgrade_precheck    
+
+- name: Get RDS information
+  ansible.builtin.shell: aws rds describe-db-instances --db-instance-identifier "{{platform_configs.orc8r_db_identifier}}"|| /bin/true
+  register: db_instance
+  tags: upgrade_precheck
+
+- name: Get engine version and compatible upgrade versions
+  ansible.builtin.shell: aws rds describe-db-engine-versions --engine-version "{{orc8r_db_instance.EngineVersion}}" 
+  vars: 
+    orc8r_db_instance: "{{(db_instance.stdout | from_json).DBInstances[0]}}"
+  register: engine_versions  
+  tags: upgrade_precheck 
+
+- name: Check if deployed RDS db instance version matches or is a valid upgrade target
+  assert:
+    that: "{{ platform_configs.orc8r_db_engine_version in compatible_versions }}"
+    fail_msg:
+      - "Provided db version is not a valid upgrade target "
+      - "Valid upgrade targets for {{curr_version}} is {{upgrade_targets}}"
+      - "For e.g: orcl configure set -c infra -k orc8r_db_engine_version -v <desired_target_version>"
+  vars:
+    curr_version : "{{lookup('items', engine_versions.stdout | from_json | json_query('DBEngineVersions[*].EngineVersion'))}}"
+    upgrade_targets : "{{lookup('items', engine_versions.stdout | from_json | json_query('DBEngineVersions[*].ValidUpgradeTarget[*].EngineVersion'))}}"
+    compatible_versions: "{{upgrade_targets + [curr_version]}}"
+  tags: upgrade_precheck
+
+- name: Delete rds instances
+  command: aws rds delete-db-instance --db-instance-identifier "{{ orc8r_db_id }}" --skip-final-snapshot
+  when: "{{ orc8r_db_id }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Wait for database deletion before deleting subnet group
+  command: aws rds wait db-instance-deleted --db-instance-identifier "{{ orc8r_db_id }}"
+  when: "{{ orc8r_db_id }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete rds subnet group
+  command: aws rds delete-db-subnet-group --db-subnet-group-name "{{ orc8r_db_subnet }}"
+  ignore_errors: true
+  when: orc8r_db_subnet
+  tags: cleanup

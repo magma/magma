@@ -1,0 +1,83 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: any
+# purpose: Check PR is signed off
+# remediation: https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines
+
+name: PR Check DCO
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  reverted-pr-check:
+    name: Reverted PR Check Job
+    runs-on: ubuntu-20.04
+    env:
+      PR_TITLE: "${{ github.event.pull_request.title }}"
+    # Map a step output to a job output
+    outputs:
+      is_reverted_pr: ${{ steps.reverted_pr_check.outputs.is_reverted_pr }}
+    steps:
+      - name: Check if PR is a Reverted PR
+        id: reverted_pr_check
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        with:
+          script: |
+            if( process.env.PR_TITLE.startsWith('Revert') ) {
+              core.setOutput('is_reverted_pr', 'true');
+            }
+            else  {
+              core.setOutput('is_reverted_pr', 'false');
+            }
+      - name: Save Reverted PR output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
+          echo -n "false" > ./pr/skipped
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  dco_check_job:
+    needs: reverted-pr-check
+    if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
+    name: DCO Check
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get PR Commits
+        id: 'get-pr-commits'
+        uses: tim-actions/get-pr-commits@c64db31d359214d244884dd68f971a110b29ab83 # pin@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: DCO Check
+        uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # pin@master
+        with:
+          commits: ${{ steps.get-pr-commits.outputs.commits }}
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/pr_number
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/

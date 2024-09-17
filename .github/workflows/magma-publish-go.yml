@@ -1,0 +1,53 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Manual workflow to publish a new Go version to the artifactory blob storage (for caching)
+# remediation: -
+
+name: Magma Publish Go Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to upload?
+        default: 1.20.1
+        required: true
+
+env:
+  GO_PACKAGE: go${{ inputs.version }}.linux-amd64.tar.gz
+
+jobs:
+  build_dependencies:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Download Go package
+        run: curl -L https://go.dev/dl/$GO_PACKAGE -o $GO_PACKAGE
+
+      - name: Set up JFrog CLI
+        id: jfrog-setup
+        # Workaround because secrets are available in `env` but not in `if`
+        if: ${{ env.JF_USER != '' && env.JF_PASSWORD != '' }}
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+        env:
+          JF_URL: https://linuxfoundation.jfrog.io/
+          JF_USER: ${{ secrets.LF_JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+
+      - name: Publish Go package
+        if: steps.jfrog-setup.conclusion == 'success'
+        run: |
+          jf rt upload \
+            --recursive=false \
+            --detailed-summary \
+            $GO_PACKAGE magma-blob/$GO_PACKAGE

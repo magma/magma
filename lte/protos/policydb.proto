@@ -1,0 +1,306 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "lte/protos/mobilityd.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message HeaderEnrichment{
+  repeated string urls = 1;
+}
+
+// --------------------------------------------------------------------------
+// Policy flow rules
+//
+// A rule is a named policy that defines a type of traffic to meter.
+// Each rule has a unique human readable ID associated with the traffic
+// it meters such as "All TCP Traffic to Facebook". They are classified
+// using FlowMatch, and if two rules intersect, the one with the highest
+// priority takes precedence. These are defined on the cloud and are streamed
+// to the gateway Metering application.
+//
+// A match is an extensible reflection of Ryu OFPMatch which is used by rules
+// to classify flows for each subscriber. For new fields and definitons see:
+// http://ryu.readthedocs.io/en/latest/ofproto_v1_4_ref.html#flow-match-structure
+// --------------------------------------------------------------------------
+message PolicyRule{
+  string id = 1;
+  // The precedence for the flow. Same definition as 3GPP.
+  uint32 priority = 3;
+  uint32 rating_group = 4; // optional
+  bytes monitoring_key = 6; // optional
+  RedirectInformation redirect = 9;
+  repeated FlowDescription flow_list = 7;
+  FlowQos qos = 8;
+  enum TrackingType {
+    ONLY_OCS = 0; // rating_group required
+    ONLY_PCRF = 1; // monitoring_key required
+    OCS_AND_PCRF = 2; // rating_group & monitoring_key required
+    NO_TRACKING = 3;
+  }
+  TrackingType tracking_type = 10;
+  uint32 hard_timeout = 11; // optional
+  ServiceIdentifier service_identifier = 12; // optional
+  enum AppName {
+    NO_APP_NAME = 0;
+    FACEBOOK = 1;
+    FACEBOOK_MESSENGER = 2;
+    INSTAGRAM = 3;
+    YOUTUBE = 4;
+    GOOGLE = 5;
+    GMAIL = 6;
+    GOOGLE_DOCS = 7;
+    NETFLIX = 8;
+    APPLE = 9;
+    MICROSOFT = 10;
+    REDDIT = 11;
+    WHATSAPP = 12;
+    GOOGLE_PLAY = 13;
+    APPSTORE = 14;
+    AMAZON = 15;
+    WECHAT = 16;
+    TIKTOK = 17;
+    TWITTER = 18;
+    WIKIPEDIA = 19;
+    GOOGLE_MAPS = 20;
+    YAHOO = 21;
+    IMO = 22;
+  }
+  AppName app_name = 13; // optional
+  enum AppServiceType {
+    NO_SERVICE_TYPE = 0;
+    CHAT = 1;
+    AUDIO = 2;
+    VIDEO = 3;
+  }
+  AppServiceType app_service_type = 14; // optional
+  HeaderEnrichment he = 15;
+  bool online = 16;
+  bool offline = 17;
+}
+
+message ServiceIdentifier {
+  uint32 value = 1;
+}
+
+message FlowDescription {
+  FlowMatch match = 1;
+  enum Action {
+    PERMIT = 0;
+    DENY = 1;
+  }
+  Action action = 2;
+}
+
+message FlowMatch {
+  enum IPProto {
+    option allow_alias = true;
+    IPPROTO_IP = 0;
+    IPPROTO_HOPOPTS = 0;
+    IPPROTO_ICMP = 1;
+    IPPROTO_IGMP = 2;
+    IPPROTO_TCP = 6;
+    IPPROTO_UDP = 17;
+    IPPROTO_ROUTING = 43;
+    IPPROTO_FRAGMENT = 44;
+    IPPROTO_GRE = 47;
+    IPPROTO_AH = 51;
+    IPPROTO_ICMPV6 = 58;
+    IPPROTO_NONE = 59;
+    IPPROTO_DSTOPTS = 60;
+    IPPROTO_OSPF = 89;
+    IPPROTO_VRRP = 112;
+    IPPROTO_SCTP = 132;
+  }
+  uint32 tcp_src = 3;
+  uint32 tcp_dst = 4;
+  uint32 udp_src = 5;
+  uint32 udp_dst = 6;
+  IPProto ip_proto = 7;
+  enum Direction {
+    UPLINK = 0; // UE (src) -> Internet (dst)
+    DOWNLINK = 1; // Internet (src) -> UE (dst)
+  }
+  Direction direction = 8;
+  string app_name = 9;
+  IPAddress ip_src = 10;
+  IPAddress ip_dst = 11;
+
+  // TODO deprecate these after safe move to ip_sr/ip_dst vars
+  //reserved 1, 2;
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
+}
+
+message QosArp {
+  uint32 priority_level = 1;
+  enum PreCap {
+    PRE_CAP_ENABLED = 0;
+    PRE_CAP_DISABLED = 1;
+  }
+  PreCap pre_capability = 2;
+  enum PreVul {
+    PRE_VUL_ENABLED = 0;
+    PRE_VUL_DISABLED = 1;
+  }
+  PreVul pre_vulnerability = 3;
+}
+message FlowQos {
+  enum Qci {
+    QCI_0 = 0;
+    QCI_1 = 1;
+    QCI_2 = 2;
+    QCI_3 = 3;
+    QCI_4 = 4;
+    QCI_5 = 5;
+    QCI_6 = 6;
+    QCI_7 = 7;
+    QCI_8 = 8;
+    QCI_9 = 9;
+    QCI_65 = 65;
+    QCI_66 = 66;
+    QCI_67 = 67;
+    QCI_70 = 70;
+    QCI_75 = 75;
+    QCI_79 = 79;
+  }
+
+  uint32 max_req_bw_ul = 1;
+  uint32 max_req_bw_dl = 2;
+  uint32 gbr_ul = 3;
+  uint32 gbr_dl = 4;
+  Qci qci = 5;
+  QosArp arp = 6;
+}
+
+message RedirectInformation {
+  enum Support {
+    DISABLED = 0;
+    ENABLED = 1;
+  }
+  Support support = 1;
+  enum AddressType {
+    IPv4 = 0;
+    IPv6 = 1;
+    URL = 2;
+    SIP_URI =3;
+  }
+  AddressType address_type = 2;
+  string server_address = 3;
+}
+
+message ChargingRuleNameSet {
+  repeated string RuleNames = 2;
+}
+
+message ChargingRuleBaseNameRecord {
+  string Name = 1;
+  ChargingRuleNameSet RuleNamesSet = 2;
+}
+
+message RatingGroup {
+  uint32 id = 1;
+  enum LimitType {
+    FINITE = 0;
+    INFINITE_METERED = 1;
+    INFINITE_UNMETERED = 2;
+  }
+  LimitType limit_type = 2;
+}
+
+// ----------------------------------------------------------------------------
+// Subscriber-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// AssignedPolicies contains the base names and policy rules currently assigned
+// for a subscriber
+message AssignedPolicies {
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
+}
+
+// InstalledPolicies contains the base names and policy rules currently active
+// for a subscriber
+message InstalledPolicies {
+  repeated string installed_base_names = 10;
+  repeated string installed_policies = 11;
+}
+
+// ----------------------------------------------------------------------------
+// Subscriber-APN-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// SubscriberPolicySet contains the base names and policy rules currently
+// assigned to a subscriber, keyed by APN
+// NOTE: This does not include the policy used to define the default bearer
+// flow
+message SubscriberPolicySet {
+  repeated ApnPolicySet rules_per_apn = 1;
+  repeated string global_base_names = 2;
+  repeated string global_policies = 3;
+}
+
+// ApnPolicySet contains the base names and policy rules currently assigned to
+// a (subscriber, APN) tuple
+// NOTE: This does not include the policy used to define the default bearer
+// flow
+message ApnPolicySet {
+  string apn = 1;
+  repeated string assigned_base_names = 2;
+  repeated string assigned_policies = 3;
+}
+
+// --------------------------------------------------------------------------
+// PolicyAssignment controller definition.
+// --------------------------------------------------------------------------
+message EnableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
+
+message DisableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
+
+service PolicyAssignmentController {
+  // Associate the static rule with the IMSI
+  //
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
+
+  // Unassociate the static rule with the IMSI
+  //
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
+}
+
+// --------------------------------------------------------------------------
+// PolicyDB service definition
+// --------------------------------------------------------------------------
+service PolicyDB {
+
+  // Immediately install the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
+
+  // Immediately uninstall the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
+}

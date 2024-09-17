@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# create_test_controller_certs generates certs for the controller tier for
+# dev and testing.
+
+set -e
+
+# wait_for_db_containers waits until the desired DB containers are ready.
+# If you want to wait for Maria backend instead, toggle the below lines.
+function wait_for_db_containers() {
+  echo "Waiting for DB to come up..."
+  timeout 20 bash -c 'until nc -z postgres 5432; do sleep 1; done'
+  # timeout 20 bash -c 'until nc -z maria 3306; do sleep 1; done'
+}
+
+function exit_already_exists() {
+  echo "[success] admin_operator already exists"
+  exit 0
+}
+
+if [[ "$TEST_MODE" != "1" ]]; then
+  echo "[no-op] not running in test mode"
+  exit 0
+fi
+
+ACCESSC='/var/opt/magma/bin/accessc'
+DIR='/var/opt/magma/certs'
+
+mkdir -p ${DIR}
+cd ${DIR}
+
+if [[ ! -f bootstrapper.key ]]; then
+  echo ""
+  echo "#########################"
+  echo "Creating bootstrapper key"
+  echo "#########################"
+  openssl genrsa -out bootstrapper.key 2048
+fi
+
+if [[ ! -f certifier.key ]]; then
+  echo ""
+  echo "#####################"
+  echo "Creating certifier CA"
+  echo "#####################"
+  openssl genrsa -out certifier.key 2048
+  openssl req -x509 -new -nodes -key certifier.key -sha256 -days 365000 -out certifier.pem -subj "/C=US/CN=certifier.magma.test"
+fi
+
+if [[ ! -f vpn_ca.key ]]; then
+  echo ""
+  echo "###############"
+  echo "Creating VPN CA"
+  echo "###############"
+  openssl genrsa -out vpn_ca.key 2048
+  openssl req -x509 -new -nodes -key vpn_ca.key -sha256 -days 365000 -out vpn_ca.crt -subj "/C=US/CN=vpn.magma.test"
+fi
+
+wait_for_db_containers
+
+if [[ -f admin_operator.pfx ]] && [[ -f admin_operator.pem ]] && [[ -f admin_operator.key.pem ]] ; then
+  echo ""
+  echo "########################"
+  echo "Add existing admin certs"
+  echo "########################"
+  ${ACCESSC} list | grep -q admin_operator && exit_already_exists
+  ${ACCESSC} add-existing -admin -cert admin_operator.pem admin_operator
+  echo "[success] test certs added"
+else
+  echo ""
+  echo "##################"
+  echo "Create admin certs"
+  echo "##################"
+  ${ACCESSC} add-admin -cert admin_operator admin_operator
+  openssl pkcs12 -passout pass:magma -export -out admin_operator.pfx -inkey admin_operator.key.pem -in admin_operator.pem
+  echo "[success] test certs generated and added"
+fi

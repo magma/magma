@@ -1,0 +1,48 @@
+---
+#- name: find instance id using tag
+#- name: find s1 subnet using tag
+#
+
+- name: identify sgi subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-EnodebSubnet"
+  register: valEnodebSubnet
+
+- name: set enodeb subnet fact
+  set_fact:
+    factEnodebSubnetId: "{{ valEnodebSubnet.subnets[0].subnet_id }}"
+
+- name: identify security group using tag, of the form sitename-secgroup
+  ec2_group_info:
+    filters:
+      group-name: "{{ secGroup }}{{ siteName }}"
+  register: valSecGroup
+
+- name: set security group fact
+  set_fact:
+    factSecGroup: "{{ valSecGroup.security_groups[0].group_id }}"
+
+- name: identify instance id tag, of the form sitename idagw
+  ec2_instance_info:
+    filters:
+      "tag:Name": "{{ idGw }}"
+      instance-state-name: "running"
+  register: valInstanceId
+
+- name: set instance id fact
+  set_fact:
+    factInstanceId: "{{ valInstanceId.instances[0].instance_id }}"
+
+#Interface attached separately since AWS does not allow publicIP by default on multi-NIC instances
+#Debian has issues with default route, but this should be combined once upgraded to Ubuntu 20.04
+- name: add second interface
+  cloudformation:
+    stack_name: "stack{{ siteName }}{{ idGw }}Nic2"
+    state: present
+    template: "roles/cfn/cfnMagmaAgwNicAttach.json"
+    template_parameters:
+      paramGatewayInstance: "{{ factInstanceId }}"
+      paramSubnetEnb: "{{ factEnodebSubnetId }}"
+      paramSgSgi: "{{ factSecGroup }}"
+      paramNicTagName: "{{ siteName }}{{ idGw }}Nic2"

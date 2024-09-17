@@ -1,0 +1,90 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "test_policy_servicer",
+    size = "small",
+    srcs = ["test_policy_servicer.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/gateway/python/magma/policydb/servicers:policy_servicer",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+        requirement("grpcio"),
+    ],
+)
+
+pytest_test(
+    name = "test_reauth_handler",
+    size = "small",
+    srcs = ["test_reauth_handler.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
+)
+
+pytest_test(
+    name = "test_session_servicer",
+    size = "small",
+    srcs = ["test_session_servicer.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/gateway/python/magma/policydb/servicers:session_servicer",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
+)
+
+pytest_test(
+    name = "test_streamer_callback",
+    size = "small",
+    srcs = ["test_streamer_callback.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        ":mock_stubs",
+        "//lte/gateway/python/magma/policydb:policydb_lib",
+        "//lte/protos:policydb_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+    ],
+)
+
+py_library(
+    name = "mock_stubs",
+    testonly = True,
+    srcs = ["mock_stubs.py"],
+)

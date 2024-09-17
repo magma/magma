@@ -1,0 +1,67 @@
+version: "3.7"
+
+services:
+  test:
+    container_name: test
+    image: feg_gateway_go_base
+    build:
+      target: base
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile
+    network_mode: host
+    volumes:
+      - ../../../:/magma
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    command:
+      - /bin/bash
+      - -c
+      - |
+         mkdir -p ../../.cache/feg/
+         touch ../../.cache/feg/snowflake
+         tail -f /dev/null
+
+  hss:
+    container_name: hss
+    image: feg_gateway_go
+    network_mode: host
+    volumes:
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    restart: always
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
+
+  control_proxy:
+    depends_on:
+      - test
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    command:
+      - /bin/bash
+      - -c
+      - |
+         /usr/local/bin/generate_nghttpx_config.py
+         /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
+
+  csfb:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile
+
+  magmad:
+    depends_on:
+      - test
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/python/Dockerfile
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    command: python3.8 -m magma.magmad.main
+
+volumes:
+  gwcerts:
+  gwconfigs:

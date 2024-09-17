@@ -1,0 +1,50 @@
+ansible_user: user
+
+helm_enabled: true
+helm_version: v3.3.3
+kube_version: v1.18.3
+kube_network_plugin: calico
+kube_network_plugin_multus: true
+
+kube_apiserver_port: 6443
+kube_pods_subnet: 10.233.64.0/18
+kube_network_node_prefix: 24
+kube_service_addresses: 10.233.0.0/18
+kubeadm_control_plane: "true"
+kubelet_max_pods: 250
+kubelet_config_extra_args:
+  kubeAPIBurst: 600
+  kubeAPIQPS: 300
+  eventBurst: 100
+kube_kubeadm_apiserver_extra_args:
+  max-requests-inflight: 2000
+etcd_kubeadm_enabled: true
+kube_proxy_mode: ipvs
+docker_options: "--default-ulimit nproc=-1 --max-concurrent-downloads 50"
+
+enable_nodelocaldns: true
+resolvconf_mode: host_resolvconf
+nameservers:
+  - 10.22.30.15
+upstream_dns_servers:
+  - 10.22.30.15
+
+# Manual mode because we need to define custom zones in coredns
+dns_mode: coredns
+dns_memory_limit: 512Mi
+
+proxy_env: {}
+preinstall_selinux_state: disabled
+
+# If we have a docker registry without trusted SSL or http only, add here
+docker_insecure_registries:
+  - 54.202.5.61:5000
+
+# Change to match the network of nodes
+loadbalancer_apiserver:
+  address: 10.22.87.20
+  port: 8383
+
+# HAproxy and keepalived vars
+vrrp_nic: "enp134s0f1.287"
+

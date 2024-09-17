@@ -1,0 +1,102 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "magmad",
+    srcs = ["main.py"],
+    imports = [ORC8R_ROOT],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":magmad_lib",
+        "//orc8r/gateway/python/magma/common:grpc_client_manager",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/magmad/generic_command:command_executor",
+        "//orc8r/gateway/python/magma/magmad/upgrade:docker_upgrader",
+        "//orc8r/gateway/python/magma/magmad/upgrade:magma_upgrader",
+        "//orc8r/gateway/python/magma/magmad/upgrade:upgrader",
+    ],
+)
+
+py_library(
+    name = "magmad_lib",
+    srcs = [
+        "bootstrap_manager.py",
+        "config_manager.py",
+        "events.py",
+        "gateway_status.py",
+        "metrics_collector.py",
+        "proxy_client.py",
+        "rpc_servicer.py",
+        "service_health_watchdog.py",
+        "service_manager.py",
+        "state_reporter.py",
+        "sync_rpc_client.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":metrics",
+        ":service_poller",
+        "//orc8r/gateway/python/magma/common:cert_utils",
+        "//orc8r/gateway/python/magma/common:cert_validity",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+        "//orc8r/gateway/python/magma/common:sdwatchdog",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common:stateless_agw",
+        "//orc8r/gateway/python/magma/common:streamer",
+        "//orc8r/gateway/python/magma/magmad/check/kernel_check:kernel_versions",
+        "//orc8r/gateway/python/magma/magmad/check/machine_check:cpu_info",
+        "//orc8r/gateway/python/magma/magmad/check/network_check:routing_table",
+        "//orc8r/protos:bootstrapper_python_grpc",
+        "//orc8r/protos:magmad_python_grpc",
+        "//orc8r/protos:metricsd_python_grpc",
+        "//orc8r/protos:service303_python_grpc",
+        "//orc8r/protos:state_python_grpc",
+        "//orc8r/protos:sync_rpc_service_python_grpc",
+        "//orc8r/swagger:magmad_events_v1",
+        "@aioh2_repo//:aioh2",
+        requirement("requests"),
+    ],
+)
+
+py_library(
+    name = "metrics",
+    srcs = ["metrics.py"],
+    visibility = ["//visibility:public"],  # TODO restrict?
+    deps = [
+        "//orc8r/gateway/python/magma/common/health:service_state_wrapper",
+        "//orc8r/gateway/python/magma/magmad/check/network_check:ping",
+        requirement("psutil"),
+    ],
+)
+
+py_library(
+    name = "service_poller",
+    srcs = ["service_poller.py"],
+    visibility = ["//visibility:public"],  # TODO restrict?
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+    ],
+)

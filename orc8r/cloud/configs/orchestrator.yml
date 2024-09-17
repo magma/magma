@@ -1,0 +1,321 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+useGRPCExporter: true
+prometheusGRPCPushAddress: "prometheus-cache:9092"
+
+analytics:
+  # Metrics in this Orchestrator configuration should strictly be generic in
+  # nature independent of the type of deployment. It is to be also free of any
+  # user level metrics
+  metrics:
+    cpu_percent:
+      expr: avg_over_time(cpu_percent[{{.Duration}}])
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    process_uptime_seconds:
+      expr: process_uptime_seconds
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    free_memory:
+      expr: sum((1-(mem_available/mem_total)) * 100) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    disk_usage_percent:
+      expr: sum(disk_percent) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    process_virtual_memory_bytes:
+      expr: sum(process_virtual_memory_bytes) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    process_resident_memory_bytes:
+      expr: sum(process_resident_memory_bytes) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    virtual_memory_percent:
+      expr: sum(virtual_memory_percent) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    gateway_checkin_status:
+      expr: sum(checkin_status) by (gatewayID, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    unexpected_service_restarts:
+      expr: sum(increase(unexpected_service_restarts[{{.Duration}}])) by (service_name, networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    network_unavailable:
+      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined|mme|sctpd"}[{{.Duration}}])) by (networkID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    gateway_unavailable:
+      expr: sum(increase(unexpected_service_restarts{service_name=~"magmad|sessiond|pipelined|mme|sctpd"}[{{.Duration}}])) by (networkID, gatewayID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    temperature:
+      expr: avg(avg_over_time(temperature[{{.Duration}}])) by (networkID, gatewayID)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    #orc8r metrics
+    response_status:
+      expr: sum(sum_over_time(response_status[{{.Duration}}])) by (code)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    request_count:
+      expr: sum(request_count) by (service)
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_alertmanager_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: alertmanager
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_bootstrapper_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: bootstrapper
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_certifier_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: certifier
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_configurator_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: configurator
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_cwf_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: cwf
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_device_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: device
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_directoryd_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: directoryd
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_lte_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: lte
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_ha_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: ha
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_nginx_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: nginx
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_obsidian_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: obsidian
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_orchestrator_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: orchestrator
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_policydb_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: policydb
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_smsd_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: smsd
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_subscriber_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: subscriberdb
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_state_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: state
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_service_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: service
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_metricsd_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: metricsd
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    orc8r_prometheus_error_count:
+      logConfig:
+        tags:
+          kubernetes.container_name: prometheus
+        query: error
+      export: true
+      register: false
+      labels:
+        class: reliability
+
+    # state metrics
+    network_type:
+      register: false
+      export: true
+      labels:
+        class: network
+
+    gateway_version:
+      register: false
+      export: true
+      labels:
+        class: site

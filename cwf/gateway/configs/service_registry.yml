@@ -1,0 +1,96 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+services:
+  # NOTE: do NOT include dash(-) in your service name. Use underscore instead.
+  # Example service name that contains dash: hello-world-blah
+  # As we use "-" in nghttpx config to connect service name and hostname,
+  # "-" is used as a delimiter in dispatcher to parse out service names.
+
+  # IMPORTANT: If you change a port in this file, ensure that the health checks
+  # at magma/cwf/gateway/docker/docker-compose.yml are updated.
+  subscriberdb:
+    ip_address: 127.0.0.1
+    port: 50051
+  magmad:
+    ip_address: 127.0.0.1
+    port: 50052
+  control_proxy:
+    ip_address: 127.0.0.1
+    port: 50053
+  # TODO: Remove mobilityd by making pipelined's ServiceManager load configurable
+  mobilityd:
+    ip_address: 127.0.0.1
+    port: 60051
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  pipelined:
+    ip_address: 127.0.0.1
+    port: 50063
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  sessiond:
+    ip_address: 127.0.0.1
+    port: 50065
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  directoryd:
+    ip_address: 127.0.0.1
+    port: 50067
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  policydb:
+    ip_address: 127.0.0.1
+    port: 50068
+  redirectd:
+    ip_address: 127.0.0.1
+    port: 50071
+  state:
+    ip_address: 127.0.0.1
+    port: 50074
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  aaa_server:
+    ip_address: 127.0.0.1
+    port: 9109
+  abort_session_service:
+    ip_address: 127.0.0.1
+    port: 9109
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 9109
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
+  eap_sim:
+    ip_address: 127.0.0.1
+    port: 9118
+  eap_aka:
+    ip_address: 127.0.0.1
+    port: 9123
+  health:
+    ip_address: 127.0.0.1
+    port: 9107
+  radiusd:
+    ip_address: 127.0.0.1
+    port: 9115
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075
+  dpid:
+    ip_address: 127.0.0.1
+    port: 50077
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
+  monitord:
+    ip_address: 127.0.0.1
+    port: 50078

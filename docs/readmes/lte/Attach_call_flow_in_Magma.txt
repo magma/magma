@@ -1,0 +1,173 @@
+title Attach call flow in Magma
+
+entryspacing 0.2
+UE->eNB: Attach Request
+
+eNB->SCTP: Attach request
+
+SCTP->S1AP: Initial UE Message (contains Attach Request)\n      SCTP_DATA_IND
+
+note over S1AP:s1ap_mme.c: s1ap_mme_thread() //case SCTP_DATA_IND//\n  s1ap_mme_decoders.c: s1ap_mme_decode_pdu()\n    s1ap_mme_decode_initiating()\n      build/c/oai/tasks/s1ap/r10.5/s1ap_decoder.c: s1ap_decode_s1ap_initialuemessageies()\n  s1ap_mme_decoders.c: s1ap_mme_handle_message()\n    message_callback[][]\n    s1ap_mme_nas_procedures.c: s1ap_mme_handle_initial_ue_message()\n <color:#green>enb_ref = g_s1ap_enb_coll[assoc_id]\n enb_ue_s1ap_id = initial_ue_message->enb_ue_s1ap_id\n enb_ref.ue_coll[enb_ue_s1ap_id] = new(ue_description_t) ue_ref\n ue_ref->s1_ue_state = S1AP_UE_WAITING_CSR\n ue_ref->mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID</color>\n    s1ap_mme_itti_messaging.c: s1ap_mme_itti_messaging.c()
+
+S1AP->MME: S1AP_INITIAL_UE_MESSAGE
+
+note over MME:mme_app_main.c: //case S1AP_INITIAL_UE_MESSAGE//\n mme_app_bearer.c: mme_app_handle_initial_ue_message()\n  mme_app_context.c: mme_create_new_ue_context()\n  <color:#green>ue_context_p = new(ue_mm_context)</color>\n    <color:#red>nas/emm/emm_data_ctx.c: emm_init_context(ue_context_p->emm_context)\n      nas/esm/esm_data_context.c: esm_init_context(ue_context_p->emm_context->esm_ctx)</color>\n  mme_app_ue_context.c: mme_app_ctx_get_new_ue_id\n  <color:#green>  ue_context_p->mme_ue_s1ap_id = __sync_fetch_and_add(&mme_app_ue_s1ap_id_generator, 1)</color>\n  mme_app_context.c: mme_insert_ue_context()\n  <color:#green>  In mme_app_desc.mme_ue_contexts:\n      enb_ue_s1ap_id_ue_context_htbl[ue_context_p->enb_ue_s1ap_id] = ue_context_p->mme_ue_s1ap_id\n      mme_ue_s1ap_id_ue_context_htbl[ue_context_p->mme_ue_s1ap_id] = ue_context_p</color>
+
+MME->S1AP: MME_APP_S1AP_MME_UE_ID_NOTIFICATION\n(includes enb_ue_s1ap_id, mme_ue_s1ap_id, sctp_assoc_id)
+
+note over S1AP: s1ap_mme.c: s1ap_mme_thread() //case MME_APP_S1AP_MME_UE_ID_NOTIFICATION//\n <color:#blue>s1ap_mme_nas_procedures.c: s1ap_handle_mme_ue_id_notification()\n  s1ap_mme.c: s1ap_notified_new_ue_mme_s1ap_id_association()</color>\n <color:#green> g_s1ap_mme_id2assoc_id_coll[mme_ue_s1ap_id] = sctp_assoc_id_key</color>
+
+  note over MME: mme_app_bearer.c: mme_app_handle_initial_ue_message(contd..)\n<color:#red>nas/nas_proc.c: nas_proc_establish_ind()\n  nas/emm/sap/emm_sap.c: emm_sap_send(EMMAS_ESTABLISH_REQ)\n    nas/emm/emm_as.c: emm_as_send() //case _EMMAS_ESTABLISH_REQ//\n       _emm_as_establish_req()<color>\n<color:#green>      UE_UNREGISTERED, ECM_IDLE</color>\n   <color:#red>         nas_message_decode()\n            emm_recv.c: emm_recv_attach_request()\n            Attach.c: emm_proc_attach_request()\n               **emm_data_ctx.c: emm_init_context() //clear_emm_ctxt is true so called again//**\n               Attach.c_emm_attach_run_procedure()\n                   emm_data_ctx.c: emm_ctx_clear_security()\n                   emm_ctx_set_valid_imsi()\n                        mme_api.c: mme_api_notify_imsi()\n</color>                            mme_app_context.c: mme_ue_context_update_coll_keys()\n                                 _directoryd_report_location()\n                                       directoryd.cpp: directoryd_report_location()\n                   <color:#blue>emm_context_upsert_imsi()</color>\n                   <color:#red>Attach.c: _emm_start_attach_proc_authentication\n                   |  Authentication.c: emm_proc_authentication()\n                   |  | nas_procedures.c: nas_new_authentication_procedure()\n                   |  | nas_new_cn_auth_info_procedure()\n                   |  | Authentication.c: _start_authentication_information_procedure()\n                   |  |  | nas_itti_auth_info_req()\n</color>
+
+MME->S6A: Authentication Information Request
+
+note over S6A: s6a_task.c: s6a_thread() //case S6A_AUTH_INFO_REQ//\n| s6a_client_api.cpp: s6a_authentication_info_req()
+
+S6A->NAS: Authentication Information Answer
+note over NAS:nas_mme_task.c: nas_intertask_interface() //case S6A_AUTH_INFO_ANS//\n|  nas_proc.c: nas_proc_authentication_info_answer()\n|  | nas_proc_auth_param_res()\n|  |  | emm_sap.c: emm_sap_send(EMMCN_AUTHENTICATION_PARAM_RES)\n|  |  |  | emm_cn.c: emm_cn_send()\n|  |  |  |  | _emm_cn_authentication_res()\n|  |  |  |  |  | _auth_info_proc_success_cb()\n|  |  |  |  |  |  | <color:#green>Copy KASME, AUTN, RAND and XRES into emm_context->vector[]</color>\n|  |  |  |  |  |  | emm_sap.c: emm_sap_send(EMMREG_COMMON_PROC_ABORT) //dead code in this case but needed for re-sync//\n|  |  |  |  |  |  | Authentication.c: emm_proc_authentication_ksi()\n|  |  |  |  |  |  |  | <color:#green> Copy RAND, AUTN into emm_context->auth_proc_info</color>\n|  |  |  |  |  |  |  | _authentication_request()\n|  |  |  |  |  |  |  |  |  emm_as_set_security_data()<color:#blue> //No valid security context// </color>\n|  |  |  |  |  |  |  |  |  emm_sap_send(primitive:EMMAS_SECURITY_REQ, msg_type:EMM_AS_MSG_TYPE_AUTH)\n|  |  |  |  |  |  |  |  |  | emm_as_send -> _emm_as_send\n|  |  |  |  |  |  |  |  |  |  | _emm_as_security_req()\n|  |  |  |  |  |  |  |  |  |  |  |  emm_send_authentication_request() //<color:#blue>Only creates auth request, doesn't send</color>//\n|  |  |  |  |  |  |  |  |  |  |  |  _emm_as_encode()\n|  |  |  |  |  |  |  |  |  |  |  |  nas_emm_procedure_register_emm_message()\n|  |  |  |  |  |  |  |  |  |  |  |  |  nas_digest_msg()\n|  |  |  |  |  |  |  |  |  |  |  nas_itti_dl_data_req() <color:#orange>Send NAS_DOWNLINK_DATA_REQ msg</color>\n|  |  |  |  |  |  |  |  |  nas_start_T3460() <color:#orange>Timer 3460 started</color>\n|  |  |  |  |  |  |  |  emm_sap_send(EMMREG_COMMON_PROC_REQ)->\n         emm_reg_send()->emm_fsm_process() -> EmmDeregistered()\n<color:#green>EMM-DEREGISTERED ===> EMM-COMMON-PROCEDURE-INITIATED</color>
+
+NAS->MME: NAS_DOWNLINK_DATA_REQ (Authentication Request)
+
+note over MME: mme_app_main.c:mme_app_thread() //case NAS_DOWNLINK_DATA_REQ//\nmme_app_transport.c: mme_app_handle_nas_dl_req()\n| <color:#green>Store message in ue_context->sgs_context for NON_EPS detach types</color>
+
+MME->S1AP: S1AP_NAS_DL_DATA_REQ (enb_ue_s1ap_id,mme_ue_s1ap_id, nas_msg)
+
+note over MME: mme_app_transport.c: mme_app_handle_nas_dl_req()//(contd...)//\n| mme_ue_context_update_ue_sig_connection_state()\n|  | <color:#green>ue_context->ecm_state= ECM_CONNECTED</color>
+
+  note over S1AP:s1ap_mme.c: s1ap_mme_thread() //case S1AP_NAS_DL_DATA_REQ//\ns1ap_generate_downlink_nas_transport()\n|  <color:#green>ue_ref->s1_ue_state = S1AP_UE_CONNECTED</color>\n|  s1ap_mme_itti_send_sctp_request()
+
+S1AP->SCTP: SCTP_DATA_REQ
+
+SCTP->eNB: Authentication Request
+
+eNB->UE: Authentication Request
+
+UE->eNB: Authentication Response
+
+eNB->SCTP: Authentication Response
+
+SCTP->S1AP: Authentication response \n SCTP_DATA_IND
+
+note over S1AP: s1ap_mme.c: s1ap_mme_thread() //case SCTP_DATA_IND//\n| s1ap_mme_decode_pdu()\n|  |  s1ap_mme_decode_initiating()\n|  |  | build/c/oai/tasks/s1ap/r10.5/s1ap_decoder.c:s1ap_decode_s1ap_uplinknastransporties()\n| s1ap_mme_handle_message()\n|  |  s1ap_mme_handle_uplink_nas_transport()\n|  |  |  s1ap_mme_itti_nas_uplink_ind()
+
+S1AP->NAS: NAS_UPLINK_DATA_IND (Authentication Response)
+
+note over NAS:nas_intertask_interface() //case NAS_UPLINK_DATA_IND// <color:#red>MME thread also has this target</color>\n nas_proc_ul_transfer_ind()\n| emm_sap_send(EMMAS_DATA_IND)->emm_as_send()\n|  | _emm_as_data_ind()\n|  |  | nas_message_decrypt()//Plain msg found//\n|  |  | _emm_as_recv()\n|  |  |  | nas_message_decode()<color:#green> Update emm_context->_security->ul_count</color>\n|  |  |  | emm_recv_authentication_response()->emm_proc_authentication_complete()\n|  |  |  |  | nas_stop_T3460()\n|  |  |  |  | emm_ctx_set_security_eksi() <color:#green>Update emm_context->_security</color>\n|  |  |  |  | emm_sap_send(EMMREG_COMMON_PROC_CNF)....EmmCommonProcedureInitiated()\n|  |  |  |  |  | <color:#green>EMM-COMMON-PROCEDURE-INITIATED ===> EMM-DEREGISTERED</color>\n _emm_attach_success_authentication_cb()\n|  _emm_start_attach_proc_security()\n|  | emm_ctx_clear_security() <color:#green>Clear emm_context security</color>\n|  | emm_proc_security_mode_control()\n|  |  | nas_new_smc_procedure()\n|  |  | <color:#red>emm_context and smc_proc modified directly without a wrapper</color>\n|  |  | _security_request()\n|  |  |  | emm_as_set_security_data()\n|  |  |  | emm_sap_send(primitive:EMMAS_SECURITY_REQ, msg_type:EMM_AS_MSG_TYPE_SMC)\n......_emm_as_send()\n|  |  |  |  | _emm_as_security_req()\n|  |  |  |  |  | emm_send_security_mode_command()<color:#blue>//Only creates SMC, does not send//</color>\n|  |  |  |  |  |_emm_as_encode()\n|  |  |  |  |  | nas_emm_procedure_register_emm_message()\n|  |  |  |  |  nas_itti_dl_data_req() <color:#orange>Sends NAS_DOWNLINK_DATA_REQ</color>\n|  |  |  | nas_start_T3460() <color:#orange>Timer 3460 started</color>\n|  |  | emm_sap_send(EMMREG_COMMON_PROC_REQ)......EmmDeregistered()\n|  |  |  |  <color:#green> EMM-DEREGISTERED ===> EMM-COMMON-PROCEDURE-INITIATED </color>
+
+NAS->MME: NAS_DOWNLINK_DATA_REQ (Security Mode Command)
+
+note over MME: mme_app_handle_nas_dl_req()\n| <color:#green>Store message in ue_context->sgs_context for NON_EPS detach types</color>
+
+MME->S1AP: S1AP_NAS_DL_DATA_REQ
+
+note over S1AP: s1ap_generate_downlink_nas_transport()\n|  <color:#green>ue_ref->s1_ue_state = S1AP_UE_CONNECTED</color>\n|  s1ap_mme_itti_send_sctp_request()
+
+S1AP->SCTP: SCTP_DATA_REQ
+
+SCTP->eNB: Security Mode Command
+eNB->UE: Security Mode Command
+
+UE->eNB: Security Mode Complete
+eNB->SCTP: Security Mode Complete
+
+SCTP->S1AP: Security Mode Complete \n SCTP_DATA_IND
+
+note over S1AP: s1ap_mme.c: s1ap_mme_thread() //case SCTP_DATA_IND//\n| s1ap_mme_decode_pdu()\n|  |  s1ap_mme_decode_initiating()\n|  |  | build/c/oai/tasks/s1ap/r10.5/s1ap_decoder.c:s1ap_decode_s1ap_uplinknastransporties()\n| s1ap_mme_handle_message()\n|  |  s1ap_mme_handle_uplink_nas_transport()\n|  |  |  s1ap_mme_itti_nas_uplink_ind()
+
+S1AP->NAS: NAS_UPLINK_DATA_IND (Security Mode Complete)
+
+note over NAS:nas_intertask_interface() //case NAS_UPLINK_DATA_IND <color:#red>MME thread also has this target</color>//\nnas_proc_ul_transfer_ind()\n| emm_sap_send(EMMAS_DATA_IND)->emm_as_send()\n|  | _emm_as_data_ind()\n|  |  | nas_message_decrypt() //Integrity: MAC success//\n|  |  | _emm_as_recv()\n|  |  |  | nas_message_decode()\n|  |  |  | emm_recv_security_mode_complete()->emm_proc_security_mode_complete()\n|  |  |  |  | nas_stop_T3460() <color:#orange>Timer 3460 stopped</color>\n|  |  |  |  | emm_sap_send(EMMREG_COMMON_PROC_CNF)...EmmCommonProcedureInitiated()\n|  |  |  |  |  | <color:#green>EMM-COMMON-PROCEDURE-INITIATED ===> EMM-DEREGISTERED</color>\n_emm_attach_success_security_cb()\n| _emm_attach()\n|  | esm_sap_send(ESM_UNITDATA_IND)->_esm_sap_recv()\n|  |  | esm_msg_decode()\n|  |  |  |  esm_msg_decode_header()\n|  |  |  |  | decode_pdn_connectivity_request()\n|  |  | esm_recv_pdn_connectivity_request()<color:#red> Modifies emm_context without wrapper</color>\n|  |  |  | nas_itti_pdn_config_req()
+
+NAS->MME: NAS_PDN_CONFIG_REQ (imsi, imsi_length, ue_id, IPv4)
+
+note over MME: mme_app_thread() //case NAS_PDN_CONFIG_REQ//\nmme_app_send_s6a_update_location_req()\n <color:#orange> Start ue_context->ulr_response_timer</color>
+
+MME->S6A: S6A_UPDATE_LOCATION_REQ (INITIAl_ATTACH, imsi, visited_plmn, rat_type)
+
+note over S6A: s6a_thread() //case S6A_UPDATE_LOCATION_REQ //\n s6a_update_location_req()\n <color:#orange> Communicates with FEG </color>
+
+S6A->MME: S6A_UPDATE_LOCATION_ANS
+
+note over MME: mme_app_thread() //case S6A_UPDATE_LOCATION_ANS//\n mme_app_handle_s6a_update_location_ans()\n<color:#green>update ue_context subscription status and plan\nSet mobile reachability timer value and implicit detach timer value</color>\n<color:#orange>Stop ue_context->ulr_response_timer</color>
+
+MME->NAS: NAS_PDN_CONFIG_RSP
+
+note over NAS: nas_intertask_interface() //case NAS_PDN_CONFIG_RSP//\nnas_proc_pdn_config_res()\n|  emm_sap_send(EMMCN_PDN_CONFIG_RES)->emm_cn_send()\n|  |  _emm_cn_pdn_config_res()<color:#red>Modifies emm_context without wrapper</color>\n|  |  | mme_app_select_apn()\n|  |  | esm_proc_pdn_connectivity_request()\n|  |  |  | _pdn_connectivity_create()\n|  |  |  |  |  mme_app_create_pdn_context()\n|  |  |  |  |  | mme_app_get_apn_config()\n|  |  |  |  |  | mme_app_pdn_context_init() <color:#green>Allocates new ue_context-> pdn_context</color>\n|  |  | esm_proc_default_eps_bearer_context()\n|  |  |  | esm_ebr_assign()\n|  |  |  | esm_ebr_context_create()\n|  |  | nas_itti_pdn_connectivity_req()
+
+NAS->MME: NAS_PDN_CONNECTIVITY_REQ (pdn_cid, ue_id, imsi, pti, apn, pdn_type= IPv4)
+
+note over MME: mme_app_thread() //case NAS_PDN_CONNECTIVITY_REQ//\nmme_app_handle_nas_pdn_connectivity_req()\n| <color:#green>ue_context_p->imsi_auth = IMSI_AUTHENTICATED</color>\n| mme_app_send_s11_create_session_req()\n|  |  <color:#orange>Read SGW ip addr from mme_config</color>\n|  | mme_ue_context_update_coll_keys()\n|  |  | <color:#green>Update s11_teid_t in mme_ue_contexts hashtable</color>\n|  |  | _directoryd_report_location()\n|  | mme_app_get_apn_config()\n|  | mme_app_select_sgw()               <color:#blue>Returns 0.0.0.0</color>\n|  |  | mme_app_edns_get_sgw_entry()
+
+MME->SPGW: S11_CREATE_SESSION_REQUEST
+
+note over SPGW: sgw_intertask_interface() //case S11_CREATE_SESSION_REQUEST//\nsgw_handle_create_session_request()\n| sgw_cm_create_s11_tunnel(, sgw_get_new_S11_tunnel_id())\n|  |  <color:#green>Insert new tunnel id in sgw_app.s11teid2mme_hashtable</color>\n| sgw_cm_create_bearer_context_information_in_collection()\n|  |  <color:#green>Create new hashtable for APNs in pgw_eps_bearer_context_information</color>\n|  | <color:#green> Insert new tunnel id into sgw_app.s11_bearer_context_information_hashtable</color>\n| sgw_cm_create_eps_bearer_ctxt_in_collection()
+
+SPGW->PGW: S5_CREATE_BEARER_REQUEST
+
+note over PGW: pgw_intertask_interface()//case S5_CREATE_BEARER_REQUEST//\n| pgw_handle_create_bearer_request()\n|  | <color:#green>Update s_gw_teid_S1u_S12_S4_up in eps_bearer_context\n     in s11_bearer_context_information_hashtable</color>\n|  | allocate_ue_ipv4_address()
+
+PGW->SPGW: S5_CREATE_BEARER_RESPONSE
+
+note over SPGW: sgw_intertask_interface() //case S5_CREATE_BEARER_RESPONSE//\nsgw_handle_s5_create_bearer_response()\n| sgw_handle_sgi_endpoint_created()\n|  |  sgw_cm_get_eps_bearer_entry()\n|  |  <color:#green>Update the PDN address\n      in s11_bearer_context_information_hashtable</color>
+
+SPGW->MME: S11_CREATE_SESSION_RESPONSE
+
+note over MME: mme_app_thread() //case S11_CREATE_SESSION_RESPONSE//\nmme_app_handle_create_sess_resp()\n| mme_app_get_bearer_context()\n| update_mme_app_stats_default_bearer_add()\n|  | <color:#green>Increment mme_app_desc.nb_default_eps_bearers\n     and mme_app_desc.nb_eps_bearers_established_since_last_stat\n     For default bearer (index 0)\n     update the s_gw_teid_s11_s4 in ue_context->pdn_context\n     Update ue_context->bearer_contexts[bearer_id]</color>
+
+MME->NAS: NAS_PDN_CONNECTIVITY_RSP (ue_id, pdn_addr, pdn_cid, qci, bearer_id, ...)
+
+note over NAS: nas_mme_task.c //case NAS_PDN_CONNECTIVITY_RSP//\nnas_proc_pdn_connectivity_res()\n| emm_sap_send(EMMCN_PDN_CONNECTIVITY_RES)\n|  | emm_cn_send() -> **_emm_cn_pdn_connectivity_res()**\n|  |  | esm_send_activate_default_eps_bearer_context_request()\n        //<color:#blue>Creates the msg but doesn't send it</color>//\n|  |  | esm_msg_encode()\n|  |  | esm_proc_default_eps_bearer_context_request()\n|  |  |  | esm_ebr_set_status()\n|  |  |  |  | <color:#green>BEARER CONTEXT INACTIVE ===> BEARER CONTEXT ACTIVE PENDING</color>\n|  |  |  |  | <color:#green>change status of esm_ebr_context in ue_context->bearer_contexts</color>\n|  |  |  emm_cn_wrapper_attach_accept()-> **_emm_send_attach_accept()**\n|  |  |  | _emm_attach_update()\n|  |  |  |  <color:#green> Update ksi, network capabilities and tai, etc.</color>\n|  |  |  |  mme_api_new_guti()<color:#green> Update is_guti_set and TAI list in emm_context</color>\n|  |  |  | <color:#green>Set guti in emm_context</color>\n|  |  |  |  emm_sap_send(EMMAS_ESTABLISH_CNF)->emm_as_send()->_emm_as_send()\n|  |  |  |  | _emm_as_establish_cnf()\n|  |  |  |  |  |  emm_send_attach_accept() //<color:#blue>Creates the message but doesn't send it</color>//\n|  |  |  |  |  | _emm_as_encode()\n|  |  |  |  |  nas_itti_establish_cnf() <color:#orange> Sends NAS_CONNECTION_ESTABLISHMENT_CNF</color>\n|  |  |  |  <color:#orange>TImer 3450 started</color>
+
+NAS->MME: NAS_CONNECTION_ESTABLISHMENT_CNF
+
+note over MME: mme_app_thread() //case NAS_CONNECTION_ESTABLISHMENT_CNF//\nmme_app_handle_conn_est_cnf()\n| <color:#orange> Send MME_APP_CONNECTION_ESTABLISHMENT_CNF\n   Start guard timer for Initial Context Setup Request </color>
+
+MME->S1AP: MME_APP_CONNECTION_ESTABLISHMENT_CNF
+
+note over S1AP: s1ap_mme_thread() //case MME_APP_CONNECTION_ESTABLISHMENT_CNF//\ns1ap_handle_conn_est_cnf()\n| s1ap_mme_encode_pdu()\n| s1ap_mme_itti_send_sctp_request()
+
+S1AP->SCTP: SCTP_DATA_REQ
+
+SCTP->eNB: Initial Context Setup Request
+
+eNB->UE: Initial Context Setup Request\n(Attach Accept)
+
+
+
+eNB->SCTP: Initial Context Setup Response
+
+SCTP->S1AP: SCTP_DATA_IND
+
+note over S1AP: s1ap_mme_thread() //case SCTP_DATA_IND//\n| s1ap_mme_decode_pdu()\n| s1ap_mme_handle_message()\n|  | s1ap_mme_handle_initial_context_setup_response()\n|  |  |  <color:#green>ue_ref->s1_ue_state = S1AP_UE_CONNECTED
+
+S1AP->MME: MME_APP_INITIAL_CONTEXT_SETUP_RSP
+
+note over MME: mme_app_thread() //case MME_APP_INITIAL_CONTEXT_SETUP_RSP//\nmme_app_handle_initial_context_setup_rsp()\n| <color:#orange>Stop Initial context setup process guard timer</color>
+
+MME->SPGW: S11_MODIFY_BEARER_REQUEST
+
+note over SPGW: sgw_intertask_interface() //case S11_MODIFY_BEARER_REQUEST//\nsgw_handle_modify_bearer_request()\n| sgw_handle_sgi_endpoint_updated()\n|  |  gtp_tunnel_ops->add_tunnel()\n|  |  | openflow_add_tunnel()
+
+UE->eNB: UE Capabilities
+
+eNB->SCTP: UE Capabilities
+
+SCTP->S1AP: SCTP_DATA_IND
+
+note over S1AP:s1ap_mme_thread() //case SCTP_DATA_IND//\n| s1ap_mme_decode_pdu()\n| s1ap_mme_handle_message()\n|  |  s1ap_mme_handle_ue_cap_indication()
+
+S1AP->MME: S1AP_UE_CAPABILITIES_IND
+
+note over MME: mme_app_thread() //case S1AP_UE_CAPABILITIES_IND//\nmme_app_handle_s1ap_ue_capabilities_ind()\n| <color:#green>Update UR radio capability in ue_context</color>
+
+UE->eNB: Attach Complete
+
+eNB->SCTP: Attach Complete
+
+SCTP->S1AP: SCTP_DATA_IND
+
+note over S1AP: s1ap_mme_thread() //case SCTP_DATA_END//\n| s1ap_mme_decode_pdu()\n| s1ap_mme_handle_message()\n|  | s1ap_mme_handle_uplink_nas_transport()\n|  |  | s1ap_mme_itti_nas_uplink_ind()
+
+S1AP->NAS: NAS_UPLINK_DATA_IND
+
+note over NAS: nas_intertask_interface() //case NAS_UPLINK_DATA_IND//\n| nas_proc_ul_transfer_ind() -> emm_sap_send(EMMAS_DATA_IND)\n  -> emm_as_send()->_emm_as_data_ind()\n|  |  nas_message_decrypt()//Integrity and ciphered//\n|  |  _emm_as_recv()\n|  |  | nas_message_decode()\n|  |  | emm_recv_attach_complete()-> **emm_proc_attach_complete()**\n|  |  |  | esm_sap_send(ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF)\n|  |  |  |  | _esm_sap_recv(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT)\n|  |  |  |  |  | esm_msg_decode()\n|  |  |  |  |  | esm_recv_activate_default_eps_bearer_context_accept()\n|  |  |  |  |  |  | esm_proc_default_eps_bearer_context_accept()\n|  |  |  |  |  |  |  | esm_ebr_stop_timer() //<color:#blue> No timer to be stopped</color>//\n|  |  |  |  |  |  |  | esm_ebr_set_status()\n|  |  |  |  |  |  |  |  |<color:#green> BEARER CONTEXT ACTIVE PENDING ===> BEARER CONTEXT ACTIVE</color>\n|  |  |  | emm_sap_send(EMMREG_ATTACH_CNF)-> emm_reg_send()-> emm_fsm_process()\n           ->EmmDeregistered()\n|  |  |  |  | nas_delete_attach_procedure() <color:#orange> Timer 3450 stopped </color>\n|  |  |  |  | emm_fsm_set_state() <color:#green>Updates both ue_context and emm_context</color> \n|  |  |  |  |  | <color:#green>EMM-DEREGISTERED ===> EMM-REGISTERED</color>\n|  |  |  | emm_proc_emm_informtion()\n|  |  |  |  | _emm_information_pack_gsm_7Bit(long_network_name)\n|  |  |  |  | _emm_information_pack_gsm_7Bit(short network name)\n|  |  |  |  |  emm_as_set_security_data()\n|  |  |  |  | emm_sap_send(EMMAS_DATA_REQ)->emm_as_send()->_emm_as_send()\n            -> **_emm_as_data_req()**\n|  |  |  |  |  |.....

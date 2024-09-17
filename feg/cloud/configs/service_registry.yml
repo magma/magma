@@ -1,0 +1,64 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+services:
+  feg:
+    host: "localhost"
+    port: 9114
+    protected_port: 9214
+    echo_port: 10114
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/feg,
+        /magma/v1/feg_lte,
+
+  feg_relay:
+    host: "localhost"
+    port: 9103
+    proxy_type: "clientcert"
+    proxy_aliases:
+      s6a_proxy:
+        port: 9103
+      s8_proxy:
+        port: 9103
+      session_proxy:
+        port: 9103
+      n7_n40_proxy:
+        port: 9103
+      swx_proxy:
+        port: 9103
+      csfb:
+        port: 9079
+      feg_hello:
+        port: 9103
+      ocs:
+        port: 9079
+      pcrf:
+        port: 9079
+      hss:
+        port: 9079
+
+  health:
+    host: "localhost"
+    port: 9107
+    protected_port: 9207
+    proxy_type: "clientcert"
+
+  base_acct:
+    host: "localhost"
+    port: 9119
+    proxy_type: "clientcert"

@@ -1,0 +1,34 @@
+# Map file for the include-what-you-use tool
+# Should be used like this: 
+# iwyu_tool.py -p $MAGMA_ROOT/compile_commands.json orc8r/gateway/c -- -Xiwyu --mapping_file=$MAGMA_ROOT/tools/iwyu.imp | tee $TMP_FILE
+# fix_includes.py < $TMP_FILE -b --reorder 
+[
+    { include: ["<nlohmann/detail/iterators/iter_impl.hpp>", "private", "<nlohmann/json.hpp>", "public"] },
+    { include: ["<nlohmann/json_fwd.hpp>", "private", "<nlohmann/json.hpp>", "public"] },
+    
+    { include: ["<grpcpp/impl/codegen/async_unary_call.h>", "private", "<grpcpp/channel.h>", "public"] },
+    
+    { include: ["@<pcap/.*>", "private", "<pcap.h>", "public"] },
+
+    # yaml-cpp, the list of files are taken from yaml-cpp/yaml.h
+    { include: ["<yaml-cpp/parser.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
+    { include: ["<yaml-cpp/emitter.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
+    { include: ["<yaml-cpp/emitterstyle.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
+    { include: ["<yaml-cpp/stlemitter.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
+    { include: ["<yaml-cpp/exceptions.h>", "private", "<yaml-cpp/yaml.h>", "public"] },
+    { include: ["@<yaml-cpp/node/.*>", "private", "<yaml-cpp/yaml.h>", "public"] },
+
+    # folly
+    { include: ["<folly/dynamic-inl.h>", "private", "<folly/dynamic.h>", "public"] },
+    { include: ["<folly/lang/Assume-inl.h>", "private", "<folly/lang/Assume.h>", "public"] },
+
+    # Google test / mock / flags / log
+    { include: ["@<gtest/.*>", "private", "<gtest/gtest.h>", "public"] },
+    { include: ["@<gmock/.*>", "private", "<gmock/gmock.h>", "public"] },
+    { include: ["@\"gflags/.*\"", "private", "<gflags/gflags.h>", "public"] },
+    { include: ["@\"glog/.*\"", "private", "<glog/logging.h>", "public"] },
+
+    # magma
+    { include: ["@\"lte/gateway/c/core/oai/include/.*.messages_types.h\"", "private", "\"lte/gateway/c/core/oai/include/messages_types.h\"", "public"] },
+    { include: ["@\"lte/gateway/c/core/oai/include/.*.messages_def.h\"", "private", "\"lte/gateway/c/core/oai/include/messages_def.h\"", "public"] },
+]

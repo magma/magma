@@ -1,0 +1,54 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.prometheus.create }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "metrics.fullname" . }}-storeconfig
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+{{ include "metrics.labels" . | indent 4 }}
+spec:
+  template:
+    metadata:
+      name: {{ template "metrics.fullname" . }}-storeconfig
+      labels:
+{{ include "metrics.labels" . | indent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: storeconfig
+          image: alpine:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              apk update && apk add --no-cache coreutils
+              cp -n /mnt/defaults/alertmanager.yml /mnt/configs/
+              mkdir -p /mnt/configs/alert_rules && chmod +x /mnt/configs/alert_rules
+              cp -n /mnt/defaults/*rules.yml /mnt/configs/alert_rules/
+          volumeMounts:
+            - name: defaults
+              mountPath: /mnt/defaults
+            - name: configs
+              mountPath: /mnt/configs
+      volumes:
+        - name: defaults
+          configMap:
+            name: {{ template "metrics.fullname" . }}-defaultconfig
+        - name: configs
+{{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
+{{- end }}

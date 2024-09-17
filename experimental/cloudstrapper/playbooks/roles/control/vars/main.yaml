@@ -1,0 +1,16 @@
+---
+
+dirTerraform: "{{ dirLocalInventory }}/{{ orc8rClusterName }}/terraform"
+localTerraformDir: "{{ dirTerraform }}/.terraform/modules/orc8r/orc8r/cloud/deploy/terraform/"
+localTerraformAppDir: "{{ dirTerraform }}/.terraform/modules/orc8r-app/orc8r/cloud/deploy/terraform/"
+
+orc8rSource: "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref={{ orc8rVersion }}"
+orc8rAppSource: "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref={{ orc8rVersion }}"
+
+#Terraform variables
+#
+
+nmsDbPassword: testpassword
+orc8rDbPassword: testpassword
+helmRepo: "{{ gitHelmRepo }}"
+orc8rTag: "{{ orc8rLabel }}"

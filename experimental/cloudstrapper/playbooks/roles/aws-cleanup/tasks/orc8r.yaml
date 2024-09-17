@@ -1,0 +1,47 @@
+---
+
+- include_tasks: orc8r-es.yaml
+  tags: es
+
+- include_tasks: orc8r-eks.yaml
+  tags: eks
+
+- include_tasks: orc8r-ec2-asg.yaml
+  tags: asg
+
+- include_tasks: orc8r-elb.yaml
+  tags: elb
+
+- include_tasks: orc8r-rds.yaml
+  tags: rds
+
+    #There may be no snapshots
+- include_tasks: orc8r-rds-snapshots.yaml
+  tags: [ never, ndssnap ]
+
+- include_tasks: orc8r-efs.yaml
+  tags: efs
+
+- include_tasks: orc8r-secrets.yaml
+  tags: secrets
+
+- include_tasks: orc8r-cloudwatch.yaml
+  tags: cloudwatch
+
+- include_tasks: orc8r-natgw.yaml
+  tags: natgw
+
+- include_tasks: orc8r-igw.yaml
+  tags: igw
+
+- include_tasks: orc8r-eni-subnet-route.yaml
+  tags: subnet
+
+- include_tasks: orc8r-secgroup.yaml
+  tags: secgroup
+
+- include_tasks: orc8r-vpc.yaml
+  tags: vpc
+
+- include_tasks: orc8r-sns.yaml
+  tags: sns

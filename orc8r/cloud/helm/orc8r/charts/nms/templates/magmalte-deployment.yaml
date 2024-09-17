@@ -1,0 +1,144 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- if .Values.magmalte.create }}
+{{- $envAll := . }}
+
+{{- $saNamespace := $envAll.Release.Namespace }}
+{{- $serviceAccountName := printf "%s" .Release.Name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nms-magmalte
+  labels:
+{{ include "default-labels" . | indent 4 }}
+{{ include "magmalte-image-version-label" . | indent 4 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+spec:
+  replicas: {{ .Values.magmalte.replicas }}
+  selector:
+    matchLabels:
+{{ include "magmalte-image-version-label" . | indent 6 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 8 }}
+{{ include "magmalte-image-version-label" . | indent 8 }}
+      annotations:
+{{ include "release-name-annotation" . | indent 8 }}
+    spec:
+      {{- if .Values.rbac }}
+      serviceAccountName: {{ $serviceAccountName }}
+      {{- end }}
+      {{- with .Values.magmalte.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.magmalte.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.magmalte.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: 60
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: nms-app
+          image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
+          imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
+          resources:
+{{ toYaml .Values.magmalte.resources | indent 12 }}
+          args:
+            - yarn
+            - run
+            - start:prod
+          env:
+            {{- if .Values.certs.enabled }}
+            - name: API_CERT_FILENAME
+              value: /var/opt/magma/certs/admin-operator/tls.crt
+            - name: API_PRIVATE_KEY_FILENAME
+              value: /var/opt/magma/certs/admin-operator/tls.key
+            {{- else }}
+            - name: API_CERT_FILENAME
+              value: /run/secrets/admin_operator.pem
+            - name: API_PRIVATE_KEY_FILENAME
+              value: /run/secrets/admin_operator.key.pem
+            {{- end }}
+            - name: API_HOST
+              value: {{ .Values.magmalte.env.api_host | quote }}
+            - name: HOST
+              value: {{ .Values.magmalte.env.host | quote }}
+            - name: PORT
+              value: {{ .Values.magmalte.env.port | quote }}
+            - name: MYSQL_DB
+              value: {{ .Values.magmalte.env.mysql_db | quote }}
+            - name: MYSQL_HOST
+              value: {{ .Values.magmalte.env.mysql_host | quote }}
+            - name: MYSQL_PORT
+              value: {{ .Values.magmalte.env.mysql_port | quote }}
+            - name: MYSQL_DIALECT
+              value: {{ .Values.magmalte.env.mysql_dialect | quote }}
+            - name: MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magmalte-mysql-secrets
+                  key: MYSQL_PASS
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: magmalte-mysql-secrets
+                  key: MYSQL_USER
+            - name: USER_GRAFANA_ADDRESS
+              value: {{ .Values.magmalte.env.grafana_address }}
+          livenessProbe:
+            exec:
+              command:
+              - curl
+              - http://localhost:8081/healthz
+            initialDelaySeconds: 60
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            {{- if .Values.certs.enabled }}
+            - name: admin-operator
+              mountPath: /var/opt/magma/certs/admin-operator/
+              readOnly: true
+            {{- else }}
+            - name: orc8r-secrets-certs
+              mountPath: /run/secrets/admin_operator.pem
+              subPath: {{ .Values.magmalte.deployment.spec.operator_cert_name }}
+            - name: orc8r-secrets-certs
+              mountPath: /run/secrets/admin_operator.key.pem
+              subPath: {{ .Values.magmalte.deployment.spec.operator_key_name }}
+            {{- end }}
+      volumes:
+        {{- if .Values.certs.enabled }}
+        - name: admin-operator
+          secret:
+            secretName: {{ .Release.Name }}-admin-operator-tls
+        {{- else }}
+        - name: orc8r-secrets-certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        {{- end }}
+            defaultMode: 0444
+{{- end }}

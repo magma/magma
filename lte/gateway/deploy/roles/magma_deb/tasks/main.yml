@@ -1,0 +1,176 @@
+---
+################################################################################
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Enable IP forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+
+- name: Setting magma environment variables
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - MAGMA_ROOT=/home/vagrant/magma/
+    - MAGMA_DEV_MODE=1
+
+- name: Create python binary directory
+  file:
+    path: /home/vagrant/build/python/bin
+    state: directory
+    recurse: yes
+
+# Fake python environment so magma_test ssh calls on activate will not fail
+- name: Create python activate file
+  file:
+    path: /home/vagrant/build/python/bin/activate
+    state: touch
+
+# Make magma_test ssh calls on python3 possible
+- name: Link python3 binary
+  file:
+    src: /usr/bin/python3
+    dest: /home/vagrant/build/python/bin/python3
+    state: link
+    force: yes
+
+- name: Copy preferences file for backports
+  copy:
+    src: magma-preferences
+    dest: /etc/apt/preferences.d/magma-preferences
+
+- name: Change network settings
+  ansible.builtin.shell: sudo bash /home/vagrant/magma/lte/gateway/deploy/agw_network_ubuntu.sh
+
+- name: Reboot the machine (Wait for 180s)
+  ansible.builtin.reboot:
+    reboot_timeout: 180
+
+- name: Install magma
+  ansible.builtin.shell: |
+    export MAGMA_PACKAGE="{{ MAGMA_PACKAGE }}"
+    sudo -E bash /home/vagrant/magma/lte/gateway/deploy/agw_install_ubuntu_vm.sh
+
+- name: Copy ssh configuration
+  copy:
+    src: /home/vagrant/magma/lte/gateway/deploy/roles/dev_common/files/sshd_config
+    dest: /etc/ssh
+    remote_src: yes
+    force: yes
+
+- name: Reload ssh
+  become: yes
+  service:
+    name: ssh
+    state: reloaded
+
+- name: Create configuration directory
+  file:
+    path: /var/opt/magma/configs
+    state: directory
+    recurse: yes
+
+- name: Use non-production control proxy configuration
+  file:
+    src: /home/vagrant/magma/lte/gateway/configs/control_proxy.yml
+    dest: /var/opt/magma/configs/control_proxy.yml
+    state: link
+    force: yes
+
+- name: Create test certificates directory
+  file:
+    path: /home/vagrant/magma/.cache/test_certs
+    state: directory
+
+- name: Generate the cloud VM's certs if they are not already generated
+  command: '/home/vagrant/magma/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca /home/vagrant/magma/.cache/test_certs'
+  args:
+    creates: '/home/vagrant/magma/.cache/test_certs/rootCA.pem'
+
+- name: Create test certificates directory
+  file:
+    path: /var/opt/magma/certs/
+    state: directory
+    recurse: yes
+
+- name: Copy test certificates
+  copy:
+    src: "/home/vagrant/magma/.cache/test_certs/rootCA{{ item }}"
+    dest: /var/opt/magma/certs/
+    remote_src: yes
+  with_items:
+    - .key
+    - .pem
+
+- name: Override pipelined and sessiond production configuration
+  file:
+    src: "/home/vagrant/magma/lte/gateway/configs/{{ item }}"
+    dest: "/etc/magma/{{ item }}"
+    state: link
+    force: yes
+  loop:
+    - pipelined.yml
+    - sessiond.yml
+
+- name: Ensure changes in repository are used in services
+  file:
+    src: "/home/vagrant/magma/lte/gateway/configs/{{ item }}"
+    dest: "/etc/magma/{{ item }}"
+    state: link
+    force: yes
+  loop:
+    - templates/mme.conf.template
+    - gateway.mconfig
+
+- name: Override production service configurations with test configurations
+  copy:
+    src: "/home/vagrant/magma/{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dest }}"
+    remote_src: yes
+  with_items:
+    - { src: 'orc8r/tools/ansible/roles/gateway_services/files/magma.service', dest: 'magma@.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_connectiond.service', dest: 'magma@connectiond.service' }
+    - { src: 'orc8r/tools/ansible/roles/gateway_services/files/magma_control_proxy.service', dest: 'magma@control_proxy.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_ctraced.service', dest: 'magma@ctraced.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_dnsd.service', dest: 'magma@dnsd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_envoy_controller.service', dest: 'magma@envoy_controller.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_eventd.service', dest: 'magma@eventd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_liagentd.service', dest: 'magma@liagentd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_lighttpd.service', dest: 'magma@lighttpd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_magmad.service', dest: 'magma@magmad.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_mme.service', dest: 'magma@mme.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_mobilityd.service', dest: 'magma@mobilityd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_pipelined.service', dest: 'magma@pipelined.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_redirectd.service', dest: 'magma@redirectd.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_redis.service', dest: 'magma@redis.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_sessiond.service', dest: 'magma@sessiond.service' }
+    - { src: 'orc8r/tools/ansible/roles/fluent_bit/files/magma_td-agent-bit.service', dest: 'magma@td-agent-bit.service' }
+    - { src: 'lte/gateway/deploy/roles/magma/files/systemd/magma_dp_envoy.service', dest: 'magma_dp@envoy.service' }
+
+- name: link python ipv6 config script that is only used for tests and not deployed
+  file:
+    src: /home/vagrant/magma/lte/gateway/python/scripts/config_iface_for_ipv6.py
+    dest: /usr/local/bin/config_iface_for_ipv6.py
+    state: link
+    force: yes

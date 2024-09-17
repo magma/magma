@@ -1,0 +1,145 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "all_requirements")
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_pyvenv//:venv.bzl", "py_venv")
+
+lte_protos = [
+    # List generated with bazel query 'kind(py_library, //lte/protos:*) | sed 's/.*/    "&",/'
+    "//lte/protos:abort_session_python_grpc",
+    "//lte/protos:apn_python_proto",
+    "//lte/protos:diam_errors_python_proto",
+    "//lte/protos:enodebd_python_grpc",
+    "//lte/protos:enodebd_python_proto",
+    "//lte/protos:ha_service_python_grpc",
+    "//lte/protos:keyval_python_proto",
+    "//lte/protos:mconfigs_python_proto",
+    "//lte/protos:mobilityd_python_grpc",
+    "//lte/protos:mobilityd_python_proto",
+    "//lte/protos:pipelined_python_grpc",
+    "//lte/protos:pipelined_python_proto",
+    "//lte/protos:policydb_python_grpc",
+    "//lte/protos:policydb_python_proto",
+    "//lte/protos:s1ap_service_python_grpc",
+    "//lte/protos:s6a_service_python_grpc",
+    "//lte/protos:s6a_service_python_proto",
+    "//lte/protos:session_manager_python_grpc",
+    "//lte/protos:session_manager_python_proto",
+    "//lte/protos:sms_orc8r_python_grpc",
+    "//lte/protos:spgw_service_grpc_proto",
+    "//lte/protos:spgw_service_python_grpc",
+    "//lte/protos:subscriberauth_python_grpc",
+    "//lte/protos:subscriberdb_python_grpc",
+    "//lte/protos:subscriberdb_python_proto",
+]
+
+lte_oai_protos = [
+    # List generated with bazel query 'kind(py_library, //lte/protos/oai:*) | sed 's/.*/    "&",/'
+    "//lte/protos/oai:common_types_python_proto",
+    "//lte/protos/oai:mme_nas_state_python_proto",
+    "//lte/protos/oai:nas_state_python_proto",
+    "//lte/protos/oai:s1ap_state_python_proto",
+    "//lte/protos/oai:spgw_state_python_proto",
+    "//lte/protos/oai:std_3gpp_types_python_proto",
+]
+
+orc8r_protos = [
+    # List generated with bazel query 'kind(py_library, //orc8r/protos/...:*) | sed 's/.*/    "&",/'
+    "//orc8r/protos:bootstrapper_python_grpc",
+    "//orc8r/protos:certifier_python_proto",
+    "//orc8r/protos:common_python_proto",
+    "//orc8r/protos:ctraced_python_grpc",
+    "//orc8r/protos:digest_python_proto",
+    "//orc8r/protos:directoryd_python_grpc",
+    "//orc8r/protos:eventd_python_grpc",
+    "//orc8r/protos:identity_python_proto",
+    "//orc8r/protos:magmad_python_grpc",
+    "//orc8r/protos:magmad_python_proto",
+    "//orc8r/protos:mconfig_python_proto",
+    "//orc8r/protos:mconfigs_python_proto",
+    "//orc8r/protos:metrics_python_proto",
+    "//orc8r/protos:metricsd_python_grpc",
+    "//orc8r/protos:metricsd_python_proto",
+    "//orc8r/protos:redis_python_proto",
+    "//orc8r/protos:service303_python_grpc",
+    "//orc8r/protos:service303_python_proto",
+    "//orc8r/protos:service_status_python_proto",
+    "//orc8r/protos:state_python_grpc",
+    "//orc8r/protos:streamer_python_grpc",
+    "//orc8r/protos:sync_rpc_service_python_grpc",
+]
+
+feg_protos = [
+    # List generated with bazel query 'kind(py_library, //feg/protos/...:*)' | sed 's/.*/    "&",/'
+    "//feg/protos:csfb_python_grpc",
+    "//feg/protos:csfb_python_proto",
+    "//feg/protos:envoy_controller_python_grpc",
+    "//feg/protos:hello_python_grpc",
+    "//feg/protos:hss_service_python_grpc",
+    "//feg/protos:hss_service_python_proto",
+    "//feg/protos:mconfigs_python_proto",
+    "//feg/protos:mock_core_python_grpc",
+    "//feg/protos:s6a_proxy_grpc_proto",
+]
+
+dp_protos = [
+    # List generated with bazel query 'kind(py_library, //dp/protos/...:*)' | sed 's/.*/    "&",/'
+    "//dp/protos:cbsd_python_grpc",
+    "//dp/protos:cbsd_python_proto",
+]
+
+swagger_models = [
+    # List generated with bazel query 'kind(py_swagger, //...:*)' | sed 's/.*/    "&",/'
+    "//orc8r/swagger:magmad_events_v1",
+]
+
+all_protos = lte_protos + lte_oai_protos + orc8r_protos + feg_protos + dp_protos
+
+external_python_libs = [
+    "@aioh2_repo//:aioh2",
+    "@ryu_repo//:ryu_patched",
+    "@aioeventlet_repo//:aioeventlet",
+    "@bcc_repo//:bcc",
+]
+
+genrule(
+    name = "external_deps_pth",
+    outs = ["external_deps.pth"],
+    cmd = "\n".join([
+        "echo /var/tmp/bazel/external/ryu_repo >> $@",
+        "echo /var/tmp/bazel/external/aioh2_repo >> $@",
+        "echo /var/tmp/bazel/external/aioeventlet_repo >> $@",
+        "echo /var/tmp/bazel/external/bcc_repo >> $@",
+    ]),
+)
+
+py_library(
+    # needs to be wrapped in a py_library so that py_venv can consume it
+    name = "external_deps_wrapper",
+    data = [":external_deps_pth"],
+    imports = ["."],
+)
+
+py_venv(
+    # This target creates a script which creates a Python environment.
+    # Usage: `bazel run //dev_tools:python_env <path of your choice>`
+    # Note that this cannot update an existing Python environment, thus for updating you need
+    # to run something like `rm -rf ~/python_env && bazel run //dev_tools:python_env ~/python_env`
+    # NOTE: until https://github.com/cedarai/rules_pyvenv/issues/1 is resolved, the environment does
+    # not cover magma libraries without adaptions.
+    # Our hacky workaround is to include some external dependencies via .pth files
+    # specified in the external_dependencies_wrapper target.
+    # We still also depend directly on the respective py_librarys in order to ensure that
+    # they are built and present at the expected locations.
+    name = "python_env",
+    deps = all_requirements + all_protos + swagger_models + external_python_libs + [":external_deps_wrapper"],
+)

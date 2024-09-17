@@ -1,0 +1,69 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.dp.create -}}
+{{- if .Values.dp.fluentd.enabled -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  labels:
+    {{-  include "domain-proxy.fluentd.labels" . | nindent 4 }}
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: {{ include "domain-proxy.fluentd.fullname" . }}
+{{ include "domain-proxy.namespace" . | indent 2 }}
+data:
+  input.conf: |-
+    <source>
+      @type http
+      port {{ .Values.dp.fluentd.service.port }}
+      bind 0.0.0.0
+      <parse>
+        @type json
+      </parse>
+    </source>
+
+  output.conf: |-
+    <match **>
+      @type forward
+      ignore_network_errors_at_startup {{ .Values.dp.fluentd.output_conf.ignore_network_errors_at_startup }}
+      {{- if and .Values.dp.fluentd.tls }}
+      transport tls
+      tls_allow_self_signed_cert {{ .Values.dp.fluentd.output_conf.tls_allow_self_signed_cert }}
+      tls_verify_hostname {{ .Values.dp.fluentd.output_conf.tls_verify_hostname }}
+      tls_version {{ .Values.dp.fluentd.output_conf.tls_version }}
+      tls_ciphers {{ .Values.dp.fluentd.output_conf.tls_ciphers }}
+      tls_cert_path /fluentd/certs/ca.pem
+      tls_client_cert_path /fluentd/certs/fluentd.pem
+      tls_client_private_key_path /fluentd/certs/fluentd.key
+      {{- end }}
+
+      <server>
+        host "#{ENV['FLUENTD_OUTPUT_HOST']}"
+        port "#{ENV['FLUENTD_OUTPUT_PORT']}"
+      </server>
+      <buffer>
+        flush_mode interval
+        retry_type exponential_backoff
+        flush_thread_count 2
+        flush_interval 5s
+        retry_forever
+        retry_max_interval 30
+        overflow_action block
+      </buffer>
+    </match>
+
+
+  fluent.conf: |-
+    @include /fluentd/etc/input.conf
+    @include /fluentd/etc/output.conf
+{{- end }}
+{{- end }}

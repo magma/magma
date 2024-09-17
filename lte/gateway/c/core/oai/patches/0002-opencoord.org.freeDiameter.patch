@@ -1,0 +1,124 @@
+diff --git a/extensions/dict_ts29272_avps/dict_ts29272_avps.c b/extensions/dict_ts29272_avps/dict_ts29272_avps.c
+index 5d74805..f6261ba 100644
+--- a/extensions/dict_ts29272_avps/dict_ts29272_avps.c
++++ b/extensions/dict_ts29272_avps/dict_ts29272_avps.c
+@@ -2891,8 +2891,10 @@ static int dict_ts29272_avps_load_rules(char * conffile)
+		CHECK_dict_search(DICT_AVP,  AVP_BY_NAME_AND_VENDOR, &avp_vendor_plus_name, &avp)
+		struct local_rules_definition rules[] =
+		{
+			{ { .avp_vendor = 10415, .avp_name = "Max-Requested-Bandwidth-UL"}, RULE_REQUIRED, -1, -1 },
+-			{ { .avp_vendor = 10415, .avp_name = "Max-Requested-Bandwidth-DL"}, RULE_REQUIRED, -1, -1 }
++			{ { .avp_vendor = 10415, .avp_name = "Max-Requested-Bandwidth-DL"}, RULE_REQUIRED, -1, -1 },
++			{ { .avp_vendor = 10415, .avp_name = "Extended-Max-Requested-BW-UL"}, RULE_OPTIONAL, -1, -1 },
++			{ { .avp_vendor = 10415, .avp_name = "Extended-Max-Requested-BW-DL"}, RULE_OPTIONAL, -1, -1 }
+		};
+		PARSE_loc_rules( rules, avp );
+	  }
+diff --git a/extensions/dict_ts29214_avps/dict_ts29214_avps.c b/extensions/dict_ts29214_avps/dict_ts29214_avps.c
+index 734a5c8..6fd4d7c 100644
+--- a/extensions/dict_ts29214_avps/dict_ts29214_avps.c
++++ b/extensions/dict_ts29214_avps/dict_ts29214_avps.c
+@@ -278,6 +278,102 @@ static int dict_ts29214_avps_load_defs(char * conffile)
+ 			};
+ 			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
+ 		};
++		/* Extended-Max-Requested-BW-DL */
++		{
++			struct dict_avp_data data = {
++				554,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Max-Requested-BW-DL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Max-Requested-BW-UL */
++		{
++			struct dict_avp_data data = {
++				555,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Max-Requested-BW-UL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Max-Supported-BW-DL */
++		{
++			struct dict_avp_data data = {
++				556,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Max-Supported-BW-DL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Max-Supported-BW-UL */
++		{
++			struct dict_avp_data data = {
++				557,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Max-Supported-BW-UL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Min-Desired-BW-DL */
++		{
++			struct dict_avp_data data = {
++				558,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Min-Desired-BW-DL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Min-Desired-BW-UL */
++		{
++			struct dict_avp_data data = {
++				559,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Min-Desired-BW-UL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Min-Requested-BW-DL */
++		{
++			struct dict_avp_data data = {
++				560,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Min-Requested-BW-DL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
++		/* Extended-Min-Requested-BW-UL */
++		{
++			struct dict_avp_data data = {
++				561,	/* Code */
++				10415,	/* Vendor */
++				"Extended-Min-Requested-BW-UL",	/* Name */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
++				AVP_TYPE_UNSIGNED32	/* base type of data */
++			};
++			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
++		};
+ 		/* Flow-Description */
+ 		{
+ 			struct dict_avp_data data = {
+ 

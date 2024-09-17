@@ -1,0 +1,16 @@
+---
+
+- hosts: "{{ devops }}"
+  roles:
+    - {role: ansible-server, become: yes}
+    - golang-host
+    - build-platform
+    - {role: key-manager, tags: keyManager, become: true}
+    - clean-ami
+  vars_files:
+    - roles/vars/defaults.yaml
+    - roles/vars/cluster.yaml
+    - roles/vars/build.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+  vars:
+    ansible_ssh_private_key_file: "{{ dirLocalInventory }}/{{ keyHost }}.pem"

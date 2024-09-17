@@ -1,0 +1,99 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+      "headless": true,
+      "vm_name": "magma-trfserver",
+      "iso_url": "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso",
+      "iso_checksum": "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2",
+      "ssh_password": "vagrant",
+      "ssh_username": "vagrant",
+      "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+      "http_directory": "http",
+      "ssh_timeout": "64206s",
+      "boot_command": [
+        "<esc><wait>",
+        "<esc><wait>",
+        "<enter><wait>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US.UTF-8<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US.UTF-8<wait>",
+        " netcfg/get_domain=magma.com<wait>",
+        " netcfg/get_hostname={{ .Name }}<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+      "memory": 2048,
+      "ssh_handshake_attempts": "20",
+      "boot_wait": "5s",
+      "guest_additions_mode": "upload",
+      "virtualbox_version_file": ".vbox_version"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/ubuntu_setup.sh",
+        "scripts/vagrant_key.sh"
+      ],
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo reboot",
+      "expect_disconnect": true
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/third_party/chef_bento/update_ubuntu.sh"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../../../lte/gateway/deploy/magma_trfserver.yml",
+      "inventory_groups": "trfserver",
+      "role_paths": [
+        "../../../lte/gateway/deploy/roles/trfserver"
+      ],
+      "extra_arguments": [
+        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
+      ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/cleanup.sh",
+        "scripts/third_party/chef_bento/cleanup_ubuntu.sh",
+        "scripts/third_party/aspyatkin/minimize_ubuntu.sh"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "output": "builds/magma_trfserver_{{.Provider}}.box",
+        "type": "vagrant"
+      }
+    ]
+  ]
+}

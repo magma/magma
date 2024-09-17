@@ -1,0 +1,118 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+import "orc8r/cloud/go/services/configurator/storage/storage.proto";
+
+package magma.orc8r.configurator;
+option go_package = "magma/orc8r/cloud/go/services/configurator/protos";
+
+service NorthboundConfigurator {
+    // ListNetworkIDs fetches the list of networkIDs registered
+    rpc ListNetworkIDs (magma.orc8r.Void) returns (ListNetworkIDsResponse) {}
+    // CreateNetworks registers the given list of Networks and returns the created Networks
+    rpc CreateNetworks (CreateNetworksRequest) returns (CreateNetworksResponse) {}
+    // UpdateNetworks updates the given list of registered Networks
+    rpc UpdateNetworks (UpdateNetworksRequest) returns (magma.orc8r.Void) {}
+    // DeleteNetworks deletes the given list of registered Networks
+    rpc DeleteNetworks (DeleteNetworksRequest) returns (magma.orc8r.Void) {}
+    // LoadNetworks fetches the set of Networks specified by the request
+    rpc LoadNetworks (LoadNetworksRequest) returns (storage.NetworkLoadResult) {}
+
+    // Perform multiple operations (create/update/delete) in a single
+    // transaction
+    rpc WriteEntities (WriteEntitiesRequest) returns (WriteEntitiesResponse) {}
+    // CreateEntities registers the given list of Entities and returns the created Entities
+    rpc CreateEntities (CreateEntitiesRequest) returns (CreateEntitiesResponse) {}
+    // UpdateEntities updates the given list of registered Entities and returns the updated Entities
+    rpc UpdateEntities (UpdateEntitiesRequest) returns (UpdateEntitiesResponse) {}
+    // DeleteEntities deletes the set of Entities registered
+    rpc DeleteEntities (DeleteEntitiesRequest) returns (magma.orc8r.Void) {}
+    // LoadEntities fetches the set of Entities specified by the request
+    rpc LoadEntities (LoadEntitiesRequest) returns (storage.EntityLoadResult) {}
+    // CountEntities counts the number of Entities specified by the request
+    rpc CountEntities (LoadEntitiesRequest) returns (storage.EntityCountResult) {}
+}
+
+message ListNetworkIDsResponse {
+    repeated string networkIDs = 1;
+}
+
+message LoadNetworksRequest {
+    storage.NetworkLoadCriteria criteria = 2;
+    storage.NetworkLoadFilter filter = 3;
+}
+
+message CreateNetworksRequest {
+    repeated storage.Network networks = 1;
+}
+
+message CreateNetworksResponse {
+    repeated storage.Network created_networks = 1;
+}
+
+message UpdateNetworksRequest {
+    repeated storage.NetworkUpdateCriteria updates = 1;
+}
+
+message DeleteNetworksRequest {
+    repeated string networkIDs = 1;
+}
+
+message LoadEntitiesRequest {
+    string networkID = 1;
+    storage.EntityLoadFilter filter = 2;
+    storage.EntityLoadCriteria criteria = 3;
+}
+
+message WriteEntitiesRequest {
+    string networkID = 1;
+    repeated WriteEntityRequest writes = 2;
+}
+
+message WriteEntityRequest {
+    oneof request {
+        storage.NetworkEntity create = 1;
+        storage.EntityUpdateCriteria update = 2;
+    }
+}
+
+message WriteEntitiesResponse {
+    repeated storage.NetworkEntity created_entities = 1;
+    map<string, storage.NetworkEntity> updated_entities = 2;
+}
+
+message CreateEntitiesRequest {
+    string networkID = 1;
+    repeated storage.NetworkEntity entities = 2;
+}
+
+message CreateEntitiesResponse {
+    repeated storage.NetworkEntity created_entities = 1;
+}
+
+message UpdateEntitiesRequest {
+    string networkID = 1;
+    repeated storage.EntityUpdateCriteria updates = 2;
+}
+
+message UpdateEntitiesResponse {
+    map<string, storage.NetworkEntity> updated_entities = 1;
+}
+
+message DeleteEntitiesRequest {
+    string networkID = 1;
+    repeated storage.EntityID ID = 2;
+}

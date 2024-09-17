@@ -1,0 +1,45 @@
+- name: Check if required infra variables are set
+  ansible.builtin.command: "orcl configure check -c infra"
+  register: result
+  failed_when: result.rc != 0
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Open configuration file
+  shell: "cat {{config_dir}}/infra.tfvars.json"
+  register: result
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Set Infra Configs
+  set_fact:
+    infra_configs: "{{ result.stdout | from_json }}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Availability zone tasks
+  import_tasks: az.yml
+
+- name: Secret manager tasks
+  import_tasks: secrets.yml
+
+- name: EKS tasks
+  import_tasks: eks.yml
+
+- name: ELB tasks
+  import_tasks: elb.yml
+
+- name: EFS tasks
+  import_tasks: efs.yml
+
+- name: VPC tasks
+  import_tasks: vpc.yml
+
+- name: Route53 tasks
+  import_tasks: route53.yml
+
+- name: User tasks
+  import_tasks: user.yml 

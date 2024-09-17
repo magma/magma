@@ -1,0 +1,64 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Create orchestrator certs.
+create: true
+
+domainName: localhost
+
+# Only the private key from the bootstrapper certificate will be used.
+bootstrapper:
+  # 1 year = 8760h
+  duration: 8760h
+  renewBefore: 24h
+
+adminOperator:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+  customIssuer:
+  pkcs12:
+    password: password
+
+certifier:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
+nms:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+  customIssuer: # orc8r-route53-issuer
+
+controller:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+  customIssuer:
+
+fluentd:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
+root:
+  # 10 year = 87600h
+  duration: 87600h
+  renewBefore: 24h
+
+preInstallChecks:
+  enabled: true
+  test: # Keep this empty. It's a part of the pre-install checks.
+
+route53:
+  enabled: false
+  region:

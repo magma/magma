@@ -1,0 +1,23 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# updateIntervalSecs sets the periodic time between
+# runs in seconds
+updateIntervalSecs: 60
+
+# backoffIntervalSecs sets the backoff time when
+# remote records collector is not available
+backoffIntervalSecs: 360
+
+# maxExportRetries sets the number of retries when
+# exporting a record
+maxExportRetries: 10

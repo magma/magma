@@ -1,0 +1,109 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// Basic Accounting Service
+service Accounting {
+    // Start will be called at the end of every new user session creation
+    // start is responsible for verification & initiation of an accounting contract
+    // between the user identity provider/MNO and service provider (ISP/WISP/PLTE)
+    // A non-error return will indicate successful contract establishment and will
+    // result in the beginning of service for the user
+    rpc Start(AcctSession) returns (AcctSessionResp);
+
+    // Update should be continuously called for every ongoing service session to update
+    // the user bandwidth usage as well as current quality of provided service.
+    // If update returns error the session should be terminated and the user disconnected,
+    // In the case of unsuccessful update completion, service provider is suppose to follow up
+    // with final Stop call
+    rpc Update(AcctUpdateReq) returns (AcctSessionResp);
+
+    // Stop is a notification call to communicate to identity provider
+    // user/network  initiated service termination.
+    // stop will provide final used bandwidth count. stop call is issued
+    // after the user session was terminated.
+    rpc Stop(AcctUpdateReq) returns (AcctStopResp);
+}
+
+// user session descriptor
+message AcctSession {
+    // user identity
+    // a union to enable future extension
+    oneof user {
+        string IMSI = 1;
+        bytes  certificate_serial_number = 2;
+        bytes  hardware_addr = 3;
+        string name = 4;
+    }
+    // unique session ID
+    string session_id = 5;
+    // ID of the service provider gateway (AP, AGW, enodeb, etc.)
+    string serving_apn = 6;
+    // available QoS at the caller's site
+    AcctQoS available_qos = 7;
+}
+
+// Start session response
+message AcctSessionResp {
+    // optional update triggers
+    // user identity provider will use report_limits to express its update
+    // frequency preferences. Service provider is encouraged, but not required
+    // to comply with specified reporting preferences
+    message ReportLimits {
+        // octets_in - trigger update when RX bytes were consumed by the user from the last update event
+        // default is 0, no RX trigger
+        uint64 octets_in = 1;
+        // octets_out - trigger update when TX bytes were consumed by the user from the last update event
+        // default is 0, no TX trigger
+        uint64 octets_out = 2;
+        // elapsed_time_sec - trigger update when elapsed_time_sec seconds passed from the last update event
+        uint32 elapsed_time_sec = 3;
+        // default is 0, no time based update trigger
+    }
+    ReportLimits reporting_advisory = 1;
+    // minimal required QoS, the session has to be terminated if service provider's site
+    // cannot guarantee the requested QoS. Currently this is an optional parameter which may be ignored by the client
+    AcctQoS           min_acceptable_qos = 2;
+}
+
+// update_req is relying information on user's ongoing session consumption
+message AcctUpdateReq {
+    // ongoing session information
+    AcctSession session = 1;
+    // octets_in indicates how many octets have been received by the user
+    // from the service provider over the course of this session (accumulative)
+    // The accumulative nature of this field should compensate for intermittent
+    // losses of connectivity
+    uint64 octets_in = 2;
+    // octets_out indicates how many octets have been sent on behalf of the user
+    // by the service provider over the course of this session (accumulative)
+    // The accumulative nature of this field should compensate for intermittent
+    // losses of connectivity
+    uint64 octets_out = 3;
+    // session_time indicates how many seconds the user/session has received service for
+    uint32 session_time = 4;
+}
+
+message AcctStopResp {
+}
+
+// Quality Of Service data
+message AcctQoS {
+    float download_mbps = 1;
+    float upload_mbps = 2;
+}
+

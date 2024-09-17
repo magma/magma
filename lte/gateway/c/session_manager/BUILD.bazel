@@ -1,0 +1,447 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+package(default_visibility = ["//lte/gateway/c/session_manager/test:__pkg__"])
+
+cc_library(
+    name = "diameter_codes",
+    srcs = ["DiameterCodes.cpp"],
+    hdrs = ["DiameterCodes.hpp"],
+)
+
+cc_library(
+    name = "grpc_magma_utils",
+    srcs = ["GrpcMagmaUtils.cpp"],
+    hdrs = ["GrpcMagmaUtils.hpp"],
+    deps = [
+        "//orc8r/gateway/c/common/logging",
+        "@com_google_protobuf//:protobuf",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "session_id",
+    srcs = ["SessionID.cpp"],
+    hdrs = ["SessionID.hpp"],
+)
+
+cc_library(
+    name = "utilities",
+    srcs = ["Utilities.cpp"],
+    hdrs = ["Utilities.hpp"],
+    deps = ["@com_google_protobuf//:protobuf"],
+)
+
+cc_library(
+    name = "credit_key",
+    hdrs = ["CreditKey.hpp"],
+    deps = [
+        "//lte/protos:policydb_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "types",
+    hdrs = ["Types.hpp"],
+    deps = [
+        ":credit_key",
+        "//lte/protos:pipelined_cpp_proto",
+        "//lte/protos:session_manager_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "service_action",
+    hdrs = ["ServiceAction.hpp"],
+    deps = [
+        ":credit_key",
+        ":types",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "policy_loader",
+    srcs = [
+        "PolicyLoader.cpp",
+        "Serializers.cpp",
+    ],
+    hdrs = [
+        "ObjectMap.hpp",
+        "PolicyLoader.hpp",
+        "RedisMap.hpp",
+        "Serializers.hpp",
+    ],
+    deps = [
+        "//lte/protos:policydb_cpp_proto",
+        "//orc8r/gateway/c/common/config:service_config_loader",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/protos:redis_cpp_proto",
+        "@cpp_redis",
+        "@system_libraries//:libglog",
+        "@yaml-cpp//:yaml-cpp",
+    ],
+)
+
+cc_library(
+    name = "session_reporter",
+    srcs = ["SessionReporter.cpp"],
+    hdrs = ["SessionReporter.hpp"],
+    deps = [
+        ":grpc_magma_utils",
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@system_libraries//:folly",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "stored_state",
+    srcs = ["StoredState.cpp"],
+    hdrs = ["StoredState.hpp"],
+    deps = [
+        ":credit_key",
+        ":types",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/logging",
+        "@system_libraries//:folly",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "rule_store",
+    srcs = ["RuleStore.cpp"],
+    hdrs = ["RuleStore.hpp"],
+    deps = [
+        ":credit_key",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "session_credit",
+    srcs = [
+        "ChargingGrant.cpp",
+        "EnumToString.cpp",
+        "SessionCredit.cpp",
+    ],
+    hdrs = [
+        "ChargingGrant.hpp",
+        "EnumToString.hpp",
+        "Monitor.hpp",
+        "SessionCredit.hpp",
+    ],
+    deps = [
+        ":diameter_codes",
+        ":service_action",
+        ":stored_state",
+        ":utilities",
+        "//lte/protos:abort_session_cpp_proto",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//lte/protos:session_manager_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "shard_tracker",
+    srcs = ["ShardTracker.cpp"],
+    hdrs = ["ShardTracker.hpp"],
+)
+
+cc_library(
+    name = "session_state",
+    srcs = ["SessionState.cpp"],
+    hdrs = ["SessionState.hpp"],
+    deps = [
+        ":rule_store",
+        ":session_credit",
+        ":session_reporter",
+        ":shard_tracker",
+        ":utilities",
+        "//lte/protos:spgw_service_cpp_grpc",
+        "//orc8r/gateway/c/common/service303",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "metering_reporter",
+    srcs = ["MeteringReporter.cpp"],
+    hdrs = ["MeteringReporter.hpp"],
+    deps = [
+        ":session_credit",
+        ":stored_state",
+        "//orc8r/gateway/c/common/service303",
+    ],
+)
+
+cc_library(
+    name = "session_store",
+    srcs = [
+        "MemoryStoreClient.cpp",
+        "RedisStoreClient.cpp",
+        "SessionStore.cpp",
+    ],
+    hdrs = [
+        "MemoryStoreClient.hpp",
+        "RedisStoreClient.hpp",
+        "SessionStore.hpp",
+        "StoreClient.hpp",
+    ],
+    deps = [
+        ":metering_reporter",
+        ":session_state",
+        "//orc8r/gateway/c/common/logging",
+        "@cpp_redis",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "aaa_client",
+    srcs = ["AAAClient.cpp"],
+    hdrs = ["AAAClient.hpp"],
+    deps = [
+        ":session_state",
+        ":session_store",
+        "//feg/gateway/services/aaa/protos:accounting_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "directoryd_client",
+    srcs = ["DirectorydClient.cpp"],
+    hdrs = ["DirectorydClient.hpp"],
+    deps = [
+        ":session_state",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/protos:directoryd_cpp_grpc",
+    ],
+)
+
+cc_library(
+    name = "mobilityd_client",
+    srcs = ["MobilitydClient.cpp"],
+    hdrs = ["MobilitydClient.hpp"],
+    deps = [
+        ":session_state",
+        ":types",
+        "//lte/protos:mobilityd_cpp_grpc",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "pipelined_client",
+    srcs = ["PipelinedClient.cpp"],
+    hdrs = ["PipelinedClient.hpp"],
+    deps = [
+        ":session_credit",
+        ":session_state",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+    ],
+)
+
+cc_library(
+    name = "spgw_service_client",
+    srcs = ["SpgwServiceClient.cpp"],
+    hdrs = ["SpgwServiceClient.hpp"],
+    deps = [
+        "//lte/protos:spgw_service_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/service_registry",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "amf_service_client",
+    srcs = ["AmfServiceClient.cpp"],
+    hdrs = ["AmfServiceClient.hpp"],
+    deps = [
+        ":grpc_magma_utils",
+        "//lte/protos:session_manager_cpp_grpc",
+        "//orc8r/gateway/c/common/async_grpc:async_grpc_receiver",
+        "//orc8r/gateway/c/common/service_registry",
+        "@com_github_grpc_grpc//:grpc++",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_library(
+    name = "session_events",
+    srcs = ["SessionEvents.cpp"],
+    hdrs = ["SessionEvents.hpp"],
+    deps = [
+        ":session_credit",
+        ":session_state",
+        "//orc8r/gateway/c/common/eventd:eventd_client",
+    ],
+)
+
+cc_library(
+    name = "local_enforcer",
+    srcs = ["LocalEnforcer.cpp"],
+    hdrs = ["LocalEnforcer.hpp"],
+    deps = [
+        ":aaa_client",
+        ":directoryd_client",
+        ":pipelined_client",
+        ":session_events",
+        ":session_state",
+        ":spgw_service_client",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
+    ],
+)
+
+cc_library(
+    name = "session_state_enforcer",
+    srcs = ["SessionStateEnforcer.cpp"],
+    hdrs = ["SessionStateEnforcer.hpp"],
+    deps = [
+        ":amf_service_client",
+        ":pipelined_client",
+        ":session_credit",
+        ":session_events",
+        ":session_store",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//orc8r/gateway/c/common/logging",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "stats_poller",
+    srcs = ["StatsPoller.cpp"],
+    hdrs = ["StatsPoller.hpp"],
+    deps = [":local_enforcer"],
+)
+
+cc_library(
+    name = "operational_states_handler",
+    srcs = ["OperationalStatesHandler.cpp"],
+    hdrs = ["OperationalStatesHandler.hpp"],
+    deps = [
+        ":session_store",
+        "@github_nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "restart_handler",
+    srcs = ["RestartHandler.cpp"],
+    hdrs = ["RestartHandler.hpp"],
+    deps = [":local_enforcer"],
+)
+
+cc_library(
+    name = "session_proxy_responder_handler",
+    srcs = ["SessionProxyResponderHandler.cpp"],
+    hdrs = ["SessionProxyResponderHandler.hpp"],
+    deps = [
+        ":local_enforcer",
+        ":session_state_enforcer",
+        "//lte/protos:abort_session_cpp_grpc",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+    ],
+)
+
+cc_library(
+    name = "local_session_manager_handler",
+    srcs = ["LocalSessionManagerHandler.cpp"],
+    hdrs = ["LocalSessionManagerHandler.hpp"],
+    deps = [
+        ":local_enforcer",
+        ":session_id",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+    ],
+)
+
+cc_library(
+    name = "set_message_manager_handler",
+    srcs = ["SetMessageManagerHandler.cpp"],
+    hdrs = ["SetMessageManagerHandler.hpp"],
+    deps = [
+        ":session_id",
+        ":session_state_enforcer",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "upf_msg_manage_handler",
+    srcs = ["UpfMsgManageHandler.cpp"],
+    hdrs = ["UpfMsgManageHandler.hpp"],
+    deps = [
+        ":mobilityd_client",
+        ":session_id",
+        ":session_state_enforcer",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+cc_library(
+    name = "session_manager_server",
+    srcs = ["SessionManagerServer.cpp"],
+    hdrs = ["SessionManagerServer.hpp"],
+    deps = [
+        ":local_session_manager_handler",
+        ":session_proxy_responder_handler",
+        ":set_message_manager_handler",
+        ":upf_msg_manage_handler",
+    ],
+)
+
+cc_binary(
+    name = "sessiond",
+    srcs = ["sessiond_main.cpp"],
+    # Make the binary as static as possible to allow for more reliable behavior when moving binaries around
+    # From bazel doc: this flag makes it so all user libraries are linked statically (if a static version is available),
+    #                 but where system libraries (excluding C/C++ runtime libraries) are linked dynamically
+    linkstatic = True,
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
+    deps = [
+        ":operational_states_handler",
+        ":policy_loader",
+        ":restart_handler",
+        ":session_manager_server",
+        ":stats_poller",
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/gateway/c/common/sentry:sentry_wrapper",
+        "//orc8r/protos:mconfigs_cpp_proto",
+        "@system_libraries//:libsystemd",
+    ],
+)

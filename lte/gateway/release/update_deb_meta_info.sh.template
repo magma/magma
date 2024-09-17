@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+set -euo pipefail
+
+###############################################################################
+# FUNCTION DECLARATIONS
+###############################################################################
+
+update_version() {
+    local INPUT_FILE_NAME=$1
+    local LICENSE=$2
+
+    WORK_FOLDER=$(mktemp -d)
+    cd "${WORK_FOLDER}"
+
+    echo "Updating meta data in ${INPUT_FILE_NAME} ..."
+
+    ar p "${BUILD_PATH}/${INPUT_FILE_NAME}" control.tar.gz | tar -xz
+
+    INPUT_VERSION=$(dpkg-deb -f "${BUILD_PATH}/${INPUT_FILE_NAME}" Version)
+    echo "  Updating version \"${INPUT_VERSION}\" to \"${VERSION}-${VERSION_SUFFIX}\""
+    sed -i "s/VERSION-SUFFIX/${VERSION_SUFFIX}/" control
+
+    echo "  Updating description to development build \"${DEV_BUILD}\""
+    if [ "${DEV_BUILD}" = true ] ; then
+        sed -i "s/\(Description: .*$\)/\1 - dev build/" control
+    fi
+
+    echo "  Updating license to \"${LICENSE}\""
+    echo "License: $LICENSE" >> control
+
+    if [ -f postinst ]; then
+        COMMIT_HASH_WITH_VERSION="magma@${VERSION}.${COMMIT_COUNT}-${HASH_SHORT}"
+        echo "  Updating \"COMMIT_HASH\" in magma to \"${COMMIT_HASH_WITH_VERSION}\""
+        sed -i "s/REPLACE_ME/${COMMIT_HASH_WITH_VERSION}/" postinst
+    fi
+
+    tar czf control.tar.gz -- *[!.gz]
+
+    NEW_FILE_NAME="${INPUT_FILE_NAME/VERSION-SUFFIX/"${VERSION_SUFFIX}"}"
+    echo "  Renaming \"${INPUT_FILE_NAME}\" to \"${NEW_FILE_NAME}\""
+    cp "${BUILD_PATH}/${INPUT_FILE_NAME}" "${NEW_FILE_NAME}"
+    chmod u+w "${NEW_FILE_NAME}"
+
+    ar r "${NEW_FILE_NAME}" control.tar.gz
+
+    mv "${NEW_FILE_NAME}" "${RESULT_FOLDER}"
+    echo "  File written to ${RESULT_FOLDER}/${NEW_FILE_NAME}"
+}
+
+###############################################################################
+# SCRIPT SECTION
+###############################################################################
+
+VERSION=REPLACE_ME # set by genrule
+DHCP_HELPER_CLI_INPUT_FILE_NAME=REPLACE_ME # set by genrule
+MAGMA_INPUT_FILE_NAME=REPLACE_ME # set by genrule
+SCTPD_INPUT_FILE_NAME=REPLACE_ME # set by genrule
+DHCP_LICENSE=REPLACE_ME # set by genrule
+MAGMA_LICENSE=REPLACE_ME # set by genrule
+SCTPD_LICENSE=REPLACE_ME # set by genrule
+DEV_BUILD=true # can be overridden by genrule
+
+RESULT_FOLDER=/tmp/packages
+mkdir -p ${RESULT_FOLDER}
+
+BUILD_PATH="${MAGMA_ROOT}/bazel-bin/lte/gateway/release"
+
+git config --global --add safe.directory "${MAGMA_ROOT}"
+
+HASH=$(git -C "${MAGMA_ROOT}" rev-parse HEAD)
+COMMIT_COUNT=$(git -C "${MAGMA_ROOT}" rev-list --count HEAD)
+HASH_SHORT=${HASH::8}
+TIMESTAMP=$(date +%s)
+VERSION_SUFFIX="${TIMESTAMP}-${HASH_SHORT}"
+
+update_version $DHCP_HELPER_CLI_INPUT_FILE_NAME $DHCP_LICENSE
+update_version $MAGMA_INPUT_FILE_NAME $MAGMA_LICENSE
+update_version $SCTPD_INPUT_FILE_NAME $SCTPD_LICENSE

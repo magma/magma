@@ -1,0 +1,76 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "server": {
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
+                "modules": [
+                    {
+                        "name": "analytics",
+                        "config": {}
+                    },
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akamagma",
+                                    "config": {
+                                        "FegEndpoint": "127.0.0.1:9109"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
+                "modules": [
+                    {
+                        "name": "analytics",
+                        "config": {}
+                    },
+                    {
+                      "name": "addmsisdn",
+                      "config": {}
+                    },
+                    {
+                      "name": "proxy",
+                      "config": {
+                        "Target": "127.0.0.1:2813"
+                      }
+                    }
+                ]
+            },
+            {
+                "name": "coa",
+                "type": "udp",
+                "extra": {
+                    "port": 3799
+                },
+                "modules": [
+                    {
+                        "name": "analytics",
+                        "config": {}
+                    }
+                ]
+            }
+        ]
+    }
+}

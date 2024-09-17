@@ -1,0 +1,292 @@
+From 7ad21826dc40874b13465b3f542210cfdc81d70d Mon Sep 17 00:00:00 2001
+From: Mykola Yurchenko <urchennko@gmail.com>
+Date: Tue, 4 Feb 2020 23:59:30 +0000
+Subject: [PATCH 1/3] Add custom IPDR fields for IPFIX export
+
+---
+ include/openvswitch/ofp-actions.h     |  3 ++
+ lib/odp-util.h                        |  7 ++++-
+ lib/ofp-actions.c                     | 38 +++++++++++++++++++++--
+ ofproto/ipfix-enterprise-entities.def |  7 +++++
+ ofproto/ofproto-dpif-ipfix.c          | 44 +++++++++++++++++++++++++++
+ ofproto/ofproto-dpif-xlate.c          |  5 +++
+ 6 files changed, 100 insertions(+), 4 deletions(-)
+
+diff --git a/include/openvswitch/ofp-actions.h b/include/openvswitch/ofp-actions.h
+index c8948e0d6..cd23d1322 100644
+--- a/include/openvswitch/ofp-actions.h
++++ b/include/openvswitch/ofp-actions.h
+@@ -1007,6 +1007,9 @@ struct ofpact_sample {
+         uint32_t obs_point_id;
+         ofp_port_t sampling_port;
+         enum nx_action_sample_direction direction;
++        uint8_t msisdn[16];
++        struct eth_addr apn_mac_addr;
++        uint8_t apn_name[24];
+     );
+ };
+ 
+diff --git a/lib/odp-util.h b/lib/odp-util.h
+index a03e82532..67bcbb096 100644
+--- a/lib/odp-util.h
++++ b/lib/odp-util.h
+@@ -331,6 +331,11 @@ struct user_action_cookie {
+             uint32_t obs_point_id;  /* Observation Point ID. */
+             odp_port_t output_odp_port; /* The output odp port. */
+             enum nx_action_sample_direction direction;
++            ovs_be64 flow_metadata;
++            uint32_t app_name;
++            uint8_t msisdn[16];
++            struct eth_addr apn_mac_addr;
++            uint8_t apn_name[24];
+         } flow_sample;
+ 
+         struct {
+@@ -350,7 +355,7 @@ struct user_action_cookie {
+         } controller;
+     };
+ };
+-BUILD_ASSERT_DECL(sizeof(struct user_action_cookie) == 48);
++BUILD_ASSERT_DECL(sizeof(struct user_action_cookie) == 112);
+ 
+ size_t odp_put_userspace_action(uint32_t pid,
+                                 const void *userdata, size_t userdata_size,
+diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
+index ddef3b0c8..7c12b748a 100644
+--- a/lib/ofp-actions.c
++++ b/lib/ofp-actions.c
+@@ -6041,10 +6041,13 @@ struct nx_action_sample2 {
+     ovs_be32 obs_domain_id;         /* ID of sampling observation domain. */
+     ovs_be32 obs_point_id;          /* ID of sampling observation point. */
+     ovs_be16 sampling_port;         /* Sampling port. */
++    uint8_t  msisdn[16];
++    struct   eth_addr apn_mac_addr;
++    uint8_t  apn_name[24];
+     uint8_t  direction;             /* NXAST_SAMPLE3 only. */
+     uint8_t  zeros[5];              /* Pad to a multiple of 8 bytes */
+  };
+- OFP_ASSERT(sizeof(struct nx_action_sample2) == 32);
++ OFP_ASSERT(sizeof(struct nx_action_sample2) == 80);
+ 
+ static enum ofperr
+ decode_NXAST_RAW_SAMPLE(const struct nx_action_sample *nas,
+@@ -6081,6 +6084,9 @@ decode_SAMPLE2(const struct nx_action_sample2 *nas,
+     sample->obs_domain_id = ntohl(nas->obs_domain_id);
+     sample->obs_point_id = ntohl(nas->obs_point_id);
+     sample->sampling_port = u16_to_ofp(ntohs(nas->sampling_port));
++    sample->apn_mac_addr = nas->apn_mac_addr;
++    memcpy(&sample->msisdn, &nas->msisdn, 16);
++    memcpy(&sample->apn_name, &nas->apn_name, 24);
+     sample->direction = direction;
+ 
+     if (sample->probability == 0) {
+@@ -6127,6 +6133,9 @@ encode_SAMPLE2(const struct ofpact_sample *sample,
+     nas->obs_point_id = htonl(sample->obs_point_id);
+     nas->sampling_port = htons(ofp_to_u16(sample->sampling_port));
+     nas->direction = sample->direction;
++    memcpy(&nas->msisdn, &sample->msisdn, 16);
++    nas->apn_mac_addr = sample->apn_mac_addr;
++    memcpy(&nas->apn_name, &sample->apn_name, 24);
+ }
+ 
+ static void
+@@ -6159,8 +6168,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
+     struct ofpact_sample *os = ofpact_put_SAMPLE(pp->ofpacts);
+     os->sampling_port = OFPP_NONE;
+     os->direction = NX_ACTION_SAMPLE_DEFAULT;
++    memset(&os->msisdn, 0, 16);
++    memset(&os->apn_name, 0, 24);
+ 
+     char *key, *value;
++    int i;
+     while (ofputil_parse_key_value(&arg, &key, &value)) {
+         char *error = NULL;
+ 
+@@ -6169,6 +6181,20 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
+             if (!error && os->probability == 0) {
+                 error = xasprintf("invalid probability value \"%s\"", value);
+             }
++        } else if (!strcmp(key, "apn_name")) {
++            for (i = 0; i < 24; i++) {
++                os->apn_name[i] = (uint8_t)value[i];
++                if ((char)value[i] == '\0')
++                    break;
++            }
++        } else if (!strcmp(key, "msisdn")) {
++            for (i = 0; i < 16; i++) {
++                os->msisdn[i] = (uint8_t)value[i];
++                if ((char)value[i] == '\0')
++                    break;
++            }
++        } else if (!strcmp(key, "apn_mac_addr")) {
++            error = str_to_mac(value, &os->apn_mac_addr);
+         } else if (!strcmp(key, "collector_set_id")) {
+             error = str_to_u32(value, &os->collector_set_id);
+         } else if (!strcmp(key, "obs_domain_id")) {
+@@ -6206,12 +6232,18 @@ format_SAMPLE(const struct ofpact_sample *a,
+     ds_put_format(fp->s, "%ssample(%s%sprobability=%s%"PRIu16
+                   ",%scollector_set_id=%s%"PRIu32
+                   ",%sobs_domain_id=%s%"PRIu32
+-                  ",%sobs_point_id=%s%"PRIu32,
++                  ",%sobs_point_id=%s%"PRIu32
++                  ",%sapn_mac_addr=%s"ETH_ADDR_FMT
++                  ",%smsisdn=%s%s"
++                  ",%sapn_name=%s%s",
+                   colors.paren, colors.end,
+                   colors.param, colors.end, a->probability,
+                   colors.param, colors.end, a->collector_set_id,
+                   colors.param, colors.end, a->obs_domain_id,
+-                  colors.param, colors.end, a->obs_point_id);
++                  colors.param, colors.end, a->obs_point_id,
++                  colors.param, colors.end, ETH_ADDR_ARGS(a->apn_mac_addr),
++                  colors.param, colors.end, a->msisdn,
++                  colors.param, colors.end, a->apn_name);
+     if (a->sampling_port != OFPP_NONE) {
+         ds_put_format(fp->s, ",%ssampling_port=%s", colors.param, colors.end);
+         ofputil_format_port(a->sampling_port, fp->port_map, fp->s);
+diff --git a/ofproto/ipfix-enterprise-entities.def b/ofproto/ipfix-enterprise-entities.def
+index 73a520c25..89e77ec45 100644
+--- a/ofproto/ipfix-enterprise-entities.def
++++ b/ofproto/ipfix-enterprise-entities.def
+@@ -14,4 +14,11 @@ IPFIX_ENTERPRISE_ENTITY(TUNNEL_SOURCE_TRANSPORT_PORT, 896, 2, tunnelSourceTransp
+ IPFIX_ENTERPRISE_ENTITY(TUNNEL_DESTINATION_TRANSPORT_PORT, 897, 2, tunnelDestinationTransportPort, IPFIX_ENTERPRISE_VMWARE)
+ IPFIX_ENTERPRISE_ENTITY(VIRTUAL_OBS_ID, 898, 0, virtualObsID, IPFIX_ENTERPRISE_VMWARE)
+ 
++#define IPFIX_ENTERPRISE_IPDR 6888
++IPFIX_ENTERPRISE_ENTITY(IMSI_REG, 899, 8, imsiRegister, IPFIX_ENTERPRISE_IPDR)
++IPFIX_ENTERPRISE_ENTITY(MSISDN, 900, 16, msisdn, IPFIX_ENTERPRISE_IPDR)
++IPFIX_ENTERPRISE_ENTITY(APN_MAC_ADDRESS, 901, 6, apnMacAddress, IPFIX_ENTERPRISE_IPDR)
++IPFIX_ENTERPRISE_ENTITY(APN_NAME, 902, 24, apnName, IPFIX_ENTERPRISE_IPDR)
++IPFIX_ENTERPRISE_ENTITY(APP_NAME, 903, 4, appName, IPFIX_ENTERPRISE_IPDR)
++
+ #undef IPFIX_ENTERPRISE_ENTITY
+diff --git a/ofproto/ofproto-dpif-ipfix.c b/ofproto/ofproto-dpif-ipfix.c
+index b8bd1b814..08699f341 100644
+--- a/ofproto/ofproto-dpif-ipfix.c
++++ b/ofproto/ofproto-dpif-ipfix.c
+@@ -404,6 +404,16 @@ struct ipfix_data_record_flow_key_tunnel {
+ });
+ BUILD_ASSERT_DECL(sizeof(struct ipfix_data_record_flow_key_tunnel) == 15);
+ 
++OVS_PACKED(
++struct ipfix_data_ipdr_fields {
++    ovs_be64 imsi;  /* IMSI_REGISTER*/
++    uint8_t msisdn[16];  /* MSISDN */
++    struct eth_addr apn_mac_address;  /* APN_MAC_ADDRESS */
++    uint8_t apn_name[24];  /* APN_NAME */
++    uint32_t app_name;  /* APP_NAME */
++});
++BUILD_ASSERT_DECL(sizeof(struct ipfix_data_ipdr_fields) == 58);
++
+ /* Cf. IETF RFC 5102 Section 5.11.3. */
+ enum ipfix_flow_end_reason {
+     IDLE_TIMEOUT = 0x01,
+@@ -536,6 +546,7 @@ BUILD_ASSERT_DECL(sizeof(struct ipfix_data_record_aggregated_tcp) == 48);
+      + MAX(sizeof(struct ipfix_data_record_flow_key_icmp),      \
+            sizeof(struct ipfix_data_record_flow_key_transport)) \
+      + sizeof(struct ipfix_data_record_flow_key_tunnel)         \
++     + sizeof(struct ipfix_data_ipdr_fields)                    \
+      + MAX_TUNNEL_KEY_LEN)
+ 
+ #define MAX_DATA_RECORD_LEN                                 \
+@@ -1477,6 +1488,13 @@ ipfix_define_template_fields(enum ipfix_proto_l2 l2, enum ipfix_proto_l3 l3,
+         DEF(TUNNEL_KEY);
+     }
+ 
++    /* Custom IPDR fields */
++    DEF(IMSI_REG);
++    DEF(MSISDN);
++    DEF(APN_MAC_ADDRESS);
++    DEF(APN_NAME);
++    DEF(APP_NAME);
++
+     /* 2. Virtual observation ID, which is not a part of flow key. */
+     if (virtual_obs_id_set) {
+         DEF(VIRTUAL_OBS_ID);
+@@ -2092,6 +2110,9 @@ ipfix_cache_entry_init(const struct dpif_ipfix *di,
+                        uint64_t packet_delta_count, uint32_t obs_domain_id,
+                        uint32_t obs_point_id, odp_port_t output_odp_port,
+                        enum nx_action_sample_direction direction,
++                       ovs_be64 flow_metadata, uint8_t *msisdn,
++                       struct eth_addr *apn_mac_addr, uint8_t *apn_name,
++                       uint32_t app_name,
+                        const struct dpif_ipfix_port *tunnel_port,
+                        const struct flow_tnl *tunnel_key,
+                        struct dpif_ipfix_global_stats *stats,
+@@ -2288,6 +2309,19 @@ ipfix_cache_entry_init(const struct dpif_ipfix *di,
+                tunnel_port->tunnel_key_length);
+     }
+ 
++    /* Add custom IPDR fields */
++    struct ipfix_data_ipdr_fields *ipdr_data;
++
++    ipdr_data = dp_packet_put_zeros(&msg, sizeof *ipdr_data);
++    ipdr_data->imsi = flow_metadata;
++    ipdr_data->app_name = app_name;
++    if (msisdn != NULL)
++        memcpy(&ipdr_data->msisdn, msisdn, 16);
++    if (apn_mac_addr != NULL)
++        memcpy(&ipdr_data->apn_mac_address, apn_mac_addr, sizeof(struct eth_addr));
++    if (apn_name != NULL)
++        memcpy(&ipdr_data->apn_name, apn_name, 24);
++
+     flow_key->flow_key_msg_part_size = dp_packet_size(&msg);
+ 
+     if (eth_addr_is_broadcast(flow->dl_dst)) {
+@@ -2661,6 +2695,9 @@ dpif_ipfix_sample(const struct dpif_ipfix *di,
+                   uint64_t packet_delta_count, uint32_t obs_domain_id,
+                   uint32_t obs_point_id, odp_port_t output_odp_port,
+                   enum nx_action_sample_direction direction,
++                  ovs_be64 flow_metadata, uint8_t *msisdn,
++                  struct eth_addr *apn_mac_addr, uint8_t *apn_name,
++                  uint32_t app_name,
+                   const struct dpif_ipfix_port *tunnel_port,
+                   const struct flow_tnl *tunnel_key,
+                   const struct dpif_ipfix_actions *ipfix_actions)
+@@ -2676,6 +2713,9 @@ dpif_ipfix_sample(const struct dpif_ipfix *di,
+                                    flow, packet_delta_count,
+                                    obs_domain_id, obs_point_id,
+                                    output_odp_port, direction,
++                                   flow_metadata, msisdn,
++                                   apn_mac_addr, apn_name,
++                                   app_name,
+                                    tunnel_port, tunnel_key,
+                                    &exporter->ipfix_global_stats,
+                                    ipfix_actions);
+@@ -2744,6 +2784,7 @@ dpif_ipfix_bridge_sample(struct dpif_ipfix *di, const struct dp_packet *packet,
+                       di->bridge_exporter.options->obs_domain_id,
+                       di->bridge_exporter.options->obs_point_id,
+                       output_odp_port, NX_ACTION_SAMPLE_DEFAULT,
++                      0, NULL, NULL, NULL, 0, //not available for bridge export
+                       tunnel_port, tunnel_key, ipfix_actions);
+     ovs_mutex_unlock(&mutex);
+ }
+@@ -2789,6 +2830,9 @@ dpif_ipfix_flow_sample(struct dpif_ipfix *di, const struct dp_packet *packet,
+                           cookie->flow_sample.obs_domain_id,
+                           cookie->flow_sample.obs_point_id,
+                           output_odp_port, cookie->flow_sample.direction,
++                          cookie->flow_sample.flow_metadata, (uint8_t *)&cookie->flow_sample.msisdn,
++                          (struct eth_addr *)&cookie->flow_sample.apn_mac_addr, (uint8_t *)&cookie->flow_sample.apn_name,
++                          cookie->flow_sample.app_name,
+                           tunnel_port, tunnel_key, ipfix_actions);
+     }
+     ovs_mutex_unlock(&mutex);
+diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
+index 0dc43d17a..a73c3d419 100644
+--- a/ofproto/ofproto-dpif-xlate.c
++++ b/ofproto/ofproto-dpif-xlate.c
+@@ -5537,6 +5537,11 @@ xlate_sample_action(struct xlate_ctx *ctx,
+     cookie.flow_sample.obs_point_id = os->obs_point_id;
+     cookie.flow_sample.output_odp_port = output_odp_port;
+     cookie.flow_sample.direction = os->direction;
++    cookie.flow_sample.flow_metadata = ctx->xin->flow.metadata;
++    cookie.flow_sample.app_name = ctx->xin->flow.regs[10];
++    memcpy(&cookie.flow_sample.msisdn, &os->msisdn, 16);
++    memcpy(&cookie.flow_sample.apn_mac_addr, &os->apn_mac_addr, sizeof(struct eth_addr));
++    memcpy(&cookie.flow_sample.apn_name, &os->apn_name, 24);
+ 
+     compose_sample_action(ctx, probability, &cookie, tunnel_out_port, false);
+ }
+-- 
+2.17.1
+

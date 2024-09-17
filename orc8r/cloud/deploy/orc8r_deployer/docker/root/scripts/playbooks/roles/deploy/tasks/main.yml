@@ -1,0 +1,5 @@
+- name: Secrets tasks
+  import_tasks: secrets.yml
+
+- name: Terraform tasks
+  import_tasks: tf.yml

@@ -1,0 +1,240 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "of_rest_server",
+    srcs = ["of_rest_server.py"],
+    deps = ["@ryu_repo//:ryu_patched"],
+)
+
+py_library(
+    name = "uplink_bridge",
+    srcs = ["uplink_bridge.py"],
+)
+
+py_library(
+    name = "classifier",
+    srcs = ["classifier.py"],
+    deps = [
+        ":base",
+        ":mandatory_apps",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "tunnel_learn",
+    srcs = ["tunnel_learn.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+    ],
+)
+
+py_library(
+    name = "vlan_learn",
+    srcs = ["vlan_learn.py"],
+)
+
+py_library(
+    name = "access_control",
+    srcs = ["access_control.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+        requirement("netifaces"),
+    ],
+)
+
+py_library(
+    name = "arp",
+    srcs = ["arp.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:directoryd_client",
+        "//lte/gateway/python/magma/pipelined:utils",
+        "//lte/gateway/python/magma/pipelined/app:base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+        "//lte/protos:pipelined_python_proto",
+    ],
+)
+
+py_library(
+    name = "conntrack",
+    srcs = ["conntrack.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+    ],
+)
+
+py_library(
+    name = "gy",
+    srcs = ["gy.py"],
+    deps = [
+        ":base",
+        ":enforcement_stats",
+        ":mandatory_apps",
+        "//lte/gateway/python/magma/pipelined:redirect",
+        "//lte/gateway/python/magma/pipelined/qos:qos_meter_impl",
+    ],
+)
+
+py_library(
+    name = "ipv6_solicitation",
+    srcs = ["ipv6_solicitation.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:ipv6_prefix_store",
+        "//lte/gateway/python/magma/pipelined/app:base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+    ],
+)
+
+py_library(
+    name = "startup_flows",
+    srcs = ["startup_flows.py"],
+)
+
+py_library(
+    name = "ng_services",
+    srcs = ["ng_services.py"],
+    deps = ["//lte/gateway/python/magma/pipelined/ng_manager:node_state_manager"],
+)
+
+py_library(
+    name = "enforcement",
+    srcs = ["enforcement.py"],
+    deps = [
+        ":base",
+        ":enforcement_stats",
+        "//lte/gateway/python/magma/pipelined:redirect",
+        "//lte/gateway/python/magma/pipelined/qos:qos_meter_impl",
+    ],
+)
+
+py_library(
+    name = "enforcement_stats",
+    srcs = [
+        "enforcement_stats.py",
+        "policy_mixin.py",
+    ],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:utils",
+        "//lte/gateway/python/magma/pipelined/app:dpi",
+        "//lte/gateway/python/magma/pipelined/app:restart_mixin",
+        "//lte/gateway/python/magma/pipelined/ng_manager:session_state_manager",
+        "//lte/gateway/python/magma/pipelined/qos:types",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+    ],
+)
+
+py_library(
+    name = "check_quota",
+    srcs = ["check_quota.py"],
+    deps = [":ue_mac"],
+)
+
+py_library(
+    name = "ue_mac",
+    srcs = ["ue_mac.py"],
+    deps = [
+        ":ipfix",
+        ":mandatory_apps",
+        "//lte/gateway/python/magma/pipelined:directoryd_client",
+    ],
+)
+
+py_library(
+    name = "ipfix",
+    srcs = ["ipfix.py"],
+    deps = [":dpi"],
+)
+
+py_library(
+    name = "dpi",
+    srcs = ["dpi.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+    ],
+)
+
+py_library(
+    name = "mandatory_apps",
+    srcs = [
+        "egress.py",
+        "ingress.py",
+        "li_mirror.py",
+        "middle.py",
+    ],
+    deps = [
+        ":base",
+        ":restart_mixin",
+        "//lte/gateway/python/magma/pipelined:gw_mac_address",
+        "//lte/gateway/python/magma/pipelined:imsi",
+        "//lte/gateway/python/magma/pipelined:mobilityd_client",
+        "//lte/gateway/python/magma/pipelined:utils",
+        "//lte/gateway/python/magma/pipelined:vlan_utils",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+    ],
+)
+
+py_library(
+    name = "restart_mixin",
+    srcs = ["restart_mixin.py"],
+    deps = [":startup_flows"],
+)
+
+py_library(
+    name = "testing",
+    srcs = ["testing.py"],
+)
+
+py_library(
+    name = "he",
+    srcs = ["he.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined:encoding",
+        "//lte/gateway/python/magma/pipelined:envoy_client",
+        "//lte/gateway/python/magma/pipelined/openflow:flows",
+        "//lte/protos:mobilityd_python_proto",
+    ],
+)
+
+py_library(
+    name = "base",
+    srcs = ["base.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        "//lte/gateway/python/magma/pipelined:metrics",
+        "//lte/gateway/python/magma/pipelined/openflow:exceptions",
+        "//lte/protos:pipelined_python_proto",
+        "@ryu_repo//:ryu_patched",
+    ],
+)
+
+py_library(
+    name = "packet_parser",
+    srcs = ["packet_parser.py"],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:dhcp_desc",
+        requirement("dpkt"),
+    ],
+)

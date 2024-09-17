@@ -1,0 +1,174 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpc_library", "python_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "mconfigs_proto",
+    srcs = ["mconfig/mconfigs.proto"],
+    deps = ["//orc8r/protos:common_proto"],
+)
+
+proto_library(
+    name = "envoy_controller_proto",
+    srcs = ["envoy_controller.proto"],
+    deps = ["//lte/protos:mobilityd_proto"],
+)
+
+python_grpc_library(
+    name = "envoy_controller_python_grpc",
+    protos = [":envoy_controller_proto"],
+)
+
+python_proto_library(
+    name = "mconfigs_python_proto",
+    protos = [":mconfigs_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
+)
+
+proto_library(
+    name = "s6a_proxy_proto",
+    srcs = ["s6a_proxy.proto"],
+)
+
+cpp_proto_library(
+    name = "s6a_proxy_cpp_proto",
+    protos = [":s6a_proxy_proto"],
+)
+
+cpp_grpc_library(
+    name = "s6a_proxy_cpp_grpc",
+    protos = [":s6a_proxy_proto"],
+    deps = [":s6a_proxy_cpp_proto"],
+)
+
+proto_library(
+    name = "csfb_proto",
+    srcs = ["csfb.proto"],
+    deps = ["//orc8r/protos:common_proto"],
+)
+
+cpp_proto_library(
+    name = "csfb_cpp_proto",
+    protos = [":csfb_proto"],
+    deps = ["//orc8r/protos:common_cpp_proto"],
+)
+
+cpp_grpc_library(
+    name = "csfb_cpp_grpc",
+    protos = [":csfb_proto"],
+    deps = [":csfb_cpp_proto"],
+)
+
+python_proto_library(
+    name = "csfb_python_proto",
+    protos = [":csfb_proto"],
+)
+
+python_grpc_library(
+    name = "csfb_python_grpc",
+    protos = [":csfb_proto"],
+    deps = ["//orc8r/protos:common_python_proto"],
+)
+
+proto_library(
+    name = "s8_proxy_proto",
+    srcs = ["s8_proxy.proto"],
+    deps = [
+        "//lte/protos/oai:spgw_state_proto",
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "s8_proxy_cpp_proto",
+    protos = [":s8_proxy_proto"],
+    deps = [
+        "//lte/protos/oai:spgw_state_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
+)
+
+cpp_grpc_library(
+    name = "s8_proxy_cpp_grpc",
+    protos = [":s8_proxy_proto"],
+    deps = [":s8_proxy_cpp_proto"],
+)
+
+python_grpc_library(
+    name = "s6a_proxy_grpc_proto",
+    protos = [":s6a_proxy_proto"],
+)
+
+proto_library(
+    name = "hss_service_proto",
+    srcs = ["hss_service.proto"],
+    deps = [
+        "//lte/protos:subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+    ],
+)
+
+python_proto_library(
+    name = "hss_service_python_proto",
+    protos = [":hss_service_proto"],
+    deps = [
+        "//lte/protos:subscriberdb_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "hss_service_python_grpc",
+    protos = [":hss_service_proto"],
+    deps = [":hss_service_python_proto"],
+)
+
+proto_library(
+    name = "hello_proto",
+    srcs = ["hello.proto"],
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+python_grpc_library(
+    name = "hello_python_grpc",
+    protos = [":hello_proto"],
+)
+
+proto_library(
+    name = "mock_core_proto",
+    srcs = ["mock_core.proto"],
+    deps = [
+        ":csfb_proto",
+        "//lte/protos:policydb_proto",
+        "//lte/protos:session_manager_proto",
+        "//lte/protos:subscriberdb_proto",
+        "//orc8r/protos:common_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "mock_core_python_grpc",
+    protos = [":mock_core_proto"],
+    deps = [
+        ":csfb_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "//lte/protos:session_manager_python_proto",
+        "//lte/protos:subscriberdb_python_proto",
+        "//orc8r/protos:common_python_proto",
+    ],
+)

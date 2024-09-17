@@ -1,0 +1,197 @@
+{
+  "Parameters": {
+    "paramCidr" : {
+      "Type": "String",
+      "Default": "10.19.0.0/16",
+      "Description": "CIDR for Edge network to host SGi and S1 networks"
+    },
+    "paramBridgeCidr" : {
+      "Type": "String",
+      "Default": "10.19.6.0/24",
+      "Description": "CIDR for Bridge subnet"
+    },
+    "paramSgiCidr" : {
+      "Type": "String",
+      "Default": "10.19.4.0/24",
+      "Description": "CIDR for SGi subnet"
+    },
+    "paramEnbCidr" : {
+      "Type": "String",
+      "Default": "10.19.2.0/24",
+      "Description": "CIDR for S1 subnet"
+    },
+    "paramAvlZone" : {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "Default": "ap-northeast-1a",
+      "Description": "Availability Zone"
+    },
+    "paramVpcTagName" : {
+      "Type": "String",
+      "Default": "Magma VPC",
+      "Description": "Tag Name for VPC"
+    },
+    "paramBridgeSubnetTagName" : {
+      "Type": "String",
+      "Default": "Bridge Subnet",
+      "Description": "Tag Name for Bridge Subnet"
+    },
+    "paramSgiSubnetTagName" : {
+      "Type": "String",
+      "Default": "SGi Subnet",
+      "Description": "Tag Name for SGi Subnet"
+    },
+    "paramEnodebSubnetTagName" : {
+      "Type": "String",
+      "Default": "S1 Subnet",
+      "Description": "Tag Name for eNodeB Subnet"
+    },
+    "paramRouteTableTagName" : {
+      "Type": "String",
+      "Default": "Route Table for SGi Subnet",
+      "Description": "Tag Name for SGi Route Table"
+    },
+    "paramSecGroupName" : {
+      "Type": "String",
+      "Default": "secGroupMagmaCharlie",
+      "Description": "Security Group Name"
+    },
+    "paramGwTagName" : {
+      "Type": "String",
+      "Default": "SGi NAT Gateway",
+      "Description": "Tag Name for NAT Gateway"
+    }
+  },
+  "Resources": {
+    "vpcMagma": {
+      "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+          "CidrBlock" : { "Ref": "paramCidr" },
+      	  "EnableDnsHostnames" : "true",
+      	  "EnableDnsSupport" : "true",
+      	  "InstanceTenancy" : "default",
+      	  "Tags" : [ {"Key": "Name", "Value": { "Ref" : "paramVpcTagName"}}, {"Key": "Purpose", "Value": "SGi Gateway Proto"} ]
+    	}
+    },
+    "subBridge" : {
+       "Type" : "AWS::EC2::Subnet",
+       "Properties" : {
+         "VpcId" : {  "Ref": "vpcMagma" },
+         "CidrBlock" : { "Ref": "paramBridgeCidr" },
+         "AvailabilityZone" : { "Ref": "paramAvlZone" },
+         "MapPublicIpOnLaunch": "true",
+         "Tags" : [ { "Key" : "Name", "Value" : { "Ref": "paramBridgeSubnetTagName" }} ]
+       }
+    },
+    "subSgi" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagma" },
+        "CidrBlock" : { "Ref": "paramSgiCidr" },
+        "AvailabilityZone" : { "Ref": "paramAvlZone" },
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref": "paramSgiSubnetTagName" }} ]
+       }
+    },
+    "subEnb" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "VpcId" : {  "Ref": "vpcMagma" },
+        "CidrBlock" : { "Ref": "paramEnbCidr" },
+        "AvailabilityZone" : { "Ref": "paramAvlZone" },
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref": "paramEnodebSubnetTagName" }} ]
+      }
+    },
+    "gwInetBridge" : {
+      "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Name", "Value" : { "Ref" : "paramGwTagName"}} ]
+        }
+     },
+     "gwInetAttach" : {
+       "Type" : "AWS::EC2::VPCGatewayAttachment",
+         "Properties" : {
+           "VpcId" : { "Ref" : "vpcMagma" },
+           "InternetGatewayId" : { "Ref" : "gwInetBridge" }
+         }
+    },
+    "eipNatGw" : {
+      "Type" : "AWS::EC2::EIP",
+      "DependsOn": "gwInetAttach",
+      "Properties" : {
+         "Domain" : "vpc"
+      }
+    },
+    "gwNatGw" : {
+      "Type" : "AWS::EC2::NatGateway",
+        "Properties" : {
+          "AllocationId" : { "Fn::GetAtt" : ["eipNatGw", "AllocationId"]},
+          "SubnetId" : { "Ref" : "subBridge"},
+          "Tags" : [ {"Key" : "Name", "Value" : { "Ref" : "paramGwTagName"}} ]
+        },
+        "DependsOn": "subBridge"
+    },
+    "rtBridge" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagma" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Route Table for Bridge Network" } ]
+       }
+    },
+    "rteBridge" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rtBridge" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "gwInetBridge" }
+       }
+    },
+    "rtBridgeAssocSubnet" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subBridge" },
+        "RouteTableId" : { "Ref" : "rtBridge" }
+       }
+    },
+    "rtSgi" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcMagma" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Route Table for SGi Network" } ]
+       }
+    },
+    "rteSgi" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rtSgi" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "gwNatGw" }
+       }
+    },
+    "rtSgiAssocSubnet" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subSgi" },
+        "RouteTableId" : { "Ref" : "rtSgi" }
+       }
+    },
+    "sgSgi": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Allow all TCP to client host",
+	"GroupName": { "Ref": "paramSecGroupName" },
+        "VpcId" : {"Ref" : "vpcMagma"},
+        "SecurityGroupIngress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }]
+      }
+    }
+  }
+}

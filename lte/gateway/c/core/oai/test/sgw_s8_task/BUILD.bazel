@@ -1,0 +1,68 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
+
+cc_test(
+    name = "sgw_dedicated_bearer_test",
+    size = "medium",
+    srcs = [
+        "sgw_dedicated_bearer.cpp",
+    ],
+    deps = [
+        ":sgw_s8_utility",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "sgw_s8_utility",
+    srcs = [
+        "sgw_s8_utility.cpp",
+    ],
+    hdrs = [
+        "sgw_s8_utility.hpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+    ],
+)
+
+cc_test(
+    name = "sgw_s8_recv_grpc_messages_test",
+    size = "small",
+    srcs = [
+        "sgw_s8_recv_grpc_messages.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "sgw_s8_test_attach_proc_test",
+    size = "medium",
+    srcs = [
+        "sgw_s8_test_attach_proc.cpp",
+    ],
+    deps = [
+        ":sgw_s8_utility",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

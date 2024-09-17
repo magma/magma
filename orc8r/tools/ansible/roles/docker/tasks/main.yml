@@ -1,0 +1,80 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Check if role variables are defined
+  fail:
+    msg: "Missing role variables"
+  when: systemd_service is undefined or compose_file is undefined or image_names is undefined
+
+- name: Install Docker and Docker Compose
+  include_tasks: install.yml
+
+- name: Check for Docker env vars
+  assert:
+    fail_msg: Ensure that DOCKER_REGISTRY and other env vars are present
+    that: registry_url != ""
+
+- name: Log into the Docker registry
+  when: registry_username != ''
+  docker_login:
+    registry_url: "{{ registry_url }}"
+    username: "{{ registry_username }}"
+    password: "{{ registry_password }}"
+
+- name: Prune the unused images to recover disk space
+  # docker_prune module is not available in ansible version 1.27.0
+  shell: "docker image prune -af"
+
+- name: Pull the required image
+  docker_image:
+    name: "{{ registry_url }}/{{ item }}"
+    tag: "{{ image_version }}"
+    tls_verify: yes
+  with_items:
+    - "{{ image_names }}"
+
+- name: Stop any running magma services
+  # TODO: delete this task after completely migrating to docker
+  systemd:
+    name: magma@*
+    state: stopped
+  ignore_errors: yes
+
+- name: Stop any running nghttpx services
+  # TODO: delete this task after completely migrating to docker
+  systemd:
+    name: nghttpx@*
+    state: stopped
+  ignore_errors: yes
+
+- name: Create the working directory
+  file:
+    path: "{{ working_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Copy the docker compose file
+  copy:
+    src: "{{ compose_file }}"
+    dest: "{{ working_dir }}/docker-compose.yml"
+
+- name: Templatize the systemd service unit file
+  template:
+    src: magma.service.j2
+    dest: "/etc/systemd/system/{{ systemd_service }}.service"
+
+- name: Restart the service
+  systemd:
+    name: "{{ systemd_service }}"
+    state: restarted
+    daemon_reload: yes 
+    enabled: yes

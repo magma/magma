@@ -1,0 +1,111 @@
+# t17467229
+{
+   Fd_cleanup
+   Memcheck:Leak
+   ...
+   obj:*/libfdcore.so.*
+   ...
+}
+
+# Google protobuf allocates some static memory for the
+# lifetime of the process.
+# Suppress these.
+{
+   ProtobufStatus
+   Memcheck:Leak
+   ...
+   fun:*gnutls*
+   ...
+}
+
+{
+   ProtobufStatus
+   Memcheck:Leak
+   ...
+   obj:*/libgrpc.so*
+   ...
+}
+
+{
+   ProtobufStatus
+   Memcheck:Leak
+   ...
+   fun:*protobuf*
+   ...
+}
+
+# LDFS uses a custom allocator, valgrind needs to be
+# taught about the same, until then suppress.
+# This may suppress real leaks
+{
+   lfds611
+   Memcheck:Leak
+   ...
+   fun:lfds611_abstraction_malloc
+   ...
+}
+
+# t17467404
+{
+   mme_config
+   Memcheck:Leak
+   ...
+   fun:mme_config_display
+   ...
+}
+
+# t17467404
+{
+   mme_config
+   Memcheck:Leak
+   ...
+   fun:mme_config_parse_opt_line
+   ...
+}
+
+# gtpv2 uses a custom stack based allocator, valgrind needs
+# to be taught about the same, until then suppress
+# This may suppress real leaks.
+{
+   gtpv2CustomStackAllocation
+   Memcheck:Leak
+   ...
+   fun:nwGtpv2cInitialize
+   ...
+}
+
+# t17496753
+{
+   logLeak
+   Memcheck:Leak
+   ...
+   fun:log_start_use
+   ...
+}
+
+# t17496753
+{
+   logLeak
+   Memcheck:Leak
+   ...
+   fun:log_init
+   ...
+}
+
+# t19531020
+{
+  logMessageLeak
+  Memcheck:Leak
+  ...
+  fun:log_message
+  ...
+}
+
+# t34744148
+{
+  freeDiameterLeak
+  Memcheck:Leak
+  ...
+  obj:*/libfdproto.so*
+  ...
+}

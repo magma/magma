@@ -1,0 +1,38 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+COMPOSE_PROJECT_NAME=cwf
+DOCKER_USERNAME=
+DOCKER_PASSWORD=
+DOCKER_REGISTRY=linuxfoundation.jfrog.io/magma-docker/
+IMAGE_VERSION=latest
+GIT_HASH=master
+
+BUILD_CONTEXT=https://github.com/magma/magma.git#master
+
+ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
+CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
+CONFIGS_TEMPLATES_PATH=/etc/magma/templates
+
+CERTS_VOLUME=/var/opt/magma/certs
+CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
+CONFIGS_DEFAULT_VOLUME=/etc/magma
+SECRETS_VOLUME=/var/opt/magma/secrets
+
+RADIUS_STORAGE_TYPE=memory
+RADIUS_REDIS_ADDR=
+
+## cwf Interface override
+INGRESS_PORT=
+UPLINK_PORTS=
+LI_PORT=
+
+LOG_DRIVER=journald

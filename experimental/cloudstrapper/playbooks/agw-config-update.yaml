@@ -1,0 +1,11 @@
+---
+
+- hosts: "{{ agw }}"
+  roles:
+    - {role: agw-config-update, tags: config-update}
+  vars_files:
+    - roles/vars/defaults.yaml
+    - "{{ dirLocalInventory }}/secrets.yaml"
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
+    AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"

@@ -1,0 +1,166 @@
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/lte/cloud/go/services/smsd/servicers/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: lte-smsd-swagger.yml
+  output-dir: lte/cloud/go/services/smsd/obsidian
+  types:
+    - go-struct-name: MutableSmsMessage
+      filename: mutable_sms_message_swaggergen.go
+    - go-struct-name: SmsMessage
+      filename: sms_message_swaggergen.go
+
+info:
+  title: LTE SMS
+  description: LTE REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+tags:
+  - name: SMS
+    description: Endpoints related to SMS
+
+paths:
+  /lte/{network_id}/sms:
+    get:
+      summary: List SMS messages
+      tags:
+        - SMS
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List all SMS's in the system
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/sms_message'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new SMS message
+      tags:
+        - SMS
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: sms
+          description: Message to create
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_sms_message'
+      responses:
+        '201':
+          description: PK of the created message
+          schema:
+            type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/sms/{sms_pk}:
+    get:
+      summary: Get SMS message
+      tags:
+        - SMS
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/sms_pk'
+      responses:
+        '200':
+          description: Requested SMS message
+          schema:
+            $ref: '#/definitions/sms_message'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete SMS message
+      tags:
+        - SMS
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/sms_pk'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  sms_pk:
+    in: path
+    name: sms_pk
+    description: PK of the SMS message
+    required: true
+    type: string
+
+definitions:
+  sms_message:
+    type: object
+    required:
+      - pk
+      - status
+      - imsi
+      - source_msisdn
+      - message
+      - time_created
+      - attempt_count
+    properties:
+      pk:
+        type: string
+        x-nullable: false
+        minLength: 1
+      status:
+        type: string
+        enum:
+          - Waiting
+          - Delivered
+          - Failed
+        default: Waiting
+      imsi:
+        $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+      source_msisdn:
+        type: string
+        x-nullable: false
+        minLength: 1
+        example: '123456'
+      message:
+        type: string
+        x-nullable: false
+        minLength: 1
+        example: 'Hello world!'
+      time_created:
+        type: string
+        format: date-time
+      time_last_attempted:
+        type: string
+        format: date-time
+      attempt_count:
+        type: integer
+        minimum: 0
+        x-nullable: false
+      error_status:
+        type: string
+
+  mutable_sms_message:
+    type: object
+    required:
+      - imsi
+      - source_msisdn
+      - message
+    properties:
+      imsi:
+        $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+      source_msisdn:
+        type: string
+        x-nullable: false
+        minLength: 1
+        example: '123456'
+      message:
+        type: string
+        x-nullable: false
+        minLength: 1
+        example: 'Hello world!'

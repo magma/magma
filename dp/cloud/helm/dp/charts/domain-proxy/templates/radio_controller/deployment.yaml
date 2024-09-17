@@ -1,0 +1,86 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+
+{{- if and .Values.dp.create .Values.dp.radio_controller.enabled -}}
+apiVersion: {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.radio_controller.fullname" . }}
+  labels:
+    {{- include "domain-proxy.radio_controller.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.dp.radio_controller.autoscaling.enabled }}
+  replicas: {{ .Values.dp.radio_controller.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.radio_controller.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.dp.radio_controller.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.radio_controller.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.dp.radio_controller.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.radio_controller.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.dp.radio_controller.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.dp.radio_controller.name }}
+          securityContext:
+            {{- toYaml .Values.dp.radio_controller.securityContext | nindent 12 }}
+          image: {{ .Values.dp.radio_controller.image.repository -}}:{{- .Values.dp.radio_controller.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.dp.radio_controller.image.pullPolicy }}
+          env:
+            {{- range $key, $value := .Values.dp.radio_controller.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
+            - name: SERVICE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          {{- if .Values.dp.radio_controller.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.dp.radio_controller.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.dp.radio_controller.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.dp.radio_controller.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.dp.radio_controller.resources | nindent 12 }}
+          envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.radio_controller.fullname" . }}
+          - configMapRef:
+              name: {{ include "domain-proxy.radio_controller.fullname" . }}
+      {{- with .Values.dp.radio_controller.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.radio_controller.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.radio_controller.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,16 @@
+---
+
+- name: Cleanup Bridge
+  async: 600
+  poll: 0
+  cloudformation:
+    stack_name: "stack{{ siteName }}Bridge"
+    state: absent
+  register: asyncResult
+
+- name: 'check on cloudformation task'
+  async_status: jid="{{asyncResult.ansible_job_id}}"
+  register: pollResult
+  until: pollResult.finished
+  retries: 60
+  delay: 10

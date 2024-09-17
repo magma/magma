@@ -1,0 +1,267 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "lte/protos/oai/spgw_state.proto";
+import "orc8r/protos/common.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+service S8Proxy {
+    rpc CreateSession(CreateSessionRequestPgw) returns (CreateSessionResponsePgw) {}
+    rpc DeleteSession(DeleteSessionRequestPgw) returns (DeleteSessionResponsePgw) {}
+    rpc SendEcho(EchoRequest) returns (EchoResponse) {}
+
+    rpc CreateBearerResponse(CreateBearerResponsePgw) returns (magma.orc8r.Void) {}
+    rpc DeleteBearerResponse(DeleteBearerResponsePgw) returns (magma.orc8r.Void) {}
+}
+
+service S8ProxyResponder {
+    rpc CreateBearer(CreateBearerRequestPgw) returns (magma.orc8r.Void) {}
+    rpc DeleteBearerRequest(DeleteBearerRequestPgw) returns (magma.orc8r.Void) {}
+}
+
+// 3GPP TS 29.274  (not all 3gpp create session fields are included)
+message CreateSessionRequestPgw {
+    // Ip:port of pgw to send the request.
+    // If empty s8_proxy will use value in its config
+    string pgwAddrs = 1;
+
+    string imsi = 2;
+    string msisdn = 3;
+    string mei = 4;
+
+    ServingNetwork serving_network = 5;
+    UserLocationInformation uli = 6;
+
+    RATType rat_type = 7;
+    PDNType pdn_type = 8;
+    PdnAddressAllocation paa = 9;
+
+    string apn = 10;
+    // Aggregate Maximum BitRate
+    Ambr ambr = 11;
+    SelectionModeType selection_mode = 12;
+
+    // Contains AGW user plane F-TEID
+    BearerContext bearer_context = 13;
+    // AGW control plane TEID (injected by feg relay)
+    uint32 c_agw_teid = 14;
+
+    ProtocolConfigurationOptions protocol_configuration_options = 15;
+    bytes indication_flag = 16;
+    string charging_characteristics = 17;
+    TimeZone time_zone = 18;
+}
+
+enum PDNType {
+    UNUSED = 0;
+    IPV4 = 1;
+    IPV6 = 2;
+    IPV4V6 = 3;
+    NonIP = 5;
+}
+
+enum RATType {
+    RESERVED = 0;
+    UTRAN = 1;
+    GERAN = 2;
+    WLAN = 3;
+    GAN = 4;
+    HSPA = 5;
+    EUTRAN = 6;
+    VIRTUAL = 7;
+    EUTRAN_NB_IOT = 8;
+    LTE_M = 9;
+    NR = 10;
+}
+
+enum SelectionModeType{
+    APN_provided_subscription_verified = 0;
+    ms_APN_subscription_not_verified = 1;
+    network_APN_subscription_not_verified = 2;
+}
+
+message UserLocationInformation {
+    uint32 lac = 1;
+    uint32 ci = 2;
+    uint32 sac = 3;
+    uint32 rac = 4;
+    uint32 tac = 5;       // used on magma
+    uint32 eci = 6;       // used on magma
+    uint32 MeNbi = 7;     // Macro eNodeB ID field
+    uint32 EMeNbi = 8;    // Extended Macro eNodeB ID field
+}
+
+message ServingNetwork {
+    string mcc = 1;
+    string mnc = 2;
+}
+
+message ProtocolConfigurationOptions {
+    uint32 config_protocol = 1;
+    repeated PcoProtocolOrContainerId proto_or_container_id = 2;
+}
+
+message PcoProtocolOrContainerId {
+    uint32 id = 1;
+    bytes contents = 2;
+}
+
+message BearerContext {
+    uint32 id = 1;
+    Fteid user_plane_fteid = 2;
+    QosInformation qos = 3;
+    uint32 charging_id = 4;
+    magma.lte.oai.TrafficFlowTemplate tft = 5;
+    uint32 cause = 6;
+}
+
+message QosInformation {
+    uint32 pci = 1;
+    uint32 priority_level = 2;
+    uint32 preemption_capability = 3;
+    uint32 preemption_vulnerability = 4;
+    uint32 qci = 5;
+    Ambr gbr = 6;
+    Ambr mbr = 7;
+}
+
+message Ambr {
+    uint64 br_ul = 1;
+    uint64 br_dl = 2;
+}
+
+message PdnAddressAllocation{
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 ipv6_prefix = 3;
+}
+
+message TimeZone {
+    // delta in seconds from UTC
+    int32 delta_seconds = 1;
+    // Set to 0 for non daylight savings
+    uint32 daylight_saving_time = 2;
+}
+
+message Fteid {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid = 3;
+}
+
+message CreateSessionResponsePgw {
+    PDNType pdn_type = 1;
+    // subscriber_ip
+    PdnAddressAllocation paa = 2;
+    uint32 apn_restriction = 3;
+    // AGW control plane TEID (was injected by feg relay during create session)
+    uint32 c_agw_teid = 4;
+    Fteid c_pgw_fteid = 5;
+    BearerContext bearer_context = 6;
+    ProtocolConfigurationOptions protocol_configuration_options = 7;
+    GtpError gtp_error = 8;
+    // AGW user plane TEID (was injected by feg relay during create session)
+    uint32 u_agw_teid = 9;
+}
+
+message DeleteSessionRequestPgw {
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 bearer_id = 3;
+    uint32 c_agw_teid = 4;          // AGW control plane TEID
+    uint32 c_pgw_teid = 5;
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
+}
+
+message DeleteSessionResponsePgw{
+    GtpError gtp_error = 1;
+}
+
+message CreateBearerRequestPgw {
+    string pgwAddrs = 1;
+    uint32 sequence_number = 2;
+    // control plane TEID given by AGW during CreateSession
+    uint32 c_agw_teid = 3;
+    uint32 linked_bearer_id = 4;
+    ProtocolConfigurationOptions protocol_configuration_options = 5;
+    BearerContext bearer_context = 6;
+    bytes indication_flag = 7;
+    // AGW user plane TEID (will be injected by feg relay)
+    uint32 u_agw_teid = 8;
+    // TODO: PGW-FQ-CSID-1
+}
+
+message CreateBearerResponsePgw {
+    // same as pgwAddr as in CreateBeaererRequest.pgwAddrs
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 sequence_number = 3;
+    // control plane TEID given by PGW during CreateSession
+    uint32 c_pgw_teid = 4;
+    // same as in CreateBearerRequestPgw.BearerContext.user_plane_fteid
+    Fteid u_pgw_fteid = 5;
+    ServingNetwork serving_network = 6;
+
+    uint32 cause = 7;
+    BearerContext bearer_context = 8;
+    ProtocolConfigurationOptions protocol_configuration_options = 9;
+    TimeZone time_zone = 10;
+    UserLocationInformation uli = 11;
+    //TODO: SGW-FQ-CSID
+}
+
+message DeleteBearerRequestPgw {
+    string pgwAddrs = 1;
+    uint32 sequence_number = 2;
+    // control plane TEID given by AGW during CreateSession
+    uint32 c_agw_teid = 3;
+    // id of default bearer
+    uint32 linked_bearer_id = 4;
+    // id of dedicated bearers to delete
+    repeated uint32 eps_bearer_id = 5;
+    ProtocolConfigurationOptions protocol_configuration_options = 6;
+}
+
+message DeleteBearerResponsePgw {
+    // same as pgwAddr as in CreateBeaererRequest.pgwAddrs
+    string pgwAddrs = 1;
+    string imsi = 2;
+    uint32 sequence_number = 3;
+    // control plane TEID given by PGW during CreateSession
+    uint32 c_pgw_teid = 4;
+    // control plane TEID given by PGW during CreateSession
+    uint32 linked_bearer_id = 5;
+    repeated BearerContext bearer_context = 6;
+    ProtocolConfigurationOptions protocol_configuration_options = 7;
+    uint32 cause = 8;
+}
+
+message EchoRequest{
+    // Ip:port of pgw to send the request
+    string pgwAddrs = 1;
+    // needed for nh in feg
+    string imsi = 2;
+}
+
+message EchoResponse{
+}
+
+message GtpError {
+    uint32 cause = 1;
+    string msg= 2;
+}

@@ -1,0 +1,20 @@
+- name: Check if we have atleast 3 availability zones in our deployment
+  amazon.aws.aws_az_info:
+  register: aws_az_info
+  ignore_errors: true
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Debug availability zones present in our region
+  debug: msg= "{{aws_az_info}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Check if availability zones present in our region is more than 3
+  assert:
+    that: aws_az_info.availability_zones | length > 3
+  tags:
+    - install_precheck
+    - upgrade_precheck

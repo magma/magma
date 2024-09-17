@@ -1,0 +1,180 @@
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: vpc_info
+  tags:
+  - cleanup
+  - cleanup_dryrun
+
+
+- name: Get all NAT gateways for this VPC
+  ec2_vpc_nat_gateway_info:
+    filters:
+      vpc-id: "{{ vpc_info.vpcs[0].id }}"
+  register: natgw_info
+  when: vpc_info and vpc_info.vpcs | length > 0
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug NAT gateways for this vpc
+  debug: msg="{{natgw_info}}"
+  ignore_errors: true
+  when: vpc_info and vpc_info.vpcs | length > 0
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Delete all nat gateways
+  ec2_vpc_nat_gateway:
+    state: absent
+    nat_gateway_id: "{{ item.nat_gateway_id }}"
+    release_eip: true
+    wait: yes
+  when: vpc_info and vpc_info.vpcs | length > 0
+  with_items: "{{ natgw_info.result }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Get all internet gateways attached to this VPC
+  ec2_vpc_igw_info:
+    filters:
+      "tag:Name": "{{ vpc_info.vpcs[0].tags['Name'] }}"
+      "attachment.state": "available"
+  register: igw_info
+  when: vpc_info and vpc_info.vpcs | length > 0
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug internet gateways for this vpc
+  debug: msg="{{igw_info}}"
+  ignore_errors: true
+  when: vpc_info and vpc_info.vpcs | length > 0
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Detach internet gateway from VPC
+  command: aws ec2 detach-internet-gateway --internet-gateway-id "{{ item.internet_gateway_id }}" --vpc-id "{{ vpc_info.vpcs[0].id }}"
+  ignore_errors: true
+  when: vpc_info and vpc_info.vpcs | length > 0
+  with_items: "{{igw_info.internet_gateways}}"
+  tags: cleanup
+
+- name: Delete internet gateway
+  command: aws ec2 delete-internet-gateway --internet-gateway-id "{{ item.internet_gateway_id }}"
+  ignore_errors: true
+  when: vpc_info and vpc_info.vpcs | length > 0
+  with_items: "{{igw_info.internet_gateways}}"
+  tags: cleanup
+
+- name: Find subnets of this vpc
+  ec2_vpc_subnet_info:
+    filters:
+      vpc-id: "{{ vpc_info.vpcs[0].id }}"
+  when: vpc_info and vpc_info.vpcs | length > 0
+  register: subnet_info
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug all subnets
+  debug:
+    msg: "{{subnet_info}}"
+  when: vpc_info and vpc_info.vpcs | length > 0
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Delete all subnets
+  ec2_vpc_subnet:
+    state: absent
+    vpc_id: "{{ item.vpc_id }}"
+    cidr: "{{ item.cidr_block }}"
+  when: item.default_for_az == false
+  with_items: "{{ subnet_info.subnets }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Get all route tables for this subnet
+  ansible.builtin.shell: aws ec2 describe-route-tables
+  register: rt_info
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug route table deletions
+  debug:
+    msg:
+      - "{{item.RouteTableId}} table will be deleted"
+  when: rt_info and vpc_info and vpc_info.vpcs and item.VpcId == vpc_info.vpcs[0].id
+  with_items:
+    - "{{ (rt_info.stdout | from_json).RouteTables }}"
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Delete all route tables for this vpc
+  command: aws ec2 delete-route-table --route-table-id "{{ item.RouteTableId }}"
+  when: vpc_info and vpc_info.vpcs and item.VpcId == vpc_info.vpcs[0].id
+  with_items:
+    - "{{ (rt_info.stdout | from_json).RouteTables }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Get all security groups for this vpc
+  ec2_group_info:
+    filters:
+      vpc_id: "{{ vpc_info.vpcs[0].id }}"
+  register: sec_info
+  when: vpc_info and vpc_info.vpcs | length > 0
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug security groups
+  debug:
+    msg: "{{ sec_info }}"
+  when: vpc_info and vpc_info.vpcs | length > 0
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Change all security groups in this VPC
+  ec2_group:
+    name: "{{ item.group_name }}"
+    description: "{{ item.description }}"
+    group_id: "{{ item.group_id }}"
+    purge_rules: True
+  when: vpc_info and vpc_info.vpcs | length > 0 and item.group_name != "default"
+  with_items:
+    - "{{ sec_info.security_groups }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete all security groups in this VPC
+  ec2_group:
+    group_id: "{{ item.group_id }}"
+    state: absent
+  when: vpc_info and vpc_info.vpcs | length > 0 and item.group_name != "default"
+  with_items:
+    - "{{ sec_info.security_groups }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete vpc
+  ec2_vpc_net:
+    state: absent
+    name: "{{ vpc_info.vpcs[0].tags['Name'] }}"
+    cidr_block: "{{ vpc_info.vpcs[0].cidr_block }}"
+  ignore_errors: true
+  when: vpc_info and vpc_info.vpcs | length > 0
+  tags: cleanup

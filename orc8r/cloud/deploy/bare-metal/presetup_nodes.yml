@@ -1,0 +1,15 @@
+# Prepare K8s nodes
+- name: Copy ssh keys to remote hosts
+  hosts: kube-master
+  gather_facts: no
+  vars:
+    pub_keys: 
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCePUYimKFYzWgEJcHThIr0P0Kmb8Ss7xJQEUxOWpEtEWEdBJfHrp/CVkL2N0SNKR8gSmrctEJdatPqhz0FTQJAbsp6zlbf3WsCABevScAsKrhE4HlPvKhVHUGxUzRXcmqGmMlL/UOnBI3H868J2+5+N2tPRg/NgKb4n9tDkcimxJbGBmL+DP4C38RSb0zpR1BDqNQ+RRojbzeGLYXYq7ubzFgw2Z1QnJdB0bbbU/Kcqb1WzvKQd6F8On4ntteuIxzJ27ExawmbYEZLugufPlh/vq0qT0r6YADBw44iv2ogIUJmwIHeJpREycfbnnMGvbWsskcqArMNId4gZ/wew+5PHJcE8kGEUPXgNwfeXo4Bk4wTc47HXjUDezY5ItqVRWlkqohNi6X1iI2Lxu6Y/Chhy1X1ZJ/wYMsLcGpXgF9hk5N7uAOxnf8zbFtB0EPGuImkrMECn2hwmbyRObcDQ9IMq5FkfNStXXeFqaCu0xyx0drGv1EnD/58bG2EXLatDqTjUkHucVyRdfxnDqyJmAw0vLfBdYi6+FRkK+Asj3o0dR1VIHNPjjViPswmQcfTV/9pLCHfUi+aPvfwPU3ideLcVOcOxtB/kPCx+Os3Rp6ntBA+HsxIoCdunhyLvc7Ky62+/TOlfk/Nae561Sln55iOVp8cCN9c5UsGrYBhJouw2Q== vitalij.kostenko@gmail.com"
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0IKYIbf05K67En++os8mfi2XYTCHp5ex+KBy4Y7NqAXC3J+hnqgcMry9sHtqVJ+O6do7bCRY7sjgnWosm6TxEupxMCs+euViT3VFvQlszAvj4v/xrAu0IwUUiqA0Pn9TKCJrHtYKYixkGfNw8IdxShH2FRTh52ufBqlLP5qRhdMP/nOohbNwtk0FAX49UB4AXzcLLkHu+P3gjTkR345CH+iciBGL88rp8qpEEA6QdtEjcgk1tGY3uktJ1tTWBv4ozth6EF9A+kG4yd1Fhwv2JVPRNkcL/xKR7f4i67A9KyyNoFLv4rHfXXPOjyproNpz5CZ06V7lJ4jgU/AbyHhLgw== mattymo"
+  tasks:
+  - name: Ensure ssh keys are in the authorized_keys file
+    lineinfile:
+      path: ~/.ssh/authorized_keys
+      line: "{{ item }}"
+      mode: '0644'
+    loop: "{{ pub_keys }}"

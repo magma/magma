@@ -1,0 +1,19 @@
+---
+- name: provision edge networks
+  cloudformation:
+    stack_name: "stack{{ siteName }}Network"
+    state: "present"
+    template: "roles/cfn/cfnMagmaEdgeNetNat.json"
+    template_parameters:
+      paramCidr: "{{ cidrVpc }}"
+      paramSgiCidr: "{{ cidrSgi }}"
+      paramEnbCidr: "{{ cidrEnodeb }}"
+      paramBridgeCidr: "{{ cidrBridge }}"
+      paramAvlZone: "{{ awsAgwAz }}"
+      paramSecGroupName: "{{ secGroup }}{{ siteName }}"
+      paramBridgeSubnetTagName: "{{ siteName }}-BridgeSubnet"
+      paramSgiSubnetTagName: "{{ siteName }}-SgiSubnet"
+      paramEnodebSubnetTagName: "{{ siteName }}-EnodebSubnet"
+      paramRouteTableTagName: "{{ siteName }}-RouteTable"
+      paramGwTagName: "{{ siteName }}-InternetGateway"
+      paramVpcTagName: "{{ siteName }}-VPC"

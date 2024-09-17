@@ -1,0 +1,127 @@
+#!/bin/bash
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under 
+# the Apache License, Version 2.0  (the "License"); you may not use this file
+# except in compliance with the License.  
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+# file check_mme_s6a_certificate
+# brief
+# author Lionel Gauthier
+# company Eurecom
+# email: lionel.gauthier@eurecom.fr
+################################
+# include helper functions
+################################
+THIS_SCRIPT_PATH=$(dirname $(readlink -f $0))
+. $THIS_SCRIPT_PATH/../build/tools/build_helper
+
+
+function _create_mme_certs()
+{
+  local    output_path=$(readlink -e $1)
+  local    fqdn=$2
+
+  if [[ ! -v OS_BASEDISTRO ]]
+  then
+    OS_DISTRO=$(grep "^ID=" /etc/os-release | sed "s/ID=//" | sed "s/\"//g")
+    case "$OS_DISTRO" in
+      fedora) OS_BASEDISTRO="fedora";;
+      rhel)   OS_BASEDISTRO="fedora";;
+      centos) OS_BASEDISTRO="fedora";;
+      debian) OS_BASEDISTRO="debian";;
+      ubuntu) OS_BASEDISTRO="debian";;
+    esac
+  fi
+
+  rm -rf demoCA
+  mkdir demoCA
+  echo 01 > demoCA/serial
+  touch demoCA/index.txt
+  if [[ "$OS_BASEDISTRO" == "debian" ]]
+  then
+    echo 'unique_subject = yes' > demoCA/index.txt.attr
+  fi
+
+  echo "Creating MME certificate for user '$fqdn'"
+  # Create a Root Certification Authority Certificate
+  openssl req  -new -batch -x509 -days 3650 -nodes -newkey rsa:1024 -out mme.cacert.pem -keyout mme.cakey.pem -subj /CN=$fqdn/C=FR/ST=PACA/L=Aix/O=Eurecom/OU=CM
+
+  # Generate a Private Key
+  openssl genrsa -out mme.key.pem 1024
+
+  # Generate a CSR (Certificate Signing Request) that will be self-signed
+  openssl req -new -batch -out mme.csr.pem -key mme.key.pem -subj /CN=$fqdn/C=FR/ST=PACA/L=Aix/O=Eurecom/OU=CM
+
+  # Certification authority
+  if [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    cp /etc/pki/tls/openssl.cnf .
+    chmod 664 openssl.cnf
+    sed -i -e "s#/etc/pki/CA#./demoCA#" openssl.cnf
+    openssl ca -cert mme.cacert.pem -keyfile mme.cakey.pem -in mme.csr.pem -out mme.cert.pem -outdir . -batch -config ./openssl.cnf
+  else
+    openssl ca -cert mme.cacert.pem -keyfile mme.cakey.pem -in mme.csr.pem -out mme.cert.pem -outdir . -batch
+  fi
+
+  if [ ! -d $output_path ]; then
+    echo "Creating non existing directory: $output_path/"
+    $SUDO mkdir -p $output_path/
+  fi
+
+  $SUDO mv mme.cakey.pem mme.cert.pem mme.cacert.pem mme.key.pem $output_path/
+  cd -
+}
+
+#$1 if output path
+#$2 is fqdn
+function main() {
+  EXPECTED_ARGS=2
+  if [ $# -lt $EXPECTED_ARGS ]; then
+    echo_error "Usage: check_mme_s6a_certificate output_path fqdn"
+    return 1
+  fi
+  local output_path=$1
+  local fqdn=$2
+  if [ -d $output_path ]; then
+    if [ -f $output_path/mme.cert.pem ];  then
+      full_hostname=`cat $output_path/mme.cert.pem | grep "Subject" | grep "CN" | cut -d '=' -f6`
+      if [ a$full_hostname == a$fqdn ]; then
+        echo_success "MME S6A: Found valid certificate in $output_path"
+        return 0
+      else 
+        echo_error "Bad mme fqdn found in cert file: $full_hostname  fqdn is $fqdn"
+      fi
+    else
+      echo_error "File $output_path/mme.cert.pem not found"
+    fi
+  else
+    echo_error "Directory $output_path not found"
+  fi
+  echo_error "MME S6A: Did not find valid certificate in $output_path"
+  echo_warning "MME S6A: generating new certificate in $output_path..."
+  _create_mme_certs $output_path $fqdn
+  if [ $# -lt 3 ] ; then
+    main $output_path $fqdn 2
+    return $?
+  else
+    echo_error "Could not access to output path: $output_path"
+    exit 1
+  fi
+}
+
+main "$@" 

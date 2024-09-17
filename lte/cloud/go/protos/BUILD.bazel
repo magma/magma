@@ -1,0 +1,90 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "policydb_go_proto",
+    srcs = ["policydb.pb.go"],
+    embed = [":mobilityd_go_proto"],
+    importpath = "magma/lte/cloud/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_library(
+    name = "mobilityd_go_proto",
+    srcs = ["mobilityd.pb.go"],
+    embed = [":subscriberdb_go_proto"],
+    importpath = "magma/lte/cloud/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_library(
+    name = "subscriberdb_go_proto",
+    srcs = ["subscriberdb.pb.go"],
+    embed = [":apn_go_proto"],
+    importpath = "magma/lte/cloud/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/lib/go/protos:common_go_proto",
+        "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_library(
+    name = "apn_go_proto",
+    srcs = ["apn.pb.go"],
+    importpath = "magma/lte/cloud/go/protos",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
+        "@org_golang_google_protobuf//reflect/protoreflect",
+        "@org_golang_google_protobuf//runtime/protoimpl",
+    ],
+)
+
+go_library(
+    name = "sid",
+    srcs = ["sid.go"],
+    embed = [":subscriberdb_go_proto"],
+    importpath = "magma/lte/cloud/go/protos",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "sid_test",
+    srcs = ["sid_test.go"],
+    deps = [
+        ":sid",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

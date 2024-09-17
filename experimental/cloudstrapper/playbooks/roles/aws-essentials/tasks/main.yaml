@@ -1,0 +1,83 @@
+---
+# aws-essentials setup up aws prerequisite resources
+# common magma s3 bucket to store and retrieve objects
+# common magma security group that all instances will use.
+# common magma ssh keypair that will be embedded in all hosts
+# common magma ssh keypair that will be embedded in bootstrap only
+
+- name: allocate keyBoot
+  ec2_key:
+    name: "{{ keyBoot }}"
+  register: keyboot_val
+  tags: [never, keyCreate]
+
+- name: find keyBoot id
+  command: aws ec2 describe-key-pairs --key-names "{{ keyBoot }}" --query 'KeyPairs[0].KeyPairId' --output text
+  register: keyboot_id
+  tags: [never, keyCreate]
+
+- name: Tag keyBoot
+  ec2_tag:
+    resource: "{{ keyboot_id.stdout }}"
+    tags:
+      keyboot: "{{ stackEssentialsDefault }}"
+  tags: [never, keyCreate]
+
+- name: copy .pem file
+  copy:
+    content: "{{ keyboot_val.key.private_key }}"
+    dest: "{{ dirLocalInventory }}/{{ keyBoot }}.pem"
+    mode: 0600
+  when: keyboot_val.changed
+  tags: [never, keyCreate]
+
+- name: allocate keyHost
+  ec2_key:
+    name: "{{ keyHost }}"
+  register: keyhost_val
+  tags: [never, keyCreate]
+
+- name: find keyHost id
+  command: aws ec2 describe-key-pairs --key-names "{{ keyHost }}" --query 'KeyPairs[0].KeyPairId' --output text
+  register: keyhost_id
+  tags: [never, keyCreate]
+
+- name: Tag keyHost
+  ec2_tag:
+    resource: "{{ keyhost_id.stdout }}"
+    tags:
+      keyhost: "{{ stackEssentialsDefault }}"
+  tags: [never, keyCreate]
+
+- name: copy .pem file
+  copy:
+    content: "{{ keyhost_val.key.private_key }}"
+    dest: "{{ dirLocalInventory }}/{{ keyHost }}.pem"
+    mode: 0600
+  when: keyhost_val.changed
+  tags: [never, keyCreate]
+
+- name: find vpc id of default gateway for bootstrap
+  ec2_vpc_net_info:
+    filters:
+      "isDefault": "true"
+  register: return_val
+  tags: [essentialsCreate]
+
+- name: assign vpc id to variable
+  set_fact:
+    factVpcId: "{{ return_val.vpcs[0].vpc_id }}"
+  tags: [essentialsCreate]
+
+- name: create other aws resources
+  cloudformation:
+    stack_name: "{{ stackEssentialsDefault }}"
+    state: "present"
+    region: "{{ awsAgwRegion }}"
+    disable_rollback: true
+    template: "roles/cfn/cfnMagmaEssentials.json"
+    template_parameters:
+      paramVpcDefault: "{{ factVpcId }}"
+      paramSecgroupMagmaDefault: "{{ secgroupDefault }}"
+      paramBucketMagmaDefault: "{{ bucketDefault }}"
+  tags: [essentialsCreate]

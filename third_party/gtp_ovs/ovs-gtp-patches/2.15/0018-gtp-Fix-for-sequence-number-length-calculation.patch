@@ -1,0 +1,93 @@
+From 99364efc65d01050a695f8733f9928e0f17c705d Mon Sep 17 00:00:00 2001
+From: Yogesh Pandey <yogesh@wavelabs.ai>
+Date: Sat, 21 Aug 2021 09:58:46 +0000
+Subject: [PATCH 18/22] gtp: Fix for sequence number length calculation
+
+Issue:
+  Additional 4 bytes getting added in header length
+  if seq_flag is set to true in gtp header
+
+Fix:
+  Ir-respective if the flag is set or not the length
+  of gtpu header is fixed which includes seq no.
+
+Signed-off-by: Yogesh Pandey <yogesh@wavelabs.ai>
+---
+ datapath/linux/compat/gtp.c | 54 ++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 5046bd63a..16c06f91e 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -101,10 +101,6 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+         int opts_len = 0;
+         if (unlikely(type != GTP_TPDU)) {
+             opts_len = sizeof (struct gtpu_metadata);
+-        } else {
+-            if (unlikely(flags & GTP_SEQ_FLAG)) {
+-                hdrlen += 4;
+-            }
+         }
+ #ifndef USE_UPSTREAM_TUNNEL
+         //udp_tun_rx_dst
+@@ -200,29 +196,33 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
+ 	 * If any of the bit is set, then the remaining ones also have to be
+ 	 * set.
+ 	 */
+-	if ((gtp1->type == GTP_TPDU) && (gtp1->flags & GTP_EXTENSION_HDR_FLAG)) {
+-		struct gtpu_ext_hdr *geh;
+-		u8 next_hdr;
+-
+-		geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
+-		netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
+-
+-		hdrlen += sizeof (struct gtpu_ext_hdr);
+-		next_hdr = geh->type;
+-		while (next_hdr) {
+-			u8 len = *(u8 *) (skb->data + hdrlen);
+-
+-			hdrlen += (len * 4);
+-			if (!pskb_may_pull(skb, hdrlen)) {
+-				netdev_dbg(gtp->dev, "malformed packet %d", hdrlen);
+-				return -1;
+-			}
+-			next_hdr = *(u8*) (skb->data + hdrlen - 1);
+-			netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
+-		}
+-		netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
+-		netdev_dbg(gtp->dev, "skb-len %d gtp len %d hdr len %d\n", skb->len, (int) ntohs(gtp1->length), hdrlen);
+-	}
++        if (gtp1->type == GTP_TPDU) {
++            if (gtp1->flags & GTP_EXTENSION_HDR_FLAG) {
++                struct gtpu_ext_hdr *geh;
++                u8 next_hdr;
++
++                geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
++                netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
++
++                hdrlen += sizeof (struct gtpu_ext_hdr);
++                next_hdr = geh->type;
++                while (next_hdr) {
++                    u8 len = *(u8 *) (skb->data + hdrlen);
++
++                    hdrlen += (len * 4);
++                    if (!pskb_may_pull(skb, hdrlen)) {
++                        netdev_dbg(gtp->dev, "malformed packet %d", hdrlen);
++                        return -1;
++                    }
++                    next_hdr = *(u8*) (skb->data + hdrlen - 1);
++                    netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
++                }
++                netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
++                netdev_dbg(gtp->dev, "skb-len %d gtp len %d hdr len %d\n", skb->len, (int) ntohs(gtp1->length), hdrlen);
++            } else if (gtp1->flags & GTP1_F_MASK)
++                hdrlen += 4;
++        }
++
+ 	/* Make sure the header is larger enough, including extensions. */
+ 	if (!pskb_may_pull(skb, hdrlen))
+ 		return -1;
+-- 
+2.25.1
+

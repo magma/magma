@@ -1,0 +1,38 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.mconfig;
+option go_package = "magma/cwf/cloud/go/protos/mconfig";
+
+//-----------------------------------------------------------------------------
+// Health configs
+//-----------------------------------------------------------------------------
+message CwfGatewayHealthConfig {
+    // cpu utilization threshold
+    float cpu_util_threshold_pct = 1;
+    // mem utilization threshold
+    float mem_util_threshold_pct = 2;
+    // interval between probes
+    uint32 gre_probe_interval = 3;
+    // packets sent for each icmp probe
+    uint32 icmp_probe_pkt_count = 4;
+    message grePeer {
+      string ip = 1;
+    }
+    // gre peers to probe
+    repeated grePeer gre_peers = 5;
+    // virtual IP used by AP/WLC to connect to HA cluster
+    string cluster_virtual_ip = 6;
+}

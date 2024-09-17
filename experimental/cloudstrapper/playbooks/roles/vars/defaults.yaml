@@ -1,0 +1,35 @@
+---
+# ------------------
+# Default variables
+# Do not need to be changed
+# Caution before you change
+# ------------------
+
+# Essentials
+secgroupDefault: secgroupMagmaDelta
+bucketDefault: bucket-magma-delta
+keyBoot: keyMagmaBootDelta
+keyHost: keyMagmaHostDelta
+stackEssentialsDefault: stackMagmaEssentialsDelta
+
+# Cloudstrapper DevOps
+stackDevOpsCloudstrapper: stackMagmaDevOpsDelta
+stackCloudstrapper: stackMagmaCstrapDelta
+devOpsCloudstrapper: ec2MagmaDevOpsDelta
+primaryCloudstrapper: ec2MagmaCstrapDelta
+devOpsAmi: imgMagmaCstrapDelta
+
+# Test Framework
+testframeworkGwName: TestFrameworkGateway
+
+# Users
+userBootstrap: ubuntu
+userMagma: "{{ userBootstrap }}"
+userAgw: ubuntu
+
+# Directories
+dirHome: "/home/{{ userBootstrap }}"
+dirPyenv: "{{ dirHome }}/.pyenv/shims"
+dirSourceLocal: "{{ dirLocalInventory }}/magma"
+dirSecretsLocal: "{{ dirLocalInventory }}/{{ orc8rClusterName }}/secrets/certs"
+dirSourceRemote: "{{ dirHome }}/magma"

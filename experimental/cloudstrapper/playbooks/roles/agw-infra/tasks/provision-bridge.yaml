@@ -1,0 +1,62 @@
+---
+- name: check if gateway name is defined
+  assert:
+    that:
+      - idGw is defined
+
+- name: identify sgi subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-SgiSubnet"
+  register: valSgiSubnet
+
+- name: identify bridge subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-BridgeSubnet"
+  register: valBridgeSubnet
+
+
+- name: identify s1 subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-EnodebSubnet"
+  register: valEnodebSubnet
+
+- name: set sgi subnet fact
+  set_fact:
+    factSgiSubnetId: "{{ valSgiSubnet.subnets[0].subnet_id }}"
+
+- name: set s1 subnet fact
+  set_fact:
+    factEnodebSubnetId: "{{ valEnodebSubnet.subnets[0].subnet_id }}"
+
+- name: set bridge subnet fact
+  set_fact:
+    factBridgeSubnetId: "{{ valBridgeSubnet.subnets[0].subnet_id }}"
+
+
+- name: identify security group using tag, of the form sitename-secgroup
+  ec2_group_info:
+    filters:
+      group-name: "{{ secGroup }}{{ siteName }}"
+  register: valSecGroup
+
+- name: set security group fact
+  set_fact:
+    factSecGroup: "{{ valSecGroup.security_groups[0].group_id }}"
+
+
+- name: provision Bridge node
+  cloudformation:
+    stack_name: "stack{{ siteName }}Bridge"
+    state: present
+    template: "roles/cfn/cfnMagmaAgwPublic.json"
+    template_parameters:
+      paramImageBase: "{{ awsCloudstrapperAmi }}"
+      paramSubnet: "{{ factBridgeSubnetId }}"
+      paramAzHome: "{{ awsAgwAz }}"
+      paramSecGroup: "{{ factSecGroup }}"
+      paramSshKey: "{{ awsHostKey }}"
+      paramAgwTagName: "{{ siteName }}Bridge"
+      paramInstanceType: "t2.micro"

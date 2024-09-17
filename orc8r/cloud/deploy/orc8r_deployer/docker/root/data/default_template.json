@@ -1,0 +1,32 @@
+{
+  "orc8r": {
+     "infra": {
+        "cluster_name": "orc8r",
+        "orc8r_domain_name": "staging.testminster.com",
+        "region": "us-west-2",
+        "secretsmanager_orc8r_secret": "orc8rsecrets"
+     },
+     "platform": {
+        "orc8r_db_password": "orc8r_password"
+     },
+     "service": {
+        "orc8r_deployment_type": "fwa",
+        "orc8r_tag": "1.5.0",
+        "orc8r_kubernetes_namespace": "orc8r",
+        "cloudwatch_exporter_enabled": true
+     }
+  },
+  "gateway": {
+      "prefix" : "agw",
+      "count" : 1,
+      "ami" : "ami-044bc7506dfacf204",
+      "cloudstrapper_ami": "ami-051d6db85d3a56804",
+      "region": "us-west-2",
+      "az" : "us-west-2a",
+      "service_config":{
+         "node_exporter_listen_address": "0.0.0.0:8082",
+         "avalanche_port": "9001",
+         "avalanche_metric_count": 500
+      }
+   }
+}

@@ -1,0 +1,17 @@
+export namespace="magma"
+export metallb_addresses="10.22.87.65/26"
+export storage_class="nfs"
+export img_repo="yourdockerrepo.local"
+export controller_tag="1.3.2"
+export nms_tag="1.3.2"
+export nginx_tag="1.3.2"
+export db_root_password=CHANGEME
+export orc8r_db_host=mariadb-master.mariadb
+export orc8r_db_pass=CHANGEME
+export orc8r_db_user=orc8r
+export nms_db_host=mariadb-master.mariadb
+export nms_db_pass=CHANGEME
+export nms_db_user=nms
+export dns_domain=CHANGEME
+export admin_email=CHANGEME
+export admin_password=CHANGEME

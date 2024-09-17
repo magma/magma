@@ -1,0 +1,36 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Manual workflow for publishing Helm charts
+# remediation: -
+
+name: Magma Build & Publish Helm Charts
+
+# Temporary on demand Job until we refactor helm build job in build-all
+on:
+  ? workflow_dispatch
+jobs:
+  build_publish_helm_charts_on_demand:
+    env:
+      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+      HELM_CHART_MUSEUM_REPO: helm-test
+      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
+      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      EVENT_NAME: "${{ github.event_name }}"
+      ISSUE_NUMBER: "${{ github.event.number }}"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Launch build and publish script
+        run: |
+          orc8r/tools/helm/package.sh --deployment-type all

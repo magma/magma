@@ -1,0 +1,56 @@
+# Setup HA Proxy services
+- hosts: kube-master
+  become: yes
+  become_user: root
+  roles:
+    - role: evrardjp.keepalived
+      when: vrrp_nic is defined
+    - role: ansible-haproxy
+      when: vrrp_nic is defined
+  vars:
+    virtual_ip: "{{ loadbalancer_apiserver.address }}/24"
+    keepalived_sync_groups:
+      haproxy:
+        instances:
+          - internal
+    keepalived_instances:
+      internal:
+        interface: "{{ vrrp_nic }}"
+        state: "{{ (groups['all'].index(inventory_hostname) == 0) | ternary('MASTER','BACKUP') }}"
+        virtual_router_id: 42
+        priority: "{{ (groups['all']|length - groups['all'].index(inventory_hostname)) * 250 // (groups['all']|length) }}"
+        vips:
+          - "{{ virtual_ip }} dev {{ vrrp_nic }}"
+
+    # Listen
+    haproxy_firewalld: false # check if we need to allow it later
+    haproxy_selinux: false # check if we need to allow it later
+    haproxy_default_mode: http # check if we need to allow it later
+    haproxy_listen:
+    - kubernetes-apiserver-https:
+        mode: tcp
+        description: Kubernetes API
+        balance: roundrobin
+        binds:
+          - "{{ loadbalancer_apiserver.address }}:{{ loadbalancer_apiserver.port }}"
+        options: [ log-health-checks ]
+        bind_process:
+          - 1
+        timeouts: ["client 3h", "server 3h"]
+        servers: >-
+          [
+            {% for m in groups['kube-master']%}
+              "{{ m }} {{ hostvars[m]['ip']}}:{{ kube_apiserver_port }} check check-ssl verify none inter 10000"{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+
+- hosts: kube-master
+  become: yes
+  become_user: root
+  tasks:
+    - name: Ensure keepalived is started
+      service:
+        name: keepalived
+        enabled: true
+        state: started
+      when: vrrp_nic is defined

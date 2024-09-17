@@ -1,0 +1,621 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw (cwf-operator-build, feg-build), @magma/approvers-cloud (nms-build, orc8r-build)
+# purpose: Building and publishing cloud and gateway components
+# remediation: https://magma.github.io/magma/docs/next/basics/quick_start_guide#terminal-tab-2-build-orchestrator (orc8r), https://magma.github.io/magma/docs/next/basics/quick_start_guide#using-the-nms-ui (nms-build), https://magma.github.io/magma/docs/next/feg/deploy_build (feg-build)
+
+name: Magma Build & Publish
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+jobs:
+  build_publish_helm_charts:
+    if: github.repository_owner == 'magma'
+    env:
+      HELM_CHART_ARTIFACTORY_URL: "https://linuxfoundation.jfrog.io/artifactory/"
+      HELM_CHART_MUSEUM_REPO: magma-helm-test
+      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.LF_JFROG_USERNAME }}"
+      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.LF_JFROG_PASSWORD }}"
+      MAGMA_ROOT: "${{ github.workspace }}"
+      EVENT_NAME: "${{ github.event_name }}"
+      ISSUE_NUMBER: "${{ github.event.number }}"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      # Version is github job run number when running on master
+      # Or is branch name when on release branch
+      - name: Set Helm chart version
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/master" ] ;then
+            echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            echo "VERSION=${ISSUE_NUMBER}" >> $GITHUB_ENV
+          fi
+      - name: Launch build and publish script
+        run: |
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION  --only-package
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ] ;then
+            mkdir -p charts
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION --only-package
+          else
+            orc8r/tools/helm/package.sh --deployment-type all
+          fi
+      - name: Upload charts as artifacts
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: github.event_name == 'pull_request'
+        with:
+          name: helm-charts
+          path: charts
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/pr_number
+          echo "false" > ./pr/skipped
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: pr
+          path: pr/
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action Push helm charts to artifactory failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to Slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*Helm charts have been published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+      - name: Only keep the last 20 uploaded versions
+        if: github.event_name == 'push'
+        run: |
+          pip install artifactory
+          python ci-scripts/helm_repo_rotation.py
+  agw-build:
+    uses: ./.github/workflows/bazel.yml
+    secrets: inherit
+  orc8r-build:
+    if: github.repository_owner == 'magma'
+    name: orc8r build job
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Run apt-get update
+        run: sudo apt-get update
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: Run build.py
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --all --nocache
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'nginx|controller' --tag "${TAG}" --tag-latest true --project orc8r
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/nginx:${TAG}\", \"$DOCKER_REGISTRY/controller:${TAG}\"],\"valid\":true}"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+      - name: Notify failure to Slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        # yamllint enable
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Github action orc8r-build failed"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to Slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*Orchestrator images have been published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+
+  cloud-upload:
+    name: cloud upload job
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'push' && github.repository_owner == 'magma'
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Install SwaggerHub CLI
+        run: npm install --global swaggerhub-cli
+      - name: Publish SwaggerHub API
+        env:
+          MAGMA_ROOT: "${{ github.workspace }}"
+          SWAGGERHUB_API_KEY: "${{ secrets.SWAGGERHUB_API_KEY }}"
+        run: |
+          swaggerhub api:unpublish MagmaCore/Magma/1.0.0
+          swaggerhub api:update MagmaCore/Magma/1.0.0 --file ${MAGMA_ROOT}/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml --published=publish --visibility=public --setdefault
+      - name: Notify failure to Slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-upload failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to Slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*SwaggerHub Updated*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+  cwag-deploy:
+    if: github.repository_owner == 'magma'
+    name: cwag deploy job
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Run docker compose
+        id: cwag-docker-compose
+        continue-on-error: true
+        # yamllint disable rule:line-length
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
+      - name: Retry docker compose on failure
+        id: retry-cwag-docker-compose
+        continue-on-error: true
+        if: steps.cwag-docker-compose.outcome=='failure'
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/gateway/docker
+          docker compose --compatibility --file docker-compose.yml --file docker-compose.override.yml build
+      - name: Set the job status
+        if: always()
+        run: |
+          if ${{ steps.cwag-docker-compose.outcome=='success' || steps.retry-cwag-docker-compose.outcome=='success' }}; then
+             echo "Docker compose completed successfully"
+          else
+             echo "Docker compose failed"
+             exit 1
+          fi
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/pr_number
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: pr
+          path: pr/
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined' --tag "${TAG}" --tag-latest true --project cwf
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/cwag_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\", \"$DOCKER_REGISTRY/gateway_sessiond:${TAG}\",\"$DOCKER_REGISTRY/gateway_pipelined:${TAG}\"],\"valid\":true}"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "CWAG-deploy failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*CWAG Artifact Has Been Published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+  cwf-operator-build:
+    if: github.repository_owner == 'magma'
+    name: cwf operator build job
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Run docker compose build
+        env:
+          DOCKER_REGISTRY: cwf_
+        run: |
+          cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
+          DOCKER_REGISTRY=cwf_ docker compose --compatibility build
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      # Used as version for PR builds
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/pr_number
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: pr
+          path: pr/
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-cwag-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'operator' --tag "${TAG}" --tag-latest true --project cwf
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "CWF-operator-build failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ''
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_TITLE: "*CWF Artifact Has Been Published*"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ''
+  feg-build:
+    if: github.repository_owner == 'magma'
+    name: feg-build
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: generate test certs and snowflake
+        run: |
+          # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
+          # create directories
+          cd ${MAGMA_ROOT} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
+          # create test certs
+          cd ${MAGMA_ROOT}/.cache/test_certs/
+          openssl genrsa -out rootCA.key 2048
+          openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
+          # create snowflake
+          cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
+      - name: Build docker images
+        env:
+          DOCKER_REGISTRY: feg_
+        run: |
+          cd ${MAGMA_ROOT}/feg/gateway/docker
+          python3 build.py
+      - name: run docker containers and check health
+        env:
+          DOCKER_REGISTRY: feg_
+        run: |
+          cd ${MAGMA_ROOT}/feg/gateway/docker
+          python3 build.py -e
+      - name: Create release Tag
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-feg-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'gateway_go|gateway_python' --tag "${TAG}" --tag-latest true --project feg
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/gateway_go:${TAG}\", \"$DOCKER_REGISTRY/gateway_python:${TAG}\"],\"valid\":true}"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "FeG-precommit tests failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*FeG Artifact Has Been Published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+  nms-build:
+    if: github.repository_owner == 'magma'
+    name: nms-build job
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      NMS_ROOT: "${{ github.workspace }}/nms"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Run docker compose
+        id: nms-docker-compose
+        # yamllint disable rule:line-length
+        run: |
+          cd ${MAGMA_ROOT}/nms
+          COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          ./ci-scripts/tag-push-docker.sh --images 'magmalte' --tag "${TAG}" --tag-latest true --project magmalte
+          ARTIFACTS="{\"packages\":[\"$DOCKER_REGISTRY/magmalte:${TAG}\"],\"valid\":true}"
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      # yamllint enable
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Github action nms-build failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "NMS Artifact Has Been Published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '
+  Publish_to_firebase:
+    name: Publish to firebase
+    if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
+    runs-on: ubuntu-20.04
+    needs:
+      [
+        agw-build,
+        feg-build,
+        orc8r-build,
+        cwag-deploy,
+        nms-build
+      ]
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: Publish to
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+          WORKERS: "wl_lab_5g,feg_integ_test" # all workers for post-merge pipeline. Comma separated
+          BUILD_ID: "${{ github.sha }}"
+          BUILD_METADATA: '{"github:workflow": "${{ github.workflow }}", "github:run_id": "${{ github.run_id }}", "github:actor": "${{ github.actor }}", "github:repository": "${{ github.repository }}",
+            "github:event_name": "${{ github.event_name }}", "github:sha": "${{ github.sha }}", "github:sha:url": "${{github.event.repository.owner.html_url}}/magma/commit/${{github.sha}}",
+            "github:ref": "${{ github.ref }}"}'
+          FEG_ARTIFACTS: ${{ needs.feg-build.outputs.artifacts }}
+          ORC8R_ARTIFACTS: ${{ needs.orc8r-build.outputs.artifacts }}
+          CWAG_ARTIFACTS: ${{ needs.cwag-deploy.outputs.artifacts }}
+          NMS_ARTIFACTS: ${{ needs.nms-build.outputs.artifacts }}
+          AGW_ARTIFACTS: ${{ needs.agw-build.outputs.artifacts }}
+        run: |
+          python -m pip install --upgrade pip
+          pip3 install pyrebase4
+          python ci-scripts/firebase_publish.py
+  domain-proxy-build:
+    if: github.repository_owner == 'magma'
+    name: domain proxy build job
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Prepare tools
+        working-directory: "${{ github.workspace }}/dp"
+        run: |
+          make _install_skaffold_ci
+      - name: Create release Tag
+        if: github.event_name == 'push'
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            echo TAG="${GITHUB_SHA:0:8}" >> $GITHUB_ENV
+          else
+            GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+            echo TAG="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+          fi
+      - name: Tag and push to Jfrog Registry
+        id: publish_artifacts
+        if: github.event_name == 'push'
+        working-directory: "${{ github.workspace }}/dp"
+        env:
+          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
+          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
+          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
+        run: |
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
+          skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
+      - name: Notify failure to Slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        # yamllint enable
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Github action domain-proxy-build failed"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      # Notify ci channel when push succeeds
+      - name: Notify success to Slack
+        if: success() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
+          SLACK_TITLE: "*Domain proxy images have been published*"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":heavy_check_mark:"
+          SLACK_COLOR: "#00FF00"
+          SLACK_FOOTER: ' '

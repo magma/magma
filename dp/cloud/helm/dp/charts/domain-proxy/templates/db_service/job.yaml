@@ -1,0 +1,43 @@
+{{- if and .Values.dp.create .Values.dp.db_service.enabled -}}
+apiVersion: {{ template "domain-proxy.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ include "domain-proxy.db_service.fullname" . }}-{{ .Release.Revision }}
+  labels:
+    jobName: domain-proxy-db-setup
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      {{- with .Values.dp.db_service.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.db_service.serviceAccountName" . }}
+      containers:
+      - name: {{ .Values.dp.db_service.name }}
+        image: {{ .Values.dp.db_service.image.repository -}}:{{- .Values.dp.db_service.image.tag | default .Chart.AppVersion }}
+        env:
+          {{- range $key, $value := .Values.dp.db_service.extraEnv }}
+          - name: {{ $key }}
+            value: {{ $value }}
+          {{- end }}
+        envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.db_service.fullname" . }}
+      restartPolicy: Never
+      initContainers:
+      - name: {{ .Values.dp.db_service.name }}-init
+        image: {{ .Values.dp.db_service.image.repository -}}:{{- .Values.dp.db_service.image.tag | default .Chart.AppVersion }}
+        env:
+          {{- range $key, $value := .Values.dp.db_service.extraEnv }}
+          - name: {{ $key }}
+            value: {{ $value }}
+          {{- end }}
+        envFrom:
+          - secretRef:
+              name: {{ include "domain-proxy.db_service.fullname" . }}
+        command: ["alembic"]
+        args: ["upgrade","head"]
+  backoffLimit: 10
+{{- end }}

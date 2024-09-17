@@ -1,0 +1,58 @@
+{
+  "version-1.1.X-docs": {
+    "Basics": [
+      "version-1.1.X-basics/introduction",
+      "version-1.1.X-basics/prerequisites",
+      "version-1.1.X-basics/quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "subcategory",
+        "label": "Deploying Orchestrator",
+        "ids": [
+          "version-1.1.X-orc8r/deploy_intro",
+          "version-1.1.X-orc8r/deploy_build",
+          "version-1.1.X-orc8r/deploy_install",
+          "version-1.1.X-orc8r/deploy_upgrade"
+        ]
+      }
+    ],
+    "NMS User Guide": [
+      "version-1.1.X-nms/nms_organizations",
+      "version-1.1.X-nms/nms_grafana"
+    ],
+    "Access Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploying AGWs",
+        "ids": [
+          "version-1.1.X-lte/setup_deb",
+          "version-1.1.X-lte/config_agw",
+          "version-1.1.X-lte/enodebd",
+          "version-1.1.X-lte/agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "AGW Development",
+        "ids": [
+          "version-1.1.X-lte/tr069",
+          "version-1.1.X-lte/s1ap_tests",
+          "version-1.1.X-lte/dev_notes"
+        ]
+      }
+    ],
+    "Federation Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploying FeG",
+        "ids": [
+          "version-1.1.X-feg/deploy_intro",
+          "version-1.1.X-feg/deploy_build",
+          "version-1.1.X-feg/deploy_install"
+        ]
+      }
+    ],
+    "FAQ": ["faq/magma_faq"]
+  }
+}

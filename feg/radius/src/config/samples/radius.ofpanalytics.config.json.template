@@ -1,0 +1,42 @@
+{
+  "monitoring": {
+    "ods": {
+      "category_id": "958",
+      "access_token": "$ODS_ACCESS_TOKEN",
+      "entity": "goradius",
+      "graph_url": "",
+      "unique_entity": true,
+      "debug_prints": true
+    },
+    "census": {
+      "disable_stats": false,
+      "stat_views": ["proc"]
+    }
+  },
+  "server": {
+    "sessionStorage": {
+      "storageType": "memory"
+    },
+    "secret": "$RADIUS_SECRET",
+    "dedupWindow": "500ms",
+    "listeners": [
+      {
+        "name": "auth",
+        "extra": {
+          "port": 1812
+        },
+        "type": "udp",
+        "modules": [
+          {
+            "name": "ofpanalytics",
+            "config": {
+              "URI": "$AAA_ENDPOINT",
+              "AccessToken": "$AAA_ACCESS_TOKEN",
+              "DryRun": false
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

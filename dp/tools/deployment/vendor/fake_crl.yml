@@ -1,0 +1,119 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-crl-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-crl
+      type: tests
+  template:
+    metadata:
+      labels:
+        app: fake-crl
+        type: tests
+    spec:
+      initContainers:
+        - name: init-fake-crl
+          image: busybox:1.28
+          command:
+            - sh
+            - -c
+            - |
+              cp -R -L /opt/server/crlr/* /opt/server/crl &&
+              cp -R -L /opt/server/dbr/* /opt/server/db
+          volumeMounts:
+            - name: empty-crl
+              mountPath: /opt/server/crl
+            - name: crl
+              mountPath: /opt/server/crlr
+            - name: empty-db
+              mountPath: /opt/server/db
+            - name: dbcbsd-ca
+              mountPath: /opt/server/dbr/cbsd_ca
+              readOnly: true
+            - name: dbproxy-ca
+              mountPath: /opt/server/dbr/proxy_ca
+              readOnly: true
+            - name: dbrevoked-cbsd-ca
+              mountPath: /opt/server/dbr/revoked_cbsd_ca
+              readOnly: true
+            - name: dbrevoked-proxy-ca
+              mountPath: /opt/server/dbr/revoked_proxy_ca
+              readOnly: true
+            - name: dbrevoked-sas-ca
+              mountPath: /opt/server/dbr/revoked_sas_ca
+              readOnly: true
+            - name: dbroot-ca
+              mountPath: /opt/server/dbr/root_ca
+              readOnly: true
+            - name: dbsas-ca
+              mountPath: /opt/server/dbr/sas_ca
+              readOnly: true
+      containers:
+        - name: fake-crl
+          imagePullPolicy: IfNotPresent
+          image: fake_crl
+          tty: true
+          stdin: true
+          volumeMounts:
+            - name: empty-crl
+              mountPath: /opt/server/crl
+            - name: empty-db
+              mountPath: /opt/server/db
+            - name: certificates
+              mountPath: /opt/server/certs
+              readOnly: true
+            - name: private
+              mountPath: /opt/server/private
+              readOnly: true
+      volumes:
+        - name: certificates
+          secret:
+            secretName: certificates
+        - name: private
+          secret:
+            secretName: private
+        - name: crl
+          secret:
+            secretName: crl
+        - name: dbcbsd-ca
+          secret:
+            secretName: dbcbsd-ca
+        - name: dbproxy-ca
+          secret:
+            secretName: dbproxy-ca
+        - name: dbrevoked-cbsd-ca
+          secret:
+            secretName: dbrevoked-cbsd-ca
+        - name: dbrevoked-proxy-ca
+          secret:
+            secretName: dbrevoked-proxy-ca
+        - name: dbrevoked-sas-ca
+          secret:
+            secretName: dbrevoked-sas-ca
+        - name: dbroot-ca
+          secret:
+            secretName: dbroot-ca
+        - name: dbsas-ca
+          secret:
+            secretName: dbsas-ca
+        - name: empty-crl
+          emptyDir: { }
+        - name: empty-db
+          emptyDir: { }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-crl-service
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 9007
+      targetPort: 9007
+  selector:
+    app: fake-crl

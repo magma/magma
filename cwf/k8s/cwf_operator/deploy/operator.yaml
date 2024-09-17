@@ -1,0 +1,63 @@
+# Copyright 2018 The Operator-SDK Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Modifications:
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cwf-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cwf-operator
+  template:
+    metadata:
+      labels:
+        name: cwf-operator
+    spec:
+      serviceAccountName: cwf-operator
+      imagePullSecrets:
+        # - name: orc8r-secrets-registry
+      containers:
+        - name: cwf-operator
+          # Replace this with the built image name
+          image: ""
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "cwf-operator"
+            # Replace value for redis server address to enable status reporting
+            # - name: REDIS_ADDR
+            #  value: localhost:6380

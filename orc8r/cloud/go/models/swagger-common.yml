@@ -1,0 +1,188 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/models
+  dependencies: []
+  temp-gen-filename: orc8r-swagger-common.yml
+  output-dir: orc8r/cloud/go
+  types:
+    - go-struct-name: NetworkID
+      filename: network_id_swaggergen.go
+    - go-struct-name: NetworkName
+      filename: network_name_swaggergen.go
+    - go-struct-name: NetworkDescription
+      filename: network_description_swaggergen.go
+    - go-struct-name: NetworkType
+      filename: network_type_swaggergen.go
+    - go-struct-name: GatewayID
+      filename: gateway_id_swaggergen.go
+    - go-struct-name: GatewayName
+      filename: gateway_name_swaggergen.go
+    - go-struct-name: GatewayDescription
+      filename: gateway_description_swaggergen.go
+    - go-struct-name: Error
+      filename: error_swaggergen.go
+    - go-struct-name: RegistrationInfo
+      filename: registration_info_swaggergen.go
+
+info:
+  title: Magma
+  description: Magma REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+schemes:
+  - https
+  - http
+
+securityDefinitions:
+  tokenAuth:
+    type: basic
+
+security:
+  - tokenAuth: []
+
+paths:
+  /foo:
+    get:
+      summary: Mock API path so the YAML passes spec
+      responses:
+        '200':
+          description: Bar baz
+          schema:
+            type: integer
+
+responses:
+  UnexpectedError:
+    description: Unexpected Error
+    schema:
+      $ref: '#/definitions/error'
+
+parameters:
+  # network ID parameter in query string (for POST requests)
+  network_id_query:
+    in: query
+    name: network_id
+    type: string
+    description: Network ID
+    pattern: '^[a-z_][\da-z_]+$'
+    minLength: 1
+    maxLength: 100
+    required: true
+  network_id:
+    in: path
+    name: network_id
+    description: Network ID
+    required: true
+    type: string
+  gateway_id:
+    in: path
+    name: gateway_id
+    description: Gateway ID
+    required: true
+    type: string
+  tenant_id:
+    in: path
+    name: tenant_id
+    description: Tenant ID
+    required : true
+    type: integer
+  page_size:
+    in: query
+    name: page_size
+    type: integer
+    format: uint32
+    description: Maximum number of entities to return
+    required: false
+  page_token:
+    in: query
+    name: page_token
+    type: string
+    description: Opaque page token for paginated requests
+    required: false
+
+definitions:
+  network_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: network_1
+    pattern: '^[\da-z_-]+$'
+  network_name:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Sample Network
+  network_description:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Foobar network
+  network_type:
+    description: The type of the network
+    type: string
+    example: LTE
+  page_token:
+    type: string
+    description: Base64-encoded page token for subsequent paginated API requests
+
+
+  gateway_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_-]+$'
+    example: gw1
+  gateway_name:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Sample Gateway
+  gateway_description:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Sample Gateway description
+  gateway_checked_in_recently:
+    type: boolean
+    example: true
+    description: >
+      Describes whether the last check-in happened recently, taking the
+      magmad check-in interval into account.
+
+  error:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+        example: Error string
+  registration_info:
+    type: object
+    required:
+      - registration_token
+      - root_ca
+      - domain_name
+    properties:
+      registration_token:
+        description: registration_token is a token for the operator to give to the AGW; it keys to logical and network ID
+        type: string
+        minLength: 4
+        example: reg_a9vnap30fN0anrfjVneB
+      root_ca:
+        description: root_ca is a certificate that access gateways (AGW) can use to handshake and communicate with the stated orc8r
+        type: string
+        example: =example rootCA.pem=
+      domain_name:
+        description: domain_name is the domain name where the stated orc8r can be accessed
+        type: string
+        example: example.com

@@ -1,0 +1,72 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.alertmanagerConfigurer.create }}
+{{- $serviceName := print .Release.Name "-alertmanager-configurer" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: alertmanager-configurer
+{{ include "metrics.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.alertmanagerConfigurer.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: alertmanager-configurer
+{{ include "selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: alertmanager-configurer
+{{ include "selector-labels" . | indent 8 }}
+    spec:
+      {{- with .Values.alertmanagerConfigurer.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertmanagerConfigurer.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertmanagerConfigurer.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      volumes:
+        - name: "prometheus-config"
+{{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
+
+      containers:
+        - name: "alertmanager-configurer"
+          image: {{ required "alertmanagerConfigurer.image.repository must be provided" .Values.alertmanagerConfigurer.image.repository }}:{{ .Values.alertmanagerConfigurer.image.tag }}
+          imagePullPolicy: {{ .Values.alertmanagerConfigurer.image.pullPolicy }}
+          ports:
+            - containerPort: 9101
+          volumeMounts:
+            - name: "prometheus-config"
+              mountPath: /etc/configs
+          args:
+            - "-port={{ .Values.alertmanagerConfigurer.alertmanagerConfigPort }}"
+            - "-alertmanager-conf={{ .Values.alertmanagerConfigurer.alertmanagerConfPath }}"
+            - "-alertmanagerURL={{ .Values.alertmanagerConfigurer.alertmanagerURL  }}"
+            - "-multitenant-label=networkID"
+            - "-delete-route-with-receiver=true"
+          resources:
+{{ toYaml .Values.alertmanagerConfigurer.resources | indent 12 }}
+{{- end }}

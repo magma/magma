@@ -1,0 +1,36 @@
+diff --git a/fluid/base/EventLoop.cc b/fluid/base/EventLoop.cc
+index b583667..7dafbe1 100644
+--- a/fluid/base/EventLoop.cc
++++ b/fluid/base/EventLoop.cc
+@@ -41,7 +41,9 @@ EventLoop::EventLoop(int id) {
+     See:
+     http://stackoverflow.com/questions/7645217/user-triggered-event-in-libevent
+     */
++#ifndef EVLOOP_NO_EXIT_ON_EMPTY
+     event_base_add_virtual(this->m_implementation->base);
++#endif
+ }
+ 
+ EventLoop::~EventLoop() {
+@@ -53,10 +55,14 @@ void EventLoop::run() {
+     // Only run if EventLoop::stop hasn't been called first
+     if (stopped) return;
+ 
++#ifndef EVLOOP_NO_EXIT_ON_EMPTY
+     event_base_dispatch(this->m_implementation->base);
+     // See note in EventLoop::EventLoop. Here we disable the virtual event
+     // to guarantee that nothing blocks.
+     event_base_del_virtual(this->m_implementation->base);
++#else
++    event_base_loop(this->m_implementation->base, EVLOOP_NO_EXIT_ON_EMPTY);
++#endif
+     event_base_loop(this->m_implementation->base, EVLOOP_NONBLOCK);
+ }
+ 
+@@ -75,4 +81,4 @@ void* EventLoop::get_base() {
+     return this->m_implementation->base;
+ }
+ 
+-}
+\ No newline at end of file
++}

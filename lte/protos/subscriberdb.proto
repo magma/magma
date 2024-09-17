@@ -1,0 +1,327 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "orc8r/protos/digest.proto";
+import "lte/protos/apn.proto";
+import "google/protobuf/field_mask.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// SubscriberID (or SID) uniquely identifies the subscriber across the system
+// --------------------------------------------------------------------------
+message SubscriberID {
+  string id = 1;
+
+  enum IDType {
+    IMSI = 0;
+  }
+  IDType type = 2;
+}
+
+message SubscriberIDSet {
+  repeated SubscriberID sids = 1;
+}
+
+message SuciProfileList {
+  repeated SuciProfile suci_profiles = 1;
+}
+
+// --------------------------------------------------------------------------
+// GSM/LTE subscription info
+// --------------------------------------------------------------------------
+message GSMSubscription {
+  enum GSMSubscriptionState {
+    INACTIVE = 0;
+    ACTIVE = 1;
+  }
+  GSMSubscriptionState state = 1;
+
+  enum GSMAuthAlgo {
+    PRECOMPUTED_AUTH_TUPLES = 0;  // default
+    // COMP128_V1 = 1; Not supported
+  }
+  GSMAuthAlgo auth_algo = 2;
+
+  // Authentication key (ki). Need for A3/A8 algos. This is not used
+  // when the auth_algo is PRECOMPUTED_AUTH_TUPLES.
+  bytes auth_key = 3;
+
+  // Precomputed (rand, sres, kc) tuples. Used when the auth_algo is
+  // PRECOMPUTED_AUTH_TUPLES.
+  repeated bytes auth_tuples = 4;
+}
+
+message LTESubscription {
+  enum LTESubscriptionState {
+    INACTIVE = 0;
+    ACTIVE = 1;
+  }
+  LTESubscriptionState state = 1;
+
+  enum LTEAuthAlgo {
+    MILENAGE = 0;  // default
+  }
+  LTEAuthAlgo auth_algo = 2;
+
+  // Authentication key (k).
+  bytes auth_key = 3;
+
+  // Operator configuration field (Op) signed with authentication key (k)
+  bytes auth_opc = 4;
+
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
+}
+
+message SubscriberState {
+  // Next SEQ to be used for calculating the AUTN.
+  uint64 lte_auth_next_seq = 1;
+
+  // The Diameter address of the 3GPP AAA Server which is serving the user.
+  // An empty string indicates that no server is currently serving the user.
+  string tgpp_aaa_server_name = 2;
+
+  // Whether the subscribers User Status is REGISTERED or NOT_REGISTERED.
+  bool tgpp_aaa_server_registered = 3;
+}
+
+// For details about values read 3GPP 24.302
+enum AccessNetworkIdentifier {
+  HRPD = 0;
+  WIMAX = 1;
+  WLAN = 2;
+  ETHERNET = 3;
+}
+
+message SubscriberAPNConfig {
+  uint32 apn_id = 1;
+  string assigned_static_ip = 2;
+}
+
+message Non3GPPUserProfile {
+  string msisdn = 1;
+
+  enum Non3GPPIPAccess {
+    // Subscriber has non-3GPP subscription access to EPC network
+    NON_3GPP_SUBSCRIPTION_ALLOWED = 0;
+
+    // Subscriber has no non-3GPP subscription access to EPC network
+    NON_3GPP_SUBSCRIPTION_BARRED = 1;
+  }
+  Non3GPPIPAccess non_3gpp_ip_access = 2;
+
+  enum Non3GPPIPAccessAPN {
+    // Enable all APNs for a subscriber
+    NON_3GPP_APNS_ENABLE = 0;
+
+    // Disable all APNs for a subscriber
+    NON_3GPP_APNS_DISABLE = 1;
+  }
+  Non3GPPIPAccessAPN non_3gpp_ip_access_apn = 3;
+
+  AggregatedMaximumBitrate ambr = 4;
+
+  repeated APNConfiguration apn_config = 5;
+
+  AccessNetworkIdentifier access_net_id = 6;
+
+  // subscriber specific APN config
+  repeated SubscriberAPNConfig subscriber_apn_config = 7;
+}
+
+// --------------------------------------------------------------------------
+// User subscription record. This record is serialized and stored in the DB.
+// --------------------------------------------------------------------------
+message SubscriberData {
+  // Unique indentifier for the subscriber
+  SubscriberID sid = 1;
+
+  GSMSubscription gsm = 2;
+
+  LTESubscription lte = 3;
+
+  magma.orc8r.NetworkID network_id = 4;
+
+  SubscriberState state = 5;
+
+  // Subscription profile
+  string sub_profile = 6;
+
+  Non3GPPUserProfile non_3gpp = 7;
+
+  CoreNetworkType sub_network = 8;
+}
+
+message CoreNetworkType {
+  enum CoreNetworkTypes {
+      NT_EPC = 0;
+      NT_5GC = 1;
+  }
+  // Network Types to be restricted per subscriber. If not configured, Subscriber will have access to all Network Types by default.
+  repeated CoreNetworkTypes forbidden_network_types = 1;
+}
+
+message SubscriberUpdate {
+  // Updated subscription data
+  SubscriberData data = 1;
+
+  // Specifies the fields to be updated
+  // The mask can be individual subscription elements (Eg: 'lte.auth_key') or
+  // entire subset in the SubscriberData (Eg: 'lte' to update all lte.* fields)
+  google.protobuf.FieldMask mask = 2;
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB gateway service definition.
+// --------------------------------------------------------------------------
+service SubscriberDB {
+
+  // Adds a new subscriber to the store.
+  // Throws ALREADY_EXISTS if the subscriber already exists.
+  //
+  rpc AddSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing subscriber.
+  // If the subscriber is not already present, this request is ignored.
+  //
+  rpc DeleteSubscriber (SubscriberID) returns (magma.orc8r.Void) {}
+
+  // Updates an existing subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc UpdateSubscriber (SubscriberUpdate) returns (magma.orc8r.Void) {}
+
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc GetSubscriberData (SubscriberID) returns (SubscriberData) {}
+
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB cloud service definition.
+// --------------------------------------------------------------------------
+service SubscriberDBCloud {
+  // CheckSubscribersInSync checks whether the client subscribers flat digest
+  // is up-to-date.
+  rpc CheckInSync (CheckInSyncRequest) returns (CheckInSyncResponse) {}
+  // SyncSubscribers returns the changeset of subscribers between client and
+  // cloud if the set is small; if the set is large, returns signal to resync.
+  rpc Sync (SyncRequest) returns (SyncResponse) {}
+  // ListSubscribers lists pages of subscribers stored.
+  rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
+  // List SuciProfiles per Network
+  rpc ListSuciProfiles (magma.orc8r.Void) returns (SuciProfileList) {}
+}
+
+message CheckInSyncRequest {
+  // root_digest is the deterministic digest of the full set of config
+  // objects stored on the client side.
+  magma.orc8r.Digest root_digest = 1;
+}
+
+message CheckInSyncResponse {
+  // in_sync is true if client's existing configs match those on the cloud.
+  bool in_sync = 1;
+}
+
+message SyncRequest {
+  // leaf_digests contains a list of digests for each client-side config object,
+  // ordered by their IDs.
+  repeated magma.orc8r.LeafDigest leaf_digests = 1;
+}
+
+message SyncResponse {
+  // resync is true if the client-server data difference is too big and an
+  // overall resync is needed. If true, all subscriber changesets will be empty.
+  bool resync = 1;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 2;
+  // changeset contains the client-server data difference.
+  magma.orc8r.Changeset changeset = 3;
+}
+
+message ListSubscribersRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+}
+
+message ListSubscribersResponse {
+  repeated SubscriberData subscribers = 1;
+  // next_page_token is a serialized entity page token for subsequent paginated
+  // loads.
+  string next_page_token = 2;
+  // digests contains all digests for the network.
+  magma.orc8r.DigestTree digests = 5;
+
+  // Deprecated
+  reserved 3, 4;
+}
+
+message SuciProfile {
+    enum ECIESProtectionScheme {
+        ProfileA = 0;
+        ProfileB = 1;
+    }
+    // HPLMN Public Key Identifier
+    uint32 home_net_public_key_id = 1;
+    ECIESProtectionScheme protection_scheme =2;
+    // HPLMN Public Key
+    bytes home_net_public_key = 3;
+    // HPLMN Private Key
+    bytes home_net_private_key = 4;
+}
+
+service SuciProfileDB {
+ // Adds a new suciprofile to the store.
+  // Throws ALREADY_EXISTS if the suciprofile already exists.
+  rpc AddSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing suciprofile.
+  // If the suciprofile is not already present, this request is ignored.
+  rpc DeleteSuciProfile (SuciProfile) returns (magma.orc8r.Void) {}
+
+  // List the suciprofile in the store.
+  rpc ListSuciProfile (magma.orc8r.Void) returns (SuciProfileList) {}
+}
+
+message M5GSUCIRegistrationRequest {
+    //Home network public key identifier
+    uint32 ue_pubkey_identifier = 1;
+    //UE public key
+    bytes ue_pubkey = 2;
+    //UE ciphertext
+    bytes ue_ciphertext = 3;
+    //Protection scheme output
+    bytes ue_encrypted_mac = 4;
+}
+
+message M5GSUCIRegistrationAnswer {
+    //UE de concealed msin
+    bytes ue_msin_recv = 1;
+}
+
+service M5GSUCIRegistration {
+     rpc M5GDecryptMsinSUCIRegistration (M5GSUCIRegistrationRequest ) returns (M5GSUCIRegistrationAnswer ) {}
+}
+

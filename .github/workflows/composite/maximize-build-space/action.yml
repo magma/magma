@@ -1,0 +1,31 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: maximize-build-space
+description: Maximize build space on Github runner
+# This local action is simpler than existing external
+# actions that try to clean up the Github runner.
+
+runs:
+  using: composite
+  steps:
+    - name: Maximize build space
+      shell: bash
+      run: |
+        echo "Available storage before:"
+        df -h --total
+        echo "Removing /usr/share/dotnet, /usr/local/lib/android, /opt/ghc"
+        sudo rm -rf \
+          /usr/share/dotnet \
+          /usr/local/lib/android \
+          /opt/ghc
+        echo "Available storage after:"
+        df -h --total

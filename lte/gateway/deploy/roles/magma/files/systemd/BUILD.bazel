@@ -1,0 +1,52 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
+
+pkg_files(
+    name = "sctpd_service_definition",
+    srcs = ["sctpd.service"],
+    prefix = "/etc/systemd/system/",
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
+
+pkg_files(
+    name = "magma_lte_service_definitions",
+    srcs = [
+        ":magma_connectiond.service",
+        ":magma_dnsd.service",
+        ":magma_dp_envoy.service",
+        ":magma_envoy_controller.service",
+        ":magma_lighttpd.service",
+        ":magma_magmad.service",
+        ":magma_mme.service",
+        ":magma_mobilityd.service",
+        ":magma_pipelined.service",
+        ":magma_redirectd.service",
+        ":magma_redis.service",
+        ":magma_sessiond.service",
+    ],
+    renames = {
+        ":magma_connectiond.service": "magma@connectiond.service",
+        ":magma_dnsd.service": "magma@dnsd.service",
+        ":magma_dp_envoy.service": "magma_dp@envoy.service",
+        ":magma_envoy_controller.service": "magma@envoy_controller.service",
+        ":magma_lighttpd.service": "magma@lighttpd.service",
+        ":magma_magmad.service": "magma@magmad.service",
+        ":magma_mme.service": "magma@mme.service",
+        ":magma_mobilityd.service": "magma@mobilityd.service",
+        ":magma_pipelined.service": "magma@pipelined.service",
+        ":magma_redirectd.service": "magma@redirectd.service",
+        ":magma_redis.service": "magma@redis.service",
+        ":magma_sessiond.service": "magma@sessiond.service",
+    },
+    visibility = ["//lte/gateway/release:__pkg__"],
+)

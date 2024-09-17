@@ -1,0 +1,54 @@
+---
+deleteStacks:
+  - stackSanRamonAgwANic2
+  - stackSanRamonAgwA
+  - stackSanRamonNetwork
+  - stackTokyogwANic2
+  - stackTokyoAgwA
+  - stackTokyoNetwork
+fullStacks:
+  - stackTokyogwANic2
+  - stackTokyoAgwA
+  - stackTokyoNetwork
+  - stackAlphaDeltaBuild
+  - stackMenloParkAgwBNic2
+  - stackMenloParkAgwB
+  - stackMenloParkNetwork
+  - stackMenloParkAgwANic2
+  - stackMenloParkAgwA
+  - stackMenloParkNetwork
+  - stackCupertinoAgwANic2
+  - stackCupertinoAgwA
+  - stackCupertinoNetwork
+  - stackSanRamonAgwANic2
+  - stackSanRamonAgwA
+  - stackSanRamonNetwork
+orc8rDbs:
+  - orc8rdb
+orc8rDbSnapshots:
+  - orc8rdb-final-snapshot
+orc8rDbParameterGroups:
+  - default.postgres9.6
+
+orc8rSecrets: "{{ orc8rTfSecrets }}"
+orc8rElasticsearch: "{{ orc8rTfEs }}"
+orc8rCloudwatchLog: "/aws/eks/{{ orc8rTfVpc }}/cluster"
+
+orc8rAsgClusterTagName: "{{ orc8rTfVpc }}-wg-1-eks_asg"
+orc8rEfs: "{{ orc8rTfVpc }}.k8s.pv.local"
+
+orc8rVpc: "{{ orc8rTfVpc }}"
+orc8rIgw: "{{ orc8rTfVpc }}"
+orc8rRdsSubnetGroup: "{{ orc8rTfVpc }}"
+orc8rEksCluster: "{{ orc8rTfVpc }}"
+orc8rDbNotifs: "{{ orc8rTfRdsNotifs }}"
+orc8rSnsTopic: "{{ orc8rTfSnsTopic }}"
+
+orc8rDomainRecords:
+  - api
+  - bootstrapper-controller
+  - controller
+  - fluentd
+  - nms
+
+varDefaultSleep: 5

@@ -1,0 +1,21 @@
+dependencies:
+- name: certs
+  repository: ""
+  version: 0.1.0
+- name: secrets
+  repository: ""
+  version: 0.1.10
+- name: metrics
+  repository: ""
+  version: 1.4.24
+- name: nms
+  repository: ""
+  version: 0.1.12
+- name: logging
+  repository: ""
+  version: 0.1.10
+- name: orc8rlib
+  repository: file://../orc8rlib
+  version: 0.1.4
+digest: sha256:4b8b3641ce243970ff0a52691714bcec339ed75dc9735bd8cf5bcfe690217fbd
+generated: "2021-11-26T07:18:14.242355+05:30"

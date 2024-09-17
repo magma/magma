@@ -1,0 +1,17 @@
+---
+- name: launch build node
+  cloudformation:
+    stack_name: "{{ varStackBuild }}"
+    state: "present"
+    template: "roles/build-infra/files/cfnMagmaBuild.json"
+  tags:
+  - createBuildStack
+
+- name: delete build node
+  cloudformation:
+    stack_name: "{{ varStackBuild }}"
+    state: "absent"
+  tags:
+  - deleteBuildStack
+
+      

@@ -1,0 +1,38 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "server": {
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
+                "modules": [
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akatataipx",
+                                    "config": {
+                                        "IpxEndpoint": "",
+                                        "Username": "",
+                                        "Password": ""
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

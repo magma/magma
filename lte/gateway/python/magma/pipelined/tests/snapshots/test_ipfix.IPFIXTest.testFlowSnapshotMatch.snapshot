@@ -1,0 +1,4 @@
+ cookie=0x0, table=ipfix(main_table), n_packets=0, n_bytes=0, priority=12,metadata=0x48c2739fd9c3 actions=sample(probability=30000,collector_set_id=1,obs_domain_id=1,obs_point_id=1,sampling_port=32768),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ipfix(main_table), n_packets=0, n_bytes=0, priority=12,metadata=0x48c273965b3b actions=sample(probability=30000,collector_set_id=1,obs_domain_id=1,obs_point_id=1,sampling_port=32768),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ipfix(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ipfix(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x1 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3

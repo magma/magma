@@ -1,0 +1,269 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+package(default_visibility = ["//visibility:public"])
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "pipelined",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    deps = [
+        ":ifaces",
+        ":pipelined_lib",
+        "//lte/gateway/python/magma/pipelined/app:he",
+        "//lte/gateway/python/magma/pipelined/app:of_rest_server",
+        "//lte/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/configuration:environment",
+        "@aioeventlet_repo//:aioeventlet",
+        requirement("sdnotify"),
+    ],
+)
+
+py_library(
+    name = "pipelined_lib",
+    srcs = [
+        "check_quota_server.py",
+        "datapath_setup.py",
+    ],
+    deps = [
+        ":gtp_stats_collector",
+        ":rpc_servicer",
+        ":service_manager",
+        "//lte/gateway/python/magma/pipelined/app:uplink_bridge",
+        requirement("flask"),
+        requirement("wsgiserver"),
+    ],
+)
+
+py_library(
+    name = "gtp_stats_collector",
+    srcs = ["gtp_stats_collector.py"],
+    deps = [
+        ":metrics",
+        "//orc8r/gateway/python/magma/common:job",
+        "//orc8r/gateway/python/magma/magmad/check:subprocess_workflow",
+    ],
+)
+
+py_library(
+    name = "rpc_servicer",
+    srcs = ["rpc_servicer.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined/app:check_quota",
+        "//lte/gateway/python/magma/pipelined/app:classifier",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:ng_services",
+        "//lte/gateway/python/magma/pipelined/app:tunnel_learn",
+        "//lte/gateway/python/magma/pipelined/app:vlan_learn",
+        "//lte/protos:pipelined_python_grpc",
+    ],
+)
+
+py_library(
+    name = "bridge_util",
+    srcs = ["bridge_util.py"],
+)
+
+py_library(
+    name = "service_manager",
+    srcs = ["service_manager.py"],
+    deps = [
+        ":internal_ip_allocator",
+        ":rule_mappers",
+        "//lte/gateway/python/magma/pipelined/app:access_control",
+        "//lte/gateway/python/magma/pipelined/app:arp",
+        "//lte/gateway/python/magma/pipelined/app:check_quota",
+        "//lte/gateway/python/magma/pipelined/app:classifier",
+        "//lte/gateway/python/magma/pipelined/app:conntrack",
+        "//lte/gateway/python/magma/pipelined/app:enforcement",
+        "//lte/gateway/python/magma/pipelined/app:gy",
+        "//lte/gateway/python/magma/pipelined/app:he",
+        "//lte/gateway/python/magma/pipelined/app:ipv6_solicitation",
+        "//lte/gateway/python/magma/pipelined/app:ng_services",
+        "//lte/gateway/python/magma/pipelined/app:of_rest_server",
+        "//lte/gateway/python/magma/pipelined/app:startup_flows",
+        "//lte/gateway/python/magma/pipelined/app:tunnel_learn",
+        "//lte/gateway/python/magma/pipelined/app:uplink_bridge",
+        "//lte/gateway/python/magma/pipelined/app:vlan_learn",
+        "//lte/gateway/python/magma/pipelined/ebpf:ebpf_manager",
+        "//lte/gateway/python/magma/pipelined/qos:common",
+        "//lte/protos:mobilityd_python_grpc",
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/configuration:environment",
+        "@aioeventlet_repo//:aioeventlet",
+    ],
+)
+
+py_library(
+    name = "rule_mappers",
+    srcs = ["rule_mappers.py"],
+)
+
+py_library(
+    name = "internal_ip_allocator",
+    srcs = ["internal_ip_allocator.py"],
+)
+
+py_library(
+    name = "set_interface_client",
+    srcs = ["set_interface_client.py"],
+    deps = [
+        "//lte/protos:session_manager_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+    ],
+)
+
+py_library(
+    name = "directoryd_client",
+    srcs = ["directoryd_client.py"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/protos:directoryd_python_grpc",
+    ],
+)
+
+py_library(
+    name = "mobilityd_client",
+    srcs = ["mobilityd_client.py"],
+    deps = [
+        "//lte/protos:mobilityd_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+    ],
+)
+
+py_library(
+    name = "metrics",
+    srcs = ["metrics.py"],
+    deps = [requirement("prometheus_client")],
+)
+
+py_library(
+    name = "imsi",
+    srcs = ["imsi.py"],
+)
+
+py_library(
+    name = "ng_set_session_msg",
+    srcs = ["ng_set_session_msg.py"],
+    deps = [
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+        "//lte/gateway/python/magma/pipelined/ng_manager:session_state_manager_util",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+    ],
+)
+
+py_library(
+    name = "utils",
+    srcs = ["utils.py"],
+)
+
+py_library(
+    name = "redirect",
+    srcs = ["redirect.py"],
+    deps = [
+        "//lte/gateway/python/magma/redirectd:redirect_store",
+        requirement("aiodns"),
+        requirement("pymemoize"),
+    ],
+)
+
+py_library(
+    name = "policy_converters",
+    srcs = ["policy_converters.py"],
+    deps = [
+        ":ipv6_prefix_store",
+        "//lte/gateway/python/magma/pipelined/openflow:magma_match",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:policydb_python_proto",
+        "@ryu_repo//:ryu_patched",
+    ],
+)
+
+py_library(
+    name = "ipv6_prefix_store",
+    srcs = ["ipv6_prefix_store.py"],
+    deps = ["//orc8r/gateway/python/magma/common/redis:client"],
+)
+
+py_library(
+    name = "envoy_client",
+    srcs = ["envoy_client.py"],
+    deps = [
+        "//feg/protos:envoy_controller_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+    ],
+)
+
+py_library(
+    name = "encoding",
+    srcs = ["encoding.py"],
+    deps = [requirement("pycryptodome")],
+)
+
+py_library(
+    name = "tunnel_id_store",
+    testonly = True,
+    srcs = ["tunnel_id_store.py"],
+    deps = ["//orc8r/gateway/python/magma/common/redis:client"],
+)
+
+py_library(
+    name = "vlan_utils",
+    srcs = ["vlan_utils.py"],
+)
+
+py_library(
+    name = "gw_mac_address",
+    srcs = ["gw_mac_address.py"],
+    deps = [
+        ":ifaces",
+        "//lte/gateway/python/magma/pipelined/app:packet_parser",
+        requirement("dpkt"),
+    ],
+)
+
+py_library(
+    name = "pg_set_session_msg",
+    srcs = ["pg_set_session_msg.py"],
+)
+
+py_library(
+    name = "ifaces",
+    srcs = ["ifaces.py"],
+    deps = [
+        requirement("netifaces"),
+        ":metrics",
+    ],
+)

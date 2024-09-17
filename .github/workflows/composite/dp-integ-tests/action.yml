@@ -1,0 +1,82 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: dp-integ-tests
+description: Run DP integration tests
+
+inputs:
+  make_tests_target:
+    required: true
+    description: Make target for running relevant tests
+  test_dir:
+    required: true
+    description: Directory to store tests results
+    default: /tmp/integration-tests-results
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+
+    - name: Set env
+      shell: bash
+      run: |
+        echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
+
+    - name: Install Minikube
+      uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9 # pin@v2.7.1
+      with:
+        minikube version: 'v1.21.0'
+        kubernetes version: 'v1.20.7'
+        github token: ${{ github.token }}
+        start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+        driver: "docker"
+
+    - name: Setup Minikube
+      working-directory: dp
+      shell: bash
+      run: |
+        make _ci_init
+
+    - name: Get minikube IP and prepare directory for test results
+      shell: bash
+      run: |
+        minikube ip
+        minikube ssh sudo ip link set docker0 promisc on
+        mkdir -p ${{ inputs.test_dir }}
+        minikube mount  ${{ inputs.test_dir }}:${{ inputs.test_dir }} &
+
+    - name: Run integration tests
+      working-directory: dp
+      shell: bash
+      run: |
+        make "${{ inputs.make_tests_target }}"
+
+    - name: Collect Pods logs
+      if: always()
+      shell: bash
+      run: >-
+        mkdir ${{ inputs.test_dir }}/k8s-pods-logs; for pod in $(kubectl get pods -o custom-columns=NAME:.metadata.name --no-headers); do
+          kubectl logs --timestamps=true $pod > ${{ inputs.test_dir }}/k8s-pods-logs/${pod}.log;
+        done
+
+    - name: Collect Elasticsearch data
+      if: always()
+      shell: bash
+      run: >
+        kubectl exec $(kubectl get pods -o custom-columns=NAME:.metadata.name | grep elasticsearch) -- curl localhost:9200/dp-*/_search?size=200 >  ${{ inputs.test_dir }}/elasticsearch-data.json
+
+    - name: Upload integration test results
+      if: always()
+      uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      with:
+        name: ${{ inputs.make_tests_target }}-results
+        path: ${{ inputs.test_dir }}

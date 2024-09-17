@@ -1,0 +1,96 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw, @magma/approvers-cloud
+# purpose: Centralized workflow to publish test results for other workflows
+# remediation: -
+
+name: PR Generate Unit Test Results
+on:
+  workflow_run:
+    workflows:
+      - Orc8r Lint & Test
+      - FeG Lint & Test
+      - AGW Build & Test Experimental Go Code
+      - NMS Lint & Test
+      - DP Lint & Test
+    types:
+      - completed
+
+jobs:
+  skip_check:
+    name: Job to retrieve the value in pr/skipped file
+    runs-on: ubuntu-20.04
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        with:
+          script: |
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+      - name: Check if the workflow is skipped
+        id: skip_check
+        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        with:
+          script: |
+            var fs = require('fs');
+            var skipFlag = fs.readFileSync('./skipped');
+            if( skipFlag == 'true' ) {
+              core.setOutput('should_skip', 'true');
+            }
+            else  {
+              core.setOutput('should_skip', 'false');
+            }
+
+  unit-test-results:
+    name: Upload unit test for ${{ github.event.workflow.name }}
+    needs: skip_check
+    runs-on: ubuntu-20.04
+    if: >
+      github.event.workflow_run.conclusion != 'skipped' &&
+        github.event.workflow_run.head_repository.full_name != github.repository &&
+          needs.skip_check.outputs.should_skip == 'false'
+    steps:
+      - name: Download and Extract Artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p artifacts && cd artifacts
+          artifacts_url=${{ github.event.workflow_run.artifacts_url }}
+          gh api "$artifacts_url" -q '.artifacts[] | [.name, .archive_download_url] | @tsv' | while read artifact
+          do
+            IFS=$'\t' read name url <<< "$artifact"
+            gh api $url > "$name.zip"
+            unzip -d "$name" "$name.zip"
+          done
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@7377632048da85434c30810c38353542d3162dc4 # pin@v1
+        with:
+          check_name: ${{ github.event.workflow.name }}
+          commit: ${{ github.event.workflow_run.head_sha }}
+          files: "artifacts/**/*.xml"

@@ -1,0 +1,78 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+log_level: INFO
+fluent_bit_port: 5170
+tcp_timeout: 5
+event_registry:
+  mock_subscriber_event:
+    module: orc8r
+    filename: mock_event_definitions.v1.yml
+  deleted_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  updated_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  processed_updates:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  restarted_services:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  disconnected_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  established_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  authentication_succeeded:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  authentication_failed:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  session_created:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_create_failure:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_updated:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_update_failure:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_terminated:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_termination_succeeded:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  session_termination_failed:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  gateway_promotion_succeeded:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_promotion_failed:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_demotion_succeded:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_demotion_failed:
+    module: cwf
+    filename: health_events.v1.yml
+

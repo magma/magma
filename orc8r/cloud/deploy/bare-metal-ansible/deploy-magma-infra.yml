@@ -1,0 +1,11 @@
+- hosts: kube-master[0]
+  become: yes
+  become_user: root
+  roles:
+    - role: magma/nfs-server-provisioner
+      when: deploy_nfs_server_provisioner | default(true)
+    - role: magma/kubevirt
+      when: kubevirt_enabled | default(false)
+    - role: magma/metallb
+      when: deploy_metallb | default(true)
+

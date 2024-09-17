@@ -1,0 +1,67 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+
+import "google/protobuf/any.proto";
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+// Streamer provides a pipeline for the cloud to push the updates to the
+// gateway as and when the update happens.
+//
+// The Streamer interface defines the semantics and consistency guarantees
+// between the cloud and the gateway while abstracting the details of how
+// it's implemented in the cloud and what the gateway does with the updates.
+//
+// - The gateways call the GetUpdates() streaming API with a StreamRequest
+//   indicating the stream name and the offset to continue streaming from.
+// - The cloud sends a stream of DataUpdateBatch containing a batch of updates.
+// - If resync is true, then the gateway can cleanup all its data and add
+//   all the keys (the batch is guaranteed to contain only unique keys).
+// - If resync is false, then the gateway can update the keys, or add new
+//   ones if the key is not already present.
+// - Key deletions are not yet supported (#15109350)
+service Streamer {
+  // GetUpdates streams config updates from the cloud.
+  // The RPC call would be kept open to push new updates as they happen.
+  rpc GetUpdates (StreamRequest) returns (stream DataUpdateBatch) {}
+}
+
+message StreamRequest {
+  string gatewayId = 1;
+  // stream_name to attach to.
+  // E.g., subscriberdb, config, etc.
+  string stream_name = 2;
+  // extra_args contain any extra data to send up with the stream request.
+  // This value will be different per stream provider.
+  google.protobuf.Any extra_args = 3;
+}
+
+message DataUpdateBatch {
+  // updates to config values
+  repeated DataUpdate updates = 1;
+  // resync is true iff the updates would be a snapshot of all the contents
+  // in the cloud.
+  bool resync = 2;
+}
+
+message DataUpdate {
+  // key is the unique key for each item
+  string key = 1;
+  // value can be file contents, protobuf serialized message, etc.
+  // For key deletions, the value field would be absent.
+  bytes value = 2;
+}

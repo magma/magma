@@ -1,0 +1,53 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "metrics.fullname" . }}-defaultconfig
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  labels:
+{{ include "metrics.labels" . | indent 4 }}
+data:
+{{- if .Values.configFiles.useDefaults.alertmanagerConf }}
+  alertmanager.yml: |
+    route:
+      receiver: null_receiver
+      group_by:
+        - alertname
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+    receivers:
+      - name: null_receiver
+{{- end }}
+{{- if .Values.configFiles.useDefaults.internalAlertsConf }}
+  internal_alert_rules.yml: |
+    groups:
+      - name: internal_alerting_rules
+        rules:
+          - alert: target_down
+            expr: up == 0
+            labels:
+              severity: major
+              network_id: internal
+            annotations:
+              summary: "Instance {{`{{ $labels.instance }}`}} - target is down"
+              description: "{{`{{ $labels.instance }}`}} is down."
+{{- end }}
+{{- range $filename, $content := .Values.extraConfigFiles }}
+  {{ $filename }}: |
+{{ $content | indent 4}}
+{{- end }}

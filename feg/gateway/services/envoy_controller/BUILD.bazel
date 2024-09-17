@@ -1,0 +1,38 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+go_library(
+    name = "envoy_controller_lib",
+    srcs = ["main.go"],
+    importpath = "magma/feg/gateway/services/envoy_controller",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//feg/cloud/go/protos:envoy_controller_go_proto",
+        "//feg/gateway/registry",
+        "//feg/gateway/services/envoy_controller/control_plane",
+        "//feg/gateway/services/envoy_controller/servicers:envoy_controller_servicers",
+        "//orc8r/lib/go/service",
+        "@com_github_golang_glog//:glog",
+    ],
+)
+
+go_binary(
+    name = "envoy_controller",
+    embed = [":envoy_controller_lib"],
+    tags = TAG_SERVICE + ["no-cache"],
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/release:__pkg__",
+    ],
+)

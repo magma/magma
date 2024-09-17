@@ -1,0 +1,11 @@
+magma_namespace: magma
+charts_dir: /etc/orc8r/charts
+elasticsearch_keep_days: 7
+elasticsearch_image_tag: 7.12.0
+orc8r_domain: magma.local
+storage_class: nfs
+
+es_data_heap_size: 1536m
+es_data_memory_max:  2048Mi
+es_master_heap_size: 512m
+es_master_memory_max: 1024Mi

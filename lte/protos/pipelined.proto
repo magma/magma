@@ -1,0 +1,559 @@
+/*
+Copyright 2020 The Magma Authors.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.lte;
+
+import "orc8r/protos/common.proto";
+import "lte/protos/apn.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/session_manager.proto";
+import "lte/protos/subscriberdb.proto";
+import "lte/protos/mobilityd.proto";
+
+option go_package = "magma/lte/cloud/go/protos";
+
+// Deprecated
+message SetupFlowsRequest {
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+  // List of subscriber quota updates
+  UpdateSubscriberQuotaStateRequest quota_updates = 3;
+}
+
+message SetupDefaultRequest {
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 1;
+}
+
+message SetupUEMacRequest {
+  // List of UEs to activate
+  repeated UEMacFlowRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupPolicyRequest {
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupQuotaRequest {
+  // List of quota rules to activate
+  UpdateSubscriberQuotaStateRequest quota_updates = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
+}
+
+message RequestOriginType {
+  enum OriginType {
+    GX = 0;
+    GY = 1;
+    N4 = 2;
+    WILDCARD = 3; //  should only be used for deactivation
+  }
+  OriginType type = 1;
+}
+
+message VersionedPolicy {
+  PolicyRule rule = 1;
+  uint32 version = 2;
+}
+
+message ActivateFlowsRequest {
+  SubscriberID sid = 1;
+  string ip_addr = 2; // Subscriber session ipv4 address
+  RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
+  magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
+  bytes ipv6_addr = 7; // Subscriber session ipv6 address
+  bytes msisdn = 8; // From SubscriberDB or HSS
+  uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
+  uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
+  repeated VersionedPolicy policies = 11; // Policy + version pairs
+  uint32 shard_id = 12; // Shard ID for UE
+  reserved 3, 4;
+}
+
+message VersionedPolicyID {
+  string rule_id = 1;
+  uint32 version = 2;
+}
+
+// DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
+// all flows for some rules, or particular rules for a subscriber, depending on
+// which parameters are passed. Rule IDs can apply to static rules or dynamic
+// rules
+// If no rule ids are given, all flows are deactivated
+message DeactivateFlowsRequest {
+  SubscriberID sid = 1;
+  RequestOriginType request_origin = 3;
+  string ip_addr = 4; // Subscriber session ipv4 address
+  bytes ipv6_addr = 5; // Subscriber session ipv6 address
+  bool remove_default_drop_flows = 6;
+  uint32 uplink_tunnel = 7; // Subscriber uplink tunnel
+  uint32 downlink_tunnel = 8; // Subscriber downlink tunnel
+  repeated VersionedPolicyID policies = 9; // PolicyID + version pairs
+  reserved 2;
+}
+
+message RuleModResult {
+  string rule_id = 1;
+  enum Result {
+    SUCCESS = 0;
+    PARTIAL_SUCCESS = 1;
+    FAILURE = 2;
+  }
+  Result result = 2;
+  uint64 version = 3;
+}
+
+message ActivateFlowsResult {
+  repeated RuleModResult policy_results = 2;
+  reserved 1;
+}
+
+message DeactivateFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
+}
+
+message FlowRequest {
+  FlowMatch match = 1;
+  string app_name = 2;
+  uint64 bytes_rx = 3;
+  string service_type = 4;
+  string src_mac = 5;
+  string dst_mac = 6;
+  enum FlowState {
+    FLOW_CREATED = 0;
+    FLOW_PARTIAL_CLASSIFICATION = 1;
+    FLOW_FINAL_CLASSIFICATION = 2;
+    FLOW_EXPIRED = 3;
+  }
+  FlowState state = 7;
+}
+
+message FlowResponse {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
+}
+
+// UEMacFlowRequest is used to link a subscriber ID to a MAC address.
+// This is used for Carrier WiFi data session establishment
+message UEMacFlowRequest {
+  SubscriberID sid = 1;
+
+  // UE MAC address
+  string mac_addr = 2;
+
+  string msisdn = 3;
+
+  // AP MAC address
+  string ap_mac_addr = 4;
+
+  // AP Name
+  string ap_name = 5;
+
+  // PDP Start time
+  uint64 pdp_start_time = 6;
+}
+
+message SubscriberQuotaUpdate{
+  SubscriberID sid = 1;
+  enum Type {
+    VALID_QUOTA = 0;
+    NO_QUOTA = 1;
+    TERMINATE = 2;
+  }
+  // UE MAC address
+  string mac_addr = 2;
+  Type update_type = 3;
+}
+
+message UpdateSubscriberQuotaStateRequest {
+  repeated SubscriberQuotaUpdate updates = 1;
+}
+
+message TableAssignment {
+  string app_name = 1;
+  uint64 main_table = 2;
+  repeated uint64 scratch_tables = 3;
+}
+
+message AllTableAssignments {
+  repeated TableAssignment table_assignments = 1;
+}
+
+message SerializedRyuPacket {
+  bytes pkt = 1;
+  string imsi = 2;
+}
+
+message PacketDropTableId {
+  int32 table_id = 1;
+}
+
+
+// SMF to UPF proto definitions
+// source file: https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/15.08.00_60/ts_129244v150800p.pdf
+//
+
+
+// ToDo latest state change will reflect in upcoming proto
+message Fsm_state {
+  enum FsmState {
+        SESSION_ACTIVE                        = 0;
+        SESSION_TERMINATED                    = 4;
+        SESSION_TERMINATION_SCHEDULED         = 5;
+        SESSION_RELEASED                      = 6;
+        CREATING                              = 7;
+        CREATED                               = 8;
+        ACTIVE                                = 9;
+        INACTIVE                              = 10;
+        RELEASE                               = 11;
+  }
+  FsmState  state = 1;
+}
+
+message SdfFilters {                               //8.2.5
+  FlowDescriptor fd = 1;
+  bytes ttc = 2;
+  bytes spi = 3;
+  bytes fl = 4;
+  uint32 sdf_id = 5;
+}
+
+message FlowDescriptor {
+FlowMatchNew match = 1;
+Action action = 2;
+}
+
+message FlowMatchNew {
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
+  string protocol_type = 3;   //can be UDP TCP
+  uint32 dst_port = 4;
+  uint32 src_port = 5;
+}
+
+// 8.2.26
+enum Action {
+  DROP = 0;
+  FORW = 1;
+  //Below will be required in future use case
+  BUFF = 2;
+  NOCP = 3;
+  DUPL = 4;
+}
+
+message RedirectInfo {                //8.2.20
+  enum RedirectAddrType {
+    IPV4 = 0;
+    IPV6 = 1;
+    URL = 2;
+    SIPURI = 3;
+    IPV4V6 = 4;
+  }
+  RedirectAddrType red_add_type = 1;
+  string red_server_addr = 2;
+}
+
+message OuterHeaderCreation {
+ uint32 o_teid = 1;
+ string gnb_ipv4_adr = 2;
+ uint32 port_no = 3;
+}
+
+// Table 7.5.2.3-2: Forwarding Parameters IE in FAR
+message FwdParam {
+  uint32 dest_iface = 1;
+  string net_instance = 2;
+  RedirectInfo redirect_info = 3;
+  OuterHeaderCreation outr_head_cr = 4;
+}
+
+// Table 7.5.2.3-3: Duplicating Parameters IE in FAR
+message DupParam {
+  uint32 dest_iface = 1;
+}
+
+enum  SourceInterfaceType {
+  ACCESS = 0;
+  CORE   = 1;
+  SGiLAN = 2;
+}
+
+// pdr_state variable for SessionSet message per PDR.
+enum PdrState {
+  INSTALL = 0;
+  REMOVE  = 1;
+  IDLE    = 2;
+  MODI    = 3;
+}
+
+// PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
+message PDI {
+  uint32 src_interface = 1;
+  uint32 local_f_teid = 2;
+  string net_instance = 3;
+  string ue_ipv4 = 4;
+  bytes tr_ep_id = 5;                //8.2.92
+  SdfFilters sdf_filters = 6;
+  string app_id = 7;
+  string ue_ipv6 = 8;
+}
+
+// Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest
+
+// PDR message Table 7.5.2.2-1: Create PDR IE within PFCP Session Establishment
+message SetGroupPDR {
+  uint32 pdr_id = 1;
+  int32 pdr_version = 2;
+  uint32 precedence = 3;
+  uint32 gnb_teid = 4;
+  PdrState pdr_state = 5;
+  PDI pdi = 6;
+  uint32 o_h_remo_desc = 7;
+  string active_pred_rule = 8;
+  SetGroupFAR set_gr_far = 9;
+  DeactivateFlowsRequest deactivate_flow_req = 10;
+  ActivateFlowsRequest activate_flow_req = 11;
+  QCI session_qfi = 12;
+}
+
+// FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
+message SetGroupFAR {
+  uint32 far_id = 1;
+  repeated Action far_action_to_apply = 2;
+  FwdParam fwd_parm = 3;
+  DupParam du_param = 4;
+}
+
+// SET message - SMF to Upf Session Requests
+message SessionSet {
+  string subscriber_id = 1;
+  uint32 local_f_teid = 2;
+  uint32 session_version = 3;
+  NodeID node_id = 4;
+  Fsm_state state = 5;
+  repeated SetGroupPDR set_gr_pdr = 6;
+}
+
+// Response of SetSession Message from SMF.
+// 15.8 (Sec 7.5.3.1) : PFCP Session Response format
+message UPFSessionContextState {
+    CauseIE cause_info = 1;
+    UPFSessionState session_snapshot = 2;
+    FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
+}
+
+// 15.8,  Section 8.2.1
+message CauseIE {
+   // 15.8, Table 8.2.1-1
+   enum CauseValues {
+       RESERVED = 0;
+       REQUEST_ACCEPTED = 1;
+       REQUEST_REJECTED_NO_REASON = 2;
+       SESSION_CONTEXT_NOT_FOUND = 3;
+       MANDATORY_IE_MISSING = 4;
+       CONDITIONAL_IE_MISSING = 5;
+       INVALID_LENGTH = 6;
+       MANDATORY_IE_INCORRECT = 7;
+       INVALID_FORWARDING_POLICY = 8;
+       INVALID_F_TEID_ALLOCATION_OPTION = 9;
+       NO_ESTABLISHED_PFCP_ASSOCIATION = 10;
+       RULE_CREATION_OR_MODIFICATION_FAILURE = 11;
+       PFCP_ENTRY_IN_CONGESTION = 12;
+       NO_RESOURCES_AVAILABLE = 13;
+       SERVICE_NOT_SUPPORTED = 14;
+       SYSTEM_FAILURE = 15;
+   }
+
+   CauseValues cause_ie=1;
+}
+
+// For now only PDR is encoded as it encompass FAR and QER.
+message FailureRuleInformation {
+   repeated OffendingIE pdr = 1;
+}
+
+// Failure Report
+message OffendingIE {
+    uint32 identifier = 1;
+    uint32 version = 2;
+    ActivateFlowsResult qos_enforce_rule_results = 3;
+    DeactivateFlowsResult del_qer_results = 4;
+}
+
+// DOWNLINK FLOW
+message IPFlowDL {
+    uint32 set_params = 1;
+    uint32 tcp_dst_port = 2;
+    uint32 tcp_src_port = 3;
+    uint32 udp_dst_port = 4;
+    uint32 udp_src_port = 5;
+    uint32 ip_proto  = 6;
+    IPAddress src_ip = 7;
+    IPAddress dest_ip = 8;
+    uint32 precedence = 9;
+}
+
+message UESessionState {
+  enum UEConfigState {
+      ACTIVE         = 0;  // Session TUNNEL ADD
+      UNREGISTERED   = 1;  // Session TUNNEL DELETE
+      INSTALL_IDLE   = 2;  // Session ADD PAGING
+      UNINSTALL_IDLE = 3;  // Session REMOVE PAGING
+      SUSPENDED_DATA = 4;  // Discard Data on Tunnel
+      RESUME_DATA    = 5;  // Resume Data on Tunnel
+  }
+  UEConfigState ue_config_state = 1;
+}
+
+// Message from MME to UPF
+message UESessionSet {
+    SubscriberID subscriber_id = 1;
+    uint32 precedence = 2;
+    IPAddress ue_ipv4_address = 3;
+    IPAddress ue_ipv6_address = 4;
+    IPAddress enb_ip_address = 5;
+    string apn = 6;
+    uint32 vlan = 7;
+    uint32 in_teid = 8;
+    uint32 out_teid = 9;
+    UESessionState ue_session_state = 10;
+    IPFlowDL ip_flow_dl = 13;
+};
+
+message UESessionContextResponse {
+    IPAddress ue_ipv4_address = 1;
+    IPAddress ue_ipv6_address = 2;
+    uint32 operation_type = 3;
+    CauseIE cause_info = 4;
+}
+
+message GetStatsRequest{
+   uint32 cookie = 1;
+   uint32 cookie_mask = 2;
+}
+
+// --------------------------------------------------------------------------
+// Pipelined gateway RPC service
+// --------------------------------------------------------------------------
+service Pipelined {
+
+  // -----------------
+  // General setup rpc
+  // -----------------
+
+  // Setup pipelined basic controllers
+  rpc SetupDefaultControllers (SetupDefaultRequest) returns (SetupFlowsResult) {}
+
+  // ------------
+  // Smf to Upf rpc
+  // ------------
+
+  rpc SetSMFSessions(SessionSet) returns (UPFSessionContextState) {}
+
+  // ----------------
+  // Enforcement App:
+  // ----------------
+
+  // Setup flows for subscribers (used on restarts)
+  rpc SetupPolicyFlows (SetupPolicyRequest) returns (SetupFlowsResult) {}
+
+  // Activate flows for a subscriber based on predefined flow templates
+  rpc ActivateFlows (ActivateFlowsRequest) returns (ActivateFlowsResult) {}
+
+  // Deactivate flows for a subscriber
+  rpc DeactivateFlows (DeactivateFlowsRequest) returns (DeactivateFlowsResult) {}
+
+  // Get policy usage stats
+  rpc GetPolicyUsage (magma.orc8r.Void) returns (RuleRecordTable) {}
+
+  rpc GetStats(GetStatsRequest) returns (RuleRecordTable) {}
+
+  // --------
+  // DPI App:
+  // --------
+
+  // Add new dpi flow
+  rpc CreateFlow (FlowRequest) returns (FlowResponse) {};
+
+  // Remove dpi flow
+  rpc RemoveFlow (FlowRequest) returns (FlowResponse) {};
+
+  // Update flow stats
+  rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
+
+  // ----------------
+  // Quota Check App:
+  // ----------------
+
+  // Setup subscribers flows (used on restarts)
+  rpc SetupQuotaFlows (SetupQuotaRequest) returns (SetupFlowsResult) {}
+
+  // Synchronize subscribers quota check flows
+  rpc UpdateSubscriberQuotaState (UpdateSubscriberQuotaStateRequest) returns (FlowResponse) {}
+
+  // -----------
+  // UE MAC App:
+  // -----------
+
+  // Setup subscribers flows (used on restarts)
+  rpc SetupUEMacFlows (SetupUEMacRequest) returns (SetupFlowsResult) {}
+
+  // Add a flow for a subscriber by matching the provided UE MAC address
+  rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+  // Delete a flow for a subscriber by matching the provided UE MAC address
+  rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+  // -----------
+  // IPFIX App:
+  // -----------
+
+  // Update subscriber IPFIX flows
+  rpc UpdateIPFIXFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+  // --------
+  // Debugging:
+  // --------
+
+  // Get the flow table assignment for all apps ordered by main table number
+  // and name
+  rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
+
+  rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
+
+}

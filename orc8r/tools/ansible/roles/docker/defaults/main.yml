@@ -1,0 +1,35 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+ansible_python_interpreter: /usr/bin/python3
+
+working_dir: /var/opt/magma/docker
+
+registry_url: "{{ lookup('env','DOCKER_REGISTRY') }}"
+registry_username: "{{ lookup('env','DOCKER_USERNAME') }}"
+registry_password: "{{ lookup('env','DOCKER_PASSWORD') }}"
+
+image_version: "{{ lookup('file','image_version') }}"
+
+docker_host_distribution: focal
+
+systemd_stdout: null
+systemd_stderr: syslog
+# will run as "docker compose {{ systemd_start_args_pre }} up {{ systemd_start_args_post }}"
+# use to specify alternate compose files (pre) or service options (post)
+systemd_start_args_pre: ""
+systemd_start_args_post: ""
+systemd_stop_args: ""
+# override this in your vars config to supply raw content to systemd service definition
+systemd_extra: |
+  # see orc8r/tools/ansible/roles/docker/defaults/main.yml
+  # to add more systemd directives here (should mostly be environment variables)

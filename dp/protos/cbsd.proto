@@ -1,0 +1,168 @@
+/*
+Copyright 2022 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+package magma.dp;
+
+option go_package = "magma/dp/cloud/go/protos";
+
+service CbsdManagement {
+  rpc CreateCbsd (CreateCbsdRequest) returns (CreateCbsdResponse) {}
+  rpc UserUpdateCbsd (UpdateCbsdRequest) returns (UpdateCbsdResponse) {}
+  rpc EnodebdUpdateCbsd (EnodebdUpdateCbsdRequest) returns (CBSDStateResult) {}
+  rpc DeleteCbsd (DeleteCbsdRequest) returns (DeleteCbsdResponse) {}
+  rpc FetchCbsd(FetchCbsdRequest) returns (FetchCbsdResponse) {}
+  rpc ListCbsds(ListCbsdRequest) returns (ListCbsdResponse) {}
+  rpc DeregisterCbsd(DeregisterCbsdRequest) returns (DeregisterCbsdResponse) {}
+  rpc RelinquishCbsd(RelinquishCbsdRequest) returns (RelinquishCbsdResponse) {}
+}
+
+message CBSDStateResult {
+  repeated LteChannel channels = 1;
+  bool radio_enabled = 2;
+  bool carrier_aggregation_enabled = 3;
+  // TODO for backwards compatibility only. Remove once enodebd part is updated
+  LteChannel channel = 4;
+}
+
+message LteChannel {
+  int64 low_frequency_hz = 1;
+  int64 high_frequency_hz = 2;
+  float max_eirp_dbm_mhz = 3;
+}
+
+message CreateCbsdRequest {
+  string network_id = 1;
+  CbsdData data = 2;
+}
+
+message CreateCbsdResponse {}
+
+message UpdateCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+  CbsdData data = 3;
+}
+
+message EnodebdUpdateCbsdRequest {
+  string serial_number = 1;
+  InstallationParam installation_param = 2;
+  string cbsd_category = 3;
+}
+
+message UpdateCbsdResponse {}
+
+message DeleteCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message DeleteCbsdResponse {}
+
+message FetchCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message FetchCbsdResponse {
+  CbsdDetails details = 1;
+}
+
+message ListCbsdRequest {
+  string network_id = 1;
+  Pagination pagination = 2;
+  CbsdFilter filter = 3;
+}
+
+message ListCbsdResponse {
+  repeated CbsdDetails details = 1;
+  int64 total_count = 2;
+}
+
+message DeregisterCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message DeregisterCbsdResponse {}
+
+message RelinquishCbsdRequest {
+  string network_id = 1;
+  int64 id = 2;
+}
+
+message RelinquishCbsdResponse {}
+
+message CbsdData {
+  string user_id = 1;
+  string fcc_id = 2;
+  string serial_number = 3;
+  string cbsd_category = 4;
+  bool single_step_enabled = 5;
+  string desired_state = 6;
+  bool carrier_aggregation_enabled = 7;
+  bool grant_redundancy = 8;
+  Capabilities capabilities = 9;
+  FrequencyPreferences preferences = 10;
+  InstallationParam installation_param = 11;
+}
+
+message InstallationParam {
+  google.protobuf.DoubleValue latitude_deg = 1;
+  google.protobuf.DoubleValue longitude_deg = 2;
+  google.protobuf.BoolValue indoor_deployment = 3;
+  google.protobuf.DoubleValue height_m = 4;
+  google.protobuf.StringValue height_type = 5;
+  google.protobuf.DoubleValue antenna_gain = 6;
+}
+
+message Capabilities {
+  double min_power = 1;
+  double max_power = 2;
+  int64 number_of_antennas = 3;
+  int64 max_ibw_mhz = 4;
+}
+
+message FrequencyPreferences {
+  int64 bandwidth_mhz = 1;
+  repeated int64 frequencies_mhz = 2;
+}
+
+message CbsdDetails {
+  int64 id = 1;
+  CbsdData data = 2;
+  string cbsd_id = 3;
+  string state = 4;
+  bool is_active = 5;
+  repeated GrantDetails grants = 6;
+}
+
+message GrantDetails {
+  int64 bandwidth_mhz = 1;
+  int64 frequency_mhz = 2;
+  double max_eirp = 3;
+  string state = 4;
+  int64 transmit_expire_timestamp = 5;
+  int64 grant_expire_timestamp = 6;
+}
+
+message Pagination {
+  google.protobuf.Int64Value limit = 1;
+  google.protobuf.Int64Value offset = 2;
+}
+
+message CbsdFilter {
+  string serial_number = 1;
+}

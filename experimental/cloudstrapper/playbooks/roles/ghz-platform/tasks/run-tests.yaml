@@ -1,0 +1,66 @@
+---
+- name: add agw containers to inventory
+  add_host:
+    name: "{{ item }}"
+    ansible_connection: docker
+  with_items:
+    - "{{ load_tests | map(attribute='name') | list }}"
+
+- name: debug container statuses
+  command:
+    cmd: docker ps
+  ignore_errors: true
+
+- name: run load test script
+  command:
+    cmd: "python3 /magma/lte/gateway/python/load_tests/loadtest_{{ item.0.name }}.py {{ item.1.name }} --import_path /magma/"
+    chdir: "/magma/lte/gateway/python/load_tests"
+  environment:
+    MAGMA_ROOT: "/magma"
+  delegate_to: "{{ item.0.name }}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: Check that the load test result file exists
+  command:
+    cmd: "cat result_{{ item.1.result }}.json"
+    chdir: "/var/tmp"
+  register: json_output
+  environment:
+    MAGMA_ROOT: "/magma"
+  delegate_to: "{{ item.0.name }}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: save the test ids to upload results
+  set_fact:
+    test_ids: "{{ test_ids|default([]) + [item.1.id]}}"
+  with_subelements:
+    - "{{ load_tests }}"
+    - test
+
+- name: push results to gHZ API first try
+  uri:
+    url: "{{ GHZ_API_URL }}:{{ GHZ_API_PORT}}/api/projects/{{ item[1] }}/ingest"
+    method: POST
+    status_code: 201
+    body_format: json
+    body: "{{ item[0].stdout | from_json }}"
+  loop: "{{ json_output.results | zip(test_ids) | list }}"
+  ignore_errors: true
+  timeout: 300
+  register: pushFirstTry
+
+- name: push results to gHZ API second try
+  uri:
+    url: "{{ GHZ_API_URL }}:{{ GHZ_API_PORT}}/api/projects/{{ item[1] }}/ingest"
+    method: POST
+    status_code: 201
+    body_format: json
+    body: "{{ item[0].stdout | from_json }}"
+  loop: "{{ json_output.results | zip(test_ids) | list }}"
+  timeout: 300
+  ignore_errors: true
+  when: pushFirstTry.stderr is defined and 'FAILED' in pushFirstTry.stderr

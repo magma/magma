@@ -1,0 +1,342 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library", "cpp_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpc_library", "python_proto_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cpp_proto_library(
+    name = "common_cpp_proto",
+    protos = [":common_proto"],
+)
+
+python_proto_library(
+    name = "common_python_proto",
+    protos = [":common_proto"],
+)
+
+python_proto_library(
+    name = "mconfig_python_proto",
+    protos = [":mconfig_orc8r_proto"],
+)
+
+proto_library(
+    name = "common_proto",
+    srcs = ["common.proto"],
+)
+
+proto_library(
+    name = "sync_rpc_service_proto",
+    srcs = ["sync_rpc_service.proto"],
+)
+
+python_grpc_library(
+    name = "sync_rpc_service_python_grpc",
+    protos = [":sync_rpc_service_proto"],
+)
+
+proto_library(
+    name = "magmad_proto",
+    srcs = ["magmad.proto"],
+    deps = [
+        ":common_proto",
+        ":mconfig_orc8r_proto",
+        "@com_google_protobuf//:struct_proto",
+    ],
+)
+
+python_proto_library(
+    name = "magmad_python_proto",
+    protos = [":magmad_proto"],
+)
+
+python_grpc_library(
+    name = "magmad_python_grpc",
+    protos = [":magmad_proto"],
+)
+
+proto_library(
+    name = "mconfig_orc8r_proto",
+    srcs = ["mconfig.proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "digest_cpp_proto",
+    protos = [":digest_proto"],
+)
+
+python_proto_library(
+    name = "digest_python_proto",
+    protos = [":digest_proto"],
+)
+
+proto_library(
+    name = "digest_proto",
+    srcs = ["digest.proto"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+cpp_grpc_library(
+    name = "eventd_cpp_grpc",
+    protos = [":eventd_proto"],
+    deps = [":common_cpp_proto"],
+)
+
+python_grpc_library(
+    name = "eventd_python_grpc",
+    protos = [":eventd_proto"],
+    deps = [":common_python_proto"],
+)
+
+proto_library(
+    name = "eventd_proto",
+    srcs = ["eventd.proto"],
+    deps = [":common_proto"],
+)
+
+cpp_grpc_library(
+    name = "directoryd_cpp_grpc",
+    protos = [":directoryd_proto"],
+    deps = [":common_cpp_proto"],
+)
+
+proto_library(
+    name = "directoryd_proto",
+    srcs = ["directoryd.proto"],
+    deps = [":common_proto"],
+)
+
+python_grpc_library(
+    name = "directoryd_python_grpc",
+    protos = [":directoryd_proto"],
+)
+
+cpp_proto_library(
+    name = "redis_cpp_proto",
+    protos = [":redis_proto"],
+)
+
+python_proto_library(
+    name = "redis_python_proto",
+    protos = [":redis_proto"],
+)
+
+proto_library(
+    name = "redis_proto",
+    srcs = ["redis.proto"],
+)
+
+cpp_proto_library(
+    name = "mconfigs_cpp_proto",
+    protos = [":mconfigs_proto"],
+    deps = [":common_cpp_proto"],
+)
+
+proto_library(
+    name = "mconfigs_proto",
+    srcs = ["mconfig/mconfigs.proto"],
+    deps = [":common_proto"],
+)
+
+python_proto_library(
+    name = "mconfigs_python_proto",
+    protos = [":mconfigs_proto"],
+)
+
+python_proto_library(
+    name = "metrics_python_proto",
+    protos = [":metrics_proto"],
+)
+
+cpp_proto_library(
+    name = "metrics_cpp_proto",
+    protos = [":metrics_proto"],
+)
+
+proto_library(
+    name = "metrics_proto",
+    srcs = ["prometheus/metrics.proto"],
+    strip_import_prefix = "prometheus/",
+)
+
+cpp_proto_library(
+    name = "metricsd_cpp_proto",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metrics_cpp_proto",
+    ],
+)
+
+python_proto_library(
+    name = "metricsd_python_proto",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metrics_python_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "metricsd_python_grpc",
+    protos = [":metricsd_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metrics_python_proto",
+    ],
+)
+
+proto_library(
+    name = "metricsd_proto",
+    srcs = ["metricsd.proto"],
+    deps = [
+        ":common_proto",
+        ":metrics_proto",
+    ],
+)
+
+proto_library(
+    name = "service_status_proto",
+    srcs = ["service_status.proto"],
+)
+
+python_proto_library(
+    name = "service_status_python_proto",
+    protos = [":service_status_proto"],
+)
+
+proto_library(
+    name = "state_proto",
+    srcs = ["state.proto"],
+    deps = [
+        ":common_proto",
+        ":service303_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "state_python_grpc",
+    protos = [":state_proto"],
+)
+
+proto_library(
+    name = "certifier_proto",
+    srcs = ["certifier.proto"],
+    deps = [
+        ":identity_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+python_proto_library(
+    name = "certifier_python_proto",
+    protos = [":certifier_proto"],
+    deps = [":identity_python_proto"],
+)
+
+proto_library(
+    name = "identity_proto",
+    srcs = ["identity.proto"],
+)
+
+python_proto_library(
+    name = "identity_python_proto",
+    protos = [":identity_proto"],
+)
+
+proto_library(
+    name = "ctraced_proto",
+    srcs = ["ctraced.proto"],
+)
+
+python_grpc_library(
+    name = "ctraced_python_grpc",
+    protos = [":ctraced_proto"],
+)
+
+proto_library(
+    name = "bootstrapper_proto",
+    srcs = ["bootstrapper.proto"],
+    deps = [
+        ":certifier_proto",
+        ":identity_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "bootstrapper_python_grpc",
+    protos = [":bootstrapper_proto"],
+    deps = [":certifier_python_proto"],
+)
+
+cpp_grpc_library(
+    name = "service303_cpp_grpc",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metricsd_cpp_proto",
+    ],
+)
+
+python_grpc_library(
+    name = "service303_python_grpc",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metricsd_python_proto",
+    ],
+)
+
+cpp_proto_library(
+    name = "service303_cpp_proto",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_cpp_proto",
+        ":metricsd_cpp_proto",
+    ],
+)
+
+python_proto_library(
+    name = "service303_python_proto",
+    protos = [":service303_proto"],
+    deps = [
+        ":common_python_proto",
+        ":metricsd_python_proto",
+    ],
+)
+
+proto_library(
+    name = "service303_proto",
+    srcs = ["service303.proto"],
+    deps = [
+        ":common_proto",
+        ":metricsd_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+proto_library(
+    name = "streamer_proto",
+    srcs = ["streamer.proto"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+python_grpc_library(
+    name = "streamer_python_grpc",
+    protos = [":streamer_proto"],
+)

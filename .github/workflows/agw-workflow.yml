@@ -1,0 +1,122 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Linting various components in AGW
+# remediation: https://magma.github.io/magma/docs/next/lte/dev_unit_testing#format-agw
+
+name: AGW Lint
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - '.github/workflows/agw-workflow.yml'
+              - 'orc8r/**'
+              - 'lte/**'
+
+  lint-clang-format:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check clang-format for orc8r/gateway/c
+        uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # pin@v0.13
+        with:
+          source: 'orc8r/gateway/c'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 11.1.0
+          # taken from .clang-format
+          style: file
+      - name: Check clang-format for lte/gateway
+        uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # pin@v0.13
+        with:
+          source: 'lte/gateway/c lte/gateway/python'
+          extensions: 'h,hpp,c,cpp'
+          clangFormatVersion: 11.1.0
+          # taken from .clang-format
+          style: file
+
+  jsonlint-mconfig:
+    name: jsonlint-mconfig
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 0
+      - name: jsonlint-mconfig
+        run: find . -name gateway.mconfig -print0 | xargs --max-args=1 --null --replace='%' sh -c ">/dev/null jq . % || { echo % is not a valid json file; exit 1; } "
+
+  pylint:
+    name: pylint
+    runs-on: ubuntu-20.04
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 0
+      - name: Setup Bazel Cache Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel cache image!"
+      - name: Run pylint
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        env:
+          PYTHONPATH: /workspaces/magma/lte/gateway/python:/workspaces/magma/orc8r/gateway/python
+          PY_ENV_PATH: /tmp/pylintenv
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          shell: bash
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            set -euo pipefail
+            apt update
+            apt install -y python3.8-venv
+            cd /workspaces/magma
+            bazel run //dev_tools:python_env ${{ env.PY_ENV_PATH }}
+            ${{ env.PY_ENV_PATH }}/bin/pip3 install pylint==2.14.0
+            PYTHONPATH=${{ env.PYTHONPATH }} ${{ env.PY_ENV_PATH }}/bin/python3 -m pytest -s lte/gateway/python/magma/tests/pylint_tests.py
+            PYTHONPATH=${{ env.PYTHONPATH }} ${{ env.PY_ENV_PATH }}/bin/python3 -m pytest -s orc8r/gateway/python/magma/tests/pylint_tests.py

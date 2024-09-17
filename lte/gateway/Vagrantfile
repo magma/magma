@@ -1,0 +1,224 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+
+# Install vagrant-disksize to allow resizing the vagrant box disk.
+unless Vagrant.has_plugin?("vagrant-disksize")
+    raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+end
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Mount magma directory in all VMs
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+
+  config.vm.define :magma, primary: true do |magma|
+    magma.vm.box = "magmacore/magma_dev"
+    magma.vm.box_version = "1.3.20221230"
+    magma.disksize.size = '75GB'
+
+     # Enable Dynamic Swap Space to prevent Out of Memory crashes
+    magma.vm.provision :shell, inline: "swapoff -a && fallocate -l 4G /swapfile && chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab && swapon -a"
+    magma.vm.provision :shell, inline: "echo vm.swappiness = 10 >> /etc/sysctl.conf && echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.conf && sysctl -p"
+    magma.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    # WARNING: The same networking is used for magma and magma_deb. Therefore:
+    # 1. Only one of these VMs should be running at any one time
+    # 2. Any changes to the magma networking should be propagated to magma_deb
+    magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    # For IPv6 network,
+    # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
+    # - `netmask` specified to enforce correct mask when using internal network
+    magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
+    magma.vm.network "private_network", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: "ipv6_network", type: "static6", netmask: "64"
+
+
+    magma.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", ENV.fetch("MAGMA_DEV_MEMORY_MB", "8192")]
+      vb.customize ["modifyvm", :id, "--cpus", ENV.fetch("MAGMA_DEV_CPUS", "4")]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
+    end
+    magma.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_dev.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
+    magma_trfserver.vm.box = "magmacore/magma_trfserver"
+    magma_trfserver.vm.box_version = "1.3.20221230"
+    magma_trfserver.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
+    # iperf3 server IP.
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    # For IPv6 network,
+    # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
+    # - `netmask` specified to enforce correct mask when using internal network
+    magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
+    magma_trfserver.vm.network "private_network", ip: "3001::2", nic_type: "82540EM", virtualbox__intnet: "ipv6_network", type: "static6", netmask: "64"
+
+    magma_trfserver.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-trfserver"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    magma_trfserver.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_trfserver.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_test, autostart: false do |magma_test|
+    magma_test.vm.box = "magmacore/magma_test"
+    magma_test.vm.box_version = "1.3.20221230"
+    magma_test.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
+    # UE trfgen network
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    # For IPv6 network,
+    # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
+    # - `netmask` specified to enforce correct mask when using internal network
+    magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM", virtualbox__intnet: "ipv4_ue"
+    magma_test.vm.network "private_network", ip: "3001::3", nic_type: "82540EM", virtualbox__intnet: "ipv6_network", type: "static6", netmask: "64"
+    config.ssh.forward_agent = true
+
+    magma_test.vm.provider "virtualbox" do |vb|
+      vb.name = "magma_test"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    magma_test.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_test.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :ovs_build, autostart: false do |ovs_build|
+    ovs_build.vm.box = "generic/debian9"
+    ovs_build.vm.hostname = "build-ovs"
+    ovs_build.vm.network "public_network"
+    ovs_build.ssh.forward_agent = true
+    ovs_build.vm.box_check_update = false
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    config.ssh.insert_key = false
+  end
+
+  config.vm.define :oai_hss, autostart: false do |oai_hss|
+    oai_hss.vm.box = "ubuntu/bionic64"
+    oai_hss.vm.hostname = "oai-hss"
+    oai_hss.vm.network "public_network"
+    oai_hss.ssh.forward_agent = true
+    oai_hss.vm.box_check_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    oai_hss.vm.network "private_network", ip: "192.168.60.153", nic_type: "82540EM"
+    config.ssh.insert_key = false
+    oai_hss.vm.provider "virtualbox" do |vb|
+      vb.name = "oai-hss"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+  end
+
+  config.vm.define :magma_deb, autostart: false do |magma_deb|
+
+    magma_deb.vm.box = "ubuntu/focal64"
+    magma_deb.vm.box_version = "20220804.0.0"
+    magma_deb.vm.hostname = "magma-deb"
+    magma_deb.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    # WARNING: The same networking is used for magma and magma_deb. Therefore:
+    # 1. Only one of these VMs should be running at any one time
+    # 2. Any changes to the magma networking should be propagated to magma_deb
+    magma_deb.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    # Set to an internal network to prevent possible connection to vagrant host instead of other VM
+    # For IPv6 network,
+    # - `type` specified due to https://github.com/hashicorp/vagrant/issues/12839
+    # - `netmask` specified to enforce correct mask when using internal network
+    magma_deb.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM", virtualbox__intnet: "ipv4_sgi"
+    magma_deb.vm.network "private_network", ip: "3001::10", nic_type: "82540EM", virtualbox__intnet: "ipv6_network", type: "static6", netmask: "64"
+
+    magma_deb.vm.provider "virtualbox" do |vb|
+      vb.name = "magma_deb"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", ENV.fetch("MAGMA_DEV_MEMORY_MB", "8192")]
+      vb.customize ["modifyvm", :id, "--cpus", ENV.fetch("MAGMA_DEV_CPUS", "4")]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
+    end
+    
+    magma_deb.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_deb.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+      # The magma package to be installed is given by the env variable MAGMA_PACKAGE
+      #   MAGMA_PACKAGE not set or empty: install latest magma from artifactory
+      #   MAGMA_PACKAGE="magma=version": install specific version from artifactory
+      #   MAGMA_PACKAGE="magma.deb": install magma debian file expected at /home/vagrant/magma/magma.deb
+      ansible.extra_vars = { MAGMA_PACKAGE: ENV.fetch('MAGMA_PACKAGE', 'magma') }
+    end
+
+    # Reload VM to apply correct network configuration
+    magma_deb.vm.provision :reload
+    
+  end
+
+end

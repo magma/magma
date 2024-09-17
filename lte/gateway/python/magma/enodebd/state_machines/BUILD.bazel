@@ -1,0 +1,61 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_library(
+    name = "enb_acs",
+    srcs = [
+        "enb_acs.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":acs_state_utils",
+        "//lte/gateway/python/magma/enodebd/data_models:data_model",
+        "//lte/gateway/python/magma/enodebd/device_config:enodeb_config_postprocessor",
+        "//lte/gateway/python/magma/enodebd/devices:device_utils",
+    ],
+)
+
+py_library(
+    name = "acs_state_utils",
+    srcs = ["acs_state_utils.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/enodebd/tr069:models"],
+)
+
+py_library(
+    name = "enb_acs_manager",
+    srcs = ["enb_acs_manager.py"],
+    visibility = ["//visibility:public"],
+    deps = ["//lte/gateway/python/magma/enodebd/devices:device_map"],
+)
+
+py_library(
+    name = "enb_acs_impl",
+    srcs = [
+        "enb_acs_impl.py",
+        "enb_acs_states.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":enb_acs",
+        ":timer",
+        "//lte/gateway/python/magma/enodebd:metrics",
+        "//lte/gateway/python/magma/enodebd/device_config:configuration_init",
+    ],
+)
+
+py_library(
+    name = "timer",
+    srcs = ["timer.py"],
+    visibility = ["//visibility:public"],
+)

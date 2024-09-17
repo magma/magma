@@ -1,0 +1,67 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Create directories for the fluent-bit DB
+  file:
+    path: /var/opt/magma/fluent-bit
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: preburn
+
+- name: Update repositories cache and install "td-agent-bit" package
+  apt:
+    name: td-agent-bit
+    update_cache: yes
+  retries: 5
+  # Avoid starting td-agent-bit immediately
+  environment:
+    RUNLEVEL: 1
+  when: preburn
+
+- name: Copy fluent bit config script
+  copy:
+    src: '{{ magma_root }}/orc8r/gateway/python/scripts/generate_fluent_bit_config.py'
+    dest: /usr/local/bin/generate_fluent_bit_config.py
+    force: yes
+    remote_src: yes
+  when: full_provision
+
+- name: Copy the td-agent-bit service file
+  copy:
+    src: magma_td-agent-bit.service
+    dest: /etc/systemd/system/magma@td-agent-bit.service
+  when: full_provision
+
+- name: Remove default td-agent-bit service file
+  file:
+    state: absent
+    path: /lib/systemd/system/td-agent-bit.service
+  when: full_provision
+
+- name: Copy the rsyslog config
+  copy:
+    src: 60-fluent-bit.conf
+    dest: /etc/rsyslog.d/
+  when: full_provision
+
+- name: Restart rsyslog
+  systemd:
+    state: restarted
+    name: rsyslog
+  when: full_provision
+
+- name: Reload system daemon
+  systemd:
+    daemon_reload: yes
+  when: full_provision

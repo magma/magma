@@ -1,0 +1,54 @@
+/.bazel-cache/ @magma/approvers-infra
+/.bazel-cache-repo/ @magma/approvers-infra
+/.github/workflows/ @magma/approvers-infra
+
+/bazel/ @magma/approvers-infra
+
+/ci-scripts/ @magma/approvers-infra
+/cwf/ @magma/approvers-gw
+/cwf/gateway/Vagrantfile @magma/approvers-infra
+
+/dp/ @magma/approvers-cloud
+/docs/ @magma/approvers-infra
+/docs/readmes/proposals @magma/approvers-tsc
+
+/feg/ @magma/approvers-gw
+
+/lte/gateway @magma/approvers-gw
+/lte/gateway/release @magma/approvers-infra
+/lte/gateway/Vagrantfile @magma/approvers-infra
+/lte/gateway/docker @magma/approvers-infra
+/lte/gateway/python/integ_tests @magma/approvers-infra
+/lte/protos @magma/approvers-gw
+
+/nms/ @magma/approvers-cloud
+
+/openwrt/ @magma/approvers-gw
+
+/orc8r/ @magma/approvers-cloud
+/orc8r/cloud/deploy/bare-metal/ @magma/approvers-infra
+/orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-infra
+/orc8r/gateway/c/ @magma/approvers-gw
+/orc8r/gateway/python @magma/approvers-gw @magma/approvers-cloud
+/orc8r/tools/packer/ @magma/approvers-infra
+
+/show-tech/ @magma/approvers-gw
+
+/third_party/build/ @magma/approvers-infra
+/third_party/gtp_ovs @magma/approvers-gw
+
+/.bazelignore @magma/approvers-infra
+/.bazelrc @magma/approvers-infra
+/.golangci.yml @magma/approvers-cloud
+/CODEOWNERS @magma/approvers-tsc
+
+*.bazel @magma/approvers-infra
+*/cloud/ @magma/approvers-cloud
+
+# Generated code excluded from code ownership
+**/go.sum @ghost
+**/*.pb.go @ghost
+**/*_swaggergen.go @ghost
+/orc8r/cloud/go/services/obsidian/swagger/v1/swagger.yml @ghost
+/orc8r/cloud/api/ @ghost
+/nms/generated/ @ghost

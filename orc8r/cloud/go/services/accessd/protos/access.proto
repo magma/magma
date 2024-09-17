@@ -1,0 +1,155 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//
+// Access Control Related Definitions:
+//
+//  Access Control is based on the concept of one cloud Entity (operator)
+//  represented by its Identity, managing (READ/WRITE access) or
+//  monitoring (READ only access) one or more other entities represented by
+//  their own Identities
+//  Since Identity is a polymorphic type, any entity can play a role of operator
+//  as well as any entity can be a 'managed' entity.
+//
+//  Each Operator 'owns' Access Control List which consists of all entities
+//  managed by an operator and their permissions.
+//  The operator's access control list (AccessControl.List) is represented by a
+//  map of managed/monitored entity Identities keyed by entity's Hash String
+//
+//  All ACLs are stored as a map keyed by the Operator's Identity unique Hash
+//  String provided by the Operator's Identity implementation.
+//  Operator's Identity is itself included in the map's value
+//  for security & convenience:
+//
+//  key: Operator Hash String => value: AccessControl.List
+//  where:
+//      AccessControl.List => {
+//        Identity operator
+//        map<string, Entity> entities
+//      }
+//      where:
+//          Entity => {
+//              Identity id
+//              int32 permissions
+//          }
+//
+//  The Identity Hash includes the Identity type, so two Identities may only be
+//  equal if they are of the same type.
+//
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "orc8r/protos/identity.proto";
+
+package magma.orc8r.accessd;
+option go_package = "magma/orc8r/cloud/go/services/accessd/protos";
+
+// Access Control Data Structures & Definitions
+message AccessControl {
+     // All permission definitions are used as bitmasks & should be 2**N
+    enum Permission {
+        NONE = 0;
+        READ = 1;
+        WRITE = 2;
+    }
+    // "Managed/monitored" entity record
+    message Entity {
+        Identity id = 1;
+        Permission permissions = 2; // permissions bitmask, READ|WRITE == full access
+    }
+    // Operator's Access Control List (map)
+    message List {
+        Identity operator = 1;
+        // Map entity's hash string -> entity
+        map<string, Entity> entities = 2;
+    }
+
+    // RPC Request/Response used to 1) manage AND 2) check permissions
+    // 1. When Adding or Modifying permissions entities will represent managed
+    // entities Operator's permissions
+    // 2. When verifying permissions, entities will represent a list of
+    // Identities and their corresponding permissions requested by the operator
+    message ListRequest {
+        Identity operator = 1; // Identity of operator => entities' manager
+        repeated Entity entities = 2; // Operated/managed entities & permissions
+    }
+    // RPC Request used to verify permissions for operator on a given entity
+    message PermissionsRequest {
+        Identity operator = 1; // Identity of operator => entities' manager
+        Identity entity = 2; // Operated/managed entity
+    }
+    message Lists {
+        repeated List acls = 1;
+    }
+}
+
+// Access Control Manager is a service which stores, manages and verifies
+// operator Identity objects and their rights to access (read/write) Entities.
+//
+// Entities and Operators are represented by generic Identity interface
+// (see identity.proto for more info on Identity) and can be of any valid
+// Identity type.
+//
+// Currently only Network Identity types are used for Entities and only Operator
+// Identity types are used for operators, since the only planned user for Access
+// Control Manager Service is Obsidian. But nothing in the service definition
+// and/or implementation limits it to the above mentioned types only.
+//
+// For instance: it should support without any modifications a case of
+// a Gateway Identity (operator) having a READ only access to Magmad Service
+// Identity (TBD) representing an entity in this case, or a Service Identity
+// having WRITE only access to another Service Identity, etc.
+//
+// Operators & their ACLs may potentially be scoped within another entity
+// (currently scoping is not used). The most obvious use case for the scoping
+// would be network scoping, in such a case Operator ACL as well as Operator
+// itself would only exist within a single network and will be invisible to
+// anyone outside this network. ACLs of scoped operators  will only be allowed to
+// hold Identities of similarly scoped entities.
+service AccessControlManager {
+    // Overwrites Permissions for operator Identity to manage others
+    // Request includes ACL to set for the Operator
+    // If the Operator doesn't exist - creates a new operator with the given ACL
+    rpc SetOperator (AccessControl.ListRequest) returns (magma.orc8r.Void) {}
+
+    // Adds Permissions for one Identity to manage others
+    // Request includes ACL to add (append to the existing ACL) for the Operator
+    rpc UpdateOperator (AccessControl.ListRequest) returns (magma.orc8r.Void) {}
+
+    // Removes all operator's permissions (the entire operator's ACL)
+    rpc DeleteOperator (Identity) returns (magma.orc8r.Void) {}
+
+    // Returns the managing Identity's permissions list
+    rpc GetOperatorACL (Identity) returns (AccessControl.List) {}
+
+    // Returns the managing Identity's permissions list
+    rpc GetOperatorsACLs (Identity.List) returns (AccessControl.Lists) {}
+
+    // Returns the managing Identity's permissions for a given entity
+    // NOTE: Takes into account wildcards for the entity's type in the ACL
+    rpc GetPermissions (AccessControl.PermissionsRequest) returns (AccessControl.Entity) {}
+
+    // CheckPermissions verifies Operator permissions for a list of given
+    // Identities. AccessControl.ListRequest.entities is a list of
+    // Identities and their corresponding permissions requested by the operator
+    // CheckPermissions will return success only if all requested permissions
+    // are satisfied (AND logic)
+    // Intended to be used for multi-Identity requests such as Network Identity
+    // AND REST API Identity, etc.
+    rpc CheckPermissions (AccessControl.ListRequest) returns (magma.orc8r.Void) {}
+
+    // Lists all globally registered operators on the cloud
+    rpc ListOperators (magma.orc8r.Void) returns (Identity.List) {}
+
+    // Cleanup a given entity from all Operators' ACLs
+    rpc DeleteEntity (Identity) returns (magma.orc8r.Void) {}
+}

@@ -1,0 +1,89 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-cloud
+# purpose: Check if Helm dependencies are up to date
+# remediation: -
+
+name: Magma Check Helm Dependencies
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  check_helm_chart_dependencies:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-20.04
+    name: Check dependency of helm chart ${{ matrix.charts[0] }}
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Check Orc8r
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/orc8r/cloud/helm/orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check cwf-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r//Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check lte-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Check feg-orc8r
+        if: always()
+        run: |
+          echo "DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+          echo "NEW_DIGEST=$(cat $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+          if [ "$DIGEST" != "$NEW_DIGEST" ]; then
+            exit 1
+          fi
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "check_helm_chart_dependencies tests failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

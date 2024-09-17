@@ -1,0 +1,110 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw
+# purpose: Ensure Python changes are formatted correctly
+# remediation: https://magma.github.io/magma/docs/next/lte/dev_unit_testing#format-agw
+
+name: AGW Build & Format Python
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  pre_job:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+      files_changed: ${{ steps.changes.outputs.filesChanged_files }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - added|modified: ["**/*.py"]
+          list-files: 'shell'
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ github.event.number }} > ./pr/pr_number
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+          echo -n "false" > ./pr/is_reverted_pr
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+
+  run-formatters-and-check-for-errors:
+    needs: pre_job
+    if: ${{ needs.pre_job.outputs.should_not_skip == 'true' }}
+    name: Python Format Check
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 0
+      - name: Build the python-precommit Docker base image
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 # pin@v3.2.0
+        with:
+          context: .
+          file: ./lte/gateway/docker/python-precommit/Dockerfile
+          push: false
+          tags: magma/py-lint:latest
+      - name: Format and check for leftover changes
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: magma/py-lint:latest
+          options: -u 0 -v ${{ github.workspace }}:/code
+          run: |
+            echo "Running formatting tools. This should be equivalent to running './lte/gateway/python/precommit.py --format --diff' locally."
+            for file in ${{ needs.pre_job.outputs.files_changed }};
+            do
+              set -e
+              echo ""
+              echo "Running isort on $file...";
+              isort --diff --check-only $file;
+              echo "Running autopep8 on $file...";
+              autopep8 --diff --exit-code --select W191,W291,W292,W293,W391,E131,E1,E2,E3 -r $file;
+              echo "Running add-trailing-comma on $file...";
+              add-trailing-comma --py35-plus $file;
+            done;
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/pr_number
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/

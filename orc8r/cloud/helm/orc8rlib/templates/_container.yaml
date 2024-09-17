@@ -1,0 +1,90 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- define "orc8rlib.container.tpl" -}}
+name: orc8r-container
+image: {{ required "controller.image.repository must be provided" .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}
+imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+volumeMounts:
+  {{- if .Values.certs.enabled }}
+  {{- range tuple "admin-operator" "bootstrapper" "controller" "certifier" "fluentd" "root" "nms" }}
+  - name: {{ . }}
+    mountPath: /var/opt/magma/certs/{{ . }}
+    readOnly: true
+  {{- end }}
+  {{- else }}
+  {{- range tuple "certs" "envdir" }}
+  - name: {{ . }}
+    mountPath: /var/opt/magma/{{ . }}
+    readOnly: true
+  {{- end }}
+  {{- if .Values.secret.configs }}
+  {{- range $module, $secretName := .Values.secret.configs }}
+  - name: {{ $secretName }}-{{ $module }}
+    mountPath: {{ print "/var/opt/magma/configs/" $module }}
+    readOnly: true
+  {{- end }}
+  {{- else }}
+  - name: "empty-configs"
+    mountPath: /var/opt/magma/configs
+    readOnly: true
+  {{- end }}
+  {{- end }}
+ports:
+  - name: http
+    containerPort: 8080
+  - name: grpc
+    containerPort: 9180
+  - name: grpc-internal
+    containerPort: 9190
+env:
+  - name: DATABASE_SOURCE
+    valueFrom:
+      secretKeyRef:
+        name: orc8r-controller
+        key: {{ .Values.controller.spec.database.driver }}.connstr
+  - name: SQL_DRIVER
+    value: {{ .Values.controller.spec.database.driver }}
+  - name: SQL_DIALECT
+    value: {{ .Values.controller.spec.database.sql_dialect }}
+  - name: SERVICE_HOSTNAME
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: SERVICE_REGISTRY_MODE
+    value: {{ .Values.controller.spec.service_registry.mode }}
+  - name: HELM_RELEASE_NAME
+    value: {{ .Release.Name }}
+  - name: SERVICE_REGISTRY_NAMESPACE
+    value: {{ .Release.Namespace }}
+  - name: HELM_VERSION_TAG
+    value: {{ .Chart.Version | quote }}
+  - name: VERSION_TAG
+    value: {{ .Values.controller.image.tag | quote }}
+  - name: ORC8R_DOMAIN_NAME
+    value: {{ .Values.controller.image.env.orc8r_domain_name }}
+livenessProbe:
+  tcpSocket:
+    port: 9180
+  initialDelaySeconds: 10
+  periodSeconds: 30
+readinessProbe:
+  tcpSocket:
+    port: 9180
+  initialDelaySeconds: 5
+  periodSeconds: 10
+resources:
+{{ toYaml .Values.controller.resources | indent 2 }}
+{{- end -}}
+{{- define "orc8rlib.container" -}}
+{{- include "orc8rlib.util.merge" (append . "orc8rlib.container.tpl") | indent 8 -}}
+{{- end -}}

@@ -1,0 +1,4 @@
+tmp_directory: /var/tmp
+codegen_root: /var/tmp/codegen
+swagger_codegen_jar: '{{ codegen_root }}/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar'
+swagger_sha1: 34dd615d37edec0b50830ca12fc34e33c17b6d86

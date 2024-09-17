@@ -1,0 +1,12 @@
+{
+  "verbose": true,
+  "watch": [
+    "config/",
+    "scripts/",
+    "server/",
+    "grafana/",
+    "alerts/"
+  ],
+  "ext": "ts,tsx,json,js",
+  "exec": "node -r './babelRegister.js'"
+}

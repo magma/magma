@@ -1,0 +1,13 @@
+---
+
+- name: create target directory in Cloudstrapper
+  file:
+    path: "{{ dirLocalKey }}"
+    state: directory
+    mode: '0755'
+
+- name: copy host key into Cloudstrapper
+  copy:
+    src: "{{ dirLocalInventory }}/{{ keyHost }}.pem"
+    dest: "{{ dirLocalKey }}/{{ keyHost }}.pem"
+    mode: '0600'

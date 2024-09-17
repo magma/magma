@@ -1,0 +1,35 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Delete ~/go/pkg/mod if it exists already
+  file:
+    path: '/home/{{ ansible_user }}/go/pkg/mod'
+    state: absent
+
+- name: Create a local directory for go module cache if not present
+  become: yes
+  become_user: '{{ ansible_user }}'
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - '{{ magma_root }}/.cache/go/pkg/mod'
+    - '/home/{{ ansible_user }}/go/pkg'
+
+- name: Symlink ~/go/pkg/mod to the cache directory
+  become: yes
+  become_user: '{{ ansible_user }}'
+  file:
+    src: '{{ magma_root }}/.cache/go/pkg/mod'
+    path: '/home/{{ ansible_user }}/go/pkg/mod'
+    state: link
+    force: yes

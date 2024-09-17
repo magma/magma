@@ -1,0 +1,23 @@
+---
+
+- name: find keyBoot by tag
+  command: aws ec2 describe-key-pairs --key-names "{{ keyBoot }}" --filters "Name=tag:keyboot,Values="{{ stackEssentialsDefault }}"" --query 'KeyPairs[0].KeyName' --output text
+  register: keyBootFound
+  ignore_errors: true
+
+- name: Delete KeyBoot
+  ec2_key:
+    name: "{{ keyBoot }}"
+    state: absent
+  when: keyBootFound.stdout == keyBoot
+
+- name: find keyHost by tag
+  command: aws ec2 describe-key-pairs --key-names "{{ keyHost }}" --filters "Name=tag:keyhost,Values="{{ stackEssentialsDefault }}"" --query 'KeyPairs[0].KeyName' --output text
+  register: keyHostFound
+  ignore_errors: true
+
+- name: Delete KeyHost
+  ec2_key:
+    name: "{{ keyHost }}"
+    state: absent
+  when: keyHostFound.stdout == keyHost

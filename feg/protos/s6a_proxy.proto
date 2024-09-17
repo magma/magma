@@ -1,0 +1,300 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+//
+// This is a proxy for Diamater application S6a/S6d 3GPP 29.272
+// It is watered down for use with OpenAirInterface EPC with extensibility in mind
+//
+// For details about fields see:
+// http://www.etsi.org/deliver/etsi_ts/129200_129299/129272/10.09.00_60/ts_129272v100900p.pdf
+
+syntax = "proto3";
+
+package magma.feg;
+
+option go_package = "magma/feg/cloud/go/protos";
+
+
+// This RPC converts Result-Code from Diameter Base Protocol into gRPC status codes
+service S6aProxy {
+    // Authentication-Information (Code 318)
+    rpc AuthenticationInformation (AuthenticationInformationRequest) returns (AuthenticationInformationAnswer) {}
+
+    // Update-Location (Code 316)
+    rpc UpdateLocation (UpdateLocationRequest) returns (UpdateLocationAnswer) {}
+
+    // Purge-UE (Code 321)
+    rpc PurgeUE (PurgeUERequest) returns (PurgeUEAnswer) {}
+}
+
+service S6aGatewayService {
+    // Cancel-Location (Code 317)
+    rpc CancelLocation (CancelLocationRequest) returns (CancelLocationAnswer) {}
+
+    // Reset (Code 322)
+    rpc Reset(ResetRequest) returns (ResetAnswer) {}
+}
+
+// ErrorCode reflects Experimental-Result values which are 3GPP failures
+// to be processed by EPC. Diameter Base Protocol errors are reflected in gRPC status code
+enum ErrorCode {
+    UNDEFINED                = 0;
+    // Default success code
+    MULTI_ROUND_AUTH         = 1001;
+    SUCCESS                  = 2001;
+    LIMITED_SUCCESS          = 2002;
+    COMMAND_UNSUPPORTED      = 3001;
+    UNABLE_TO_DELIVER        = 3002;
+    REALM_NOT_SERVED         = 3003;
+    TOO_BUSY                 = 3004;
+    LOOP_DETECTED            = 3005;
+    REDIRECT_INDICATION      = 3006;
+    APPLICATION_UNSUPPORTED  = 3007;
+    INVALID_HDR_BITS         = 3008;
+    INVALID_AVP_BITS         = 3009;
+    UNKNOWN_PEER             = 3010;
+    AUTHENTICATION_REJECTED  = 4001;
+    OUT_OF_SPACE             = 4002;
+    ELECTION_LOST            = 4003;
+    AUTHORIZATION_REJECTED   = 5003;
+    // Permanent Failures 7.4.3
+    USER_UNKNOWN             = 5001;
+    UNKNOWN_SESSION_ID       = 5002;
+    UNKNOWN_EPS_SUBSCRIPTION = 5420;
+    RAT_NOT_ALLOWED          = 5421;
+    ROAMING_NOT_ALLOWED      = 5004;
+    EQUIPMENT_UNKNOWN        = 5422;
+    UNKNOWN_SERVING_NODE     = 5423;
+    // Transient Failures 7.4.4
+    AUTHENTICATION_DATA_UNAVAILABLE = 4181;
+}
+
+// Authentication Information Request (Section 7.2.5)
+message AuthenticationInformationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Visted site identifier
+    bytes visited_plmn = 2;
+    // Number of vectors to request in response
+    uint32 num_requested_eutran_vectors = 3;
+    // Indicates to the HSS the values are requested for immediate attach
+    bool immediate_response_preferred = 4;
+    // Concatenation of RAND and AUTS in the case of a resync attach case
+    bytes resync_info = 5;
+    // Number of UTRAN/GERAN vectors to request in response (optional)
+    uint32 num_requested_utran_geran_vectors = 6;
+    // UTRAN/GERAN Resync Info (optional)
+    bytes utran_geran_resync_info = 7;
+    // Feature List ID as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 8;
+}
+
+// Authentication Information Answer (Section 7.2.6)
+message AuthenticationInformationAnswer {
+    // 3GPP TS 29.272, 7.3.18 E-UTRAN-Vector
+    // For details about fields read 3GPP 33.401
+    message EUTRANVector {
+        bytes rand = 1;
+        bytes xres = 2;
+        bytes autn = 3;
+        bytes kasme = 4;
+    }
+    // 3GPP TS 29.272, Section 7.3.19 UTRAN-Vector
+    message UTRANVector {
+        bytes rand = 1;
+        bytes xres = 2;
+        bytes autn = 3;
+        bytes confidentiality_key   = 4;
+        bytes integrity_key   = 5;
+    }
+    // 3GPP TS 29.272, 7.3.20 GERAN-Vector
+    message GERANVector {
+        bytes rand = 1;
+        bytes sres = 2;
+        bytes Kc   = 3;
+    }
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated EUTRANVector eutran_vectors = 2;
+    repeated UTRANVector  utran_vectors = 3;
+    repeated GERANVector  geran_vectors = 4;
+}
+
+// Update Location Request (Section 7.2.3)
+message UpdateLocationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Visited site identifier
+    bytes visited_plmn = 2;
+
+    // Selective unrolling of ULR-Flags 29.272 Table 7.3.7/1
+    // Skip subscription data in response
+    bool skip_subscriber_data = 3; // bit 2
+    // Send Cancel Location to other EPCs serving the UE
+    bool initial_attach = 4; // bit 5
+    // Send Dual Registration 5G Indicator
+    bool dual_registration_5g_indicator = 5; // bit 8
+    // Feature List ID 2 as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 6;
+    // Feature List ID 1 as a part of Supported features AVP(Optional)
+    FeatureListId1 feature_list_id_1 = 7;
+}
+
+// Update Location Answer (Section 7.2.4)
+message UpdateLocationAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Identifier of the default APN
+    uint32 default_context_id = 2;
+    // Subscriber authorized aggregate bitrate
+    AggregatedMaximumBitrate total_ambr = 3;
+    // Indicates to wipe other stored APNs
+    bool all_apns_included = 4;
+    // APN configurations
+    repeated APNConfiguration apn = 5;
+    // Charging characteristics for subscriber that can be overridden by per-APN values
+    string default_charging_characteristics = 6;
+
+    bytes msisdn = 7;
+
+    // Network Access Mode AVP (Section 7.3.21)
+    enum NetworkAccessMode {
+        PACKET_AND_CIRCUIT = 0;
+        RESERVED = 1;
+        ONLY_PACKET = 2;
+    }
+
+    NetworkAccessMode network_access_mode = 8;
+
+    repeated bytes regional_subscription_zone_code = 9;
+
+    // Feature List ID 2 as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 10;
+
+    // Feature List ID 1 as a part of Supported features AVP(Optional)
+    FeatureListId1 feature_list_id_1 = 11;
+
+    message APNConfiguration {
+        // APN identifier
+        uint32 context_id = 1;
+        // Contains either the APN Name or wildcard "*"
+        string service_selection = 2;
+        // APN QoS profile
+        QoSProfile qos_profile = 3;
+        // APN authorized bitrate
+        AggregatedMaximumBitrate ambr = 4;
+
+        enum PDNType {
+            IPV4 = 0;
+            IPV6 = 1;
+            IPV4V6 = 2;
+            IPV4_OR_IPV6 = 3;
+        }
+        PDNType pdn = 5;
+
+        string charging_characteristics = 6;
+
+        // Values from Served-Party-IP-Address AVP
+        // See: https://www.etsi.org/deliver/etsi_ts/129200_129299/129272/17.02.00_60/ts_129272v170200p.pdf#page=124
+        repeated string served_party_ip_address = 7;
+
+      // Gateway-specific guidance for serving the APN (optional, only for EPS Auth use case)
+        APNResource resource = 8;
+
+      // For details about values see 29.212
+        message QoSProfile {
+            int32 class_id = 1;
+            uint32 priority_level = 2;
+            bool preemption_capability = 3;
+            bool preemption_vulnerability = 4;
+        }
+      // APNResource is gateway-specific guidance for serving the APN
+        message APNResource {
+            string apn_name = 1;
+            string gateway_ip = 2;
+            string gateway_mac = 3;
+            uint32 vlan_id = 4;
+        }
+    }
+
+    message AggregatedMaximumBitrate {
+        // Maximum uplink bitrate
+        uint32 max_bandwidth_ul = 1;
+        // Maximum downlink bitrate
+        uint32 max_bandwidth_dl = 2;
+        // Unit (either bps or Kbps)
+        BitrateUnitsAMBR unit = 3;
+
+        enum BitrateUnitsAMBR {
+         BPS = 0;
+         KBPS = 1;
+        }
+    }
+}
+
+// Cancel Location Request (Section 7.2.7)
+message CancelLocationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Type of cancellation 7.3.24
+    CancellationType cancellation_type = 2;
+    enum CancellationType {
+        MME_UPDATE_PROCEDURE     = 0;
+        SGSN_UPDATE_PROCEDURE    = 1;
+        SUBSCRIPTION_WITHDRAWAL  = 2;
+        UPDATE_PROCEDURE_IWF     = 3;
+        INITIAL_ATTACH_PROCEDURE = 4;
+    }
+}
+
+// Cancel Location Answer (Section 7.2.8)
+message CancelLocationAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}
+
+// Purge UE Request (Section 7.2.14)
+message PurgeUERequest {
+    // Subscriber identifier
+    string user_name = 1;
+}
+
+// Purge UE Answer (Section 7.2.15)
+message PurgeUEAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}
+
+// Reset Request (3GPP TS 29.272 Section 7.2.15)
+message ResetRequest {
+    // Subscriber identifier
+    repeated string user_id = 1;
+}
+
+// Reset Answer (3GPP TS 29.272 Section 7.2.16)
+message ResetAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}
+
+// Feature ID list (3GPP TS 29.229 Table 7.1.1)
+message FeatureListId2 {
+    // NR as secondary RAT indicator
+    bool nr_as_secondary_rat = 1;
+}
+
+// Feature ID1 list (3GPP TS 29.272 Table 7.3.10)
+message FeatureListId1 {
+    // Regional subscription
+    bool regional_subscription = 1;
+}

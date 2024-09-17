@@ -1,0 +1,26 @@
+From 215a293ff0d8deaea80739a67c63cbbe47bfdf79 Mon Sep 17 00:00:00 2001
+From: Nick Yurchenko <urchennko@gmail.com>
+Date: Fri, 6 Aug 2021 14:44:13 +0000
+Subject: [PATCH] Set unknown dpid ofctl log to debug
+
+Signed-off-by: Nick Yurchenko <urchennko@gmail.com>
+---
+ ryu/app/ofctl/service.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ryu/app/ofctl/service.py b/ryu/app/ofctl/service.py
+index eed51774..d70b2484 100644
+--- a/ryu/app/ofctl/service.py
++++ b/ryu/app/ofctl/service.py
+@@ -138,7 +138,7 @@ class OfctlService(app_manager.RyuApp):
+         try:
+             si = self._switches[datapath.id]
+         except KeyError:
+-            self.logger.error('unknown dpid %s' % (datapath.id,))
++            self.logger.debug('unknown dpid %s' % (datapath.id,))
+             rep = event.Reply(exception=exception.
+                               InvalidDatapath(result=datapath.id))
+             self.reply_to_request(req, rep)
+-- 
+2.25.1
+

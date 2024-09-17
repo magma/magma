@@ -1,0 +1,8 @@
+---
+- include_tasks: configure-certs.yaml
+  tags: config-certs
+- include_tasks: configure-terraform.yaml
+  tags: config-tf
+  ignore_errors: true
+- include_tasks: deploy-orc8r.yaml
+  tags: deploy-orc8r

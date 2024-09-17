@@ -1,0 +1,44 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+config_setting(
+    name = "disable_sentry_native",
+    values = {"define": "disable_sentry_native=1"},
+)
+
+sentry_deps = [
+    "//orc8r/gateway/c/common/config:service_config_loader",
+    "@yaml-cpp//:yaml-cpp",
+]
+
+cc_library(
+    name = "sentry_wrapper",
+    srcs = ["SentryWrapper.cpp"],
+    hdrs = ["SentryWrapper.hpp"],
+    copts = select({
+        ":disable_sentry_native": [],
+        "//conditions:default": [
+            "-DSENTRY_ENABLED",
+            "-DSENTRY_BUILD_STATIC",
+        ],
+    }),
+    deps = select({
+        ":disable_sentry_native": sentry_deps,
+        "//conditions:default": sentry_deps + ["@sentry_native//:sentry"],
+    }) + [
+        "//orc8r/gateway/c/common/config:mconfig_loader",
+        "//orc8r/protos:mconfigs_cpp_proto",
+    ],
+)

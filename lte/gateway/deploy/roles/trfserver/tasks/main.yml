@@ -1,0 +1,149 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Create symlink for trfserver scripts
+  file:
+    src: '{{ magma_root }}/lte/gateway/deploy/roles/trfserver/files/{{ item }}'
+    path: /usr/local/bin/{{ item }}
+    state: link
+    force: yes
+  with_items:
+    - traffic_server.py
+  when: full_provision
+
+- name: Set hostname
+  become: yes
+  ansible.builtin.hostname:
+    name: magma-trfserver
+  when: full_provision
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+  when: preburn
+
+########################################
+# Install common Magma dev dependencies
+########################################
+
+- name: Install common Magma dev dependencies
+  apt:
+    name:
+      - python3-pip
+      - git
+      - ifupdown
+      - net-tools
+      # install ethtool for disabling TCP checksumming
+      - ethtool
+    state: present
+    update_cache: yes
+  when: preburn
+
+- name: Rename interfaces to ethx-scheme
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
+- name: Copy Interface file.
+  copy:
+    src: magma_interfaces
+    dest: /etc/network/interfaces
+  when: preburn
+
+- name: Install the trfgen-server python dependencies
+  pip:
+    name:
+      - pyroute2
+      - scapy-python3
+      - git+https://github.com/thiezn/iperf3-python#egg=iperf3-python
+    executable: pip3
+  when: preburn
+
+- name: Remove preinstalled iperf3 and libiperf0
+  apt:
+    name:
+      - iperf3
+      - libiperf0
+    state: absent
+    update_cache: yes
+    purge: yes
+  when: preburn
+
+- name: install libsctp1
+  apt:
+    name: libsctp1
+  when: preburn
+
+- name: Install iperf3 and libiperf0
+  apt:
+    deb: "https://iperf.fr/download/ubuntu/{{ item }}"
+  with_items:
+    - libiperf0_3.9-1_amd64.deb
+    - iperf3_3.9-1_amd64.deb
+  when: preburn
+
+- name: Configure dhcpd
+  become: yes
+  copy:
+    src: udhcpd.conf
+    dest: /etc/
+  when: preburn
+
+- name: Install udhcpd
+  apt:
+    name: udhcpd
+  when: preburn
+
+- name: Configure udhcpd
+  become: yes
+  replace:
+    path: /etc/default/udhcpd
+    regexp: 'DHCPD_ENABLED="no"'
+    replace: 'DHCPD_ENABLED="yes"'
+  when: preburn
+
+- name: Restart service udhcpd
+  become: yes
+  service:
+    name: udhcpd
+    state: restarted
+  when: preburn
+
+- name: Configure sshd_config
+  become: yes
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: 'PasswordAuthentication no'
+    replace: 'PasswordAuthentication yes'
+  when: preburn
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+  when: preburn
+
+- name: Add convenience function for starting the trfgen test servers
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias trfgen-server='sudo traffic_server.py 192.168.60.144 62462'"
+  when: preburn

@@ -1,0 +1,27 @@
+---
+
+servicesMagma:
+  - magma@magmad.service
+
+servicesMagmaWildCard:
+  - magma@*
+
+servicesMagmaAll:
+  - magma@control_proxy.service
+  - magma@magmad.service
+  - magma@pipelined.service
+  - magma@sessiond.service
+  - magma@dnsd.service
+  - magma@mme.service
+  - magma@redirectd.service
+  - magma@td-agent-bit.service
+  - magma@lighttpd.service
+  - magma@mobilityd.service
+  - magma@redis.service
+
+agwCertsPath: /var/opt/magma/tmp/certs/
+agwConfigPath: /var/opt/magma/configs
+
+cloudController: "controller.{{ orc8rDomainName }}"
+bootstrapperController: "bootstrapper-controller.{{ orc8rDomainName }}"
+fluentdController: "fluentd.{{ orc8rDomainName }}"

@@ -1,0 +1,69 @@
+- name: Get hosted zones for orc8r domain
+  ansible.builtin.shell: aws route53 list-hosted-zones-by-name --dns-name {{domain_name}}
+  when: domain_name
+  register: hosted_zone
+  tags:
+    - cleanup
+    - cleanup_dryrun
+    - update_dns_records
+
+- name: Get records in the hosted zone
+  ansible.builtin.shell: aws route53 list-resource-record-sets --hosted-zone {{(hosted_zone.stdout|from_json).HostedZones[0].Id}}
+  when: (hosted_zone.stdout|from_json).HostedZones
+  register: record_info
+  tags:
+    - cleanup
+    - cleanup_dryrun
+    - update_dns_records
+
+- name: Create json changeset for route53 records
+  template:
+    src: 'delete_batch.json.j2'
+    dest: "{{ playbooks }}/delete_batch.json"
+  when: (hosted_zone.stdout|from_json).HostedZones
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Delete all resource record sets
+  ansible.builtin.shell: aws route53 change-resource-record-sets --hosted-zone  {{(hosted_zone.stdout|from_json).HostedZones[0].Id}} --change-batch "file://{{ playbooks }}/delete_batch.json"
+  ignore_errors: true
+  register: delete_result
+  tags:
+    - cleanup
+
+- name: Sleep for a while before deleting hosted zone
+  pause:
+    minutes: 2
+  when: delete_result
+  tags:
+    - cleanup
+
+- name: Delete hosted zones for orc8r domain
+  ansible.builtin.shell: aws route53 delete-hosted-zone --id {{(hosted_zone.stdout|from_json).HostedZones[0].Id}}
+  when: (hosted_zone.stdout|from_json).HostedZones
+  ignore_errors: true
+  tags: cleanup
+
+- name: Get hosted zones for orc8r parent domain
+  ansible.builtin.shell: aws route53 list-hosted-zones-by-name --dns-name {{ ".".join(domain_name.split(".")[1:]) }}
+  when: domain_name
+  register: parent_hosted_zone
+  tags: update_dns_records
+
+- name: Create json changeset for adding NS record in parent domain
+  template:
+    src: 'change_ns.json.j2'
+    dest: "{{ playbooks }}/change_batch.json"
+  when: (hosted_zone.stdout|from_json).HostedZones
+  tags: update_dns_records
+
+- name: Debug hosted zone
+  debug: msg={{parent_hosted_zone}}
+  tags: update_dns_records
+
+- name: Change the NS record in parent domain
+  ansible.builtin.shell: aws route53 change-resource-record-sets --hosted-zone  {{(parent_hosted_zone.stdout|from_json).HostedZones[0].Id}} --change-batch "file://{{ playbooks }}/change_batch.json"
+  ignore_errors: true
+  register: change_result
+  tags: update_dns_records

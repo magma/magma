@@ -1,0 +1,12 @@
+---
+
+#Parameters for San Ramon Site Networking
+
+cidrVpc: 10.2.0.0/16
+cidrSgi: 10.2.4.0/24
+cidrEnodeb: 10.2.2.0/24
+cidrBridge: 10.2.6.0/24
+azHome: "{{ awsAgwAz }}"
+secGroup: "{{ secgroupDefault }}"
+sshKey: "{{ keyHost }}"
+siteName: SanRamon

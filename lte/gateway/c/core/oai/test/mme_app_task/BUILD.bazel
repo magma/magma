@@ -1,0 +1,218 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//lte/gateway/c/core/test:__subpackages__"])
+
+cc_library(
+    name = "mme_app_test_core",
+    srcs = [
+        "mme_app_test_util.cpp",
+    ],
+    hdrs = [
+        "mme_app_test_util.hpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "sgw_config_test",
+    size = "small",
+    srcs = [
+        "test_sgw_config.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_app_config_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_config.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_app_esm_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_esm_encode_decode.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_app_emm_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_emm_encode_decode.cpp",
+    ],
+    deps = [
+        ":mme_app_test_core",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "apn_aggregate_maximum_bit_rate_test",
+    size = "small",
+    srcs = [
+        "test_ApnAggregateMaximumBitRate.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "eps_quality_of_service_test",
+    size = "small",
+    srcs = [
+        "test_EPSQualityOfService.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_app_nas_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_nas_encode_decode.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mme_procedure_test_fixture",
+    srcs = ["mme_procedure_test_fixture.cpp"],
+    hdrs = ["mme_procedure_test_fixture.hpp"],
+    deps = [
+        ":mme_app_test_core",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_test",
+    size = "medium",
+    srcs = [
+        "test_mme_procedures.cpp",
+    ],
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/oai/test/mock_tasks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_mobile_reachability_timer_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_mobile_reachability_timer.cpp",
+    ],
+    # TODO: GH12236
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_nas_timer_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_nas_timer.cpp",
+    ],
+    # TODO: GH12237
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_x2_handover_test",
+    size = "small",
+    srcs = [
+        "test_mme_procedures_x2_handover.cpp",
+    ],
+    # TODO: GH12238
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_procedures_network_initiated_test",
+    size = "medium",
+    srcs = [
+        "test_mme_procedures_network_initiated.cpp",
+    ],
+    # TODO: GH12239
+    flaky = True,
+    deps = [
+        ":mme_app_test_core",
+        ":mme_procedure_test_fixture",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "mme_app_ue_context_test",
+    size = "small",
+    srcs = [
+        "test_mme_app_ue_context.cpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

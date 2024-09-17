@@ -1,0 +1,166 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# See https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+# for an introduction to bazel for the Magma AGW
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("//bazel:third_party_repositories.bzl", "grpc")
+
+http_archive(
+    name = "rules_python",
+    sha256 = "cd6730ed53a002c56ce4e2f396ba3b3be262fd7cb68339f0377a45e8227fe332",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.5.0/rules_python-0.5.0.tar.gz",
+)
+
+http_archive(
+    name = "rules_pyvenv",
+    sha256 = "216dd65adfd78a334e8ecb4f700ffcc3578351bfc89ca55127e5b656626f6916",
+    strip_prefix = "rules_pyvenv-1.0",
+    url = "https://github.com/cedarai/rules_pyvenv/archive/refs/tags/1.0.tar.gz",
+)
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+    ],
+)
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "62ca106be173579c0a167deb23358fdfe71ffa1e4cfdddf5582af26520f1c66f",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+    ],
+)
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("//bazel:go_repositories.bzl", "go_repositories")
+
+# gazelle:repository_macro bazel/go_repositories.bzl%go_repositories
+go_repositories()
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.17")
+
+gazelle_dependencies()
+
+# If you use WORKSPACE.bazel, use the following line instead of the bare gazelle_dependencies():
+# gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
+gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+# rules_cc defines rules for generating C++ code from Protocol Buffers.
+http_archive(
+    name = "rules_cc",
+    sha256 = "56ac9633c13d74cb71e0546f103ce1c58810e4a76aa8325da593ca4277908d72",
+    strip_prefix = "rules_cc-40548a2974f1aea06215272d9c2b47a14a24e556",
+    urls = ["https://github.com/bazelbuild/rules_cc/archive/40548a2974f1aea06215272d9c2b47a14a24e556.zip"],
+)
+
+load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
+
+rules_cc_dependencies()
+
+### PROTO / GRPC DEPENDENCIES ###
+grpc()
+
+load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_repos", "rules_proto_grpc_toolchains")
+
+rules_proto_grpc_toolchains()
+
+rules_proto_grpc_repos()
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+
+rules_proto_toolchains()
+
+load("@rules_proto_grpc//cpp:repositories.bzl", rules_proto_grpc_cpp_repos = "cpp_repos")
+
+rules_proto_grpc_cpp_repos()
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+### PROTO / GRPC DEPENDENCIES ###
+
+load("//bazel:cpp_repositories.bzl", "cpp_repositories")
+
+cpp_repositories()
+
+# To get Folly to build reliably, we're going to pull it from the underlying system
+# This assumes that the build is done in the Docker container or VBox VM
+new_local_repository(
+    name = "system_libraries",
+    build_file = "//bazel/external:system_libraries.BUILD",
+    path = "/",
+)
+
+new_local_repository(
+    name = "s1ap_test_util",
+    build_file = "//bazel/external:s1ap_test_util.BUILD",
+    path = "/",
+)
+
+load("//bazel:python_dependencies.bzl", "configure_python_dependencies")
+
+configure_python_dependencies()
+
+load("@python_deps//:requirements.bzl", "install_deps")
+
+install_deps()
+
+load("//bazel:python_swagger.bzl", "load_swagger_repositories")
+
+load_swagger_repositories()
+
+load("//bazel:python_repositories.bzl", "python_repositories")
+
+python_repositories()
+
+http_archive(
+    name = "rules_pkg",
+    sha256 = "eea0f59c28a9241156a47d7a8e32db9122f3d50b505fae0f33de6ce4d9b61834",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+    ],
+)
+
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+
+rules_pkg_dependencies()
+
+http_jar(
+    name = "bazel_diff",
+    sha256 = "45761593a478d1e432e8cfa9629b9dbf08cd610bafd29b04305de77644470722",
+    urls = ["https://github.com/Tinder/bazel-diff/releases/download/4.1.0/bazel-diff_deploy.jar"],
+)

@@ -1,0 +1,42 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.mconfig;
+option go_package = "magma/ocr8c/gateway/mconfig/test/testcfg";
+
+//------------------------------------------------------------------------------
+// Service 1 configs
+//------------------------------------------------------------------------------
+message Service1Config {
+    string str1 = 1;
+    string str2 = 2;
+    uint32 uint1 = 3;
+    uint32 uint2 = 4;
+    repeated string str_arr = 5;
+}
+
+//------------------------------------------------------------------------------
+// Service 1 configs
+//------------------------------------------------------------------------------
+message Service2Config {
+    string str21 = 1;
+    string str22 = 2;
+    uint32 uint21 = 3;
+    uint32 uint22 = 4;
+    float  float1 = 5;
+    bool   bool1 = 6;
+}
+
+

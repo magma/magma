@@ -1,0 +1,10 @@
+six===1.16.0
+pyopenssl===20.0.1
+numpy===1.22.0
+psutil===5.8.0
+pycurl===7.43.0
+jsonschema===3.2.0
+portpicker===1.3.9
+shapely===1.7.1
+jwt===1.2.0
+pykml===0.2.0

@@ -1,0 +1,253 @@
+---
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+  when: use_master is not defined
+  tags:
+    - agwc
+    - base
+
+- name: Include vars of all_master.yaml
+  include_vars:
+    file: all_master.yaml
+  when: use_master is defined
+  tags:
+    - agwc
+    - base
+
+- name: Update ca-certs
+  become: true
+  apt:
+    name: ca-certificates
+    update_cache: true
+  tags:
+    - agwc
+    - base
+
+- name: Forbid usage of expired Let's Encrypt CA cert
+  ignore_errors: true
+  become: true
+  lineinfile:
+    path: /etc/ca-certificates.conf
+    regexp: 'mozilla/DST_Root_CA_X3.crt'
+    line: '!mozilla/DST_Root_CA_X3.crt'
+  tags:
+    - agwc
+    - base
+
+- name: Trigger update of CA certs
+  ignore_errors: true
+  become: true
+  command: update-ca-certificates
+  tags:
+    - agwc
+    - base
+
+- name: Add key for magma registry
+  ansible.builtin.copy:
+    src: "{{ magma_pkgrepo_key }}"
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+  become: true
+  tags:
+    - agwc
+    - base
+
+- name: Configuring the registry in sources.list.d
+  ansible.builtin.apt_repository:
+    repo: "deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }} {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}"
+    filename: magma
+    state: present
+    update_cache: true
+  become: true
+  tags:
+    - agwc
+    - base
+
+- name: Install ifupdown dependency.
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - ifupdown
+  tags:
+    - agwc
+
+- name: Install runtime dependencies.
+  become: true
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - graphviz
+      - python-all
+      - module-assistant
+      - openssl
+      - dkms
+      - uuid-runtime
+  tags:
+    - agwc
+    - base
+
+- name: Ensure ca-certificates is up to date
+  become: true
+  apt:
+    name: "{{ packages }}"
+    only_upgrade: yes
+  vars:
+    packages:
+      - ca-certificates
+  tags:
+    - agwc
+    - base
+
+- name: Preconfigure wireshark (tshark) SUID property
+  become: true
+  ignore_errors: true
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+  tags:
+    - agwc
+    - base
+
+- name: Set magma package variable
+  set_fact:
+    magma_package: "{{ MAGMA_PACKAGE | default('magma=1.8.0*', true) }}"
+
+- name: Installing magma from local debian package
+  become: true
+  apt:
+    deb: "/home/vagrant/magma/{{ magma_package }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+  when: magma_package is match(".*\.deb")
+
+- name: Installing magma from artifactory
+  become: true
+  apt:
+    name: "{{ magma_package }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+  when: magma_package is not match(".*\.deb")
+
+# Install openvswitch in containerized agw only
+- name: Install prebuilt openvswitch packages
+  become: true
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-datapath-source
+      - openvswitch-common
+      - openvswitch-switch
+  tags:
+    - never
+    - agwc
+    - base
+
+- name: Create interfaces.d if it does not exist
+  file:
+    path: /etc/network/interfaces.d
+    state: directory
+  tags:
+    - agwc
+    - base
+
+# Copy these files in containerized agw only
+- name: copy necessary files for ovs
+  copy:
+    src={{ item.src }}
+    dest={{ item.dest }}
+    mode=0755
+  with_items:
+    - { src: 'magma_ifaces_gtp', dest: '/etc/network/interfaces.d/gtp' }
+    - { src: 'magma_modules_load', dest: '/etc/modules-load.d/magma.conf' }
+    - { src: 'ovs-kmod-upgrade.sh', dest: '/usr/local/bin/' }
+    - { src: 'magma-bridge-reset.sh', dest: '/usr/local/bin/' }
+  tags:
+    - never
+    - agwc
+    - base
+
+- name: Start service openvswitch-switch.
+  become: true
+  service:
+    name: openvswitch-switch
+    state: started
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+# Ansible's service module doesn't support wildcards so we have to use shell
+- name: Stop all magma services.
+  become: true
+  shell: service magma@* stop
+  tags:
+    - skipfirstinstall
+
+- name: Bring up gtp_br0
+  shell: ifup gtp_br0
+  become: true
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+- name: Bring up mtr0
+  shell: ifup mtr0
+  become: true
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+- name: Bring up uplink_br0
+  shell: ifup uplink_br0
+  become: true
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+- name: Bring up ipfix0
+  shell: ifup ipfix0
+  become: true
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+- name: Bring up dhcp0
+  shell: ifup dhcp0
+  become: true
+  tags:
+    - skipfirstinstall
+    - agwc
+    - base
+
+- name: Start service magma@magmad.
+  become: true
+  service:
+    name: magma@magmad
+    state: started
+  tags:
+    - skipfirstinstall
+
+- name: Install ansible community collection
+  shell: ansible-galaxy collection install community.general
+  tags:
+    - agwc
+    - base

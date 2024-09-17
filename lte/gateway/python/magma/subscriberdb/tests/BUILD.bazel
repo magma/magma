@@ -1,0 +1,76 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "client_tests",
+    size = "small",
+    srcs = ["client_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:client",
+        "//lte/protos:s6a_service_python_proto",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:grpc_client_manager",
+        requirement("grpcio"),
+        requirement("protobuf"),
+    ],
+)
+
+pytest_test(
+    name = "processor_tests",
+    size = "medium",
+    srcs = ["processor_tests.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:processor",
+        "//lte/gateway/python/magma/subscriberdb/store:sqlite",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:subscriberdb_python_proto",
+    ],
+)
+
+pytest_test(
+    name = "rpc_tests",
+    size = "small",
+    srcs = ["rpc_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:rpc_servicer",
+        "//lte/protos:subscriberdb_python_grpc",
+        requirement("grpcio"),
+    ],
+)
+
+pytest_test(
+    name = "sid_utils_tests",
+    size = "small",
+    srcs = ["sid_utils_tests.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:subscriberdb_python_proto",
+    ],
+)

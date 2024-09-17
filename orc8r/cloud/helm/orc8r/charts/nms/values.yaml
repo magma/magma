@@ -1,0 +1,129 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+release_group: null
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-certs
+
+certs:
+  enabled: false
+
+rbac: false
+
+magmalte:
+  create: true
+  env:
+    api_host: orc8r-nginx-proxy
+    host: 0.0.0.0
+    port: 8081
+    mysql_host: postgresql
+    mysql_port: 5432
+    mysql_db: magma
+    mysql_user: postgres
+    mysql_pass: postgres
+    mysql_dialect: postgres
+    grafana_address: orc8r-user-grafana:3000
+
+  labels: {}
+
+  image:
+    repository:
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  deployment:
+    spec:
+      operator_cert_name: admin_operator.pem
+      operator_key_name: admin_operator.key.pem
+
+  service:
+    type: ClusterIP
+    http:
+      port: 8081
+      targetport: 8081
+      nodePort: ""
+
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+## Nginx-Proxy
+#
+nginx:
+  create: true
+  labels: {}
+
+  image:
+    repository: nginx
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: LoadBalancer
+    annotations: {}
+    https:
+      port: 443
+      targetport: 443
+      nodePort: ""
+
+  deployment:
+    spec:
+      ssl_cert_name: nms_nginx.pem
+      ssl_cert_key_name: nms_nginx.key.pem
+
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}

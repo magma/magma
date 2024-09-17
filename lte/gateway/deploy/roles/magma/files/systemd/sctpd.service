@@ -1,0 +1,37 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+[Unit]
+Description=Magma sctpd service
+Before=magma@mme.service
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/environment
+ExecStartPre=-/bin/cp -f /usr/local/share/sctpd/version /var/run/sctpd.version
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_pre
+ExecStart=/usr/local/sbin/sctpd
+ExecStartPost=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_post
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sctpd
+ExecStopPost=-/bin/rm -f /var/run/sctpd.version
+MemoryAccounting=yes
+MemoryLimit=512M
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sctpd
+User=root
+Restart=always
+RestartSec=5
+LimitCORE=infinity
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

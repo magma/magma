@@ -1,0 +1,313 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "consts",
+    hdrs = ["Consts.hpp"],
+)
+
+cc_library(
+    name = "matchers",
+    hdrs = ["Matchers.hpp"],
+)
+
+cc_library(
+    name = "sessiond_mocks",
+    hdrs = ["SessiondMocks.hpp"],
+    deps = [
+        "//lte/gateway/c/session_manager:local_session_manager_handler",
+        "//lte/gateway/c/session_manager:upf_msg_manage_handler",
+    ],
+)
+
+cc_library(
+    name = "session_state_tester",
+    hdrs = ["SessionStateTester.hpp"],
+)
+
+cc_library(
+    name = "protobuf_creators",
+    srcs = ["ProtobufCreators.cpp"],
+    hdrs = ["ProtobufCreators.hpp"],
+    deps = [
+        ":consts",
+        "//lte/gateway/c/session_manager:diameter_codes",
+        "//lte/gateway/c/session_manager:session_store",
+        "//lte/gateway/c/session_manager:stored_state",
+        "//lte/protos:mconfigs_cpp_proto",
+        "//lte/protos:pipelined_cpp_grpc",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "session_store_test",
+    size = "small",
+    srcs = ["test_session_store.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:rule_store",
+        "//lte/gateway/c/session_manager:session_id",
+        "//lte/gateway/c/session_manager:session_state",
+        "//lte/gateway/c/session_manager:session_store",
+        "//orc8r/gateway/c/common/logging",
+        "//orc8r/gateway/c/common/service303",
+        "@com_google_googletest//:gtest_main",
+        "@system_libraries//:libglog",
+    ],
+)
+
+cc_test(
+    name = "polling_pipelined_test",
+    size = "small",
+    srcs = ["test_polling_pipelined.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:local_enforcer",
+        "//lte/protos:session_manager_cpp_grpc",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "session_credit_test",
+    size = "small",
+    srcs = ["test_session_credit.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:session_credit",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "charging_grant_test",
+    size = "small",
+    srcs = ["test_charging_grant.cpp"],
+    deps = [
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:session_credit",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "usage_monitor_test",
+    size = "small",
+    srcs = ["test_usage_monitor.cpp"],
+    deps = [
+        ":protobuf_creators",
+        ":session_state_tester",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:session_credit",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "local_enforcer_test",
+    size = "small",
+    srcs = ["test_local_enforcer.cpp"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:local_enforcer",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "local_enforcer_wallet_exhaust_test",
+    size = "small",
+    srcs = ["test_local_enforcer_wallet_exhaust.cpp"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:local_enforcer",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "cloud_reporter_test",
+    size = "small",
+    srcs = ["test_cloud_reporter.cpp"],
+    flaky = True,
+    tags = ["exclusive"],
+    deps = [
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:session_reporter",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "session_manager_handler_test",
+    size = "small",
+    srcs = ["test_session_manager_handler.cpp"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:session_store",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "sessiond_integ_test",
+    size = "small",
+    srcs = ["test_sessiond_integ.cpp"],
+    flaky = True,
+    # This test unfortunately brings up a test server that collides with another test (cloud_reporter)
+    # Marking it as exclusive so that the test is not run in parallel with other tests
+    # See https://docs.bazel.build/versions/4.2.1/test-encyclopedia.html#tag-conventions
+    tags = ["exclusive"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:session_manager_server",
+        "//lte/gateway/c/session_manager:session_store",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "session_state_test",
+    size = "small",
+    srcs = ["test_session_state.cpp"],
+    deps = [
+        ":consts",
+        ":matchers",
+        ":protobuf_creators",
+        ":session_state_tester",
+        ":sessiond_mocks",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "store_client_test",
+    size = "small",
+    srcs = ["test_store_client.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:session_id",
+        "//lte/gateway/c/session_manager:session_state",
+        "//lte/gateway/c/session_manager:session_store",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "stored_state_test",
+    size = "small",
+    srcs = ["test_stored_state.cpp"],
+    deps = [
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:session_state",
+        "//lte/gateway/c/session_manager:stored_state",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "proxy_responder_handler_test",
+    size = "small",
+    srcs = ["test_proxy_responder_handler.cpp"],
+    flaky = True,
+    deps = [
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:session_proxy_responder_handler",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "metering_reporter_test",
+    size = "small",
+    srcs = ["test_metering_reporter.cpp"],
+    deps = [
+        "//lte/gateway/c/session_manager:metering_reporter",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "upf_node_state_test",
+    size = "small",
+    srcs = ["test_upf_node_state.cpp"],
+    deps = [
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:upf_msg_manage_handler",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "set_session_manager_handler_test",
+    size = "small",
+    srcs = ["test_set_session_manager_handler.cpp"],
+    flaky = True,
+    deps = [
+        ":matchers",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//lte/gateway/c/session_manager:set_message_manager_handler",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "operational_states_handler",
+    size = "small",
+    srcs = ["test_operational_states_handler.cpp"],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        "//lte/gateway/c/session_manager:operational_states_handler",
+        "@com_google_googletest//:gtest_main",
+        "@github_nlohmann_json//:json",
+    ],
+)
+
+cc_test(
+    name = "session_state_5g_test",
+    size = "small",
+    srcs = [
+        "SessionStateTester5g.hpp",
+        "test_session_state_5g.cpp",
+    ],
+    deps = [
+        ":consts",
+        ":protobuf_creators",
+        ":sessiond_mocks",
+        "//orc8r/gateway/c/common/logging",
+    ],
+)

@@ -1,0 +1,30 @@
+- name: Check if required platform variables are set
+  ansible.builtin.command: "orcl configure check -c platform"
+  register: result
+  failed_when: result.rc != 0
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Open configuration file
+  shell: "cat {{config_dir}}/platform.tfvars.json"
+  register: result
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Set platform Configs
+  set_fact:
+    platform_configs: "{{ result.stdout | from_json }}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Cloudwatch tasks
+  import_tasks: cloudwatch.yml
+
+- name: RDS tasks
+  import_tasks: rds.yml
+
+- name: Elastic tasks
+  import_tasks: elastic.yml

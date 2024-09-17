@@ -1,0 +1,45 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "registry",
+    srcs = [
+        "cloud_connection.go",
+        "global_registry.go",
+        "interceptors.go",
+        "registry.go",
+        "service_registry.go",
+        "shared_cloud_conn.go",
+    ],
+    importpath = "magma/orc8r/lib/go/registry",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/lib/go/protos:common_go_proto",
+        "//orc8r/lib/go/registry/client:client_api",
+        "//orc8r/lib/go/service/config",
+        "@com_github_golang_glog//:glog",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//backoff",
+        "@org_golang_google_grpc//connectivity",
+        "@org_golang_google_grpc//credentials",
+        "@org_golang_google_grpc//keepalive",
+        "@org_golang_google_grpc//metadata",
+    ],
+)
+
+go_test(
+    name = "registry_test",
+    srcs = ["registry_test.go"],
+    embed = [":registry"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

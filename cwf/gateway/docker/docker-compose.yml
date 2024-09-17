@@ -1,0 +1,244 @@
+version: "3.7"
+
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: ${LOG_DRIVER}
+
+# Standard volumes mounted
+x-standard-volumes: &volumes_anchor
+  - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+  - ${CERTS_VOLUME}:/var/opt/magma/certs
+  - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+  - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - /etc/snowflake:/etc/snowflake
+
+x-generic-service: &service
+  volumes: *volumes_anchor
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Generic python anchor to avoid repetition for orc8r python services
+x-orc8r-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
+# Generic python anchor to avoid repetition for lte python services
+x-lte-pyservice: &ltepyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_pipelined:${IMAGE_VERSION}
+
+# Generic python anchor to avoid repetition for lte c services
+x-lte-cservice: &ltecservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_sessiond:${IMAGE_VERSION}
+
+x-feg-goservice: &feggoservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+
+services:
+  aaa_server:
+    <<: *feggoservice
+    container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9109"]
+      timeout: "4s"
+      retries: 3
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
+
+  control_proxy:
+    <<: *pyservice
+    container_name: control_proxy
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50067"]
+      timeout: "4s"
+      retries: 3
+    command: python3.8 -m magma.directoryd.main
+
+  eap_sim:
+    <<: *feggoservice
+    container_name: eap_sim
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9118"]
+      timeout: "4s"
+      retries: 3
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_sim -logtostderr=true -v=0
+
+  eap_aka:
+    <<: *feggoservice
+    container_name: eap_aka
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9123"]
+      timeout: "4s"
+      retries: 3
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.8 -m magma.eventd.main
+
+  health:
+    <<: *feggoservice
+    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
+    container_name: health
+    # Needed in order to enable/disable ICMP
+    privileged: true
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+
+  magmad:
+    <<: *pyservice
+    container_name: magmad
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.8 -m magma.magmad.main
+
+  pipelined:
+    <<: *ltepyservice
+    container_name: pipelined
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
+      - /var/run/openvswitch:/var/run/openvswitch
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50063"]
+      timeout: "4s"
+      retries: 3
+    command: >
+      sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
+        /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
+        /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
+        /var/opt/magma/scripts/add_uplink_bridge_flows.sh ${UPLINK_PORTS:-eth2 eth3} &&
+        python3.8 -m magma.pipelined.main"
+
+  monitord:
+    <<: *ltepyservice
+    container_name: monitord
+    command: python3.8 -m magma.monitord.main
+
+  policydb:
+    <<: *ltepyservice
+    container_name: policydb
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50068"]
+      timeout: "4s"
+      retries: 3
+    depends_on:
+      - redis
+    command: python3.8 -m magma.policydb.main
+
+  redirectd:
+    <<: *ltepyservice
+    container_name: redirectd
+    command: python3.8 -m magma.redirectd.main
+
+  radius:
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    container_name: radius
+    logging: *logging_anchor
+    environment:
+      - RADIUS_AUTH_PORT=1812
+      - RADIUS_ACCT_PORT=1813
+      - RADIUS_COA_PORT=3799
+      - RADIUS_COA_GRPC_PORT=9108
+      - RADIUS_SECRET=123456
+      - COA_FIXED_ENDPOINT=127.0.0.1:4799
+      - AAA_ENDPOINT=127.0.0.1:9109
+      - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
+      - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
+      - STORAGE_TYPE=${RADIUS_STORAGE_TYPE}
+      - REDIS_ADDR=${RADIUS_REDIS_ADDR}
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9108"]
+      timeout: "4s"
+      retries: 3
+    network_mode: host
+    restart: always
+    command: >
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.analytics_disabled.conf.template > /var/opt/magma/tmp/radius.config.json &&
+             envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
+
+  radiusd:
+    <<: *feggoservice
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+  sessiond:
+    <<: *ltecservice
+    container_name: sessiond
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50065"]
+      timeout: "4s"
+      retries: 3
+    depends_on:
+      - directoryd
+    command: /usr/local/bin/sessiond
+
+  state:
+    <<: *pyservice
+    container_name: state
+    depends_on:
+      - redis
+    command: python3.8 -m magma.state.main
+
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    logging:
+      driver: "json-file"
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

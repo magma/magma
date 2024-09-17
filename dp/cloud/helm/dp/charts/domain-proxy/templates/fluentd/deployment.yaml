@@ -1,0 +1,96 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{- if and .Values.dp.create .Values.dp.fluentd.enabled -}}
+apiVersion:  {{ template "domain-proxy.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "domain-proxy.fluentd.fullname" . }}
+  labels:
+    {{- include "domain-proxy.fluentd.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "domain-proxy.fluentd.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.dp.fluentd.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "domain-proxy.fluentd.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.dp.fluentd.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "domain-proxy.fluentd.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.dp.fluentd.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Values.dp.fluentd.name }}
+          securityContext:
+            {{- toYaml .Values.dp.fluentd.securityContext | nindent 12 }}
+          image: {{ .Values.dp.fluentd.image.repository -}}:{{- .Values.dp.fluentd.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.dp.fluentd.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.dp.fluentd.service.port }}
+          env:
+            - name:  FLUENTD_OUTPUT_HOST
+              value: {{ .Values.dp.fluentd.env.output_host | quote }}
+            - name:  FLUENTD_OUTPUT_PORT
+              value: {{.Values.dp.fluentd.env.output_port | quote }}
+            - name: FLUENTD_OUTPUT_FLUSH_INTERVAL
+              value: {{.Values.dp.fluentd.env.output_flush_interval | quote }}
+            - name: SERVICE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /fluentd/etc
+            {{- if .Values.dp.fluentd.tls }}
+            - name: certs
+              mountPath: /fluentd/certs/fluentd.pem
+              subPath: fluentd.pem
+            - name: certs
+              mountPath: /fluentd/certs/fluentd.key
+              subPath: fluentd.key
+            - name: certs
+              mountPath: /fluentd/certs/ca.pem
+              subPath: ca.pem
+            {{- end }}
+      {{- with .Values.dp.fluentd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.fluentd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.dp.fluentd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "domain-proxy.fluentd.fullname" . }}
+        {{- if .Values.dp.fluentd.tls }}
+        - name: certs
+          secret:
+            secretName: {{ include "domain-proxy.fluentd.fullname" . }}
+            defaultMode: 0444
+        {{- end }}
+{{- end }}

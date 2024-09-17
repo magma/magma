@@ -1,0 +1,122 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_LOAD_TEST")
+
+MAGMA_ROOT = "../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_library(
+    name = "common",
+    srcs = ["common.py"],
+    deps = ["//lte/protos:subscriberdb_python_proto"],
+)
+
+py_binary(
+    name = "loadtest_directoryd",
+    srcs = ["loadtest_directoryd.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        "//orc8r/protos:directoryd_python_grpc",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "loadtest_mobilityd",
+    srcs = ["loadtest_mobilityd.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:mobilityd_python_grpc",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "loadtest_pipelined",
+    srcs = ["loadtest_pipelined.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/pipelined:policy_converters",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/gateway/python/scripts:pipelined_cli",
+        "//lte/protos:pipelined_python_proto",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "loadtest_policydb",
+    srcs = ["loadtest_policydb.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/protos:policydb_python_proto",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "loadtest_sessiond",
+    srcs = ["loadtest_sessiond.py"],
+    imports = [LTE_ROOT],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/protos:session_manager_python_proto",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "loadtest_subscriberdb",
+    srcs = ["loadtest_subscriberdb.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    legacy_create_init = False,
+    tags = TAG_LOAD_TEST,
+    deps = [
+        ":common",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:service_registry",
+        requirement("protobuf"),
+    ],
+)

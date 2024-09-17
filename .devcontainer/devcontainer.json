@@ -1,0 +1,113 @@
+{
+	"extensions": [
+		"CoenraadS.bracket-pair-colorizer-2",
+		"samverschueren.final-newline", // Adds a newline on save
+		"eamodio.gitlens",
+		"vscode-icons-team.vscode-icons",
+		"ms-vsliveshare.vsliveshare",
+		"ms-azuretools.vscode-docker",
+		// Editor
+		"vscodevim.vim",
+		// Markdown
+		"yzhang.markdown-all-in-one",
+		// Golang
+		"golang.go",
+		// C/C++
+		"notskm.clang-tidy",
+		"christian-kohler.path-intellisense",
+		"llvm-vs-code-extensions.vscode-clangd",
+		// Python
+		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"njpwerner.autodocstring",
+		// Protobuf
+		"zxh404.vscode-proto3",
+		// Bazel
+		"stackbuild.bazel-stack-vscode",
+		"stackbuild.bazel-stack-vscode-cc",
+		"augustocdias.tasks-shell-input",
+		"ryuta46.multi-command",
+		"coolchyni.beyond-debug"
+	],
+	"image": "ghcr.io/magma/magma/devcontainer:sha-84cfceb",
+	"settings": {
+		"search.followSymlinks": false,
+		"terminal.integrated.profiles.linux": {
+			"bash": {
+				"path": "bash",
+				"icon": "terminal-bash"
+			},
+			"zsh": {
+				"path": "zsh"
+			}
+		},
+		"files.watcherExclude": {
+			"**/.bazel-cache/**": true,
+			"**/.bazel-cache-repo/**": true
+		},
+		"bsv.bazel.buildFlags": [],
+		"bsv.bazel.testFlags": [],
+		"bsv.bes.enabled": false,
+		"bsv.bzl.codesearch.enabled": false,
+		"bsv.bzl.invocation.buildEventPublishAllActions": false,
+		"bsv.bzl.invocation.enabled": false,
+		"bsv.bzl.invocation.invokeWithBuildEventStreaming": false,
+		"bsv.bzl.lsp.enableCodelensStarlarkDebug": false,
+		"bsv.bzl.lsp.enableCodelensRun": false,
+		"bsv.bzl.remoteCache.enabled": false,
+		"bsv.bzl.starlarkDebugger.enabled": false,
+		"clangd.path": "/usr/bin/clangd-12",
+		"clangd.arguments": [
+			"-log=verbose",
+			"-pretty",
+			"--background-index"
+		],
+		"clangd.onConfigChanged": "restart",
+		"editor.formatOnSave": true,
+		// Update this field with any new Bazel targets that need compilation database generation
+		"bsv.cc.compdb.targets": [
+			"//orc8r/gateway/c/...",
+			"//lte/gateway/c/..."
+		],
+		"multiCommand.commands": [
+			{
+				"command": "multiCommand.generateCcWithBazelAndRestartClangderror",
+				"sequence": [
+					"bsv.cc.compdb.generate",
+					"clangd.restart"
+				]
+			}
+		],
+		"python.terminal.activateEnvironment": true,
+		"python.analysis.extraPaths": [
+			"${containerWorkspaceFolder}/orc8r/gateway/python/",
+			"${containerWorkspaceFolder}/lte/gateway/python/"
+		],
+		"python.defaultInterpreterPath": "/home/vscode/python_ide_env/bin/python3",
+		"python.formatting.provider": "autopep8",
+		"python.formatting.autopep8Args": [
+			// This should be the same set of flags as ones specified in `lte/gateway/precommit.py`
+			"--select=W191,W291,W292,W293,W391,E131,E2,E3"
+		],
+		"[python]": {
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		}
+	},
+	// Also see https://github.com/magma/magma/blob/77bc3e4a1c8a76e723fff2aa355a04445d04a3c6/.devcontainer/Dockerfile#L25
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+	],
+	// Uncomment the following line to use the docker socket of the host  machine
+	//"overrideCommand": false,
+	"postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/post-create-commands.sh ${containerWorkspaceFolder}",
+	// multiple postCreateCommands: currently only possible with '&&'/';' or shell script (https://github.com/microsoft/vscode-remote-release/issues/3527)
+	"runArgs": [
+		"--init"
+	],
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"remoteUser": "vscode"
+}

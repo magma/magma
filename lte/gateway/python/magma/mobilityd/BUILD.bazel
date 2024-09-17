@@ -1,0 +1,112 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "mobilityd",
+    srcs = ["main.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = [
+        "//:__pkg__",
+        "//lte/gateway/python:__pkg__",
+    ],
+    deps = [
+        ":mobilityd_lib",
+        "//lte/protos:mconfigs_python_proto",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("sdnotify"),
+    ],
+)
+
+py_library(
+    name = "mobilityd_lib",
+    srcs = [
+        "ip_address_man.py",
+        "ip_allocator_base.py",
+        "ip_allocator_dhcp.py",
+        "ip_allocator_multi_apn.py",
+        "ip_allocator_pool.py",
+        "ip_allocator_static.py",
+        "ipv6_allocator_pool.py",
+        "metrics.py",
+        "rpc_servicer.py",
+        "serialize_utils.py",
+        "subscriberdb_client.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":dhcp_desc",
+        ":mobility_store",
+        "//lte/gateway/python/magma/subscriberdb:sid",
+        "//lte/protos:mobilityd_python_grpc",
+        "//lte/protos:mobilityd_python_proto",
+        "//lte/protos:subscriberdb_python_grpc",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        requirement("prometheus_client"),
+    ],
+)
+
+py_library(
+    name = "mobility_store",
+    srcs = [
+        "ip_descriptor_map.py",
+        "mobility_store.py",
+        "uplink_gw.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":serialize_utils",
+        "//orc8r/gateway/python/magma/common/redis:containers",
+        requirement("redis"),
+        requirement("netifaces"),
+    ],
+)
+
+py_library(
+    name = "dhcp_desc",
+    srcs = [
+        "dhcp_desc.py",
+        "mac.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "serialize_utils",
+    srcs = [
+        "ip_descriptor.py",
+        "serialize_utils.py",
+        "utils.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//lte/protos:keyval_python_proto"],
+)

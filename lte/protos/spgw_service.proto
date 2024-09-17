@@ -1,0 +1,47 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.lte;
+
+import "lte/protos/subscriberdb.proto";
+import "lte/protos/policydb.proto";
+
+option go_package = "magma/lte/cloud/go/protos";
+
+message CreateBearerRequest {
+    SubscriberID sid = 1;
+    string ip_addr = 2;
+    // default bearer ID
+    uint32 link_bearer_id = 3;
+    repeated PolicyRule policy_rules = 4;
+}
+
+message CreateBearerResult {}
+
+message DeleteBearerRequest {
+    SubscriberID sid = 1;
+    string ip_addr = 2;
+    // default bearer ID
+    uint32 link_bearer_id = 3;
+    // dedicated bearer IDs
+    repeated uint32 eps_bearer_ids = 4;
+}
+
+message DeleteBearerResult {}
+
+service SpgwService {
+    rpc CreateBearer (CreateBearerRequest) returns (CreateBearerResult) {}
+    rpc DeleteBearer (DeleteBearerRequest) returns (DeleteBearerResult) {}
+}

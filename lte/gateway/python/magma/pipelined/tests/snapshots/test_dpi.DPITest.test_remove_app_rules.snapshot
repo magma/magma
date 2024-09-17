@@ -1,0 +1,10 @@
+ cookie=0x0, table=dpi(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,dpi(scratch_table_0)),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,udp,nw_dst=1.1.1.1 actions=set_field:0->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,udp,nw_src=1.1.1.1 actions=set_field:0->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,tcp,nw_src=45.10.0.8,nw_dst=1.2.3.4,tp_src=80,tp_dst=51115 actions=set_field:0xa->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,tcp,nw_src=6.2.3.1,nw_dst=1.10.0.1,tp_src=222,tp_dst=111 actions=set_field:0x5->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,tcp,nw_src=1.10.0.1,nw_dst=6.2.3.1,tp_src=111,tp_dst=222 actions=set_field:0x5->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,udp,nw_src=15.22.32.2,nw_dst=22.2.2.24,tp_src=111,tp_dst=222 actions=set_field:0x20->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, idle_timeout=42, priority=10,udp,nw_src=22.2.2.24,nw_dst=15.22.32.2,tp_src=222,tp_dst=111 actions=set_field:0x20->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=dpi(scratch_table_0), n_packets=0, n_bytes=0, priority=0 actions=set_field:0xffffffff->reg10,set_field:0->reg0,set_field:0->reg3
+ cookie=0xb, table=201, n_packets=0, n_bytes=0, priority=0 actions=resubmit(,dpi(scratch_table_0)),resubmit(,202),set_field:0->reg0,set_field:0->reg3

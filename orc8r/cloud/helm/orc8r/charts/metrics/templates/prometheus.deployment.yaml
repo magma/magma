@@ -1,0 +1,355 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.prometheus.create }}
+{{- $serviceName := print .Release.Name "-prometheus" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: prometheus
+{{ include "metrics.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.prometheus.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: prometheus
+{{ include "selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: prometheus
+        app: prometheus
+{{ include "selector-labels" . | indent 8 }}
+    spec:
+      {{- with .Values.prometheus.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheus.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheus.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      volumes:
+        - name: "prometheus-config"
+{{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
+        - name: "prometheus-data"
+{{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
+        - name: "prometheus-config-file"
+          configMap:
+            name: prometheus-config-file
+        {{ if .Values.prometheus.includeOrc8rAlerts }}
+        - name: "orc8r-alert-rules"
+          configMap:
+            name: orc8r-alert-rules
+        {{- end}}
+        {{ if .Values.thanos.enabled }}
+        - name: "thanos-objstore-config"
+          configMap:
+            name: thanos-objstore-config
+        {{- end}}
+
+
+  {{ if .Values.prometheus.useMinikube }}
+      initContainers:
+        - name: volume-mount
+          image: busybox
+          command: ["sh", "-c", "chmod -R 777 /prometheusData /etc/configs"]
+          volumeMounts:
+          - name: prometheus-data
+            mountPath: /prometheusData
+          - name: prometheus-config
+            mountPath: /etc/configs
+  {{ end }}
+
+      containers:
+        - name: "prometheus"
+          image: {{ required "prometheus.image.repository must be provided" .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}
+          imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
+          volumeMounts:
+            - name: "prometheus-config"
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: "prometheus-data"
+              mountPath: /data
+            - name: "prometheus-config-file"
+              mountPath: /prometheus
+            {{ if .Values.prometheus.includeOrc8rAlerts }}
+            - name: "orc8r-alert-rules"
+              mountPath: /etc/orc8r_alerts
+            {{- end}}
+          ports:
+            - containerPort: 9090
+          args: ['--config.file=/prometheus/prometheus.yml',
+                 '--storage.tsdb.path=/data',
+                 '--web.enable-lifecycle',
+                 '--web.enable-admin-api',
+                 "--storage.tsdb.no-lockfile",
+                 {{ if .Values.thanos.enabled }}
+                 '--storage.tsdb.min-block-duration=2h',
+                 '--storage.tsdb.max-block-duration=2h',
+                 '--storage.tsdb.retention.time={{ .Values.thanos.prometheusRetentionTime }}',
+                 {{- else }}
+                 '--storage.tsdb.retention.time={{ .Values.prometheus.retention.time }}',
+                 {{- end}}
+                ]
+          livenessProbe:
+            httpGet:
+              path: /graph
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+{{ toYaml .Values.prometheus.resources | indent 12 }}
+        {{ if .Values.thanos.enabled }}
+        - name: "thanos-sidecar"
+          image: {{ required "thanos.image.repository must be provided" .Values.thanos.image.repository }}:{{ .Values.thanos.image.tag }}
+          imagePullPolicy: {{ .Values.thanos.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: 10901
+          volumeMounts:
+            - name: "thanos-objstore-config"
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: "prometheus-data"
+              mountPath: /data
+          args: ['sidecar',
+                 '--tsdb.path=/data',
+                 '--prometheus.url=http://localhost:9090', # Localhost since they run on same pod
+                 '--objstore.config-file=/etc/thanos/objstore.yaml']
+        {{- end}}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config-file
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s # By default, scrape targets every 15 seconds.
+      evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+      external_labels:
+        monitor: 'master'
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: "magma_pushgateway"
+        honor_labels: true
+        metric_relabel_configs:
+          - regex: 'job'
+            action: labeldrop
+          - regex: 'instance'
+            action: labeldrop
+        static_configs:
+          - targets: ['{{ .Values.prometheus.prometheusCacheHostname }}:9091']
+      - job_name: "magma_pushgateway_stats"
+        metrics_path: '/internal'
+        static_configs:
+          - targets: ['{{ .Values.prometheus.prometheusCacheHostname }}:9091']
+
+    rule_files:
+      - '/etc/prometheus/alert_rules/*_rules.yml'
+    {{ if .Values.prometheus.includeOrc8rAlerts }}
+      - '/etc/orc8r_alerts/*_rules.yml'
+    {{- end }}
+
+    alerting:
+      alertmanagers:
+        - scheme: http
+          static_configs:
+            - targets: ['{{ .Values.prometheus.alertmanagerHostname }}:9093']
+
+{{ if .Values.prometheus.includeOrc8rAlerts }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orc8r-alert-rules
+data:
+  cloud_alert_rules.yml: |
+    groups:
+    - name: cloud
+      rules:
+
+    # Disk Usage
+      - alert: disk usage on cloud instance exceeds threshold
+        expr: disk_used / disk_total > 0.88
+        for: 5m
+        labels:
+          severity: critical
+          magma_alert_type: cloud
+          networkID: orc8r
+        annotations:
+          description: "Disk usage on cloud instance exceeds threshold. See ods chart for detail."
+          recovery: "No recovery steps configured currently"
+
+    # Rest 5xx Alerts
+      - alert: REST API 5xx responses
+        expr: rate(response_status{code=~"5.*"}[1m]) > 0
+        for: 5m
+        labels:
+          severity: major
+          magma_alert_type: cloud
+          networkID: orc8r
+        annotations:
+          description: "Obsidian recorded a 5XX response."
+          recovery: "No recovery steps configured currently"
+
+    # Failed Cloud Service
+      - alert: Failed Cloud Service
+        expr: get_metrics_status{serviceName!="METRICSD"} < 1
+        for: 7m
+        labels:
+          severity: critical
+          magma_alert_type: cloud
+          networkID: orc8r
+        annotations:
+          description: "Cloud service {{`{{ $labels.ServiceName }}`}} down."
+          recovery: "No recovery steps configured currently"
+
+    # Alert for metrics down to inhibit other service alerts
+      - alert: Failed Metrics Service
+        expr: get_metrics_status{serviceName="METRICSD"} < 1
+        for: 5m
+        labels:
+          severity: critical
+          magma_alert_type: cloud
+          networkID: orc8r
+        annotations:
+          description: "Cloud service {{`{{ $labels.ServiceName }}`}} down."
+          recovery: "No recovery steps configured currently"
+
+
+  gateway_alert_rules.yml: |
+    groups:
+      - name: gateways
+        rules:
+
+        - alert: Gateway Memory Usage
+          expr: avg_over_time(virtual_memory_percent[5m]) > 90
+          for: 5m
+          labels:
+            severity: major
+            magma_alert_type: gateway
+            networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
+          annotations:
+            description: "Gateway {{`{{ $labels.gatewayID }}`}} memory usage is too high at 90% for over 5 minutes on network {{`{{ $labels.networkID }}`}}."
+            recovery: "No recovery steps configured currently."
+
+        - alert: Multiple gateways are failing to check in
+          expr: sum(gateway_checkin_status) / count(gateway_checkin_status) <= 0.5
+          for: 7m
+          labels:
+            severity: major
+            magma_alert_type: gateway
+            networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
+          annotations:
+            description: "At least 50% of gateways have not checked in the last 7 minutes!"
+            recovery: >
+              This many checkins failing likely means that there is a major crash
+              in gateway code or there is a certificate/nginx issue. First see if
+              you can ssh into any of the boxes and check syslog to see if it's
+              able to contact the cloud.
+
+        - alert: Gateway service down
+          expr: process_uptime_seconds > 120 and service_metrics_collected < 1
+          for: 7m
+          labels:
+            severity: major
+            magma_alert_type: gateway
+            networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
+          annotations:
+            description: "{{`{{ $labels.service }}`}} has been down on gateway {{`{{ $labels.gatewayID }}`}} for at least 7 minutes."
+            recovery: "SSH into gateway and inspect service. Manually restart if necessary."
+
+        - alert: Unattended Upgrades active
+          expr: unattended_upgrade_status > 0
+          for: 5m
+          labels:
+            severity: critical
+            magma_alert_type: gateway
+            networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
+          annotations:
+            description: "Unattended upgrades can update kernel in gateway {{`{{ $labels.gatewayID }}`}} on network {{`{{ $labels.networkID }}`}}"
+            recovery: >
+              If Unattended Upgrades package is active this means the gateway might
+              automatically upgrade the kernel to an unsupported version. The best
+              remedy is to SSH into the gateway and remove unattended upgrades
+              package using the command
+              `sudo apt-get purge --auto-remove unattended-upgrades`. We should
+              also check how this package was downloaded in
+              /var/log/apt/history.log.
+
+        - alert: Unexpected service restart
+          expr: rate(unexpected_service_restarts[1m]) > 0.1
+          for: 15m
+          labels:
+            severity: major
+            magma_alert_type: gateway
+            networkID: orc8r
+          annotations:
+            description: "Unexpected service restart in gateway {{`{{ $labels.gatewayID }}`}} on network {{`{{ $labels.networkID }}`}}"
+            recovery: "Check /var/log/syslog in the gateway for the root cause."
+
+  metrics_alert_rules.yml: |
+    groups:
+      - name: metrics
+        rules:
+        - alert: Target down
+          expr: up == 0
+          labels:
+            severity: major
+            network_id: internal
+            magma_alert_type: metrics
+            networkID: orc8r
+          annotations:
+            summary: "Instance {{`{{ $labels.instance }}`}} - target is down"
+
+        - alert: Prometheus Cache utilization high
+          expr: cache_size / cache_limit > 0.7
+          labels:
+            severity: major
+            network_id: internal
+            magma_alert_type: metrics
+            networkID: orc8r
+          annotations:
+            description: "Prometheus cache is running out of space"
+
+  {{ if .Values.prometheus.customAlerts }}
+  custom_alert_rules.yml: |
+    groups:
+      - name: custom
+        rules:
+{{ toYaml .Values.prometheus.customAlerts | indent 8 }}
+  {{- end}}
+
+{{- end}}
+{{- end}}

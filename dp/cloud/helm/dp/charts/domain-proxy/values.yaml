@@ -1,0 +1,359 @@
+# Default values for domain-proxy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+#
+---
+dp:
+  create: true # Deploy Domain Proxy Chart.
+  nameOverride: ""  # Replaces the name of the chart in the `Chart.yaml` file.
+  fullnameOverride: ""  # Completely replaces the helm release generated name.
+
+  configuration_controller:
+
+    sasEndpointUrl: ""  # Endpoint where sas request should be send.
+    requestProcessingInterval: "10" # How often configuration controller will send requests to SAS. In seconds.
+    dbConnectionPoolSize: "6"  # How many database connections are made and maintained
+    dbConnectionPoolMaxOverflow: "10"  # How many extra database connections can be made when necessary
+
+    database: {} # Database configuration.
+      #driver: postgres      # postgres
+      #db: dp          # DB Name
+      #host: db
+      #port: 5432
+      #user: postgres
+      #pass: postgres
+
+    nameOverride: ""  # Replaces service part of the dp component deployment name.
+    fullnameOverride: ""  # Completely replaces dp component deployment name.
+    enabled: true  # Enables deployment of the given service.
+    name: configuration-controller  # Domain proxy component name.
+
+    image:
+      repository: linuxfoundation.jfrog.io/magma-docker/configuration-controller  # Docker image repository.
+      pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
+      tag: "1.7.0"
+
+    replicaCount: 1  # How many replicas of particular component should be created.
+
+    imagePullSecrets: []  # Name of the secret that contains container image registry keys
+
+    serviceAccount:
+      create: false  # Specifies whether a service account should be created
+      annotations: {}  # Annotations to add to the service account
+      name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
+
+    podAnnotations: {}  # Additional pod annotations
+
+    podSecurityContext: {}  # Holds pod-level security attributes
+    #  fsGroup: 2000
+
+    securityContext: {}  # Holds security configuration that will be applied to a container.
+    #  capabilities:
+    #    drop:
+    #      - ALL
+    #  readOnlyRootFilesystem: true
+    #  runAsNonRoot: true
+    #  runAsUser: 1000
+
+    service:
+      enable: true  # Whether to enable kubernetes service for dp component.
+      port: 8080  # Default port of enabled kubernetes service.
+
+    # If paths are set chart will generate kubernetes Secret resources for ingress. Mutually exclusive with ingress.tls.
+    tlsConfig:  # tls configuration for communication with SAS.
+      paths: {}
+      #  cert: ""  # Client/Server TLS certificate path.
+      #  key: ""  # Client/Server TLS private key path.
+      #  ca: ""  # Certificate Authority certifcate chain path.
+
+    ingress:
+      enabled: false  # Enable kubernetes ingress resource.
+      annotations: {}  # Annotations to kubernetes ingress resource.
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      hosts: []
+        #- host: chart-example.local  # Host header wildcards for kubernetes ingress resource.
+        #  paths:
+        #    - path: /  # Path header wildcards for kubernetes ingress resource.
+        #      backend:
+        #        serviceName: chart-example.local  # Kubernetes Service resource name where traffic should be passed.
+        #        servicePort: 80  # Kubernetes Service port where traffic should be passed.
+      tls: []  # Kubernetes secret name for tls termination on ingress kubernetes resource.
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - chart-example.local
+
+    resources: {}  # Resource requests and limits of Pod.
+    #  We usually recommend not to specify default resources and to leave this as a conscious
+    #  choice for the user. This also increases chances charts run on environments with little
+    #  resources, such as Minikube. If you do want to specify resources, uncomment the following
+    #  lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    #  limits:
+    #    cpu: 100m
+    #    memory: 128Mi
+    #  requests:
+    #    cpu: 100m
+    #    memory: 128Mi
+
+    readinessProbe: {}  # Readines probe definition.
+    #  Example httpGet probe
+    #  httpGet:
+    #    path: /
+    #    port: http
+
+    livenessProbe: {}  # Livenes probe definition.
+    #  Example httpget probe
+    #  httpGet:
+    #    path: /
+    #    port: http
+
+    autoscaling:
+      enabled: false  # Enables horizontal pod autscaler kubernetes resource.
+      minReplicas: 1  # Minimum number of dp component replicas.
+      maxReplicas: 100  # Maximum number of dp component replicas.
+      targetCPUUtilizationPercentage: 80  # Target CPU utilization threshold in perecents when new replica should be created
+      # targetMemoryUtilizationPercentage: 80  # Target CPU utilization threshold in perecents when new replica should be created
+      # You can use one of these
+
+    # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+    podDisruptionBudget:
+      enabled: false  # Creates kubernetes podDisruptionBudget resource.
+      minAvailable: 1  # Minimum available pods for dp component.
+      maxUnavailable: ""  # Maximum unavailable pods for dp component.
+      # You can use either one.
+
+    nodeSelector: {}  # Kubernetes node selection constraint.
+
+    tolerations: []  # Allow the pods to schedule onto nodes with matching taints.
+
+    affinity: {}  # Constrain which nodes your pod is eligible to be scheduled on.
+
+
+  radio_controller:
+
+    dbConnectionPoolSize: "40"  # Size of database connection pool
+    # This value should be adjusted based on the expected number of active eNBs.
+    # Good estimate would be: (number of eNBs) / (average eNB TR069 periodic inform interval)
+    # However this also should not exceed the max number of connections allowed by the underlying Database.
+    # A good default guestimate value here would be 40 - Radio Controller will still only
+    # use just as many as it needs in case of low concurrency.
+    # 40 should suffice for 200 simultaneous eNBs on a Magma deployment (200 eNBs with 5sec TR069 periodic inform intervals)
+
+    dbConnectionPoolMaxOverflow: "10"  # How many temporary extra database connections can be made
+    # Used when default pool size is exceeded and extra connections are required
+
+    database: {}
+      #driver: postgres      # postgres
+      #db: dp          # DB Name
+      #host: db
+      #port: 5432
+      #user: postgres
+      #pass: postgres
+
+    nameOverride: ""  # Replaces service part of the dp component deployment name.
+    fullnameOverride: ""  # Completely replaces dp component deployment name.
+    enabled: true  # Enables deployment of the given dp component.
+    name: radio-controller  # Domain proxy component name.
+
+    image:
+      repository: linuxfoundation.jfrog.io/magma-docker/radio-controller  # Docker image repository.
+      tag: "1.7.0"
+      pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
+
+    replicaCount: 1  # How many replicas of particular component should be created.
+
+    imagePullSecrets: []  # Name of the secret that contains container image registry keys.
+
+    serviceAccount:
+      create: false  # Specifies whether a service account should be created.
+      annotations: {}  # Annotations to add to the service account.
+      name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
+
+    podAnnotations: {}  # Additional pod annotations.
+
+    podSecurityContext: {}  # Holds pod-level security attributes.
+    # fsGroup: 2000
+
+    securityContext: {}  # Holds security configuration that will be applied to a container.
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+    resources: {}  # Resource requests and limits of Pod.
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+    readinessProbe: {}  # Readines probe definition.
+    # Example httpGet probe
+    # httpGet:
+    #   path: /
+    #   port: http
+
+    livenessProbe: {}  # Livenes probe definition.
+    # Example httpget probe
+    # httpGet:
+    #   path: /
+    #   port: http
+
+    autoscaling:
+      enabled: false  # Enables horizontal pod autscaler kubernetes resource.
+      minReplicas: 1  # Minimum number of dp component replicas.
+      maxReplicas: 100  # Maximum number of dp component replicas.
+      targetCPUUtilizationPercentage: 80  # Target CPU utilization threshold in perecents when new replica should be created
+      # targetMemoryUtilizationPercentage: 80 # Target CPU utilization threshold in perecents when new replica should be created
+      # You can use one of these
+
+    # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+    podDisruptionBudget:
+      enabled: false  # Creates kubernetes podDisruptionBudget resource.
+      minAvailable: 1  # Minimum available pods for dp component.
+      maxUnavailable: ""  # Maximum unavailable pods for dp component.
+      # You can use either one.
+
+    nodeSelector: {}  # Kubernetes node selection constraint.
+
+    tolerations: []  # Allow the pods to schedule onto nodes with matching taints.
+
+    affinity: {}  # Constrain which nodes your pod is eligible to be scheduled on.
+
+  db_service:
+
+    dbConnectionPoolSize: "6"  # How many database connections are made and maintained
+    dbConnectionPoolMaxOverflow: "10"  # How many extra database connections can be made when necessary
+
+    database: {}
+      #driver: postgres      # postgres
+      #db: dp          # DB Name
+      #host: db
+      #port: 5432
+      #user: postgres
+      #pass: postgres
+
+    enabled: true  # Enables deployment of the given service.
+    nameOverride: ""  # Replaces service part of the dp component deployment name.
+    fullnameOverride: ""  # Completely replaces dp component deployment name.
+    name: db-service  # Domain proxy component name.
+
+    image:
+      repository: linuxfoundation.jfrog.io/magma-docker/db-service  # Docker image repository.
+      pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
+      tag: "1.7.0"
+
+    imagePullSecrets: []  # Name of the secret that contains container image registry keys
+
+    serviceAccount:
+      create: false  # Specifies whether a service account should be created.
+      annotations: {}  # Annotations to add to the service account.
+      name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
+
+  fluentd:
+    enabled: true
+    nameOverride: ""  # Replaces service part of the dp component deployment name.
+    fullnameOverride: ""  # Completely replaces dp component deployment name.
+    name: fluentd  # Domain proxy component name.
+
+    image:
+      repository: fluent/fluentd  # Docker image repository.
+      pullPolicy: IfNotPresent  # Default the pull policy of all containers in that pod.
+      tag: "v1.7-1"
+
+    imagePullSecrets: []  # Name of the secret that contains container image registry keys
+
+    service:
+      port: 9888
+
+    output_conf:
+      ignore_network_errors_at_startup: true
+      tls_allow_self_signed_cert: false
+      tls_verify_hostname: true
+      tls_version: TLSv1_2
+      tls_ciphers: ALL:!aNULL:!eNULL:!SSLv2
+
+    tls: true
+
+    secret:
+      certs:
+        enabled: false
+        files: {}
+          # CA
+          # ca.pem: |-
+          #   ...
+          #   ...
+          # Fluentd client Crt
+          # fluentd.pem: |-
+          #   ...
+          #   ...
+          # Fluentd client Key
+          # fluentd.key: |-
+          #   ...
+          #   ...
+    env:
+      output_host: fluentd-forward
+      output_port: 24224
+      output_flush_interval: 5s
+
+    serviceAccount:
+      create: false  # Specifies whether a service account should be created.
+      annotations: {}  # Annotations to add to the service account.
+      name: ""  # The name of the service account to use,If not set and create is true, a name is generated using the fullname template.
+
+  grafana:
+    enabled: false
+    nameOverride: ""
+    fullnameOverride: ""
+    name: grafana
+
+    adminUser: admin
+    adminPassword: admin
+
+    image:
+      repository: grafana/grafana
+      pullPolicy: IfNotPresent
+      tag: 8.5.5
+
+    imagePullSecrets: []
+
+    service:
+      port: 3000
+
+    serviceAccount:
+      create: false
+      annotations: {}
+      name: ""
+
+    podSecurityContext: {}
+
+    persistdata:
+      enabled: false
+
+    env: {}
+
+    datasources:
+      apiVersion: 1
+      datasources:
+        - id: 1
+          orgId: 1
+          name: Prometheus
+          type: prometheus
+          typeName: Prometheus
+          access: proxy
+          url: http://orc8r-prometheus:9090
+          password: ''
+          user: ''
+          database: ''
+          basicAuth: false
+          isDefault: true
+          jsonData:
+            httpMethod: POST
+          readOnly: false

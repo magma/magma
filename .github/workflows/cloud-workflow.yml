@@ -1,0 +1,179 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-cloud
+# purpose: Orc8r linting and testing
+# remediation: https://magma.github.io/magma/docs/next/orc8r/dev_testing
+
+name: Orc8r Lint & Test
+
+on:
+  push:
+    branches:
+      - master
+      - 'v1.*'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    types: [ opened, reopened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_not_skip: ${{ steps.changes.outputs.filesChanged }}
+    steps:
+      # Need to get git on push event
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        if: github.event_name == 'push'
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        id: changes
+        with:
+          filters: |
+            filesChanged:
+              - ".github/workflows/cloud-workflow.yml"
+              - "lte/protos/**"
+              - "cwf/cloud/**"
+              - "feg/cloud/**"
+              - "lte/cloud/**"
+              - "orc8r/**"
+              - "dp/cloud/**"
+              - "dp/protos/**"
+      - name: Save should_not_skip output
+        if: always()
+        run: |
+          mkdir -p ./pr
+          echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: pr
+          path: pr/
+  # Fail if checked-in generated code doesn't match output from
+  # generation command.
+  cloud-tests:
+    needs: path_filter
+    if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
+    name: cloud-tests
+    runs-on: ubuntu-20.04
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      GO111MODULE: 'on'
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+        with:
+          python-version: '3.8.10'
+      - name: deploy-sync-checkin
+        if: always()
+        id: deploy-sync-checkin
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+          ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Lint cloud Go code
+        if: always()
+        id: cloud-lint-lint
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --lint
+      - name: Generate test coverage
+        if: always() && steps.cloud-lint-lint.outcome=='success'
+        id: cloud-lint-cov
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --coverage
+      - uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70 # pin@v3.1.1
+        if: always() && steps.cloud-lint-cov.outcome=='success'
+        id: cloud-lint-codecov
+        with:
+          files: '${{ env.MAGMA_ROOT}}/orc8r/cloud/coverage/all.gocov'
+          flags: cloud_lint
+      - name: Run tests cloud Go
+        if: always()
+        id: cloud-test
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --tests --up
+          ls ${MAGMA_ROOT}/orc8r/cloud/test-results
+        timeout-minutes: 15
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        with:
+          name: Unit Test Results
+          path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
+      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
+        if: always()
+        id: gateway_test_init
+        with:
+          go-version: '1.20.1'
+      - name: Download dependencies
+        if: always() && steps.gateway_test_init.outcome=='success'
+        id: gateway_test_dep
+        run: |
+          cd cwf/gateway
+          go mod download
+      - name: Gateway go tests
+        if: always() && steps.gateway_test_dep.outcome=='success'
+        id: gateway_test
+        run: |
+          cd ${MAGMA_ROOT}/orc8r/gateway/go
+          go test ./...
+          go vet ./...
+      - name: Notify failure to Slack for deploy-sync-checkin
+        if: steps.deploy-sync-checkin.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action insync-checkin failed"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for cloud-test
+        if: steps.cloud-test.outcome=='failure' && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for cloud-lint
+        if: ( steps.cloud-lint.outcome=='failure' || steps.cloud-lint-codecov.outcome=='failure' || steps.cloud-lint-cov.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action cloud-test failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+      - name: Notify failure to Slack for orc8r-gateway-test
+        if: ( steps.gateway_test_init.outcome=='failure' || steps.gateway_test_dep.outcome=='failure' || steps.gateway_test.outcome=='failure' ) && github.event_name == 'push'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action orc8r-gateway-test failed"
+          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '

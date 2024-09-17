@@ -1,0 +1,236 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// service held in FedGW, receiving messages from gateway
+// messages received will be sent to VLR through SCTP
+service CSFBFedGWService {
+    rpc AlertAc (AlertAck) returns (magma.orc8r.Void) {}
+    rpc AlertRej (AlertReject) returns (magma.orc8r.Void) {}
+    rpc EPSDetachInd (EPSDetachIndication) returns (magma.orc8r.Void) {}
+    rpc IMSIDetachInd (IMSIDetachIndication) returns (magma.orc8r.Void) {}
+    rpc LocationUpdateReq (LocationUpdateRequest) returns (magma.orc8r.Void) {}
+    rpc PagingRej (PagingReject) returns (magma.orc8r.Void) {}
+    rpc ServiceReq (ServiceRequest) returns (magma.orc8r.Void) {}
+    rpc TMSIReallocationComp (TMSIReallocationComplete) returns (magma.orc8r.Void) {}
+    rpc UEActivityInd (UEActivityIndication) returns (magma.orc8r.Void) {}
+    rpc UEUnreach (UEUnreachable) returns (magma.orc8r.Void) {}
+    rpc Uplink (UplinkUnitdata) returns (magma.orc8r.Void) {}
+
+    // messages that could be sent from both directions
+    rpc MMEResetAck (ResetAck) returns (magma.orc8r.Void) {}
+    rpc MMEResetIndication (ResetIndication) returns (magma.orc8r.Void) {}
+    rpc MMEStatus (Status) returns (magma.orc8r.Void) {}
+}
+
+// service for sending messages to MME through relay
+// the service is implemented in gateway and feg_to_gw_relay
+// by calling the functions in csfb_client_api.go
+// grpc requests are initiated from FeG to the relay
+// then the requests will be further forwarded to the gateway
+service CSFBGatewayService {
+    rpc AlertReq (AlertRequest) returns (magma.orc8r.Void) {}
+    rpc Downlink (DownlinkUnitdata) returns (magma.orc8r.Void) {}
+    rpc EPSDetachAc (EPSDetachAck) returns (magma.orc8r.Void) {}
+    rpc IMSIDetachAc (IMSIDetachAck) returns (magma.orc8r.Void) {}
+    rpc LocationUpdateAcc (LocationUpdateAccept) returns (magma.orc8r.Void) {}
+    rpc LocationUpdateRej (LocationUpdateReject) returns (magma.orc8r.Void) {}
+    rpc MMInformationReq (MMInformationRequest) returns (magma.orc8r.Void) {}
+    rpc PagingReq (PagingRequest) returns (magma.orc8r.Void) {}
+    rpc ReleaseReq (ReleaseRequest) returns (magma.orc8r.Void) {}
+    rpc ServiceAbort (ServiceAbortRequest) returns (magma.orc8r.Void) {}
+
+    // messages that could be sent from both directions
+    rpc VLRResetAck (ResetAck) returns (magma.orc8r.Void) {}
+    rpc VLRResetIndication (ResetIndication) returns (magma.orc8r.Void) {}
+    rpc VLRStatus (Status) returns (magma.orc8r.Void) {}
+}
+
+// section 8.1
+message AlertAck {
+    string imsi = 1;
+}
+
+// section 8.2
+message AlertReject {
+    string imsi = 1;
+    bytes sgs_cause = 2;
+}
+
+// section 8.3
+message AlertRequest {
+    string imsi = 1;
+}
+
+// section 8.4
+message DownlinkUnitdata {
+    string imsi = 1;
+    bytes nas_message_container = 2;
+}
+
+// section 8.5
+message EPSDetachAck {
+    string imsi = 1;
+}
+
+// section 8.6
+message EPSDetachIndication {
+    string imsi = 1;
+    string mme_name = 2;
+    bytes imsi_detach_from_eps_service_type = 3;
+}
+
+// section 8.7
+message IMSIDetachAck {
+    string imsi = 1;
+}
+
+// section 8.8
+message IMSIDetachIndication {
+    string imsi = 1;
+    string mme_name = 2;
+    bytes imsi_detach_from_non_eps_service_type = 3;
+}
+
+// section 8.9
+message LocationUpdateAccept {
+    string imsi = 1;
+    bytes location_area_identifier = 2;
+    oneof newIMSITMSI {
+        string new_imsi = 3;
+        bytes new_tmsi = 4;
+    }
+}
+
+// section 8.10
+message LocationUpdateReject {
+    string imsi = 1;
+    bytes reject_cause = 2;
+    bytes location_area_identifier = 3;
+}
+
+// section 8.11
+message LocationUpdateRequest {
+    string imsi = 1;
+    string mme_name = 2;
+    bytes eps_location_update_type = 3;
+    bytes new_location_area_identifier = 4;
+    bytes old_location_area_identifier = 5;
+    bytes tmsi_status = 6;
+    bytes imeisv = 7;
+    bytes tai = 8;
+    bytes e_cgi = 9;
+}
+
+// section 8.12
+message MMInformationRequest {
+    string imsi = 1;
+    bytes mm_information = 2;
+}
+
+// section 8.13
+message PagingReject {
+    string imsi = 1;
+    bytes sgs_cause = 2;
+}
+
+// section 8.14
+message PagingRequest {
+    string imsi = 1;
+    string vlr_name = 2;
+    bytes service_indicator = 3;
+    bytes tmsi = 4;
+    bytes cli = 5;
+    bytes location_area_identifier = 6;
+    bytes global_cn_id = 7;
+    bytes ss_code = 8;
+    bytes lcs_indicator = 9;
+    bytes lcs_client_identity = 10;
+    bytes channel_needed = 11;
+    bytes emlpp_priority = 12;
+}
+
+// section 8.15
+message ResetAck {
+    string mme_name = 1;
+    string vlr_name = 2;
+}
+
+// section 8.16
+message ResetIndication {
+    string mme_name = 1;
+    string vlr_name = 2;
+}
+
+// section 8.17
+message ServiceRequest {
+    string imsi = 1;
+    bytes service_indicator = 2;
+    bytes imeisv = 3;
+    bytes ue_time_zone = 4;
+    bytes mobile_station_classmark2 = 5;
+    bytes tai = 6;
+    bytes e_cgi = 7;
+    bytes ue_emm_mode = 8;
+}
+
+// section 8.18
+message Status {
+    string imsi = 1;
+    bytes sgs_cause = 2;
+    bytes erroneous_message = 3;
+}
+
+// section 8.19
+message TMSIReallocationComplete {
+    string imsi = 1;
+}
+
+// section 8.20
+message UEActivityIndication {
+    string imsi = 1;
+}
+
+// section 8.21
+message UEUnreachable {
+    string imsi = 1;
+    bytes sgs_cause = 2;
+}
+
+// section 8.22
+message UplinkUnitdata {
+    string imsi = 1;
+    bytes nas_message_container = 2;
+    bytes imeisv = 3;
+    bytes ue_time_zone = 4;
+    bytes mobile_station_classmark2 = 5;
+    bytes tai = 6;
+    bytes e_cgi = 7;
+}
+
+// section 8.23
+message ReleaseRequest {
+    string imsi = 1;
+    bytes sgs_cause = 2;
+}
+
+// section 8.24
+message ServiceAbortRequest {
+    string imsi = 1;
+}

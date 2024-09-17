@@ -1,0 +1,259 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r;
+
+import "metrics.proto";
+import "orc8r/protos/common.proto";
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+// For each metric name tracked, we use an enum
+enum MetricName {
+  // Prometheus metrics
+  process_start_time_seconds     = 0;
+  process_virtual_memory_bytes   = 1;
+  process_resident_memory_bytes  = 2;
+  process_cpu_seconds_total      = 3;
+  process_open_fds               = 4;
+  process_max_fds                = 5;
+
+  // subscriberdb metrics
+  s6a_auth_success               = 6;
+  s6a_auth_failure               = 7;
+  s6a_location_update            = 8;
+  diameter_capabilities_exchange = 9;
+  diameter_watchdog              = 10;
+  diameter_disconnect            = 11;
+
+  // More prometheus metrics
+  python_info                    = 50;
+
+  // Metricsd metrics
+  service_metrics_collected      = 60;
+  process_uptime_seconds         = 61;
+
+  // mobilityd metrics
+  ip_address_allocated           = 100;
+  ip_address_released            = 101;
+  ip_already_allocated           = 102;
+  ip_allocation_failure          = 103;
+
+  // enodebd metrics
+  enodeb_mgmt_connected          = 200;
+  enodeb_opstate_enabled         = 201;
+  enodeb_rf_tx_enabled           = 202;
+  enodeb_gps_connected           = 203;
+  enodeb_ptp_connected           = 204;
+  enodeb_mme_connected           = 205;
+  rrc_estab_attempts             = 206;
+  rrc_estab_successes            = 207;
+  pdcp_user_plane_bytes_ul       = 208;
+  pdcp_user_plane_bytes_dl       = 209;
+  rrc_reestab_attempts           = 210;
+  rrc_reestab_attempts_reconf_fail = 211;
+  rrc_reestab_attempts_ho_fail   = 212;
+  rrc_reestab_attempts_other     = 213;
+  rrc_reestab_successes          = 214;
+  erab_estab_attempts            = 215;
+  erab_estab_successes           = 216;
+  erab_estab_failures            = 217;
+  erab_release_requests          = 218;
+  erab_release_requests_user_inactivity = 219;
+  erab_release_requests_normal   = 220;
+  erab_release_requests_radio_resources_not_available = 221;
+  erab_release_requests_reduce_load = 222;
+  erab_release_requests_fail_in_radio_proc = 223;
+  erab_release_requests_eutran_reas = 224;
+  erab_release_requests_radio_radio_conn_lost = 225;
+  erab_release_requests_oam_intervention = 226;
+  enodeb_mgmt_configured         = 227;
+  enodeb_reboot_timer_active     = 228;
+  enodeb_reboots                 = 229;
+  enodeb_rf_tx_desired           = 230;
+
+  // Kernsnoopd metrics
+  magma_bytes_sent_total         = 260;
+  linux_bytes_sent_total         = 261;
+
+  // Magmad metrics
+  magmad_ping_rtt_ms             = 300;
+  cpu_percent                    = 301;
+  swap_memory_percent            = 302;
+  virtual_memory_percent         = 303;
+  disk_percent                   = 304;
+  bytes_sent                     = 305;
+  bytes_received                 = 306;
+  temperature                    = 307;
+  checkin_status                 = 308;
+  streamer_responses             = 309;
+  mem_total                      = 310;
+  mem_available                  = 311;
+  mem_used                       = 312;
+  mem_free                       = 313;
+  bootstrap_exception            = 314;
+  upgrader2_time_taken           = 315;
+  upgrader2_error                = 316;
+  upgrader2_prepared             = 317;
+  upgrader2_downloaded           = 318;
+  upgrader2_canary               = 319;
+  upgrader2_stable               = 320;
+  upgrader2_idle                 = 321;
+  unexpected_service_restarts    = 322;
+  unattended_upgrade_status      = 323;
+  service_restart_status         = 324;
+  service_cpu_percentage         = 325;
+  service_memory_usage           = 326;
+  service_memory_percentage      = 327;
+
+  // Pipelined metrics
+  dp_send_msg_error              = 350;
+  arp_default_gw_mac_error       = 351;
+  openflow_error_msg             = 352;
+  unknown_pkt_direction          = 353;
+  network_iface_status           = 354;
+  enforcement_rule_install_fail  = 355;
+  enforcement_stats_rule_install_fail = 356;
+
+  ///////////////////////////////
+  // GATEWAY FAILURES & ALERTS //
+  ///////////////////////////////
+  mme_restarted                  = 400;
+  s1_reset_from_enb              = 401;
+
+  // SCTP
+  sctp_reset                     = 410;
+  sctp_shutdown                  = 411;
+
+  // s6a
+  s6a_subscriberdb_connection_failure = 420;
+  s6a_auth_info_response_timer_expired = 421;
+
+  // UE attach, Serivce Request
+  duplicate_attach_request       = 430;
+  initial_context_setup_failure_received = 431;
+  initial_context_setup_request_timer_expired = 432;
+  nas_attach_accept_timer_expired = 433;
+  nas_auth_rsp_timer_expired = 434;
+  nas_security_mode_command_timer_expired = 435;
+  security_mode_reject_received  = 436;
+  authentication_failure         = 437; // cause=mac_failure,resync,amf
+  mme_spgw_create_session_req    = 438;
+  mme_spgw_create_session_rsp    = 439;
+  mme_spgw_delete_session_req    = 440;
+  mme_spgw_delete_session_rsp    = 441;
+
+  // UE S1AP context
+  ue_context_release_request     = 450;
+  ue_context_release_command_timer_expired = 451;
+
+  // Detach
+  implicit_detach_timer_expired  = 452;
+
+  // eNB SCTP shutdown context clean up time
+  enb_sctp_shutdown_ue_clean_up_timer_expired  = 453;
+
+  // Other errors
+  s1ap_error_ind_received        = 480;
+  gtpu_error_ind_received        = 481;
+  nas_non_delivery_indication_received = 482;
+  emm_status_received            = 483;
+  emm_status_sent                = 484;
+
+  ////////////////////////
+  // GATEWAY PROCEDURES //
+  ////////////////////////
+  mme_new_association            = 500;
+  ue_attach                      = 501; // result=failure,accept,complete
+  service_request                = 502;
+  ue_detach                      = 503; // cause=network_initiated,
+                                        // deregister_ue,implicit_detach,
+                                        // ue_initiated
+  spgw_create_session            = 504;
+  spgw_delete_session            = 505;
+  ue_pdn_connection              = 506;
+  tracking_area_update           = 507;
+  s1_setup                       = 508;
+
+  // Generic service metrics
+  service_errors                 = 550;
+}
+
+// Possible labels, used as metric_name{label_name=label_value}
+enum MetricLabelName {
+  result                         = 0;
+  cause                          = 1;
+  tau_type                       = 2;
+  pdn_type                       = 3;
+  action                         = 4;
+  host                           = 5; // magmad_ping_rtt_ms
+  metric                         = 6; // magmad_ping_rtt_ms
+  patchlevel                     = 7; // python_info
+  minor                          = 8; // python_info
+  major                          = 9; // python_info
+  version                        = 10; // python_info
+  implementation                 = 11; // python_info
+  sensor                         = 12; // magmad_temperature
+  error_code                     = 13;
+  error_type                     = 14;
+  iface_name                     = 15; // pipelined network_iface_status
+  service_name                   = 16; // magmad unexpected_service_restarts
+  rule_id                        = 17; // pipelined rule install failures
+  imsi                           = 18; // pipelined rule install failures
+  dest_service                   = 19; // kernsnoopd name of destination service
+  binary_name                    = 20; // kernsnoopd name of linux binary
+}
+
+message MetricsContainer {
+  string gatewayId = 1;
+  // TODO: we should strip this out of metricsd (or duplicate it ourselves)
+  // Prometheus 2 no longer supports protobuf client model
+  repeated io.prometheus.client.MetricFamily family = 2;
+}
+
+message RawMetricsContainer {
+  string hostName = 1;
+  string service = 2;
+  repeated io.prometheus.client.MetricFamily families = 3;
+}
+
+message PushedMetric {
+  string   metricName        = 1;
+  double   value             = 2;
+  int64    timestampMS       = 3;
+  repeated LabelPair labels  = 4;
+}
+
+message LabelPair {
+  string name  = 1;
+  string value = 2;
+}
+
+message PushedMetricsContainer {
+  string   networkId = 1;
+  repeated PushedMetric metrics = 2;
+}
+
+service MetricsController {
+  // Report a collection of metrics from a service
+  rpc Collect(MetricsContainer) returns (Void) {}
+
+}
+
+service CloudMetricsController {
+  // Push a collection of metrics to metricsd
+  rpc Push(PushedMetricsContainer) returns (Void) {}
+  rpc PushRaw(RawMetricsContainer) returns (Void) {}
+}

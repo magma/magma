@@ -1,0 +1,361 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+## Global values for NMS sub-chart
+nms:
+  enabled: true
+  magmalte:
+    create: true
+    image:
+      repository: linuxfoundation.jfrog.io/magma-docker/magmalte
+      tag: 1.7.0
+  nginx:
+    create: true
+  certs:
+    enabled: false
+  secret:
+    certs: orc8r-secrets-certs
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+## metrics sub-chart configuration.
+metrics:
+  enabled: true
+  prometheus:
+    create: false
+  prometheusCache:
+    create: false
+  alertmanager:
+    create: false
+  alertmanagerConfigurer:
+    create: false
+  prometheusConfigurer:
+    create: false
+  thanos:
+    enabled: false
+
+# secrets sub-chart configuration.
+secrets:
+  create: false
+
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-secrets-certs
+  configs:
+    orc8r: orc8r-secrets-configs-orc8r
+  envdir: orc8r-secrets-envdir
+
+# certs sub-chart configuration.
+certs:
+  create: false
+  enabled: false
+
+  domainName: ""
+
+nginx:
+  create: true
+
+  # Configure pod disruption budgets for nginx
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
+  # Service configuration.
+  service:
+    enabled: true
+    legacyEnabled: true
+    name: bootstrapper-orc8r-nginx
+    annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
+      proxy: {}
+    labels: {}
+    type: LoadBalancer
+    port:
+      clientcert:
+        port: 8443
+        targetPort: 8443
+        nodePort: ""
+      open:
+        port: 8444
+        targetPort: 8444
+        nodePort: ""
+      api:
+        port: 443
+        targetPort: 9443
+        nodePort: ""
+      health:
+        port: 80
+        targetPort: 80
+        nodePort: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+
+  # nginx image
+  image:
+    repository: linuxfoundation.jfrog.io/magma-docker/nginx
+    tag: 1.7.0
+    pullPolicy: IfNotPresent
+
+  # Settings affecting nginx application
+  spec:
+    # magma controller domain name
+    hostname: ""
+    # when nginx sees a variable in a server_name it needs a resolver
+    # by default we'll use kube-dns
+    resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
+
+  # Number of nginx replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign nginx to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+controller:
+  # Configure pod disruption budgets for controller
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+    maxUnavailable: ""
+
+  # orc8r_base image
+  image:
+    repository: linuxfoundation.jfrog.io/magma-docker/controller
+    tag: 1.7.0
+    pullPolicy: IfNotPresent
+    env:
+      orc8r_domain_name: magma.test
+  spec:
+    # Postgres/mysql configuration
+    database:
+      driver: postgres      # mysql/postgres
+      sql_dialect: psql # maria/psql
+      db: magma          # DB Name
+      protocol: tcp
+      host: postgresql
+      port: 5432
+      user: postgres
+      pass: postgres
+    service_registry:
+      mode: "k8s"
+
+  podAnnotations: {}
+
+  # Number of controller replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+accessd:
+  service:
+    labels: {}
+    annotations: {}
+
+analytics:
+  service:
+    labels: {}
+    annotations: {}
+
+bootstrapper:
+  service:
+    labels: {}
+    annotations: {}
+
+certifier:
+  service:
+    labels:
+      orc8r.io/analytics_collector: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/user,
+
+configurator:
+  service:
+    labels: {}
+    annotations: {}
+
+ctraced:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
+device:
+  service:
+    labels: {}
+    annotations: {}
+
+directoryd:
+  service:
+    labels: {}
+    annotations: {}
+
+dispatcher:
+  service:
+    labels: {}
+    annotations: {}
+
+eventd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/logs,
+        /magma/v1/events,
+
+metricsd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata,
+
+obsidian:
+  service:
+    labels: {}
+    annotations: {}
+
+orchestrator:
+  service:
+    labels:
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/channels,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+        /magma/v1/about,
+
+service_registry:
+  service:
+    labels: {}
+    annotations: {}
+
+orc8r_worker:
+  service:
+    labels: {}
+    annotations: {}
+
+state:
+  service:
+    labels: {}
+    annotations: {}
+
+streamer:
+  service:
+    labels: {}
+    annotations: {}
+
+tenants:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
+
+# Set True to create a CloudWatch agent to monitor metrics
+cloudwatch:
+  create: false
+
+# logging sub-chart configuration.
+logging:
+  enabled: true
+
+# Domain proxy sub-chart configuration. Set true to enable.
+dp:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: /magma/v1/dp
+  enabled: false
+  config:
+    dp_backend:
+      cbsd_inactivity_interval_sec: 14400
+      log_consumer_url: "http://domain-proxy-fluentd:9888/dp"
+    active_mode_controller:
+      dial_timeout_sec: 60
+      heartbeat_send_timeout_sec: 10
+      request_timeout_sec: 5
+      request_processing_interval_sec: 10
+      polling_interval: 10
+      grpc_service: 'domain-proxy-radio-controller'
+      grpc_port: 50053
+      cbsd_inactivity_interval_sec: 14400

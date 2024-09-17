@@ -1,0 +1,90 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "ods": {
+        "category_id": "958",
+        "access_token": "$MONITORING_ACCESS_TOKEN",
+        "entity": "goradius",
+        "graph_url": "https://graph.facebook.com/ods_metrics",
+        "unique_entity": true
+    },
+    "server": {
+        "sessionStorage": {
+            "storageType": "memory"
+        },
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "extra": {
+                    "port": 1812
+                },
+                "type": "udp",
+                "modules": [
+                    {
+                      "name": "analytics",
+                      "config": {
+                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
+                        "GraphQLURL": "https://graph-controller-staging.magma.etagecom.io/graphql",
+                        "DryRunGraphQL": false
+                      }
+                    },
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akamagma",
+                                    "config": {
+                                        "FegEndpoint": "127.0.0.1:9109"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "extra": {
+                    "port": 1813
+                },
+                "type": "udp",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    },
+                    {
+                      "name": "magmaacct",
+                      "config": {
+                        "FegEndpoint": "127.0.0.1:9109"
+                      }
+                    }
+                ]
+            },
+            {
+                "name": "coa_grpc",
+                "extra": {
+                    "port": 9108
+                },
+                "type": "grpc",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

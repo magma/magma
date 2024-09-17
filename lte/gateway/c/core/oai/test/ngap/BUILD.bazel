@@ -1,0 +1,83 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:private"])
+
+cc_test(
+    name = "ngap_encode_decode_test",
+    size = "small",
+    srcs = [
+        "test_ngap_encode_decode.cpp",
+    ],
+    deps = [
+        ":ngap_utils",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "ngap_utils",
+    srcs = [
+        "util_ngap_amf_nas_procedures.cpp",
+        "util_ngap_initiate_ue.cpp",
+        "util_ngap_setup_failure.cpp",
+    ],
+    hdrs = [
+        "mock_utils.h",
+        "util_ngap_pkt.hpp",
+    ],
+    deps = [
+        "//lte/gateway/c/core:lib_agw_of",
+        "//lte/gateway/c/core/common:common_defs",
+    ],
+)
+
+cc_test(
+    name = "ngap_flows_test",
+    size = "small",
+    srcs = [
+        "test_ngap_flows.cpp",
+    ],
+    deps = [
+        ":ngap_utils",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "ngap_handle_new_association_test",
+    size = "small",
+    srcs = [
+        "test_ngap_handle_new_association.cpp",
+    ],
+    deps = [
+        ":ngap_utils",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "ngap_state_converter_test",
+    size = "small",
+    srcs = [
+        "test_ngap_state_converter.cpp",
+    ],
+    deps = [
+        ":ngap_utils",
+        "//lte/gateway/c/core:lib_agw_of",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

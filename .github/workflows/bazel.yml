@@ -1,0 +1,807 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-gw, @magma/approvers-infra
+# purpose: Unit testing and packaging the AGW with Bazel. Starlark format checking.
+# remediation: https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
+
+name: AGW Build, Format & Test Bazel
+on:
+  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+    inputs:
+      publish_bazel_profile:
+        description: 'Publish bazel profile data (default: false)'
+        required: false
+        default: false
+        type: boolean
+  workflow_call:
+    outputs:
+      artifacts:
+        value: ${{ jobs.bazel_package.outputs.artifacts }}
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+env:
+  BAZEL_BASE_IMAGE: "ghcr.io/magma/magma/bazel-base:latest"
+  # Warning: the values of BAZEL_CACHE_PLAIN_IMAGE and BAZEL_CACHE_PROD_IMAGE
+  # need to be repeated in the matrix workflow includes for "docker-image-cache".
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+  BAZEL_CACHE_PROD_IMAGE: "ghcr.io/magma/magma/bazel-cache-prod:latest"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  path_filter:
+    runs-on: ubuntu-20.04
+    outputs:
+      files_changed: ${{ steps.changes.outputs.files_changed }}
+    if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
+    steps:
+      # Need to get git on push event
+      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+        if: github.event_name == 'pull_request'
+        id: changes
+        with:
+          filters: |
+            files_changed:
+              - '.github/workflows/bazel.yml'
+              - 'orc8r/gateway/**'
+              - 'orc8r/lib/go/**'
+              - 'orc8r/protos/**'
+              - 'feg/cloud/go/**'
+              - 'feg/gateway/**'
+              - 'lte/gateway/**'
+              - 'lte/cloud/go/**'
+              - 'lte/protos/**'
+              - '**/BUILD'
+              - '**/*.BUILD'
+              - '**/*.bazel'
+              - '**/*.bzl'
+              - '.bazelrc'
+
+  bazel_diff:
+    needs: path_filter
+    name: Bazel-Diff Job
+    runs-on: ubuntu-20.04
+    outputs:
+      bazel_diff_ran: ${{ steps.bazel_diff_outputs.outputs.bazel_diff_ran }}
+      run_package_job: ${{ steps.bazel_diff_outputs.outputs.run_package_job }}
+      all_unit_test_targets: ${{ steps.bazel_diff_outputs.outputs.all_unit_test_targets }}
+      cc_unit_test_targets: ${{ steps.bazel_diff_outputs.outputs.cc_unit_test_targets }}
+      py_service_targets: ${{ steps.bazel_diff_outputs.outputs.py_service_targets }}
+    steps:
+      - name: Check Out Repo
+        # This if condition is placed on the step level instead of
+        # the job level, because otherwise 'success()' does not return
+        # 'true' for later jobs if the bazel_diff job is skipped.
+        if: needs.path_filter.outputs.files_changed == 'true'
+        # This is necessary for overlays into the Docker container below.
+        # The value of fetch-depth needs to exceed the maximum number of commits
+        # on all PRs. This is needed for bazel-diff to check out the merge-base.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 100
+      - name: Setup Bazel Base Image
+        if: needs.path_filter.outputs.files_changed == 'true'
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel base image!"
+      - name: Run bazel-diff
+        if: needs.path_filter.outputs.files_changed == 'true'
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_BASE_IMAGE }}
+          shell: bash
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            set -euo pipefail
+
+            # Required for bazel-diff to perform git checkout.
+            git config --global --add safe.directory /workspaces/magma
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Bazel-diff.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            # Check if the workflow is run on a PR and whether the .bazelrc and WORKSPACE files have been affected.
+            IMPACTED_TARGETS_FILE="/tmp/impacted_targets.txt"
+            if [[ ("${{ github.event_name }}" == "pull_request") && \
+                  ! $(git diff-tree --no-commit-id --name-only -r "${{ github.event.pull_request.base.sha }}" "${{ github.SHA }}" | \
+                    grep -E '(.bazelrc|WORKSPACE.bazel)') \
+                ]];
+            then
+              printf '\r%s\r' 'Running bazel-diff...' 1>&2
+              bazel/scripts/bazel_diff.sh "${{ github.event.pull_request.base.sha }}"  "${{ github.SHA }}" | tee "$IMPACTED_TARGETS_FILE"
+              printf "bazel_diff_ran=true" > /workspaces/magma/bazel_diff_ran.txt
+            else
+              printf '\r%s\r' 'WORKSPACE or .bazelrc files have been modified or trigger is not a pull-request.' 1>&2
+              printf '\r%s\r' 'Skipping bazel-diff ...' 1>&2
+              printf "bazel_diff_ran=false" > /workspaces/magma/bazel_diff_ran.txt
+              exit 0
+            fi
+
+            # Check if impacted_targets.txt is empty, if yes skip all jobs.
+            if [[ ! -s "$IMPACTED_TARGETS_FILE" ]];
+            then
+              printf '\r%s\r' 'No relevant bazel targets are impacted, skipping all jobs.' 1>&2
+              printf "run_package_job=false" > /workspaces/magma/run_package_job.txt
+              printf "" > /workspaces/magma/all_unit_test_targets.txt
+              printf "" > /workspaces/magma/cc_unit_test_targets.txt
+              printf "" > /workspaces/magma/py_service_targets.txt
+              exit 0
+            fi
+
+            # Determine if the release is contained in the impacted targets list.
+            if ! grep --quiet '//lte/gateway/release:release_build' "$IMPACTED_TARGETS_FILE";
+            then
+              printf '\r%s\r' 'Skipping release build, the packages are not affected by the changes.' 1>&2
+              printf "run_package_job=false" > /workspaces/magma/run_package_job.txt
+            else
+              printf '\r%s\r' 'The packages are affected by the changes, the release needs to be build.' 1>&2
+              printf "run_package_job=true" > /workspaces/magma/run_package_job.txt
+            fi
+
+            # Determine all impacted test targets of rule type '.*_test' that are not tagged as manual.
+            bazel/scripts/filter_test_targets.sh ".*_test" < "$IMPACTED_TARGETS_FILE" | tee "/workspaces/magma/all_unit_test_targets.txt"
+
+            # Determine all impacted cc_test targets that are not tagged as manual.
+            bazel/scripts/filter_test_targets.sh "cc_test" < "$IMPACTED_TARGETS_FILE" | tee "/workspaces/magma/cc_unit_test_targets.txt"
+
+            # Determine all impacted py_binary targets that are tagged as service.
+            bazel/scripts/filter_test_targets.sh "py_binary" "service" < "$IMPACTED_TARGETS_FILE" | tee "/workspaces/magma/py_service_targets.txt"
+      - name: Set job output values
+        if: needs.path_filter.outputs.files_changed == 'true'
+        shell: bash
+        id: bazel_diff_outputs
+        # This is necessary because the addnab/docker-run-action
+        # does not allow setting outputs from inside the container.
+        run: |
+          BAZEL_DIFF_RAN="$(cat bazel_diff_ran.txt)"
+          echo "BAZEL_DIFF_RAN: $BAZEL_DIFF_RAN"
+          echo "$BAZEL_DIFF_RAN" >> $GITHUB_OUTPUT
+
+          if [[ "$BAZEL_DIFF_RAN" == "bazel_diff_ran=true" ]];
+          then
+            RUN_PACKAGE_JOB="$(cat run_package_job.txt)"
+            echo "RUN_PACKAGE_JOB: $RUN_PACKAGE_JOB"
+            echo "$RUN_PACKAGE_JOB" >> $GITHUB_OUTPUT
+
+            ALL_UNIT_TEST_TARGETS="all_unit_test_targets=$(cat all_unit_test_targets.txt | tr '\n' ' ')"
+            echo "ALL_UNIT_TEST_TARGETS: $ALL_UNIT_TEST_TARGETS"
+            echo "$ALL_UNIT_TEST_TARGETS" >> $GITHUB_OUTPUT
+
+            CC_UNIT_TEST_TARGETS="cc_unit_test_targets=$(cat cc_unit_test_targets.txt | tr '\n' ' ')"
+            echo "CC_UNIT_TEST_TARGETS: $CC_UNIT_TEST_TARGETS"
+            echo "$CC_UNIT_TEST_TARGETS" >> $GITHUB_OUTPUT
+
+            PY_SERVICE_TARGETS="py_service_targets=$(cat py_service_targets.txt | tr '\n' ' ')"
+            echo "PY_SERVICE_TARGETS: $PY_SERVICE_TARGETS"
+            echo "$PY_SERVICE_TARGETS" >> $GITHUB_OUTPUT
+          fi
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel-Diff Job"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  bazel_build_and_test:
+    needs: bazel_diff
+    if: |
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
+      (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.all_unit_test_targets != '')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bazel-config: ""
+            bazel-target-rule: ".*_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+          - bazel-config: "--config=asan"
+            bazel-target-rule: "cc_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-asan:latest"
+          - bazel-config: "--config=production"
+            bazel-target-rule: "cc_test"
+            docker-image-cache: "ghcr.io/magma/magma/bazel-cache-prod:latest"
+    name: Bazel Test Job
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Print variables
+        run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.repository_owner: ${{ github.repository_owner }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "inputs.publish_bazel_profile: ${{ inputs.publish_bazel_profile }}"
+          echo "needs.bazel_diff.outputs.bazel_diff_ran: ${{ needs.bazel_diff.outputs.bazel_diff_ran }}"
+          echo "needs.bazel_diff.outputs.all_unit_test_targets: ${{ needs.bazel_diff.outputs.all_unit_test_targets }}"
+          echo "needs.bazel_diff.outputs.cc_unit_test_targets: ${{ needs.bazel_diff.outputs.cc_unit_test_targets }}"
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Setup Bazel Docker Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ matrix.docker-image-cache }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel docker image!"
+      - name: Run bazel build and test
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ matrix.docker-image-cache }}
+          shell: bash
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            set -euo pipefail
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Determining bazel test targets.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            if [[ "${{ needs.bazel_diff.outputs.bazel_diff_ran }}" == 'true' ]];
+            then
+              if [[ "${{ matrix.bazel-target-rule }}" == '.*_test' ]];
+              then
+                TEST_TARGETS="${{ needs.bazel_diff.outputs.all_unit_test_targets }}"
+              else
+                TEST_TARGETS="${{ needs.bazel_diff.outputs.cc_unit_test_targets }}"
+                if [[ -z "$TEST_TARGETS" ]];
+                then
+                  printf '\r%s\r' 'No test targets of type ${{ matrix.bazel-target-rule }} are impacted by the changes.' 1>&2
+                  printf '\r%s\r' 'No tests will be executed.' 1>&2
+                  exit 0
+                fi
+              fi
+              printf '\r%s\r' "The test targets of rule type ${{ matrix.bazel-target-rule }} to be executed are:" 1>&2
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            else
+              printf '\r%s\r' 'Running all unit test targets of type ${{ matrix.bazel-target-rule }}.' 1>&2
+              TEST_TARGETS="$(bazel query 'kind(${{ matrix.bazel-target-rule }}, //...) except attr(tags, manual, //...)')"
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            fi
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Executing bazel test ${{ matrix.bazel-config }}.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            TEST_FAILED="false"
+
+            if [[ -n "$TEST_TARGETS" ]];
+            then
+              bazel test \
+                $TEST_TARGETS \
+                ${{ matrix.bazel-config }} \
+                --test_output=errors \
+                --profile=Bazel_test_all_profile || TEST_FAILED="true"
+            else
+              printf '\r%s\r' 'No test targets of type ${{ matrix.bazel-target-rule }} are impacted by the changes.' 1>&2
+              printf '\r%s\r' 'No tests will be executed.' 1>&2
+              exit 0
+            fi
+
+            # Create Bazel unit-test results
+            # Can't be a separate step, because the container's '/tmp' folder is not preserved between steps
+            mkdir bazel_unit_test_results/
+            UNIQUE_FILENAME_INDEX=0
+            TEST_REPORT_PATHS=( $(find bazel-testlogs/ -name 'test.xml') )
+            for TEST_REPORT_PATH in "${TEST_REPORT_PATHS[@]}"
+            do
+              cp "${TEST_REPORT_PATH}" "bazel_unit_test_results/test_result_${UNIQUE_FILENAME_INDEX}.xml"
+              UNIQUE_FILENAME_INDEX=$((UNIQUE_FILENAME_INDEX + 1))
+            done
+
+            if [[ "${TEST_FAILED}" == "true" ]];
+            then
+              echo "ERROR: 'bazel test' failed!"
+              exit 1
+            fi
+      - name: Create merged test-result XML file
+        if: always()
+        run: |
+          mkdir -p lte/gateway/test_results/
+          python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
+      - name: Publish bazel test profile
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
+        with:
+          name: Bazel test all profile ${{ matrix.bazel-config }}
+          path: Bazel_test_all_profile
+      - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: Bazel unit-test results ${{ matrix.bazel-config }}
+          path: lte/gateway/test_results/merged_unit_test_reports.xml
+      - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
+        with:
+          check_name: Bazel unit-test results ${{ matrix.bazel-config }}
+          junit_files: lte/gateway/test_results/**/*.xml
+          check_run_annotations: all tests
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Test Job `bazel test //...` ${{ matrix.bazel-config }}"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  if_bazel_build_and_test_success:
+    name: Run when bazel successful
+    needs: bazel_build_and_test
+    runs-on: ubuntu-20.04
+    if: success() # Only run after all matrix jobs have passed
+    # See https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions
+    # or https://github.com/magma/magma/pull/13562 for more details.
+    # Store success output flag for report_result_bazel_build_and_test job
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
+    steps:
+      - id: setoutput
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  report_result_bazel_build_and_test:
+    name: Bazel build and test status
+    runs-on: ubuntu-20.04
+    if: always()
+    # This job always needs to run. It will be green if the bazel_build_and_test
+    # job was successful in all matrix jobs or if the job was skipped.
+    needs: [path_filter, bazel_build_and_test, if_bazel_build_and_test_success, bazel_diff]
+    steps:
+      - run: |
+          bazel_build_and_test_success="${{ needs.if_bazel_build_and_test_success.outputs.success }}"
+          files_changed="${{ needs.path_filter.outputs.files_changed }}"
+          bazel_diff_ran="${{ needs.bazel_diff.outputs.bazel_diff_ran }}"
+          all_unit_test_targets="${{ needs.bazel_diff.outputs.all_unit_test_targets }}"
+
+          echo "The status of this job is determined by the statuses of the previous jobs in this workflow."
+          echo "For more details on this matrix workflow please look at the following wiki page or the PR #13562:"
+          echo "https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions"
+          echo "https://github.com/magma/magma/pull/13562"
+
+          echo "bazel_build_and_test_success: $bazel_build_and_test_success"
+          echo "files_changed: $files_changed"
+          echo "bazel_diff_ran: $bazel_diff_ran"
+          echo "all_unit_test_targets: $all_unit_test_targets"
+
+          if [[ \
+              "$bazel_build_and_test_success" == "true" || \
+              "$files_changed" != "true" || \
+              ("$bazel_diff_ran" == "true" && -z "$all_unit_test_targets") \
+              ]];
+          then
+            echo "Bazel build and test job passed or was skipped"
+            exit 0
+          else
+            echo "Bazel build and test job failed"
+            exit 1
+          fi
+
+  buildifier:
+    needs: path_filter
+    # Only run workflow if this is a push to the magma repository,
+    # if the workflow has been triggered manually or if it is a pull_request.
+    if: |
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
+      needs.path_filter.outputs.files_changed == 'true' ||
+      github.event_name == 'workflow_dispatch'
+    name: Bazel Starlark Format Job
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Run starlark format check
+        shell: bash
+        run: |
+          echo "To run this check locally use: ./bazel/scripts/run_buildifier.sh check"
+          echo "To fix any errors locally use: ./bazel/scripts/run_buildifier.sh format"
+          ./bazel/scripts/run_buildifier.sh check
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel starlark format check"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  python_import_check:
+    needs: [path_filter, bazel_diff]
+    if: |
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
+      (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.py_service_targets != '')
+    name: Bazel Python Import Check
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Setup Bazel Docker Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel docker image!"
+      - name: Run Python Import Check
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PLAIN_IMAGE }}
+          shell: bash
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            set -euo pipefail
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Determining bazel test targets.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            if [[ "${{ needs.bazel_diff.outputs.bazel_diff_ran }}" == 'true' ]];
+            then
+              TEST_TARGETS="${{ needs.bazel_diff.outputs.py_service_targets }}"
+              printf '\r%s\r' 'The service test targets of type py_binary are:' 1>&2
+              printf '\r%s\r' "$TEST_TARGETS" 1>&2
+            else
+              printf '\r%s\r' 'Checking all service targets of type "py_binary" for ModuleNotFoundError.' 1>&2
+              TEST_TARGETS="ALL_PYTHON_SERVICE_TARGETS"
+            fi
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Executing python import bazelification check.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+            if [[ -n "${TEST_TARGETS}" ]];
+            then
+              if [[ "${TEST_TARGETS}" == "ALL_PYTHON_SERVICE_TARGETS" ]];
+              then
+                bazel/scripts/test_python_service_imports.sh 1>&2;
+              else
+                # Converting string of whitespace separated targets into an array
+                TEST_TARGETS=( $TEST_TARGETS )
+                for target in "${TEST_TARGETS[@]}"
+                do
+                  bazel/scripts/test_python_service_imports.sh "$target" 1>&2;
+                done
+              fi
+            else
+              printf '\r%s\r' 'No service targets of type "py_binary" were impacted by the changes.' 1>&2
+              printf '\r%s\r' 'No tests will be executed.' 1>&2
+            fi
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Python Import Check"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  bazel_package:
+    needs: [path_filter, bazel_diff]
+    if: |
+      (github.event_name == 'push' && github.repository_owner == 'magma') ||
+      github.event_name == 'workflow_dispatch' ||
+      needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
+      (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.run_package_job == 'true')
+    name: Bazel Package Job
+    runs-on: ubuntu-20.04
+    outputs:
+      artifacts: ${{ steps.publish_agw_deb_pkg.outputs.artifacts }}
+    steps:
+      - name: Check Out Repo
+        # This is necessary for overlays into the Docker container below.
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Maximize build space
+        uses: ./.github/workflows/composite/maximize-build-space
+      - name: Setup Bazel Docker Image
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PROD_IMAGE }}
+          options: --pull always
+          # Run a simple echo command to pull down the image. This makes it a bit more clear how much time is spent on building Magma and not pulling down the image.
+          run: |
+            echo "Pulled the bazel docker image!"
+      - name: Build .deb Packages
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # pin@v3
+        with:
+          image: ${{ env.BAZEL_CACHE_PROD_IMAGE }}
+          shell: bash
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/workspaces/magma/ -v ${{ github.workspace }}/lte/gateway/configs:/etc/magma
+          run: |
+            cd /workspaces/magma
+            set -euo pipefail
+
+            printf '\r%s\r' '###############################' 1>&2
+            printf '\r%s\r' 'Building the release package.' 1>&2
+            printf '\r%s\r' '###############################' 1>&2
+
+            bazel run //lte/gateway/release:release_build \
+              --config=production \
+              --profile=Bazel_build_package_profile
+
+            mkdir packages
+            mv /tmp/packages/*.deb packages
+
+            echo "Moving the service executables, which are needed for the" 1>&2
+            echo "Sentry release, to a mounted folder 'sentry_services' in the repository..." 1>&2
+            mkdir sentry_services
+            mv ./bazel-bin/lte/gateway/c/connection_tracker/src/connectiond ./sentry_services/connectiond
+            mv ./bazel-bin/lte/gateway/c/li_agent/src/liagentd ./sentry_services/liagentd
+            # 'agw_of' is renamed to 'mme' to be consistent with the previous sentry.io publishing names
+            mv ./bazel-bin/lte/gateway/c/core/agw_of ./sentry_services/mme
+            mv ./bazel-bin/lte/gateway/c/sctpd/src/sctpd ./sentry_services/sctpd
+            mv ./bazel-bin/lte/gateway/c/session_manager/sessiond ./sentry_services/sessiond
+
+      - name: Upload services for sentry_release job
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: |
+          github.repository_owner == 'magma' &&
+          ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
+        with:
+          name: sentry_services
+          path: sentry_services
+
+      - name: Get magma version
+        run: |
+          version_pattern="magma_([0-9]+\.[0-9]+\.[0-9]+-[0-9]+-[a-z0-9]+)_amd64.deb"
+          for i in packages/*.deb; do
+              if [[ $i =~ $version_pattern ]]; then
+                  magma_version=${BASH_REMATCH[1]}
+              fi
+          done
+          if [[ -z "$magma_version" ]]; then
+              echo "No file found with a matching version pattern \"${version_pattern}\". Files in folder:"
+              ls -la packages/*.deb
+              exit 1
+          else
+              echo "Exporting magma version \"${magma_version}\""
+              echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
+          fi
+
+      - name: Setup JFROG CLI
+        uses: jfrog/setup-jfrog-cli@d0a59b1cdaeeb16e65b5039fc92b8507337f1559 # pin@v3
+
+      - name: Set dry run environment variable
+        if: |
+          github.event_name != 'push' || github.repository_owner != 'magma' ||
+          ( github.ref_name != 'master' && ! startsWith(github.ref_name, 'v1.') )
+        run: |
+          echo "IS_DRY=--dry-run" >> $GITHUB_ENV
+
+      - name: Publish debian packages
+        id: publish_agw_deb_pkg
+        env:
+          DEBIAN_META_INFO: deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64
+        run: |
+          RESPONSE=$(jf rt upload \
+                      --recursive=false \
+                      --detailed-summary \
+                      --url https://linuxfoundation.jfrog.io/artifactory/ \
+                      --user ${{ secrets.LF_JFROG_USERNAME }} \
+                      --password ${{ secrets.LF_JFROG_PASSWORD }} \
+                      ${{ env.IS_DRY }} \
+                      --target-props="${DEBIAN_META_INFO}" \
+                      "packages/(*).deb" magma-packages-test/pool/focal-ci/{1}.deb)
+
+          echo "Response:"
+          echo $RESPONSE | jq
+          echo "Output (for firebase):"
+          ARTIFACTS=$(echo $RESPONSE | jq '{"valid": (.status=="success"), "packages": [.files[] | .target]}')
+          echo $ARTIFACTS | jq
+          echo "artifacts=$(echo $ARTIFACTS)" >> $GITHUB_OUTPUT
+
+      - name: Trigger debian integ test workflows
+        uses: peter-evans/repository-dispatch@f2696244ec00ed5c659a5cc77f7138ad0302dffb # pin@v2.1.0
+        if: |
+          github.event_name == 'push' &&
+          github.repository_owner == 'magma' &&
+          ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: magma/magma
+          event-type: magma-debian-artifact
+          client-payload: '{ "magma_version": "${{ env.MAGMA_VERSION }}", "trigger_sha": "${{ github.sha }}", "commit_message": "$COMMIT_MESSAGE" }'
+        env:
+          COMMIT_MESSAGE: ${{ toJSON(github.event.head_commit.message) }}
+
+      - name: Publish bazel profile
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: |
+          always() &&
+          github.event.inputs.publish_bazel_profile == 'true'
+        with:
+          name: Bazel build package profile
+          path: Bazel_build_package_profile
+
+      - name: Build space left after run
+        shell: bash
+        run: |
+          echo "Available storage:"
+          df -h
+
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Package Job"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  # Create Sentry.io release with the services connectiond, liagentd, mme, sctpd and sessiond.
+  sentry_release:
+    needs: [bazel_package]
+    if: |
+      github.repository_owner == 'magma' &&
+      ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
+    name: Sentry release
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        with:
+          fetch-depth: 0
+      - run: mkdir sentry_services
+      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        with:
+          name: sentry_services
+          path: sentry_services
+      - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
+        with:
+          name: sentry_services
+      - run: ls -l ./sentry_services
+      - run: curl --silent --location https://sentry.io/get-cli/ | bash
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: connectiond
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./sentry_services"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: liagentd
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./sentry_services"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: mme
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./sentry_services"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: sctpd
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./sentry_services"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - uses: ./.github/workflows/composite/sentry-create-and-upload-artifacts
+        with:
+          EXECUTABLE_NAME: sessiond
+          SENTRY_ORG: lf-9c
+          PATH_TO_EXEC: "./sentry_services"
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+      - name: Create a release in Sentry.io with the commit hash
+        env:
+          SENTRY_AUTH_TOKEN: "${{ secrets.SENTRY_AUTH_TOKEN }}"
+          # The 'SENTRY_ORG' environment variable is implicitly used by the sentry-cli.
+          SENTRY_ORG: "lf-9c"
+        run: |
+          COMMIT_HASH_WITH_VERSION="magma@1.9.0.$(git rev-list --count HEAD)-${GITHUB_SHA:0:8}"
+          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native -p magma-staging-native ${COMMIT_HASH_WITH_VERSION}
+          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
+          sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Sentry Release Job"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  python_file_check:
+    name: Check if there are not bazelified python files
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Execute check
+        shell: bash
+        run: |
+          ./bazel/scripts/check_py_bazel.sh
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel Python Check Job `./bazel/scripts/check_py_bazel.sh`"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit
+
+  c_cpp_file_check:
+    name: Check if there are non-bazelified c or c++ files
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - name: Execute check
+        shell: bash
+        run: |
+          ./bazel/scripts/check_c_cpp_bazel.sh
+      - name: Notify failure to slack
+        if: failure() && github.event_name == 'push' && github.repository_owner == 'magma'
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Bazel C/C++ Check Job `./bazel/scripts/check_c_cpp_bazel.sh`"
+          SLACK_USERNAME: ${{ github.workflow }}
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+          MSG_MINIMAL: actions url,commit

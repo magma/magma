@@ -1,0 +1,19 @@
+- name: Delete efs mount targets
+  command: aws efs delete-mount-target --mount-target-id "{{ item }}"
+  with_items: "{{ efs_mount_targets }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Sleep for a while before deleting filesystem
+  pause:
+    minutes: 2
+  when: efs_mount_targets
+  tags: cleanup
+
+- name: Delete efs volumes
+  command: aws efs delete-file-system --file-system-id "{{ item }}"
+  with_items: "{{ efs_fs_targets }}"
+  ignore_errors: true
+  when: efs_fs_targets
+  tags: cleanup
+

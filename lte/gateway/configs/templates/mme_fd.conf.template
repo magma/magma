@@ -1,0 +1,181 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+# -------- Local ---------
+
+# Uncomment if the framework cannot resolv it.
+Identity = "{{ identity }}";
+Realm = "{{ realm }}";
+
+# TLS configuration (see previous section)
+TLS_Cred = "{{ cert_dir }}/freeDiameter/mme.cert.pem",
+           "{{ cert_dir }}/freeDiameter/mme.key.pem";
+TLS_CA   = "{{ cert_dir }}/freeDiameter/mme.cacert.pem";
+
+# Disable use of TCP protocol (only listen and connect in SCTP)
+# Default : TCP enabled
+No_SCTP;
+
+# This option is ignored if freeDiameter is compiled with DISABLE_SCTP option.
+# Prefer TCP instead of SCTP for establishing new connections.
+# This setting may be overwritten per peer in peer configuration blocs.
+# Default : SCTP is attempted first.
+Prefer_TCP;
+
+
+No_IPv6;
+
+# Overwrite the number of SCTP streams. This value should be kept low,
+# especially if you are using TLS over SCTP, because it consumes a lot of
+# resources in that case. See tickets 19 and 27 for some additional details on
+# this.
+# Limit the number of SCTP streams
+SCTP_streams = 3;
+
+
+# By default, freeDiameter acts as a Diameter Relay Agent by forwarding all
+# messages it cannot handle locally. This parameter disables this behavior.
+NoRelay;
+
+# Use RFC3588 method for TLS protection, where TLS is negociated after CER/CEA exchange is completed
+# on the unsecure connection. The alternative is RFC6733 mechanism, where TLS protects also the
+# CER/CEA exchange on a dedicated secure port.
+# This parameter only affects outgoing connections.
+# The setting can be also defined per-peer (see Peers configuration section).
+# Default: use RFC6733 method with separate port for TLS.
+
+#TLS_old_method;
+
+AppServThreads = 4;
+
+# Specify the addresses on which to bind the listening server. This must be
+# specified if the framework is unable to auto-detect these addresses, or if the
+# auto-detected values are incorrect. Note that the list of addresses is sent
+# in CER or CEA message, so one should pay attention to this parameter if some
+# adresses should be kept hidden.
+#ListenOn = ;
+
+Port = 3870;
+SecPort = 5870;
+
+# -------- Extensions ---------
+
+# Uncomment (and create rtd.conf) to specify routing table for this peer.
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_default.fdx" : "rtd.conf";
+
+#LoadExtension = "/usr/local/lib/freeDiameter/_sample.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_acct.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_diameap.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_radgw.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_redirect.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/app_sip.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_interactive.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_monitor.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_msg_dumps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_msg_timings.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dbg_rt.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_3gpp2_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_CreditControl.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_CxDx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Gx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_NAS.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Ro.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Rx.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_S6mS6n.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_SGd.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_SLh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Sd.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Sh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_T4.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_T6aT6bT7.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Tsp.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca_3gpp.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_dcca_starent.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_draftload_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_eap.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_etsi283034_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_legacy_xml.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_mip6a.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_mip6i.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_nas_mipv6.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_nasreq.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4004_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4006bis_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4072_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc4590_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5447_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5580_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5777_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc5778_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc6734_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc6942_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7155_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7683_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_rfc7944_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_sip.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29061_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29128_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29154_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29173_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29212_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29214_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29215_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29217_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29229_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29272_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29273_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29329_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29336_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29337_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29338_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29343_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29344_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29345_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29368_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts29468_avps.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_ts32299_avps.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_busypeers.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_default.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_ereg.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_ignore_dh.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_load_balance.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_randomize.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/rt_redirect.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_acct.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_app.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_hss.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_netemul.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_rt_any.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/test_sip.fdx";
+#LoadExtension = "/usr/local/lib/freeDiameter/dict_Rf.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6as6d.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6t.fdx";
+LoadExtension = "/usr/local/lib/freeDiameter/dict_S6c.fdx";
+
+# -------- Peers ---------
+
+# The framework will actively attempt to establish and maintain a connection
+# with the peers listed here.
+# For only accepting incoming connections, see the acl_wl.fx extension.
+
+# ConnectPeer
+# Declare a remote peer to which this peer must maintain a connection.
+# In addition, this allows specifying non-default parameters for this peer only
+# (for example disable SCTP with this peer, or use RFC3588-flavour TLS).
+# Note that by default, if a peer is not listed as a ConnectPeer entry, an
+# incoming connection from this peer will be rejected. If you want to accept
+# incoming connections from other peers, see the acl_wl.fdx? extension which
+# allows exactly this.
+
+ConnectPeer= "{{ hss_hostname }}.{{ realm }}" { ConnectTo = "{{ hss_ip }}"; No_SCTP ; No_IPv6; Prefer_TCP; No_TLS; port = 3868;  realm = "{{ realm }}";};

@@ -1,0 +1,76 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("//bazel:test_constants.bzl", "TAG_SERVICE")
+
+MAGMA_ROOT = "../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "state",
+    srcs = ["main.py"],
+    imports = [ORC8R_ROOT],
+    # legacy_create_init = False is required to fix issues in module import, see https://github.com/rules-proto-grpc/rules_proto_grpc/issues/145
+    legacy_create_init = False,
+    main = "main.py",
+    python_version = "PY3",
+    tags = TAG_SERVICE,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":garbage_collector",
+        ":state_replicator",
+        "//lte/protos:all_python_proto",  # Dependency loaded via state.yml
+        "//lte/protos/oai:all_python_proto",  # Dependency loaded via state.yml
+        "//orc8r/gateway/python/magma/common:grpc_client_manager",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)
+
+py_library(
+    name = "garbage_collector",
+    srcs = ["garbage_collector.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":keys",
+        ":redis_dicts",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/gateway/python/magma/common:sentry",
+        "//orc8r/gateway/python/magma/common:service",
+        "//orc8r/gateway/python/magma/common/redis:client",
+        "//orc8r/protos:state_python_grpc",
+    ],
+)
+
+py_library(
+    name = "keys",
+    srcs = ["keys.py"],
+    visibility = ["//visibility:private"],
+    deps = ["//orc8r/gateway/python/magma/common:misc_utils"],
+)
+
+py_library(
+    name = "redis_dicts",
+    srcs = ["redis_dicts.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_library(
+    name = "state_replicator",
+    srcs = ["state_replicator.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:sdwatchdog",
+        "//orc8r/gateway/python/magma/common:service",
+    ],
+)

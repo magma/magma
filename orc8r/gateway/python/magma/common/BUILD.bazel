@@ -1,0 +1,137 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "sentry",
+    srcs = ["sentry.py"],
+    deps = [
+        requirement("sentry_sdk"),
+        requirement("snowflake"),
+        "//feg/protos:mconfigs_python_proto",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+    ],
+)
+
+py_library(
+    name = "rpc_utils",
+    srcs = ["rpc_utils.py"],
+    deps = [
+        ":service_registry",
+        requirement("grpcio"),
+    ],
+)
+
+py_library(
+    name = "misc_utils",
+    srcs = ["misc_utils.py"],
+    deps = [
+        requirement("netifaces"),
+        requirement("snowflake"),
+    ],
+)
+
+py_library(
+    name = "cert_utils",
+    srcs = ["cert_utils.py"],
+    deps = [
+        ":serialization_utils",
+        requirement("cryptography"),
+    ],
+)
+
+py_library(
+    name = "service",
+    srcs = [
+        "log_count_handler.py",
+        "log_counter.py",
+        "metrics.py",
+        "service.py",
+    ],
+    deps = [
+        ":job",
+        ":metrics_export",
+        ":serialization_utils",
+        ":service_registry",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/protos:metrics_python_proto",
+        "//orc8r/protos:service303_python_grpc",
+        requirement("setuptools"),
+    ],
+)
+
+py_library(
+    name = "metrics_export",
+    srcs = ["metrics_export.py"],
+    deps = [
+        "//orc8r/protos:metricsd_python_proto",
+        requirement("prometheus_client"),
+    ],
+)
+
+py_library(
+    name = "job",
+    srcs = ["job.py"],
+)
+
+py_library(
+    name = "service_registry",
+    srcs = ["service_registry.py"],
+    deps = ["//orc8r/gateway/python/magma/configuration:service_configs"],
+)
+
+py_library(
+    name = "serialization_utils",
+    srcs = ["serialization_utils.py"],
+)
+
+py_library(
+    name = "streamer",
+    srcs = ["streamer.py"],
+    deps = [
+        ":rpc_utils",
+        "//orc8r/protos:streamer_python_grpc",
+    ],
+)
+
+py_library(
+    name = "stateless_agw",
+    srcs = ["stateless_agw.py"],
+    deps = ["//orc8r/protos:magmad_python_proto"],
+)
+
+py_library(
+    name = "grpc_client_manager",
+    srcs = ["grpc_client_manager.py"],
+    deps = [
+        ":service_registry",
+        requirement("grpcio"),
+        requirement("psutil"),
+    ],
+)
+
+py_library(
+    name = "sdwatchdog",
+    srcs = ["sdwatchdog.py"],
+    deps = [
+        requirement("systemd-python"),
+        ":job",
+    ],
+)
+
+py_library(
+    name = "cert_validity",
+    srcs = ["cert_validity.py"],
+)

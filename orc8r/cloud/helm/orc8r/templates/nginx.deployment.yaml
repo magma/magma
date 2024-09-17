@@ -1,0 +1,135 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.nginx.create }}
+{{- $serviceName := print .Release.Name "-nginx" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: nginx-proxy
+{{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
+{{ include "nginx-image-version-label" . | indent 4 }}
+  annotations:
+{{ include "release-name-annotation" . | indent 4 }}
+spec:
+  replicas: {{ .Values.nginx.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: nginx-proxy
+{{ include "nginx-image-version-label" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: nginx-proxy
+{{ include "selector-labels" . | indent 8 }}
+{{ include "nginx-image-version-label" . | indent 8 }}
+      annotations:
+{{ include "release-name-annotation" . | indent 8 }}
+    spec:
+      {{- with .Values.nginx.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      volumes:
+        {{- if .Values.certs.enabled }}
+        {{- range tuple "controller" "certifier" }}
+        - name: {{ . }}
+          secret:
+            secretName: {{ $.Release.Name }}-{{ . }}-tls
+        {{- end }}
+        {{- else }}
+        - name: certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        - name: envdir
+          secret:
+            secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
+        {{- end }}
+      containers:
+        - name: {{ $serviceName }}
+          image: {{ required "nginx.image.repository must be provided" .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+          volumeMounts:
+            {{- if .Values.certs.enabled }}
+            {{- range tuple "controller" "certifier" }}
+            - name: {{ . }}
+              mountPath: /var/opt/magma/certs/{{ . }}
+              readOnly: true
+            {{- end }}
+            {{- else }}
+            {{- range tuple "certs" "envdir" }}
+            - name: {{ . }}
+              mountPath: /var/opt/magma/{{ . }}
+              readOnly: true
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: clientcert
+              containerPort: {{ .Values.nginx.service.port.clientcert.targetPort }}
+            - name: open
+              containerPort: {{ .Values.nginx.service.port.open.targetPort }}
+            - name: api
+              containerPort: {{ .Values.nginx.service.port.api.targetPort }}
+            - name: health
+              containerPort: {{ .Values.nginx.service.port.health.targetPort }}
+          env:
+            - name: PROXY_BACKENDS
+              value: {{ print .Release.Namespace ".svc.cluster.local" | quote }}
+            - name: CONTROLLER_HOSTNAME
+              value: {{ required "nginx.spec.hostname must be provided" .Values.nginx.spec.hostname | quote }}
+            - name: RESOLVER
+              value: {{ .Values.nginx.spec.resolver | quote }}
+            - name: SERVICE_REGISTRY_MODE
+              value: {{ .Values.controller.spec.service_registry.mode }}
+            {{- if .Values.certs.enabled }}
+            - name: SSL_CERTIFICATE
+              value: "/var/opt/magma/certs/controller/tls.crt"
+            - name: SSL_CERTIFICATE_KEY
+              value: "/var/opt/magma/certs/controller/tls.key"
+            - name: SSL_CLIENT_CERTIFICATE
+              value: "/var/opt/magma/certs/certifier/tls.crt"
+            {{- else }}
+            - name: SSL_CERTIFICATE
+              value: "/var/opt/magma/certs/controller.crt"
+            - name: SSL_CERTIFICATE_KEY
+              value: "/var/opt/magma/certs/controller.key"
+            - name: SSL_CLIENT_CERTIFICATE
+              value: "/var/opt/magma/certs/certifier.pem"
+            {{- end }}
+          livenessProbe:
+            tcpSocket:
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+{{ toYaml .Values.nginx.resources | indent 12 }}
+{{- end }}

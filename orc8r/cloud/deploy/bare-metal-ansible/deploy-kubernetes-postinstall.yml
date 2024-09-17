@@ -1,0 +1,5 @@
+- hosts: k8s-cluster
+  become: yes
+  become_user: root
+  roles:
+    - k8s_postinstall

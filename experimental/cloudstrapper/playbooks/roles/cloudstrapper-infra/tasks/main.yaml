@@ -1,0 +1,38 @@
+---
+#Find image info
+#Locate image id
+#Use as parameter to cloudformation template
+
+- name: find image info
+  ec2_ami_info:
+    filters:
+      "tag:Name": "{{ devOpsAmi }}"
+  register: valAmi
+
+- name: locate image id
+  set_fact:
+    factAmi: "{{ valAmi.images[0].image_id }}"
+
+- name: query all security groups
+  ec2_group_info:
+    filters:
+      group-name: "{{ secgroupDefault }}"
+  register: reg_secgroup
+
+- name: assign security group id to variable
+  set_fact:
+    factSecgroup: "{{ reg_secgroup.security_groups[0].group_id }}"
+
+- name: instantiate ec2 instance using cloudformation
+  cloudformation:
+    stack_name: "{{ stackCloudstrapper }}"
+    state: present
+    region: "{{ awsAgwRegion }}"
+    disable_rollback: true
+    template: "roles/cfn/cfnMagmaBootstrap.json"
+    template_parameters:
+      paramKeyName: "{{ keyBoot }}"
+      paramSecGroup: "{{ factSecgroup }}"
+      paramTagId: "MantlePrimeBoot"
+      paramTagName: "{{ primaryCloudstrapper }}"
+      paramImageId: "{{ factAmi }}"

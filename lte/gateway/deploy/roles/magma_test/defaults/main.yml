@@ -1,0 +1,6 @@
+---
+  s1ap_tester_root: /home/{{ ansible_user }}/s1ap-tester
+  s1ap_tester_src: /home/{{ ansible_user }}/S1APTester
+  gateway_ip: 192.168.60.142
+  gateway_port: 8443
+  test_scripts: '{{ magma_root }}/lte/gateway/deploy/roles/magma_test/files'

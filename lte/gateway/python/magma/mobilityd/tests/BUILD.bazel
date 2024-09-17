@@ -1,0 +1,166 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
+load("//bazel:test_constants.bzl", "TAG_SUDO_TEST")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+LTE_ROOT = "{}lte/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "ip_allocator_dhcp_mac_addr_test",
+    size = "small",
+    srcs = ["ip_allocator_dhcp_mac_addr_test.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_ip_allocator_dhcp",
+    size = "small",
+    srcs = ["test_ip_allocator_dhcp.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+        requirement("freezegun"),
+    ],
+)
+
+pytest_test(
+    name = "test_ip_allocator_dhcp_e2e",
+    size = "small",
+    srcs = ["test_ip_allocator_dhcp_e2e.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_ip_allocator_dhcp_with_vlan",
+    size = "small",
+    srcs = ["test_ip_allocator_dhcp_with_vlan.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    tags = TAG_SUDO_TEST,
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        "//lte/gateway/python/magma/pipelined:bridge_util",
+        requirement("fakeredis"),
+        requirement("freezegun"),
+    ],
+)
+
+pytest_test(
+    name = "test_ipv6_allocator",
+    size = "small",
+    srcs = ["test_ipv6_allocator.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_multi_apn_ip_alloc",
+    size = "small",
+    srcs = ["test_multi_apn_ip_alloc.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "test_static_ip_alloc",
+    size = "small",
+    srcs = ["test_static_ip_alloc.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        ":test_multi_apn_ip_alloc",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+    ],
+)
+
+pytest_test(
+    name = "test_static_ipv6_alloc",
+    size = "small",
+    srcs = ["test_static_ipv6_alloc.py"],
+    imports = [LTE_ROOT],
+    deps = [
+        ":test_multi_apn_ip_alloc",
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+    ],
+)
+
+pytest_test(
+    name = "test_uplink_gw",
+    size = "small",
+    srcs = ["test_uplink_gw.py"],
+    imports = [LTE_ROOT],
+    deps = ["//lte/gateway/python/magma/mobilityd:mobilityd_lib"],
+)
+
+pytest_test(
+    name = "ip_allocator_tests",
+    size = "small",
+    srcs = ["ip_allocator_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+    ],
+)
+
+pytest_test(
+    name = "rpc_servicer_tests",
+    size = "small",
+    srcs = ["rpc_servicer_tests.py"],
+    imports = [
+        LTE_ROOT,
+        ORC8R_ROOT,
+    ],
+    deps = [
+        "//lte/gateway/python/magma/mobilityd:mobilityd_lib",
+        requirement("fakeredis"),
+        requirement("grpcio"),
+    ],
+)

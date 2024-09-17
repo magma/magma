@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Delete OVS bridge on boot
+sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvswitch-switch
+
+# Create /var/core directory
+mkdir -p /var/core
+
+value=`cat /usr/local/share/magma/commit_hash`
+if grep -q "COMMIT_HASH" /etc/environment
+then
+    sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment
+else
+    echo "$value" | sudo tee -a /etc/environment
+fi
+
+# Set magmad service to start on boot
+systemctl enable -f magma@magmad.service
+
+# Installation of the redis-server Debian package has a post-install
+# script that starts a redis-server process. We kill and disable this
+# process, allowing us to manage the process using magmad and our own
+# systemd files.
+systemctl stop redis-server
+systemctl disable redis-server
+
+# Dnsmasq also starts up post-install.
+systemctl stop dnsmasq
+systemctl disable dnsmasq
+
+# Lighttpd also starts up post-install.
+systemctl stop lighttpd
+systemctl disable lighttpd
+
+# Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
+cp /etc/logrotate.d/rsyslog /etc/logrotate.d/rsyslog.orig
+cp /etc/logrotate.d/rsyslog.magma /etc/logrotate.d/rsyslog
+systemctl restart rsyslog
+mkdir -p /var/opt/magma/fluent-bit
+
+# Restart all services on package install
+if [ -f /var/run/sctpd.version ]; then
+    /usr/bin/env python3 -c 'from distutils.version import LooseVersion; import sys; ver = lambda n: LooseVersion(open(n).read()); sys.exit(1) if ver("/var/run/sctpd.version") < ver("/usr/local/share/magma/sctpd_min_version") else sys.exit(0)' || systemctl restart sctpd
+else
+    killall -9 sctpd || true
+fi
+systemctl restart magma@* || true

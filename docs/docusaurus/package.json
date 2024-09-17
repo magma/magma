@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "examples": "docusaurus-examples",
+    "start": "docusaurus-start",
+    "build": "docusaurus-build",
+    "publish-gh-pages": "docusaurus-publish",
+    "write-translations": "docusaurus-write-translations",
+    "version": "docusaurus-version",
+    "rename-version": "docusaurus-rename-version"
+  },
+  "devDependencies": {
+    "docusaurus": "^1.7.2"
+  },
+  "dependencies": {
+    "browserslist": "^4.16.5",
+    "glob-parent": "^6.0.1",
+    "highlight.js": "^10.4.1",
+    "immer": "^9.0.6",
+    "remark-mermaid": "^0.2.0",
+    "set-value": "^4.0.1",
+    "trim-newlines": "^3.0.1"
+  }
+}

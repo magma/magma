@@ -1,0 +1,82 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("//bazel:python_test.bzl", "pytest_test")
+
+MAGMA_ROOT = "../../../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+pytest_test(
+    name = "bootstrap_manager_tests",
+    size = "small",
+    srcs = ["bootstrap_manager_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "collector_tests",
+    size = "small",
+    srcs = ["collector_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = [
+        requirement("prometheus_client"),
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
+)
+
+pytest_test(
+    name = "config_manager_tests",
+    size = "small",
+    srcs = ["config_manager_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = [
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
+)
+
+pytest_test(
+    name = "proxy_client_tests",
+    size = "small",
+    srcs = ["proxy_client_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "service_poller_tests",
+    size = "small",
+    srcs = ["service_poller_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)
+
+pytest_test(
+    name = "state_reporter_test",
+    size = "small",
+    srcs = ["state_reporter_test.py"],
+    imports = [ORC8R_ROOT],
+    deps = [
+        "//orc8r/gateway/python/magma/common:grpc_client_manager",
+        "//orc8r/gateway/python/magma/magmad:magmad_lib",
+    ],
+)
+
+pytest_test(
+    name = "sync_rpc_client_tests",
+    size = "medium",
+    srcs = ["sync_rpc_client_tests.py"],
+    imports = [ORC8R_ROOT],
+    deps = ["//orc8r/gateway/python/magma/magmad:magmad_lib"],
+)

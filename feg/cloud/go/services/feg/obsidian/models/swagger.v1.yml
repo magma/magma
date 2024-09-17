@@ -1,0 +1,1639 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/feg/cloud/go/services/feg/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
+    - 'lte/cloud/go/services/lte/obsidian/models/swagger.v1.yml'
+    - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: feg-swagger.yml
+  output-dir: feg/cloud/go/services/feg/obsidian
+  types:
+    - go-struct-name: DiameterClientConfigs
+      filename: diameter_client_configs_swaggergen.go
+    - go-struct-name: DiameterServerConfigs
+      filename: diameter_server_configs_swaggergen.go
+    - go-struct-name: AaaServer
+      filename: aaa_server_swaggergen.go
+    - go-struct-name: EapAkaTimeouts
+      filename: eap_aka_timeouts_swaggergen.go
+    - go-struct-name: EapAka
+      filename: eap_aka_swaggergen.go
+    - go-struct-name: EapSimTimeouts
+      filename: eap_sim_timeouts_swaggergen.go
+    - go-struct-name: EapSim
+      filename: eap_sim_swaggergen.go
+    - go-struct-name: NetworkFederationConfigs
+      filename: network_federation_configs_swaggergen.go
+    - go-struct-name: SubscriptionProfile
+      filename: subscription_profile_swaggergen.go
+    - go-struct-name: FegNetwork
+      filename: feg_network_swaggergen.go
+    - go-struct-name: FegLteNetwork
+      filename: feg_lte_network_swaggergen.go
+    - go-struct-name: FederationGateway
+      filename: federation_gateway_swaggergen.go
+    - go-struct-name: MutableFederationGateway
+      filename: mutable_federation_gateway_swaggergen.go
+    - go-struct-name: FederatedNetworkConfigs
+      filename: federated_network_configs_swaggergen.go
+    - go-struct-name: FederationNetworkClusterStatus
+      filename: federation_network_cluster_status_swaggergen.go
+    - go-struct-name: FederationGatewayHealthStatus
+      filename: federation_gateway_health_status_swaggergen.go
+
+info:
+  title: Federation Network Management
+  description: Federation REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+tags:
+  - name: Federated LTE Networks
+    description: Endpoints related to Federated LTE networks
+  - name: Federation Networks
+    description: Endpoints related to Federated networks
+  - name: Federation Gateways
+    description: Endpoints related to Federated gateway management
+
+paths:
+  /feg:
+    get:
+      summary: List all federation network IDs
+      tags:
+      - Federation Networks
+      responses:
+        '200':
+          description: List of federation network IDs
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+            - feg_network1
+            - feg_network2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new federation network
+      tags:
+      - Federation Networks
+      parameters:
+      - name: feg_network
+        in: body
+        description: Configuration of the network to create
+        required: true
+        schema:
+          $ref: '#/definitions/feg_network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}:
+    get:
+      summary: Describe a federation network
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Full description of a federated LTE network
+          schema:
+            $ref: '#/definitions/feg_network'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire federation network
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: feg_network
+        in: body
+        description: Full desired configuration of the network
+        required: true
+        schema:
+          $ref: '#/definitions/feg_network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a federation network
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/federation:
+    get:
+      summary: Retrieve Network Federation Configs
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Retrieved Network Federation Configs
+          schema:
+            $ref: '#/definitions/network_federation_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Create or Modify Network Federation Configs
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: config
+        description: Updated config
+        required: true
+        schema:
+          $ref: '#/definitions/network_federation_configs'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete Network Federation Configs
+      tags:
+      - Federation Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+         - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/cluster_status:
+    get:
+      summary: Retrieve HA cluster status of a Federation Network
+      tags:
+        - Federation Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Cluster status of Federation Network
+          schema:
+            $ref: '#/definitions/federation_network_cluster_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/gateways:
+    get:
+      summary: List all gateways for a federation network
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all federated gateways inside the network by gatewayID
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/federation_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a new federation gateway
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: gateway
+        in: body
+        description: Full desired configuration of the gateway
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_federation_gateway'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/gateways/{gateway_id}:
+    get:
+      summary: Get a specific federation gateway
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The requested federation gateway
+          schema:
+            $ref: '#/definitions/federation_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire federation gateway record
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: gateway
+        in: body
+        description: Full desired configuration of the gateway
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_federation_gateway'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a federation gateway
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/gateways/{gateway_id}/federation:
+    get:
+      summary: Retrieve Gateway Federation Configs
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Retrieved Gateway FeG Configs
+          schema:
+            $ref: '#/definitions/gateway_federation_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create Gateway Federation Configs
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - in: body
+        name: config
+        description: New config
+        required: true
+        schema:
+          $ref: '#/definitions/gateway_federation_configs'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify Gateway Federation Configs
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - in: body
+        name: config
+        description: Updated config
+        required: true
+        schema:
+          $ref: '#/definitions/gateway_federation_configs'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete Gateway Federation Configs
+      tags:
+      - Federation Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg/{network_id}/gateways/{gateway_id}/health_status:
+    get:
+      summary: Retrieve Health Status of a Federation Gateway
+      tags:
+        - Federation Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Health Status of Federation Gateway
+          schema:
+            $ref: '#/definitions/federation_gateway_health_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte:
+    get:
+      summary: List all federated LTE network IDs
+      tags:
+      - Federated LTE Networks
+      responses:
+        '200':
+          description: List of LTE network IDs
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+            - lte_network1
+            - lte_network2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new federated LTE network
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - name: lte_network
+        in: body
+        description: Configuration of the network to create
+        required: true
+        schema:
+          $ref: '#/definitions/feg_lte_network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}:
+    get:
+      summary: Describe a federated LTE network
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Full description of a federated LTE network
+          schema:
+            $ref: '#/definitions/feg_lte_network'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire federated LTE network
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - name: lte_network
+        in: body
+        description: Full desired configuration of the network
+        required: true
+        schema:
+          $ref: '#/definitions/feg_lte_network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a federated LTE network
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/federation:
+    get:
+      summary: Retrieve Network FeG Configs
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Retrieved Network FeG Configs
+          schema:
+            $ref: '#/definitions/federated_network_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Create or Modify Network FeG Configs
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: config
+        description: Updated config
+        required: true
+        schema:
+          $ref: '#/definitions/federated_network_configs'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete Network FeG Configs
+      tags:
+      - Federated LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /feg_lte/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - Federated LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  feg_network:
+    type: object
+    description: Federation Network spec
+    required:
+    - id
+    - name
+    - description
+    - federation
+    - dns
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      federation:
+        $ref: '#/definitions/network_federation_configs'
+      dns:
+        $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
+      features:
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        x-omitempty: true
+        $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
+
+  feg_lte_network:
+    type: object
+    description: Federated LTE Network spec
+    required:
+    - id
+    - name
+    - description
+    - cellular
+    - federation
+    - dns
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      cellular:
+        $ref: './lte-swagger.yml#/definitions/network_cellular_configs'
+      federation:
+        $ref: '#/definitions/federated_network_configs'
+      dns:
+        $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
+      features:
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
+
+  s6a:
+    type: object
+    description: s6a configuration
+    properties:
+      server:
+        $ref: '#/definitions/diameter_client_configs'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
+    x-go-custom-tag: 'magma_alt_name:"S6A"'
+
+  hss:
+    type: object
+    description: HSS configuration
+    properties:
+      server:
+        $ref: '#/definitions/diameter_server_configs'
+      lte_auth_op:
+        type: string
+        format: byte
+        example: EREREREREREREREREREREQ==
+      lte_auth_amf:
+        type: string
+        format: byte
+        example: gAA=
+      default_sub_profile:
+        $ref: '#/definitions/subscription_profile'
+      sub_profiles:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/subscription_profile'
+      stream_subscribers:
+        type: boolean
+        example: false
+    x-go-custom-tag: 'magma_alt_name:"HSS"'
+
+  s8:
+    type: object
+    description: s8 configuration
+    properties:
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "0.0.0.0:0"
+        x-nullable: false
+      pgw_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "0.0.0.0:0"
+        x-nullable: false
+      apn_operator_suffix:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: ".operator.com"
+        x-nullable: false
+
+  gx:
+    type: object
+    description: gx configuration
+    properties:
+      disableGx:
+        type: boolean
+        example: false
+        default: false
+      server:
+        $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
+      overwrite_apn:
+        type: string
+        example: ""
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
+
+  gy:
+    type: object
+    properties:
+      disableGy:
+        type: boolean
+        example: false
+        default: false
+      server:
+        $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
+      init_method:
+        type: integer
+        format: uint32
+        enum:
+        # 1 - Gx Init Method PER_SESSION
+        - 1
+        # 2 - Gx Init Method PER_KEY
+        - 2
+        default: 2
+      overwrite_apn:
+        type: string
+        example: ""
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
+
+  swx:
+    type: object
+    description: swx configuration
+    properties:
+      server:
+        $ref: '#/definitions/diameter_client_configs'
+      servers:
+        type: array
+        items:
+          $ref: '#/definitions/diameter_client_configs'
+      verify_authorization:
+        type: boolean
+        example: false
+      register_on_auth:
+        type: boolean
+        example: false
+      derive_unregister_realm:
+        type: boolean
+        example: false
+      cache_TTL_seconds:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10800
+        example: 10800
+      hlr_plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '00101'
+    x-go-custom-tag: 'magma_alt_name:"SWX"'
+
+  eap_aka:
+    type: object
+    description: eap_aka configuration
+    properties:
+      timeout:
+        $ref: '#/definitions/eap_aka_timeouts'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
+
+  eap_sim:
+    type: object
+    description: eap_sim configuration
+    properties:
+      timeout:
+        $ref: '#/definitions/eap_sim_timeouts'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
+
+  radius_config:
+    type: object
+    description: built-in radius server configuration
+    properties:
+      secret:
+        type: string
+        format: byte
+        default: MTIzNDU2
+        example: MTIzNDU2
+        x-nullable: false
+      network:
+        type: string
+        default: 'udp'
+        example: 'udp'
+        x-nullable: false
+      auth_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1812'
+        example: '127.0.0.1:1812'
+        x-nullable: false
+      acct_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1813'
+        example: '127.0.0.1:1813'
+        x-nullable: false
+      DAE_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':3799'
+        example: '127.0.0.1:3799'
+        x-nullable: false
+
+  aaa_server:
+    type: object
+    description: aaa server configuration
+    properties:
+      idle_session_timeout_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        example: 21600000
+        default: 21600000
+        x-go-custom-tag: 'magma_alt_name:"IdleSessionTimeoutMs"'
+      accounting_enabled:
+        type: boolean
+        x-nullable: false
+        example: true
+        default: true
+      create_session_on_auth:
+        type: boolean
+        x-nullable: false
+        example: true
+        default: true
+      event_logging_enabled:
+        type: boolean
+        x-nullable: false
+        default: false
+      acct_reporting_enabled:
+        type: boolean
+        x-nullable: false
+        default: false
+      radius_config:
+        $ref: '#/definitions/radius_config'
+
+  served_network_ids:
+    type: array
+    description: served network IDs
+    items:
+      type: string
+
+  served_nh_ids:
+    type: array
+    description: served neutral host IDs
+    items:
+      type: string
+
+  nh_routes:
+    type: object
+    description: neutral host PLMN ID to serving FeG network routes
+    additionalProperties:
+      type: string
+
+  health:
+    type: object
+    description: health service configuration
+    properties:
+      health_services:
+        description: FeG services for the health service to monitor
+        type: array
+        items:
+          type: string
+          enum:
+          - S6A_PROXY
+          - SESSION_PROXY
+          - SWX_PROXY
+        example:
+        - SESSION_PROXY
+        - SWX_PROXY
+        x-go-custom-tag: 'magma_alt_name:"RequiredServices"'
+      update_interval_secs:
+        type: integer
+        format: uint32
+        example: 10
+      cloud_disable_period_secs:
+        type: integer
+        format: uint32
+        example: 10
+        x-go-custom-tag: 'magma_alt_name:"CloudDisconnectPeriodSecs"'
+      local_disable_period_secs:
+        type: integer
+        format: uint32
+        example: 1
+        x-go-custom-tag: 'magma_alt_name:"LocalDisconnectPeriodSecs"'
+      update_failure_threshold:
+        type: integer
+        format: uint32
+        example: 3
+      request_failure_threshold:
+        type: number
+        format: float
+        example: 0.50
+      minimum_request_threshold:
+        type: integer
+        format: uint32
+        example: 1
+      cpu_utilization_threshold:
+        type: number
+        format: float
+        example: 0.90
+        x-go-custom-tag: 'magma_alt_name:"CpuUtilizationThreshold"'
+      memory_available_threshold:
+        type: number
+        format: float
+        example: 0.75
+    x-go-custom-tag: 'magma_alt_name:"HEALTH"'
+
+  csfb:
+    type: object
+    description: csfb configuration
+    properties:
+      client:
+        $ref: '#/definitions/sctp_client_configs'
+
+  network_federation_configs:
+    description: Federation configuration for a network
+    type: object
+    minLength: 1
+    required:
+      - s6a
+      - hss
+      - gx
+      - gy
+      - swx
+      - eap_aka
+      - aaa_server
+      - served_network_ids
+      - health
+    properties:
+      s6a:
+        $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
+      hss:
+        $ref: '#/definitions/hss'
+      gx:
+        $ref: '#/definitions/gx'
+      gy:
+        $ref: '#/definitions/gy'
+      swx:
+        $ref: '#/definitions/swx'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
+      eap_aka:
+        $ref: '#/definitions/eap_aka'
+      aaa_server:
+        $ref: '#/definitions/aaa_server'
+      served_network_ids:
+        $ref: '#/definitions/served_network_ids'
+      health:
+        $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
+
+  eap_aka_timeouts:
+    type: object
+    properties:
+      challenge_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 20000
+        example: 20000
+      error_notification_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10000
+        example: 10000
+      session_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 43200000
+        example: 43200000
+      session_authenticated_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 5000
+        example: 5000
+
+  eap_sim_timeouts:
+    type: object
+    properties:
+      challenge_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 20000
+        example: 20000
+      error_notification_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10000
+        example: 10000
+      session_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 43200000
+        example: 43200000
+      session_authenticated_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 5000
+        example: 5000
+
+  diameter_client_configs:
+    description: Diameter Configuration of The Client
+    type: object
+    minLength: 1
+    properties:
+      protocol:
+        type: string
+        enum:
+        - tcp
+        - tcp4
+        - tcp6
+        - sctp
+        - sctp4
+        - sctp6
+        default: tcp
+        example: tcp
+        x-nullable: false
+      address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      retransmits:
+        type: integer
+        format: uint32
+        default: 3
+        x-nullable: false
+      watchdog_interval:
+        type: integer
+        format: uint32
+        default: 1
+        x-nullable: false
+      retry_count:
+        type: integer
+        format: uint32
+        default: 5
+        x-nullable: false
+      local_address:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        example: ":56789"
+        x-nullable: false
+      product_name:
+        type: string
+        minLength: 1
+        default: "magma"
+        x-nullable: false
+      realm:
+        type: string
+        minLength: 1
+        default: "magma.com"
+        x-nullable: false
+      host:
+        type: string
+        minLength: 1
+        default: "magma-fedgw.magma.com"
+        x-nullable: false
+      dest_realm:
+        type: string
+        example: "magma.com"
+        x-nullable: false
+      dest_host:
+        type: string
+        example: "magma-fedgw.magma.com"
+        x-nullable: false
+      disable_dest_host:
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
+      overwrite_dest_host:
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
+      request_timeout:
+        type: integer
+        format: uint32
+        default: 3
+        x-nullable: false
+
+  diameter_server_configs:
+    description: Diameter Configuration of The Server
+    type: object
+    minLength: 1
+    properties:
+      protocol:
+        type: string
+        enum:
+        - tcp
+        - tcp4
+        - tcp6
+        - sctp
+        - sctp4
+        - sctp6
+        default: tcp
+        example: tcp
+        x-nullable: false
+      address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      local_address:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        example: ":56789"
+        x-nullable: false
+      dest_realm:
+        type: string
+        example: "magma.com"
+        x-nullable: false
+      dest_host:
+        type: string
+        example: "magma-fedgw.magma.com"
+        x-nullable: false
+
+  sctp_client_configs:
+    description: SCTP Configuration of the CSFB service
+    type: object
+    properties:
+      server_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: "foo.bar.com:5555"
+        x-nullable: false
+      local_address:
+        type: string
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        example: ":56789"
+        x-nullable: false
+
+  virtual_apn_rule:
+    description: Virtual APN Rule configuration
+    type: object
+    properties:
+      apn_filter:
+        description: Regex to match APN values
+        type: string
+        example: ".*\\.magma.*"
+        x-nullable: false
+      charging_characteristics_filter:
+        description: Regex to match ChargingCharacteristics values
+        type: string
+        example: "12"
+        x-nullable: false
+      apn_overwrite:
+        description: New APN to overwrite when filter matches
+        type: string
+        example: "new.magma.apn"
+        x-nullable: false
+
+  subscription_profile:
+    description: HSS Subscription Profile
+    type: object
+    minLength: 1
+    properties:
+      max_ul_bit_rate:
+        type: integer
+        format: uint64
+        example: 100000000
+        x-nullable: false
+      max_dl_bit_rate:
+        type: integer
+        format: uint64
+        example: 200000000
+        x-nullable: false
+
+  federation_gateway:
+    type: object
+    description: Full description of a federation gateway
+    required:
+    - id
+    - name
+    - description
+    - magmad
+    - tier
+    - federation
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      registration_info:
+        $ref: './orc8r-swagger-common.yml#/definitions/registration_info'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      federation:
+        $ref: '#/definitions/gateway_federation_configs'
+      status:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+
+  mutable_federation_gateway:
+    type: object
+    description: Federation gateway object with read-only fields omitted
+    required:
+    - id
+    - name
+    - description
+    - magmad
+    - tier
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      federation:
+        $ref: '#/definitions/gateway_federation_configs'
+
+  gateway_federation_configs:
+    description: Federation configuration for a gateway
+    type: object
+    minLength: 1
+    required:
+      - s6a
+      - hss
+      - gx
+      - gy
+      - swx
+      - eap_aka
+      - aaa_server
+      - served_network_ids
+      - health
+    properties:
+      s6a:
+        $ref: '#/definitions/s6a'
+      s8:
+        $ref: '#/definitions/s8'
+      hss:
+        $ref: '#/definitions/hss'
+      gx:
+        $ref: '#/definitions/gx'
+      gy:
+        $ref: '#/definitions/gy'
+      swx:
+        $ref: '#/definitions/swx'
+      eap_aka:
+        $ref: '#/definitions/eap_aka'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
+      aaa_server:
+        $ref: '#/definitions/aaa_server'
+      served_network_ids:
+        $ref: '#/definitions/served_network_ids'
+      health:
+        $ref: '#/definitions/health'
+      csfb:
+        $ref: '#/definitions/csfb'
+      served_nh_ids:
+        $ref: '#/definitions/served_nh_ids'
+      nh_routes:
+        $ref: '#/definitions/nh_routes'
+
+  federated_network_configs:
+    description: Configs for networks that are federated
+    type: object
+    minLength: 1
+    required:
+      - feg_network_id
+    properties:
+      feg_network_id:
+        type: string
+        example: 'example_feg_network'
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
+
+  federation_network_cluster_status:
+    description: Status of a Federation HA cluster
+    type: object
+    required:
+      - active_gateway
+    properties:
+      active_gateway:
+        type: string
+        x-nullable: false
+        example: 'active_gatewayID'
+
+  federation_gateway_health_status:
+    description: Health status of a Federation Gateway
+    type: object
+    required:
+      - status
+      - description
+    properties:
+      status:
+        type: string
+        x-nullable: false
+        enum:
+        - "HEALTHY"
+        - "UNHEALTHY"
+      description:
+        type: string
+        x-nullable: false
+      service_status:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+
+  service_status_health:
+    description: health status of a specific
+    type: object
+    properties:
+      service_state:
+        type: string
+        enum:
+        - "AVAILABLE"
+        - "UNAVAILABLE"
+      health_status:
+        type: string
+        enum:
+        - "HEALTHY"
+        - "UNHEALTHY"
+
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    type: object
+    properties:
+      enabled:
+        description: If Enabled is false, mapping will not be applied
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
+      mapping:
+        type: array
+        items:
+          $ref: '#/definitions/mode_map_item'
+
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    type: object
+    properties:
+      mode:
+        type: string
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        x-nullable: false
+      plmn:
+        type: string
+        x-nullable: false
+        minLength: 5
+        maxLength: 6
+        pattern: '^(\d{5,6})$'
+        example: '123456'
+      imsi_range:
+        type: string
+        x-nullable: false
+        example: '000000000000000:000019999999999'
+      apn:
+        type: string
+        x-nullable: false
+        example: 'internet.com'

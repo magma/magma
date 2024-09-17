@@ -1,0 +1,59 @@
+# Copyright 2022 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# owner: @magma/approvers-infra
+# purpose: Generate comment with general information for a new PR
+# remediation: -
+
+name: PR Generate Hello
+on:
+  # Use pull_request_target to gain write permissions.
+  # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
+  pull_request_target:
+    types: [ opened ]
+
+jobs:
+  # This job is a manual approximation of https://github.com/peter-evans/create-or-update-comment
+  comment:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            var msg = `Thanks for opening a PR! :100:
+
+            [A couple initial guidelines](https://github.com/magma/magma/wiki/Contributing-Code#commit-and-pull-request-guidelines)
+            - All commits must be signed off. This is enforced by [\`PR DCO check\`](https://github.com/magma/magma/blob/master/.github/workflows/dco-check.yml).
+            - All PR titles must follow the semantic commits format. This is enforced by [\`PR Check Title Or Commit Message\`](https://github.com/magma/magma/blob/master/.github/workflows/semantic-pr.yml).
+
+            ### Howto
+            - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
+            - ***Checks.*** All required CI checks must pass before merge.
+            - ***Merge.*** Once approved and passing CI checks, use the [\`ready2merge\`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge your PR.
+
+            ### More info
+
+            Please take a moment to read through the Magma project's
+            - [Contributing Conventions](https://github.com/magma/magma/wiki/Contributing-Code-Conventions) for norms around contributed code
+
+            If this is your first Magma PR, also consider reading
+            - [Developer Onboarding](https://github.com/magma/magma/wiki/Contributor-Guide) for onboarding as a new Magma developer
+            - [Development Workflow](https://github.com/magma/magma/wiki/Contributing-Code#developing-workflow) for guidance on your first PR
+            - [CI Checks](https://github.com/magma/magma/wiki/Contributing-Code#continuous-integration-ci--continuous-deployment-cd) for points of contact for failing or flaky CI checks
+            - [Code Review Process](https://github.com/magma/magma/wiki/Contributing-Code#code-review-process) for information on requesting reviews and contacting maintainers`
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: msg,
+            })

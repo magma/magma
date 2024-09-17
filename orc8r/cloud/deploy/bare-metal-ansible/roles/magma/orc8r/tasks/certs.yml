@@ -1,0 +1,56 @@
+- name: orc8r | check if admin_operator.pem already exists
+  stat:
+    path: "{{ orc8r_certs_dir }}/admin_operator.pem"
+  register: admin_operator_stat
+
+- name: orc8r | create self signed certs if necessary
+  script: self_sign_certs.sh {{ orc8r_domain }}
+  args:
+    chdir: "{{ orc8r_certs_dir }}"
+  when: not admin_operator_stat.stat.exists
+
+- name: orc8r | create application certs if necessary
+  script: create_application_certs.sh {{ orc8r_domain }}
+  args:
+    chdir: "{{ orc8r_certs_dir }}"
+  register: create_app_certs
+  when: not admin_operator_stat.stat.exists
+
+- name: orc8r | generate orc8r secret from certs
+  shell: >-
+    kubectl -n {{ magma_namespace }} create secret generic orc8r-certs \
+    --from-file rootCA.pem \
+    --from-file controller.key \
+    --from-file controller.crt \
+    --from-file certifier.key \
+    --from-file certifier.pem \
+    --from-file bootstrapper.key \
+    --from-file admin_operator.pem \
+    --dry-run=client  \
+    -oyaml > orc8r-certs.yaml
+  args:
+    chdir: "{{ orc8r_certs_dir }}"
+
+- name: orc8r | generate fluentd secret from certs
+  shell: >-
+    kubectl -n {{ magma_namespace }} create secret generic fluentd-certs \
+    --from-file fluentd.key \
+    --from-file fluentd.pem \
+    --from-file certifier.pem \
+    --dry-run=client -oyaml > fluentd-certs.yaml
+  args:
+    chdir: "{{ orc8r_certs_dir }}"
+
+- name: orc8r | generate nms secrets from certs
+  shell: >-
+    kubectl -n {{ magma_namespace }} create secret generic nms-certs \
+    --from-file admin_operator.pem \
+    --from-file admin_operator.key.pem \
+    --from-file controller.key \
+    --from-file controller.crt \
+    --dry-run=client -oyaml > nms-certs.yaml
+  args:
+    chdir: "{{ orc8r_certs_dir }}"
+
+- name: orc8r | Create certs secrets in k8s
+  command: kubectl apply -f {{ orc8r_certs_dir }}

@@ -1,0 +1,243 @@
+# Copyright 2022 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@python_deps//:requirements.bzl", "requirement")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_mklink")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//bazel:deb_build.bzl", "PY_DEST")
+load("//bazel:runfiles.bzl", "expand_runfiles")
+load("//bazel:test_constants.bzl", "TAG_UTIL_SCRIPT")
+
+SCRIPTS = [
+    "checkin_cli",
+    "ctraced_cli",
+    "directoryd_cli",
+    "generate_fluent_bit_config",
+    "generate_lighttpd_config",
+    "generate_nghttpx_config",
+    "generate_service_config",
+    "health_cli",
+    "magma_conditional_service",
+    "magma_get_config",
+    "magmad_cli",
+    "service303_cli",
+    "service_util",
+    "show_gateway_info",
+    "traffic_cli",
+]
+
+expand_runfiles(
+    name = "scripts_expanded",
+    tags = ["no-cache"],
+    targets = [":{script}".format(script = script) for script in SCRIPTS],
+)
+
+[
+    pkg_mklink(
+        name = "{script}_symlink".format(script = script),
+        link_name = "/usr/local/bin/{script}.py".format(script = script),
+        tags = ["no-cache"],
+        target = "{dest}/scripts/{script}.py".format(
+            dest = PY_DEST,
+            script = script,
+        ),
+    )
+    for script in SCRIPTS
+]
+
+pkg_filegroup(
+    name = "magma_orc8r_scripts",
+    srcs = [":scripts_expanded"] +
+           ["{script}_symlink".format(script = script) for script in SCRIPTS],
+    prefix = PY_DEST,
+    tags = ["no-cache"],
+    visibility = ["//lte/gateway/release:__pkg__"],
+)
+
+MAGMA_ROOT = "../../../../"
+
+ORC8R_ROOT = "{}orc8r/gateway/python".format(MAGMA_ROOT)
+
+py_binary(
+    name = "checkin_cli",
+    srcs = ["checkin_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//orc8r/gateway/python/magma/common:cert_utils",
+        "//orc8r/gateway/python/magma/common:cert_validity",
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:service303_python_proto",
+        "//orc8r/protos:state_python_grpc",
+        requirement("snowflake"),
+    ],
+)
+
+py_binary(
+    name = "ctraced_cli",
+    srcs = ["ctraced_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:ctraced_python_grpc",
+    ],
+)
+
+py_binary(
+    name = "directoryd_cli",
+    srcs = ["directoryd_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:directoryd_python_grpc",
+        requirement("grpcio"),
+    ],
+)
+
+py_binary(
+    name = "generate_fluent_bit_config",
+    srcs = ["generate_fluent_bit_config.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [":generate_service_config"],
+)
+
+py_binary(
+    name = "generate_lighttpd_config",
+    srcs = ["generate_lighttpd_config.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        ":generate_service_config",
+        "//orc8r/gateway/python/magma/common:misc_utils",
+    ],
+)
+
+py_binary(
+    name = "generate_nghttpx_config",
+    srcs = ["generate_nghttpx_config.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    deps = [
+        ":generate_service_config",
+        "//orc8r/gateway/python/magma/configuration:environment",
+    ],
+)
+
+py_binary(
+    name = "generate_service_config",
+    srcs = ["generate_service_config.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:serialization_utils",
+        "//orc8r/gateway/python/magma/configuration:mconfig_managers",
+        "//orc8r/gateway/python/magma/configuration:service_configs",
+        requirement("jinja2"),
+    ],
+)
+
+py_binary(
+    name = "health_cli",
+    srcs = ["health_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common/health:docker_health_service",
+        requirement("fire"),
+    ],
+)
+
+py_binary(
+    name = "magma_conditional_service",
+    srcs = ["magma_conditional_service.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = ["//orc8r/gateway/python/magma/configuration:mconfig_managers"],
+)
+
+py_binary(
+    name = "magma_get_config",
+    srcs = ["magma_get_config.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "magmad_cli",
+    srcs = ["magmad_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:magmad_python_grpc",
+        "//orc8r/protos:mconfig_python_proto",
+        requirement("protobuf"),
+    ],
+)
+
+py_binary(
+    name = "service303_cli",
+    srcs = ["service303_cli.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:rpc_utils",
+        "//orc8r/protos:service303_python_grpc",
+    ],
+)
+
+py_binary(
+    name = "service_util",
+    srcs = ["service_util.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = ["//orc8r/gateway/python/magma/common/health:service_state_wrapper"],
+)
+
+py_binary(
+    name = "show_gateway_info",
+    srcs = ["show_gateway_info.py"],
+    imports = [ORC8R_ROOT],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//orc8r/gateway/python/magma/common:cert_utils",
+        requirement("snowflake"),
+    ],
+)
+
+py_binary(
+    name = "traffic_cli",
+    srcs = ["traffic_cli.py"],
+    legacy_create_init = False,
+    tags = TAG_UTIL_SCRIPT,
+    visibility = ["//visibility:public"],
+)

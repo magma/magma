@@ -1,0 +1,21 @@
+image:
+  repository: "docker.elastic.co/kibana/kibana-oss"
+  tag: "7.1.1"
+  pullPolicy: "IfNotPresent"
+
+env:
+  LOGGING_VERBOSE: "false"
+
+files:
+  kibana.yml:
+    ## Default Kibana configuration from kibana-docker.
+    server.name: kibana
+    server.host: "0"
+    ## For kibana < 6.6, use elasticsearch.url instead
+    elasticsearch.hosts: http://elasticsearch-client:9200
+
+dashboardImport:
+  enabled: true
+  timeout: 60
+  dashboards:
+    k8s: https://raw.githubusercontent.com/monotek/kibana-dashboards/master/k8s-fluentd-elasticsearch.json

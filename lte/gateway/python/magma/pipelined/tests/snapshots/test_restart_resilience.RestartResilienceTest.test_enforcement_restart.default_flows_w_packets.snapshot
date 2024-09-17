@@ -1,0 +1,2 @@
+ cookie=0xfffffffffffffffe, table=enforcement(main_table), n_packets=3840, n_bytes=130560, priority=0 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0xfffffffffffffffe, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=0 actions=drop

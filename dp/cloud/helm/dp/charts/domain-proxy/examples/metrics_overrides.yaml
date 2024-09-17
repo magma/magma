@@ -1,0 +1,14 @@
+---
+# dp chart
+dp:
+  grafana:
+    enabled: true
+    persistdata:
+      enabled: true
+      volumeSpec:
+        hostPath:
+          path: /var/lib/dp-grafana
+          type: DirectoryOrCreate
+# orc8r metrics subchart
+metrics:
+  enabled: true

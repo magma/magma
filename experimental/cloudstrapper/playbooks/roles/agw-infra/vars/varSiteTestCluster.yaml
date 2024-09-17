@@ -1,0 +1,12 @@
+---
+
+#Parameters for Cupertino Site Networking
+
+cidrVpc: 10.3.0.0/16
+cidrSgi: 10.3.4.0/24
+cidrEnodeb: 10.3.2.0/24
+cidrBridge: 10.3.6.0/24
+azHome: "{{ awsAgwAz }}"
+secGroup: "{{ secgroupDefault }}"
+sshKey: "{{ keyHost }}"
+siteName: TestCluster

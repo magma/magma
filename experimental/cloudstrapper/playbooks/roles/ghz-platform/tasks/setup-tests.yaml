@@ -1,0 +1,71 @@
+---
+- name: Install packages to allow apt to use a repository over HTTPS
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - software-properties-common
+      - python3-pip
+      - lsb-release
+
+- name: Copy docker gpg key from codebase
+  ansible.builtin.copy:
+    src: docker.asc
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+  become: true
+
+- name: Add the focal repository for Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install the latest version of Docker CE
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+
+- name: copy redis conf template
+  copy:
+    remote_src: true
+    src: "{{ MAGMA_ROOT }}/orc8r/gateway/configs/templates/redis.conf.template"
+    dest: "{{ MAGMA_ROOT }}/lte/gateway/configs/templates/"
+  become: true
+
+- name: apply changes to pipelined config
+  replace:
+    path: "{{ MAGMA_ROOT }}/lte/gateway/configs/pipelined.yml"
+    regexp: "^dp_router_enabled: true$"
+    replace: "dp_router_enabled: false"
+  become: true
+
+- name: Add docker artifactory
+  replace:
+    path: "{{ MAGMA_ROOT }}/lte/gateway/docker/ghz/.env"
+    regexp: "^DOCKER_REGISTRY=$"
+    replace: "DOCKER_REGISTRY={{docker_repo}}"
+  become: true
+
+- name: Add docker tag
+  replace:
+    path: "{{ MAGMA_ROOT }}/lte/gateway/docker/ghz/.env"
+    regexp: "^IMAGE_VERSION=latest$"
+    replace: "IMAGE_VERSION={{tag}}"
+  become: true
+
+- name: bring up docker agw services
+  docker_compose:
+    project_src: "{{ GHZ_PATH }}"
+    files: docker-compose.yaml # avoid using .override.yaml

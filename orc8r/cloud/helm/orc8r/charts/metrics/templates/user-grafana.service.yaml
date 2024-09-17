@@ -1,0 +1,50 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- if .Values.userGrafana.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-user-grafana
+  labels:
+    app.kubernetes.io/component: user-grafana
+{{ include "metrics.labels" . | indent 4 }}
+    {{- with .Values.userGrafana.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.userGrafana.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: user-grafana
+{{ include "selector-labels" . | indent 4 }}
+  type: {{ .Values.userGrafana.service.type }}
+  ports:
+{{- range $port := .Values.userGrafana.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- if eq .Values.userGrafana.service.type "LoadBalancer" }}
+  {{- if .Values.userGrafana.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.userGrafana.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.userGrafana.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.userGrafana.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end }}

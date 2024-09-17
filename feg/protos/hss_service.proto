@@ -1,0 +1,51 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "lte/protos/subscriberdb.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// HSS configuration service definition.
+// --------------------------------------------------------------------------
+service HSSConfigurator {
+  // Adds a new subscriber to the store.
+  // Throws ALREADY_EXISTS if the subscriber already exists.
+  //
+  rpc AddSubscriber (lte.SubscriberData) returns (orc8r.Void) {}
+
+  // Deletes an existing subscriber.
+  // If the subscriber is not already present, this request is ignored.
+  //
+  rpc DeleteSubscriber (lte.SubscriberID) returns (orc8r.Void) {}
+
+  // Updates an existing subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc UpdateSubscriber (lte.SubscriberUpdate) returns (orc8r.Void) {}
+
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc GetSubscriberData (lte.SubscriberID) returns (lte.SubscriberData) {}
+
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (orc8r.Void) returns (lte.SubscriberIDSet) {}
+
+  // De-register an authenticated subscriber
+  rpc DeregisterSubscriber (lte.SubscriberID) returns (orc8r.Void) {}
+}

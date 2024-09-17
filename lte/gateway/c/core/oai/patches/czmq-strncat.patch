@@ -1,0 +1,25 @@
+diff --git a/src/zuuid.c b/src/zuuid.c
+index c4502fdf..35daf9f2 100644
+--- a/src/zuuid.c
++++ b/src/zuuid.c
+@@ -213,15 +213,15 @@ zuuid_str_canonical (zuuid_t *self)
+     if (!self->str_canonical)
+         self->str_canonical = (char *) zmalloc (8 + 4 + 4 + 4 + 12 + 5);
+     *self->str_canonical = 0;
+-    strncat (self->str_canonical, self->str, 8);
++    memcpy (self->str_canonical, self->str, 8);
+     strcat  (self->str_canonical, "-");
+-    strncat (self->str_canonical, self->str + 8, 4);
++    memcpy (self->str_canonical, self->str + 8, 4);
+     strcat  (self->str_canonical, "-");
+-    strncat (self->str_canonical, self->str + 12, 4);
++    memcpy (self->str_canonical, self->str + 12, 4);
+     strcat  (self->str_canonical, "-");
+-    strncat (self->str_canonical, self->str + 16, 4);
++    memcpy (self->str_canonical, self->str + 16, 4);
+     strcat  (self->str_canonical, "-");
+-    strncat (self->str_canonical, self->str + 20, 12);
++    memcpy (self->str_canonical, self->str + 20, 12);
+ 
+     int char_nbr;
+     for (char_nbr = 0; char_nbr < 36; char_nbr++)
