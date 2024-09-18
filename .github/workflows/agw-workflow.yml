@@ -63,7 +63,7 @@ jobs:
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11.1.0
+          clangFormatVersion: 11.0.0
           # taken from .clang-format
           style: file
       - name: Check clang-format for lte/gateway
@@ -71,7 +71,7 @@ jobs:
         with:
           source: 'lte/gateway/c lte/gateway/python'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11.1.0
+          clangFormatVersion: 11.0.0
           # taken from .clang-format
           style: file
 
